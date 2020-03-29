@@ -1,0 +1,32 @@
+{
+  "name": "@aws-pbmm/common-lambda",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test": "pnpx jest"
+  },
+  "main": "lib/index.ts",
+  "files": [
+    "lib"
+  ],
+  "devDependencies": {
+    "@types/archiver": "^3.1.0",
+    "@types/jest": "^25.1.4",
+    "@types/node": "^13.9.4",
+    "aws-sdk": "^2.646.0",
+    "babel-jest": "^25.2.0",
+    "jest": "^25.2.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^25.2.1",
+    "ts-node": "^8.8.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "archiver": "^3.1.1",
+    "tempy": "^0.5.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "name": "@aws-pbmm/initial-setup-cdk",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test": "pnpx jest"
+  },
+  "main": "src/index.ts",
+  "files": [
+    "src/**"
+  ],
+  "devDependencies": {
+    "@types/archiver": "^3.1.0",
+    "@types/glob": "^7.1.1",
+    "@types/node": "^13.9.4",
+    "prettier": "^1.19.1",
+    "ts-node": "^8.8.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-cloudformation": "^1.31.0",
+    "@aws-cdk/aws-codebuild": "^1.31.0",
+    "@aws-cdk/aws-codecommit": "^1.31.0",
+    "@aws-cdk/aws-codepipeline": "^1.31.0",
+    "@aws-cdk/aws-codepipeline-actions": "^1.31.0",
+    "@aws-cdk/aws-events": "^1.31.0",
+    "@aws-cdk/aws-events-targets": "^1.31.0",
+    "@aws-cdk/aws-iam": "^1.31.0",
+    "@aws-cdk/aws-kms": "^1.31.0",
+    "@aws-cdk/aws-lambda": "^1.31.0",
+    "@aws-cdk/aws-s3": "^1.31.0",
+    "@aws-cdk/aws-s3-assets": "^1.31.0",
+    "@aws-cdk/aws-sns": "^1.31.0",
+    "@aws-cdk/aws-stepfunctions": "^1.31.0",
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.31.0",
+    "@aws-cdk/core": "^1.31.0",
+    "@aws-pbmm/common-cdk": "workspace:^0.0.1",
+    "@aws-pbmm/common-lambda": "workspace:^0.0.1",
+    "archiver": "^3.1.1",
+    "glob": "^7.1.6",
+    "tempy": "^0.5.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}

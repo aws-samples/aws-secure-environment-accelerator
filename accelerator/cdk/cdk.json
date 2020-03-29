@@ -1,0 +1,7 @@
+{
+  "app": "pnpx ts-node src/index.ts",
+  "context": {
+    "accelerator": "PBMM",
+    "prefix": "PBMMAccel-"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@aws-pbmm/common-cdk",
+  "version": "0.0.1",
+  "private": true,
+  "main": "lib/index.ts",
+  "files": [
+    "lib"
+  ],
+  "devDependencies": {
+    "@types/jest": "^25.1.4",
+    "@types/node": "^13.9.4",
+    "babel-jest": "^25.2.0",
+    "jest": "^25.2.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^25.2.1",
+    "ts-node": "^8.8.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-ec2": "^1.31.0",
+    "@aws-cdk/aws-events": "^1.31.0",
+    "@aws-cdk/aws-events-targets": "^1.31.0",
+    "@aws-cdk/aws-iam": "^1.31.0",
+    "@aws-cdk/aws-lambda": "^1.31.0",
+    "@aws-cdk/aws-s3": "^1.31.0",
+    "@aws-cdk/aws-s3-assets": "^1.31.0",
+    "@aws-cdk/aws-sns": "^1.31.0",
+    "@aws-cdk/aws-stepfunctions": "^1.31.0",
+    "@aws-cdk/aws-stepfunctions-tasks": "^1.31.0",
+    "@aws-cdk/core": "^1.31.0",
+    "@types/js-yaml": "^3.12.3",
+    "js-yaml": "^3.13.1",
+    "tempy": "^0.5.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
