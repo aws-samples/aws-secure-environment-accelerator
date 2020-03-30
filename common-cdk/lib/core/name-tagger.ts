@@ -3,48 +3,65 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as kms from '@aws-cdk/aws-kms';
 
-export class AcceleratorNameTagger implements cdk.IAspect {
-  static readonly NAME_TAG = 'Name';
+type Action = (value: any) => boolean;
 
-  static readonly SUFFIXES: { [suffix: string]: (value: any) => value is cdk.ITaggable } = {
-    '_vpc': is(ec2.CfnVPC),
-    '_net': is(ec2.CfnSubnet),
-    '_rt': is(ec2.CfnRouteTable),
-    '_tgw': is(ec2.CfnTransitGateway),
-    '_pcx': is(ec2.CfnVPCPeeringConnection),
-    '_sg': is(ec2.CfnSecurityGroup),
-    '_nacl': is(ec2.CfnNetworkAcl),
-    '_dhcp': is(ec2.CfnDHCPOptions),
-    '_ebs': is(ec2.CfnVolume),
-    '_igw': is(ec2.CfnInternetGateway),
-    '_ngw': is(ec2.CfnNatGateway),
-    '_vpg': is(ec2.CfnVPNGateway),
-    '_cgw': is(ec2.CfnCustomerGateway),
-    '_vpn': is(ec2.CfnVPNConnection),
-    '_key': is(kms.CfnKey),
-    '_alb': (value: any): value is elb.CfnLoadBalancer => value instanceof elb.CfnLoadBalancer && value.type === 'application',
-    '_nlb': (value: any): value is elb.CfnLoadBalancer => value instanceof elb.CfnLoadBalancer && value.type === 'network',
-    // '_ami'
-    // '_snap'
-    // '_agw'
-    // '_nvpce': is(ec2.CfnVPCEndpoint),
-    // '_lgw': is(ec2.CfnLocalGatewayRouteTableVPCAssociation),
-  };
-
-  visit(node: cdk.IConstruct): void {
-    for (const suffix in AcceleratorNameTagger.SUFFIXES) {
-      const condition = AcceleratorNameTagger.SUFFIXES[suffix];
-      if (condition(node)) {
-        node.tags.setTag(AcceleratorNameTagger.NAME_TAG, `${node.node.id}${suffix}`);
-      }
-    }
-  }
-}
-
+/**
+ * Auxiliary interface to allow types as a method parameter.
+ */
 interface Type<T> extends Function {
   new(...args: any[]): T;
 }
 
-function is<T extends cdk.ITaggable>(clazz: Type<T>): (value: any) => value is T {
-  return (value: any): value is T => value instanceof clazz;
+const NAME_TAG = 'Name';
+
+function addNameTagAsIdWithSuffix<T extends cdk.Construct>(type: Type<T>, suffix: string, tagPriority: number = 100): Action {
+  return (value: any) => {
+    if (value instanceof type) {
+      const id = value.node.id;
+      const name = id.endsWith(suffix) ? id : `${id}${suffix}`; // Only add the suffix if it isn't there yet
+      value.node.applyAspect(new cdk.Tag(NAME_TAG, name, {
+        priority: tagPriority,
+      }));
+      return true;
+    }
+    return false;
+  };
+}
+
+export class AcceleratorNameTagger implements cdk.IAspect {
+  // Non-CFN constructs have a tag with higher priority so that the non-CFN construct tag will get priority over the CFN construct tag
+  static readonly ACTIONS: Action[] = [
+    addNameTagAsIdWithSuffix(ec2.Vpc, '_vpc', 200),
+    addNameTagAsIdWithSuffix(ec2.CfnVPC, '_vpc', 100),
+    addNameTagAsIdWithSuffix(ec2.Subnet, '_net', 200),
+    addNameTagAsIdWithSuffix(ec2.CfnSubnet, '_net', 100),
+    addNameTagAsIdWithSuffix(ec2.CfnRouteTable, '_rt'),
+    addNameTagAsIdWithSuffix(ec2.CfnTransitGateway, '_tgw'),
+    addNameTagAsIdWithSuffix(ec2.CfnVPCPeeringConnection, '_pcx'),
+    addNameTagAsIdWithSuffix(ec2.SecurityGroup, '_sg', 200),
+    addNameTagAsIdWithSuffix(ec2.CfnSecurityGroup, '_sg', 100),
+    addNameTagAsIdWithSuffix(ec2.NetworkAcl, '_nacl', 200),
+    addNameTagAsIdWithSuffix(ec2.CfnNetworkAcl, '_nacl', 100),
+    addNameTagAsIdWithSuffix(ec2.CfnDHCPOptions, '_dhcp'),
+    addNameTagAsIdWithSuffix(ec2.CfnVolume, '_ebs'),
+    addNameTagAsIdWithSuffix(ec2.CfnInternetGateway, '_igw'),
+    addNameTagAsIdWithSuffix(ec2.CfnNatGateway, '_ngw'),
+    addNameTagAsIdWithSuffix(ec2.CfnVPNGateway, '_vpg'),
+    addNameTagAsIdWithSuffix(ec2.CfnCustomerGateway, '_cgw'),
+    addNameTagAsIdWithSuffix(ec2.VpnConnection, '_vpn', 200),
+    addNameTagAsIdWithSuffix(ec2.CfnVPNConnection, '_vpn', 100),
+    addNameTagAsIdWithSuffix(kms.Key, '_key', 200),
+    addNameTagAsIdWithSuffix(kms.CfnKey, '_key', 100),
+    addNameTagAsIdWithSuffix(elb.ApplicationLoadBalancer, '_alb', 200),
+    addNameTagAsIdWithSuffix(elb.NetworkLoadBalancer, '_nlb', 200),
+  ];
+
+  visit(node: cdk.IConstruct): void {
+    for (const action of AcceleratorNameTagger.ACTIONS) {
+      if (action(node)) {
+        // Break to only apply the first action that matches
+        break;
+      }
+    }
+  }
 }
