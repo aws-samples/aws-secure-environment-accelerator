@@ -7,7 +7,8 @@ export class AcceleratorNameTagger implements cdk.IAspect {
   static readonly NAME_TAG = 'Name';
 
   static readonly SUFFIXES: { [suffix: string]: (value: any) => value is cdk.ITaggable } = {
-    '_vpc': is(ec2.CfnVPCPeeringConnection),
+    '_vpc': is(ec2.CfnVPC),
+    '_net': is(ec2.CfnSubnet),
     '_rt': is(ec2.CfnRouteTable),
     '_tgw': is(ec2.CfnTransitGateway),
     '_pcx': is(ec2.CfnVPCPeeringConnection),
