@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
-import { VPC } from '../../../../common-cdk/lib/VPC';
-import { TransitGateway, TransitGatewayProps } from '../../../../common-cdk/lib/TransitGateway';
-import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../../../../common-cdk/lib/TransitGatewayAttachment';
+import { VPC } from '../common/VPC';
+import { TransitGateway, TransitGatewayProps } from '../common/TransitGateway';
+import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/TransitGatewayAttachment';
 
 function prepareTransitGatewayProps(tgwConfig:any): TransitGatewayProps{
   let tgwProps:any = {
