@@ -18,7 +18,7 @@ const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
 (async () => {
   const secrets = new SecretsManager();
   const configSecret = await secrets.getSecret(ACCELERATOR_SECRET_NAME);
-  const config = JSON.parse(configSecret.SecretString!!) as AcceleratorConfig; // TODO Use a library like io-ts to parse the configuration file
+  const config = AcceleratorConfig.fromString(configSecret.SecretString!!);
 
   const app = new cdk.App();
 

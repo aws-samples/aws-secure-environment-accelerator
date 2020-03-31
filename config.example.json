@@ -74,7 +74,7 @@
         "deploy": "local",
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": {
@@ -82,11 +82,12 @@
         },
         "vgw": true,
         "pcx": false,
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -213,8 +214,8 @@
           "instance-sizes": "c5n.2xl",
           "azs": {
             "count": 2,
-            "az1": "1a",
-            "az2": "1b"
+            "az1": "a",
+            "az2": "b"
           },
           "eni": {
             "count": 4,
@@ -259,7 +260,7 @@
         "deploy": "shared",
         "source": "shared-network",
         "name": "Central",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "subnets": [
           "Web",
           "GCWide",
@@ -301,17 +302,18 @@
         "deploy": "local",
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -444,7 +446,7 @@
         "deploy": "local",
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": false,
         "log-retention": 90,
         "igw": false,
@@ -454,11 +456,12 @@
           "vpc": "Central",
           "subnets": "GCWide"
         },
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -492,7 +495,7 @@
           }
         ],
         "tgw-attach": {
-          "associate-to": false
+          "associate-to-tgw": false
         },
         "interface-endpoints": false
       },
@@ -510,7 +513,7 @@
         "name": "Central",
         "cidr": "10.1.0.0/16",
         "cidr2": "100.96.252.0/23",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -520,11 +523,12 @@
           "vpc": "ForSSO",
           "subnets": "ForSSO"
         },
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -702,17 +706,18 @@
         "deploy": "shared-network",
         "name": "Dev",
         "cidr": "10.2.0.0/16",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -850,17 +855,18 @@
         "deploy": "shared-network",
         "name": "Test",
         "cidr": "10.3.0.0/16",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -998,17 +1004,18 @@
         "deploy": "shared-network",
         "name": "Prod",
         "cidr": "10.4.0.0/16",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -1146,17 +1153,18 @@
         "deploy": "shared-network",
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
+        "natgw": false,
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
@@ -1294,7 +1302,7 @@
         "deploy": "local",
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
         "igw": {
@@ -1309,9 +1317,9 @@
         },
         "azs": {
           "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
+          "az1": "a",
+          "az2": "b",
+          "az3": "d"
         },
         "subnets": [
           {
