@@ -13,5 +13,9 @@
   },
   "include": [
     "lib/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts"
   ]
 }
