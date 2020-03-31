@@ -1,18 +1,26 @@
 {
   "global-options": {
+    "alz-minimum-version": "v2.3.1",
+    "central-log-retention": 730,
     "zones": {
-      "public": {
-        "name": "dept.cloud-nuage.canada.ca",
-        "outbound-resolvers-ips": [
-          "7.0.0.1",
-          "7.0.0.2"
+      "account": "shared-network",
+      "names": {
+        "public": [
+          "dept.cloud-nuage.canada.ca"
+        ],
+        "private": [
+          "dept.cloud-nuage.gc.ca"
+        ],
+        "on-premise": [
+          "dept.gc.ca"
         ]
       },
-      "private": {
-        "name": "dept.cloud-nuage.gc.ca",
-        "outbound-resolvers-ips": [
-          "7.0.0.1",
-          "7.0.0.2"
+      "resolvers": {
+        "vpc": "Endpoint",
+        "subnet": "Endpoint",
+        "outbound-ips": [
+          "7.23.0.1",
+          "7.26.0.2"
         ]
       }
     },
@@ -25,14 +33,16 @@
     "accounts": {
       "mandatory": [
         "perimeter",
-        "sharednetwork",
+        "shared-network",
         "operations"
       ]
     },
     "ou": {
-      "mandatory": [
-        "central",
+      "ignore": [
         "core"
+      ],
+      "mandatory": [
+        "central"
       ],
       "additional": [
         "sandbox",
@@ -65,10 +75,13 @@
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
         "region": "ca-central",
-        "igw": true,
-        "vgw": {
-          "otherparameters": "TBD"
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": {
+          "subnet": "Public"
         },
+        "vgw": true,
+        "pcx": false,
         "azs": {
           "count": 2,
           "az1": "1a",
@@ -122,7 +135,7 @@
           }
         ],
         "gateway-endpoints": [
-          "S3"
+          "s3"
         ],
         "route-tables": [
           {
@@ -191,8 +204,9 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": "None"
-        }
+          "associate-to-tgw": false
+        },
+        "interface-endpoints": false
       },
       "deployments": {
         "firewall": {
@@ -221,7 +235,7 @@
             "rt-associate": [
               "core"
             ],
-            "rt-propagate": [
+            "rt-propogate": [
               "core",
               "segregated",
               "shared",
@@ -256,6 +270,7 @@
       },
       "deployments": {
         "mad": {
+          "deploy": true,
           "subnet": "GCWide",
           "size": "enterprise",
           "restrict_srcips": [
@@ -264,10 +279,13 @@
           ]
         },
         "ops-dashboard": {
+          "deploy": true
         },
         "syslog": {
+          "deploy": true
         },
         "rdweb-pwd": {
+          "deploy": true,
           "restrict_srcips": [
             "7.0.0.0/8",
             "10.0.0.0/8"
@@ -284,6 +302,11 @@
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
         "region": "ca-central",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
         "azs": {
           "count": 2,
           "az1": "1a",
@@ -320,7 +343,7 @@
           "tgw-rt-associate": [
             "core"
           ],
-          "tgw-rt-propagate": [
+          "tgw-rt-propogate": [
             "core",
             "segregated",
             "shared",
@@ -397,10 +420,13 @@
         "tgw": {
           "name": "Main",
           "asn": 64512,
-          "features": [
-            "DNS-support",
-            "VPN-ECMP-support"
-          ],
+          "features": {
+            "DNS-support": true,
+            "VPN-ECMP-support": true,
+            "Default-route-table-association": false,
+            "Default-route-table-propagation": false,
+            "Auto-accept-sharing-attachments": false
+          },
           "route-tables": [
             "core",
             "segregated",
@@ -419,10 +445,14 @@
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
         "region": "ca-central",
+        "flow-logs": false,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
         "pcx": {
           "source": "shared-network",
           "vpc": "Central",
-          "subnets": ["GCWide"]
+          "subnets": "GCWide"
         },
         "azs": {
           "count": 2,
@@ -453,18 +483,23 @@
             "name": "default",
             "routes": [
               {
-                "destination": "shared-Network-Central-GCWide-CIDR",
+                "destination": {
+                  "shared-Network-Central-GCWide-CIDR": null
+                },
                 "target": "pcx-shared-network-Central"
               }
             ]
           }
         ],
         "tgw-attach": {
-          "associate-to": "None"
-        }
+          "associate-to": false
+        },
+        "interface-endpoints": false
       },
       "deployments": {
-        "sso": {}
+        "sso": {
+          "deploy": true
+        }
       }
     }
   },
@@ -476,10 +511,14 @@
         "cidr": "10.1.0.0/16",
         "cidr2": "100.96.252.0/23",
         "region": "ca-central",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
         "pcx": {
           "source": "master",
           "vpc": "ForSSO",
-          "subnets": ["ForSSO"]
+          "subnets": "ForSSO"
         },
         "azs": {
           "count": 2,
@@ -586,8 +625,8 @@
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -641,7 +680,7 @@
           "tgw-rt-associate": [
             "shared"
           ],
-          "tgw-rt-propagate": [
+          "tgw-rt-propogate": [
             "core",
             "shared",
             "segregated"
@@ -654,7 +693,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "dev": {
@@ -663,6 +703,11 @@
         "name": "Dev",
         "cidr": "10.2.0.0/16",
         "region": "ca-central",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
         "azs": {
           "count": 2,
           "az1": "1a",
@@ -752,8 +797,8 @@
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -784,7 +829,7 @@
           "tgw-rt-associate": [
             "segregated"
           ],
-          "tgw-rt-propagate": [
+          "tgw-rt-propogate": [
             "core",
             "shared"
           ],
@@ -796,7 +841,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "test": {
@@ -805,6 +851,11 @@
         "name": "Test",
         "cidr": "10.3.0.0/16",
         "region": "ca-central",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
         "azs": {
           "count": 2,
           "az1": "1a",
@@ -894,8 +945,8 @@
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -926,7 +977,7 @@
           "tgw-rt-associate": [
             "segregated"
           ],
-          "tgw-rt-propagate": [
+          "tgw-rt-propogate": [
             "core",
             "shared"
           ],
@@ -938,7 +989,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "prod": {
@@ -947,6 +999,11 @@
         "name": "Prod",
         "cidr": "10.4.0.0/16",
         "region": "ca-central",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
         "azs": {
           "count": 2,
           "az1": "1a",
@@ -1036,8 +1093,8 @@
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -1068,7 +1125,7 @@
           "tgw-rt-associate": [
             "segregated"
           ],
-          "tgw-rt-propagate": [
+          "tgw-rt-propogate": [
             "core",
             "shared"
           ],
@@ -1080,7 +1137,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "unclass": {
@@ -1089,6 +1147,11 @@
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
         "region": "ca-central",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
         "azs": {
           "count": 2,
           "az1": "1a",
@@ -1178,8 +1241,8 @@
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -1210,7 +1273,7 @@
           "tgw-rt-associate": [
             "segregated"
           ],
-          "tgw-rt-propagate": [
+          "tgw-rt-propogate": [
             "core",
             "shared"
           ],
@@ -1222,7 +1285,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "sandbox": {
@@ -1231,9 +1295,15 @@
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
         "region": "ca-central",
-        "igw": true,
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": {
+          "subnet": "Web"
+        },
+        "vgw": false,
+        "pcx": false,
         "natgw": {
-          "Subnets": [
+          "subnets": [
             "Web_az1"
           ]
         },
@@ -1334,8 +1404,9 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": "None"
-        }
+          "associate-to-tgw": false
+        },
+        "interface-endpoints": false
       }
     }
   }
