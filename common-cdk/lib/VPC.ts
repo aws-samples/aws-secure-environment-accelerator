@@ -2,50 +2,37 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 
 export class VPC extends cdk.Construct{
+  readonly vpc: ec2.CfnVPC;
   constructor(parent: cdk.Construct, name: string, props: any){
     super(parent, name)
-    var vpcName = `${props.name}_vpc`;
-    var igw, igw_attach, vgw, vgw_attach;
+    let vpcName = props.name;
+    let igw, igw_attach, vgw, vgw_attach;
     // Create Custom VPC using CFN Cunstruct as tags overide option not available in default Cunstruct
-    const vpc = new ec2.CfnVPC(this, vpcName , {
-      cidrBlock: props.cidr,
-      tags:[
-        {
-          key: 'Name',
-          value: vpcName
-        }
-      ]
+    this.vpc = new ec2.CfnVPC(this, vpcName , {
+      cidrBlock: props.cidr
+    });
+
+    new cdk.CfnOutput(this, 'vpcId', {
+      value: this.vpc.ref,
+      exportName: 'ExportedVpcId'
     });
 
     if (props["igw"]){ // Create IGW
-      igw = new ec2.CfnInternetGateway(this, `${props.name}_igw`, {
-        tags:[
-          {
-            key: "Name",
-            value: `${props.name}_igw`
-          }
-        ]
-      });
+      igw = new ec2.CfnInternetGateway(this, `${vpcName}_igw`);
       // Attach IGW to VPC
       igw_attach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_igw`, {
-        vpcId: vpc.ref,
+        vpcId: this.vpc.ref,
         internetGatewayId: igw.ref
       });
     }
 
-    if ("vgw" in props && props["vgw"].create == "Yes"){ // Create VGW
+    if ("vgw" in props && props["vgw"].create === "Yes"){ // Create VGW
       vgw = new ec2.CfnVPNGateway(this, `${props.name}_vgw`, {
-        type: "ipsec.1",
-        tags:[
-          {
-            key: "Name",
-            value: `${props.name}_vgw`
-          }
-        ]
+        type: "ipsec.1"
       });
       // Attach VGW to VPC
       vgw_attach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_vgw`, {
-        vpcId: vpc.ref,
+        vpcId: this.vpc.ref,
         vpnGatewayId: vgw.ref
       });
     }
@@ -53,38 +40,34 @@ export class VPC extends cdk.Construct{
     let routeTables = new Map();
     
     if("route-tables" in props){ // Create Route Tables
-      for(let count=0; count < props["route-tables"].length; count++){
-        if ( props["route-tables"][count].name == "default"){
+      const routeTablesProps  = props['route-tables'];
+      for(let count=0; count < routeTablesProps.length; count++){
+        if ( routeTablesProps[count].name === "default"){
           continue;
         }
-        var routeTableName = `${props["route-tables"][count].name}_rt`;
-        var routeTable = new ec2.CfnRouteTable(this, routeTableName, {
-          vpcId: vpc.ref,
-          tags:[
-            {
-              key: "Name",
-              value: routeTableName
-            }
-          ]
+        let routeTableName = routeTablesProps[count].name;
+        let routeTable = new ec2.CfnRouteTable(this, routeTableName, {
+          vpcId: this.vpc.ref
         });
-        routeTables.set(props["route-tables"][count].name, routeTable);
+        routeTables.set(routeTableName, routeTable);
         // Add Routes to RouteTable
-        for( var route of props["route-tables"][count].routes){
-          var params:any = {
+        for( let route of routeTablesProps[count].routes){
+          let params:any = {
             routeTableId: routeTable.ref,
             destinationCidrBlock: route.destination
           }
-          var dependsOn:any;
-          if(route.target == "IGW"){
-            params['gatewayId'] = igw? igw.ref: null;
+          let dependsOn:any;
+          if(route.target === "IGW"){
+            params["gatewayId"] = igw? igw.ref: null;
             if(igw_attach){dependsOn = igw_attach;}
           }
-          else if(route.target == "VGW"){
+          else if(route.target === "VGW"){
             params['gatewayId'] = vgw? vgw.ref: null;
             if(vgw_attach){dependsOn = vgw_attach;}
               
           }
           else{
+            // Need to add for different Routes
             continue
           }
           if(dependsOn){
@@ -101,21 +84,17 @@ export class VPC extends cdk.Construct{
       for (let i=0; i < props.subnets.length; i++){
         for( let j=1; j <= props.azs.count; j++){
           var subnetName = `${props.name}_${props.subnets[i].name}_az${j}_net`;
-          var subnet = new ec2.CfnSubnet(this, subnetName, {
+          let subnetName = `${vpcName}_${props.subnets[i].name}_az${j}_net`;
+          console.log(subnetName);
+          let subnet = new ec2.CfnSubnet(this, subnetName, {
             cidrBlock: (props.subnets[i] as any)[`az${j}`].cidr,
-            vpcId: vpc.ref,
-            availabilityZone: `${props.region}-${props.azs['az'+j]}`,
-            tags:[
-              {
-                key: 'Name',
-                value: subnetName
-              }
-            ]
+            vpcId: this.vpc.ref,
+            availabilityZone: `${props.region}-${props.azs['az'+j]}`
           });
           
           // Attach Subnet to Route-Table
-          var routeTableName:string = (props.subnets[i] as any)[`az${j}`]['route-table'];
-          if(routeTableName == "default"){
+          let routeTableName:string = (props.subnets[i] as any)[`az${j}`]['route-table'];
+          if(routeTableName === "default"){
             continue
           }
           new ec2.CfnSubnetRouteTableAssociation(this, `${subnetName}_ ${routeTableName}`, {

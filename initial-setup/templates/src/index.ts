@@ -13,7 +13,7 @@ process.on('unhandledRejection', (reason, _) => {
 
 const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
 const ACCELERATOR_PREFIX = process.env.ACCELERATOR_PREFIX!!;
-const ACCELERATOR_SECRET_NAME = /*'accelerator/config'; */ process.env.ACCELERATOR_SECRET_NAME!!;
+const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
 
 (async () => {
   const secrets = new SecretsManager();
@@ -27,7 +27,7 @@ const ACCELERATOR_SECRET_NAME = /*'accelerator/config'; */ process.env.ACCELERAT
   new MasterTemplates.Stack(app, 'Master');
   //console.log(config);
 
-  new SharedNetwork.Stack(app, 'SharedNetwork', config["mandatory-account-configs"]["shared-network"]["vpc"] as any);
+  new SharedNetwork.Stack(app, 'SharedNetwork', config["mandatory-account-configs"]["shared-network"] as cdk.StackProps);
 
   // Add accelerator tag to all resources
   cdk.Tag.add(app, 'Accelerator', ACCELERATOR_NAME);

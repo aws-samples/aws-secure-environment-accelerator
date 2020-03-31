@@ -5,7 +5,7 @@ export namespace SharedNetwork {
   export class Stack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
       super(scope, id, props);
-      new VPC(this, 'vpc', props);
+      const vpc = new VPC(this, 'vpc', (props as any).vpc);
     }
   }
 }
