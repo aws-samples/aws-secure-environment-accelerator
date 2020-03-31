@@ -83,7 +83,6 @@ export class VPC extends cdk.Construct{
     if ("azs" in props){ // Create Subnets
       for (let i=0; i < props.subnets.length; i++){
         for( let j=1; j <= props.azs.count; j++){
-          var subnetName = `${props.name}_${props.subnets[i].name}_az${j}_net`;
           let subnetName = `${vpcName}_${props.subnets[i].name}_az${j}_net`;
           console.log(subnetName);
           let subnet = new ec2.CfnSubnet(this, subnetName, {
