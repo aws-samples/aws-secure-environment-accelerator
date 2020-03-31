@@ -19,37 +19,32 @@ function prepareTransitGatewayProps(tgwConfig:any): TransitGatewayProps{
 
 
 function enableDisableProperty(feature: string, config:any){
-  return feature in config? 'enable': 'disable'
+  return config.includes(feature)? 'enable': 'disable'
 }
 export namespace SharedNetwork {
   export class Stack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
       super(scope, id, props);
 
-      const vpcConfig = (props as any).vpc;
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
+      const vpcConfig = (props as any).vpc;
       const vpc = new VPC(this, 'vpc', vpcConfig);
       
       // Creating TGW for Shared-Network Account
       let tgw;
       const deployments = (props as any).deployments;
       if("tgw" in deployments){
-        let tgwName = deployments.tgw.name;
-        tgw = new TransitGateway(this, tgwName, prepareTransitGatewayProps(deployments.tgw));
-
-        new cdk.CfnOutput(this, `SharedNetwork/deployments/TGW/${tgwName}`, {value: tgw.tgw});
-
-        tgw.tgwRouteTables.forEach((value: string, key: string) => {
-          new cdk.CfnOutput(this, `SharedNetwork/deployments/TGW/${tgwName}/RouteTable${key}`, {value: value});
-        });
+        tgw = new TransitGateway(this, deployments.tgw.name, prepareTransitGatewayProps(deployments.tgw));
       }
 
       if ("tgw-attach" in vpcConfig && tgw){
-        // Attach VPC to TGW
-
+        
         // TBD Account Check
 
         // TBD TGW Name Check
+
+        // **** Attach VPC to TGW ********
+        // Prepare props for TGW Attachment
         let subnetIds:string[] = [];
         for(let subnet of vpcConfig["tgw-attach"]['attach-subnets']){
           subnetIds = subnetIds.concat(vpc.subets.get(subnet) as string[]);
@@ -75,6 +70,7 @@ export namespace SharedNetwork {
           tgwRouteAssociates: tgwRouteAssociations,
           tgwRoutePropagates: tgwRoutePropagates
         }
+        // Attach VPC To TGW
         const tgwAttach = new TransitGatewayAttachment(this, 'tgw_attach', tgwAttachProps);
       }
     }

@@ -13,11 +13,6 @@ export class VPC extends cdk.Construct{
       cidrBlock: props.cidr
     });
 
-    new cdk.CfnOutput(this, 'vpcId', {
-      value: vpcObj.ref,
-      exportName: 'ExportedVpcId'
-    });
-
     if (props["igw"]){ // Create IGW
       igw = new ec2.CfnInternetGateway(this, `${vpcName}_igw`);
       // Attach IGW to VPC
@@ -27,7 +22,7 @@ export class VPC extends cdk.Construct{
       });
     }
 
-    if ("vgw" in props && props["vgw"].create === "Yes"){ // Create VGW
+    if ("vgw" in props && props["vgw"]){ // Create VGW
       vgw = new ec2.CfnVPNGateway(this, `${props.name}_vgw`, {
         type: "ipsec.1"
       });
