@@ -2,18 +2,19 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 
 export class VPC extends cdk.Construct{
-  readonly vpc: ec2.CfnVPC;
+  readonly vpc: string;
+  readonly subets = new Map<string, string[]>();
   constructor(parent: cdk.Construct, name: string, props: any){
     super(parent, name)
     let vpcName = props.name;
     let igw, igw_attach, vgw, vgw_attach;
     // Create Custom VPC using CFN Cunstruct as tags overide option not available in default Cunstruct
-    this.vpc = new ec2.CfnVPC(this, vpcName , {
+    let vpcObj = new ec2.CfnVPC(this, vpcName , {
       cidrBlock: props.cidr
     });
 
     new cdk.CfnOutput(this, 'vpcId', {
-      value: this.vpc.ref,
+      value: vpcObj.ref,
       exportName: 'ExportedVpcId'
     });
 
@@ -21,7 +22,7 @@ export class VPC extends cdk.Construct{
       igw = new ec2.CfnInternetGateway(this, `${vpcName}_igw`);
       // Attach IGW to VPC
       igw_attach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_igw`, {
-        vpcId: this.vpc.ref,
+        vpcId: vpcObj.ref,
         internetGatewayId: igw.ref
       });
     }
@@ -32,7 +33,7 @@ export class VPC extends cdk.Construct{
       });
       // Attach VGW to VPC
       vgw_attach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_vgw`, {
-        vpcId: this.vpc.ref,
+        vpcId: vpcObj.ref,
         vpnGatewayId: vgw.ref
       });
     }
@@ -47,7 +48,7 @@ export class VPC extends cdk.Construct{
         }
         let routeTableName = routeTablesProps[count].name;
         let routeTable = new ec2.CfnRouteTable(this, routeTableName, {
-          vpcId: this.vpc.ref
+          vpcId: vpcObj.ref
         });
         routeTables.set(routeTableName, routeTable);
         // Add Routes to RouteTable
@@ -82,14 +83,15 @@ export class VPC extends cdk.Construct{
 
     if ("azs" in props){ // Create Subnets
       for (let i=0; i < props.subnets.length; i++){
+        let subnetAzs:string[] = [];
         for( let j=1; j <= props.azs.count; j++){
           let subnetName = `${vpcName}_${props.subnets[i].name}_az${j}_net`;
-          console.log(subnetName);
           let subnet = new ec2.CfnSubnet(this, subnetName, {
             cidrBlock: (props.subnets[i] as any)[`az${j}`].cidr,
-            vpcId: this.vpc.ref,
+            vpcId: vpcObj.ref,
             availabilityZone: `${props.region}-${props.azs['az'+j]}`
           });
+          subnetAzs.push(subnet.ref);
           
           // Attach Subnet to Route-Table
           let routeTableName:string = (props.subnets[i] as any)[`az${j}`]['route-table'];
@@ -101,7 +103,9 @@ export class VPC extends cdk.Construct{
             subnetId: subnet.ref
           });
         }
+        this.subets.set(props.subnets[i].name, subnetAzs);
       }
     }
+    this.vpc = vpcObj.ref;
   }
 }
