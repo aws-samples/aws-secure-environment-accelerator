@@ -5,6 +5,17 @@ import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import { isLeft } from 'fp-ts/lib/Either';
 
+export const Region = createEnumType(
+  [
+    // TODO Add more regions here
+    'ca-central-1',
+    'us-east-1',
+  ],
+  'Region',
+);
+
+export const AvailabilityZone = createEnumType(['a', 'b', 'c', 'd', 'e', 'f'], 'AvailabilityZone');
+
 export const InternetGatewayConfig = t.interface({
   // TODO
 });
@@ -23,35 +34,16 @@ export const NatGatewayConfig = t.interface({
   // TODO
 });
 
-export const SubnetAzConfig = t.interface({
-  'route-table': NonEmptyString,
+export const SubnetRouteTableAssociationConfig = t.interface({
+  az: AvailabilityZone,
   cidr: cidr,
+  'route-table': NonEmptyString,
 });
 
 export const SubnetConfig = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
-  az1: optional(SubnetAzConfig),
-  az2: optional(SubnetAzConfig),
-  az3: optional(SubnetAzConfig),
-});
-
-export const Region = createEnumType(
-  [
-    // TODO Add more regions here
-    'ca-central-1',
-    'us-east-1',
-  ],
-  'Region',
-);
-
-export const AvailabilityZone = createEnumType(['a', 'b', 'c', 'd', 'e', 'f'], 'AvailabilityZone');
-
-export const VpcAzConfig = t.interface({
-  // TODO We might need to rework this part
-  az1: optional(AvailabilityZone),
-  az2: optional(AvailabilityZone),
-  az3: optional(AvailabilityZone),
+  'route-tables': t.array(SubnetRouteTableAssociationConfig),
 });
 
 export const GatewayEndpointType = NonEmptyString; // TODO Define all endpoints here
@@ -97,7 +89,6 @@ export const VpcConfigType = t.interface({
   vgw: t.union([VirtualPrivateGatewayConfig, t.boolean, t.undefined]),
   pcx: t.union([PeeringConnectionConfig, t.boolean, t.undefined]),
   natgw: t.union([NatGatewayConfig, t.boolean, t.undefined]),
-  azs: optional(VpcAzConfig),
   subnets: optional(t.array(t.union([SubnetConfig, t.string]))),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfig)),
