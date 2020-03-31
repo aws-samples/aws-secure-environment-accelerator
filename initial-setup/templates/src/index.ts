@@ -25,21 +25,9 @@ const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
   new CommonTemplates.AssumeRoleStack(app, 'AssumeRole');
 
   new MasterTemplates.Stack(app, 'Master');
+  //console.log(config);
 
-  new SharedNetwork.Stack(app, 'SharedNetwork', {
-    // TODO Load this from config
-    region: 'ca-central',
-    cidr: '100.96.250.0/23',
-    subnets: [{
-      name: 'PublicSharedAz1',
-      availabilityZone: '1a',
-      cidr: '100.96.251.64/26',
-    }, {
-      name: 'PublicSharedAz2',
-      availabilityZone: '1b',
-      cidr: '100.96.251.128/26',
-    }],
-  });
+  new SharedNetwork.Stack(app, 'SharedNetwork', config["mandatory-account-configs"]["shared-network"] as cdk.StackProps);
 
   // Add accelerator tag to all resources
   cdk.Tag.add(app, 'Accelerator', ACCELERATOR_NAME);
