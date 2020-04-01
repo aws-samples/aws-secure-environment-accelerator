@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test": "pnpx jest",
+    "lint": "tslint 'src/**/*.ts'",
     "build": "pnpx webpack-cli --config webpack.config.ts"
   },
   "devDependencies": {
@@ -18,7 +19,6 @@
     "@types/js-yaml": "^3.12.3",
     "@types/node": "^10.17.17",
     "@types/webpack": "^4.41.8",
-    "aws-sdk": "^2.646.0",
     "babel-jest": "^25.2.0",
     "babel-loader": "^8.1.0",
     "fork-ts-checker-webpack-plugin": "^4.1.1",
@@ -27,13 +27,18 @@
     "prettier": "^1.19.1",
     "ts-jest": "^25.3.0",
     "ts-node": "^6.2.0",
+    "tslint": "^6.1.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-config-standard": "^9.0.0",
     "typescript": "^3.8.3",
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
-    "adm-zip": "^0.4.14"
+    "adm-zip": "^0.4.14",
+    "aws-lambda": "^1.0.5",
+    "aws-sdk": "^2.646.0"
   },
   "jest": {
     "preset": "ts-jest",
