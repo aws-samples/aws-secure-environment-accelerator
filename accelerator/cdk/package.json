@@ -5,17 +5,20 @@
     "test": "pnpx jest",
     "bootstrap": "pnpx cdk bootstrap",
     "deploy": "pnpx cdk deploy",
-    "synth": "pnpx cdk synth"
+    "synth": "pnpx cdk synth",
+    "lint": "tslint 'src/**/*.ts'"
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",
     "@types/node": "^13.9.4",
-    "aws-sdk": "^2.646.0",
     "babel-jest": "^25.2.0",
     "jest": "^25.2.4",
     "prettier": "^1.19.1",
     "ts-jest": "^25.3.0",
     "ts-node": "^8.8.1",
+    "tslint": "^6.1.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-config-standard": "^9.0.0",
     "typescript": "^3.8.3"
   },
   "dependencies": {
@@ -38,6 +41,7 @@
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "@aws-pbmm/initial-setup-cdk": "workspace:^0.0.1",
+    "aws-sdk": "^2.646.0",
     "tempy": "^0.5.0"
   }
 }
