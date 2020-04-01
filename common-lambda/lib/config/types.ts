@@ -8,14 +8,14 @@ export const cidr = new t.Type<IPv4CidrRange, string, unknown>(
   'Cidr',
   (value): value is IPv4CidrRange => value instanceof IPv4CidrRange,
   (str, context) =>
-    either.chain(t.string.validate(str, context), s => {
+    either.chain(t.string.validate(str, context), (s) => {
       try {
         return t.success(IPv4CidrRange.fromCidr(s));
       } catch (e) {
         return t.failure(s, context, e);
       }
     }),
-  c => c.toString(),
+  (c) => c.toString(),
 );
 
 export class EnumType<T> extends t.Type<T> {
@@ -24,7 +24,7 @@ export class EnumType<T> extends t.Type<T> {
   public constructor(values: ReadonlyArray<T>, name?: string) {
     super(
       name || 'enum',
-      (u): u is T => values.some(v => v === u),
+      (u): u is T => values.some((v) => v === u),
       (u, c) => (this.is(u) ? t.success(u) : t.failure(u, c)),
       t.identity,
     );

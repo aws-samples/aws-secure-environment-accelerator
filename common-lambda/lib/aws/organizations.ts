@@ -20,7 +20,7 @@ export class Organizations {
       org.ListPoliciesRequest,
       org.ListPoliciesResponse,
       org.PolicySummary
-    >(this.client.listPolicies.bind(this.client), r => r.Policies!!, input);
+    >(this.client.listPolicies.bind(this.client), (r) => r.Policies!!, input);
     for await (const policy of policies) {
       if (policy.Name === name) {
         return policy;
@@ -32,7 +32,7 @@ export class Organizations {
   async listAccounts(): Promise<org.Account[]> {
     return listWithNextToken<org.ListAccountsRequest, org.ListAccountsResponse, org.Account>(
       this.client.listAccounts.bind(this.client),
-      r => r.Accounts!!,
+      (r) => r.Accounts!!,
       {},
     );
   }
@@ -40,7 +40,7 @@ export class Organizations {
   async listPolicies(input: org.ListPoliciesRequest): Promise<org.PolicySummary[]> {
     return listWithNextToken<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
-      r => r.Policies!!,
+      (r) => r.Policies!!,
       input,
     );
   }

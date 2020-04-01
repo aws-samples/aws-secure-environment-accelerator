@@ -14,7 +14,7 @@ export const handler = async (input: CodePipelineEvent, context: Context) => {
   const parameters = JSON.parse(job.data.actionConfiguration.configuration.UserParameters);
 
   // Load artifact from the parameters
-  const artifact = job.data.inputArtifacts.find(a => a.name === parameters.stackTemplateArtifact);
+  const artifact = job.data.inputArtifacts.find((a) => a.name === parameters.stackTemplateArtifact);
   if (!artifact) {
     throw new Error(`Cannot find input artifact with name "${parameters.stackTemplateArtifact}"`);
   }

@@ -16,6 +16,6 @@ export class S3 {
   }
 
   async getObjectBodyAsString(input: s3.GetObjectRequest): Promise<string> {
-    return this.getObjectBody(input).then(body => body.toString());
+    return this.getObjectBody(input).then((body) => body.toString());
   }
 }

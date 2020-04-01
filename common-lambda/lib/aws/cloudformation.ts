@@ -100,7 +100,7 @@ export class CloudFormation {
   async listStackInstances(stackSetName: string, accountId?: string): Promise<cfn.StackInstanceSummary[]> {
     return listWithNextToken<cfn.ListStackInstancesInput, cfn.ListStackInstancesOutput, cfn.StackInstanceSummary>(
       this.client.listStackInstances.bind(this.client),
-      r => r.Summaries!!,
+      (r) => r.Summaries!!,
       {
         StackSetName: stackSetName,
         StackInstanceAccount: accountId,
@@ -113,7 +113,7 @@ export class CloudFormation {
       cfn.ListStackSetOperationsInput,
       cfn.ListStackSetOperationsOutput,
       cfn.StackSetOperationSummary
-    >(this.client.listStackSetOperations.bind(this.client), r => r.Summaries!!, {
+    >(this.client.listStackSetOperations.bind(this.client), (r) => r.Summaries!!, {
       StackSetName: stackSetName,
     });
   }
@@ -191,7 +191,7 @@ export function objectToCloudFormationParameters(
   if (!obj) {
     return undefined;
   }
-  return Object.getOwnPropertyNames(obj).map(key => {
+  return Object.getOwnPropertyNames(obj).map((key) => {
     return {
       ParameterKey: key,
       ParameterValue: obj[key],

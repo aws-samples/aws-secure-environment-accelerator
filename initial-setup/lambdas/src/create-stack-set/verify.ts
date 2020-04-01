@@ -25,7 +25,7 @@ export const handler = async (input: Partial<CheckStepInput>) => {
     };
   }
   const operations = await cfn.listStackSetOperations(stackName!!);
-  const inProgress = operations.findIndex(o => OPERATION_IN_PROGRESS_STATUSES.includes(o.Status!!)) >= 0;
+  const inProgress = operations.findIndex((o) => OPERATION_IN_PROGRESS_STATUSES.includes(o.Status!!)) >= 0;
   if (inProgress) {
     return {
       status: 'IN_PROGRESS',
@@ -34,7 +34,7 @@ export const handler = async (input: Partial<CheckStepInput>) => {
   }
 
   const instances = await cfn.listStackInstances(stackName!!);
-  const nonCurrentInstances = instances.filter(i => i.Status !== 'CURRENT');
+  const nonCurrentInstances = instances.filter((i) => i.Status !== 'CURRENT');
   if (nonCurrentInstances.length === 0) {
     return {
       status: 'SUCCESS',
