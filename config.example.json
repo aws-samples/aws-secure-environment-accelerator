@@ -86,7 +86,7 @@
         "subnets": [
           {
             "name": "Public",
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "Public_Shared",
@@ -101,7 +101,7 @@
           },
           {
             "name": "FWMgmt",
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "FWMgmt_az1",
@@ -116,7 +116,7 @@
           },
           {
             "name": "Proxy",
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "Proxy_az1",
@@ -131,7 +131,7 @@
           },
           {
             "name": "OnPremise",
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "default",
@@ -317,7 +317,7 @@
         "subnets": [
           {
             "name": "Endpoint",
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "default",
@@ -327,6 +327,12 @@
                 "az": "b",
                 "route-table": "default",
                 "cidr": "10.7.1.0/24"
+              },
+              {
+                "az": "d",
+                "route-table": "default",
+                "cidr": "10.7.2.0/24",
+                "disabled": true
               }
             ]
           }
@@ -459,7 +465,7 @@
         "subnets": [
           {
             "name": "ForSSO",
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "default",
@@ -469,6 +475,12 @@
                 "az": "b",
                 "route-table": "default",
                 "cidr": "10.249.1.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "default",
+                "cidr": "10.249.1.64/27",
+                "disabled": true
               }
             ]
           }
@@ -521,7 +533,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "CentralVPC_Common",
@@ -531,13 +543,19 @@
                 "az": "b",
                 "route-table": "CentralVPC_Common",
                 "cidr": "10.1.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.88.64/27",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "CentralVPC_Common",
@@ -547,13 +565,19 @@
                 "az": "b",
                 "route-table": "CentralVPC_Common",
                 "cidr": "10.1.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.192.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "CentralVPC_Common",
@@ -563,13 +587,19 @@
                 "az": "b",
                 "route-table": "CentralVPC_Common",
                 "cidr": "10.1.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.160.0/19",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "CentralVPC_Common",
@@ -579,13 +609,19 @@
                 "az": "b",
                 "route-table": "CentralVPC_Common",
                 "cidr": "10.1.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.208.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "CentralVPC_Common",
@@ -595,13 +631,19 @@
                 "az": "b",
                 "route-table": "CentralVPC_Common",
                 "cidr": "10.1.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.80.0/21",
+                "disabled": true
               }
             ]
           },
           {
             "name": "GCWide",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "CentralVPC_GCWide",
@@ -611,6 +653,12 @@
                 "az": "b",
                 "route-table": "CentralVPC_GCWide",
                 "cidr2": "100.96.252.128/25"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_GCWide",
+                "cidr2": "100.96.253.0/25",
+                "disabled": true
               }
             ]
           }
@@ -704,7 +752,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "DevVPC_Common",
@@ -714,13 +762,19 @@
                 "az": "b",
                 "route-table": "DevVPC_Common",
                 "cidr": "10.2.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.88.64/27",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "DevVPC_Common",
@@ -730,13 +784,19 @@
                 "az": "b",
                 "route-table": "DevVPC_Common",
                 "cidr": "10.2.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.192.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "DevVPC_Common",
@@ -746,13 +806,19 @@
                 "az": "b",
                 "route-table": "DevVPC_Common",
                 "cidr": "10.2.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.160.0/19",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "DevVPC_Common",
@@ -762,13 +828,19 @@
                 "az": "b",
                 "route-table": "DevVPC_Common",
                 "cidr": "10.2.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.208.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "DevVPC_Common",
@@ -778,6 +850,12 @@
                 "az": "b",
                 "route-table": "DevVPC_Common",
                 "cidr": "10.2.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.80.0/21",
+                "disabled": true
               }
             ]
           }
@@ -847,7 +925,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "TestVPC_Common",
@@ -857,13 +935,19 @@
                 "az": "b",
                 "route-table": "TestVPC_Common",
                 "cidr": "10.3.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.88.64/27",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "TestVPC_Common",
@@ -873,13 +957,19 @@
                 "az": "b",
                 "route-table": "TestVPC_Common",
                 "cidr": "10.3.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.192.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "TestVPC_Common",
@@ -889,13 +979,19 @@
                 "az": "b",
                 "route-table": "TestVPC_Common",
                 "cidr": "10.3.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.160.0/19",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "TestVPC_Common",
@@ -905,13 +1001,19 @@
                 "az": "b",
                 "route-table": "TestVPC_Common",
                 "cidr": "10.3.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.208.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "TestVPC_Common",
@@ -921,6 +1023,12 @@
                 "az": "b",
                 "route-table": "TestVPC_Common",
                 "cidr": "10.3.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.80.0/21",
+                "disabled": true
               }
             ]
           }
@@ -990,7 +1098,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "ProdVPC_Common",
@@ -1000,13 +1108,19 @@
                 "az": "b",
                 "route-table": "ProdVPC_Common",
                 "cidr": "10.4.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.88.64/27",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "ProdVPC_Common",
@@ -1016,13 +1130,19 @@
                 "az": "b",
                 "route-table": "ProdVPC_Common",
                 "cidr": "10.4.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.192.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "ProdVPC_Common",
@@ -1032,13 +1152,19 @@
                 "az": "b",
                 "route-table": "ProdVPC_Common",
                 "cidr": "10.4.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.160.0/19",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "ProdVPC_Common",
@@ -1048,13 +1174,19 @@
                 "az": "b",
                 "route-table": "ProdVPC_Common",
                 "cidr": "10.4.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.208.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "ProdVPC_Common",
@@ -1064,6 +1196,12 @@
                 "az": "b",
                 "route-table": "ProdVPC_Common",
                 "cidr": "10.4.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.80.0/21",
+                "disabled": true
               }
             ]
           }
@@ -1133,7 +1271,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "UnClassVPC_Common",
@@ -1143,13 +1281,19 @@
                 "az": "b",
                 "route-table": "UnClassVPC_Common",
                 "cidr": "10.5.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.88.64/27",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "UnClassVPC_Common",
@@ -1159,13 +1303,19 @@
                 "az": "b",
                 "route-table": "UnClassVPC_Common",
                 "cidr": "10.5.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.192.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "UnClassVPC_Common",
@@ -1175,13 +1325,19 @@
                 "az": "b",
                 "route-table": "UnClassVPC_Common",
                 "cidr": "10.5.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.160.0/19",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "UnClassVPC_Common",
@@ -1191,13 +1347,19 @@
                 "az": "b",
                 "route-table": "UnClassVPC_Common",
                 "cidr": "10.5.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.208.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "UnClassVPC_Common",
@@ -1207,6 +1369,12 @@
                 "az": "b",
                 "route-table": "UnClassVPC_Common",
                 "cidr": "10.5.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.80.0/21",
+                "disabled": true
               }
             ]
           }
@@ -1282,7 +1450,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "SandboxVPC_IGW",
@@ -1292,13 +1460,19 @@
                 "az": "b",
                 "route-table": "SandboxVPC_IGW",
                 "cidr": "10.6.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_IGW",
+                "cidr": "10.6.192.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "SandboxVPC_Common",
@@ -1308,13 +1482,19 @@
                 "az": "b",
                 "route-table": "SandboxVPC_Common",
                 "cidr": "10.6.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.160.0/19",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "SandboxVPC_Common",
@@ -1324,13 +1504,19 @@
                 "az": "b",
                 "route-table": "SandboxVPC_Common",
                 "cidr": "10.6.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.208.0/20",
+                "disabled": true
               }
             ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": false,
-            "route-tables": [
+            "definitions": [
               {
                 "az": "a",
                 "route-table": "SandboxVPC_Common",
@@ -1340,6 +1526,12 @@
                 "az": "b",
                 "route-table": "SandboxVPC_Common",
                 "cidr": "10.6.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.80.0/21",
+                "disabled": true
               }
             ]
           }
