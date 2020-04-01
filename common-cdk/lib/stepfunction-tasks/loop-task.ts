@@ -10,7 +10,7 @@ export namespace LoopTask {
     /**
      * The payload that is used for the `InvokeFunction` task.
      */
-    functionPayload?: { [key: string]: any };
+    functionPayload?: { [key: string]: unkown };
     /**
      * The props that are passed to the Lambda function.
      */
@@ -94,15 +94,16 @@ export class LoopTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, `Failure`);
 
-    sfn.Chain
-      .start(this.deploy)
+    sfn.Chain.start(this.deploy)
       .next(wait)
       .next(this.verify)
-      .next(new sfn.Choice(this, `Choice`)
-        .when(sfn.Condition.stringEquals(statusPath, 'SUCCESS'), pass)
-        .when(sfn.Condition.stringEquals(statusPath, 'FAILURE'), fail)
-        .otherwise(wait)
-        .afterwards());
+      .next(
+        new sfn.Choice(this, `Choice`)
+          .when(sfn.Condition.stringEquals(statusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(statusPath, 'FAILURE'), fail)
+          .otherwise(wait)
+          .afterwards(),
+      );
 
     // Not sure why but we cannot use chain.startState and chain.endStates here.
     this.startState = this.deploy.startState;

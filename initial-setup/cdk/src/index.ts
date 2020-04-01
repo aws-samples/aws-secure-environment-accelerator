@@ -29,8 +29,7 @@ export namespace InitialSetup {
     accounts: Accounts;
   }
 
-  export interface Props extends cdk.StackProps, CommonProps {
-  }
+  export interface Props extends cdk.StackProps, CommonProps {}
 }
 
 export class InitialSetup extends cdk.Stack {
@@ -38,7 +37,12 @@ export class InitialSetup extends cdk.Stack {
     super(scope, id);
 
     new InitialSetup.Pipeline(this, 'Pipeline', {
-      ...props,
+      configSecretArn: props.configSecretArn,
+      acceleratorPrefix: props.acceleratorPrefix,
+      acceleratorName: props.acceleratorName,
+      solutionRoot: props.solutionRoot,
+      executionRoleName: props.executionRoleName,
+      accounts: props.accounts,
       lambdas: props.lambdas,
       solutionZipPath: props.solutionZipPath,
     });
@@ -65,16 +69,11 @@ export class InitialSetup extends cdk.Stack {
     await zipFiles(solutionZipPath, (archive: Archiver) => {
       archive.glob('**/*', {
         cwd: props.solutionRoot,
-        ignore: [
-          '**/cdk.out/**',
-          '**/node_modules/**',
-          '**/pnpm-lock.yaml',
-          '**/.prettierrc',
-        ],
+        ignore: ['**/cdk.out/**', '**/node_modules/**', '**/pnpm-lock.yaml', '**/.prettierrc'],
       });
     });
 
-    return new this(scope, id, {
+    return new InitialSetup(scope, id, {
       ...props,
       lambdas,
       solutionZipPath,
@@ -105,14 +104,16 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      pipelineRole.addToPolicy(new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['lambda:Invoke'],
-        resources: ['*'],
-      }));
+      pipelineRole.addToPolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['lambda:Invoke'],
+          resources: ['*'],
+        }),
+      );
 
-      const accountExecutionRoleFn = (id: string, accountId: string) => {
-        return iam.Role.fromRoleArn(this, id, `arn:aws:iam::${accountId}:role/${props.executionRoleName}`, {
+      const accountExecutionRoleFn = (cdkId: string, accountId: string) => {
+        return iam.Role.fromRoleArn(this, cdkId, `arn:aws:iam::${accountId}:role/${props.executionRoleName}`, {
           mutable: false,
         });
       };
@@ -129,13 +130,17 @@ export namespace InitialSetup {
         assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
       });
 
-      buildRole.attachInlinePolicy(new iam.Policy(this, 'BuildRoleAllowSecretConfig', {
-        statements: [new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: ['secretsmanager:GetSecretValue'],
-          resources: [props.configSecretArn],
-        })],
-      }));
+      buildRole.attachInlinePolicy(
+        new iam.Policy(this, 'BuildRoleAllowSecretConfig', {
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: ['secretsmanager:GetSecretValue'],
+              resources: [props.configSecretArn],
+            }),
+          ],
+        }),
+      );
 
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'CdkMasterBuild', {
@@ -147,24 +152,15 @@ export namespace InitialSetup {
               'runtime-versions': {
                 nodejs: 10,
               },
-              commands: [
-                'npm install --global pnpm',
-                'pnpm install',
-              ],
+              commands: ['npm install --global pnpm', 'pnpm install'],
             },
             build: {
-              commands: [
-                'cd initial-setup/templates',
-                'pnpm install',
-                'pnpx cdk synth -o dist',
-              ],
+              commands: ['cd initial-setup/templates', 'pnpm install', 'pnpx cdk synth -o dist'],
             },
           },
           artifacts: {
             'base-directory': 'initial-setup/templates/dist',
-            files: [
-              '*.template.json',
-            ],
+            files: ['*.template.json'],
           },
         }),
         environment: {
@@ -222,7 +218,7 @@ export namespace InitialSetup {
             actions: [
               new actions.CodeBuildAction({
                 actionName: 'Build',
-                project: project,
+                project,
                 input: templatesSourceOutput,
                 outputs: [templatesSynthOutput],
               }),

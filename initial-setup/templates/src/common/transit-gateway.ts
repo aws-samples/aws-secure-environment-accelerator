@@ -3,60 +3,37 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 
 import { DeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 
-export interface TransitGatewayProps {
-  amazonSideAsn?: number,
-  autoAcceptSharedAttachments: string,
-  defaultRouteTableAssociation: string,
-  defaultRouteTablePropagation: string,
-  dnsSupport: string,
-  vpnEcmpSupport: string,
-  routeTables: string[],
-  tags?: any[]
+function enableDisableProperty(feature: boolean | undefined): string {
+  return feature ? 'enable' : 'disable';
 }
 
+export class TransitGateway extends cdk.Construct {
+  readonly tgwId: string;
+  readonly tgwRouteTableNameToIdMap = new Map<string, string>();
 
-function prepareTransitGatewayProps(tgwConfig:DeploymentConfig): TransitGatewayProps{
-    const tgwFeatures = tgwConfig.features!!
-    const tgwRouteTables = tgwConfig["route-tables"]!!
-    let tgwProps:TransitGatewayProps = {
-      // @ts-ignore
-      dnsSupport: enableDisableProperty(tgwFeatures['DNS-support']),
-      // @ts-ignore
-      vpnEcmpSupport: enableDisableProperty(tgwFeatures['VPN-ECMP-support']),
-      // @ts-ignore
-      defaultRouteTableAssociation: enableDisableProperty(tgwFeatures['Default-route-table-association']),
-      // @ts-ignore
-      defaultRouteTablePropagation: enableDisableProperty(tgwFeatures['Default-route-table-propagation']),
-      // @ts-ignore
-      autoAcceptSharedAttachments: enableDisableProperty(tgwFeatures['Auto-accept-sharing-attachments']),
-      // @ts-ignore
-      routeTables: tgwConfig["route-tables"]
-    };
-    if('asn' in tgwConfig)
-      tgwProps['amazonSideAsn'] = tgwConfig.asn;
-    return tgwProps as TransitGatewayProps;
-  }
-  
-  
-  function enableDisableProperty(feature: boolean){
-    return feature? 'enable': 'disable'
-  }
+  constructor(parent: cdk.Construct, name: string, props: DeploymentConfig) {
+    super(parent, name);
 
-export class TransitGateway extends cdk.Construct{
-    readonly tgw: string;
-    readonly tgwRouteTables = new  Map<string, string>();
-    constructor(parent: cdk.Construct, name: string, props: DeploymentConfig){
-        super(parent, name);
-        let tgwProps = prepareTransitGatewayProps(props);
+    // TODO Verify if features are mandatory
+    const features = props.features;
+    // TODO Remove the !! operator and verify if route tables are mandatory
+    const routeTables = props['route-tables']!!;
 
-        let tgwObject = new ec2.CfnTransitGateway(this, name, tgwProps);
-        
-        for( let routeTable of tgwProps.routeTables){
-            let rt = new ec2.CfnTransitGatewayRouteTable(this, `${name}_tgw_${routeTable}`,{
-                transitGatewayId: tgwObject.ref
-            });
-            this.tgwRouteTables.set(routeTable, rt.ref);
-        }
-        this.tgw = tgwObject.ref;
+    const tgwObject = new ec2.CfnTransitGateway(this, name, {
+      dnsSupport: enableDisableProperty(features?.['DNS-support']),
+      vpnEcmpSupport: enableDisableProperty(features?.['VPN-ECMP-support']),
+      defaultRouteTableAssociation: enableDisableProperty(features?.['Default-route-table-association']),
+      defaultRouteTablePropagation: enableDisableProperty(features?.['Default-route-table-propagation']),
+      autoAcceptSharedAttachments: enableDisableProperty(features?.['Auto-accept-sharing-attachments']),
+      amazonSideAsn: props.asn,
+    });
+
+    for (const routeTableName of routeTables) {
+      const cfnRouteTable = new ec2.CfnTransitGatewayRouteTable(this, `${name}_tgw_${routeTableName}`, {
+        transitGatewayId: tgwObject.ref,
+      });
+      this.tgwRouteTableNameToIdMap.set(routeTableName, cfnRouteTable.ref);
     }
+    this.tgwId = tgwObject.ref;
+  }
 }

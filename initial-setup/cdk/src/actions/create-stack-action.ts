@@ -40,11 +40,12 @@ export class CreateStackAction extends actions.Action {
     this.props = props;
   }
 
-  protected bound(scope: cdk.Construct, stage: codepipeline.IStage, options: codepipeline.ActionBindOptions): codepipeline.ActionConfig {
-    const {
-      role,
-      bucket,
-    } = options;
+  protected bound(
+    scope: cdk.Construct,
+    stage: codepipeline.IStage,
+    options: codepipeline.ActionBindOptions,
+  ): codepipeline.ActionConfig {
+    const { role, bucket } = options;
 
     const {
       actionName,
@@ -70,20 +71,20 @@ export class CreateStackAction extends actions.Action {
     const createStackTriggerLambdaRole = new iam.Role(scope, 'CreateStackLambdaRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
-    createStackTriggerLambdaRole.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['states:StartExecution'],
-      resources: [createStackStateMachine.stateMachineArn],
-    }));
-    createStackTriggerLambdaRole.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: [
-        'logs:CreateLogGroup',
-        'logs:CreateLogStream',
-        'logs:PutLogEvents',
-      ],
-    }));
+    createStackTriggerLambdaRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['states:StartExecution'],
+        resources: [createStackStateMachine.stateMachineArn],
+      }),
+    );
+    createStackTriggerLambdaRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      }),
+    );
 
     const createStackTrigger = new lambda.Function(scope, 'CreateStackTrigger', {
       timeout: cdk.Duration.minutes(15),

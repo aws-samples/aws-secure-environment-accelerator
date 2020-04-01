@@ -1,9 +1,9 @@
-name: Analyze
+name: Linter and Prettier
 on: [pull_request]
 
 jobs:
-  lint:
-    name: Lint
+  linter:
+    name: Linter
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -12,12 +12,21 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 10
-      - name: Install tslint
+      - name: Cache Node.js modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+      - name: Install Node.js modules
         run: |
-          npm install -g typescript tslint tslint-config-standard tslint-config-prettier
+          npm install -g pnpm
+          pnpm install
       - name: Analyze TypeScript files
         run: |
-          tslint **/*.ts
+          pnpm recursive run lint
   prettier:
     name: Prettier
     runs-on: ubuntu-latest

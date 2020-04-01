@@ -14,7 +14,7 @@ export const handler = async (input: CodePipelineEvent, context: Context) => {
   const parameters = JSON.parse(job.data.actionConfiguration.configuration.UserParameters);
 
   // Load artifact from the parameters
-  const artifact = job.data.inputArtifacts.find(artifact => artifact.name == parameters.stackTemplateArtifact);
+  const artifact = job.data.inputArtifacts.find((a) => a.name === parameters.stackTemplateArtifact);
   if (!artifact) {
     throw new Error(`Cannot find input artifact with name "${parameters.stackTemplateArtifact}"`);
   }
@@ -30,18 +30,24 @@ export const handler = async (input: CodePipelineEvent, context: Context) => {
   const stackTemplateArtifactCredentials = job.data.artifactCredentials!!;
 
   const stm = new aws.StepFunctions();
-  await stm.startExecution({
-    stateMachineArn: STATE_MACHINE_ARN,
-    input: JSON.stringify({
-      jobId,
-      stackName,
-      stackCapabilities,
-      stackParameters,
-      stackTemplateArtifactBucket,
-      stackTemplateArtifactKey,
-      stackTemplateArtifactPath,
-      stackTemplateArtifactCredentials,
-      assumeRoleArn,
-    }, null, 2),
-  }).promise();
+  await stm
+    .startExecution({
+      stateMachineArn: STATE_MACHINE_ARN,
+      input: JSON.stringify(
+        {
+          jobId,
+          stackName,
+          stackCapabilities,
+          stackParameters,
+          stackTemplateArtifactBucket,
+          stackTemplateArtifactKey,
+          stackTemplateArtifactPath,
+          stackTemplateArtifactCredentials,
+          assumeRoleArn,
+        },
+        null,
+        2,
+      ),
+    })
+    .promise();
 };

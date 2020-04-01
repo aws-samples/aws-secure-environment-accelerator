@@ -3,25 +3,30 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as kms from '@aws-cdk/aws-kms';
 
-type Action = (value: any) => boolean;
+type Action = (value: cdk.IConstruct) => boolean;
 
 /**
  * Auxiliary interface to allow types as a method parameter.
  */
-interface Type<T> extends Function {
-  new(...args: any[]): T;
-}
+// tslint:disable-next-line:no-any
+type Type<T> = new (...args: any[]) => T;
 
 const NAME_TAG = 'Name';
 
-function addNameTagAsIdWithSuffix<T extends cdk.Construct>(type: Type<T>, suffix: string, tagPriority: number = 100): Action {
-  return (value: any) => {
+function addNameTagAsIdWithSuffix<T extends cdk.Construct>(
+  type: Type<T>,
+  suffix: string,
+  tagPriority: number = 100,
+): Action {
+  return (value: cdk.IConstruct) => {
     if (value instanceof type) {
       const id = value.node.id;
       const name = id.endsWith(suffix) ? id : `${id}${suffix}`; // Only add the suffix if it isn't there yet
-      value.node.applyAspect(new cdk.Tag(NAME_TAG, name, {
-        priority: tagPriority,
-      }));
+      value.node.applyAspect(
+        new cdk.Tag(NAME_TAG, name, {
+          priority: tagPriority,
+        }),
+      );
       return true;
     }
     return false;

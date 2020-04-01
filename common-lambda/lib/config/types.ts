@@ -7,16 +7,15 @@ export const optional = <T extends t.Mixed>(wrapped: T) => t.union([wrapped, t.u
 export const cidr = new t.Type<IPv4CidrRange, string, unknown>(
   'Cidr',
   (value): value is IPv4CidrRange => value instanceof IPv4CidrRange,
-  (string, context) =>
-    either.chain(t.string.validate(string, context), (s) => {
+  (str, context) =>
+    either.chain(t.string.validate(str, context), (s) => {
       try {
-        const cidr = IPv4CidrRange.fromCidr(s);
-        return t.success(cidr);
+        return t.success(IPv4CidrRange.fromCidr(s));
       } catch (e) {
-        return t.failure(string, context, e);
+        return t.failure(s, context, e);
       }
     }),
-  (cidr) => cidr.toString(),
+  (c) => c.toString(),
 );
 
 export class EnumType<T> extends t.Type<T> {

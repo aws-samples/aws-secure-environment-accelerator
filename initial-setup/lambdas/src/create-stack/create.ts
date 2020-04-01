@@ -9,7 +9,7 @@ interface CreateMasterExecutionRoleInput {
   assumeRoleArn: string;
   stackName: string;
   stackCapabilities?: string[];
-  stackParameters?: { [key: string]: any };
+  stackParameters?: { [key: string]: string };
   stackTemplateArtifactBucket?: string;
   stackTemplateArtifactKey?: string;
   stackTemplateArtifactPath?: string;

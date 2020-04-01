@@ -1,5 +1,5 @@
-import aws from 'aws-sdk';
-import iam from 'aws-sdk/clients/iam';
+import * as aws from 'aws-sdk';
+import * as iam from 'aws-sdk/clients/iam';
 
 export class IAM {
   private readonly client: aws.IAM;
@@ -11,9 +11,11 @@ export class IAM {
   }
 
   async getRole(name: string): Promise<iam.Role> {
-    let response = await this.client.getRole({
-      RoleName: name,
-    }).promise();
+    const response = await this.client
+      .getRole({
+        RoleName: name,
+      })
+      .promise();
     return response.Role;
   }
 

@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { cidr, region, availabilityZone, optional } from './types';
+import { availabilityZone, cidr, optional, region } from './types';
 import { PathReporter } from './reporter';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
@@ -21,7 +21,7 @@ const NatGatewayConfig = t.interface({
 
 const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
-  cidr: cidr,
+  cidr,
   'route-table': NonEmptyString,
   disabled: fromNullable(t.boolean, false),
 });
@@ -29,7 +29,7 @@ const SubnetDefinitionConfig = t.interface({
 const SubnetConfig = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
-  'definitions': t.array(SubnetDefinitionConfig),
+  definitions: t.array(SubnetDefinitionConfig),
 });
 
 const GatewayEndpointType = NonEmptyString; // TODO Define all endpoints here
@@ -84,12 +84,18 @@ const VpcConfigType = t.interface({
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
 
-const DeploymentFeature = NonEmptyString;
-
 export const DeploymentConfigType = t.interface({
   name: optional(NonEmptyString),
   asn: optional(t.number),
-  features: optional(t.record(DeploymentFeature, t.boolean)),
+  features: optional(
+    t.interface({
+      'DNS-support': t.boolean,
+      'VPN-ECMP-support': t.boolean,
+      'Default-route-table-association': t.boolean,
+      'Default-route-table-propagation': t.boolean,
+      'Auto-accept-sharing-attachments': t.boolean,
+    }),
+  ),
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
@@ -98,7 +104,9 @@ const AccountConfigType = t.interface({
   email: NonEmptyString,
   ou: NonEmptyString,
   vpc: VpcConfigType,
-  deployments: t.record(NonEmptyString, DeploymentConfigType),
+  deployments: t.interface({
+    tgw: optional(DeploymentConfigType),
+  }),
 });
 
 const MandatoryAccountConfigType = t.interface({
@@ -120,12 +128,12 @@ export namespace AcceleratorConfig {
     return fromObject(JSON.parse(content));
   }
 
-  export function fromObject(content: any): AcceleratorConfig {
+  export function fromObject<S>(content: S): AcceleratorConfig {
     return parse(AcceleratorConfigType, content);
   }
 }
 
-export function parse<T>(type: t.Decoder<any, T>, content: any): T {
+export function parse<S, T>(type: t.Decoder<S, T>, content: S): T {
   const result = type.decode(content);
   if (isLeft(result)) {
     const errors = PathReporter.report(result).map((error) => `* ${error}`);
