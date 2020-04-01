@@ -1,5 +1,5 @@
-import aws from 'aws-sdk';
-import cfn from 'aws-sdk/clients/cloudformation';
+import * as aws from 'aws-sdk';
+import * as cfn from 'aws-sdk/clients/cloudformation';
 import { listWithNextToken } from './next-token';
 import { Intersect } from '../util/types';
 
@@ -8,14 +8,17 @@ export type CreateOrUpdateStackOutput = Intersect<cfn.CreateStackOutput, cfn.Upd
 export type CreateOrUpdateStackSetInput = Intersect<cfn.CreateStackSetInput, cfn.UpdateStackSetInput>;
 export type CreateOrUpdateStackSetOutput = Intersect<cfn.CreateStackSetOutput, cfn.UpdateStackSetOutput>;
 export type CreateOrUpdateStackInstancesInput = Intersect<cfn.CreateStackInstancesInput, cfn.UpdateStackInstancesInput>;
-export type CreateOrUpdateStackInstancesOutput = Intersect<cfn.CreateStackInstancesOutput, cfn.UpdateStackInstancesOutput>;
+export type CreateOrUpdateStackInstancesOutput = Intersect<
+  cfn.CreateStackInstancesOutput,
+  cfn.UpdateStackInstancesOutput
+>;
 
 export class CloudFormation {
   private readonly client: aws.CloudFormation;
 
   public constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.CloudFormation({
-      region: region,
+      region,
       credentials,
     });
   }
@@ -25,7 +28,7 @@ export class CloudFormation {
    * @param stackName
    */
   async stackExists(stackName: string): Promise<boolean> {
-    return !!await this.describeStack(stackName);
+    return !!(await this.describeStack(stackName));
   }
 
   /**
@@ -33,16 +36,17 @@ export class CloudFormation {
    * @param stackName
    * @return AWS.CloudFormation.Stack or null
    */
-  async describeStack(stackName: string): Promise<cfn.Stack | null> {
+  async describeStack(stackName: string): Promise<cfn.Stack | undefined> {
     try {
       // AmazonCloudFormationException is thrown when the stack does not exist
-      const response = await this.client.describeStacks({
-        StackName: stackName,
-      }).promise();
-      return response.Stacks!![0];
+      const response = await this.client
+        .describeStacks({
+          StackName: stackName,
+        })
+        .promise();
     } catch {
+      return undefined;
     }
-    return null;
   }
 
   async createOrUpdateStack(input: CreateOrUpdateStackInput): Promise<CreateOrUpdateStackOutput | undefined> {
@@ -82,28 +86,34 @@ export class CloudFormation {
    */
   async describeStackSet(stackSetName: string): Promise<cfn.StackSet | undefined> {
     try {
-      const response = await this.client.describeStackSet({
-        StackSetName: stackSetName,
-      }).promise();
+      const response = await this.client
+        .describeStackSet({
+          StackSetName: stackSetName,
+        })
+        .promise();
       return response.StackSet;
     } catch {
+      return undefined;
     }
-    return undefined;
   }
 
   async listStackInstances(stackSetName: string, accountId?: string): Promise<cfn.StackInstanceSummary[]> {
-    return listWithNextToken<cfn.ListStackInstancesInput,
-      cfn.ListStackInstancesOutput,
-      cfn.StackInstanceSummary>(this.client.listStackInstances.bind(this.client), r => r.Summaries!!, {
-      StackSetName: stackSetName,
-      StackInstanceAccount: accountId,
-    });
+    return listWithNextToken<cfn.ListStackInstancesInput, cfn.ListStackInstancesOutput, cfn.StackInstanceSummary>(
+      this.client.listStackInstances.bind(this.client),
+      r => r.Summaries!!,
+      {
+        StackSetName: stackSetName,
+        StackInstanceAccount: accountId,
+      },
+    );
   }
 
   async listStackSetOperations(stackSetName: string): Promise<cfn.StackSetOperationSummary[]> {
-    return listWithNextToken<cfn.ListStackSetOperationsInput,
+    return listWithNextToken<
+      cfn.ListStackSetOperationsInput,
       cfn.ListStackSetOperationsOutput,
-      cfn.StackSetOperationSummary>(this.client.listStackSetOperations.bind(this.client), r => r.Summaries!!, {
+      cfn.StackSetOperationSummary
+    >(this.client.listStackSetOperations.bind(this.client), r => r.Summaries!!, {
       StackSetName: stackSetName,
     });
   }
@@ -143,7 +153,9 @@ export class CloudFormation {
     }
   }
 
-  async createOrUpdateStackSetInstances(input: CreateOrUpdateStackInstancesInput): Promise<CreateOrUpdateStackInstancesOutput | undefined> {
+  async createOrUpdateStackSetInstances(
+    input: CreateOrUpdateStackInstancesInput,
+  ): Promise<CreateOrUpdateStackInstancesOutput | undefined> {
     const inputWithOperationPreferences = {
       OperationPreferences: {
         FailureTolerancePercentage: 100,
@@ -173,7 +185,9 @@ export class CloudFormation {
   }
 }
 
-export function objectToCloudFormationParameters(obj: { [key: string]: string } | undefined): cfn.Parameter[] | undefined {
+export function objectToCloudFormationParameters(
+  obj: { [key: string]: string } | undefined,
+): cfn.Parameter[] | undefined {
   if (!obj) {
     return undefined;
   }

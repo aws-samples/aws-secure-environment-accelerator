@@ -10,14 +10,14 @@ export namespace CodeTask {
    *   * `handler`, `runtime` are excluded;
    *   * other properties are optional.
    */
-  export type FunctionProps = Pick<lambda.FunctionProps, 'code'>
-    & Partial<Omit<lambda.FunctionProps, 'handler' | 'runtime'>>;
+  export type FunctionProps = Pick<lambda.FunctionProps, 'code'> &
+    Partial<Omit<lambda.FunctionProps, 'handler' | 'runtime'>>;
 
   export interface Props extends Partial<Omit<sfn.TaskProps, 'task'>> {
     /**
      * The payload that is used for the `InvokeFunction` task.
      */
-    functionPayload?: { [key: string]: any };
+    functionPayload?: { [key: string]: unkown };
     /**
      * The props that are passed to the Lambda function.
      */

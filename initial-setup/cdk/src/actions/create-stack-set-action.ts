@@ -41,11 +41,12 @@ export class CreateStackSetAction extends actions.Action {
     this.props = props;
   }
 
-  protected bound(scope: cdk.Construct, stage: codepipeline.IStage, options: codepipeline.ActionBindOptions): codepipeline.ActionConfig {
-    const {
-      role,
-      bucket,
-    } = options;
+  protected bound(
+    scope: cdk.Construct,
+    stage: codepipeline.IStage,
+    options: codepipeline.ActionBindOptions,
+  ): codepipeline.ActionConfig {
+    const { role, bucket } = options;
 
     const {
       actionName,
@@ -72,20 +73,20 @@ export class CreateStackSetAction extends actions.Action {
     const createStackSetTriggerLambdaRole = new iam.Role(scope, 'CreateStackSetLambdaRole', {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
-    createStackSetTriggerLambdaRole.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['states:StartExecution'],
-      resources: [createStackSetStateMachine.stateMachineArn],
-    }));
-    createStackSetTriggerLambdaRole.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: [
-        'logs:CreateLogGroup',
-        'logs:CreateLogStream',
-        'logs:PutLogEvents',
-      ],
-    }));
+    createStackSetTriggerLambdaRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['states:StartExecution'],
+        resources: [createStackSetStateMachine.stateMachineArn],
+      }),
+    );
+    createStackSetTriggerLambdaRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      }),
+    );
 
     const createStackSetTrigger = new lambda.Function(scope, 'CreateStackSetTrigger', {
       timeout: cdk.Duration.minutes(15),
@@ -110,8 +111,8 @@ export class CreateStackSetAction extends actions.Action {
         stackCapabilities,
         stackTemplateArtifact: stackTemplateArtifact.artifact.artifactName,
         stackTemplateArtifactPath: stackTemplateArtifact.fileName,
-        accounts: accounts,
-        regions: regions,
+        accounts,
+        regions,
       },
     });
 

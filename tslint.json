@@ -24,6 +24,7 @@
     "jsx-no-multiline-js": false,
     "label-position": true,
     "max-line-length": false, // This is handled by Prettier
+    "max-classes-per-file": false,
     "member-ordering": false,
     "no-any": true,
     "no-arg": true,
@@ -35,13 +36,14 @@
     "no-duplicate-variable": true,
     "no-empty": true,
     "no-eval": true,
+    "no-implicit-dependencies": false,
     "no-namespace": false,
     "no-shadowed-variable": true,
     "no-string-literal": true,
     "no-submodule-imports": false,
     "no-switch-case-fall-through": true,
     "no-trailing-whitespace": false,
-    "no-unused-expression": true,
+    "no-unused-expression": false,
     "no-use-before-declare": false,
     "one-line": false, // This is handled by Prettier
     "quotemark": false, // This is handled by Prettier

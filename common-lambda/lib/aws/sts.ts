@@ -1,4 +1,4 @@
-import aws from 'aws-sdk';
+import * as aws from 'aws-sdk';
 
 export class STS {
   private readonly client: aws.STS;
@@ -10,10 +10,12 @@ export class STS {
   }
 
   async getCredentialsForRoleArn(assumeRoleArn: string): Promise<aws.Credentials> {
-    const response = await this.client.assumeRole({
-      RoleArn: assumeRoleArn,
-      RoleSessionName: 'temporary',
-    }).promise();
+    const response = await this.client
+      .assumeRole({
+        RoleArn: assumeRoleArn,
+        RoleSessionName: 'temporary',
+      })
+      .promise();
 
     const result = response.Credentials!!;
     return new aws.Credentials({
@@ -24,10 +26,12 @@ export class STS {
   }
 
   async getCredentialsForAccountAndRole(accountId: string, assumeRole: string): Promise<aws.Credentials> {
-    const response = await this.client.assumeRole({
-      RoleArn: `arn:aws:iam::${accountId}:role/${assumeRole}`,
-      RoleSessionName: 'temporary',
-    }).promise();
+    const response = await this.client
+      .assumeRole({
+        RoleArn: `arn:aws:iam::${accountId}:role/${assumeRole}`,
+        RoleSessionName: 'temporary',
+      })
+      .promise();
 
     const result = response.Credentials!!;
     return new aws.Credentials({

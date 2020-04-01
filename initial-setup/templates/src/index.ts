@@ -12,7 +12,6 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
-const ACCELERATOR_PREFIX = process.env.ACCELERATOR_PREFIX!!;
 const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
 
 (async () => {
@@ -25,9 +24,13 @@ const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
   new CommonTemplates.AssumeRoleStack(app, 'AssumeRole');
 
   new MasterTemplates.Stack(app, 'Master');
-  //console.log(config);
 
-  new SharedNetwork.Stack(app, 'SharedNetwork', config["mandatory-account-configs"]["shared-network"] as cdk.StackProps);
+  const mandatoryAccountConfig = config['mandatory-account-configs'];
+
+  const sharedNetworkConfig = mandatoryAccountConfig['shared-network'];
+  new SharedNetwork.Stack(app, 'SharedNetwork', {
+    accountConfig: sharedNetworkConfig,
+  });
 
   // Add accelerator tag to all resources
   cdk.Tag.add(app, 'Accelerator', ACCELERATOR_NAME);

@@ -12,12 +12,16 @@ test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
-  expect(stack).to(haveResource('AWS::EC2::VPC', {
-    Tags: [{
-      'Key': 'Name',
-      'Value': 'SharedNetwork_vpc',
-    }],
-  }));
+  expect(stack).to(
+    haveResource('AWS::EC2::VPC', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'SharedNetwork_vpc',
+        },
+      ],
+    }),
+  );
 });
 
 test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
@@ -29,12 +33,16 @@ test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
-  expect(stack).to(haveResource('AWS::EC2::VPC', {
-    Tags: [{
-      'Key': 'Name',
-      'Value': 'SharedNetwork_vpc',
-    }],
-  }));
+  expect(stack).to(
+    haveResource('AWS::EC2::VPC', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'SharedNetwork_vpc',
+        },
+      ],
+    }),
+  );
 });
 
 test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
@@ -48,12 +56,16 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
-  expect(stack).to(haveResource('AWS::EC2::Subnet', {
-    Tags: [{
-      'Key': 'Name',
-      'Value': 'Subnet1a_net',
-    }],
-  }));
+  expect(stack).to(
+    haveResource('AWS::EC2::Subnet', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'Subnet1a_net',
+        },
+      ],
+    }),
+  );
 });
 
 test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
@@ -67,12 +79,16 @@ test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
-  expect(stack).to(haveResource('AWS::EC2::Subnet', {
-    Tags: [{
-      'Key': 'Name',
-      'Value': 'Subnet1a_net',
-    }],
-  }));
+  expect(stack).to(
+    haveResource('AWS::EC2::Subnet', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'Subnet1a_net',
+        },
+      ],
+    }),
+  );
 });
 
 test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () => {
@@ -84,12 +100,16 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
-  expect(stack).to(haveResource('AWS::EC2::RouteTable', {
-    Tags: [{
-      'Key': 'Name',
-      'Value': 'RouteTable1_rt',
-    }],
-  }));
+  expect(stack).to(
+    haveResource('AWS::EC2::RouteTable', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'RouteTable1_rt',
+        },
+      ],
+    }),
+  );
 });
 
 test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRouteTable', () => {
@@ -101,12 +121,16 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRo
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
-  expect(stack).to(haveResource('AWS::EC2::TransitGatewayRouteTable', {
-    Tags: [{
-      'Key': 'Name',
-      'Value': 'TgwRouteTable1_rt',
-    }],
-  }));
+  expect(stack).to(
+    haveResource('AWS::EC2::TransitGatewayRouteTable', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'TgwRouteTable1_rt',
+        },
+      ],
+    }),
+  );
 });
 
 test('should not add suffix if the suffix is already there', () => {
@@ -118,10 +142,14 @@ test('should not add suffix if the suffix is already there', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
-  expect(stack).to(haveResource('AWS::EC2::VPC', {
-    Tags: [{
-      'Key': 'Name',
-      'Value': 'SharedNetwork_vpc',
-    }],
-  }));
+  expect(stack).to(
+    haveResource('AWS::EC2::VPC', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'SharedNetwork_vpc',
+        },
+      ],
+    }),
+  );
 });

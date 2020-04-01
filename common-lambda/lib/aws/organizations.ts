@@ -1,5 +1,5 @@
-import aws from 'aws-sdk';
-import org from 'aws-sdk/clients/organizations';
+import * as aws from 'aws-sdk';
+import * as org from 'aws-sdk/clients/organizations';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 
 export class Organizations {
@@ -16,9 +16,11 @@ export class Organizations {
     const name = input.Name;
     delete input.Name;
 
-    const policies = await listWithNextTokenGenerator<org.ListPoliciesRequest,
+    const policies = await listWithNextTokenGenerator<
+      org.ListPoliciesRequest,
       org.ListPoliciesResponse,
-      org.PolicySummary>(this.client.listPolicies.bind(this.client), r => r.Policies!!, input);
+      org.PolicySummary
+    >(this.client.listPolicies.bind(this.client), r => r.Policies!!, input);
     for await (const policy of policies) {
       if (policy.Name === name) {
         return policy;
@@ -28,15 +30,19 @@ export class Organizations {
   }
 
   async listAccounts(): Promise<org.Account[]> {
-    return listWithNextToken<org.ListAccountsRequest,
-      org.ListAccountsResponse,
-      org.Account>(this.client.listAccounts.bind(this.client), r => r.Accounts!!, {});
+    return listWithNextToken<org.ListAccountsRequest, org.ListAccountsResponse, org.Account>(
+      this.client.listAccounts.bind(this.client),
+      r => r.Accounts!!,
+      {},
+    );
   }
 
   async listPolicies(input: org.ListPoliciesRequest): Promise<org.PolicySummary[]> {
-    return listWithNextToken<org.ListPoliciesRequest,
-      org.ListPoliciesResponse,
-      org.PolicySummary>(this.client.listPolicies.bind(this.client), r => r.Policies!!, input);
+    return listWithNextToken<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
+      this.client.listPolicies.bind(this.client),
+      r => r.Policies!!,
+      input,
+    );
   }
 
   async createPolicy(input: org.CreatePolicyRequest): Promise<org.CreatePolicyResponse> {

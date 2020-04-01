@@ -1,64 +1,69 @@
 import * as cdk from '@aws-cdk/core';
-import { VPC } from '../common/vpc';
-import { TransitGateway, TransitGatewayProps } from '../common/transit-gateway';
+import { Vpc } from '../common/vpc';
+import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 export namespace SharedNetwork {
+  export interface StackProps extends cdk.StackProps {
+    accountConfig: AccountConfig;
+  }
+
   export class Stack extends cdk.Stack {
-    constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
+    constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
-      let accountProps = props as AccountConfig;
+
+      const accountProps = props.accountConfig;
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc!!
-      const vpc = new VPC(this, 'vpc', vpcConfig);
-      
+      const vpcConfig = accountProps.vpc!!;
+      const vpc = new Vpc(this, 'vpc', vpcConfig);
+
       // Creating TGW for Shared-Network Account
-      let tgw;
       const deployments = accountProps.deployments;
-      if("tgw" in deployments){
-        tgw = new TransitGateway(this, deployments["tgw"]["name"], deployments["tgw"]);
-      }
+      const twgDeployment = deployments.tgw;
+      const twgAttach = vpcConfig['tgw-attach'];
+      if (twgDeployment) {
+        const tgw = new TransitGateway(this, twgDeployment.name!!, twgDeployment);
+        if (twgAttach) {
+          // TBD Account Check
 
-      if ("tgw-attach" in vpcConfig && tgw){
-        
-        // TBD Account Check
+          // TBD TGW Name Check
 
-        // TBD TGW Name Check
-
-        // **** Attach VPC to TGW ********
-        // Prepare props for TGW Attachment
-        let subnetIds:string[] = [];
-        const vpcTgwAttach = vpcConfig["tgw-attach"]!!
-        const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!!
-        for(let subnet of vpcTgwAttachSubnets){
-          subnetIds = subnetIds.concat(vpc.subets.get(subnet) as string[]);
-        }
-        let tgwRouteAssociations:string[] = [];
-        let tgwRoutePropagates:string[] = [];
-        const vpcTgwRTAssociate = vpcTgwAttach['tgw-rt-associate']!!
-        for(let route of vpcTgwRTAssociate){
-          if (tgw.tgwRouteTables && tgw.tgwRouteTables.get(route)){
-            tgwRouteAssociations.push(tgw.tgwRouteTables.get(route) as string)
+          // **** Attach VPC to TGW ********
+          // Prepare props for TGW Attachment
+          let subnetIds: string[] = [];
+          const vpcTgwAttach = vpcConfig['tgw-attach']!!;
+          const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!!;
+          for (const subnet of vpcTgwAttachSubnets) {
+            subnetIds = subnetIds.concat(vpc.subnets.get(subnet) as string[]);
           }
-        }
-        const vpcTgwRTPropagate = vpcTgwAttach['tgw-rt-propagate']!!
-        for(let route of vpcTgwRTPropagate){
-          if (tgw.tgwRouteTables && tgw.tgwRouteTables.get(route)){
-            tgwRoutePropagates.push(tgw.tgwRouteTables.get(route) as string)
-          }
-        }
 
-        let tgwAttachProps: TransitGatewayAttachmentProps = {
-          vpcId: vpc.vpc,
-          subnetIds: subnetIds,
-          transitGatewayId: tgw.tgw,
-          tgwRouteAssociates: tgwRouteAssociations,
-          tgwRoutePropagates: tgwRoutePropagates
+          const tgwRouteAssociations: string[] = [];
+          const tgwRoutePropagates: string[] = [];
+          const vpcTgwRTAssociate = vpcTgwAttach['tgw-rt-associate']!!;
+          for (const route of vpcTgwRTAssociate) {
+            if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
+              tgwRouteAssociations.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
+            }
+          }
+          const vpcTgwRTPropagate = vpcTgwAttach['tgw-rt-propagate']!!;
+          for (const route of vpcTgwRTPropagate) {
+            if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
+              tgwRoutePropagates.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
+            }
+          }
+
+          const tgwAttachProps: TransitGatewayAttachmentProps = {
+            vpcId: vpc.vpcId,
+            subnetIds,
+            transitGatewayId: tgw.tgwId,
+            tgwRouteAssociates: tgwRouteAssociations,
+            tgwRoutePropagates,
+          };
+          // Attach VPC To TGW
+          new TransitGatewayAttachment(this, 'tgw_attach', tgwAttachProps);
         }
-        // Attach VPC To TGW
-        const tgwAttach = new TransitGatewayAttachment(this, 'tgw_attach', tgwAttachProps);
       }
     }
   }
