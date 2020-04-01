@@ -75,7 +75,7 @@ const VpcConfigType = t.interface({
   vgw: t.union([VirtualPrivateGatewayConfig, t.boolean, t.undefined]),
   pcx: t.union([PeeringConnectionConfig, t.boolean, t.undefined]),
   natgw: t.union([NatGatewayConfig, t.boolean, t.undefined]),
-  subnets: optional(t.array(t.union([SubnetConfig, t.string]))),
+  subnets: optional(t.array(SubnetConfig)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfig)),
   'tgw-attach': optional(TransitGatewayAttachConfig),
@@ -86,7 +86,7 @@ export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
 
 const DeploymentFeature = NonEmptyString;
 
-const DeploymentConfig = t.interface({
+export const DeploymentConfigType = t.interface({
   name: optional(NonEmptyString),
   asn: optional(t.number),
   features: optional(t.record(DeploymentFeature, t.boolean)),
@@ -98,7 +98,7 @@ const AccountConfigType = t.interface({
   email: NonEmptyString,
   ou: NonEmptyString,
   vpc: VpcConfigType,
-  deployments: t.record(NonEmptyString, DeploymentConfig),
+  deployments: t.record(NonEmptyString, DeploymentConfigType),
 });
 
 const MandatoryAccountConfigType = t.interface({
@@ -112,6 +112,8 @@ const AcceleratorConfigType = t.interface({
 });
 
 export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
+export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
+export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromString(content: string): AcceleratorConfig {

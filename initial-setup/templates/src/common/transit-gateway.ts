@@ -3,13 +3,33 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 
 import { DeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 
+export interface TransitGatewayProps {
+  amazonSideAsn?: number,
+  autoAcceptSharedAttachments: string,
+  defaultRouteTableAssociation: string,
+  defaultRouteTablePropagation: string,
+  dnsSupport: string,
+  vpnEcmpSupport: string,
+  routeTables: string[],
+  tags?: any[]
+}
+
+
 function prepareTransitGatewayProps(tgwConfig:DeploymentConfig): TransitGatewayProps{
-    let tgwProps:any = {
-      dnsSupport: enableDisableProperty(tgwConfig.features['DNS-support']),
-      vpnEcmpSupport: enableDisableProperty(tgwConfig.features['VPN-ECMP-support']),
-      defaultRouteTableAssociation: enableDisableProperty(tgwConfig.features['Default-route-table-association']),
-      defaultRouteTablePropagation: enableDisableProperty(tgwConfig.features['Default-route-table-propagation']),
-      autoAcceptSharedAttachments: enableDisableProperty(tgwConfig.features['Auto-accept-sharing-attachments']),
+    const tgwFeatures = tgwConfig.features!!
+    const tgwRouteTables = tgwConfig["route-tables"]!!
+    let tgwProps:TransitGatewayProps = {
+      // @ts-ignore
+      dnsSupport: enableDisableProperty(tgwFeatures['DNS-support']),
+      // @ts-ignore
+      vpnEcmpSupport: enableDisableProperty(tgwFeatures['VPN-ECMP-support']),
+      // @ts-ignore
+      defaultRouteTableAssociation: enableDisableProperty(tgwFeatures['Default-route-table-association']),
+      // @ts-ignore
+      defaultRouteTablePropagation: enableDisableProperty(tgwFeatures['Default-route-table-propagation']),
+      // @ts-ignore
+      autoAcceptSharedAttachments: enableDisableProperty(tgwFeatures['Auto-accept-sharing-attachments']),
+      // @ts-ignore
       routeTables: tgwConfig["route-tables"]
     };
     if('asn' in tgwConfig)
@@ -21,18 +41,6 @@ function prepareTransitGatewayProps(tgwConfig:DeploymentConfig): TransitGatewayP
   function enableDisableProperty(feature: boolean){
     return feature? 'enable': 'disable'
   }
-
-  
-export interface TransitGatewayProps {
-    amazonSideAsn: number,
-    autoAcceptSharedAttachments: string,
-    defaultRouteTableAssociation: string,
-    defaultRouteTablePropagation: string,
-    dnsSupport: string,
-    vpnEcmpSupport: string,
-    routeTables: string[],
-    tags?: any[]
-}
 
 export class TransitGateway extends cdk.Construct{
     readonly tgw: string;

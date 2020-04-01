@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
-import { VPC } from '../common/VPC';
-import { TransitGateway, TransitGatewayProps } from '../common/TransitGateway';
-import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/TransitGatewayAttachment';
+import { VPC } from '../common/vpc';
+import { TransitGateway, TransitGatewayProps } from '../common/transit-gateway';
+import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 export namespace SharedNetwork {
@@ -11,14 +11,14 @@ export namespace SharedNetwork {
       let accountProps = props as AccountConfig;
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc;
+      const vpcConfig = accountProps.vpc!!
       const vpc = new VPC(this, 'vpc', vpcConfig);
       
       // Creating TGW for Shared-Network Account
       let tgw;
       const deployments = accountProps.deployments;
       if("tgw" in deployments){
-        tgw = new TransitGateway(this, deployments.tgw.name, deployments.tgw);
+        tgw = new TransitGateway(this, deployments["tgw"]["name"], deployments["tgw"]);
       }
 
       if ("tgw-attach" in vpcConfig && tgw){
@@ -30,17 +30,21 @@ export namespace SharedNetwork {
         // **** Attach VPC to TGW ********
         // Prepare props for TGW Attachment
         let subnetIds:string[] = [];
-        for(let subnet of vpcConfig["tgw-attach"]['attach-subnets']){
+        const vpcTgwAttach = vpcConfig["tgw-attach"]!!
+        const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!!
+        for(let subnet of vpcTgwAttachSubnets){
           subnetIds = subnetIds.concat(vpc.subets.get(subnet) as string[]);
         }
         let tgwRouteAssociations:string[] = [];
         let tgwRoutePropagates:string[] = [];
-        for(let route of vpcConfig["tgw-attach"]["tgw-rt-associate"]){
+        const vpcTgwRTAssociate = vpcTgwAttach['tgw-rt-associate']!!
+        for(let route of vpcTgwRTAssociate){
           if (tgw.tgwRouteTables && tgw.tgwRouteTables.get(route)){
             tgwRouteAssociations.push(tgw.tgwRouteTables.get(route) as string)
           }
         }
-        for(let route of vpcConfig["tgw-attach"]["tgw-rt-propogate"]){
+        const vpcTgwRTPropagate = vpcTgwAttach['tgw-rt-propagate']!!
+        for(let route of vpcTgwRTPropagate){
           if (tgw.tgwRouteTables && tgw.tgwRouteTables.get(route)){
             tgwRoutePropagates.push(tgw.tgwRouteTables.get(route) as string)
           }
