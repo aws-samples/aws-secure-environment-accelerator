@@ -1,0 +1,36 @@
+name: Analyze
+on: [pull_request]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - name: Install tslint
+        run: |
+          npm install -g typescript tslint tslint-config-standard tslint-config-prettier
+      - name: Analyze TypeScript files
+        run: |
+          tslint **/*.ts
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - name: Install Prettier
+        run: |
+          npm install -g prettier
+      - name: Analyze TypeScript files
+        run: |
+          prettier --check **/*.ts
