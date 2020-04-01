@@ -41,7 +41,7 @@ export interface VpcConfig {
   subnets: SubnetConfig[];
   'gateway-endpoints': GatewayEndpointType[];
   'route-tables': RouteTableConfig[];
-  'tgw-attach': TransitGatewayAttachConfig[];
+  'tgw-attach': TransitGatewayAttachConfig;
   'interface-endpoints'?: InterfaceEndpointConfig;
 }
 
@@ -101,7 +101,7 @@ export interface TransitGatewayAttachConfig {
   'account': 'local' | string;
   'associate-type': 'ATTACH';
   'tgw-rt-associate': string[];
-  'tgw-rt-propagate': string[];
+  'tgw-rt-propogate': string[];
   'blackhole-route': boolean,
   'attach-subnets': SubnetConfig['name'][],
   'options': TransitGatewayAttachOption[];
@@ -126,6 +126,6 @@ export type DeploymentFeature = 'DNS-support'
 export interface DeploymentConfig {
   name: string;
   asn: number;
-  features: DeploymentFeature[];
+  features: { [key in DeploymentFeature]: boolean };
   'route-tables': string[];
 }

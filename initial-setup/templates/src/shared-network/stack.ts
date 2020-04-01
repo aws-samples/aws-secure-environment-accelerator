@@ -2,39 +2,23 @@ import * as cdk from '@aws-cdk/core';
 import { VPC } from '../common/VPC';
 import { TransitGateway, TransitGatewayProps } from '../common/TransitGateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/TransitGatewayAttachment';
+import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 
-function prepareTransitGatewayProps(tgwConfig:any): TransitGatewayProps{
-  let tgwProps:any = {
-    dnsSupport: enableDisableProperty('DNS-support', tgwConfig.features),
-    vpnEcmpSupport: enableDisableProperty('VPN-ECMP-support', tgwConfig.features),
-    defaultRouteTableAssociation: enableDisableProperty('Default-Route-Table-Association', tgwConfig.features),
-    defaultRouteTablePropagation: enableDisableProperty('Default-Route-Table-Propagation', tgwConfig.features),
-    autoAcceptSharedAttachments: enableDisableProperty('Auto-Accept-Shared-Attachments', tgwConfig.features),
-    routeTables: 'route-tables' in tgwConfig? tgwConfig["route-tables"]: []
-  };
-  if('asn' in tgwConfig)
-    tgwProps['amazonSideAsn'] = tgwConfig.asn;
-  return tgwProps as TransitGatewayProps;
-}
-
-
-function enableDisableProperty(feature: string, config:any){
-  return config.includes(feature)? 'enable': 'disable'
-}
 export namespace SharedNetwork {
   export class Stack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
       super(scope, id, props);
+      let accountProps = props as AccountConfig;
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = (props as any).vpc;
+      const vpcConfig = accountProps.vpc;
       const vpc = new VPC(this, 'vpc', vpcConfig);
       
       // Creating TGW for Shared-Network Account
       let tgw;
-      const deployments = (props as any).deployments;
+      const deployments = accountProps.deployments;
       if("tgw" in deployments){
-        tgw = new TransitGateway(this, deployments.tgw.name, prepareTransitGatewayProps(deployments.tgw));
+        tgw = new TransitGateway(this, deployments.tgw.name, deployments.tgw);
       }
 
       if ("tgw-attach" in vpcConfig && tgw){
@@ -56,8 +40,7 @@ export namespace SharedNetwork {
             tgwRouteAssociations.push(tgw.tgwRouteTables.get(route) as string)
           }
         }
-
-        for(let route of vpcConfig["tgw-attach"]["tgw-rt-propagate"]){
+        for(let route of vpcConfig["tgw-attach"]["tgw-rt-propogate"]){
           if (tgw.tgwRouteTables && tgw.tgwRouteTables.get(route)){
             tgwRoutePropagates.push(tgw.tgwRouteTables.get(route) as string)
           }

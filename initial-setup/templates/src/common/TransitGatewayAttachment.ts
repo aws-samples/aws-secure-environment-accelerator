@@ -15,14 +15,14 @@ export class TransitGatewayAttachment extends cdk.Construct{
     constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps){
         super(parent, name);
         const tgwAttach = new ec2.CfnTransitGatewayAttachment(this, name, props);
-        for( let [index, route] of props.tgwRouteAssociates?props.tgwRouteAssociates.entries():[].entries()){
+        for( let [index, route] of props.tgwRouteAssociates?.entries() || []){
             new ec2.CfnTransitGatewayRouteTableAssociation(this, `tgw_associate_${index}`, {
                 transitGatewayAttachmentId: tgwAttach.ref,
                 transitGatewayRouteTableId: route
             });
         }
 
-        for( let [index, route] of props.tgwRoutePropagates?props.tgwRoutePropagates.entries():[].entries()){
+        for( let [index, route] of props.tgwRoutePropagates?.entries() || []){
             new ec2.CfnTransitGatewayRouteTablePropagation(this, `tgw_propagate_${index}`, {
                 transitGatewayAttachmentId: tgwAttach.ref,
                 transitGatewayRouteTableId: route
