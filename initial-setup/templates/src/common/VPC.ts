@@ -1,0 +1,113 @@
+import * as cdk from '@aws-cdk/core';
+import * as ec2 from '@aws-cdk/aws-ec2';
+
+import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+
+export class VPC extends cdk.Construct{
+  readonly vpc: string;
+  readonly subets = new Map<string, string[]>();
+  constructor(parent: cdk.Construct, name: string, props: VpcConfig){
+    super(parent, name)
+    let vpcName = props.name;
+    let igw, igw_attach, vgw, vgw_attach;
+    // Create Custom VPC using CFN Cunstruct as tags overide option not available in default Cunstruct
+    let vpcObj = new ec2.CfnVPC(this, vpcName , {
+      cidrBlock: props.cidr!!.toCidrString()
+    });
+
+    if (props["igw"]){ // Create IGW
+      igw = new ec2.CfnInternetGateway(this, `${vpcName}_igw`);
+      // Attach IGW to VPC
+      igw_attach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_igw`, {
+        vpcId: vpcObj.ref,
+        internetGatewayId: igw.ref
+      });
+    }
+
+    if ("vgw" in props && props["vgw"]){ // Create VGW
+      vgw = new ec2.CfnVPNGateway(this, `${props.name}_vgw`, {
+        type: "ipsec.1"
+      });
+      // Attach VGW to VPC
+      vgw_attach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_vgw`, {
+        vpcId: vpcObj.ref,
+        vpnGatewayId: vgw.ref
+      });
+    }
+
+    let routeTables = new Map();
+    
+    if("route-tables" in props){ // Create Route Tables
+      const routeTablesProps  = props['route-tables']!!;
+      for(const routeTableProp of routeTablesProps){
+        if ( routeTableProp.name === "default"){
+          continue;
+        }
+        let routeTableName = routeTableProp.name;
+        let routeTable = new ec2.CfnRouteTable(this, routeTableName, {
+          vpcId: vpcObj.ref
+        });
+        routeTables.set(routeTableName, routeTable);
+        // Add Routes to RouteTable
+        for( const route of routeTableProp.routes!!){
+          const params: ec2.CfnRouteProps = {
+            routeTableId: routeTable.ref,
+            destinationCidrBlock: route.destination as string
+          }
+          let dependsOn:any;
+          if(route.target === "IGW"){
+            //params["gatewayId"] = igw? igw.ref: null;
+            Object.assign(params, {gatewayId: igw? igw.ref: null});
+            if(igw_attach){dependsOn = igw_attach;}
+          }
+          else if(route.target === "VGW"){
+            //params['gatewayId'] = vgw? vgw.ref: null;
+            Object.assign(params, {gatewayId: vgw? vgw.ref: null});
+            if(vgw_attach){dependsOn = vgw_attach;}
+          }
+          else{
+            // Need to add for different Routes
+            continue
+          }
+          console.log(params);
+          if(dependsOn){
+            new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params).addDependsOn(dependsOn);
+          }
+          else{
+            new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
+          }
+        }
+      }
+    }
+
+    const subnetsConfig = props.subnets!!;
+    for(const subnetConfig of subnetsConfig){
+      let subnetAzs:string[] = [];
+      // @ts-ignore
+      const propSubnetName = subnetConfig.name;
+      for (const subnetDefinition of subnetConfig.definitions){
+        if(subnetDefinition.disabled) continue;
+        const az = props.region?.split('-')[props.region?.split('-').length - 1] + subnetDefinition.az
+        const subnetName = `${vpcName}_${propSubnetName}_az${az}_net`;
+        let subnet = new ec2.CfnSubnet(this, subnetName, {
+          cidrBlock: subnetDefinition.cidr.toCidrString(),
+          vpcId: vpcObj.ref,
+          availabilityZone: `${props.region}${subnetDefinition.az}`
+        });
+        subnetAzs.push(subnet.ref);
+
+        // Attach Subnet to Route-Table
+        let routeTableName:string = subnetDefinition["route-table"];
+        if(routeTableName === "default"){
+          continue
+        }
+        new ec2.CfnSubnetRouteTableAssociation(this, `${subnetName}_ ${routeTableName}`, {
+          routeTableId: routeTables.get(routeTableName).ref,
+          subnetId: subnet.ref
+        });
+      }
+      this.subets.set(propSubnetName, subnetAzs);
+    }
+    this.vpc = vpcObj.ref;
+  }
+}
