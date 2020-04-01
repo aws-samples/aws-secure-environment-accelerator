@@ -108,7 +108,7 @@ private readonly client: aws.ServiceCatalog;
   async searchProvisionedProducts(provisionToken: string): Promise<any>{
     const searchProvisionedProductsInput: SearchProvisionedProductsInput = {
         Filters: {
-            SearchQuery: ['idempotencyToken:'+provisionToken]
+            SearchQuery: ['idempotencyToken:'+provisionToken,'status:AVAILABLE']
         } 
     }
     return this.client.searchProvisionedProducts(searchProvisionedProductsInput).promise();
