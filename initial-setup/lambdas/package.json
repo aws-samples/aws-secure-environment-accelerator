@@ -17,7 +17,7 @@
     "@types/aws-lambda": "^8.10.46",
     "@types/jest": "^25.1.4",
     "@types/js-yaml": "^3.12.3",
-    "@types/node": "^10.17.17",
+    "@types/node": "12.12.6",
     "@types/webpack": "^4.41.8",
     "babel-jest": "^25.2.0",
     "babel-loader": "^8.1.0",
@@ -38,7 +38,7 @@
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "adm-zip": "^0.4.14",
     "aws-lambda": "^1.0.5",
-    "aws-sdk": "^2.646.0"
+    "aws-sdk": "2.585.0"
   },
   "jest": {
     "preset": "ts-jest",
