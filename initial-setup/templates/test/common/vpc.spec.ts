@@ -1,134 +1,17 @@
+// tslint:disable:no-any
 import 'jest';
-import '@aws-cdk/assert/jest';
 import * as cdk from '@aws-cdk/core';
-// import { countResources, expect, haveResource } from '@aws-cdk/assert';
 import { parse, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { resourcesToList, stackToCloudFormation } from '../jest';
 import { Vpc } from '../../src/common/vpc';
 
-test('should create the correct amount of subnets', () => {
+test('the VPC creation should create the correct amount of subnets', () => {
   const stack = new cdk.Stack();
 
-  new Vpc(stack, 'SharedNetwork', parse(VpcConfigType, {
-    name: 'shared-network',
-    cidr: '10.2.0.0/16',
-    region: 'ca-central-1',
-    igw: false,
-    vgw: false,
-    pcx: false,
-    natgw: false,
-    subnets: [
-      {
-        'name': 'TGW',
-        'share-to-ou-accounts': false,
-        'definitions': [
-          {
-            'az': 'a',
-            'route-table': 'DevVPC_Common',
-            'cidr': '10.2.88.0/27',
-          },
-          {
-            'az': 'b',
-            'route-table': 'DevVPC_Common',
-            'cidr': '10.2.88.32/27',
-          },
-          {
-            'az': 'd',
-            'route-table': 'DevVPC_Common',
-            'cidr': '10.2.88.64/27',
-            'disabled': true,
-          },
-        ],
-      },
-      {
-        'name': 'Web',
-        'share-to-ou-accounts': true,
-        'definitions': [
-          {
-            'az': 'a',
-            'route-table': 'DevVPC_Common',
-            'cidr': '10.2.32.0/20',
-          },
-          {
-            'az': 'b',
-            'route-table': 'DevVPC_Common',
-            'cidr': '10.2.128.0/20',
-          },
-          {
-            'az': 'd',
-            'route-table': 'DevVPC_Common',
-            'cidr': '10.2.192.0/20',
-            'disabled': true,
-          },
-        ],
-      },
-    ],
-    'route-tables': [
-      {
-        'name': 'default',
-      },
-      {
-        'name': 'DevVPC_Common',
-        'routes': [
-          {
-            'destination': '0.0.0.0/0',
-            'target': 'TGW',
-          },
-          {
-            'destination': 'GW-endpoint-s3',
-            'target': 'GW-endpoint-s3',
-          },
-          {
-            'destination': 'GW-endpoint-DynamoDB',
-            'target': 'GW-endpoint-DynamoDB',
-          },
-        ],
-      },
-    ],
-  }));
-
-  expect(stack).toHaveResource('AWS::EC2::VPC', {
-    CidrBlock: '10.2.0.0/16',
-  });
-
-  // expect(stack).to(countResources('AWS::EC2::Subnet', 4));
-  //
-  // expect(stack).to(
-  //   haveResource('AWS::EC2::Subnet', {
-  //     CidrBlock: '10.2.88.0/27',
-  //     AvailabilityZone: 'ca-central-1a',
-  //   }),
-  // );
-  //
-  // expect(stack).to(
-  //   haveResource('AWS::EC2::Subnet', {
-  //     CidrBlock: '10.2.88.32/27',
-  //     AvailabilityZone: 'ca-central-1b',
-  //   }),
-  // );
-  //
-  // expect(stack).to(
-  //   haveResource('AWS::EC2::Subnet', {
-  //     CidrBlock: '10.2.32.0/20',
-  //     AvailabilityZone: 'ca-central-1a',
-  //   }),
-  // );
-  //
-  // expect(stack).to(
-  //   haveResource('AWS::EC2::Subnet', {
-  //     CidrBlock: '10.2.128.0/20',
-  //     AvailabilityZone: 'ca-central-1b',
-  //   }),
-  // );
-  //
-  // expect(stack).to(countResources('AWS::EC2::RouteTable', 1));
-  // expect(stack).to(countResources('AWS::EC2::SubnetRouteTableAssociation', 4));
-});
-
-test('should throw an error when a route table does not exist', () => {
-  const stack = new cdk.Stack();
-
-  expect(() => {
-    new Vpc(stack, 'SharedNetwork', parse(VpcConfigType, {
+  new Vpc(
+    stack,
+    'SharedNetwork',
+    parse(VpcConfigType, {
       name: 'shared-network',
       cidr: '10.2.0.0/16',
       region: 'ca-central-1',
@@ -138,17 +21,264 @@ test('should throw an error when a route table does not exist', () => {
       natgw: false,
       subnets: [
         {
-          'name': 'TGW',
+          name: 'TGW',
           'share-to-ou-accounts': false,
-          'definitions': [
+          definitions: [
             {
-              'az': 'a',
+              az: 'a',
               'route-table': 'DevVPC_Common',
-              'cidr': '10.2.88.0/27',
+              cidr: '10.2.88.0/27',
+            },
+            {
+              az: 'b',
+              'route-table': 'DevVPC_Common',
+              cidr: '10.2.88.32/27',
+            },
+            {
+              az: 'd',
+              'route-table': 'DevVPC_Common',
+              cidr: '10.2.88.64/27',
+              disabled: true,
+            },
+          ],
+        },
+        {
+          name: 'Web',
+          'share-to-ou-accounts': true,
+          definitions: [
+            {
+              az: 'a',
+              'route-table': 'DevVPC_Common',
+              cidr: '10.2.32.0/20',
+            },
+            {
+              az: 'b',
+              'route-table': 'DevVPC_Common',
+              cidr: '10.2.128.0/20',
+            },
+            {
+              az: 'd',
+              'route-table': 'DevVPC_Common',
+              cidr: '10.2.192.0/20',
+              disabled: true,
             },
           ],
         },
       ],
-    }));
+      'route-tables': [
+        {
+          name: 'default',
+        },
+        {
+          name: 'DevVPC_Common',
+          routes: [
+            {
+              destination: '0.0.0.0/0',
+              target: 'TGW',
+            },
+            {
+              destination: 'GW-endpoint-s3',
+              target: 'GW-endpoint-s3',
+            },
+            {
+              destination: 'GW-endpoint-DynamoDB',
+              target: 'GW-endpoint-DynamoDB',
+            },
+          ],
+        },
+      ],
+    }),
+  );
+
+  // Convert the stack to a CloudFormation template
+  const template = stackToCloudFormation(stack);
+  const resources = resourcesToList(template.Resources);
+
+  // The VPC Should have the correct CIDR block
+  expect(resources).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        Type: 'AWS::EC2::VPC',
+        Properties: {
+          CidrBlock: '10.2.0.0/16',
+        },
+      }),
+    ]),
+  );
+
+  const vpc = resources.find((r) => r.Type === 'AWS::EC2::VPC')!!;
+  const subnets = resources.filter((r) => r.Type === 'AWS::EC2::Subnet');
+
+  // There should be 4 subnets as 2 of the 6 given subnets are disabled
+  expect(subnets).toHaveLength(4);
+
+  expect(subnets).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        Type: 'AWS::EC2::Subnet',
+        Properties: {
+          CidrBlock: '10.2.88.0/27',
+          AvailabilityZone: 'ca-central-1a',
+          VpcId: {
+            Ref: vpc.LogicalId,
+          },
+        },
+      }),
+      expect.objectContaining({
+        Type: 'AWS::EC2::Subnet',
+        Properties: {
+          CidrBlock: '10.2.88.32/27',
+          AvailabilityZone: 'ca-central-1b',
+          VpcId: {
+            Ref: vpc.LogicalId,
+          },
+        },
+      }),
+      expect.objectContaining({
+        Type: 'AWS::EC2::Subnet',
+        Properties: {
+          CidrBlock: '10.2.32.0/20',
+          AvailabilityZone: 'ca-central-1a',
+          VpcId: {
+            Ref: vpc.LogicalId,
+          },
+        },
+      }),
+      expect.objectContaining({
+        Type: 'AWS::EC2::Subnet',
+        Properties: {
+          CidrBlock: '10.2.128.0/20',
+          AvailabilityZone: 'ca-central-1b',
+          VpcId: {
+            Ref: vpc.LogicalId,
+          },
+        },
+      }),
+    ]),
+  );
+
+  const routeTables = resources.filter((r) => r.Type === 'AWS::EC2::RouteTable');
+  const associations = resources.filter((r) => r.Type === 'AWS::EC2::SubnetRouteTableAssociation');
+
+  // There's a single route table
+  expect(routeTables).toHaveLength(1);
+
+  // The route table is associated with all the subnets
+  expect(associations).toHaveLength(4);
+});
+
+test('the VPC creation should throw an error when a subnet uses a route table that does not exist', () => {
+  const stack = new cdk.Stack();
+
+  expect(() => {
+    new Vpc(
+      stack,
+      'SharedNetwork',
+      parse(VpcConfigType, {
+        name: 'shared-network',
+        cidr: '10.2.0.0/16',
+        region: 'ca-central-1',
+        igw: false,
+        vgw: false,
+        pcx: false,
+        natgw: false,
+        subnets: [
+          {
+            name: 'TGW',
+            'share-to-ou-accounts': false,
+            definitions: [
+              {
+                az: 'a',
+                'route-table': 'DevVPC_Common',
+                cidr: '10.2.88.0/27',
+              },
+            ],
+          },
+        ],
+      }),
+    );
   }).toThrowError();
+});
+
+test('the VPC creation should create the internet gateway', () => {
+  const stack = new cdk.Stack();
+
+  new Vpc(
+    stack,
+    'SharedNetwork',
+    parse(VpcConfigType, {
+      name: 'shared-network',
+      cidr: '10.2.0.0/16',
+      region: 'ca-central-1',
+      igw: true,
+      vgw: false,
+      pcx: false,
+      natgw: false,
+      subnets: [],
+    }),
+  );
+
+  // Convert the stack to a CloudFormation template
+  const template = stackToCloudFormation(stack);
+  const resources = resourcesToList(template.Resources);
+
+  const internetGateways = resources.filter((r) => r.Type === 'AWS::EC2::InternetGateway');
+
+  // There should only be one internet gateway
+  expect(internetGateways).toHaveLength(1);
+});
+
+test('the VPC creation should create the VPN gateway', () => {
+  const stack = new cdk.Stack();
+
+  new Vpc(
+    stack,
+    'SharedNetwork',
+    parse(VpcConfigType, {
+      name: 'shared-network',
+      cidr: '10.2.0.0/16',
+      region: 'ca-central-1',
+      igw: false,
+      vgw: true,
+      pcx: false,
+      natgw: false,
+      subnets: [],
+    }),
+  );
+
+  // Convert the stack to a CloudFormation template
+  const template = stackToCloudFormation(stack);
+  const resources = resourcesToList(template.Resources);
+
+  // There should only be one internet gateway
+  expect(resources).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        Type: 'AWS::EC2::VPC',
+      }),
+      expect.objectContaining({
+        Type: 'AWS::EC2::VPNGateway',
+      }),
+    ]),
+  );
+
+  const vpc = resources.find((r) => r.Type === 'AWS::EC2::VPC')!!;
+  const vpnGateway = resources.find((r) => r.Type === 'AWS::EC2::VPNGateway')!!;
+
+  // There should only be one internet gateway
+  expect(resources).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        Type: 'AWS::EC2::VPCGatewayAttachment',
+        Properties: expect.objectContaining({
+          VpcId: {
+            Ref: vpc.LogicalId,
+          },
+          VpnGatewayId: {
+            Ref: vpnGateway.LogicalId,
+          },
+        }),
+      }),
+    ]),
+  );
 });

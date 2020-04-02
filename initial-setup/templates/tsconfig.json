@@ -3,16 +3,14 @@
     "strict": true,
     "outDir": "dist",
     "target": "es2019",
-    "lib": [
-      "es2019"
-    ],
+    "lib": ["es2019"],
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "preserveSymlinks": true
+    "preserveSymlinks": true,
+    "skipLibCheck": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["test/**/*"]
 }
