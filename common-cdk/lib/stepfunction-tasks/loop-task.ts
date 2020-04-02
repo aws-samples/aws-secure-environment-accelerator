@@ -10,7 +10,7 @@ export namespace LoopTask {
     /**
      * The payload that is used for the `InvokeFunction` task.
      */
-    functionPayload?: { [key: string]: unkown };
+    functionPayload?: { [key: string]: unknown };
     /**
      * The props that are passed to the Lambda function.
      */
