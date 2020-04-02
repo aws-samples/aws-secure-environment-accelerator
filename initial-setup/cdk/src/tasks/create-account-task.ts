@@ -49,8 +49,8 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
       },
     });
 
-    const deployTask = new CodeTask(scope, `Deploy`, {
-      resultPath: 'DISCARD',
+    const deployTask = new CodeTask(scope, `Create`, {
+      resultPath: '$.create',
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-account/create'),
