@@ -9,7 +9,8 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "preserveSymlinks": true
   },
   "include": [
     "src/**/*"

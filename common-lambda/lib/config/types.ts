@@ -15,7 +15,7 @@ export const cidr = new t.Type<IPv4CidrRange, string, unknown>(
         return t.failure(s, context, e);
       }
     }),
-  (c) => c.toString(),
+  (c) => c.toCidrString(),
 );
 
 export class EnumType<T> extends t.Type<T> {
