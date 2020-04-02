@@ -1,6 +1,7 @@
+import * as aws from 'aws-sdk';
 import { ServiceCatalog, ProductAVMParam } from './service-catalog';
 import { SecretsManager } from './secrets-manager';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig } from '../config';
 import { v4 as uuidv4 } from 'uuid';
 
 const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
@@ -10,6 +11,14 @@ const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
 const avmName = 'AWS-Landing-Zone-Account-Vending-Machine';
 
 export class AccountVendingMachine {
+  private readonly client: aws.ServiceCatalog;
+
+  public constructor(credentials?: aws.Credentials) {
+    this.client = new aws.ServiceCatalog({
+        credentials,
+    });
+  }
+
   /**
    * Create account using account-vending-machine
    * @param accountName

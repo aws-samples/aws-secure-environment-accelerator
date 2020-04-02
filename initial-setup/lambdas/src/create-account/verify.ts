@@ -1,11 +1,11 @@
-import { AVM } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
+import { AccountVendingMachine } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
 
 const SUCCESS_STATUSES = ['AVAILABLE'];
 const FAILED_STATUSES = ['ERROR'];
 
 interface CheckStepInput {
-  accountName?: string;
-  provisionToken?: string;
+  accountName: string;
+  provisionToken: string;
 }
 
 export const handler = async (input: Partial<CheckStepInput>) => {
@@ -14,8 +14,8 @@ export const handler = async (input: Partial<CheckStepInput>) => {
   const { accountName, provisionToken } = input;
 
   // Check the status of the provisioned account.
-  const avm = new AVM();
-  const response = await avm.isAccountAvailable(accountName, provisionToken);
+  const avm = new AccountVendingMachine();
+  const response = await avm.isAccountAvailable(accountName!!, provisionToken!!);
   console.log(response);
 
   if (!response) {

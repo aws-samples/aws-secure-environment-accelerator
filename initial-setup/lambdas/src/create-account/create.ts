@@ -1,5 +1,5 @@
 import { Context } from 'aws-lambda';
-import { AVM } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
+import { AccountVendingMachine } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
 
 interface CreateMasterExecutionRoleInput {
   accountName: string;
@@ -14,6 +14,6 @@ export const handler = async (input: CreateMasterExecutionRoleInput, context: Co
   } = input;
 
   // create account using account-vending-machine
-  const avm = new AVM();
+  const avm = new AccountVendingMachine();
   return await avm.createAccount(accountName);
 };

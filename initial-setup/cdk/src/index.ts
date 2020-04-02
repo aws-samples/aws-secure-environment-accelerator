@@ -11,6 +11,7 @@ import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { Accounts } from '@aws-pbmm/common-lambda/lib/aws/accounts';
 import { CreateStackSetAction } from './actions/create-stack-set-action';
 import { CreateStackAction } from './actions/create-stack-action';
+import { CreateAccountAction } from './actions/create-account-action';
 import { zipFiles } from '@aws-pbmm/common-lambda/lib/util/zip';
 import { Archiver } from 'archiver';
 
@@ -101,7 +102,8 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('codepipeline.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSServiceCatalogEndUserFullAccess')],
       });
 
       pipelineRole.addToPolicy(
@@ -246,6 +248,18 @@ export namespace InitialSetup {
                 lambdaRole: pipelineRole,
                 lambdas: props.lambdas,
                 waitSeconds: 10,
+              }),
+            ],
+          },
+          {
+            stageName: 'CreateAccount',
+            actions: [
+              new CreateAccountAction({
+                actionName: 'Create_SharedNetworkAccount',
+                accountName: `SharedNetwork`,
+                lambdaRole: pipelineRole,
+                lambdas: props.lambdas,
+                waitSeconds: 60,
               }),
             ],
           },
