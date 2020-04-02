@@ -77,9 +77,7 @@
         "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
-        "igw": {
-          "subnet": "Public"
-        },
+        "igw": true,
         "vgw": true,
         "pcx": false,
         "natgw": false,
@@ -1432,9 +1430,7 @@
         "region": "ca-central-1",
         "flow-logs": true,
         "log-retention": 90,
-        "igw": {
-          "subnet": "Web"
-        },
+        "igw": true,
         "vgw": false,
         "pcx": false,
         "natgw": {
