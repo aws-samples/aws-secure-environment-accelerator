@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import { InitialSetup } from '@aws-pbmm/initial-setup-cdk/src';
+import { LandingZone } from '@aws-pbmm/common-lambda/lib/aws/landing-zone';
 import { getOrganizationAccounts } from '@aws-pbmm/common-lambda/lib/aws/accounts';
 import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
@@ -10,7 +11,18 @@ process.on('unhandledRejection', (reason, _) => {
   process.exit(1);
 });
 
+// tslint:disable:no-floating-promises
 (async () => {
+  console.log(`Detecting Landing Zone stack...`);
+
+  const landingZone = new LandingZone();
+  const landingZoneStack = await landingZone.findLandingZoneStack();
+  if (!landingZoneStack) {
+    console.error(`Cannot find a Landing Zone stack in your account`);
+    process.exit(1);
+  }
+  console.log(`Detected Landing Zone stack with version "${landingZoneStack.version}"`);
+
   console.log(`Loading accounts in organization...`);
 
   // Load all the relevant accounts in the organization

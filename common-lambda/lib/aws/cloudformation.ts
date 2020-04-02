@@ -1,7 +1,8 @@
 import * as aws from 'aws-sdk';
 import * as cfn from 'aws-sdk/clients/cloudformation';
-import { listWithNextToken } from './next-token';
+import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { Intersect } from '../util/types';
+import { collectAsync } from '../util/generator';
 
 export type CreateOrUpdateStackInput = Intersect<cfn.CreateStackInput, cfn.UpdateStackInput>;
 export type CreateOrUpdateStackOutput = Intersect<cfn.CreateStackOutput, cfn.UpdateStackOutput>;
@@ -44,9 +45,22 @@ export class CloudFormation {
           StackName: stackName,
         })
         .promise();
+      return response.Stacks!![0];
     } catch {
       return undefined;
     }
+  }
+
+  listStacksGenerator(input: cfn.ListStacksInput): AsyncIterable<cfn.StackSummary> {
+    return listWithNextTokenGenerator<cfn.ListStacksInput, cfn.ListStacksOutput, cfn.StackSummary>(
+      this.client.listStacks.bind(this.client),
+      (r) => r.StackSummaries!!,
+      input,
+    );
+  }
+
+  async listStacks(input: cfn.ListStacksInput): Promise<cfn.StackSummary[]> {
+    return collectAsync(this.listStacksGenerator(input));
   }
 
   async createOrUpdateStack(input: CreateOrUpdateStackInput): Promise<CreateOrUpdateStackOutput | undefined> {

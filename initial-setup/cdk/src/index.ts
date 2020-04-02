@@ -93,6 +93,8 @@ export namespace InitialSetup {
     constructor(scope: cdk.Construct, id: string, props: InitialSetup.PipelineProps) {
       super(scope, id);
 
+      const stack = cdk.Stack.of(this);
+
       // This role will be used to run the pipeline
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'PipelineRole', {
@@ -230,7 +232,7 @@ export namespace InitialSetup {
             actions: [
               new CreateStackSetAction({
                 actionName: 'Deploy_SharedNetwork',
-                regions: ['ca-central-1'], // TODO
+                regions: [stack.region],
                 accounts: [
                   // The accounts to install the pipeline role in
                   props.accounts.sharedServices.id,
