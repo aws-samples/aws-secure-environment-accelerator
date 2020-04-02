@@ -46,7 +46,7 @@ export class Vpc extends cdk.Construct {
       dynamodb?: string[];
     }
 
-    let gwRoutes: GwRoute = {
+    const gwRoutes: GwRoute = {
       s3: [],
       dynamodb: [],
     };
@@ -79,9 +79,9 @@ export class Vpc extends cdk.Construct {
           } else if (route.target.startsWith('GW-endpoint-')) {
             const gwName = route.target.split('GW-endpoint-')[1];
             if (gwName === 's3') {
-              gwRoutes['s3']?.push(routeTable.ref);
-            } else if (gwName == 'dynamodb') {
-              gwRoutes['dynamodb']?.push(routeTable.ref);
+              gwRoutes.s3?.push(routeTable.ref);
+            } else if (gwName === 'dynamodb') {
+              gwRoutes.dynamodb?.push(routeTable.ref);
             }
             continue;
           } else {
