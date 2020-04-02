@@ -19,32 +19,25 @@ export class CreateStackTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateStackTask.Props) {
     super(scope, id);
 
-    const {
-      role,
-      lambdas,
-      waitSeconds = 10,
-    } = props;
+    const { role, lambdas, waitSeconds = 10 } = props;
 
-    role.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: [
-        'logs:CreateLogGroup',
-        'logs:CreateLogStream',
-        'logs:PutLogEvents',
-      ],
-    }));
-    role.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: [
-        'codepipeline:PutJobSuccessResult',
-        'codepipeline:PutJobFailureResult',
-      ],
-    }));
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      }),
+    );
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['codepipeline:PutJobSuccessResult', 'codepipeline:PutJobFailureResult'],
+      }),
+    );
     const finalizeTask = new CodeTask(scope, 'FinalizeTask', {
       functionProps: {
-        role: role,
+        role,
         code: lambdas.codeForEntry('create-stack/finalize'),
       },
     });
@@ -72,15 +65,16 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const chain = sfn.Chain
-      .start(deployTask)
+    const chain = sfn.Chain.start(deployTask)
       .next(waitTask)
       .next(verifyTask)
-      .next(new sfn.Choice(scope, 'Choice')
-        .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), finalizeTask)
-        .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
-        .otherwise(waitTask)
-        .afterwards());
+      .next(
+        new sfn.Choice(scope, 'Choice')
+          .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), finalizeTask)
+          .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
+          .otherwise(waitTask)
+          .afterwards(),
+      );
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;

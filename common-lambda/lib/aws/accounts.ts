@@ -19,7 +19,7 @@ export interface Accounts {
  * Find the account with the given name in the accounts array or throw an error if the account does not exist.
  */
 function accountByName(accounts: aws.Organizations.Account[], name: string): Account {
-  const account = accounts.find(a => a.Name === name);
+  const account = accounts.find((a) => a.Name === name);
   if (account) {
     return {
       id: account.Id!!,

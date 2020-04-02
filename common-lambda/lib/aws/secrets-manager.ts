@@ -1,5 +1,5 @@
-import aws from 'aws-sdk';
-import smn from 'aws-sdk/clients/secretsmanager';
+import * as aws from 'aws-sdk';
+import * as smn from 'aws-sdk/clients/secretsmanager';
 import { listWithNextTokenGenerator } from './next-token';
 import { collectAsync } from '../util/generator';
 
@@ -17,9 +17,11 @@ export class SecretsManager {
   }
 
   async restoreSecret(secretId: string): Promise<smn.RestoreSecretResponse> {
-    return this.client.restoreSecret({
-      SecretId: secretId,
-    }).promise();
+    return this.client
+      .restoreSecret({
+        SecretId: secretId,
+      })
+      .promise();
   }
 
   async deleteSecret(secretId: string): Promise<smn.DeleteSecretResponse> {
@@ -34,10 +36,12 @@ export class SecretsManager {
     return collectAsync(this.listSecretsGenerator(input));
   }
 
-  async* listSecretsGenerator(input: smn.ListSecretsRequest = {}): AsyncIterableIterator<smn.SecretListEntry> {
-    yield* listWithNextTokenGenerator<smn.ListSecretsRequest,
-      smn.ListSecretsResponse,
-      smn.SecretListEntry>(this.client.listSecrets.bind(this.client), r => r.SecretList!!, input);
+  async *listSecretsGenerator(input: smn.ListSecretsRequest = {}): AsyncIterableIterator<smn.SecretListEntry> {
+    yield* listWithNextTokenGenerator<smn.ListSecretsRequest, smn.ListSecretsResponse, smn.SecretListEntry>(
+      this.client.listSecrets.bind(this.client),
+      (r) => r.SecretList!!,
+      input,
+    );
   }
 
   async getSecret(secretId: string): Promise<smn.GetSecretValueResponse> {
@@ -48,9 +52,9 @@ export class SecretsManager {
     return collectAsync(this.getSecretValuesGenerator(secretIds));
   }
 
-  async* getSecretValuesGenerator(secretIds: string[]): AsyncIterableIterator<smn.GetSecretValueResponse> {
+  async *getSecretValuesGenerator(secretIds: string[]): AsyncIterableIterator<smn.GetSecretValueResponse> {
     for (const secretId of secretIds) {
-      yield this.getSecret(secretId);
+      yield await this.getSecret(secretId);
     }
   }
 }

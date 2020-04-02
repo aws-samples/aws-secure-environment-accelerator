@@ -19,32 +19,25 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateStackSetTask.Props) {
     super(scope, id);
 
-    const {
-      role,
-      lambdas,
-      waitSeconds = 10,
-    } = props;
+    const { role, lambdas, waitSeconds = 10 } = props;
 
-    role.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: [
-        'logs:CreateLogGroup',
-        'logs:CreateLogStream',
-        'logs:PutLogEvents',
-      ],
-    }));
-    role.addToPolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: ['*'],
-      actions: [
-        'codepipeline:PutJobSuccessResult',
-        'codepipeline:PutJobFailureResult',
-      ],
-    }));
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      }),
+    );
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        resources: ['*'],
+        actions: ['codepipeline:PutJobSuccessResult', 'codepipeline:PutJobFailureResult'],
+      }),
+    );
     const finalizeTask = new CodeTask(scope, 'FinalizeTask', {
       functionProps: {
-        role: role,
+        role,
         code: lambdas.codeForEntry('create-stack-set/finalize'),
       },
     });
@@ -95,22 +88,28 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const chain = sfn.Chain
-      .start(deployStackSetTask)
+    const chain = sfn.Chain.start(deployStackSetTask)
       .next(waitStackSetTask)
       .next(verifyStackSetTask)
-      .next(new sfn.Choice(scope, 'StackSetDeployed?')
-        .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), sfn.Chain.start(deployStackSetInstancesTask)
-          .next(waitStackSetInstancesTask)
-          .next(verifyStackSetInstancesTask)
-          .next(new sfn.Choice(scope, 'StackSetInstancesDeployed?')
-            .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), finalizeTask)
-            .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
-            .otherwise(waitStackSetInstancesTask)
-            .afterwards()))
-        .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
-        .otherwise(waitStackSetTask)
-        .afterwards());
+      .next(
+        new sfn.Choice(scope, 'StackSetDeployed?')
+          .when(
+            sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'),
+            sfn.Chain.start(deployStackSetInstancesTask)
+              .next(waitStackSetInstancesTask)
+              .next(verifyStackSetInstancesTask)
+              .next(
+                new sfn.Choice(scope, 'StackSetInstancesDeployed?')
+                  .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), finalizeTask)
+                  .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
+                  .otherwise(waitStackSetInstancesTask)
+                  .afterwards(),
+              ),
+          )
+          .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
+          .otherwise(waitStackSetTask)
+          .afterwards(),
+      );
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;

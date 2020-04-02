@@ -1,0 +1,45 @@
+name: Linter and Prettier
+on: [pull_request]
+
+jobs:
+  linter:
+    name: Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - name: Cache Node.js modules
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+            ${{ runner.OS }}-
+      - name: Install Node.js modules
+        run: |
+          npm install -g pnpm
+          pnpm install
+      - name: Analyze TypeScript files
+        run: |
+          pnpm recursive run lint
+  prettier:
+    name: Prettier
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10
+      - name: Install Prettier
+        run: |
+          npm install -g prettier
+      - name: Analyze TypeScript files
+        run: |
+          prettier --check **/*.ts

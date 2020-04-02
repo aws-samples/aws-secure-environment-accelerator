@@ -1,5 +1,5 @@
-import aws from 'aws-sdk';
-import s3 from 'aws-sdk/clients/s3';
+import * as aws from 'aws-sdk';
+import * as s3 from 'aws-sdk/clients/s3';
 
 export class S3 {
   private readonly client: aws.S3;
@@ -16,7 +16,6 @@ export class S3 {
   }
 
   async getObjectBodyAsString(input: s3.GetObjectRequest): Promise<string> {
-    return this.getObjectBody(input)
-      .then(body => body.toString());
+    return this.getObjectBody(input).then((body) => body.toString());
   }
 }

@@ -1,18 +1,26 @@
 {
   "global-options": {
+    "alz-minimum-version": "v2.3.1",
+    "central-log-retention": 730,
     "zones": {
-      "public": {
-        "name": "dept.cloud-nuage.canada.ca",
-        "outbound-resolvers-ips": [
-          "7.0.0.1",
-          "7.0.0.2"
+      "account": "shared-network",
+      "names": {
+        "public": [
+          "dept.cloud-nuage.canada.ca"
+        ],
+        "private": [
+          "dept.cloud-nuage.gc.ca"
+        ],
+        "on-premise": [
+          "dept.gc.ca"
         ]
       },
-      "private": {
-        "name": "dept.cloud-nuage.gc.ca",
-        "outbound-resolvers-ips": [
-          "7.0.0.1",
-          "7.0.0.2"
+      "resolvers": {
+        "vpc": "Endpoint",
+        "subnet": "Endpoint",
+        "outbound-ips": [
+          "7.23.0.1",
+          "7.26.0.2"
         ]
       }
     },
@@ -25,14 +33,16 @@
     "accounts": {
       "mandatory": [
         "perimeter",
-        "sharednetwork",
+        "shared-network",
         "operations"
       ]
     },
     "ou": {
-      "mandatory": [
-        "central",
+      "ignore": [
         "core"
+      ],
+      "mandatory": [
+        "central"
       ],
       "additional": [
         "sandbox",
@@ -64,65 +74,79 @@
         "deploy": "local",
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
-        "region": "ca-central",
-        "igw": true,
-        "vgw": {
-          "otherparameters": "TBD"
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": {
+          "subnet": "Public"
         },
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "vgw": true,
+        "pcx": false,
+        "natgw": false,
         "subnets": [
           {
             "name": "Public",
-            "az1": {
-              "route-table": "Public_Shared",
-              "cidr": "100.96.251.64/26"
-            },
-            "az2": {
-              "route-table": "Public_Shared",
-              "cidr": "100.96.251.128/26"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "Public_Shared",
+                "cidr": "100.96.251.64/26"
+              },
+              {
+                "az": "b",
+                "route-table": "Public_Shared",
+                "cidr": "100.96.251.128/26"
+              }
+            ]
           },
           {
             "name": "FWMgmt",
-            "az1": {
-              "route-table": "FWMgmt_az1",
-              "cidr": "100.96.251.16/28"
-            },
-            "az2": {
-              "route-table": "FWMgmt_az2",
-              "cidr": "100.96.251.48/28"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "FWMgmt_az1",
+                "cidr": "100.96.251.16/28"
+              },
+              {
+                "az": "b",
+                "route-table": "FWMgmt_az2",
+                "cidr": "100.96.251.48/28"
+              }
+            ]
           },
           {
             "name": "Proxy",
-            "az1": {
-              "route-table": "Proxy_az1",
-              "cidr": "100.96.250.0/25"
-            },
-            "az2": {
-              "route-table": "Proxy_az2",
-              "cidr": "100.96.250.128/25"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "Proxy_az1",
+                "cidr": "100.96.250.0/25"
+              },
+              {
+                "az": "b",
+                "route-table": "Proxy_az2",
+                "cidr": "100.96.250.128/25"
+              }
+            ]
           },
           {
             "name": "OnPremise",
-            "az1": {
-              "route-table": "default",
-              "cidr": "100.96.251.0/28"
-            },
-            "az2": {
-              "route-table": "default",
-              "cidr": "100.96.251.32/28"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "default",
+                "cidr": "100.96.251.0/28"
+              },
+              {
+                "az": "b",
+                "route-table": "default",
+                "cidr": "100.96.251.32/28"
+              }
+            ]
           }
         ],
         "gateway-endpoints": [
-          "S3"
+          "s3"
         ],
         "route-tables": [
           {
@@ -191,17 +215,13 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": "None"
-        }
+          "associate-to-tgw": false
+        },
+        "interface-endpoints": false
       },
       "deployments": {
         "firewall": {
           "instance-sizes": "c5n.2xl",
-          "azs": {
-            "count": 2,
-            "az1": "1a",
-            "az2": "1b"
-          },
           "eni": {
             "count": 4,
             "p1-subnet": "Public",
@@ -221,7 +241,7 @@
             "rt-associate": [
               "core"
             ],
-            "rt-propagate": [
+            "rt-propogate": [
               "core",
               "segregated",
               "shared",
@@ -245,17 +265,14 @@
         "deploy": "shared",
         "source": "shared-network",
         "name": "Central",
-        "region": "ca-central",
+        "region": "ca-central-1",
         "subnets": [
-          "Web",
-          "GCWide",
-          "App",
-          "Data",
-          "Mgmt"
+         
         ]
       },
       "deployments": {
         "mad": {
+          "deploy": true,
           "subnet": "GCWide",
           "size": "enterprise",
           "restrict_srcips": [
@@ -264,10 +281,13 @@
           ]
         },
         "ops-dashboard": {
+          "deploy": true
         },
         "syslog": {
+          "deploy": true
         },
         "rdweb-pwd": {
+          "deploy": true,
           "restrict_srcips": [
             "7.0.0.0/8",
             "10.0.0.0/8"
@@ -283,28 +303,34 @@
         "deploy": "local",
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
-        "region": "ca-central",
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
+        "natgw": false,
         "subnets": [
           {
             "name": "Endpoint",
-            "az1": {
-              "route-table": "default",
-              "cidr": "10.7.0.0/24"
-            },
-            "az2": {
-              "route-table": "default",
-              "cidr": "10.7.1.0/24"
-            },
-            "az3": {
-              "route-table": "default",
-              "cidr": "10.7.2.0/24"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "default",
+                "cidr": "10.7.0.0/24"
+              },
+              {
+                "az": "b",
+                "route-table": "default",
+                "cidr": "10.7.1.0/24"
+              },
+              {
+                "az": "d",
+                "route-table": "default",
+                "cidr": "10.7.2.0/24",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [],
@@ -397,10 +423,13 @@
         "tgw": {
           "name": "Main",
           "asn": 64512,
-          "features": [
-            "DNS-support",
-            "VPN-ECMP-support"
-          ],
+          "features": {
+            "DNS-support": true,
+            "VPN-ECMP-support": true,
+            "Default-route-table-association": false,
+            "Default-route-table-propagation": false,
+            "Auto-accept-sharing-attachments": false
+          },
           "route-tables": [
             "core",
             "segregated",
@@ -418,33 +447,38 @@
         "deploy": "local",
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
-        "region": "ca-central",
+        "region": "ca-central-1",
+        "flow-logs": false,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
         "pcx": {
           "source": "shared-network",
           "vpc": "Central",
-          "subnets": ["GCWide"]
+          "subnets": "GCWide"
         },
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "natgw": false,
         "subnets": [
           {
             "name": "ForSSO",
-            "az1": {
-              "route-table": "default",
-              "cidr": "10.249.1.0/27"
-            },
-            "az2": {
-              "route-table": "default",
-              "cidr": "10.249.1.32/27"
-            },
-            "az3": {
-              "route-table": "default",
-              "cidr": "10.249.1.64/27"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "default",
+                "cidr": "10.249.1.0/27"
+              },
+              {
+                "az": "b",
+                "route-table": "default",
+                "cidr": "10.249.1.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "default",
+                "cidr": "10.249.1.64/27",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [],
@@ -453,18 +487,23 @@
             "name": "default",
             "routes": [
               {
-                "destination": "shared-Network-Central-GCWide-CIDR",
+                "destination": {
+                  "shared-Network-Central-GCWide-CIDR": null
+                },
                 "target": "pcx-shared-network-Central"
               }
             ]
           }
         ],
         "tgw-attach": {
-          "associate-to": "None"
-        }
+          "associate-to-tgw": false
+        },
+        "interface-endpoints": false
       },
       "deployments": {
-        "sso": {}
+        "sso": {
+          "deploy": true
+        }
       }
     }
   },
@@ -475,119 +514,154 @@
         "name": "Central",
         "cidr": "10.1.0.0/16",
         "cidr2": "100.96.252.0/23",
-        "region": "ca-central",
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
         "pcx": {
           "source": "master",
           "vpc": "ForSSO",
-          "subnets": ["ForSSO"]
+          "subnets": "ForSSO"
         },
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "natgw": false,
         "subnets": [
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.88.0/27"
-            },
-            "az2": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.88.32/27"
-            },
-            "az3": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.88.64/27"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.88.0/27"
+              },
+              {
+                "az": "b",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.88.64/27",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.32.0/20"
-            },
-            "az2": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.128.0/20"
-            },
-            "az3": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.192.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.32.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.192.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.0.0/19"
-            },
-            "az2": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.96.0/19"
-            },
-            "az3": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.160.0/19"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.0.0/19"
+              },
+              {
+                "az": "b",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.160.0/19",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.48.0/20"
-            },
-            "az2": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.144.0/20"
-            },
-            "az3": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.208.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.48.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.208.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.64.0/21"
-            },
-            "az2": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.72.0/21"
-            },
-            "az3": {
-              "route-table": "CentralVPC_Common",
-              "cidr": "10.1.80.0/21"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.64.0/21"
+              },
+              {
+                "az": "b",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_Common",
+                "cidr": "10.1.80.0/21",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "GCWide",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "CentralVPC_GCWide",
-              "cidr2": "100.96.252.0/25"
-            },
-            "az2": {
-              "route-table": "CentralVPC_GCWide",
-              "cidr2": "100.96.252.128/25"
-            },
-            "az3": {
-              "route-table": "CentralVPC_GCWide",
-              "cidr2": "100.96.253.0/25"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "CentralVPC_GCWide",
+                "cidr2": "100.96.252.0/25"
+              },
+              {
+                "az": "b",
+                "route-table": "CentralVPC_GCWide",
+                "cidr2": "100.96.252.128/25"
+              },
+              {
+                "az": "d",
+                "route-table": "CentralVPC_GCWide",
+                "cidr2": "100.96.253.0/25",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -654,7 +728,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "dev": {
@@ -662,98 +737,128 @@
         "deploy": "shared-network",
         "name": "Dev",
         "cidr": "10.2.0.0/16",
-        "region": "ca-central",
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
+        "natgw": false,
         "subnets": [
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.88.0/27"
-            },
-            "az2": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.88.32/27"
-            },
-            "az3": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.88.64/27"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.88.0/27"
+              },
+              {
+                "az": "b",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.88.64/27",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.32.0/20"
-            },
-            "az2": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.128.0/20"
-            },
-            "az3": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.192.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.32.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.192.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.0.0/19"
-            },
-            "az2": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.96.0/19"
-            },
-            "az3": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.160.0/19"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.0.0/19"
+              },
+              {
+                "az": "b",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.160.0/19",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.48.0/20"
-            },
-            "az2": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.144.0/20"
-            },
-            "az3": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.208.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.48.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.208.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.64.0/21"
-            },
-            "az2": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.72.0/21"
-            },
-            "az3": {
-              "route-table": "DevVPC_Common",
-              "cidr": "10.2.80.0/21"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.64.0/21"
+              },
+              {
+                "az": "b",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "DevVPC_Common",
+                "cidr": "10.2.80.0/21",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -796,7 +901,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "test": {
@@ -804,98 +910,128 @@
         "deploy": "shared-network",
         "name": "Test",
         "cidr": "10.3.0.0/16",
-        "region": "ca-central",
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
+        "natgw": false,
         "subnets": [
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.88.0/27"
-            },
-            "az2": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.88.32/27"
-            },
-            "az3": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.88.64/27"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.88.0/27"
+              },
+              {
+                "az": "b",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.88.64/27",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.32.0/20"
-            },
-            "az2": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.128.0/20"
-            },
-            "az3": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.192.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.32.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.192.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.0.0/19"
-            },
-            "az2": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.96.0/19"
-            },
-            "az3": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.160.0/19"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.0.0/19"
+              },
+              {
+                "az": "b",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.160.0/19",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.48.0/20"
-            },
-            "az2": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.144.0/20"
-            },
-            "az3": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.208.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.48.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.208.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.64.0/21"
-            },
-            "az2": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.72.0/21"
-            },
-            "az3": {
-              "route-table": "TestVPC_Common",
-              "cidr": "10.3.80.0/21"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.64.0/21"
+              },
+              {
+                "az": "b",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "TestVPC_Common",
+                "cidr": "10.3.80.0/21",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -938,7 +1074,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "prod": {
@@ -946,98 +1083,128 @@
         "deploy": "shared-network",
         "name": "Prod",
         "cidr": "10.4.0.0/16",
-        "region": "ca-central",
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
+        "natgw": false,
         "subnets": [
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.88.0/27"
-            },
-            "az2": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.88.32/27"
-            },
-            "az3": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.88.64/27"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.88.0/27"
+              },
+              {
+                "az": "b",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.88.64/27",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.32.0/20"
-            },
-            "az2": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.128.0/20"
-            },
-            "az3": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.192.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.32.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.192.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.0.0/19"
-            },
-            "az2": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.96.0/19"
-            },
-            "az3": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.160.0/19"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.0.0/19"
+              },
+              {
+                "az": "b",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.160.0/19",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.48.0/20"
-            },
-            "az2": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.144.0/20"
-            },
-            "az3": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.208.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.48.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.208.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.64.0/21"
-            },
-            "az2": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.72.0/21"
-            },
-            "az3": {
-              "route-table": "ProdVPC_Common",
-              "cidr": "10.4.80.0/21"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.64.0/21"
+              },
+              {
+                "az": "b",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "ProdVPC_Common",
+                "cidr": "10.4.80.0/21",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -1080,7 +1247,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "unclass": {
@@ -1088,98 +1256,128 @@
         "deploy": "shared-network",
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
-        "region": "ca-central",
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
-        },
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
+        "natgw": false,
         "subnets": [
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.88.0/27"
-            },
-            "az2": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.88.32/27"
-            },
-            "az3": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.88.64/27"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.88.0/27"
+              },
+              {
+                "az": "b",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.88.32/27"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.88.64/27",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.32.0/20"
-            },
-            "az2": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.128.0/20"
-            },
-            "az3": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.192.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.32.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.192.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.0.0/19"
-            },
-            "az2": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.96.0/19"
-            },
-            "az3": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.160.0/19"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.0.0/19"
+              },
+              {
+                "az": "b",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.160.0/19",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.48.0/20"
-            },
-            "az2": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.144.0/20"
-            },
-            "az3": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.208.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.48.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.208.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": true,
-            "az1": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.64.0/21"
-            },
-            "az2": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.72.0/21"
-            },
-            "az3": {
-              "route-table": "UnClassVPC_Common",
-              "cidr": "10.5.80.0/21"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.64.0/21"
+              },
+              {
+                "az": "b",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "UnClassVPC_Common",
+                "cidr": "10.5.80.0/21",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [
-          "S3",
-          "DynamoDB"
+          "s3",
+          "dynamodb"
         ],
         "route-tables": [
           {
@@ -1222,7 +1420,8 @@
             "DNS-support",
             "IPv6-support"
           ]
-        }
+        },
+        "interface-endpoints": false
       }
     },
     "sandbox": {
@@ -1230,83 +1429,107 @@
         "deploy": "local",
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
-        "region": "ca-central",
-        "igw": true,
+        "region": "ca-central-1",
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": {
+          "subnet": "Web"
+        },
+        "vgw": false,
+        "pcx": false,
         "natgw": {
-          "Subnets": [
+          "subnets": [
             "Web_az1"
           ]
-        },
-        "azs": {
-          "count": 2,
-          "az1": "1a",
-          "az2": "1b",
-          "az3": "1d"
         },
         "subnets": [
           {
             "name": "Web",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "SandboxVPC_IGW",
-              "cidr": "10.6.32.0/20"
-            },
-            "az2": {
-              "route-table": "SandboxVPC_IGW",
-              "cidr": "10.6.128.0/20"
-            },
-            "az3": {
-              "route-table": "SandboxVPC_IGW",
-              "cidr": "10.6.192.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "SandboxVPC_IGW",
+                "cidr": "10.6.32.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "SandboxVPC_IGW",
+                "cidr": "10.6.128.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_IGW",
+                "cidr": "10.6.192.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "App",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.0.0/19"
-            },
-            "az2": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.96.0/19"
-            },
-            "az3": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.160.0/19"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.0.0/19"
+              },
+              {
+                "az": "b",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.96.0/19"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.160.0/19",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Data",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.48.0/20"
-            },
-            "az2": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.144.0/20"
-            },
-            "az3": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.208.0/20"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.48.0/20"
+              },
+              {
+                "az": "b",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.144.0/20"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.208.0/20",
+                "disabled": true
+              }
+            ]
           },
           {
             "name": "Mgmt",
             "share-to-ou-accounts": false,
-            "az1": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.64.0/21"
-            },
-            "az2": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.72.0/21"
-            },
-            "az3": {
-              "route-table": "SandboxVPC_Common",
-              "cidr": "10.6.80.0/21"
-            }
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.64.0/21"
+              },
+              {
+                "az": "b",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.72.0/21"
+              },
+              {
+                "az": "d",
+                "route-table": "SandboxVPC_Common",
+                "cidr": "10.6.80.0/21",
+                "disabled": true
+              }
+            ]
           }
         ],
         "gateway-endpoints": [],
@@ -1334,8 +1557,9 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": "None"
-        }
+          "associate-to-tgw": false
+        },
+        "interface-endpoints": false
       }
     }
   }

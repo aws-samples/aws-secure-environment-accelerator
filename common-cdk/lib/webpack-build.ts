@@ -43,15 +43,23 @@ export class WebpackBuild {
     console.log(`Building Webpack code in "${workingDir}" to "${outputPath}"`);
 
     const executor = packageManagerExecutor(packageManager);
-    await run(executor, [
-      'webpack-cli',
-      '--config', webpackConfigPath,
-      '--mode', mode,
-      '--output-library-target', 'commonjs',
-      '--output-path', outputPath,
-    ], {
-      cwd: workingDir,
-    });
+    await run(
+      executor,
+      [
+        'webpack-cli',
+        '--config',
+        webpackConfigPath,
+        '--mode',
+        mode,
+        '--output-library-target',
+        'commonjs',
+        '--output-path',
+        outputPath,
+      ],
+      {
+        cwd: workingDir,
+      },
+    );
     return new WebpackBuild(outputPath);
   }
 }

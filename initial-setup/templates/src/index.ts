@@ -12,13 +12,12 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
-const ACCELERATOR_PREFIX = process.env.ACCELERATOR_PREFIX!!;
 const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
 
 (async () => {
   const secrets = new SecretsManager();
   const configSecret = await secrets.getSecret(ACCELERATOR_SECRET_NAME);
-  const config = JSON.parse(configSecret.SecretString!!) as AcceleratorConfig; // TODO Use a library like io-ts to parse the configuration file
+  const config = AcceleratorConfig.fromString(configSecret.SecretString!!);
 
   const app = new cdk.App();
 
@@ -26,19 +25,11 @@ const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
 
   new MasterTemplates.Stack(app, 'Master');
 
+  const mandatoryAccountConfig = config['mandatory-account-configs'];
+
+  const sharedNetworkConfig = mandatoryAccountConfig['shared-network'];
   new SharedNetwork.Stack(app, 'SharedNetwork', {
-    // TODO Load this from config
-    region: 'ca-central',
-    cidr: '100.96.250.0/23',
-    subnets: [{
-      name: 'PublicSharedAz1',
-      availabilityZone: '1a',
-      cidr: '100.96.251.64/26',
-    }, {
-      name: 'PublicSharedAz2',
-      availabilityZone: '1b',
-      cidr: '100.96.251.128/26',
-    }],
+    accountConfig: sharedNetworkConfig,
   });
 
   // Add accelerator tag to all resources

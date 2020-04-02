@@ -6,7 +6,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const config: webpack.Configuration = {
   mode: 'production',
   target: 'node',
-  externals: ['aws-sdk'],
+  externals: ['aws-sdk', 'aws-lambda'],
   entry: {
     'create-stack/trigger': './src/create-stack/trigger.ts',
     'create-stack/create': './src/create-stack/create.ts',
@@ -59,9 +59,7 @@ const config: webpack.Configuration = {
       },
     ],
   },
-  plugins: [
-    new ForkTsCheckerWebpackPlugin(),
-  ],
+  plugins: [new ForkTsCheckerWebpackPlugin()],
 };
 
 export default config;

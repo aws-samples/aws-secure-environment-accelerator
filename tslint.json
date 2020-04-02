@@ -1,0 +1,78 @@
+{
+  "rules": {
+    "align": false,
+    "ban": false,
+    "class-name": true,
+    "comment-format": [
+      true,
+      "check-space"
+    ],
+    "curly": true,
+    "eofline": false,
+    "file-name-casing": [
+      true,
+      "kebab-case"
+    ],
+    "forin": true,
+    "indent": false, // This is handled by Prettier
+    "interface-name": [
+      true,
+      "never-prefix"
+    ],
+    "jsdoc-format": true,
+    "jsx-no-lambda": false,
+    "jsx-no-multiline-js": false,
+    "label-position": true,
+    "max-line-length": false, // This is handled by Prettier
+    "max-classes-per-file": false,
+    "member-ordering": false,
+    "no-any": true,
+    "no-arg": true,
+    "no-bitwise": true,
+    "no-console": false,
+    "no-consecutive-blank-lines": false, // This is handled by Prettier
+    "no-construct": true,
+    "no-debugger": true,
+    "no-duplicate-variable": true,
+    "no-empty": true,
+    "no-eval": true,
+    "no-implicit-dependencies": false,
+    "no-namespace": false,
+    "no-shadowed-variable": true,
+    "no-string-literal": true,
+    "no-submodule-imports": false,
+    "no-switch-case-fall-through": true,
+    "no-trailing-whitespace": false,
+    "no-unused-expression": false,
+    "no-use-before-declare": false,
+    "one-line": false, // This is handled by Prettier
+    "quotemark": false, // This is handled by Prettier
+    "radix": true,
+    "semicolon": false, // This is handled by Prettier
+    "switch-default": true,
+    "trailing-comma": false,
+    "triple-equals": [
+      true,
+      "allow-null-check"
+    ],
+    "typedef": [
+      true,
+      "parameter",
+      "property-declaration"
+    ],
+    "typedef-whitespace": false, // This is handled by Prettier
+    "variable-name": [
+      true,
+      "ban-keywords",
+      "check-format",
+      "allow-leading-underscore",
+      "allow-pascal-case"
+    ],
+    "whitespace": false // This is handled by Prettier
+  },
+  "extends": [
+    "tslint:latest",
+    "tslint-config-standard",
+    "tslint-config-prettier"
+  ]
+}
