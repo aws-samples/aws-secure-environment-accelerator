@@ -80,7 +80,9 @@
         "igw": true,
         "vgw": true,
         "pcx": false,
-        "natgw": false,
+        "natgw": {
+          "subnet": "Public"
+        },
         "subnets": [
           {
             "name": "Public",

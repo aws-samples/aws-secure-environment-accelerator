@@ -5,7 +5,8 @@ import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 export class Vpc extends cdk.Construct {
   readonly vpcId: string;
-  readonly subnets = new Map<string, string[]>();
+  readonly azSubnets = new Map<string, string[]>();
+  readonly subnets = new Map<string, string>();
 
   constructor(parent: cdk.Construct, name: string, props: VpcConfig) {
     super(parent, name);
@@ -53,6 +54,7 @@ export class Vpc extends cdk.Construct {
 
     const routeTableNameToIdMap = new Map<string, string>();
     const routeTablesProps = props['route-tables'];
+    let natRouteTables: string[] = [];
     if (routeTablesProps) {
       // Create Route Tables
       for (const routeTableProp of routeTablesProps) {
@@ -65,6 +67,9 @@ export class Vpc extends cdk.Construct {
           vpcId: vpcObj.ref,
         });
         routeTableNameToIdMap.set(routeTableName, routeTable.ref);
+        if(!routeTableProp.routes?.find(r => r.target === 'IGW')){
+          natRouteTables.push(routeTableProp.name);
+        }
 
         // Add Routes to RouteTable
         for (const route of routeTableProp.routes!!) {
@@ -101,7 +106,7 @@ export class Vpc extends cdk.Construct {
         }
       }
     }
-
+    
     const subnetsConfig = props.subnets || [];
     for (const subnetConfig of subnetsConfig) {
       const subnetAzs: string[] = [];
@@ -120,6 +125,7 @@ export class Vpc extends cdk.Construct {
           vpcId: vpcObj.ref,
           availabilityZone: `${props.region}${subnetDefinition.az}`,
         });
+        this.subnets.set(propSubnetName, subnet.ref);
         subnetAzs.push(subnet.ref);
 
         // Attach Subnet to Route-Table
@@ -140,7 +146,7 @@ export class Vpc extends cdk.Construct {
           subnetId: subnet.ref,
         });
       }
-      this.subnets.set(propSubnetName, subnetAzs);
+      this.azSubnets.set(propSubnetName, subnetAzs);
     }
 
     // Create VPC Gateway End Point
@@ -151,6 +157,31 @@ export class Vpc extends cdk.Construct {
         vpcId: vpcObj.ref,
         routeTableIds: gwRoutes.s3,
       });
+    }
+
+
+    let natgw;
+    // Create NAT Gateway
+    if (props.natgw) {
+      const natgwProps = props.natgw;
+      const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
+      
+      natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
+        allocationId: eip.ref,
+        // @ts-ignore
+        subnetId: this.subnets.get(natgwProps.subnet)
+      });
+    }
+
+    // Attach NatGw Routes to Non IGW Route Tables
+    for(const natRoute of natRouteTables){
+      const routeTableId = routeTableNameToIdMap.get(natRoute);
+      const routeParams: ec2.CfnRouteProps = {
+        routeTableId: routeTableId!!,
+        destinationCidrBlock: '0.0.0.0/0',
+        natGatewayId: natgw?.ref,
+      };
+      const cfnRoute = new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
     }
     this.vpcId = vpcObj.ref;
   }

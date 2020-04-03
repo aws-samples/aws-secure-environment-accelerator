@@ -16,7 +16,7 @@ export const PeeringConnectionConfig = t.interface({
 });
 
 export const NatGatewayConfig = t.interface({
-  // TODO
+  subnet: NonEmptyString
 });
 
 export const SubnetDefinitionConfig = t.interface({
@@ -113,6 +113,7 @@ export const MandatoryAccountConfigType = t.interface({
   operations: AccountConfigType,
   'shared-network': AccountConfigType,
   master: AccountConfigType,
+  'perimeter': AccountConfigType
 });
 
 export const AcceleratorConfigType = t.interface({
