@@ -1,10 +1,12 @@
+import * as fs from 'fs';
 import * as aws from 'aws-sdk';
 import * as cfn from 'aws-sdk/clients/cloudformation';
 import * as s3 from 'aws-sdk/clients/s3';
-import * as yaml from 'js-yaml';
 import AdmZip from 'adm-zip';
-import { CloudFormation } from './cloudformation';
-import { S3 } from './s3';
+import { CloudFormation } from '../aws/cloudformation';
+import { S3 } from '../aws/s3';
+import { fromYaml, LandingZoneConfig } from './config';
+import { Organizations } from '../aws/organizations';
 
 export class LandingZone {
   private readonly cfn: CloudFormation;
@@ -32,7 +34,6 @@ export class LandingZone {
         if (versionOutput && bucketOutput) {
           return LandingZoneStack.fromStack({
             credentials: this.credentials,
-            stack,
             versionOutput,
             bucketOutput,
           });
@@ -45,17 +46,15 @@ export class LandingZone {
 
 export interface LandingZoneStackProps {
   credentials?: aws.Credentials;
-  stack: cfn.Stack;
   versionOutput: cfn.Output;
   bucketOutput: cfn.Output;
 }
 
 interface LandingZoneBuildProps {
   credentials?: aws.Credentials;
-  stack: cfn.Stack;
   version: string;
   bucketName: string;
-  configuration: unknown;
+  config: LandingZoneConfig;
 }
 
 /**
@@ -63,11 +62,11 @@ interface LandingZoneBuildProps {
  */
 export class LandingZoneStack {
   readonly version: string;
-  readonly configuration: unknown;
+  readonly config: LandingZoneConfig;
 
   constructor(props: LandingZoneStackProps & LandingZoneBuildProps) {
     this.version = props.version;
-    this.configuration = props.configuration;
+    this.config = props.config;
   }
 
   public static readonly KMS_KEY_ALIAS = 'AwsLandingZoneKMSKey';
@@ -102,14 +101,14 @@ export class LandingZoneStack {
     const zip = new AdmZip(artifact as Buffer);
     const manifest = zip.readAsText('manifest.yaml');
 
-    const configuration = yaml.load(manifest);
-    // TODO Do we have to validate the LZ configuration file, like we parse the PBMM configuration file?
+    // Parse the Landing Zone configuration file
+    const config = fromYaml(manifest);
 
     return new LandingZoneStack({
       ...props,
       version,
       bucketName,
-      configuration,
+      config,
     });
   }
 }

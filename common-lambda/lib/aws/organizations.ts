@@ -11,6 +11,12 @@ export class Organizations {
       credentials,
     });
   }
+  async getOrganizationalUnit(organizationalUnitId: string): Promise<org.OrganizationalUnit | undefined> {
+    const response = await this.client.describeOrganizationalUnit({
+      OrganizationalUnitId: organizationalUnitId
+    }).promise();
+    return response.OrganizationalUnit;
+  }
 
   async getPolicy(input: org.ListPoliciesRequest & { Name: string }): Promise<org.PolicySummary | undefined> {
     const name = input.Name;
@@ -29,11 +35,29 @@ export class Organizations {
     return undefined;
   }
 
+  async listRoots(): Promise<org.Root[]> {
+    return listWithNextToken<org.ListRootsRequest, org.ListRootsResponse, org.Root>(
+      this.client.listRoots.bind(this.client),
+      (r) => r.Roots!!,
+      {},
+    );
+  }
+
   async listAccounts(): Promise<org.Account[]> {
     return listWithNextToken<org.ListAccountsRequest, org.ListAccountsResponse, org.Account>(
       this.client.listAccounts.bind(this.client),
       (r) => r.Accounts!!,
       {},
+    );
+  }
+
+  async listParents(accountId: string): Promise<org.Parent[]> {
+    return listWithNextToken<org.ListParentsRequest, org.ListParentsResponse, org.Parent>(
+      this.client.listParents.bind(this.client),
+      (r) => r.Parents!!,
+      {
+        ChildId: accountId,
+      },
     );
   }
 
