@@ -135,7 +135,7 @@ export class Vpc extends cdk.Construct {
     }
 
     // Create VPC Gateway End Point
-    for (const gwEndpointName of props['gateway-endpoints']? props['gateway-endpoints']: []) {
+    for (const gwEndpointName of props['gateway-endpoints'] ? props['gateway-endpoints'] : []) {
       const gwService = new ec2.GatewayVpcEndpointAwsService(gwEndpointName.toLowerCase());
       new ec2.CfnVPCEndpoint(this, `Endpoint_${gwEndpointName}`, {
         serviceName: gwService.name,
@@ -143,7 +143,7 @@ export class Vpc extends cdk.Construct {
         routeTableIds: gwEndpointName.toLocaleLowerCase() === 's3' ? s3Routes : dynamoRoutes,
       });
     }
-    
+
     this.vpcId = vpcObj.ref;
   }
 }
