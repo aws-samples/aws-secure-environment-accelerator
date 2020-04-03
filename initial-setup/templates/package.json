@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "build": "pnpx tsc",
     "test": "pnpx jest",
     "lint": "tslint 'src/**/*.ts'",
     "synth": "pnpx cdk synth"
   },
   "devDependencies": {
+    "@aws-cdk/assert": "^1.31.0",
     "@types/jest": "^25.1.4",
     "@types/node": "12.12.6",
     "babel-jest": "^25.2.0",
@@ -27,6 +29,7 @@
     "@aws-cdk/aws-iam": "^1.31.0",
     "@aws-cdk/aws-lambda": "^1.31.0",
     "@aws-cdk/aws-s3": "^1.31.0",
+    "@aws-cdk/aws-sns": "^1.31.0",
     "@aws-cdk/core": "^1.31.0",
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1"

@@ -5,48 +5,48 @@ import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import { isLeft } from 'fp-ts/lib/Either';
 
-const VirtualPrivateGatewayConfig = t.interface({
+export const VirtualPrivateGatewayConfig = t.interface({
   // TODO
 });
 
-const PeeringConnectionConfig = t.interface({
+export const PeeringConnectionConfig = t.interface({
   source: NonEmptyString,
   subnets: NonEmptyString,
   // TODO
 });
 
-const NatGatewayConfig = t.interface({
+export const NatGatewayConfig = t.interface({
   // TODO
 });
 
-const SubnetDefinitionConfig = t.interface({
+export const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
   cidr,
   'route-table': NonEmptyString,
   disabled: fromNullable(t.boolean, false),
 });
 
-const SubnetConfig = t.interface({
+export const SubnetConfig = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
   definitions: t.array(SubnetDefinitionConfig),
 });
 
-const GatewayEndpointType = NonEmptyString; // TODO Define all endpoints here
+export const GatewayEndpointType = NonEmptyString; // TODO Define all endpoints here
 
-const RouteConfig = t.interface({
+export const RouteConfig = t.interface({
   destination: t.unknown, // TODO Can be string or destination in another account
   target: NonEmptyString,
 });
 
-const RouteTableConfig = t.interface({
+export const RouteTableConfig = t.interface({
   name: NonEmptyString,
   routes: optional(t.array(RouteConfig)),
 });
 
-const TransitGatewayAttachOption = NonEmptyString; // TODO Define all attach options here
+export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all attach options here
 
-const TransitGatewayAttachConfig = t.interface({
+export const TransitGatewayAttachConfig = t.interface({
   'associate-to-tgw': t.union([NonEmptyString, t.boolean]),
   account: optional(t.string),
   'associate-type': optional(t.literal('ATTACH')),
@@ -57,14 +57,14 @@ const TransitGatewayAttachConfig = t.interface({
   options: optional(t.array(TransitGatewayAttachOption)),
 });
 
-const InterfaceEndpointName = NonEmptyString; // TODO Define all endpoints here
+export const InterfaceEndpointName = NonEmptyString; // TODO Define all endpoints here
 
-const InterfaceEndpointConfig = t.interface({
+export const InterfaceEndpointConfig = t.interface({
   subnet: NonEmptyString,
   endpoints: t.array(InterfaceEndpointName),
 });
 
-const VpcConfigType = t.interface({
+export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
   name: NonEmptyString,
   cidr: optional(cidr),
@@ -99,7 +99,7 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
-const AccountConfigType = t.interface({
+export const AccountConfigType = t.interface({
   'account-name': NonEmptyString,
   email: NonEmptyString,
   ou: NonEmptyString,
@@ -109,13 +109,13 @@ const AccountConfigType = t.interface({
   }),
 });
 
-const MandatoryAccountConfigType = t.interface({
+export const MandatoryAccountConfigType = t.interface({
   operations: AccountConfigType,
   'shared-network': AccountConfigType,
   master: AccountConfigType,
 });
 
-const AcceleratorConfigType = t.interface({
+export const AcceleratorConfigType = t.interface({
   'mandatory-account-configs': MandatoryAccountConfigType,
 });
 
