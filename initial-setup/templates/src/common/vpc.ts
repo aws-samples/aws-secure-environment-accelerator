@@ -67,7 +67,7 @@ export class Vpc extends cdk.Construct {
           vpcId: vpcObj.ref,
         });
         routeTableNameToIdMap.set(routeTableName, routeTable.ref);
-        if(!routeTableProp.routes?.find(r => r.target === 'IGW')){
+        if (!routeTableProp.routes?.find((r) => r.target === 'IGW')) {
           natRouteTables.push(routeTableProp.name);
         }
 
@@ -106,7 +106,7 @@ export class Vpc extends cdk.Construct {
         }
       }
     }
-    
+
     const subnetsConfig = props.subnets || [];
     for (const subnetConfig of subnetsConfig) {
       const subnetAzs: string[] = [];
@@ -159,22 +159,21 @@ export class Vpc extends cdk.Construct {
       });
     }
 
-
     let natgw;
     // Create NAT Gateway
     if (props.natgw) {
       const natgwProps = props.natgw;
       const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
-      
+
       natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
         allocationId: eip.ref,
         // @ts-ignore
-        subnetId: this.subnets.get(natgwProps.subnet)
+        subnetId: this.subnets.get(natgwProps.subnet),
       });
     }
 
     // Attach NatGw Routes to Non IGW Route Tables
-    for(const natRoute of natRouteTables){
+    for (const natRoute of natRouteTables) {
       const routeTableId = routeTableNameToIdMap.get(natRoute);
       const routeParams: ec2.CfnRouteProps = {
         routeTableId: routeTableId!!,
