@@ -41,14 +41,12 @@ export class Vpc extends cdk.Construct {
       });
     }
 
-    interface GwRoute {
-      s3?: string[];
-      dynamodb?: string[];
-    }
+    const s3Routes :string[] = [];
+    const dynamoRoutes :string[] = [];
 
-    const gwRoutes: GwRoute = {
-      s3: [],
-      dynamodb: [],
+    const gwRoutes = {
+      s3: s3Routes,
+      dynamodb: dynamoRoutes,
     };
 
     const routeTableNameToIdMap = new Map<string, string>();
@@ -76,14 +74,10 @@ export class Vpc extends cdk.Construct {
           } else if (route.target === 'VGW') {
             gatewayId = vgw?.ref;
             dependsOn = vgwAttach;
-          } else if (route.target.startsWith('GW-endpoint-')) {
-            const gwName = route.target.split('GW-endpoint-')[1];
-            if (gwName === 's3') {
-              gwRoutes.s3?.push(routeTable.ref);
-            } else if (gwName === 'dynamodb') {
-              gwRoutes.dynamodb?.push(routeTable.ref);
-            }
-            continue;
+          } else if (route.target.toLowerCase() === 's3') {
+            gwRoutes.s3.push(routeTable.ref); continue;
+          } else if (route.target.toLowerCase() === 'dynamodb') {
+            gwRoutes.dynamodb.push(routeTable.ref); continue;
           } else {
             // Need to add for different Routes
             continue;
@@ -149,7 +143,7 @@ export class Vpc extends cdk.Construct {
       new ec2.CfnVPCEndpoint(this, `Endpoint_${gwEndpointName}`, {
         serviceName: gwService.name,
         vpcId: vpcObj.ref,
-        routeTableIds: gwRoutes.s3,
+        routeTableIds: gwEndpointName === 's3'? gwRoutes.s3: gwRoutes.dynamodb,
       });
     }
     this.vpcId = vpcObj.ref;
