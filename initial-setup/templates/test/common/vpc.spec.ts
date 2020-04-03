@@ -19,6 +19,9 @@ test('the VPC creation should create the correct amount of subnets', () => {
       vgw: false,
       pcx: false,
       natgw: false,
+      'gateway-endpoints': [
+        's3',
+        'dynamodb'],
       subnets: [
         {
           name: 'TGW',
@@ -77,12 +80,12 @@ test('the VPC creation should create the correct amount of subnets', () => {
               target: 'TGW',
             },
             {
-              destination: 'GW-endpoint-s3',
-              target: 'GW-endpoint-s3',
+              destination: 's3',
+              target: 's3',
             },
             {
-              destination: 'GW-endpoint-DynamoDB',
-              target: 'GW-endpoint-DynamoDB',
+              destination: 'DynamoDB',
+              target: 'DynamoDB',
             },
           ],
         },
@@ -165,6 +168,12 @@ test('the VPC creation should create the correct amount of subnets', () => {
 
   // The route table is associated with all the subnets
   expect(associations).toHaveLength(4);
+
+  
+  const vpcEndpoints = resources.filter((r) => r.Type === 'AWS::EC2::VPCEndpoint');
+  
+  // The VPCEndpoints Endpoints count is 2
+  expect(vpcEndpoints).toHaveLength(2);
 });
 
 test('the VPC creation should throw an error when a subnet uses a route table that does not exist', () => {
@@ -281,4 +290,5 @@ test('the VPC creation should create the VPN gateway', () => {
       }),
     ]),
   );
+  
 });

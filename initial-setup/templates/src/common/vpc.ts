@@ -44,11 +44,6 @@ export class Vpc extends cdk.Construct {
     const s3Routes: string[] = [];
     const dynamoRoutes: string[] = [];
 
-    const gwRoutes = {
-      s3: s3Routes,
-      dynamodb: dynamoRoutes,
-    };
-
     const routeTableNameToIdMap = new Map<string, string>();
     const routeTablesProps = props['route-tables'];
     if (routeTablesProps) {
@@ -75,10 +70,10 @@ export class Vpc extends cdk.Construct {
             gatewayId = vgw?.ref;
             dependsOn = vgwAttach;
           } else if (route.target.toLowerCase() === 's3') {
-            gwRoutes.s3.push(routeTable.ref);
+            s3Routes.push(routeTable.ref);
             continue;
           } else if (route.target.toLowerCase() === 'dynamodb') {
-            gwRoutes.dynamodb.push(routeTable.ref);
+            dynamoRoutes.push(routeTable.ref);
             continue;
           } else {
             // Need to add for different Routes
@@ -140,14 +135,15 @@ export class Vpc extends cdk.Construct {
     }
 
     // Create VPC Gateway End Point
-    for (const gwEndpointName of props['gateway-endpoints']!!) {
+    for (const gwEndpointName of props['gateway-endpoints']? props['gateway-endpoints']: []) {
       const gwService = new ec2.GatewayVpcEndpointAwsService(gwEndpointName.toLowerCase());
       new ec2.CfnVPCEndpoint(this, `Endpoint_${gwEndpointName}`, {
         serviceName: gwService.name,
         vpcId: vpcObj.ref,
-        routeTableIds: gwEndpointName === 's3' ? gwRoutes.s3 : gwRoutes.dynamodb,
+        routeTableIds: gwEndpointName.toLocaleLowerCase() === 's3' ? s3Routes : dynamoRoutes,
       });
     }
+    
     this.vpcId = vpcObj.ref;
   }
 }
