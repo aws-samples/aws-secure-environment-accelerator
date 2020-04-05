@@ -41,6 +41,9 @@ export class Vpc extends cdk.Construct {
       });
     }
 
+    const s3Routes: string[] = [];
+    const dynamoRoutes: string[] = [];
+
     const routeTableNameToIdMap = new Map<string, string>();
     const routeTablesProps = props['route-tables'];
     if (routeTablesProps) {
@@ -66,6 +69,12 @@ export class Vpc extends cdk.Construct {
           } else if (route.target === 'VGW') {
             gatewayId = vgw?.ref;
             dependsOn = vgwAttach;
+          } else if (route.target.toLowerCase() === 's3') {
+            s3Routes.push(routeTable.ref);
+            continue;
+          } else if (route.target.toLowerCase() === 'dynamodb') {
+            dynamoRoutes.push(routeTable.ref);
+            continue;
           } else {
             // Need to add for different Routes
             continue;
@@ -124,6 +133,17 @@ export class Vpc extends cdk.Construct {
       }
       this.subnets.set(propSubnetName, subnetAzs);
     }
+
+    // Create VPC Gateway End Point
+    for (const gwEndpointName of props['gateway-endpoints'] ? props['gateway-endpoints'] : []) {
+      const gwService = new ec2.GatewayVpcEndpointAwsService(gwEndpointName.toLowerCase());
+      new ec2.CfnVPCEndpoint(this, `Endpoint_${gwEndpointName}`, {
+        serviceName: gwService.name,
+        vpcId: vpcObj.ref,
+        routeTableIds: gwEndpointName.toLocaleLowerCase() === 's3' ? s3Routes : dynamoRoutes,
+      });
+    }
+
     this.vpcId = vpcObj.ref;
   }
 }

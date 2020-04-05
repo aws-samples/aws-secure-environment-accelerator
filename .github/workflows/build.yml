@@ -24,6 +24,9 @@ jobs:
         run: |
           npm install -g pnpm
           pnpm install
+      - name: Build all workspaces
+        run: |
+          pnpm recursive run build -- --noEmit
       - name: Run tests in all workspaces
         run: |
           pnpm recursive run test -- --pass-with-no-tests --silent
