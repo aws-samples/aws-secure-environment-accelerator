@@ -30,7 +30,7 @@ export namespace InitialSetup {
     accounts: Accounts;
   }
 
-  export interface Props extends cdk.StackProps, CommonProps {}
+  export interface Props extends cdk.StackProps, CommonProps { }
 }
 
 export class InitialSetup extends cdk.Stack {
@@ -103,7 +103,7 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSServiceCatalogEndUserFullAccess')],
+        ],
       });
 
       pipelineRole.addToPolicy(
@@ -231,7 +231,7 @@ export namespace InitialSetup {
             stageName: 'InstallRoles',
             actions: [
               new CreateStackSetAction({
-                actionName: 'Deploy_SharedNetwork',
+                actionName: 'Deploy',
                 regions: ['ca-central-1'], // TODO
                 accounts: [
                   // The accounts to install the pipeline role in
@@ -252,11 +252,11 @@ export namespace InitialSetup {
             ],
           },
           {
-            stageName: 'CreateAccount',
+            stageName: 'CreateSharedNetworkAccount',
             actions: [
               new CreateAccountAction({
-                actionName: 'Create_SharedNetworkAccount',
-                accountName: `SharedNetwork`,
+                actionName: 'Deploy',
+                accountName: 'SharedNetwork',
                 lambdaRole: pipelineRole,
                 lambdas: props.lambdas,
                 waitSeconds: 60,
@@ -264,10 +264,10 @@ export namespace InitialSetup {
             ],
           },
           {
-            stageName: 'Deploy',
+            stageName: 'ConfigureSharedNetworkAccount',
             actions: [
               new CreateStackAction({
-                actionName: 'Deploy_SharedNetwork',
+                actionName: 'Deploy',
                 assumeRole: accountExecutionRoles.sharedNetwork,
                 stackName: `${props.acceleratorPrefix}SharedNetwork`,
                 stackTemplateArtifact: templatesSynthOutput.atPath('SharedNetwork.template.json'),

@@ -32,7 +32,8 @@
     "io-ts": "^2.1.2",
     "io-ts-types": "^0.5.6",
     "ip-num": "^1.2.2",
-    "tempy": "^0.5.0"
+    "tempy": "^0.5.0",
+    "uuid": "^7.0.3"
   },
   "jest": {
     "preset": "ts-jest",
