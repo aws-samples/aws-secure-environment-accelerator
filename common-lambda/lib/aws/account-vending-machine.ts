@@ -157,7 +157,7 @@ export class AccountVendingMachine {
     const provisionedProduct = await this.client.searchProvisionedProducts(accountName);
     if (provisionedProduct) {
       provisionedProductStatus = provisionedProduct.ProvisionedProducts[0].Status;
-      console.log(provisionedProductStatus);
+      console.log('provisionedProductStatus: ' + provisionedProductStatus);
     }
 
     let response = null;
