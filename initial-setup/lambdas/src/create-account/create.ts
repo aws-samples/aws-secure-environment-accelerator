@@ -2,7 +2,7 @@ import { Context } from 'aws-lambda';
 import { AccountVendingMachine } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
 
 interface CreateMasterExecutionRoleInput {
-  jobId: string,
+  jobId: string;
   accountName: string;
   lambdaRoleArn: string;
   acceleratorConfigSecretArn: string;

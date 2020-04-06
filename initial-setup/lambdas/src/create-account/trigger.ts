@@ -24,13 +24,19 @@ export const handler = async (input: CodePipelineEvent, context: Context) => {
   console.log('acceleratorConfigSecretArn: ' + acceleratorConfigSecretArn);
 
   const stm = new aws.StepFunctions();
-  await stm.startExecution({
-    stateMachineArn: STATE_MACHINE_ARN,
-    input: JSON.stringify({
-      jobId,
-      accountName,
-      lambdaRoleArn,
-      acceleratorConfigSecretArn,
-    }, null, 2),
-  }).promise();
+  await stm
+    .startExecution({
+      stateMachineArn: STATE_MACHINE_ARN,
+      input: JSON.stringify(
+        {
+          jobId,
+          accountName,
+          lambdaRoleArn,
+          acceleratorConfigSecretArn,
+        },
+        null,
+        2,
+      ),
+    })
+    .promise();
 };

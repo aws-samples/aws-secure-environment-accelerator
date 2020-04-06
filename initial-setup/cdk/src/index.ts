@@ -30,7 +30,7 @@ export namespace InitialSetup {
     accounts: Accounts;
   }
 
-  export interface Props extends cdk.StackProps, CommonProps { }
+  export interface Props extends cdk.StackProps, CommonProps {}
 }
 
 export class InitialSetup extends cdk.Stack {

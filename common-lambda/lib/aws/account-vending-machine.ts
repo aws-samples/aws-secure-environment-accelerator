@@ -55,7 +55,7 @@ export class AccountVendingMachine {
     if (productId == null || typeof productId === 'undefined') {
       const response = {
         status: 'FAILURE',
-        statusReaason: 'Unable to find service catalog product with name ' + avmName + '.'
+        statusReaason: 'Unable to find service catalog product with name ' + avmName + '.',
       };
       console.log(response);
       return response;
@@ -73,7 +73,7 @@ export class AccountVendingMachine {
     if (provisioningArtifactId == null || typeof provisioningArtifactId === 'undefined') {
       const response = {
         status: 'FAILURE',
-        statusReaason: 'Unable to find service catalog product provisioning artifact id for product id' + avmName + '.'
+        statusReaason: 'Unable to find service catalog product provisioning artifact id for product id' + avmName + '.',
       };
       console.log(response);
       return response;
@@ -99,12 +99,12 @@ export class AccountVendingMachine {
     } else {
       const response = {
         status: 'FAILURE',
-        statusReaason: 'Unable to find config properties for the account name - ' + accountName + '.'
+        statusReaason: 'Unable to find config properties for the account name - ' + accountName + '.',
       };
       console.log(response);
       return response;
     }
-    
+
     console.log('config-accountName: ' + configAccountName);
     console.log('config-accountEmail: ' + configAccountEmail);
     console.log('config-OrgUnitName: ' + configOrgUnitName);
@@ -122,16 +122,21 @@ export class AccountVendingMachine {
     // launch AVM Product
     let provisionedProduct = null;
     try {
-      provisionedProduct = await this.client.launchProductAVM(productId, provisionToken, provisioningArtifactId, productAVMParam);
+      provisionedProduct = await this.client.launchProductAVM(
+        productId,
+        provisionToken,
+        provisioningArtifactId,
+        productAVMParam,
+      );
     } catch (e) {
-      console.log("Exception Message: " + e.message);
+      console.log('Exception Message: ' + e.message);
       if (e.message == 'A stack named ' + accountName + ' already exists.') {
         const response = {
           status: 'SUCCESS',
           provisionedProductStatus: 'ALREADY_EXISTS',
           provisionToken: '',
-          statusReaason: accountName + ' account already exists!'
-        }
+          statusReaason: accountName + ' account already exists!',
+        };
         return response;
       } else {
         throw e;
@@ -144,13 +149,17 @@ export class AccountVendingMachine {
       console.log(provisionedProductStatus);
     }
 
-    if (provisionedProductStatus == null || typeof provisionedProductStatus === 'undefined' || provisionedProductStatus != 'CREATED') {
+    if (
+      provisionedProductStatus == null ||
+      typeof provisionedProductStatus === 'undefined' ||
+      provisionedProductStatus != 'CREATED'
+    ) {
       const response = {
         status: 'FAILURE',
         provisionedProductStatus: provisionedProductStatus,
         provisionToken: provisionToken,
-        statusReaason: 'Unable to create ' + accountName + ' account using Account Vending Machine!'
-      }
+        statusReaason: 'Unable to create ' + accountName + ' account using Account Vending Machine!',
+      };
       console.log(response);
       return response;
     } else if (provisionedProductStatus == 'CREATED') {
@@ -158,8 +167,8 @@ export class AccountVendingMachine {
         status: 'SUCCESS',
         provisionedProductStatus: provisionedProductStatus,
         provisionToken: provisionToken,
-        statusReaason: accountName + ' account created successfully using Account Vending Machine!'
-      }
+        statusReaason: accountName + ' account created successfully using Account Vending Machine!',
+      };
       console.log(response);
       return response;
     }
@@ -182,17 +191,21 @@ export class AccountVendingMachine {
     if (provisionedProductStatus == 'AVAILABLE') {
       response = {
         status: provisionedProductStatus,
-        statusReason: accountName + ' account created successfully using Account Vending Machine!'
+        statusReason: accountName + ' account created successfully using Account Vending Machine!',
       };
     } else if (provisionedProductStatus == 'UNDER_CHANGE') {
       response = {
         status: provisionedProductStatus,
-        statusReason: accountName + ' account is being created using Account Vending Machine!'
+        statusReason: accountName + ' account is being created using Account Vending Machine!',
       };
-    } else if (provisionedProduct == null || typeof provisionedProduct === 'undefined' || provisionedProductStatus == 'ERROR') {
+    } else if (
+      provisionedProduct == null ||
+      typeof provisionedProduct === 'undefined' ||
+      provisionedProductStatus == 'ERROR'
+    ) {
       response = {
         status: 'ERROR',
-        statusReason: 'Unable to create ' + accountName + ' account using Account Vending Machine!'
+        statusReason: 'Unable to create ' + accountName + ' account using Account Vending Machine!',
       };
     }
     return response;
