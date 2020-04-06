@@ -12,21 +12,16 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
     stack,
     'SharedNetwork',
     parse(DeploymentConfigType, {
-        name: "Main",
-        asn: 64512,
-        features: {
-            "DNS-support": true,
-            "VPN-ECMP-support": true,
-            "Default-route-table-association": false,
-            "Default-route-table-propagation": false,
-            "Auto-accept-sharing-attachments": false
-        },
-        "route-tables": [
-            "core",
-            "segregated",
-            "shared",
-            "standalone"
-        ]
+      name: 'Main',
+      asn: 64512,
+      features: {
+        'DNS-support': true,
+        'VPN-ECMP-support': true,
+        'Default-route-table-association': false,
+        'Default-route-table-propagation': false,
+        'Auto-accept-sharing-attachments': false,
+      },
+      'route-tables': ['core', 'segregated', 'shared', 'standalone'],
     }),
   );
 
@@ -36,7 +31,7 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
 
   const tgw = resources.filter((r) => r.Type === 'AWS::EC2::TransitGateway');
   const tgwRoutes = resources.filter((r) => r.Type === 'AWS::EC2::TransitGatewayRouteTable');
-  
+
   // There should only be one internet gateway
   expect(tgw).toHaveLength(1);
   expect(tgwRoutes).toHaveLength(4);
@@ -47,14 +42,14 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
       expect.objectContaining({
         Type: 'AWS::EC2::TransitGateway',
         Properties: expect.objectContaining({
-            AmazonSideAsn: 64512,
-            AutoAcceptSharedAttachments: 'disable',
-            DefaultRouteTableAssociation: 'disable',
-            DefaultRouteTablePropagation: 'disable',
-            DnsSupport: 'enable',
-            VpnEcmpSupport: 'enable'
-        })
-      })
+          AmazonSideAsn: 64512,
+          AutoAcceptSharedAttachments: 'disable',
+          DefaultRouteTableAssociation: 'disable',
+          DefaultRouteTablePropagation: 'disable',
+          DnsSupport: 'enable',
+          VpnEcmpSupport: 'enable',
+        }),
+      }),
     ]),
   );
 });
