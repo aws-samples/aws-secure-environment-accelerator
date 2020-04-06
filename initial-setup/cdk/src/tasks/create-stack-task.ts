@@ -37,7 +37,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
     );
     const finalizeTask = new CodeTask(scope, 'FinalizeTask', {
       functionProps: {
-        role: role,
+        role,
         code: lambdas.codeForEntry('create-stack/finalize'),
       },
     });

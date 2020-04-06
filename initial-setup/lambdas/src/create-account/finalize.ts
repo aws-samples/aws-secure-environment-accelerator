@@ -5,7 +5,7 @@ const pipeline = new aws.CodePipeline();
 
 export interface FinalizeMasterExecutionRoleInput {
   jobId: string;
-  exception?: any;
+  exception?: unknown;
   verify: {
     status?: 'SUCCESS' | 'FAILURE';
     statusReason?: string;

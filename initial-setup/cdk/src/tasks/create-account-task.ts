@@ -51,7 +51,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
     );
     const finalizeTask = new CodeTask(scope, 'FinalizeTask', {
       functionProps: {
-        role: role,
+        role,
         code: lambdas.codeForEntry('create-account/finalize'),
       },
     });

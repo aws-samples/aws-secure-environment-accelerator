@@ -17,5 +17,5 @@ export const handler = async (input: CreateMasterExecutionRoleInput, context: Co
 
   // create account using account-vending-machine
   const avm = new AccountVendingMachine();
-  return await avm.createAccount(accountName, lambdaRoleArn, acceleratorConfigSecretArn);
+  return avm.createAccount(accountName, lambdaRoleArn, acceleratorConfigSecretArn);
 };

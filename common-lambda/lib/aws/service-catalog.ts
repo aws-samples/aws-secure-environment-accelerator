@@ -1,10 +1,16 @@
 import * as aws from 'aws-sdk';
 import {
+  ListPortfoliosOutput,
   AssociatePrincipalWithPortfolioInput,
+  AssociatePrincipalWithPortfolioOutput,
   SearchProductsInput,
+  SearchProductsOutput,
   ListProvisioningArtifactsInput,
+  ListProvisioningArtifactsOutput,
   ProvisionProductInput,
+  ProvisionProductOutput,
   SearchProvisionedProductsInput,
+  SearchProvisionedProductsOutput,
 } from 'aws-sdk/clients/servicecatalog';
 
 export interface ProductAVMParam {
@@ -25,7 +31,7 @@ export class ServiceCatalog {
   /**
    * List service catalog portfolios
    */
-  async listPortfolios(): Promise<any> {
+  async listPortfolios(): Promise<ListPortfoliosOutput> {
     return this.client.listPortfolios().promise();
   }
 
@@ -34,7 +40,10 @@ export class ServiceCatalog {
    * @param portfolioId
    * @param prinicipalArn
    */
-  async associateRoleWithPortfolio(portfolioId: string, prinicipalArn: string): Promise<any> {
+  async associateRoleWithPortfolio(
+    portfolioId: string,
+    prinicipalArn: string,
+  ): Promise<AssociatePrincipalWithPortfolioOutput> {
     const associatePrincipalWithPortfolioInput: AssociatePrincipalWithPortfolioInput = {
       PortfolioId: portfolioId,
       PrincipalARN: prinicipalArn,
@@ -48,7 +57,7 @@ export class ServiceCatalog {
    * Find service catalog product by name
    * @param productName
    */
-  async findProduct(productName: string): Promise<any> {
+  async findProduct(productName: string): Promise<SearchProductsOutput> {
     const searchProductsInput: SearchProductsInput = {
       Filters: {
         FullTextSearch: [productName],
@@ -62,7 +71,7 @@ export class ServiceCatalog {
    * Find service catalog provisioningArtifact by productId
    * @param productId
    */
-  async findProvisioningArtifact(productId: string): Promise<any> {
+  async findProvisioningArtifact(productId: string): Promise<ListProvisioningArtifactsOutput> {
     const listProvisioningArtifactsInput: ListProvisioningArtifactsInput = {
       ProductId: productId,
     };
@@ -82,7 +91,7 @@ export class ServiceCatalog {
     provisionToken: string,
     provisioningArtifactId: string,
     productAVMParam: ProductAVMParam,
-  ): Promise<any> {
+  ): Promise<ProvisionProductOutput> {
     const provisionProductInput: ProvisionProductInput = {
       ProductId: productId /* required */,
       ProvisionToken: provisionToken /* required */,
@@ -133,7 +142,7 @@ export class ServiceCatalog {
    * Search provisioned products to check status of newly provisioned product
    * @param accountName
    */
-  async searchProvisionedProducts(accountName: string): Promise<any> {
+  async searchProvisionedProducts(accountName: string): Promise<SearchProvisionedProductsOutput> {
     const searchProvisionedProductsInput: SearchProvisionedProductsInput = {
       Filters: {
         SearchQuery: ['name:' + accountName],
