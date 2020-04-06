@@ -84,11 +84,29 @@ export class AccountVendingMachine {
     const configSecret = await secrets.getSecret(acceleratorConfigSecretArn);
     const config = JSON.parse(configSecret.SecretString!!) as AcceleratorConfig; // TODO Use a library like io-ts to parse the configuration file
 
-    const configAccountName: string = config['mandatory-account-configs']['shared-network']['account-name'];
+    let configAccountName: string = '';
+    let configAccountEmail: string = '';
+    let configOrgUnitName: string = '';
+    if (accountName == 'shared-network') {
+      configAccountName = config['mandatory-account-configs']['shared-network']['account-name'];
+      configAccountEmail = config['mandatory-account-configs']['shared-network']['email'];
+      configOrgUnitName = config['mandatory-account-configs']['shared-network']['ou'];
+    } else if (accountName == 'perimeter') {
+      //TODO: replace shared-network name with perimeter
+      configAccountName = config['mandatory-account-configs']['shared-network']['account-name'];
+      configAccountEmail = config['mandatory-account-configs']['shared-network']['email'];
+      configOrgUnitName = config['mandatory-account-configs']['shared-network']['ou'];
+    } else {
+      const response = {
+        status: 'FAILURE',
+        statusReaason: 'Unable to find config properties for the account name - ' + accountName + '.'
+      };
+      console.log(response);
+      return response;
+    }
+    
     console.log('config-accountName: ' + configAccountName);
-    const configAccountEmail: string = config['mandatory-account-configs']['shared-network']['email'];
     console.log('config-accountEmail: ' + configAccountEmail);
-    const configOrgUnitName = config['mandatory-account-configs']['shared-network']['ou'];
     console.log('config-OrgUnitName: ' + configOrgUnitName);
 
     // prepare param for AVM product launch
