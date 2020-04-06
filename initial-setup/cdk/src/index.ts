@@ -102,8 +102,7 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('codepipeline.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
-        ],
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
       pipelineRole.addToPolicy(
