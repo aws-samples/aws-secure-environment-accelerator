@@ -11,6 +11,7 @@ import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { Accounts } from '@aws-pbmm/common-lambda/lib/aws/accounts';
 import { CreateStackSetAction } from './actions/create-stack-set-action';
 import { CreateStackAction } from './actions/create-stack-action';
+import { CreateAccountAction } from './actions/create-account-action';
 import { zipFiles } from '@aws-pbmm/common-lambda/lib/util/zip';
 import { Archiver } from 'archiver';
 
@@ -229,7 +230,7 @@ export namespace InitialSetup {
             stageName: 'InstallRoles',
             actions: [
               new CreateStackSetAction({
-                actionName: 'Deploy_SharedNetwork',
+                actionName: 'Deploy',
                 regions: ['ca-central-1'], // TODO
                 accounts: [
                   // The accounts to install the pipeline role in
@@ -250,10 +251,23 @@ export namespace InitialSetup {
             ],
           },
           {
-            stageName: 'Deploy',
+            stageName: 'CreateSharedNetworkAccount',
+            actions: [
+              new CreateAccountAction({
+                actionName: 'Deploy',
+                accountName: 'shared-network',
+                acceleratorConfigSecretArn: props.configSecretArn,
+                lambdaRole: pipelineRole,
+                lambdas: props.lambdas,
+                waitSeconds: 60,
+              }),
+            ],
+          },
+          {
+            stageName: 'ConfigureSharedNetworkAccount',
             actions: [
               new CreateStackAction({
-                actionName: 'Deploy_SharedNetwork',
+                actionName: 'Deploy',
                 assumeRole: accountExecutionRoles.sharedNetwork,
                 stackName: `${props.acceleratorPrefix}SharedNetwork`,
                 stackTemplateArtifact: templatesSynthOutput.atPath('SharedNetwork.template.json'),

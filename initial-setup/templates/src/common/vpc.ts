@@ -51,7 +51,7 @@ export class Vpc extends cdk.Construct {
 
     const routeTableNameToIdMap = new Map<string, string>();
     const routeTablesProps = props['route-tables'];
-    let natRouteTables: string[] = [];
+    const natRouteTables: string[] = [];
     if (routeTablesProps) {
       // Create Route Tables
       for (const routeTableProp of routeTablesProps) {
