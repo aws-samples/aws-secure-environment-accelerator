@@ -256,7 +256,7 @@ test('the VPC creation should create the VPN gateway', () => {
   const template = stackToCloudFormation(stack);
   const resources = resourcesToList(template.Resources);
 
-  // There should only be one internet gateway
+  // There should only be one VPN gateway
   expect(resources).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
@@ -271,7 +271,7 @@ test('the VPC creation should create the VPN gateway', () => {
   const vpc = resources.find((r) => r.Type === 'AWS::EC2::VPC')!!;
   const vpnGateway = resources.find((r) => r.Type === 'AWS::EC2::VPNGateway')!!;
 
-  // There should only be one internet gateway
+  // There should only be one VPN Gateway Attachment
   expect(resources).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
@@ -282,6 +282,114 @@ test('the VPC creation should create the VPN gateway', () => {
           },
           VpnGatewayId: {
             Ref: vpnGateway.LogicalId,
+          },
+        }),
+      }),
+    ]),
+  );
+});
+
+test('the VPC creation should create the NAT gateway', () => {
+  const stack = new cdk.Stack();
+
+  new Vpc(
+    stack,
+    'SharedNetwork',
+    parse(VpcConfigType, {
+      name: 'shared-network',
+      cidr: '10.2.0.0/16',
+      region: 'ca-central-1',
+      igw: true,
+      vgw: false,
+      pcx: false,
+      natgw: {
+        subnet: 'Public_az1',
+      },
+      'gateway-endpoints': ['s3', 'dynamodb'],
+      subnets: [
+        {
+          name: 'Private',
+          'share-to-ou-accounts': false,
+          definitions: [
+            {
+              az: 'a',
+              'route-table': 'Private',
+              cidr: '10.2.88.0/27',
+            },
+            {
+              az: 'b',
+              'route-table': 'Private',
+              cidr: '10.2.88.32/27',
+            },
+          ],
+        },
+        {
+          name: 'Public',
+          'share-to-ou-accounts': true,
+          definitions: [
+            {
+              az: 'a',
+              'route-table': 'Public',
+              cidr: '10.2.32.0/20',
+            },
+            {
+              az: 'b',
+              'route-table': 'Public',
+              cidr: '10.2.128.0/20',
+            },
+          ],
+        },
+      ],
+      'route-tables': [
+        {
+          name: 'default',
+        },
+        {
+          name: 'Public',
+          routes: [
+            {
+              destination: '0.0.0.0/0',
+              target: 'IGW',
+            },
+          ],
+        },
+        {
+          name: 'Private',
+        },
+      ],
+    }),
+  );
+
+  // Convert the stack to a CloudFormation template
+  const template = stackToCloudFormation(stack);
+  const resources = resourcesToList(template.Resources);
+
+  // There should be only on EIP Created
+  const eip = resources.filter((r) => r.Type === 'AWS::EC2::EIP');
+  expect(eip).toHaveLength(1);
+
+  // There should NAT Gatewsy Created
+  const natGateways = resources.filter((r) => r.Type === 'AWS::EC2::NatGateway');
+  expect(natGateways).toHaveLength(1);
+
+  // Route Tables
+  const routeTables = resources.filter((r) => r.Type === 'AWS::EC2::RouteTable');
+
+  const privateRoute = routeTables.find((x) => x.LogicalId.startsWith('SharedNetworkPrivate'));
+  const routes = resources.filter((r) => r.Type === 'AWS::EC2::Route');
+  const natRoute = routes.find((x) => x.Properties.NatGatewayId!! != undefined);
+
+  // Check NAT Gateway Route is assigned to Private Route Table which doesn't have IGW assigned
+  expect(routes).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        Type: 'AWS::EC2::Route',
+        Properties: expect.objectContaining({
+          RouteTableId: {
+            Ref: privateRoute!!.LogicalId,
+          },
+          NatGatewayId: {
+            Ref: natGateways[0].LogicalId,
           },
         }),
       }),
