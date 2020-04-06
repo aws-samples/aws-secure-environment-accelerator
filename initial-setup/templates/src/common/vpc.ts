@@ -3,9 +3,14 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 
 import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 
+function getRegionAz(region: string, az: string): string {
+  return region.split('-')[region.split('-').length - 1] + az;
+}
+
 export class Vpc extends cdk.Construct {
   readonly vpcId: string;
-  readonly subnets = new Map<string, string[]>();
+  readonly azSubnets = new Map<string, string[]>();
+  readonly subnets = new Map<string, string>();
 
   constructor(parent: cdk.Construct, name: string, props: VpcConfig) {
     super(parent, name);
@@ -46,6 +51,7 @@ export class Vpc extends cdk.Construct {
 
     const routeTableNameToIdMap = new Map<string, string>();
     const routeTablesProps = props['route-tables'];
+    let natRouteTables: string[] = [];
     if (routeTablesProps) {
       // Create Route Tables
       for (const routeTableProp of routeTablesProps) {
@@ -58,9 +64,12 @@ export class Vpc extends cdk.Construct {
           vpcId: vpcObj.ref,
         });
         routeTableNameToIdMap.set(routeTableName, routeTable.ref);
+        if (!routeTableProp.routes?.find((r) => r.target === 'IGW')) {
+          natRouteTables.push(routeTableProp.name);
+        }
 
         // Add Routes to RouteTable
-        for (const route of routeTableProp.routes!!) {
+        for (const route of routeTableProp.routes ? routeTableProp.routes : []) {
           let dependsOn: cdk.CfnResource | undefined;
           let gatewayId: string | undefined;
           if (route.target === 'IGW') {
@@ -97,20 +106,21 @@ export class Vpc extends cdk.Construct {
     for (const subnetConfig of subnetsConfig) {
       const subnetAzs: string[] = [];
       const propSubnetName = subnetConfig.name;
-      for (const subnetDefinition of subnetConfig.definitions) {
+      for (const [key, subnetDefinition] of subnetConfig.definitions.entries()) {
         if (subnetDefinition.disabled) {
           continue;
         }
 
         // TODO Move this splitting stuff to a function so we can test it
-        const az = props.region?.split('-')[props.region?.split('-').length - 1] + subnetDefinition.az;
+        const az = getRegionAz(props.region!!, subnetDefinition.az);
 
-        const subnetName = `${vpcName}_${propSubnetName}_az${az}`;
+        const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
           cidrBlock: subnetDefinition.cidr.toCidrString(),
           vpcId: vpcObj.ref,
           availabilityZone: `${props.region}${subnetDefinition.az}`,
         });
+        this.subnets.set(`${propSubnetName}_az${key + 1}`, subnet.ref);
         subnetAzs.push(subnet.ref);
 
         // Attach Subnet to Route-Table
@@ -131,7 +141,7 @@ export class Vpc extends cdk.Construct {
           subnetId: subnet.ref,
         });
       }
-      this.subnets.set(propSubnetName, subnetAzs);
+      this.azSubnets.set(propSubnetName, subnetAzs);
     }
 
     // Create VPC Gateway End Point
@@ -144,6 +154,29 @@ export class Vpc extends cdk.Construct {
       });
     }
 
+    let natgw;
+    // Create NAT Gateway
+    if (props.natgw) {
+      const natgwProps = props.natgw;
+      const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
+
+      natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
+        allocationId: eip.attrAllocationId,
+        // @ts-ignore
+        subnetId: this.subnets.get(natgwProps.subnet),
+      });
+    }
+
+    // Attach NatGw Routes to Non IGW Route Tables
+    for (const natRoute of natRouteTables) {
+      const routeTableId = routeTableNameToIdMap.get(natRoute);
+      const routeParams: ec2.CfnRouteProps = {
+        routeTableId: routeTableId!!,
+        destinationCidrBlock: '0.0.0.0/0',
+        natGatewayId: natgw?.ref,
+      };
+      const cfnRoute = new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+    }
     this.vpcId = vpcObj.ref;
   }
 }

@@ -36,7 +36,7 @@ export namespace SharedNetwork {
           const vpcTgwAttach = vpcConfig['tgw-attach']!!;
           const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!!;
           for (const subnet of vpcTgwAttachSubnets) {
-            subnetIds = subnetIds.concat(vpc.subnets.get(subnet) as string[]);
+            subnetIds = subnetIds.concat(vpc.azSubnets.get(subnet) as string[]);
           }
 
           const tgwRouteAssociations: string[] = [];
