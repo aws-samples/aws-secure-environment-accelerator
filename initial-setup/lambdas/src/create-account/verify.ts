@@ -12,13 +12,10 @@ export const handler = async (input: Partial<CheckStepInput>) => {
   console.log(`Verifying status of provisioned account with parameters ${JSON.stringify(input, null, 2)}`);
 
   const { accountName, provisionToken } = input;
-  console.log('input: ', input);
 
   // Check the status of the provisioned account.
   const avm = new AccountVendingMachine();
-  const response = await avm.isAccountAvailable(accountName!!, provisionToken!!);
-  console.log('accountStatus: ' + response.status!!);
-
+  const response = await avm.isAccountAvailable(accountName!, provisionToken!);
   if (!response) {
     return {
       status: 'FAILURE',

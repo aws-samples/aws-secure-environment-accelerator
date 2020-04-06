@@ -46,6 +46,7 @@
     "no-unused-expression": false,
     "no-use-before-declare": false,
     "one-line": false, // This is handled by Prettier
+    "prefer-conditional-expression": false,
     "quotemark": false, // This is handled by Prettier
     "radix": true,
     "semicolon": false, // This is handled by Prettier

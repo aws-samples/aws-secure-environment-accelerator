@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "pnpx tsc",
+    "build": "pnpx tsc --noEmit",
     "test": "pnpx jest",
     "lint": "tslint 'src/**/*.ts'",
     "synth": "pnpx cdk synth"

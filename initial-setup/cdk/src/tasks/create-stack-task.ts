@@ -35,12 +35,6 @@ export class CreateStackTask extends sfn.StateMachineFragment {
         actions: ['codepipeline:PutJobSuccessResult', 'codepipeline:PutJobFailureResult'],
       }),
     );
-    const finalizeTask = new CodeTask(scope, 'FinalizeTask', {
-      functionProps: {
-        role,
-        code: lambdas.codeForEntry('create-stack/finalize'),
-      },
-    });
 
     const deployTask = new CodeTask(scope, `Deploy`, {
       resultPath: 'DISCARD',
@@ -48,9 +42,6 @@ export class CreateStackTask extends sfn.StateMachineFragment {
         role,
         code: lambdas.codeForEntry('create-stack/create'),
       },
-    });
-    deployTask.addCatch(finalizeTask, {
-      resultPath: '$.exception',
     });
 
     const verifyTask = new CodeTask(scope, 'Verify', {
@@ -70,8 +61,8 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       .next(verifyTask)
       .next(
         new sfn.Choice(scope, 'Choice')
-          .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), finalizeTask)
-          .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
+          .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), new sfn.Pass(this, 'Succeeded'))
+          .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), new sfn.Fail(this, 'Failed'))
           .otherwise(waitTask)
           .afterwards(),
       );
