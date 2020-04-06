@@ -303,7 +303,7 @@ test('the VPC creation should create the NAT gateway', () => {
       vgw: false,
       pcx: false,
       natgw: {
-        subnet: "Public_az1"
+        subnet: 'Public_az1',
       },
       'gateway-endpoints': ['s3', 'dynamodb'],
       subnets: [
@@ -320,7 +320,7 @@ test('the VPC creation should create the NAT gateway', () => {
               az: 'b',
               'route-table': 'Private',
               cidr: '10.2.88.32/27',
-            }
+            },
           ],
         },
         {
@@ -336,7 +336,7 @@ test('the VPC creation should create the NAT gateway', () => {
               az: 'b',
               'route-table': 'Public',
               cidr: '10.2.128.0/20',
-            }
+            },
           ],
         },
       ],
@@ -350,12 +350,12 @@ test('the VPC creation should create the NAT gateway', () => {
             {
               destination: '0.0.0.0/0',
               target: 'IGW',
-            }
+            },
           ],
         },
         {
           name: 'Private',
-        }
+        },
       ],
     }),
   );
@@ -374,19 +374,19 @@ test('the VPC creation should create the NAT gateway', () => {
 
   // Route Tables
   const routeTables = resources.filter((r) => r.Type === 'AWS::EC2::RouteTable');
-  
-  const privateRoute = routeTables.find(x => x.LogicalId.startsWith('SharedNetworkPrivate'))
+
+  const privateRoute = routeTables.find((x) => x.LogicalId.startsWith('SharedNetworkPrivate'));
   const routes = resources.filter((r) => r.Type === 'AWS::EC2::Route');
-  const natRoute = routes.find(x => x.Properties.NatGatewayId!! != undefined);
-  
+  const natRoute = routes.find((x) => x.Properties.NatGatewayId!! != undefined);
+
   // Check NAT Gateway Route is assigned to Private Route Table which doesn't have IGW assigned
   expect(routes).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         Type: 'AWS::EC2::Route',
         Properties: expect.objectContaining({
-          RouteTableId:{
-            Ref: privateRoute!!.LogicalId
+          RouteTableId: {
+            Ref: privateRoute!!.LogicalId,
           },
           NatGatewayId: {
             Ref: natGateways[0].LogicalId,
@@ -395,5 +395,4 @@ test('the VPC creation should create the NAT gateway', () => {
       }),
     ]),
   );
-  
-  });
+});

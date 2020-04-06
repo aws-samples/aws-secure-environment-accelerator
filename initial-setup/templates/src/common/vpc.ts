@@ -69,7 +69,7 @@ export class Vpc extends cdk.Construct {
         }
 
         // Add Routes to RouteTable
-        for (const route of routeTableProp.routes? routeTableProp.routes: []) {
+        for (const route of routeTableProp.routes ? routeTableProp.routes : []) {
           let dependsOn: cdk.CfnResource | undefined;
           let gatewayId: string | undefined;
           if (route.target === 'IGW') {
