@@ -7,6 +7,7 @@ export class Organizations {
 
   public constructor(credentials?: aws.Credentials) {
     this.client = new aws.Organizations({
+      region: 'us-east-1',
       credentials,
     });
   }

@@ -75,7 +75,7 @@ export class AccountVendingMachine {
 
     let productId = null;
     if (SearchProductsOutput) {
-      productId = SearchProductsOutput!.ProductViewSummaries![0].ProductId;
+      productId = SearchProductsOutput?.ProductViewSummaries?.[0].ProductId;
     }
     console.log('productId: ' + productId);
 
