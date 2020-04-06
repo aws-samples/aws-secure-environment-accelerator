@@ -17,8 +17,11 @@ export const handler = async (input: CodePipelineEvent, context: Context) => {
   const accountName: string = parameters.accountName!!;
   console.log('accountName: ' + accountName);
 
-  const principalRoleArn: string = parameters.principalRoleArn!!;
-  console.log('principalRoleArn: ' + principalRoleArn);
+  const lambdaRoleArn: string = parameters.lambdaRoleArn!!;
+  console.log('lambdaRoleArn: ' + lambdaRoleArn);
+
+  const acceleratorConfigSecretArn: string = parameters.acceleratorConfigSecretArn!!;
+  console.log('acceleratorConfigSecretArn: ' + acceleratorConfigSecretArn);
 
   const stm = new aws.StepFunctions();
   await stm.startExecution({
@@ -26,7 +29,8 @@ export const handler = async (input: CodePipelineEvent, context: Context) => {
     input: JSON.stringify({
       jobId,
       accountName,
-      principalRoleArn,
+      lambdaRoleArn,
+      acceleratorConfigSecretArn,
     }, null, 2),
   }).promise();
 };

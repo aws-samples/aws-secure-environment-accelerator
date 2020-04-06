@@ -257,6 +257,7 @@ export namespace InitialSetup {
               new CreateAccountAction({
                 actionName: 'Deploy',
                 accountName: 'SharedNetwork',
+                acceleratorConfigSecretArn: props.configSecretArn,
                 lambdaRole: pipelineRole,
                 lambdas: props.lambdas,
                 waitSeconds: 60,

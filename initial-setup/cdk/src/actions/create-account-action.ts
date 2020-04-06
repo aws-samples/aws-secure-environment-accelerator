@@ -11,6 +11,7 @@ export namespace CreateAccountAction {
     export interface Props extends Omit<actions.LambdaInvokeActionProps, 'lambda' | 'inputs' | 'outputs'> {
         actionName: string;
         accountName: string;
+        acceleratorConfigSecretArn: string;
         lambdaRole: iam.IRole;
         lambdas: WebpackBuild;
         waitSeconds: number;
@@ -44,6 +45,7 @@ export class CreateAccountAction extends actions.Action {
         const {
             actionName,
             accountName,
+            acceleratorConfigSecretArn,
             lambdaRole,
             lambdas,
             waitSeconds,
@@ -103,7 +105,8 @@ export class CreateAccountAction extends actions.Action {
             lambda: createAccountTrigger,
             userParameters: {
                 accountName,
-                principalRoleArn: lambdaRole.roleArn,
+                lambdaRoleArn: lambdaRole.roleArn,
+                acceleratorConfigSecretArn,
             },
         });
 

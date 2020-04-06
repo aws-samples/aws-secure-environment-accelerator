@@ -4,10 +4,6 @@ import { SecretsManager } from './secrets-manager';
 import { AcceleratorConfig } from '../config';
 import { v4 as uuidv4 } from 'uuid';
 
-const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
-const ACCELERATOR_PREFIX = process.env.ACCELERATOR_PREFIX!!;
-const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
-
 const avmName = 'AWS-Landing-Zone-Account-Vending-Machine';
 const portfolioName = 'AWS Landing Zone - Baseline';
 
@@ -21,10 +17,12 @@ export class AccountVendingMachine {
   /**
    * Create account using account-vending-machine
    * @param accountName
+   * @param lambdaRoleArn
+   * @param acceleratorConfigSecretArn
    */
-  async createAccount(accountName: string, principalArn: string): Promise<any> {
+  async createAccount(accountName: string, lambdaRoleArn: string, acceleratorConfigSecretArn: string): Promise<any> {
     console.log('accountName: ' + accountName);
-    console.log('principalArn: ' + principalArn);
+    console.log('lambdaRoleArn: ' + lambdaRoleArn);
     console.log('productName: ' + avmName);
     console.log('portfolioName: ' + portfolioName);
 
@@ -42,7 +40,7 @@ export class AccountVendingMachine {
     console.log('portfolioId: ' + portfolioId);
 
     //associate principal with portfolio
-    const response = await this.client.associateRoleWithPortfolio(portfolioId, principalArn);
+    const response = await this.client.associateRoleWithPortfolio(portfolioId, lambdaRoleArn);
     console.log('associate principal with portfolio - response: ', response);
 
     // find service catalog ProductId by name
@@ -81,16 +79,23 @@ export class AccountVendingMachine {
       return response;
     }
 
-    // const secrets = new SecretsManager();
-    // const configSecret = await secrets.getSecret(ACCELERATOR_SECRET_NAME);
-    // const config = JSON.parse(configSecret.SecretString!!) as AcceleratorConfig; // TODO Use a library like io-ts to parse the configuration file
+    // fetch config from secret-manager
+    const secrets = new SecretsManager();
+    const configSecret = await secrets.getSecret(acceleratorConfigSecretArn);
+    const config = JSON.parse(configSecret.SecretString!!) as AcceleratorConfig; // TODO Use a library like io-ts to parse the configuration file
 
-    // TODO: Load from config
+    const configAccountName: string = config['mandatory-account-configs']['shared-network']['account-name'];
+    console.log('config-accountName: ' + configAccountName);
+    const configAccountEmail: string = config['mandatory-account-configs']['shared-network']['email'];
+    console.log('config-accountEmail: ' + configAccountEmail);
+    const configOrgUnitName = config['mandatory-account-configs']['shared-network']['ou'];
+    console.log('config-OrgUnitName: ' + configOrgUnitName);
+
     // prepare param for AVM product launch
     const productAVMParam: ProductAVMParam = {
-      accountName: 'SharedNetwork',
-      accountEmail: 'manishri+lz-shared-network@amazon.com',
-      orgUnitName: 'core',
+      accountName: configAccountName,
+      accountEmail: configAccountEmail,
+      orgUnitName: configOrgUnitName,
     };
 
     const provisionToken = uuidv4();
