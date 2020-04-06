@@ -3,7 +3,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 
 import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 
-function getRegionAz(region: string, az: string): string{
+function getRegionAz(region: string, az: string): string {
   return region.split('-')[region.split('-').length - 1] + az;
 }
 
@@ -121,7 +121,7 @@ export class Vpc extends cdk.Construct {
         }
 
         // TODO Move this splitting stuff to a function so we can test it
-        const az = getRegionAz(props.region!! , subnetDefinition.az);
+        const az = getRegionAz(props.region!!, subnetDefinition.az);
 
         const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
