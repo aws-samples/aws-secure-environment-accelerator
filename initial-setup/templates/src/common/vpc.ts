@@ -3,6 +3,10 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 
 import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 
+function getRegionAz(region: string, az: string): string{
+  return region.split('-')[region.split('-').length - 1] + az;
+}
+
 export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new Map<string, string[]>();
@@ -111,21 +115,21 @@ export class Vpc extends cdk.Construct {
     for (const subnetConfig of subnetsConfig) {
       const subnetAzs: string[] = [];
       const propSubnetName = subnetConfig.name;
-      for (const subnetDefinition of subnetConfig.definitions) {
+      for (const [key, subnetDefinition] of subnetConfig.definitions.entries()) {
         if (subnetDefinition.disabled) {
           continue;
         }
 
         // TODO Move this splitting stuff to a function so we can test it
-        const az = props.region?.split('-')[props.region?.split('-').length - 1] + subnetDefinition.az;
+        const az = getRegionAz(props.region!! , subnetDefinition.az);
 
-        const subnetName = `${vpcName}_${propSubnetName}_az${az}`;
+        const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
           cidrBlock: subnetDefinition.cidr.toCidrString(),
           vpcId: vpcObj.ref,
           availabilityZone: `${props.region}${subnetDefinition.az}`,
         });
-        this.subnets.set(propSubnetName, subnet.ref);
+        this.subnets.set(`${propSubnetName}_az${key + 1}`, subnet.ref);
         subnetAzs.push(subnet.ref);
 
         // Attach Subnet to Route-Table
@@ -166,7 +170,7 @@ export class Vpc extends cdk.Construct {
       const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
 
       natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
-        allocationId: eip.ref,
+        allocationId: eip.attrAllocationId,
         // @ts-ignore
         subnetId: this.subnets.get(natgwProps.subnet),
       });

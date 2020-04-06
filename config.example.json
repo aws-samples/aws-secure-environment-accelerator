@@ -81,7 +81,7 @@
         "vgw": true,
         "pcx": false,
         "natgw": {
-          "subnet": "Public"
+          "subnet": "Public_az1"
         },
         "subnets": [
           {
