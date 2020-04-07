@@ -1,5 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc } from '../common/vpc';
+
+import { FlowLogs } from '../common/flow-logs';
+
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -18,6 +21,9 @@ export namespace SharedNetwork {
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
       const vpcConfig = accountProps.vpc!!;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
+
+      //Creating FlowLog for VPC
+      const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId });
 
       // Creating TGW for Shared-Network Account
       const deployments = accountProps.deployments;
