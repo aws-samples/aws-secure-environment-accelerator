@@ -1,0 +1,17 @@
+{
+  "name": "@aws-pbmm/plugin-assume-role",
+  "version": "0.0.1",
+  "private": true,
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "devDependencies": {
+    "prettier": "^1.19.1"
+  },
+  "dependencies": {
+    "aws-cdk": "^1.31.0",
+    "aws-sdk": "2.585.0",
+    "colors": "^1.4.0"
+  }
+}

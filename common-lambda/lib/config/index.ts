@@ -118,8 +118,13 @@ export const MandatoryAccountConfigType = t.interface({
   perimeter: AccountConfigType,
 });
 
-export const GlobalOptionsConfigType = t.interface({
+export const GlobalOptionsAccountsConfigType = t.interface({
   'master-account-name': NonEmptyString,
+  'mandatory': t.array(t.string),
+});
+
+export const GlobalOptionsConfigType = t.interface({
+  'accounts': GlobalOptionsAccountsConfigType,
 });
 
 export const AcceleratorConfigType = t.interface({
@@ -132,6 +137,10 @@ export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 
 export namespace AcceleratorConfig {
+  export function fromBuffer(content: Buffer): AcceleratorConfig {
+    return fromString(content.toString());
+  }
+
   export function fromString(content: string): AcceleratorConfig {
     return fromObject(JSON.parse(content));
   }

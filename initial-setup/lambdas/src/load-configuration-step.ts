@@ -13,6 +13,7 @@ export interface LoadConfigurationOutput {
 }
 
 export interface ConfigurationAccount {
+  accountKey: string;
   accountName: string;
   emailAddress: string;
   organizationalUnit: string;
@@ -38,13 +39,15 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     SecretString: configString,
   });
 
-  const masterAccountName = config['global-options']['master-account-name'];
+  const accountsConfig = config['global-options']['accounts'];
+  const masterAccountName = accountsConfig['master-account-name'];
 
   const accounts = [];
   const mandatoryAccountConfigs = config['mandatory-account-configs'];
-  for (const mandatoryAccountConfig of Object.values(mandatoryAccountConfigs)) {
+  for (const [accountKey, mandatoryAccountConfig] of Object.entries(mandatoryAccountConfigs)) {
     const accountName = mandatoryAccountConfig['account-name'];
     accounts.push({
+      accountKey,
       accountName,
       emailAddress: mandatoryAccountConfig.email,
       organizationalUnit: mandatoryAccountConfig.ou,

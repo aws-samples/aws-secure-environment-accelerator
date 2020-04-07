@@ -15,8 +15,10 @@ export interface CreateAccountInput {
   lambdaRoleArn: string;
 }
 
+export type CreateAccountOutputStatus = 'SUCCESS' | 'FAILURE' | 'ALREADY_EXISTS' | 'NOT_RELEVANT';
+
 export interface CreateAccountOutput {
-  status?: 'SUCCESS' | 'FAILURE' | 'ALREADY_EXISTS' | 'NOT_RELEVANT';
+  status?: CreateAccountOutputStatus;
   statusReason?: string;
   provisionedProductStatus?: string;
   provisionToken?: string;
@@ -36,11 +38,6 @@ export class AccountVendingMachine {
    */
   async createAccount(input: CreateAccountInput): Promise<CreateAccountOutput> {
     const { accountName, emailAddress, organizationalUnit, lambdaRoleArn } = input;
-
-    console.log('accountName: ' + accountName);
-    console.log('lambdaRoleArn: ' + lambdaRoleArn);
-    console.log('productName: ' + avmName);
-    console.log('portfolioName: ' + portfolioName);
 
     // find service catalog portfolioId by name
     const ListPortfoliosOutput = await this.client.listPortfolios();

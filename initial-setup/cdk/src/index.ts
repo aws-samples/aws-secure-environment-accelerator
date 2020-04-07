@@ -69,7 +69,15 @@ export class InitialSetup extends cdk.Stack {
     await zipFiles(solutionZipPath, (archive: Archiver) => {
       archive.glob('**/*', {
         cwd: props.solutionRoot,
-        ignore: ['**/cdk.out/**', '**/node_modules/**', '**/pnpm-lock.yaml', '**/.prettierrc'],
+        ignore: [
+          '**/accounts.json',
+          '**/cdk.out/**',
+          '**/cdk.json',
+          '**/config.json',
+          '**/node_modules/**',
+          '**/pnpm-lock.yaml',
+          '**/.prettierrc',
+        ],
       });
     });
 
@@ -95,6 +103,10 @@ export namespace InitialSetup {
 
       const stack = cdk.Stack.of(this);
 
+      const accountsSecret = new secrets.Secret(this, 'Accounts', {
+        description: 'This secret contains the information about the accounts that are used for deployment.',
+      });
+
       const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
@@ -113,68 +125,41 @@ export namespace InitialSetup {
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'PipelineRole', {
         roleName: 'AcceleratorPipelineRole',
-        assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+        assumedBy: new iam.CompositePrincipal(
+          new iam.ServicePrincipal('codebuild.amazonaws.com'),
+          new iam.ServicePrincipal('lambda.amazonaws.com'),
+        ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      const buildRole = new iam.Role(this, 'BuildRole', {
-        assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
-      });
-
-      buildRole.attachInlinePolicy(
-        new iam.Policy(this, 'BuildRoleAllowSecretConfig', {
-          statements: [
-            new iam.PolicyStatement({
-              effect: iam.Effect.ALLOW,
-              actions: ['secretsmanager:GetSecretValue'],
-              resources: [configSecretInProgress.secretArn],
-            }),
-          ],
-        }),
-      );
-
-      solutionZip.grantRead(buildRole);
-
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'CdkDeploy', {
-        role: buildRole,
+        role: pipelineRole,
         cache: codebuild.Cache.local(codebuild.LocalCacheMode.CUSTOM),
         buildSpec: codebuild.BuildSpec.fromObject({
           version: '0.2',
           phases: {
             install: {
               'runtime-versions': {
-                nodejs: 10,
+                nodejs: 12,
               },
-              commands: [
-                'mkdir ~/.aws',
-                'echo "[subaccount]" >> ~/.aws/credentials',
-                'echo "aws_access_key_id=$ASSUME_ACCESS_KEY_ID" >> ~/.aws/credentials',
-                'echo "aws_secret_access_key=$ASSUME_SECRET_ACCESS_KEY" >> ~/.aws/credentials',
-                'echo "aws_session_token=$ASSUME_SESSION_TOKEN" >> ~/.aws/credentials',
-                'npm install --global pnpm',
-                'pnpm install',
-              ],
+              commands: ['npm install --global pnpm', 'pnpm install'],
             },
             build: {
               commands: [
                 'cd initial-setup/templates',
                 'pnpm install',
-                'pnpx cdk bootstrap --require-approval=never --profile=subaccount',
-                'pnpx cdk deploy $STACK_NAME --require-approval=never --profile=subaccount',
+                'pnpx cdk bootstrap --plugin "$(pwd)/../../plugins/assume-role" --app "pnpx ts-node src/index.ts"',
+                'pnpx cdk deploy "*" --require-approval never --plugin "$(pwd)/../../plugins/assume-role" --app "pnpx ts-node src/index.ts"',
               ],
             },
           },
           cache: {
             paths: ['/root/.pnpm-store/**/*', '.pnpm-store/**/*'],
           },
-          artifacts: {
-            'base-directory': 'initial-setup/templates/dist',
-            files: ['*.template.json'],
-          },
         }),
         environment: {
-          buildImage: codebuild.LinuxBuildImage.AMAZON_LINUX_2,
+          buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
           computeType: codebuild.ComputeType.MEDIUM,
           environmentVariables: {
             ACCELERATOR_NAME: {
@@ -185,9 +170,17 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.acceleratorPrefix,
             },
-            ACCELERATOR_SECRET_ID: {
+            CONFIG_SECRET_ID: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: configSecretInProgress.secretArn,
+            },
+            ACCOUNTS_SECRET_ID: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: accountsSecret.secretArn,
+            },
+            CDK_PLUGIN_ASSUME_ROLE_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.executionRoleName,
             },
           },
         },
@@ -237,6 +230,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          accountsSecretId: accountsSecret.secretArn,
           'configuration.$': '$.configuration',
         },
         resultPath: '$.accounts',
@@ -264,7 +258,8 @@ export namespace InitialSetup {
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
               RoleName: props.executionRoleName,
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`, // TODO Only add root for dev environments
+              // TODO Only add root role for development environments
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
@@ -289,28 +284,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      // Build the per-account pipeline
       const startCodeBuildTask = new CodeTask(this, 'Start CodeBuild Deploy', {
         functionProps: {
           code: props.lambdas.codeForEntry('start-codebuild'),
           role: pipelineRole,
         },
         functionPayload: {
-          configSecretId: configSecretInProgress.secretArn,
           codeBuildProjectName: project.projectName,
           sourceBucketName: solutionZip.s3BucketName,
           sourceBucketKey: solutionZip.s3ObjectKey,
-          assumeRoleName: props.executionRoleName,
-          'assumeRoleAccount.$': '$',
         },
       });
-
-      const startCodeBuildTasks = new sfn.Map(this, 'Start All CodeBuild Deploy', {
-        itemsPath: '$.accounts',
-        resultPath: 'DISCARD',
-      });
-
-      startCodeBuildTasks.iterator(startCodeBuildTask);
 
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -318,7 +302,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(startCodeBuildTasks),
+          .next(startCodeBuildTask),
       });
     }
   }

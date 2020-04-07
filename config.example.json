@@ -1,6 +1,5 @@
 {
   "global-options": {
-    "master-account-name": "master",
     "alz-minimum-version": "v2.3.1",
     "central-log-retention": 730,
     "zones": {
@@ -32,6 +31,7 @@
       ]
     },
     "accounts": {
+      "master-account-name": "master",
       "mandatory": [
         "perimeter",
         "shared-network",

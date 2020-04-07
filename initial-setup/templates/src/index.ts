@@ -1,10 +1,6 @@
-import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
-import { CommonTemplates } from './common/stack';
-import { MasterTemplates } from './master/stack';
-import { SharedNetwork } from './shared-network/stack';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { App } from './app';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -12,29 +8,24 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!;
-const ACCELERATOR_SECRET_ID = process.env.ACCELERATOR_SECRET_ID!;
+const CONFIG_SECRET_ID = process.env.CONFIG_SECRET_ID!;
+const ACCOUNTS_SECRET_ID = process.env.ACCOUNTS_SECRET_ID!;
 
-(async () => {
+async function main() {
   const secrets = new SecretsManager();
-  const configSecret = await secrets.getSecret(ACCELERATOR_SECRET_ID);
-  const config = AcceleratorConfig.fromString(configSecret.SecretString!);
 
-  const mandatoryAccountConfig = config['mandatory-account-configs'];
-  const sharedNetworkConfig = mandatoryAccountConfig['shared-network'];
+  const acceleratorConfigSecret = await secrets.getSecret(CONFIG_SECRET_ID);
+  const acceleratorConfig = AcceleratorConfig.fromString(acceleratorConfigSecret.SecretString!);
+  
+  const accountsSecret = await secrets.getSecret(ACCOUNTS_SECRET_ID);
+  const accounts = JSON.parse(accountsSecret.SecretString!);
 
-  const app = new cdk.App();
-
-  new CommonTemplates.AssumeRoleStack(app, 'AssumeRole');
-
-  new MasterTemplates.Stack(app, 'Master');
-
-  new SharedNetwork.Stack(app, 'SharedNetwork', {
-    stackName: 'PBMMAccel-SharedNetwork',
-    accountConfig: sharedNetworkConfig,
+  new App({
+    acceleratorName: ACCELERATOR_NAME,
+    acceleratorConfig,
+    accounts,
   });
+}
 
-  // Add accelerator tag to all resources
-  cdk.Tag.add(app, 'Accelerator', ACCELERATOR_NAME);
-  // Add name tag to all resources
-  app.node.applyAspect(new AcceleratorNameTagger());
-})();
+// tslint:disable-next-line: no-floating-promises
+main();

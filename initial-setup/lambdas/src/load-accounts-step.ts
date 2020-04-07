@@ -1,13 +1,16 @@
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { LoadConfigurationOutput } from './load-configuration-step';
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 
 export interface LoadAccountsInput {
+  accountsSecretId: string;
   configuration: LoadConfigurationOutput;
 }
 
 export type LoadAccountsOutput = Account[];
 
 export interface Account {
+  key: string;
   id: string;
   arn: string;
   name: string;
@@ -20,22 +23,22 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   console.log(`Loading accounts...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configuration } = input;
+  const { accountsSecretId, configuration } = input;
 
   // The first step is to load all the execution roles
   const organizations = new Organizations();
   const organizationAccounts = await organizations.listAccounts();
 
-  const accounts: Account[] = [];
+  const accounts = [];
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
     if (accountConfig.isMasterAccount) {
       // Only filter on the email address if we are dealing with the master account
-      organizationAccount = organizationAccounts.find((a) => {
+      organizationAccount = organizationAccounts.find(a => {
         return a.Email === accountConfig.emailAddress;
       });
     } else {
-      organizationAccount = organizationAccounts.find((a) => {
+      organizationAccount = organizationAccounts.find(a => {
         return a.Name === accountConfig.accountName && a.Email === accountConfig.emailAddress;
       });
     }
@@ -44,8 +47,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
         `Cannot find account with name "${accountConfig.accountName}" and email "${accountConfig.emailAddress}"`,
       );
     }
+
     // TODO Verify organizational unit
     accounts.push({
+      key: accountConfig.accountKey,
       id: organizationAccount.Id!,
       arn: organizationAccount.Arn!,
       name: organizationAccount.Name!,
@@ -54,6 +59,13 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       master: accountConfig.isMasterAccount,
     });
   }
+
+  // Store the accounts configuration in the accounts secret
+  const secrets = new SecretsManager();
+  await secrets.putSecretValue({
+    SecretId: accountsSecretId,
+    SecretString: JSON.stringify(accounts),
+  });
 
   // Find all relevant accounts in the organization
   return accounts;

@@ -29,12 +29,11 @@ Finally deploy the CDK project.
 
 ## Architecture
 
-The main component of this project is a CodePipeline that creates CloudFormation stacks in specific accounts. These 
-accounts could be the master account, log archive account, security account, and so on.
+The main component of this project is a state machine that deploys CloudFormation stacks in specific accounts using CDK.
+These accounts could be the master account, log archive account, security account, and so on.
 
-The CloudFormation stacks are based on templates that are generated using the CDK and are location in
-`initial-setup/templates` and `account-setup/templates`. These CDK templates are converted to CloudFormation files in a
-CodeBuild step in the CodePipeline.
+The CloudFormation stacks are deployed using the CDK and are located in `initial-setup/templates` and
+`account-setup/templates`. These CDK templates are deployed in the specific accounts using CodeBuild.
 
 ## Code Structure
 
@@ -44,35 +43,22 @@ for the account setup. The CodePipelines for initial setup and account setup are
 - `initial-setup/cdk` and
 - `account-setup/cdk`.
 
-Some actions in the CodePipeline require Lambda functions. The code for the Lambda functions is located in
+Some actions in the state machine require Lambda functions. The code for the Lambda functions is located in
 `initial-setup/lambdas/src/steps`.
 
-### Create a Stack Using the CodePipeline
+## Testing
 
-Add the CDK code for the stack you want to create under `initial-setup/templates/src`. Make sure the new CDK code is
-called from the main entry point `initial-setup/templates/src/index.ts`.
+Execute the following command to execute unit tests.
 
-You can read the *Testing* section in the `README.md` file in `initial-setup` to test synthesizing the CDK code to
-CloudFormation templates.
+        pnpm recursive test  -- --pass-with-no-tests
 
-Finally, add an action in the CodePipeline that is defined in `initial-setup/cdk/src/index.ts`. The step should look
-something like the following.
+## Code Style
 
-    new CreateStackAction({
-        // The name of the action in the CodePipline
-        actionName: 'Deploy_SharedNetwork',
-        // The role to assume in case the stack needs to be created in a sub account
-        assumeRole: accountExecutionRoles.sharedNetwork,
-        // The name of the stack that will be created
-        stackName: `${props.acceleratorPrefix}SharedNetwork`,
-        // The name of the stack in the template you created under `initial-setup/templates`
-        stackTemplateArtifact: templatesSynthOutput.atPath('SharedNetwork.template.json'),
-        // This is the role to run the step function Lambda functions as
-        // You can leave this value
-        lambdaRole: pipelineRole,
-        // This is the code for the step function Lambda functions
-        // You can leave this value
-        lambdas: props.lambdas,
-        // The amount of time to wait every time before checking if the stack is created
-        waitSeconds: 10,
-    })
+Please run `tslint` and `prettier` before committing.
+
+        pnpm recursive run lint
+        pnpx prettier --check **/*.ts
+
+In case `prettier` finds issues, you can let `prettier` resolve the issues.
+
+        pnpx prettier --write **/*.ts
