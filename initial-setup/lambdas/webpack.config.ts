@@ -8,6 +8,10 @@ const config: webpack.Configuration = {
   target: 'node',
   externals: ['aws-sdk', 'aws-lambda'],
   entry: {
+    'create-account/trigger': './src/create-account/trigger.ts',
+    'create-account/create': './src/create-account/create.ts',
+    'create-account/verify': './src/create-account/verify.ts',
+    'create-account/finalize': './src/create-account/finalize.ts',
     'create-stack/trigger': './src/create-stack/trigger.ts',
     'create-stack/create': './src/create-stack/create.ts',
     'create-stack/verify': './src/create-stack/verify.ts',
