@@ -1,19 +1,19 @@
 import * as cdk from '@aws-cdk/core';
-import { BucketProps } from '@aws-pbmm/common-cdk/node_modules/@aws-cdk/aws-s3';
+import { BucketProps, CfnBucket, CfnBucketProps } from '@aws-cdk/aws-s3';
 
-export interface s3Props {
-  bucketName: string;
-  bucketRegion: string;
-}
+export class S3 extends cdk.Construct {
+  readonly s3BucketId: string;
 
-export class s3 extends cdk.Construct {
-  readonly s3Id: string;
-  
-  constructor(parent: cdk.Construct, name: 's3', props: BucketProps) {
+  constructor(parent: cdk.Construct, name: string, props: BucketProps) {
     super(parent, name);
 
-    //TODO: 
-    
-    this.s3Id = '';
+    const s3BucketName = props.bucketName ? props.bucketName : '';
+
+    // TODO:
+    const s3Bucket = new CfnBucket(this, s3BucketName, {
+      bucketName: s3BucketName,
+    });
+
+    this.s3BucketId = s3Bucket.ref;
   }
 }

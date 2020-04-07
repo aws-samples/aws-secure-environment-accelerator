@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc } from '../common/vpc';
+import { S3 } from '../common/s3';
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -18,6 +19,9 @@ export namespace SharedNetwork {
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
       const vpcConfig = accountProps.vpc!!;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
+
+      // s3 bucket to collect vpc-flow-logs
+      const s3 = new S3(this, 's3', { bucketName: 'pbmm-test-bucket' });
 
       // Creating TGW for Shared-Network Account
       const deployments = accountProps.deployments;
