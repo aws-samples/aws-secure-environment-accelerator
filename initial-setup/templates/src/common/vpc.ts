@@ -20,6 +20,14 @@ export class Vpc extends cdk.Construct {
       cidrBlock: props.cidr!!.toCidrString(),
     });
 
+    let extendVpc;
+    if (props.cidr2) {
+      extendVpc = new ec2.CfnVPCCidrBlock(this, `ExtendVPC`, {
+        cidrBlock: props.cidr2.toCidrString(),
+        vpcId: vpcObj.ref,
+      });
+    }
+
     let igw;
     let igwAttach;
     if (props.igw) {
@@ -116,10 +124,13 @@ export class Vpc extends cdk.Construct {
 
         const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
-          cidrBlock: subnetDefinition.cidr.toCidrString(),
+          cidrBlock: subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString() || '',
           vpcId: vpcObj.ref,
           availabilityZone: `${props.region}${subnetDefinition.az}`,
         });
+        if (extendVpc) {
+          subnet.addDependsOn(extendVpc);
+        }
         this.subnets.set(`${propSubnetName}_az${key + 1}`, subnet.ref);
         subnetAzs.push(subnet.ref);
 
@@ -165,17 +176,17 @@ export class Vpc extends cdk.Construct {
         // @ts-ignore
         subnetId: this.subnets.get(natgwProps.subnet),
       });
-    }
 
-    // Attach NatGw Routes to Non IGW Route Tables
-    for (const natRoute of natRouteTables) {
-      const routeTableId = routeTableNameToIdMap.get(natRoute);
-      const routeParams: ec2.CfnRouteProps = {
-        routeTableId: routeTableId!!,
-        destinationCidrBlock: '0.0.0.0/0',
-        natGatewayId: natgw?.ref,
-      };
-      const cfnRoute = new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+      // Attach NatGw Routes to Non IGW Route Tables
+      for (const natRoute of natRouteTables) {
+        const routeTableId = routeTableNameToIdMap.get(natRoute);
+        const routeParams: ec2.CfnRouteProps = {
+          routeTableId: routeTableId!!,
+          destinationCidrBlock: '0.0.0.0/0',
+          natGatewayId: natgw?.ref,
+        };
+        const cfnRoute = new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+      }
     }
     this.vpcId = vpcObj.ref;
   }

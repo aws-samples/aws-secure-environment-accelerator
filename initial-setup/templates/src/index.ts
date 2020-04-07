@@ -5,14 +5,15 @@ import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger
 import { CommonTemplates } from './common/stack';
 import { MasterTemplates } from './master/stack';
 import { SharedNetwork } from './shared-network/stack';
+import { OrganizationalUnit } from './organizational-units/stack';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
 
-const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
-const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
+const ACCELERATOR_NAME = 'PBMM'; //process.env.ACCELERATOR_NAME!!;
+const ACCELERATOR_SECRET_NAME = 'accelerator/config'; //process.env.ACCELERATOR_SECRET_NAME!!;
 
 (async () => {
   const secrets = new SecretsManager();
@@ -30,6 +31,11 @@ const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
   const sharedNetworkConfig = mandatoryAccountConfig['shared-network'];
   new SharedNetwork.Stack(app, 'SharedNetwork', {
     accountConfig: sharedNetworkConfig,
+  });
+
+  const organizationalUnits = config['organizational-units'];
+  new OrganizationalUnit.Stack(app, 'OrganizationalUnits', {
+    organizationalUnits: organizationalUnits,
   });
 
   // Add accelerator tag to all resources

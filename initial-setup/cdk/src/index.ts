@@ -250,7 +250,7 @@ export namespace InitialSetup {
               }),
             ],
           },
-          {
+          /*{
             stageName: 'CreateSharedNetworkAccount',
             actions: [
               new CreateAccountAction({
@@ -274,6 +274,20 @@ export namespace InitialSetup {
                 lambdaRole: pipelineRole,
                 lambdas: props.lambdas,
                 waitSeconds: 10,
+              }),
+            ],
+          },*/
+          {
+            stageName: 'ConfigureOrganizationalUnits',
+            actions: [
+              new CreateStackAction({
+                actionName: 'Deploy',
+                assumeRole: accountExecutionRoles.sharedNetwork,
+                stackName: `${props.acceleratorPrefix}OrganizationalUnits`,
+                stackTemplateArtifact: templatesSynthOutput.atPath('OrganizationalUnits.template.json'),
+                lambdaRole: pipelineRole,
+                lambdas: props.lambdas,
+                waitSeconds: 60,
               }),
             ],
           },
