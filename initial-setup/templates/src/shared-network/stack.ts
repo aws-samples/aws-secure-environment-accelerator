@@ -25,7 +25,7 @@ export namespace SharedNetwork {
       // s3 bucket to collect vpc-flow-logs
       const s3 = new S3(this, 's3', { bucketName: 'pbmm-test-bucket' });
 
-      //Creating FlowLog for VPC
+      // Creating FlowLog for VPC
       const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId });
 
       // Creating TGW for Shared-Network Account

@@ -13,7 +13,7 @@ export class FlowLogs extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: FlowLogsProps) {
     super(scope, id);
 
-    //TODO Get the S3 bucket ARN
+    // TODO Get the S3 bucket ARN
     const s3Bucket = Bucket.fromBucketAttributes(this, 'TestBucket', {
       bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
     });
@@ -36,7 +36,7 @@ export class FlowLogs extends cdk.Construct {
       resourceId: props.vpcId!!,
       resourceType: 'VPC',
       trafficType: 'ALL',
-      logDestination: 'arn:aws:s3:::vpcflowlog-bucket', //TODO Get the S3 bucket ARN
+      logDestination: 'arn:aws:s3:::vpcflowlog-bucket', // TODO Get the S3 bucket ARN
       logDestinationType: 's3',
     });
   }
