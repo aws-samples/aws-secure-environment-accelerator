@@ -1,6 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc } from '../common/vpc';
 import { S3 } from '../common/s3';
+import { FlowLogs } from '../common/flow-logs';
+
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -22,6 +24,9 @@ export namespace SharedNetwork {
 
       // s3 bucket to collect vpc-flow-logs
       const s3 = new S3(this, 's3', { bucketName: 'pbmm-test-bucket' });
+      
+      //Creating FlowLog for VPC
+      const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId });
 
       // Creating TGW for Shared-Network Account
       const deployments = accountProps.deployments;
