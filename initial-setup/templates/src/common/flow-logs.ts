@@ -5,40 +5,39 @@ import * as iam from '@aws-cdk/aws-iam';
 // import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Bucket } from '@aws-cdk/aws-s3';
 
-// interface S3StackProps extends cdk.StackProps {
-//     vpc: Vpc;
-// }
+export interface FlowLogsProps extends cdk.StackProps {
+  vpcId: string;
+}
 
-// export class FlowLogs extends cdk.Construct {
-export class FlowLogsStack extends cdk.Stack {
-    constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
-        super(scope, id);
+export class FlowLogs extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props: FlowLogsProps) {
+    super(scope, id);
 
-        //TODO need to dynamically get the bucket
-        const s3Bucket = Bucket.fromBucketAttributes(this, 'TestBucket', {
-            bucketArn: 'arn:aws:s3:::vpcflowlog-bucket'
-        });
+    //TODO need to dynamically get the bucket ARN
+    const s3Bucket = Bucket.fromBucketAttributes(this, 'TestBucket', {
+      bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
+    });
 
-        // const flowLogRole = new iam.Role(this, 'RoleFlowLogs', {
-        //     roleName: 'AcceleratorVPCFlowLogsRole',
-        //     assumedBy: new iam.ServicePrincipal("vpc-flow-logs.amazonaws.com"),
-        // });
+    const flowLogRole = new iam.Role(this, 'RoleFlowLogs', {
+      roleName: 'AcceleratorVPCFlowLogsRole',
+      assumedBy: new iam.ServicePrincipal('vpc-flow-logs.amazonaws.com'),
+    });
 
-        // flowLogRole.addToPolicy(
-        //     new iam.PolicyStatement({
-        //         effect: iam.Effect.ALLOW,
-        //         actions: ["*"],
-        //         resources: [s3Bucket.bucketArn],
-        //     }),
-        // );
+    flowLogRole.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['logs:CreateLogDelivery', 'logs:DeleteLogDelivery'],
+        resources: ['*'],
+      }),
+    );
 
-        new ec2.CfnFlowLog(this, "VPCFlowLog", {
-            // deliverLogsPermissionArn: flowLogRole.roleArn,
-            resourceId: "vpc-02b9b07d988189f34",
-            resourceType: "VPC",
-            trafficType: "ALL",
-            logDestination: "arn:aws:s3:::vpcflowlog-bucket",
-            logDestinationType: "s3"
-        });
-    }
+    new ec2.CfnFlowLog(this, 'VPCFlowLog', {
+      deliverLogsPermissionArn: flowLogRole.roleArn,
+      resourceId: props.vpcId!!,
+      resourceType: 'VPC',
+      trafficType: 'ALL',
+      logDestination: 'arn:aws:s3:::vpcflowlog-bucket',
+      logDestinationType: 's3',
+    });
+  }
 }
