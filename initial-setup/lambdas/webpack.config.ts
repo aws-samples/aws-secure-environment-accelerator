@@ -8,6 +8,7 @@ const config: webpack.Configuration = {
   target: 'node',
   externals: ['aws-sdk', 'aws-lambda'],
   entry: {
+    'add-role-to-scp': './src/add-role-to-scp-step.ts',
     'load-accounts': './src/load-accounts-step.ts',
     'load-configuration': './src/load-configuration-step.ts',
     'start-codebuild': './src/start-codebuild-step.ts',

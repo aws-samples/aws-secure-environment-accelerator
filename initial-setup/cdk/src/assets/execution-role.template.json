@@ -4,7 +4,7 @@
       "Type": "String"
     },
     "AssumedByRoleArn": {
-      "Type": "String"
+      "Type": "CommaDelimitedList"
     }
   },
   "Resources": {

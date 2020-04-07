@@ -93,9 +93,16 @@ export namespace InitialSetup {
     constructor(scope: cdk.Construct, id: string, props: InitialSetup.PipelineProps) {
       super(scope, id);
 
+      const stack = cdk.Stack.of(this);
+
       const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
+
+      // TODO Copy the configSecretInProgress to configSecretLive when deployment is complete.
+      //  const configSecretLive = new secrets.Secret(this, 'ConfigSecretLive', {
+      //    description: 'This is the config that was used to deploy the current accelerator.',
+      //  });
 
       // TODO This should be the repo containing our code in the future
       // Upload the templates ZIP as an asset to S3
@@ -128,11 +135,6 @@ export namespace InitialSetup {
 
       solutionZip.grantRead(buildRole);
 
-      // TODO Copy the configSecretInProgress to configSecretLive when deployment is complete.
-      //  const configSecretLive = new secrets.Secret(this, 'ConfigSecretLive', {
-      //    description: 'This is the config that was used to deploy the current accelerator.',
-      //  });
-
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'CdkDeploy', {
         role: buildRole,
@@ -158,6 +160,7 @@ export namespace InitialSetup {
               commands: [
                 'cd initial-setup/templates',
                 'pnpm install',
+                'pnpx cdk bootstrap --require-approval=never --profile=subaccount',
                 'pnpx cdk deploy $STACK_NAME --require-approval=never --profile=subaccount',
               ],
             },
@@ -261,16 +264,28 @@ export namespace InitialSetup {
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
               RoleName: props.executionRoleName,
-              AssumedByRoleArn: pipelineRole.roleArn,
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`, // TODO Only add root for dev environments
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
               s3ObjectKey: installRoleTemplate.s3ObjectKey,
             },
             'instanceAccounts.$': '$.accounts[?(@.master != true)].id', // Initialize the role in non-master accounts
-            instanceRegions: [cdk.Stack.of(this).region],
+            instanceRegions: [stack.region],
           },
         }),
+        resultPath: 'DISCARD',
+      });
+
+      const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('add-role-to-scp'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          roleName: props.executionRoleName,
+          policyName: 'aws-landing-zone-core-mandatory-preventive-guardrails',
+        },
         resultPath: 'DISCARD',
       });
 
@@ -302,6 +317,7 @@ export namespace InitialSetup {
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
+          .next(addRoleToScpTask)
           .next(startCodeBuildTasks),
       });
     }
