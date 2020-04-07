@@ -10,6 +10,7 @@ const portfolioName = 'AWS Landing Zone - Baseline';
 export interface Response {
   status: string;
   statusReason: string;
+  provisionedAccountName: string;
   provisionedProductStatus: string;
   provisionToken: string;
 }
@@ -40,6 +41,7 @@ export class AccountVendingMachine {
     const response: Response = {
       status: '',
       statusReason: '',
+      provisionedAccountName: '',
       provisionedProductStatus: '',
       provisionToken: '',
     };
@@ -159,9 +161,10 @@ export class AccountVendingMachine {
       console.log('Expected Exception Message: ' + expectedExceptionMessage);
       if (exceptionMessage === expectedExceptionMessage) {
         response.status = 'SUCCESS';
+        response.statusReason = accountName + ' account already exists!';
+        response.provisionedAccountName = configAccountName;
         response.provisionedProductStatus = 'ALREADY_EXISTS';
         response.provisionToken = '';
-        response.statusReason = accountName + ' account already exists!';
         return response;
       } else {
         console.log('Unexpected Exception: ');
@@ -181,16 +184,18 @@ export class AccountVendingMachine {
       provisionedProductStatus !== 'CREATED'
     ) {
       response.status = 'FAILURE';
+      response.statusReason = 'Unable to create ' + accountName + ' account using Account Vending Machine!';
+      response.provisionedAccountName = configAccountName;
       response.provisionedProductStatus = provisionedProductStatus == null ? '' : provisionedProductStatus;
       response.provisionToken = provisionToken == null ? '' : provisionToken;
-      response.statusReason = 'Unable to create ' + accountName + ' account using Account Vending Machine!';
       console.log(response);
       return response;
     } else if (provisionedProductStatus === 'CREATED') {
       response.status = 'SUCCESS';
+      response.statusReason = accountName + ' account created successfully using Account Vending Machine!';
+      response.provisionedAccountName = configAccountName;
       response.provisionedProductStatus = provisionedProductStatus == null ? '' : provisionedProductStatus;
       response.provisionToken = provisionToken == null ? '' : provisionToken;
-      response.statusReason = accountName + ' account created successfully using Account Vending Machine!';
       console.log(response);
       return response;
     }
@@ -212,6 +217,7 @@ export class AccountVendingMachine {
     const response: Response = {
       status: '',
       statusReason: '',
+      provisionedAccountName: '',
       provisionedProductStatus: '',
       provisionToken: '',
     };
