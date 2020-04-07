@@ -38,15 +38,15 @@ export class ServiceCatalog {
   /**
    * Associate Role with service catalog Portfolio
    * @param portfolioId
-   * @param prinicipalArn
+   * @param principalArn
    */
   async associateRoleWithPortfolio(
     portfolioId: string,
-    prinicipalArn: string,
+    principalArn: string,
   ): Promise<AssociatePrincipalWithPortfolioOutput> {
     const associatePrincipalWithPortfolioInput: AssociatePrincipalWithPortfolioInput = {
       PortfolioId: portfolioId,
-      PrincipalARN: prinicipalArn,
+      PrincipalARN: principalArn,
       PrincipalType: 'IAM',
     };
 
