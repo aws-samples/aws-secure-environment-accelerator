@@ -79,7 +79,7 @@ export class AccountVendingMachine {
     }
     console.log('productId: ' + productId);
 
-    if (productId == null || typeof productId === 'undefined') {
+    if (!productId) {
       response.status = 'FAILURE';
       response.statusReason = 'Unable to find service catalog product with name ' + avmName + '.';
       console.log(response);
@@ -95,7 +95,7 @@ export class AccountVendingMachine {
       console.log('provisioningArtifactId: ' + provisioningArtifactId);
     }
 
-    if (provisioningArtifactId == null || typeof provisioningArtifactId === 'undefined') {
+    if (!provisioningArtifactId) {
       response.status = 'FAILURE';
       response.statusReason =
         'Unable to find service catalog product provisioning artifact id for product id' + avmName + '.';
@@ -153,14 +153,18 @@ export class AccountVendingMachine {
         productAVMParam,
       );
     } catch (e) {
-      console.log('Exception Message: ' + e.message);
-      if (e.message === 'A stack named ' + accountName + ' already exists.') {
+      const exceptionMessage: string = e.message;
+      console.log('Exception Message: ' + exceptionMessage);
+      const expectedExceptionMessage: string = 'A stack named ' + configAccountName + ' already exists.';
+      console.log('Expected Exception Message: ' + expectedExceptionMessage);
+      if (exceptionMessage === expectedExceptionMessage) {
         response.status = 'SUCCESS';
         response.provisionedProductStatus = 'ALREADY_EXISTS';
         response.provisionToken = '';
         response.statusReason = accountName + ' account already exists!';
         return response;
       } else {
+        console.log('Unexpected Exception: ');
         throw e;
       }
     }
