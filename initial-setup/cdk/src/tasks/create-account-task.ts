@@ -5,22 +5,10 @@ import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 
 export namespace CreateAccountTask {
-  export interface TaskProps {
+  export interface Props {
     role: iam.IRole;
     lambdas: WebpackBuild;
     waitSeconds?: number;
-  }
-
-  export interface Props extends Omit<sfn.StateMachineProps, 'definition'> {
-    taskProps: TaskProps;
-  }
-}
-
-export class CreateAccountStateMachine extends sfn.StateMachine {
-  constructor(scope: cdk.Construct, id: string, props: CreateAccountTask.Props) {
-    super(scope, id, {
-      definition: new CreateAccountTask(scope, 'CreateAccountTask', props.taskProps),
-    });
   }
 }
 
@@ -28,7 +16,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
   readonly startState: sfn.State;
   readonly endStates: sfn.INextable[];
 
-  constructor(scope: cdk.Construct, id: string, props: CreateAccountTask.TaskProps) {
+  constructor(scope: cdk.Construct, id: string, props: CreateAccountTask.Props) {
     super(scope, id);
 
     const { role, lambdas, waitSeconds = 60 } = props;
@@ -62,16 +50,20 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
       }),
     );
 
+    const createTaskResultPath = '$.createOutput';
+    const createTaskStatusPath = `${createTaskResultPath}.status`;
     const createTask = new CodeTask(scope, `Start Account Creation`, {
-      resultPath: '$.createOutput',
+      resultPath: createTaskResultPath,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-account/create'),
       },
     });
 
+    const verifyTaskResultPath = '$.verifyOutput';
+    const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
     const verifyTask = new CodeTask(scope, 'Verify Account Creation', {
-      resultPath: '$.verifyOutput',
+      resultPath: verifyTaskResultPath,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-account/verify'),
@@ -86,20 +78,23 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'Account Creation Failed');
 
-    waitTask.next(verifyTask).next(
-      new sfn.Choice(scope, 'Account Creation Done?')
-        .when(sfn.Condition.stringEquals('$.verifyOutput.status', 'SUCCESS'), pass)
-        .when(sfn.Condition.stringEquals('$.verifyOutput.status', 'FAILURE'), fail)
-        .otherwise(waitTask)
-        .afterwards(),
-    );
+    waitTask
+      .next(verifyTask)
+      .next(
+        new sfn.Choice(scope, 'Account Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
     createTask.next(
       new sfn.Choice(scope, 'Account Creation Started?')
-        .when(sfn.Condition.stringEquals('$.createOutput.status', 'ALREADY_EXISTS'), pass)
-        .when(sfn.Condition.stringEquals('$.createOutput.status', 'NOT_RELEVANT'), pass)
-        .when(sfn.Condition.not(sfn.Condition.stringEquals('$.createOutput.status', 'SUCCESS')), fail)
-        .otherwise(waitTask)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), pass)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), pass)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NOT_RELEVANT'), pass)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'IN_PROGRESS'), waitTask)
+        .otherwise(fail)
         .afterwards(),
     );
 

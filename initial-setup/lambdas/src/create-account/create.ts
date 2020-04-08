@@ -20,7 +20,7 @@ export const handler = async (input: CreateMasterExecutionRoleInput): Promise<Cr
       statusReason: 'Skipping creation of master account',
     };
   }
-  
+
   const avm = new AccountVendingMachine();
 
   // create account using account-vending-machine

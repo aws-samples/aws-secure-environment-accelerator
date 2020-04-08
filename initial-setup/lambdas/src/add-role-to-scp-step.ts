@@ -46,8 +46,8 @@ export const handler = async (input: AddRoleToScpInput) => {
   if (!hasChanged) {
     return {
       status: 'SUCCESS',
-      statusReason: `No changes had to be made to the secure control policy with name ${policyName}`
-    }
+      statusReason: `No changes had to be made to the secure control policy with name ${policyName}`,
+    };
   }
 
   await organizations.updatePolicy({
@@ -57,8 +57,8 @@ export const handler = async (input: AddRoleToScpInput) => {
 
   return {
     status: 'SUCCESS',
-    statusReason: `Updating the secure control policy with name ${policyName}`
-  }
+    statusReason: `Updating the secure control policy with name ${policyName}`,
+  };
 };
 
 /**

@@ -18,7 +18,7 @@ export declare namespace WebpackBuild {
 
 export class WebpackBuild {
   private static tempDirectoryCache = new TempDirectoryCache(path.join(__dirname, 'webpack-build-cache.json'));
-  
+
   private readonly outputPath: string;
 
   constructor(outputPath: string) {

@@ -6,12 +6,13 @@ interface CheckStepInput {
 }
 
 export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAvailableOutput> => {
-  console.log(`Verifying status of provisioned account with parameters ${JSON.stringify(input, null, 2)}`);
+  console.log(`Verifying status of provisioned account`);
+  console.log(JSON.stringify(input, null, 2));
 
   const { accountName, provisionToken } = input;
 
   const avm = new AccountVendingMachine();
-  
+
   // Check the status of the provisioned account.
   return avm.isAccountAvailable(accountName!, provisionToken!);
 };

@@ -13,6 +13,7 @@ import * as path from 'path';
 import * as tempy from 'tempy';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
+import { BuildTask } from './tasks/build-task';
 
 interface BuildProps {
   lambdas: WebpackBuild;
@@ -92,11 +93,9 @@ export namespace InitialSetup {
     lambdas: WebpackBuild;
     solutionZipPath: string;
   }
-}
 
-export namespace InitialSetup {
   export class Pipeline extends cdk.Construct {
-    constructor(scope: cdk.Construct, id: string, props: InitialSetup.PipelineProps) {
+    constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
       super(scope, id);
 
       const stack = cdk.Stack.of(this);
@@ -133,7 +132,6 @@ export namespace InitialSetup {
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'CdkDeploy', {
         role: pipelineRole,
-        cache: codebuild.Cache.local(codebuild.LocalCacheMode.CUSTOM),
         buildSpec: codebuild.BuildSpec.fromObject({
           version: '0.2',
           phases: {
@@ -151,9 +149,6 @@ export namespace InitialSetup {
                 'pnpx cdk deploy "*" --require-approval never --plugin "$(pwd)/../../plugins/assume-role" --app "pnpx ts-node src/index.ts"',
               ],
             },
-          },
-          cache: {
-            paths: ['/root/.pnpm-store/**/*', '.pnpm-store/**/*'],
           },
         }),
         environment: {
@@ -301,16 +296,28 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const startCodeBuildTask = new CodeTask(this, 'Start CodeBuild Deploy', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('start-codebuild'),
+      const deployStateMachine = new sfn.StateMachine(this, 'DeplyStateMachine', {
+        definition: new BuildTask(this, 'Build', {
+          lambdas: props.lambdas,
           role: pipelineRole,
-        },
-        functionPayload: {
-          codeBuildProjectName: project.projectName,
-          sourceBucketName: solutionZip.s3BucketName,
-          sourceBucketKey: solutionZip.s3ObjectKey,
-        },
+          functionPayload: {
+            codeBuildProjectName: project.projectName,
+            sourceBucketName: solutionZip.s3BucketName,
+            sourceBucketKey: solutionZip.s3ObjectKey,
+          },
+        }),
+      });
+
+      const deployTask = new sfn.Task(this, 'Deploy Initial Setup', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            codeBuildProjectName: project.projectName,
+            sourceBucketName: solutionZip.s3BucketName,
+            sourceBucketKey: solutionZip.s3ObjectKey,
+          },
+        }),
+        resultPath: 'DISCARD',
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
@@ -320,7 +327,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(startCodeBuildTask),
+          .next(deployTask),
       });
     }
   }

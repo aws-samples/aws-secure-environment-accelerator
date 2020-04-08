@@ -25,18 +25,18 @@ export const handler = async (input: AddRoleToServiceCatalog) => {
   const listPrincipalsForPortfolio = await catalog.listPrincipalsForPortfolio(portfolioId);
 
   // Check if the role is already there, otherwise we associate it to the portfolio
-  const principal = listPrincipalsForPortfolio.Principals?.find(p => p.PrincipalARN === roleArn);
+  const principal = listPrincipalsForPortfolio.Principals?.find((p) => p.PrincipalARN === roleArn);
   if (principal) {
     return {
       status: 'SUCCESS',
-      statusReason: `Not associating role ${roleArn} as it is already associated to portfolio "${portfolioName}"`
-    }
+      statusReason: `Not associating role ${roleArn} as it is already associated to portfolio "${portfolioName}"`,
+    };
   }
 
   await catalog.associateRoleWithPortfolio(portfolioId, roleArn);
 
   return {
     status: 'SUCCESS',
-    statusReason: `Associated role ${roleArn} with portfolio "${portfolioName}"`
-  }
+    statusReason: `Associated role ${roleArn} with portfolio "${portfolioName}"`,
+  };
 };
