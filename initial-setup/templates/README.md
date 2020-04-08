@@ -2,25 +2,46 @@
 
 ## Description
 
-This directory contains CDK code to generate CloudFormation templates that will later be used to create stacks in the
-master or subaccounts.
+This directory contains CDK code that is used to deploy stacks in the subaccounts.
 
-## Testing
+## Local Development
 
-Configure the AWS CLI so that CDK can deploy in the AWS account.
+Create a `config.json` file that is based on the `config.example.json` file in the root of the project. Make sure to
+adjust the `config.json` file so that the email address and names of the accounts are valid.
 
-    export AWS_PROFILE=aws-account-profile
-    export AWS_REGION=ca-central-1
+Create an `accounts.json` file that contains the accounts and their IDs. It should look something like the following.
 
-Store the configuration file as a secret in secrets manager under name `accelerator/config`. Make sure the AWS profile
-you configured above has access to the secret.
+    [
+        {
+            "key": "master",
+            "id": "687384172140"
+        },
+        {
+            "key": "perimeter",
+            "id": "258931004286"
+        },
+        {
+            "key": "shared-network",
+            "id": "007307298200"
+        },
+        {
+            "key": "operations",
+            "id": "278816265654"
+        }
+    ]
 
-Run the following command to synthesize CloudFormation files.
+The `key` should be the same as the key of the `mandatory-account-configs` accounts.
 
-    export ACCELERATOR_NAME="Accelerator"
-    export ACCELERATOR_PREFIX="PBMMAccel-"
-    export ACCELERATOR_SECRET_NAME="accelerator/config"
-    pnpm run synth
+Now that we have created both `config.json` and `accounts.json` we can start testing the deployment.
 
-If everything goes well, the folder `cdk.out` should contain `*.template.json` files that contain the CloudFormation
-output from the stacks you defined in CDK.
+Run the following command to synthesize the CloudFormation template from CDK.
+
+    ./cdk-synth.sh <your-aws-profile>
+
+Run the following command to bootstrap the CDK in all the subaccounts.
+
+    ./cdk-bootstrap.sh <your-aws-profile>
+
+Run the following command to deploy the CDK in all the subaccounts.
+
+    ./cdk-deploy.sh <your-aws-profile>

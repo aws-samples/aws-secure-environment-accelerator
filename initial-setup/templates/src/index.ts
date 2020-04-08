@@ -1,39 +1,31 @@
-import * as cdk from '@aws-cdk/core';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
-import { CommonTemplates } from './common/stack';
-import { MasterTemplates } from './master/stack';
-import { SharedNetwork } from './shared-network/stack';
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { App } from './app';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
 
-const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
-const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
+const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!;
+const CONFIG_SECRET_ID = process.env.CONFIG_SECRET_ID!;
+const ACCOUNTS_SECRET_ID = process.env.ACCOUNTS_SECRET_ID!;
 
-(async () => {
+async function main() {
   const secrets = new SecretsManager();
-  const configSecret = await secrets.getSecret(ACCELERATOR_SECRET_NAME);
-  const config = AcceleratorConfig.fromString(configSecret.SecretString!!);
 
-  const app = new cdk.App();
+  const acceleratorConfigSecret = await secrets.getSecret(CONFIG_SECRET_ID);
+  const acceleratorConfig = AcceleratorConfig.fromString(acceleratorConfigSecret.SecretString!);
 
-  new CommonTemplates.AssumeRoleStack(app, 'AssumeRole');
+  const accountsSecret = await secrets.getSecret(ACCOUNTS_SECRET_ID);
+  const accounts = JSON.parse(accountsSecret.SecretString!);
 
-  new MasterTemplates.Stack(app, 'Master');
-
-  const mandatoryAccountConfig = config['mandatory-account-configs'];
-
-  const sharedNetworkConfig = mandatoryAccountConfig['shared-network'];
-  new SharedNetwork.Stack(app, 'SharedNetwork', {
-    accountConfig: sharedNetworkConfig,
+  new App({
+    acceleratorName: ACCELERATOR_NAME,
+    acceleratorConfig,
+    accounts,
   });
+}
 
-  // Add accelerator tag to all resources
-  cdk.Tag.add(app, 'Accelerator', ACCELERATOR_NAME);
-  // Add name tag to all resources
-  app.node.applyAspect(new AcceleratorNameTagger());
-})();
+// tslint:disable-next-line: no-floating-promises
+main();

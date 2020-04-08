@@ -40,8 +40,8 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
         effect: iam.Effect.ALLOW,
         resources: ['*'],
         actions: [
-          'servicecatalog:listPortfolios',
-          'servicecatalog:associatePrincipalWithPortfolio',
+          'servicecatalog:ListPortfolios',
+          'servicecatalog:AssociatePrincipalWithPortfolio',
           'servicecatalog:SearchProducts',
           'servicecatalog:ListProvisioningArtifacts',
           'servicecatalog:ProvisionProduct',
@@ -49,48 +49,56 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
         ],
       }),
     );
-    const finalizeTask = new CodeTask(scope, 'FinalizeTask', {
-      functionProps: {
-        role,
-        code: lambdas.codeForEntry('create-account/finalize'),
-      },
-    });
 
-    const deployTask = new CodeTask(scope, `Create`, {
-      resultPath: '$.create',
+    const createTaskResultPath = '$.createOutput';
+    const createTaskStatusPath = `${createTaskResultPath}.status`;
+    const createTask = new CodeTask(scope, `Start Account Creation`, {
+      resultPath: createTaskResultPath,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-account/create'),
       },
     });
-    deployTask.addCatch(finalizeTask, {
-      resultPath: '$.exception',
-    });
 
-    const verifyTask = new CodeTask(scope, 'Verify', {
-      resultPath: '$.verify',
+    const verifyTaskResultPath = '$.verifyOutput';
+    const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
+    const verifyTask = new CodeTask(scope, 'Verify Account Creation', {
+      resultPath: verifyTaskResultPath,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-account/verify'),
       },
     });
 
-    const waitTask = new sfn.Wait(scope, 'Wait', {
+    const waitTask = new sfn.Wait(scope, 'Wait for Account Creation', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const chain = sfn.Chain.start(deployTask)
-      .next(waitTask)
+    const pass = new sfn.Pass(this, 'Account Creation Succeeded');
+
+    const fail = new sfn.Fail(this, 'Account Creation Failed');
+
+    waitTask
       .next(verifyTask)
       .next(
-        new sfn.Choice(scope, 'Choice')
-          .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), finalizeTask)
-          .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
-          .otherwise(waitTask)
+        new sfn.Choice(scope, 'Account Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+          .otherwise(fail)
           .afterwards(),
       );
 
-    this.startState = chain.startState;
-    this.endStates = chain.endStates;
+    createTask.next(
+      new sfn.Choice(scope, 'Account Creation Started?')
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), pass)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), pass)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NOT_RELEVANT'), pass)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'IN_PROGRESS'), waitTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
+
+    this.startState = createTask.startState;
+    this.endStates = fail.endStates;
   }
 }

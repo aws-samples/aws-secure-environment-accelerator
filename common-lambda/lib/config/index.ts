@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { availabilityZone, cidr, optional, region } from './types';
+import { availabilityZone, cidr, optional, region, enumType } from './types';
 import { PathReporter } from './reporter';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
@@ -32,7 +32,9 @@ export const SubnetConfig = t.interface({
   definitions: t.array(SubnetDefinitionConfig),
 });
 
-export const GatewayEndpointType = NonEmptyString; // TODO Define all endpoints here
+export const gatewayEndpointTypes = ['s3', 'dynamodb'];
+
+export const GatewayEndpointType = enumType<typeof gatewayEndpointTypes[number]>(gatewayEndpointTypes);
 
 export const RouteConfig = t.interface({
   destination: t.unknown, // TODO Can be string or destination in another account
@@ -116,7 +118,17 @@ export const MandatoryAccountConfigType = t.interface({
   perimeter: AccountConfigType,
 });
 
+export const GlobalOptionsAccountsConfigType = t.interface({
+  'master-account-name': NonEmptyString,
+  mandatory: t.array(t.string),
+});
+
+export const GlobalOptionsConfigType = t.interface({
+  accounts: GlobalOptionsAccountsConfigType,
+});
+
 export const AcceleratorConfigType = t.interface({
+  'global-options': GlobalOptionsConfigType,
   'mandatory-account-configs': MandatoryAccountConfigType,
 });
 
@@ -125,6 +137,10 @@ export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 
 export namespace AcceleratorConfig {
+  export function fromBuffer(content: Buffer): AcceleratorConfig {
+    return fromString(content.toString());
+  }
+
   export function fromString(content: string): AcceleratorConfig {
     return fromObject(JSON.parse(content));
   }

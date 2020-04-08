@@ -2,21 +2,25 @@ import { CloudFormation } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
 
 const cfn = new CloudFormation();
 
-interface CreateMasterExecutionRoleInput {
+interface CreateStackSetInstancesInput {
   stackName: string;
-  accounts: string[];
-  regions: string[];
+  instanceAccounts: string[];
+  instanceRegions: string[];
 }
 
-export const handler = async (input: CreateMasterExecutionRoleInput) => {
+export const handler = async (input: CreateStackSetInstancesInput) => {
   console.log(`Creating stack set instances...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { stackName, accounts, regions } = input;
+  const { stackName, instanceAccounts, instanceRegions } = input;
 
   await cfn.createOrUpdateStackSetInstances({
     StackSetName: stackName,
-    Regions: regions,
-    Accounts: accounts,
+    Accounts: instanceAccounts,
+    Regions: instanceRegions,
   });
+
+  return {
+    status: 'SUCCESS',
+  };
 };
