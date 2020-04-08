@@ -12,8 +12,8 @@ process.on('unhandledRejection', (reason, _) => {
   process.exit(1);
 });
 
-const ACCELERATOR_NAME = 'PBMM'; //process.env.ACCELERATOR_NAME!!;
-const ACCELERATOR_SECRET_NAME = 'accelerator/config'; //process.env.ACCELERATOR_SECRET_NAME!!;
+const ACCELERATOR_NAME = process.env.ACCELERATOR_NAME!!;
+const ACCELERATOR_SECRET_NAME = process.env.ACCELERATOR_SECRET_NAME!!;
 
 (async () => {
   const secrets = new SecretsManager();

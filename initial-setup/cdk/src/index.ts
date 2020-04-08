@@ -250,7 +250,7 @@ export namespace InitialSetup {
               }),
             ],
           },
-          /*{
+          {
             stageName: 'CreateSharedNetworkAccount',
             actions: [
               new CreateAccountAction({
@@ -276,7 +276,7 @@ export namespace InitialSetup {
                 waitSeconds: 10,
               }),
             ],
-          },*/
+          },
           {
             stageName: 'ConfigureOrganizationalUnits',
             actions: [
