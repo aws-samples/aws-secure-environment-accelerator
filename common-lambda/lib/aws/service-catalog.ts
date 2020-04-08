@@ -92,8 +92,24 @@ export class ServiceCatalog {
     provisioningArtifactId: string,
     productAVMParam: ProductAVMParam,
   ): Promise<ProvisionProductOutput> {
+    // Find launch paths
+    const listLaunchPaths = await this.client.listLaunchPaths({
+      ProductId: productId,
+    }).promise();
+
+    // Use the path if there is one
+    let pathId;
+    const paths = listLaunchPaths.LaunchPathSummaries;
+    const pathsCount = paths?.length ?? 0;
+    if (pathsCount === 1) {
+      pathId = paths?.[0]?.Id;
+    } else if (pathsCount > 1) {
+      throw new Error(`There are multiple launch paths for product with ID ${productId}`);
+    }
+
     const provisionProductInput: ProvisionProductInput = {
       ProductId: productId /* required */,
+      PathId: pathId,
       ProvisionToken: provisionToken /* required */,
       ProvisionedProductName: productAVMParam.accountName /* required */,
       ProvisioningArtifactId: provisioningArtifactId /* required */,
