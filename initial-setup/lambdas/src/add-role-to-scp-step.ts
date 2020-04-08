@@ -37,7 +37,7 @@ export const handler = async (input: ModifyCoreScpInput) => {
   if (Array.isArray(statement)) {
     // tslint:disable-next-line: no-any
     const hasChangedList = statement.map((element: any) => addRoleToStatement(role, element));
-    hasChanged = hasChangedList.some(v => v === true);
+    hasChanged = hasChangedList.some((v) => v === true);
   } else {
     hasChanged = addRoleToStatement(role, statement);
   }

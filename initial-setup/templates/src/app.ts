@@ -19,7 +19,7 @@ export class App extends cdk.App {
     const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
 
     // TODO Get these values dynamically
-    const sharedNetworkAccountId = accounts.find(a => a.key === 'shared-network')?.id;
+    const sharedNetworkAccountId = accounts.find((a) => a.key === 'shared-network')?.id;
     const sharedNetworkConfig = mandatoryAccountConfig['shared-network'];
 
     new SharedNetwork.Stack(this, 'SharedNetwork', {

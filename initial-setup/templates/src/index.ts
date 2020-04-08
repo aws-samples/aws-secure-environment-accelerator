@@ -16,7 +16,7 @@ async function main() {
 
   const acceleratorConfigSecret = await secrets.getSecret(CONFIG_SECRET_ID);
   const acceleratorConfig = AcceleratorConfig.fromString(acceleratorConfigSecret.SecretString!);
-  
+
   const accountsSecret = await secrets.getSecret(ACCOUNTS_SECRET_ID);
   const accounts = JSON.parse(accountsSecret.SecretString!);
 

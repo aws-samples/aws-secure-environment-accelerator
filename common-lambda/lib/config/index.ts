@@ -34,7 +34,7 @@ export const SubnetConfig = t.interface({
 
 export const gatewayEndpointTypes = ['s3', 'dynamodb'];
 
-export const GatewayEndpointType = enumType<typeof gatewayEndpointTypes[number]>(gatewayEndpointTypes); 
+export const GatewayEndpointType = enumType<typeof gatewayEndpointTypes[number]>(gatewayEndpointTypes);
 
 export const RouteConfig = t.interface({
   destination: t.unknown, // TODO Can be string or destination in another account
@@ -120,11 +120,11 @@ export const MandatoryAccountConfigType = t.interface({
 
 export const GlobalOptionsAccountsConfigType = t.interface({
   'master-account-name': NonEmptyString,
-  'mandatory': t.array(t.string),
+  mandatory: t.array(t.string),
 });
 
 export const GlobalOptionsConfigType = t.interface({
-  'accounts': GlobalOptionsAccountsConfigType,
+  accounts: GlobalOptionsAccountsConfigType,
 });
 
 export const AcceleratorConfigType = t.interface({

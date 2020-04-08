@@ -220,7 +220,7 @@ export namespace InitialSetup {
       const createAccountsTask = new sfn.Map(this, 'Create Accounts', {
         itemsPath: '$.configuration.accounts',
         resultPath: 'DISCARD',
-        maxConcurrency: 1
+        maxConcurrency: 1,
       });
 
       createAccountsTask.iterator(createAccountTask);

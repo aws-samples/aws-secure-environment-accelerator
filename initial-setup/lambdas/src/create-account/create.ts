@@ -18,8 +18,8 @@ export const handler = async (input: CreateMasterExecutionRoleInput): Promise<Cr
   if (isMasterAccount) {
     return {
       status: 'NOT_RELEVANT',
-      statusReason: 'Skipping creation of master account'
-    }
+      statusReason: 'Skipping creation of master account',
+    };
   }
 
   // create account using account-vending-machine

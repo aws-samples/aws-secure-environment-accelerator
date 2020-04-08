@@ -12,19 +12,21 @@ export class Organizations {
     });
   }
 
-  async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.DescribePolicyResponse | undefined> {
+  async getPolicyByName(
+    input: org.ListPoliciesRequest & { Name: string },
+  ): Promise<org.DescribePolicyResponse | undefined> {
     const name = input.Name;
     delete input.Name;
 
-    const summaries = listWithNextTokenGenerator<
-      org.ListPoliciesRequest,
-      org.ListPoliciesResponse,
-      org.PolicySummary
-    >(this.client.listPolicies.bind(this.client), (r) => r.Policies!, input);
+    const summaries = listWithNextTokenGenerator<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
+      this.client.listPolicies.bind(this.client),
+      (r) => r.Policies!,
+      input,
+    );
     for await (const summary of summaries) {
       if (summary.Name === name) {
         return this.describePolicy({
-          PolicyId: summary.Id!
+          PolicyId: summary.Id!,
         });
       }
     }

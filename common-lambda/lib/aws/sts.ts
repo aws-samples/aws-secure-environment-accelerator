@@ -31,7 +31,11 @@ export class STS {
     });
   }
 
-  async getCredentialsForAccountAndRole(accountId: string, assumeRole: string, durationSeconds?: number): Promise<aws.Credentials> {
+  async getCredentialsForAccountAndRole(
+    accountId: string,
+    assumeRole: string,
+    durationSeconds?: number,
+  ): Promise<aws.Credentials> {
     return this.getCredentialsForRoleArn(`arn:aws:iam::${accountId}:role/${assumeRole}`, durationSeconds);
   }
 }

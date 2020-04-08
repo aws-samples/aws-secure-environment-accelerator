@@ -34,11 +34,11 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     let organizationAccount;
     if (accountConfig.isMasterAccount) {
       // Only filter on the email address if we are dealing with the master account
-      organizationAccount = organizationAccounts.find(a => {
+      organizationAccount = organizationAccounts.find((a) => {
         return a.Email === accountConfig.emailAddress;
       });
     } else {
-      organizationAccount = organizationAccounts.find(a => {
+      organizationAccount = organizationAccounts.find((a) => {
         return a.Name === accountConfig.accountName && a.Email === accountConfig.emailAddress;
       });
     }
