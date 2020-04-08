@@ -37,6 +37,8 @@ const config: webpack.Configuration = {
         use: {
           loader: 'babel-loader',
           options: {
+            cacheDirectory: true,
+            cacheCompression: false,
             presets: [
               [
                 '@babel/env',
@@ -54,6 +56,7 @@ const config: webpack.Configuration = {
                 '@babel/plugin-transform-typescript',
                 {
                   allowNamespaces: 'true',
+                  onlyRemoveTypeImports: 'true',
                 },
               ],
             ],

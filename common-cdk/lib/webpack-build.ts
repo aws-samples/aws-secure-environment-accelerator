@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as tempy from 'tempy';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { PackageManager, packageManagerExecutor } from './package-manager';
 import { run } from './process';
+import { TempDirectoryCache } from './temp-directory-cache';
 
 export declare namespace WebpackBuild {
   export interface Config {
@@ -17,6 +17,8 @@ export declare namespace WebpackBuild {
 }
 
 export class WebpackBuild {
+  private static tempDirectoryCache = new TempDirectoryCache(path.join(__dirname, 'webpack-build-cache.json'));
+  
   private readonly outputPath: string;
 
   constructor(outputPath: string) {
@@ -37,7 +39,7 @@ export class WebpackBuild {
       workingDir,
       webpackConfigFile = 'webpack.config.js',
       webpackConfigPath = `${path.join(workingDir, webpackConfigFile)}`,
-      outputPath = tempy.directory(),
+      outputPath = WebpackBuild.tempDirectoryCache.createTempDirectory(webpackConfigPath),
       mode = 'production',
     } = config;
     console.log(`Building Webpack code in "${workingDir}" to "${outputPath}"`);
