@@ -1,4 +1,12 @@
 import * as aws from 'aws-sdk';
+import {
+  ListPortfoliosOutput,
+  AssociatePrincipalWithPortfolioOutput,
+  SearchProductsOutput,
+  ListProvisioningArtifactsOutput,
+  ProvisionProductOutput,
+  SearchProvisionedProductsOutput,
+} from 'aws-sdk/clients/servicecatalog';
 import { ServiceCatalog, ProductAVMParam } from './service-catalog';
 import { SecretsManager } from './secrets-manager';
 import { AcceleratorConfig } from '../config';
@@ -47,13 +55,13 @@ export class AccountVendingMachine {
     };
 
     // find service catalog portfolioId by name
-    const ListPortfoliosOutput = await this.client.listPortfolios();
+    const listPortfoliosOutput: ListPortfoliosOutput = await this.client.listPortfolios();
 
     let portfolioId = null;
-    if (ListPortfoliosOutput) {
-      for (let index = 0; index < ListPortfoliosOutput!.PortfolioDetails!.length; index++) {
-        if (ListPortfoliosOutput.PortfolioDetails![index].DisplayName === portfolioName) {
-          portfolioId = ListPortfoliosOutput.PortfolioDetails![index].Id;
+    if (listPortfoliosOutput) {
+      for (let index = 0; index < listPortfoliosOutput!.PortfolioDetails!.length; index++) {
+        if (listPortfoliosOutput.PortfolioDetails![index].DisplayName === portfolioName) {
+          portfolioId = listPortfoliosOutput.PortfolioDetails![index].Id;
         }
       }
     }
@@ -66,18 +74,18 @@ export class AccountVendingMachine {
     }
 
     // associate principal with portfolio
-    const AssociatePrincipalWithPortfolioOutput = await this.client.associateRoleWithPortfolio(
+    const associatePrincipalWithPortfolioOutput: AssociatePrincipalWithPortfolioOutput = await this.client.associateRoleWithPortfolio(
       portfolioId == null ? '' : portfolioId,
       lambdaRoleArn,
     );
-    console.log('associate principal with portfolio - response: ', AssociatePrincipalWithPortfolioOutput);
+    console.log('associate principal with portfolio - response: ', associatePrincipalWithPortfolioOutput);
 
     // find service catalog ProductId by name
-    const SearchProductsOutput = await this.client.findProduct(avmName);
+    const searchProductsOutput: SearchProductsOutput = await this.client.findProduct(avmName);
 
     let productId = null;
-    if (SearchProductsOutput) {
-      productId = SearchProductsOutput?.ProductViewSummaries?.[0].ProductId;
+    if (searchProductsOutput) {
+      productId = searchProductsOutput?.ProductViewSummaries?.[0].ProductId;
     }
     console.log('productId: ' + productId);
 
@@ -89,11 +97,13 @@ export class AccountVendingMachine {
     }
 
     // find service catalog Product - ProvisioningArtifactId by ProductId
-    const ListProvisioningArtifactsOutput = await this.client.findProvisioningArtifact(productId);
+    const listProvisioningArtifactsOutput: ListProvisioningArtifactsOutput = await this.client.findProvisioningArtifact(
+      productId,
+    );
 
     let provisioningArtifactId = null;
-    if (ListProvisioningArtifactsOutput) {
-      provisioningArtifactId = ListProvisioningArtifactsOutput!.ProvisioningArtifactDetails![0].Id;
+    if (listProvisioningArtifactsOutput) {
+      provisioningArtifactId = listProvisioningArtifactsOutput!.ProvisioningArtifactDetails![0].Id;
       console.log('provisioningArtifactId: ' + provisioningArtifactId);
     }
 
@@ -146,9 +156,9 @@ export class AccountVendingMachine {
     console.log('provisionToken: ' + provisionToken);
 
     // launch AVM Product
-    let ProvisionProductOutput = null;
+    let provisionProductOutput: ProvisionProductOutput;
     try {
-      ProvisionProductOutput = await this.client.launchProductAVM(
+      provisionProductOutput = await this.client.launchProductAVM(
         productId,
         provisionToken,
         provisioningArtifactId,
@@ -173,8 +183,8 @@ export class AccountVendingMachine {
     }
 
     let provisionedProductStatus = null;
-    if (ProvisionProductOutput) {
-      provisionedProductStatus = ProvisionProductOutput!.RecordDetail!.Status;
+    if (provisionProductOutput) {
+      provisionedProductStatus = provisionProductOutput!.RecordDetail!.Status;
       console.log(provisionedProductStatus);
     }
 
@@ -208,9 +218,12 @@ export class AccountVendingMachine {
    */
   async isAccountAvailable(accountName: string, provisionToken: string): Promise<Response> {
     let provisionedProductStatus = null;
-    const SearchProvisionedProductsOutput = await this.client.searchProvisionedProducts(accountName);
-    if (SearchProvisionedProductsOutput) {
-      provisionedProductStatus = SearchProvisionedProductsOutput!.ProvisionedProducts![0].Status;
+    const searchProvisionedProductsOutput: SearchProvisionedProductsOutput = await this.client.searchProvisionedProducts(
+      accountName,
+    );
+    if (searchProvisionedProductsOutput) {
+      console.log('SearchProvisionedProductsOutput: ' + searchProvisionedProductsOutput);
+      provisionedProductStatus = searchProvisionedProductsOutput!.ProvisionedProducts![0].Status;
       console.log('provisionedProductStatus: ' + provisionedProductStatus);
     }
 
@@ -229,8 +242,8 @@ export class AccountVendingMachine {
       response.status = provisionedProductStatus;
       response.statusReason = accountName + ' account is being created using Account Vending Machine!';
     } else if (
-      SearchProvisionedProductsOutput == null ||
-      typeof SearchProvisionedProductsOutput === 'undefined' ||
+      searchProvisionedProductsOutput == null ||
+      typeof searchProvisionedProductsOutput === 'undefined' ||
       provisionedProductStatus === 'ERROR'
     ) {
       response.status = 'ERROR';
