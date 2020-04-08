@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc } from '../common/vpc';
-
+import { Bucket } from '@aws-cdk/aws-s3';
 import { FlowLogs } from '../common/flow-logs';
 
 import { TransitGateway } from '../common/transit-gateway';
@@ -23,7 +23,14 @@ export namespace SharedNetwork {
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
       //Creating FlowLog for VPC
-      const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId });
+      if (vpcConfig['flow-logs']) {
+        //TODO Get the S3 bucket or ARN
+        const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
+          bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
+        });
+
+        const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
+      }
 
       // Creating TGW for Shared-Network Account
       const deployments = accountProps.deployments;
