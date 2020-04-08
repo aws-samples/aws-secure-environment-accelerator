@@ -50,15 +50,15 @@ Some actions in the state machine require Lambda functions. The code for the Lam
 
 Execute the following command to execute unit tests.
 
-        pnpm recursive test  -- --pass-with-no-tests
+    pnpm recursive test  -- --pass-with-no-tests
 
 ## Code Style
 
 Please run `tslint` and `prettier` before committing.
 
-        pnpm recursive run lint
-        pnpx prettier --check **/*.ts
+    pnpm recursive run lint
+    pnpx prettier --check **/*.ts
 
 In case `prettier` finds issues, you can let `prettier` resolve the issues.
 
-        pnpx prettier --write **/*.ts
+    pnpx prettier --write **/*.ts
