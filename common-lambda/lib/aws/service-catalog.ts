@@ -1,15 +1,13 @@
 import * as aws from 'aws-sdk';
 import {
-  ListPortfoliosOutput,
-  AssociatePrincipalWithPortfolioInput,
   AssociatePrincipalWithPortfolioOutput,
-  SearchProductsInput,
-  SearchProductsOutput,
-  ListProvisioningArtifactsInput,
+  ListPortfoliosOutput,
+  ListPrincipalsForPortfolioOutput,
   ListProvisioningArtifactsOutput,
+  PortfolioDetail,
   ProvisionProductInput,
   ProvisionProductOutput,
-  SearchProvisionedProductsInput,
+  SearchProductsOutput,
   SearchProvisionedProductsOutput,
 } from 'aws-sdk/clients/servicecatalog';
 
@@ -32,7 +30,22 @@ export class ServiceCatalog {
    * List service catalog portfolios
    */
   async listPortfolios(): Promise<ListPortfoliosOutput> {
+    // TODO Support PageToken
     return this.client.listPortfolios().promise();
+  }
+
+  async listPrincipalsForPortfolio(portfolioId: string): Promise<ListPrincipalsForPortfolioOutput> {
+    // TODO Support PageToken
+    return this.client
+      .listPrincipalsForPortfolio({
+        PortfolioId: portfolioId,
+      })
+      .promise();
+  }
+
+  async findPortfolioByName(portfolioName: string): Promise<PortfolioDetail | undefined> {
+    const listPortfolios = await this.listPortfolios();
+    return listPortfolios?.PortfolioDetails?.find(p => p.DisplayName === portfolioName);
   }
 
   /**
@@ -44,13 +57,13 @@ export class ServiceCatalog {
     portfolioId: string,
     prinicipalArn: string,
   ): Promise<AssociatePrincipalWithPortfolioOutput> {
-    const associatePrincipalWithPortfolioInput: AssociatePrincipalWithPortfolioInput = {
-      PortfolioId: portfolioId,
-      PrincipalARN: prinicipalArn,
-      PrincipalType: 'IAM',
-    };
-
-    return this.client.associatePrincipalWithPortfolio(associatePrincipalWithPortfolioInput).promise();
+    return this.client
+      .associatePrincipalWithPortfolio({
+        PortfolioId: portfolioId,
+        PrincipalARN: prinicipalArn,
+        PrincipalType: 'IAM',
+      })
+      .promise();
   }
 
   /**
@@ -58,13 +71,13 @@ export class ServiceCatalog {
    * @param productName
    */
   async findProduct(productName: string): Promise<SearchProductsOutput> {
-    const searchProductsInput: SearchProductsInput = {
-      Filters: {
-        FullTextSearch: [productName],
-      },
-    };
-
-    return this.client.searchProducts(searchProductsInput).promise();
+    return this.client
+      .searchProducts({
+        Filters: {
+          FullTextSearch: [productName],
+        },
+      })
+      .promise();
   }
 
   /**
@@ -72,11 +85,11 @@ export class ServiceCatalog {
    * @param productId
    */
   async findProvisioningArtifact(productId: string): Promise<ListProvisioningArtifactsOutput> {
-    const listProvisioningArtifactsInput: ListProvisioningArtifactsInput = {
-      ProductId: productId,
-    };
-
-    return this.client.listProvisioningArtifacts(listProvisioningArtifactsInput).promise();
+    return this.client
+      .listProvisioningArtifacts({
+        ProductId: productId,
+      })
+      .promise();
   }
 
   /**
@@ -143,12 +156,12 @@ export class ServiceCatalog {
    * @param accountName
    */
   async searchProvisionedProducts(accountName: string): Promise<SearchProvisionedProductsOutput> {
-    const searchProvisionedProductsInput: SearchProvisionedProductsInput = {
-      Filters: {
-        SearchQuery: ['name:' + accountName],
-      },
-    };
-
-    return this.client.searchProvisionedProducts(searchProvisionedProductsInput).promise();
+    return this.client
+      .searchProvisionedProducts({
+        Filters: {
+          SearchQuery: ['name:' + accountName],
+        },
+      })
+      .promise();
   }
 }

@@ -1,24 +1,29 @@
 import * as aws from 'aws-sdk';
-import { ServiceCatalog, ProductAVMParam } from './service-catalog';
-import { SecretsManager } from './secrets-manager';
-import { AcceleratorConfig } from '../config';
 import { v4 as uuidv4 } from 'uuid';
+import { ProductAVMParam, ServiceCatalog } from './service-catalog';
 import { STS } from './sts';
 
-const avmName = 'AWS-Landing-Zone-Account-Vending-Machine';
-const portfolioName = 'AWS Landing Zone - Baseline';
-
 export interface CreateAccountInput {
+  avmPortfolioName: string;
+  avmProductName: string;
   accountName: string;
   emailAddress: string;
   organizationalUnit: string;
-  lambdaRoleArn: string;
 }
 
 export type CreateAccountOutputStatus = 'SUCCESS' | 'FAILURE' | 'ALREADY_EXISTS' | 'NOT_RELEVANT';
 
 export interface CreateAccountOutput {
   status?: CreateAccountOutputStatus;
+  statusReason?: string;
+  provisionedProductStatus?: string;
+  provisionToken?: string;
+}
+
+export type AccountAvailableStatus = 'SUCCESS' | 'FAILURE' | 'IN_PROGRESS';
+
+export interface AccountAvailableOutput {
+  status?: AccountAvailableStatus;
   statusReason?: string;
   provisionedProductStatus?: string;
   provisionToken?: string;
@@ -37,50 +42,36 @@ export class AccountVendingMachine {
    * Create account using account-vending-machine
    */
   async createAccount(input: CreateAccountInput): Promise<CreateAccountOutput> {
-    const { accountName, emailAddress, organizationalUnit, lambdaRoleArn } = input;
+    const { avmPortfolioName, avmProductName, accountName, emailAddress, organizationalUnit } = input;
 
     // find service catalog portfolioId by name
-    const ListPortfoliosOutput = await this.client.listPortfolios();
-
-    const portfolioDetails = ListPortfoliosOutput?.PortfolioDetails?.find((p) => p.DisplayName === portfolioName);
-    const portfolioId = portfolioDetails?.Id;
-    console.log('portfolioId: ' + portfolioId);
-
+    const portfolio = await this.client.findPortfolioByName(avmPortfolioName);
+    const portfolioId = portfolio?.Id;
     if (!portfolioId) {
       return {
         status: 'FAILURE',
-        statusReason: 'Unable to find service catalog portfolioId for portfolio - ' + portfolioName + '.',
+        statusReason: `Unable to find service catalog portfolio with name "${avmPortfolioName}".`,
       };
     }
 
-    // associate principal with portfolio
-    const AssociatePrincipalWithPortfolioOutput = await this.client.associateRoleWithPortfolio(
-      portfolioId,
-      lambdaRoleArn,
-    );
-    console.log('associate principal with portfolio - response: ', AssociatePrincipalWithPortfolioOutput);
-
     // TODO Add a exponential backoff here
     // find service catalog ProductId by name
-    const SearchProductsOutput = await this.client.findProduct(avmName);
-
-    const productId = SearchProductsOutput?.ProductViewSummaries?.[0]?.ProductId;
-    console.log('productId: ' + productId);
-
+    const searchProductsOutput = await this.client.findProduct(avmProductName);
+    const productId = searchProductsOutput?.ProductViewSummaries?.[0]?.ProductId;
     if (!productId) {
       return {
         status: 'FAILURE',
-        statusReason: 'Unable to find service catalog product with name ' + avmName + '.',
+        statusReason: `Unable to find service catalog product with name "${avmProductName}".`,
       };
     }
 
     // find service catalog Product - ProvisioningArtifactId by ProductId
-    const ListProvisioningArtifactsOutput = await this.client.findProvisioningArtifact(productId);
-    const provisioningArtifactId = ListProvisioningArtifactsOutput?.ProvisioningArtifactDetails?.[0].Id;
+    const listProvisioningArtifactsOutput = await this.client.findProvisioningArtifact(productId);
+    const provisioningArtifactId = listProvisioningArtifactsOutput?.ProvisioningArtifactDetails?.[0].Id;
     if (!provisioningArtifactId) {
       return {
         status: 'FAILURE',
-        statusReason: 'Unable to find service catalog product provisioning artifact id for product id' + avmName + '.',
+        statusReason: `Unable to find service catalog product provisioning artifact for product "${productId}".`,
       };
     }
 
@@ -92,12 +83,11 @@ export class AccountVendingMachine {
     };
 
     const provisionToken = uuidv4();
-    console.log('provisionToken: ' + provisionToken);
 
     // launch AVM Product
-    let ProvisionProductOutput;
+    let provisionProductOutput;
     try {
-      ProvisionProductOutput = await this.client.launchProductAVM(
+      provisionProductOutput = await this.client.launchProductAVM(
         productId,
         provisionToken,
         provisioningArtifactId,
@@ -115,7 +105,7 @@ export class AccountVendingMachine {
       throw e;
     }
 
-    const provisionedProductStatus = ProvisionProductOutput?.RecordDetail?.Status;
+    const provisionedProductStatus = provisionProductOutput?.RecordDetail?.Status;
     if (provisionedProductStatus !== 'CREATED') {
       return {
         status: 'FAILURE',
@@ -137,7 +127,7 @@ export class AccountVendingMachine {
    * @param accountName
    * @param provisionToken
    */
-  async isAccountAvailable(accountName: string, provisionToken: string): Promise<CreateAccountOutput> {
+  async isAccountAvailable(accountName: string, provisionToken: string): Promise<AccountAvailableOutput> {
     const SearchProvisionedProductsOutput = await this.client.searchProvisionedProducts(accountName);
     const provisionedProductStatus = SearchProvisionedProductsOutput?.ProvisionedProducts?.[0].Status;
 
@@ -149,7 +139,7 @@ export class AccountVendingMachine {
       };
     } else if (provisionedProductStatus === 'UNDER_CHANGE') {
       return {
-        status: 'SUCCESS',
+        status: 'IN_PROGRESS',
         statusReason: accountName + ' account is being created using Account Vending Machine!',
         provisionedProductStatus,
       };

@@ -1,20 +1,18 @@
-import * as path from 'path';
-import * as tempy from 'tempy';
-import * as cdk from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
-import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
+import * as cdk from '@aws-cdk/core';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
+import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { zipFiles } from '@aws-pbmm/common-lambda/lib/util/zip';
 import { Archiver } from 'archiver';
-import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
-import { CreateStackSetStateMachine, CreateStackSetTask } from './tasks/create-stack-set-task';
-import { CreateAccountStateMachine, CreateAccountTask } from './tasks/create-account-task';
+import * as path from 'path';
+import * as tempy from 'tempy';
+import { CreateAccountTask } from './tasks/create-account-task';
+import { CreateStackSetTask } from './tasks/create-stack-set-task';
 
 interface BuildProps {
   lambdas: WebpackBuild;
@@ -198,6 +196,22 @@ export namespace InitialSetup {
         resultPath: '$.configuration',
       });
 
+      // TODO We might want to load this from the Landing Zone configuration
+      const avmProductName = 'AWS-Landing-Zone-Account-Vending-Machine';
+      const avmPortfolioName = 'AWS Landing Zone - Baseline';
+
+      const addRoleToServiceCatalog = new CodeTask(this, 'Add Execution Role to Service Catalog', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('add-role-to-service-catalog'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          roleArn: pipelineRole.roleArn,
+          portfolioName: avmPortfolioName,
+        },
+        resultPath: 'DISCARD',
+      });
+
       const createAccountStateMachine = new sfn.StateMachine(scope, 'CreateAccountStateMachine', {
         definition: new CreateAccountTask(scope, 'Create', {
           lambdas: props.lambdas,
@@ -209,6 +223,8 @@ export namespace InitialSetup {
         task: new tasks.StartExecution(createAccountStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
+            avmProductName,
+            avmPortfolioName,
             'accountName.$': '$.accountName',
             'emailAddress.$': '$.emailAddress',
             'organizationalUnit.$': '$.organizationalUnit',
@@ -299,6 +315,7 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
+          .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)

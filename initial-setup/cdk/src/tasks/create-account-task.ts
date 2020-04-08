@@ -68,14 +68,6 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
         role,
         code: lambdas.codeForEntry('create-account/create'),
       },
-      functionPayload: {
-        // TODO Find a way to simplify this
-        'accountName.$': '$.accountName',
-        'emailAddress.$': '$.emailAddress',
-        'organizationalUnit.$': '$.organizationalUnit',
-        'isMasterAccount.$': '$.isMasterAccount',
-        lambdaRoleArn: role.roleArn,
-      },
     });
 
     const verifyTask = new CodeTask(scope, 'Verify Account Creation', {
@@ -94,15 +86,13 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'Account Creation Failed');
 
-    waitTask
-      .next(verifyTask)
-      .next(
-        new sfn.Choice(scope, 'Account Creation Done?')
-          .when(sfn.Condition.stringEquals('$.verifyOutput.status', 'SUCCESS'), pass)
-          .when(sfn.Condition.stringEquals('$.verifyOutput.status', 'FAILURE'), fail)
-          .otherwise(waitTask)
-          .afterwards(),
-      );
+    waitTask.next(verifyTask).next(
+      new sfn.Choice(scope, 'Account Creation Done?')
+        .when(sfn.Condition.stringEquals('$.verifyOutput.status', 'SUCCESS'), pass)
+        .when(sfn.Condition.stringEquals('$.verifyOutput.status', 'FAILURE'), fail)
+        .otherwise(waitTask)
+        .afterwards(),
+    );
 
     createTask.next(
       new sfn.Choice(scope, 'Account Creation Started?')

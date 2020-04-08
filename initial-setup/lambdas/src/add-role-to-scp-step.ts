@@ -1,13 +1,13 @@
 import * as aws from 'aws-sdk';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 
-interface ModifyCoreScpInput {
+interface AddRoleToScpInput {
   roleName: string;
   policyName: string;
 }
 
-export const handler = async (input: ModifyCoreScpInput) => {
-  console.log(`Starting CodeBuild project...`);
+export const handler = async (input: AddRoleToScpInput) => {
+  console.log(`Adding role to service control policy...`);
   console.log(JSON.stringify(input, null, 2));
 
   const { roleName, policyName } = input;
@@ -42,16 +42,22 @@ export const handler = async (input: ModifyCoreScpInput) => {
     hasChanged = addRoleToStatement(role, statement);
   }
 
-  if (hasChanged) {
-    console.log(`Updating the secure control policy with name ${policyName}`);
+  // Only update the policy when we made changes to the statement
+  if (!hasChanged) {
+    return {
+      status: 'SUCCESS',
+      statusReason: `No changes had to be made to the secure control policy with name ${policyName}`
+    }
+  }
 
-    // Only update the policy when we made changes to the statement
-    await organizations.updatePolicy({
-      PolicyId: policyId,
-      Content: JSON.stringify(content),
-    });
-  } else {
-    console.log(`No changes had to be made to the secure control policy with name ${policyName}`);
+  await organizations.updatePolicy({
+    PolicyId: policyId,
+    Content: JSON.stringify(content),
+  });
+
+  return {
+    status: 'SUCCESS',
+    statusReason: `Updating the secure control policy with name ${policyName}`
   }
 };
 
