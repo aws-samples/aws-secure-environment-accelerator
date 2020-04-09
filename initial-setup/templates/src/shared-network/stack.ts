@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc } from '../common/vpc';
 import { Bucket } from '@aws-cdk/aws-s3';
-import { FlowLogs } from '../common/flow-logs';
+// import { FlowLogs } from '../common/flow-logs';
 
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
@@ -29,7 +29,7 @@ export namespace SharedNetwork {
           bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
         });
 
-        const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
+        // const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
       }
 
       // Creating TGW for Shared-Network Account

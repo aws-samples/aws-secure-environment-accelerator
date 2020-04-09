@@ -3,3 +3,5 @@ node_modules
 pnpm-lock.yaml
 .DS_Store
 *.log
+initial-setup/templates/accounts.json
+initial-setup/templates/config.json
