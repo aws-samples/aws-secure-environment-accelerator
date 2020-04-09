@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "pnpx tsc",
+    "build": "pnpx tsc --noEmit",
     "test": "pnpx jest",
     "lint": "tslint 'src/**/*.ts'"
   },
@@ -37,6 +37,7 @@
     "@aws-cdk/aws-lambda": "^1.31.0",
     "@aws-cdk/aws-s3": "^1.31.0",
     "@aws-cdk/aws-s3-assets": "^1.31.0",
+    "@aws-cdk/aws-secretsmanager": "^1.31.0",
     "@aws-cdk/aws-sns": "^1.31.0",
     "@aws-cdk/aws-stepfunctions": "^1.31.0",
     "@aws-cdk/aws-stepfunctions-tasks": "^1.31.0",

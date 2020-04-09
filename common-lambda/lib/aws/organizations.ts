@@ -12,18 +12,22 @@ export class Organizations {
     });
   }
 
-  async getPolicy(input: org.ListPoliciesRequest & { Name: string }): Promise<org.PolicySummary | undefined> {
+  async getPolicyByName(
+    input: org.ListPoliciesRequest & { Name: string },
+  ): Promise<org.DescribePolicyResponse | undefined> {
     const name = input.Name;
     delete input.Name;
 
-    const policies = await listWithNextTokenGenerator<
-      org.ListPoliciesRequest,
-      org.ListPoliciesResponse,
-      org.PolicySummary
-    >(this.client.listPolicies.bind(this.client), (r) => r.Policies!!, input);
-    for await (const policy of policies) {
-      if (policy.Name === name) {
-        return policy;
+    const summaries = listWithNextTokenGenerator<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
+      this.client.listPolicies.bind(this.client),
+      (r) => r.Policies!,
+      input,
+    );
+    for await (const summary of summaries) {
+      if (summary.Name === name) {
+        return this.describePolicy({
+          PolicyId: summary.Id!,
+        });
       }
     }
     return undefined;
@@ -45,7 +49,15 @@ export class Organizations {
     );
   }
 
+  async describePolicy(input: org.DescribePolicyRequest): Promise<org.DescribePolicyResponse> {
+    return this.client.describePolicy(input).promise();
+  }
+
   async createPolicy(input: org.CreatePolicyRequest): Promise<org.CreatePolicyResponse> {
     return this.client.createPolicy(input).promise();
+  }
+
+  async updatePolicy(input: org.UpdatePolicyRequest): Promise<org.UpdatePolicyResponse> {
+    return this.client.updatePolicy(input).promise();
   }
 }

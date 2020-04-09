@@ -8,19 +8,19 @@ const config: webpack.Configuration = {
   target: 'node',
   externals: ['aws-sdk', 'aws-lambda'],
   entry: {
-    'create-account/trigger': './src/create-account/trigger.ts',
-    'create-account/create': './src/create-account/create.ts',
-    'create-account/verify': './src/create-account/verify.ts',
-    'create-account/finalize': './src/create-account/finalize.ts',
-    'create-stack/trigger': './src/create-stack/trigger.ts',
+    'add-role-to-service-catalog': './src/add-role-to-service-catalog-step.ts',
+    'add-role-to-scp': './src/add-role-to-scp-step.ts',
+    'load-accounts': './src/load-accounts-step.ts',
+    'load-configuration': './src/load-configuration-step.ts',
+    'codebuild/start': './src/codebuild/start.ts',
+    'codebuild/verify': './src/codebuild/verify.ts',
     'create-stack/create': './src/create-stack/create.ts',
     'create-stack/verify': './src/create-stack/verify.ts',
-    'create-stack/finalize': './src/create-stack/finalize.ts',
-    'create-stack-set/trigger': './src/create-stack-set/trigger.ts',
     'create-stack-set/create-stack-set': './src/create-stack-set/create-stack-set.ts',
     'create-stack-set/create-stack-set-instances': './src/create-stack-set/create-stack-set-instances.ts',
     'create-stack-set/verify': './src/create-stack-set/verify.ts',
-    'create-stack-set/finalize': './src/create-stack-set/finalize.ts',
+    'create-account/create': './src/create-account/create.ts',
+    'create-account/verify': './src/create-account/verify.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -38,6 +38,8 @@ const config: webpack.Configuration = {
         use: {
           loader: 'babel-loader',
           options: {
+            cacheDirectory: true,
+            cacheCompression: false,
             presets: [
               [
                 '@babel/env',
@@ -55,6 +57,7 @@ const config: webpack.Configuration = {
                 '@babel/plugin-transform-typescript',
                 {
                   allowNamespaces: 'true',
+                  onlyRemoveTypeImports: 'true',
                 },
               ],
             ],

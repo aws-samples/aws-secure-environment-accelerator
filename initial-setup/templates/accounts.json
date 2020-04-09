@@ -1,0 +1,38 @@
+[
+    {
+        "key": "perimeter",
+        "id": "308424521682",
+        "arn": "arn:aws:organizations::144459094893:account/o-d6abig7skl/308424521682",
+        "name": "Perimeter",
+        "email": "nkoppula+lzT-perimeter@amazon.com",
+        "ou": "core",
+        "master": false
+    },
+    {
+        "key": "operations",
+        "id": "288351065277",
+        "arn": "arn:aws:organizations::144459094893:account/o-d6abig7skl/288351065277",
+        "name": "Operations",
+        "email": "nkoppula+lzT-operations@amazon.com",
+        "ou": "core",
+        "master": false
+    },
+    {
+        "key": "shared-network",
+        "id": "983612491393",
+        "arn": "arn:aws:organizations::144459094893:account/o-d6abig7skl/983612491393",
+        "name": "SharedNetwork",
+        "email": "nkoppula+lzT-network@amazon.com",
+        "ou": "core",
+        "master": false
+    },
+    {
+        "key": "master",
+        "id": "144459094893",
+        "arn": "arn:aws:organizations::144459094893:account/o-d6abig7skl/144459094893",
+        "name": "LZ Main US-East-1",
+        "email": "nkoppula+lz-main-us-east@amazon.com",
+        "ou": "core",
+        "master": true
+    }
+]

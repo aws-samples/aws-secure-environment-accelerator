@@ -1,0 +1,1563 @@
+{
+    "global-options": {
+      "alz-minimum-version": "v2.3.1",
+      "central-log-retention": 730,
+      "zones": {
+        "account": "shared-network",
+        "names": {
+          "public": [
+            "dept.cloud-nuage.canada.ca"
+          ],
+          "private": [
+            "dept.cloud-nuage.gc.ca"
+          ],
+          "on-premise": [
+            "dept.gc.ca"
+          ]
+        },
+        "resolvers": {
+          "vpc": "Endpoint",
+          "subnet": "Endpoint",
+          "outbound-ips": [
+            "7.23.0.1",
+            "7.26.0.2"
+          ]
+        }
+      },
+      "on-prem": {
+        "cidr": [
+          "7.0.0.0/8",
+          "10.0.0.0/8"
+        ]
+      },
+      "accounts": {
+        "master-account-name": "master",
+        "mandatory": [
+          "perimeter",
+          "shared-network",
+          "operations"
+        ]
+      },
+      "ou": {
+        "ignore": [
+          "core"
+        ],
+        "mandatory": [
+          "central"
+        ],
+        "additional": [
+          "sandbox",
+          "unclass",
+          "dev",
+          "test",
+          "prod"
+        ]
+      },
+      "userids": {
+        "master-breakglass-ids": [
+          "bgUser1",
+          "bgUser2",
+          "bgUser3"
+        ],
+        "master-Ops-ids": [
+          "OpsUser1",
+          "OpsUser2",
+          "OpsUser3"
+        ]
+      }
+    },
+    "mandatory-account-configs": {
+      "perimeter": {
+        "account-name": "Perimeter",
+        "email": "nkoppula+lzT-perimeter@amazon.com",
+        "ou": "core",
+        "vpc": {
+          "deploy": "local",
+          "name": "Perimeter",
+          "cidr": "100.96.250.0/23",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": true,
+          "vgw": true,
+          "pcx": false,
+          "natgw": {
+            "subnet": "Public_az1"
+          },
+          "subnets": [
+            {
+              "name": "Public",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Public_Shared",
+                  "cidr": "100.96.251.64/26"
+                },
+                {
+                  "az": "b",
+                  "route-table": "Public_Shared",
+                  "cidr": "100.96.251.128/26"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "FWMgmt_az1",
+                  "cidr": "100.96.251.16/28"
+                },
+                {
+                  "az": "b",
+                  "route-table": "FWMgmt_az2",
+                  "cidr": "100.96.251.48/28"
+                }
+              ]
+            },
+            {
+              "name": "Proxy",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Proxy_az1",
+                  "cidr": "100.96.250.0/25"
+                },
+                {
+                  "az": "b",
+                  "route-table": "Proxy_az2",
+                  "cidr": "100.96.250.128/25"
+                }
+              ]
+            },
+            {
+              "name": "OnPremise",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "default",
+                  "cidr": "100.96.251.0/28"
+                },
+                {
+                  "az": "b",
+                  "route-table": "default",
+                  "cidr": "100.96.251.32/28"
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [
+            "s3"
+          ],
+          "route-tables": [
+            {
+              "name": "default"
+            },
+            {
+              "name": "Public_Shared",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_az1",
+              "routes": [
+                {
+                  "destination": "7.0.0.0/8",
+                  "target": "VGW"
+                },
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "ENI-FW-az1-p2"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_az2",
+              "routes": [
+                {
+                  "destination": "7.0.0.0/8",
+                  "target": "VGW"
+                },
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "ENI-FW-az2-p2"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                }
+              ]
+            },
+            {
+              "name": "Proxy_az1",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "ENI-FW-az1-p4"
+                }
+              ]
+            },
+            {
+              "name": "Proxy_az2",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "ENI-FW-az2-p4"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": false
+          },
+          "interface-endpoints": false
+        },
+        "deployments": {
+          "firewall": {
+            "instance-sizes": "c5n.2xl",
+            "eni": {
+              "count": 4,
+              "p1-subnet": "Public",
+              "p2-subnet": "OnPremise",
+              "p3-subnet": "FWMgmt",
+              "p4-subnet": "Proxy"
+            },
+            "auto-scale": {
+              "min-qty": 2,
+              "max-qty": 2
+            },
+            "script": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/firewall.yaml",
+            "tgw-attach": {
+              "associate-to-tgw": "Main",
+              "account": "shared-network",
+              "associate-type": "VPN",
+              "rt-associate": [
+                "core"
+              ],
+              "rt-propogate": [
+                "core",
+                "segregated",
+                "shared",
+                "standalone"
+              ],
+              "blackhole-route": false,
+              "attach-subnets": [],
+              "options": [
+                "DNS-support",
+                "IPv6-support"
+              ]
+            }
+          }
+        }
+      },
+      "operations": {
+        "account-name": "Operations",
+        "email": "nkoppula+lzT-operations@amazon.com",
+        "ou": "core",
+        "vpc": {
+          "deploy": "shared",
+          "source": "shared-network",
+          "name": "Central",
+          "region": "ca-central-1",
+          "subnets": []
+        },
+        "deployments": {
+          "mad": {
+            "deploy": true,
+            "subnet": "GCWide",
+            "size": "enterprise",
+            "restrict_srcips": [
+              "7.0.0.0/8",
+              "10.0.0.0/8"
+            ]
+          },
+          "ops-dashboard": {
+            "deploy": true
+          },
+          "syslog": {
+            "deploy": true
+          },
+          "rdweb-pwd": {
+            "deploy": true,
+            "restrict_srcips": [
+              "7.0.0.0/8",
+              "10.0.0.0/8"
+            ]
+          }
+        }
+      },
+      "shared-network": {
+        "account-name": "SharedNetwork",
+        "email": "nkoppula+lzT-network@amazon.com",
+        "ou": "core",
+        "vpc": {
+          "deploy": "local",
+          "name": "Endpoint",
+          "cidr": "10.7.0.0/22",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "Endpoint",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "default",
+                  "cidr": "10.7.0.0/24"
+                },
+                {
+                  "az": "b",
+                  "route-table": "default",
+                  "cidr": "10.7.1.0/24"
+                },
+                {
+                  "az": "d",
+                  "route-table": "default",
+                  "cidr": "10.7.2.0/24",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [],
+          "route-tables": [
+            {
+              "name": "default"
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "local",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": [
+              "core"
+            ],
+            "tgw-rt-propagate": [
+              "core",
+              "segregated",
+              "shared",
+              "standalone"
+            ],
+            "blackhole-route": false,
+            "attach-subnets": [
+              "Endpoint"
+            ],
+            "options": [
+              "DNS-support",
+              "IPv6-support"
+            ]
+          },
+          "interface-endpoints": {
+            "subnet": "Endpoint",
+            "endpoints": [
+              "access-analyzer",
+              "application-autoscaling",
+              "appmesh-envoy-management",
+              "athena",
+              "autoscaling",
+              "autoscaling-plans",
+              "clouddirectory",
+              "cloudformation",
+              "cloudtrail",
+              "codebuild",
+              "codecommit",
+              "codecommit-fips",
+              "codepipeline",
+              "config",
+              "datasync",
+              "ec2",
+              "ec2messages",
+              "ecr.dkr",
+              "ecs",
+              "ecs-agent",
+              "ecs-telemetry",
+              "elasticfilesystem",
+              "elasticfilesystem-fips",
+              "elasticloadbalancing",
+              "elasticmapreduce",
+              "events",
+              "execute-api",
+              "git-codecommit",
+              "git-codecommit-fips",
+              "glue",
+              "kinesis-streams",
+              "kms",
+              "logs",
+              "monitoring",
+              "sagemaker.api",
+              "sagemaker.runtime",
+              "secretsmanager",
+              "servicecatalog",
+              "sms",
+              "sns",
+              "sqs",
+              "ssm",
+              "storagegateway",
+              "sts",
+              "transfer",
+              "workspaces",
+              "awsconnector",
+              "ecr.api",
+              "kinesis-firehose",
+              "ssmmessages",
+              "states",
+              "notebook"
+            ]
+          }
+        },
+        "deployments": {
+          "tgw": {
+            "name": "Main",
+            "asn": 64512,
+            "features": {
+              "DNS-support": true,
+              "VPN-ECMP-support": true,
+              "Default-route-table-association": false,
+              "Default-route-table-propagation": false,
+              "Auto-accept-sharing-attachments": false
+            },
+            "route-tables": [
+              "core",
+              "segregated",
+              "shared",
+              "standalone"
+            ]
+          }
+        }
+      },
+      "master": {
+        "account-name": "master",
+        "email": "nkoppula+lz-main-us-east@amazon.com",
+        "ou": "core",
+        "vpc": {
+          "deploy": "local",
+          "name": "ForSSO",
+          "cidr": "10.249.1.0/24",
+          "region": "ca-central-1",
+          "flow-logs": false,
+          "log-retention": 90,
+          "igw": false,
+          "vgw": false,
+          "pcx": {
+            "source": "shared-network",
+            "vpc": "Central",
+            "subnets": "GCWide"
+          },
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "ForSSO",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "default",
+                  "cidr": "10.249.1.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "default",
+                  "cidr": "10.249.1.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "default",
+                  "cidr": "10.249.1.64/27",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [],
+          "route-tables": [
+            {
+              "name": "default",
+              "routes": [
+                {
+                  "destination": {
+                    "shared-Network-Central-GCWide-CIDR": null
+                  },
+                  "target": "pcx-shared-network-Central"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": false
+          },
+          "interface-endpoints": false
+        },
+        "deployments": {
+          "sso": {
+            "deploy": true
+          }
+        }
+      }
+    },
+    "organizational-units": {
+      "central": {
+        "vpc": {
+          "deploy": "shared-network",
+          "name": "Central",
+          "cidr": "10.1.0.0/16",
+          "cidr2": "100.96.252.0/23",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": false,
+          "vgw": false,
+          "pcx": {
+            "source": "master",
+            "vpc": "ForSSO",
+            "subnets": "ForSSO"
+          },
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.88.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.88.64/27",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.192.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.160.0/19",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.208.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "CentralVPC_Common",
+                  "cidr": "10.1.80.0/21",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "GCWide",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "CentralVPC_GCWide",
+                  "cidr2": "100.96.252.0/25"
+                },
+                {
+                  "az": "b",
+                  "route-table": "CentralVPC_GCWide",
+                  "cidr2": "100.96.252.128/25"
+                },
+                {
+                  "az": "d",
+                  "route-table": "CentralVPC_GCWide",
+                  "cidr2": "100.96.253.0/25",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [
+            "s3",
+            "dynamodb"
+          ],
+          "route-tables": [
+            {
+              "name": "default"
+            },
+            {
+              "name": "CentralVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            },
+            {
+              "name": "CentralVPC_GCWide",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                },
+                {
+                  "destination": {
+                    "master-ForSSO-ForSSO-CIDR": null
+                  },
+                  "target": "pcx-master-ForSSO"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": [
+              "shared"
+            ],
+            "tgw-rt-propagate": [
+              "core",
+              "shared",
+              "segregated"
+            ],
+            "blackhole-route": false,
+            "attach-subnets": [
+              "TGW"
+            ],
+            "options": [
+              "DNS-support",
+              "IPv6-support"
+            ]
+          },
+          "interface-endpoints": false
+        }
+      },
+      "dev": {
+        "vpc": {
+          "deploy": "shared-network",
+          "name": "Dev",
+          "cidr": "10.2.0.0/16",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.88.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.88.64/27",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.192.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.160.0/19",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.208.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "DevVPC_Common",
+                  "cidr": "10.2.80.0/21",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [
+            "s3",
+            "dynamodb"
+          ],
+          "route-tables": [
+            {
+              "name": "default"
+            },
+            {
+              "name": "DevVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": [
+              "segregated"
+            ],
+            "tgw-rt-propagate": [
+              "core",
+              "shared"
+            ],
+            "blackhole-route": true,
+            "attach-subnets": [
+              "TGW"
+            ],
+            "options": [
+              "DNS-support",
+              "IPv6-support"
+            ]
+          },
+          "interface-endpoints": false
+        }
+      },
+      "test": {
+        "vpc": {
+          "deploy": "shared-network",
+          "name": "Test",
+          "cidr": "10.3.0.0/16",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.88.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.88.64/27",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.192.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.160.0/19",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.208.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "TestVPC_Common",
+                  "cidr": "10.3.80.0/21",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [
+            "s3",
+            "dynamodb"
+          ],
+          "route-tables": [
+            {
+              "name": "default"
+            },
+            {
+              "name": "TestVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": [
+              "segregated"
+            ],
+            "tgw-rt-propagate": [
+              "core",
+              "shared"
+            ],
+            "blackhole-route": true,
+            "attach-subnets": [
+              "TGW"
+            ],
+            "options": [
+              "DNS-support",
+              "IPv6-support"
+            ]
+          },
+          "interface-endpoints": false
+        }
+      },
+      "prod": {
+        "vpc": {
+          "deploy": "shared-network",
+          "name": "Prod",
+          "cidr": "10.4.0.0/16",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.88.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.88.64/27",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.192.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.160.0/19",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.208.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "ProdVPC_Common",
+                  "cidr": "10.4.80.0/21",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [
+            "s3",
+            "dynamodb"
+          ],
+          "route-tables": [
+            {
+              "name": "default"
+            },
+            {
+              "name": "ProdVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": [
+              "segregated"
+            ],
+            "tgw-rt-propagate": [
+              "core",
+              "shared"
+            ],
+            "blackhole-route": true,
+            "attach-subnets": [
+              "TGW"
+            ],
+            "options": [
+              "DNS-support",
+              "IPv6-support"
+            ]
+          },
+          "interface-endpoints": false
+        }
+      },
+      "unclass": {
+        "vpc": {
+          "deploy": "shared-network",
+          "name": "UnClass",
+          "cidr": "10.5.0.0/16",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.64/27",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.192.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.160.0/19",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.208.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.80.0/21",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [
+            "s3",
+            "dynamodb"
+          ],
+          "route-tables": [
+            {
+              "name": "default"
+            },
+            {
+              "name": "UnClassVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": [
+              "segregated"
+            ],
+            "tgw-rt-propagate": [
+              "core",
+              "shared"
+            ],
+            "blackhole-route": true,
+            "attach-subnets": [
+              "TGW"
+            ],
+            "options": [
+              "DNS-support",
+              "IPv6-support"
+            ]
+          },
+          "interface-endpoints": false
+        }
+      },
+      "sandbox": {
+        "vpc": {
+          "deploy": "local",
+          "name": "Sandbox",
+          "cidr": "10.6.0.0/16",
+          "region": "ca-central-1",
+          "flow-logs": true,
+          "log-retention": 90,
+          "igw": true,
+          "vgw": false,
+          "pcx": false,
+          "natgw": {
+            "subnets": [
+              "Web_az1"
+            ]
+          },
+          "subnets": [
+            {
+              "name": "Web",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_IGW",
+                  "cidr": "10.6.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_IGW",
+                  "cidr": "10.6.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_IGW",
+                  "cidr": "10.6.192.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.160.0/19",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.208.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "SandboxVPC_Common",
+                  "cidr": "10.6.80.0/21",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [],
+          "route-tables": [
+            {
+              "name": "default"
+            },
+            {
+              "name": "SandboxVPC_IGW",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                }
+              ]
+            },
+            {
+              "name": "SandboxVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "NATGW_Web_az1"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": false
+          },
+          "interface-endpoints": false
+        }
+      }
+    }
+  }

@@ -8,6 +8,7 @@ export namespace CreateStackSetTask {
   export interface Props {
     role: iam.IRole;
     lambdas: WebpackBuild;
+    functionPayload?: { [key: string]: unknown };
     waitSeconds?: number;
   }
 }
@@ -19,7 +20,7 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateStackSetTask.Props) {
     super(scope, id);
 
-    const { role, lambdas, waitSeconds = 10 } = props;
+    const { role, lambdas, functionPayload, waitSeconds = 10 } = props;
 
     role.addToPolicy(
       new iam.PolicyStatement({
@@ -35,81 +36,96 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
         actions: ['codepipeline:PutJobSuccessResult', 'codepipeline:PutJobFailureResult'],
       }),
     );
-    const finalizeTask = new CodeTask(scope, 'FinalizeTask', {
-      functionProps: {
-        role,
-        code: lambdas.codeForEntry('create-stack-set/finalize'),
-      },
-    });
 
-    const deployStackSetTask = new CodeTask(scope, `DeployStackSet`, {
-      resultPath: 'DISCARD',
+    const createTaskResultPath = '$.createStackSetOutput';
+    const createTaskStatusPath = `${createTaskResultPath}.status`;
+    const createTask = new CodeTask(scope, `Start Stack Set Creation`, {
+      resultPath: createTaskResultPath,
+      functionPayload,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-stack-set/create-stack-set'),
       },
     });
-    deployStackSetTask.addCatch(finalizeTask, {
-      resultPath: '$.exception',
-    });
 
-    const verifyStackSetTask = new CodeTask(scope, 'VerifyStackSet', {
-      resultPath: '$.verify',
+    const verifyTaskResultPath = '$.verifyStackOutput';
+    const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
+    const verifyTask = new CodeTask(scope, 'Verify Stack Set Creation', {
+      resultPath: verifyTaskResultPath,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-stack-set/verify'),
       },
     });
 
-    const deployStackSetInstancesTask = new CodeTask(scope, `DeployStackSetInstances`, {
-      resultPath: 'DISCARD',
+    const createInstancesTaskResultPath = '$.createInstancesOutput';
+    const createInstancesTaskStatusPath = `${createInstancesTaskResultPath}.status`;
+    const createInstancesTask = new CodeTask(scope, `Start Stack Set Instance Creation`, {
+      resultPath: createInstancesTaskResultPath,
+      functionPayload,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-stack-set/create-stack-set-instances'),
       },
     });
-    deployStackSetInstancesTask.addCatch(finalizeTask, {
-      resultPath: '$.exception',
-    });
 
-    const verifyStackSetInstancesTask = new CodeTask(scope, 'VerifyStackSetInstances', {
-      resultPath: '$.verify',
+    const verifyInstancesTaskResultPath = '$.verifyInstancesOutput';
+    const verifyInstancesTaskStatusPath = `${verifyInstancesTaskResultPath}.status`;
+    const verifyInstancesTask = new CodeTask(scope, 'Verify Stack Set Instances Creation', {
+      resultPath: verifyInstancesTaskResultPath,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-stack-set/verify'),
       },
     });
 
-    const waitStackSetTask = new sfn.Wait(scope, 'WaitForStackSet', {
+    const waitTask = new sfn.Wait(scope, 'Wait For Stack Set Creation', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const waitStackSetInstancesTask = new sfn.Wait(scope, 'WaitForStackSetInstances', {
+    const waitInstancesTask = new sfn.Wait(scope, 'Wait for Stack Set Instances Creation', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const chain = sfn.Chain.start(deployStackSetTask)
-      .next(waitStackSetTask)
-      .next(verifyStackSetTask)
+    const pass = new sfn.Pass(this, 'Stack Set Creation Succeeded');
+
+    const fail = new sfn.Fail(this, 'Stack Set Creation Failed');
+
+    createInstancesTask.next(
+      new sfn.Choice(scope, 'Stack Set Instances Created?')
+        .when(sfn.Condition.stringEquals(createInstancesTaskStatusPath, 'UP_TO_DATE'), pass)
+        .when(sfn.Condition.stringEquals(createInstancesTaskStatusPath, 'SUCCESS'), waitInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
+
+    waitInstancesTask
+      .next(verifyInstancesTask)
       .next(
-        new sfn.Choice(scope, 'StackSetDeployed?')
-          .when(
-            sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'),
-            sfn.Chain.start(deployStackSetInstancesTask)
-              .next(waitStackSetInstancesTask)
-              .next(verifyStackSetInstancesTask)
-              .next(
-                new sfn.Choice(scope, 'StackSetInstancesDeployed?')
-                  .when(sfn.Condition.stringEquals('$.verify.status', 'SUCCESS'), finalizeTask)
-                  .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
-                  .otherwise(waitStackSetInstancesTask)
-                  .afterwards(),
-              ),
-          )
-          .when(sfn.Condition.stringEquals('$.verify.status', 'FAILURE'), finalizeTask)
-          .otherwise(waitStackSetTask)
+        new sfn.Choice(scope, 'Stack Set Instances Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyInstancesTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyInstancesTaskStatusPath, 'IN_PROGRESS'), waitInstancesTask)
+          .otherwise(fail)
           .afterwards(),
       );
+
+    waitTask
+      .next(verifyTask)
+      .next(
+        new sfn.Choice(scope, 'Stack Set Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), createInstancesTask)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
+
+    const chain = sfn.Chain.start(createTask).next(
+      new sfn.Choice(scope, 'Stack Set Created?')
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), waitTask)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'UP_TO_DATE'), createInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;

@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "pnpx tsc",
+    "build": "pnpx tsc --noEmit",
     "test": "pnpx jest",
     "lint": "tslint 'src/**/*.ts'",
     "synth": "pnpx cdk synth"
@@ -12,6 +12,7 @@
     "@aws-cdk/assert": "^1.31.0",
     "@types/jest": "^25.1.4",
     "@types/node": "12.12.6",
+    "aws-cdk": "^1.31.0",
     "babel-jest": "^25.2.0",
     "jest": "^25.2.4",
     "prettier": "^1.19.1",
