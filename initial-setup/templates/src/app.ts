@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { SharedNetwork } from './shared-network/stack';
 import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
+import { OrganizationalUnit } from './organizational-units/stack';
 
 export namespace App {
   export interface Props extends cdk.AppProps {
@@ -29,6 +30,16 @@ export class App extends cdk.App {
       },
       stackName: 'PBMMAccel-SharedNetwork',
       accountConfig: sharedNetworkConfig,
+    });
+
+    const organizationalUnits = acceleratorConfig['organizational-units'];
+    new OrganizationalUnit.Stack(this, 'OrganizationalUnits', {
+      env: {
+        account: sharedNetworkAccountId,
+        region: cdk.Aws.REGION,
+      },
+      stackName: 'PBMMAccel-OrganizationalUnits',
+      organizationalUnits: organizationalUnits,
     });
 
     // Add accelerator tag to all resources
