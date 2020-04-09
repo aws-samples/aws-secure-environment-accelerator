@@ -8,7 +8,7 @@ export const cidr = new t.Type<IPv4CidrRange, string, unknown>(
   'Cidr',
   (value): value is IPv4CidrRange => value instanceof IPv4CidrRange,
   (str, context) =>
-    either.chain(t.string.validate(str, context), (s) => {
+    either.chain(t.string.validate(str, context), (s: string) => {
       try {
         return t.success(IPv4CidrRange.fromCidr(s));
       } catch (e) {
