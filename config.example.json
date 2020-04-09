@@ -31,7 +31,10 @@
       ]
     },
     "accounts": {
-      "master-account-name": "master",
+      "lz-primary-account": "master",
+      "lz-security-account": "security",
+      "lz-log-archive-account": "log-archive",
+      "lz-shared-services-account": "shared-services",
       "mandatory": [
         "perimeter",
         "shared-network",
@@ -267,9 +270,7 @@
         "source": "shared-network",
         "name": "Central",
         "region": "ca-central-1",
-        "subnets": [
-         
-        ]
+        "subnets": []
       },
       "deployments": {
         "mad": {
@@ -415,8 +416,7 @@
             "ecr.api",
             "kinesis-firehose",
             "ssmmessages",
-            "states",
-            "notebook"
+            "states"
           ]
         }
       },
@@ -441,7 +441,7 @@
       }
     },
     "master": {
-      "account-name": "master",
+      "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
       "ou": "core",
       "vpc": {

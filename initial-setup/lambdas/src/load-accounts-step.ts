@@ -1,6 +1,6 @@
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { LoadConfigurationOutput } from './load-configuration-step';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { LandingZoneAccountType, LoadConfigurationOutput } from './load-configuration-step';
 
 export interface LoadAccountsInput {
   accountsSecretId: string;
@@ -16,7 +16,15 @@ export interface Account {
   name: string;
   email: string;
   ou: string;
-  master: boolean;
+  /**
+   * Using JSONPath in step machines does not always work to filter [?@.type != "primary"] so we store primary as a
+   * boolean here.
+   */
+  primary: boolean;
+  /**
+   * The type of the Landing Zone account if it is a Landing Zone account.
+   */
+  type?: LandingZoneAccountType;
 }
 
 export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOutput> => {
@@ -32,13 +40,13 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const accounts = [];
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
-    if (accountConfig.isMasterAccount) {
+    if (accountConfig.landingZoneAccountType === 'primary') {
       // Only filter on the email address if we are dealing with the master account
-      organizationAccount = organizationAccounts.find((a) => {
+      organizationAccount = organizationAccounts.find(a => {
         return a.Email === accountConfig.emailAddress;
       });
     } else {
-      organizationAccount = organizationAccounts.find((a) => {
+      organizationAccount = organizationAccounts.find(a => {
         return a.Name === accountConfig.accountName && a.Email === accountConfig.emailAddress;
       });
     }
@@ -49,6 +57,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     }
 
     // TODO Verify organizational unit
+
     accounts.push({
       key: accountConfig.accountKey,
       id: organizationAccount.Id!,
@@ -56,7 +65,8 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       name: organizationAccount.Name!,
       email: organizationAccount.Email!,
       ou: accountConfig.organizationalUnit,
-      master: accountConfig.isMasterAccount,
+      type: accountConfig.landingZoneAccountType,
+      primary: accountConfig.landingZoneAccountType === 'primary',
     });
   }
 

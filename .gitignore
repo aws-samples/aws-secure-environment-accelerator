@@ -5,3 +5,4 @@ pnpm-lock.yaml
 *.log
 initial-setup/templates/accounts.json
 initial-setup/templates/config.json
+initial-setup/templates/outputs.json

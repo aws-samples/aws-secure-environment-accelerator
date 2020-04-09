@@ -1,7 +1,8 @@
 import * as aws from 'aws-sdk';
 import * as cfn from 'aws-sdk/clients/cloudformation';
-import { listWithNextToken } from './next-token';
+import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { Intersect } from '../util/types';
+import { collectAsync } from '../util/generator';
 
 export type CreateOrUpdateStackInput = Intersect<cfn.CreateStackInput, cfn.UpdateStackInput>;
 export type CreateOrUpdateStackOutput = Intersect<cfn.CreateStackOutput, cfn.UpdateStackOutput>;
@@ -32,6 +33,24 @@ export class CloudFormation {
   }
 
   /**
+   * Wrapper around AWS.CloudFormation.listStacks that returns a generator with the summaries.
+   */
+  listStacksGenerator(input: cfn.ListStacksInput): AsyncIterable<cfn.StackSummary> {
+    return listWithNextTokenGenerator<cfn.ListStacksInput, cfn.ListStacksOutput, cfn.StackSummary>(
+      this.client.listStacks.bind(this.client),
+      r => r.StackSummaries!,
+      input,
+    );
+  }
+
+  /**
+   * Wrapper around AWS.CloudFormation.listStacks.
+   */
+  async listStacks(input: cfn.ListStacksInput): Promise<cfn.StackSummary[]> {
+    return collectAsync(this.listStacksGenerator(input));
+  }
+
+  /**
    * Wrapper around describeStacks that does not fail when no stack with the given name exists.
    * @param stackName
    * @return AWS.CloudFormation.Stack or null
@@ -44,6 +63,7 @@ export class CloudFormation {
           StackName: stackName,
         })
         .promise();
+      return response.Stacks?.[0];
     } catch {
       return undefined;
     }
@@ -100,7 +120,7 @@ export class CloudFormation {
   async listStackInstances(stackSetName: string, accountId?: string): Promise<cfn.StackInstanceSummary[]> {
     return listWithNextToken<cfn.ListStackInstancesInput, cfn.ListStackInstancesOutput, cfn.StackInstanceSummary>(
       this.client.listStackInstances.bind(this.client),
-      (r) => r.Summaries!!,
+      r => r.Summaries!!,
       {
         StackSetName: stackSetName,
         StackInstanceAccount: accountId,
@@ -113,7 +133,7 @@ export class CloudFormation {
       cfn.ListStackSetOperationsInput,
       cfn.ListStackSetOperationsOutput,
       cfn.StackSetOperationSummary
-    >(this.client.listStackSetOperations.bind(this.client), (r) => r.Summaries!!, {
+    >(this.client.listStackSetOperations.bind(this.client), r => r.Summaries!!, {
       StackSetName: stackSetName,
     });
   }
@@ -191,7 +211,7 @@ export function objectToCloudFormationParameters(
   if (!obj) {
     return undefined;
   }
-  return Object.getOwnPropertyNames(obj).map((key) => {
+  return Object.getOwnPropertyNames(obj).map(key => {
     return {
       ParameterKey: key,
       ParameterValue: obj[key],
