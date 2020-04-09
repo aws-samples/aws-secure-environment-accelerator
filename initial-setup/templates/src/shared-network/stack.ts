@@ -1,11 +1,10 @@
 import * as cdk from '@aws-cdk/core';
-import { Vpc } from '../common/vpc';
-
+import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { FlowLogs } from '../common/flow-logs';
-
+import { InterfaceEndpoints } from '../common/interface-endpoints';
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
-import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { Vpc } from '../common/vpc';
 
 export namespace SharedNetwork {
   export interface StackProps extends cdk.StackProps {
@@ -22,7 +21,7 @@ export namespace SharedNetwork {
       const vpcConfig = accountProps.vpc!!;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
-      //Creating FlowLog for VPC
+      // Creating FlowLog for VPC
       const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId });
 
       // Creating TGW for Shared-Network Account
@@ -71,6 +70,11 @@ export namespace SharedNetwork {
           new TransitGatewayAttachment(this, 'tgw_attach', tgwAttachProps);
         }
       }
+
+      new InterfaceEndpoints(this, 'InterfaceEndpoints', {
+        vpc,
+        accountConfig: accountProps,
+      });
     }
   }
 }

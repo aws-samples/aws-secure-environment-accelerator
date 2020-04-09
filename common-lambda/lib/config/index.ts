@@ -59,10 +59,10 @@ export const TransitGatewayAttachConfig = t.interface({
   options: optional(t.array(TransitGatewayAttachOption)),
 });
 
-export const InterfaceEndpointName = NonEmptyString; // TODO Define all endpoints here
+export const InterfaceEndpointName = t.string; // TODO Define all endpoints here
 
 export const InterfaceEndpointConfig = t.interface({
-  subnet: NonEmptyString,
+  subnet: t.string,
   endpoints: t.array(InterfaceEndpointName),
 });
 
