@@ -71,6 +71,7 @@
       "account-name": "Perimeter",
       "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
+	  "limits": {},
       "vpc": {
         "deploy": "local",
         "name": "Perimeter",
@@ -80,6 +81,7 @@
         "log-retention": 90,
         "igw": true,
         "vgw": true,
+		"vgw-asn": "65789",
         "pcx": false,
         "natgw": {
           "subnet": "Public_az1"
@@ -262,6 +264,7 @@
       "account-name": "Operations",
       "email": "bmycroft+lzT-operations@amazon.com",
       "ou": "core",
+	  "limits": {},
       "vpc": {
         "deploy": "shared",
         "source": "shared-network",
@@ -276,10 +279,23 @@
           "deploy": true,
           "subnet": "GCWide",
           "size": "enterprise",
+		  "dns-domain": "brian.local",
+		  "netbios-domain": "brian",
+		  "share-to-master": true,
           "restrict_srcips": [
+            "100.96.252.0/23",
+            "100.96.100.0/23",
             "7.0.0.0/8",
             "10.0.0.0/8"
-          ]
+          ],
+		  "password-policies": {
+		     "history": 24,
+			 "max-age": 90,
+			 "min-age": 1,
+			 "min-len": 12,
+			 "complexity": true,
+			 "reversible": false
+		  },
         },
         "ops-dashboard": {
           "deploy": true
@@ -300,6 +316,12 @@
       "account-name": "SharedNetwork",
       "email": "bmycroft+lzT-network@amazon.com",
       "ou": "core",
+	  "limits": {
+	     "Amazon VPC/Interface VPC endpoints per VPC": 200,  #Do we have better naming guidance
+		 "Amazon VPC/VPCs per Region": 15,
+		 "AWS CloudFormation/Stack count": 400,
+		 "AWS CloudFormation/Stack sets per administrator account": 400
+	  },
       "vpc": {
         "deploy": "local",
         "name": "Endpoint",
@@ -415,8 +437,7 @@
             "ecr.api",
             "kinesis-firehose",
             "ssmmessages",
-            "states",
-            "notebook"
+            "states"
           ]
         }
       },
@@ -444,6 +465,10 @@
       "account-name": "master",
       "email": "bmycroft+lzT@amazon.com",
       "ou": "core",
+	  "limits": {
+	     "AWS Organizations/Maximum accounts": 20, #Do we have better naming guidance
+		 "AWS CloudFormation/Stack count": 400     #Do we require any CFN limit changes?
+	  },
       "vpc": {
         "deploy": "local",
         "name": "ForSSO",
@@ -502,6 +527,15 @@
         "interface-endpoints": false
       },
       "deployments": {
+        "adc": {
+          "deploy": true,
+          "subnet": "ForSSO",
+          "size": "small",
+          "restrict_srcips": [
+            "10.249.1.0/24",
+            "100.96.252.0/23"
+          ],
+        },
         "sso": {
           "deploy": true
         }
@@ -530,6 +564,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -552,6 +587,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -574,6 +610,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -596,6 +633,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -617,7 +655,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -640,6 +679,7 @@
           {
             "name": "GCWide",
             "share-to-ou-accounts": false,
+			"share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -749,6 +789,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -771,6 +812,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -793,6 +835,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -815,6 +858,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -836,7 +880,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -922,6 +967,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -944,6 +990,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -966,6 +1013,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -988,6 +1036,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1009,7 +1058,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1095,6 +1145,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1117,6 +1168,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1139,6 +1191,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1161,6 +1214,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1182,7 +1236,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1268,6 +1323,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1290,6 +1346,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1312,6 +1369,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1334,6 +1392,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1355,7 +1414,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1445,6 +1505,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1467,6 +1528,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1489,6 +1551,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1511,6 +1574,7 @@
           {
             "name": "Mgmt",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
