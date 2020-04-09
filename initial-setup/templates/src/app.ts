@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { SharedNetwork } from './shared-network/stack';
 import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
-import { OrganizationalUnit } from './organizational-units/stack'
+import { OrganizationalUnit } from './organizational-units/stack';
 
 export namespace App {
   export interface Props extends cdk.AppProps {
