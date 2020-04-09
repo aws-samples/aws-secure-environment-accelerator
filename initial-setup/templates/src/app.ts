@@ -31,7 +31,7 @@ export class App extends cdk.App {
       stackName: 'PBMMAccel-SharedNetwork',
       accountConfig: sharedNetworkConfig,
     });
-    
+
     const organizationalUnits = acceleratorConfig['organizational-units'];
     new OrganizationalUnit.Stack(this, 'OrganizationalUnits', {
       env: {
