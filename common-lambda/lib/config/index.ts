@@ -6,7 +6,7 @@ import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import { isLeft } from 'fp-ts/lib/Either';
 
 export const VirtualPrivateGatewayConfig = t.interface({
-  asn: optional(t.number)
+  asn: optional(t.number),
 });
 
 export const PeeringConnectionConfig = t.interface({

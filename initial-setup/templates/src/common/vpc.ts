@@ -8,8 +8,8 @@ function getRegionAz(region: string, az: string): string {
 }
 
 interface VGWProps {
-  type: string,
-  amazonSideAsn?: number
+  type: string;
+  amazonSideAsn?: number;
 }
 
 export class Vpc extends cdk.Construct {
@@ -50,9 +50,9 @@ export class Vpc extends cdk.Construct {
     if (props.vgw) {
       const vgwConfig = props.vgw;
       let vgwProps: VGWProps = {
-        'type': 'ipsec.1',
+        type: 'ipsec.1',
       };
-      if(typeof vgwConfig === 'object' && vgwConfig.asn){
+      if (typeof vgwConfig === 'object' && vgwConfig.asn) {
         vgwProps['amazonSideAsn'] = vgwConfig.asn!;
       }
       // Create VGW
