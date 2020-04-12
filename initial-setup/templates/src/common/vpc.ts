@@ -7,6 +7,11 @@ function getRegionAz(region: string, az: string): string {
   return region.split('-')[region.split('-').length - 1] + az;
 }
 
+interface VGWProps {
+  type: string,
+  amazonSideAsn?: number
+}
+
 export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new Map<string, string[]>();
@@ -43,10 +48,15 @@ export class Vpc extends cdk.Construct {
     let vgw;
     let vgwAttach;
     if (props.vgw) {
+      const vgwConfig = props.vgw;
+      let vgwProps: VGWProps = {
+        'type': 'ipsec.1',
+      };
+      if(typeof vgwConfig === 'object' && vgwConfig.asn){
+        vgwProps['amazonSideAsn'] = vgwConfig.asn!;
+      }
       // Create VGW
-      vgw = new ec2.CfnVPNGateway(this, `${props.name}_vgw`, {
-        type: 'ipsec.1',
-      });
+      vgw = new ec2.CfnVPNGateway(this, `${props.name}_vpg`, vgwProps);
       // Attach VGW to VPC
       vgwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_vgw`, {
         vpcId: vpcObj.ref,
