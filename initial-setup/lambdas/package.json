@@ -16,7 +16,6 @@
     "@types/adm-zip": "^0.4.32",
     "@types/aws-lambda": "^8.10.46",
     "@types/jest": "^25.1.4",
-    "@types/js-yaml": "^3.12.3",
     "@types/node": "12.12.6",
     "@types/webpack": "^4.41.8",
     "babel-jest": "^25.2.0",

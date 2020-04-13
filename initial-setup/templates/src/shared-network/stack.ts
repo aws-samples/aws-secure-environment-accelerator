@@ -30,7 +30,6 @@ export namespace SharedNetwork {
         //const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
         //  bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
         //});
-
         // const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
       }
 
