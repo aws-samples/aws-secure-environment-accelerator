@@ -7,7 +7,6 @@ import { Bucket } from '@aws-cdk/aws-s3';
 
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
-import { Vpc } from '../common/vpc';
 
 export namespace SharedNetwork {
   export interface StackProps extends cdk.StackProps {
@@ -84,6 +83,27 @@ export namespace SharedNetwork {
         vpc,
         accountConfig: accountProps,
       });
+
+      // Add Outputs to Stack
+
+      // Adding Output for VPC
+      new cdk.CfnOutput(this, 'VpcId', {
+        value: vpc.vpcId
+      })
+
+      // Adding Outputs for Subnets
+      for( const[key, value] of vpc.subnets){
+        new cdk.CfnOutput(this, key, {
+          value: value
+        });
+      }
+      
+      // Adding Outputs for RouteTables
+      for( const[key, value] of vpc.routeTables){
+        new cdk.CfnOutput(this, key, {
+          value: value
+        });
+      }
     }
   }
 }
