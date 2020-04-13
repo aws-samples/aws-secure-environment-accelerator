@@ -144,8 +144,8 @@
                 "target": "ENI-FW-az1-p2"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               }
             ]
           },
@@ -161,8 +161,8 @@
                 "target": "ENI-FW-az2-p2"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               }
             ]
           },
@@ -647,12 +647,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           },
@@ -664,12 +664,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               },
               {
                 "destination": {
@@ -836,12 +836,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
@@ -1002,12 +1002,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
@@ -1168,12 +1168,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
@@ -1334,12 +1334,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
