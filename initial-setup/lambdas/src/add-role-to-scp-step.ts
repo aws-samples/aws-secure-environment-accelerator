@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { RAM } from '@aws-pbmm/common-lambda/lib/aws/ram';
 
 interface AddRoleToScpInput {
   roleName: string;
@@ -11,6 +12,10 @@ export const handler = async (input: AddRoleToScpInput) => {
   console.log(JSON.stringify(input, null, 2));
 
   const { roleName, policyName } = input;
+
+  //Enable resource sharing within the Orgnization
+  const ram = new RAM();
+  await ram.enableResourceSharing();
 
   // Find the core policy
   const organizations = new Organizations();

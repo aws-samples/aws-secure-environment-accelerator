@@ -7,7 +7,6 @@ import { Bucket } from '@aws-cdk/aws-s3';
 
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
-import { Vpc } from '../common/vpc';
 
 export namespace SharedNetwork {
   export interface StackProps extends cdk.StackProps {
@@ -22,7 +21,9 @@ export namespace SharedNetwork {
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
       const vpcConfig = accountProps.vpc!!;
-      const vpc = new Vpc(this, 'vpc', vpcConfig);
+      const vpc = new Vpc(this, 'vpc', {
+        vpcConfig: vpcConfig,
+      });
 
       //Creating FlowLog for VPC
       if (vpcConfig['flow-logs']) {
@@ -30,7 +31,6 @@ export namespace SharedNetwork {
         //const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
         //  bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
         //});
-
         // const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
       }
 

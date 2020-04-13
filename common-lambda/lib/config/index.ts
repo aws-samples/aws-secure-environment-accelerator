@@ -30,6 +30,7 @@ export const SubnetDefinitionConfig = t.interface({
 export const SubnetConfig = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
+  'share-to-specific-accounts': optional(t.array(t.string)),
   definitions: t.array(SubnetDefinitionConfig),
 });
 

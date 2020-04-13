@@ -1,7 +1,18 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import { VPCSharing } from '../common/vpc-sharing';
 
 import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+
+export interface VPCProps extends cdk.StackProps {
+  vpcConfig: VpcConfig;
+  accounts?: { key: string; id: string }[];
+}
+
+interface SubnetShareProps {
+  Resources: string[];
+  Tags: { Key: string; Value: string }[];
+}
 
 function getRegionAz(region: string, az: string): string {
   return region.split('-')[region.split('-').length - 1] + az;
@@ -11,30 +22,31 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new Map<string, string[]>();
   readonly subnets = new Map<string, string>();
+  readonly subnetTagProps: SubnetShareProps[] = [];
 
-  constructor(parent: cdk.Construct, name: string, props: VpcConfig) {
+  constructor(parent: cdk.Construct, name: string, props: VPCProps) {
     super(parent, name);
-    const vpcName = props.name;
+    const vpcName = props.vpcConfig.name;
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
-      cidrBlock: props.cidr!!.toCidrString(),
+      cidrBlock: props.vpcConfig.cidr!!.toCidrString(),
     });
 
     let extendVpc;
-    if (props.cidr2) {
+    if (props.vpcConfig.cidr2) {
       extendVpc = new ec2.CfnVPCCidrBlock(this, `ExtendVPC`, {
-        cidrBlock: props.cidr2.toCidrString(),
+        cidrBlock: props.vpcConfig.cidr2.toCidrString(),
         vpcId: vpcObj.ref,
       });
     }
 
     let igw;
     let igwAttach;
-    if (props.igw) {
+    if (props.vpcConfig.igw) {
       // Create IGW
       igw = new ec2.CfnInternetGateway(this, `${vpcName}_igw`);
       // Attach IGW to VPC
-      igwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_igw`, {
+      igwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.vpcConfig.name}_attach_igw`, {
         vpcId: vpcObj.ref,
         internetGatewayId: igw.ref,
       });
@@ -42,13 +54,13 @@ export class Vpc extends cdk.Construct {
 
     let vgw;
     let vgwAttach;
-    if (props.vgw) {
+    if (props.vpcConfig.vgw) {
       // Create VGW
-      vgw = new ec2.CfnVPNGateway(this, `${props.name}_vgw`, {
+      vgw = new ec2.CfnVPNGateway(this, `${props.vpcConfig.name}_vgw`, {
         type: 'ipsec.1',
       });
       // Attach VGW to VPC
-      vgwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_vgw`, {
+      vgwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.vpcConfig.name}_attach_vgw`, {
         vpcId: vpcObj.ref,
         vpnGatewayId: vgw.ref,
       });
@@ -58,7 +70,7 @@ export class Vpc extends cdk.Construct {
     const dynamoRoutes: string[] = [];
 
     const routeTableNameToIdMap = new Map<string, string>();
-    const routeTablesProps = props['route-tables'];
+    const routeTablesProps = props.vpcConfig['route-tables'];
     const natRouteTables: string[] = [];
     if (routeTablesProps) {
       // Create Route Tables
@@ -110,7 +122,9 @@ export class Vpc extends cdk.Construct {
       }
     }
 
-    const subnetsConfig = props.subnets || [];
+    const subnetsConfig = props.vpcConfig.subnets || [];
+    const srcAccountId = props.accounts?.find((a) => a.key === props.vpcConfig.deploy)?.id;
+    let subnetIndex: number = 0;
     for (const subnetConfig of subnetsConfig) {
       const subnetAzs: string[] = [];
       const propSubnetName = subnetConfig.name;
@@ -120,19 +134,51 @@ export class Vpc extends cdk.Construct {
         }
 
         // TODO Move this splitting stuff to a function so we can test it
-        const az = getRegionAz(props.region!!, subnetDefinition.az);
+        const az = getRegionAz(props.vpcConfig.region!!, subnetDefinition.az);
 
         const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
           cidrBlock: subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString() || '',
           vpcId: vpcObj.ref,
-          availabilityZone: `${props.region}${subnetDefinition.az}`,
+          availabilityZone: `${props.vpcConfig.region}${subnetDefinition.az}`,
         });
         if (extendVpc) {
           subnet.addDependsOn(extendVpc);
         }
         this.subnets.set(`${propSubnetName}_az${key + 1}`, subnet.ref);
         subnetAzs.push(subnet.ref);
+
+        //Share Central Subnet to sub-accounts
+        if (
+          subnetConfig['share-to-ou-accounts'] &&
+          subnetConfig['share-to-specific-accounts'] &&
+          subnetConfig['share-to-specific-accounts'].length > 0
+        ) {
+          let index: number = 0;
+          let accountIds: string[] = [];
+          const accountNames = subnetConfig['share-to-specific-accounts'];
+          for (const name of accountNames) {
+            let accountId = props.accounts?.find((a) => a.key === name)?.id;
+            if (accountId) {
+              accountIds[index] = accountId;
+              index++;
+            }
+          }
+
+          if (srcAccountId) {
+            new VPCSharing(this, `${vpcName}_${propSubnetName}_vpc_sharing${key + 1}`, {
+              subnetId: subnet.ref,
+              sourceAccountId: srcAccountId,
+              targetAccountIds: accountIds,
+              region: props.vpcConfig.region,
+            });
+            this.subnetTagProps[subnetIndex] = {
+              Resources: [subnet.ref],
+              Tags: [{ Key: 'Name', Value: `${propSubnetName}_az${key + 1}` }],
+            };
+            subnetIndex++;
+          }
+        }
 
         // Attach Subnet to Route-Table
         const routeTableName = subnetDefinition['route-table'];
@@ -156,7 +202,7 @@ export class Vpc extends cdk.Construct {
     }
 
     // Create VPC Gateway End Point
-    for (const gwEndpointName of props['gateway-endpoints'] ? props['gateway-endpoints'] : []) {
+    for (const gwEndpointName of props.vpcConfig['gateway-endpoints'] ? props.vpcConfig['gateway-endpoints'] : []) {
       const gwService = new ec2.GatewayVpcEndpointAwsService(gwEndpointName.toLowerCase());
       new ec2.CfnVPCEndpoint(this, `Endpoint_${gwEndpointName}`, {
         serviceName: gwService.name,
@@ -167,14 +213,14 @@ export class Vpc extends cdk.Construct {
 
     let natgw;
     // Create NAT Gateway
-    if (props.natgw) {
-      const natgwProps = props.natgw;
+    if (props.vpcConfig.natgw) {
+      const natgwProps = props.vpcConfig.natgw;
       const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
 
       natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
         allocationId: eip.attrAllocationId,
         // @ts-ignore
-        subnetId: this.subnets.get(natgwProps.subnet),
+        subnetId: this.subnets.get(natgwprops.vpcConfig.subnet),
       });
 
       // Attach NatGw Routes to Non IGW Route Tables

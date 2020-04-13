@@ -6,6 +6,7 @@ import { KeyObject } from 'crypto';
 export namespace OrganizationalUnit {
   export interface StackProps extends cdk.StackProps {
     organizationalUnits: OrganizationalUnits;
+    accounts: { key: string; id: string }[];
   }
 
   export class Stack extends cdk.Stack {
@@ -15,7 +16,13 @@ export namespace OrganizationalUnit {
       const orgUnitProps = props.organizationalUnits;
 
       const vpcConfig = orgUnitProps.central.vpc!!;
-      const vpc = new Vpc(this, 'vpc', vpcConfig);
+      const vpc = new Vpc(this, 'vpc', {
+        vpcConfig: vpcConfig,
+        accounts: props.accounts,
+      });
+
+      console.log('subnet share props', vpc.subnetTagProps);
+      new cdk.CfnOutput(this, 'SubnetTagInfo', { value: JSON.stringify(vpc.subnetTagProps) });
     }
   }
 }

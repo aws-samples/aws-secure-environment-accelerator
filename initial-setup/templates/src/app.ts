@@ -3,6 +3,7 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { SharedNetwork } from './shared-network/stack';
 import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
 import { OrganizationalUnit } from './organizational-units/stack';
+import { Operations } from './operations/stack';
 
 export namespace App {
   export interface Props extends cdk.AppProps {
@@ -21,6 +22,7 @@ export class App extends cdk.App {
 
     // TODO Get these values dynamically
     const sharedNetworkAccountId = accounts.find((a) => a.key === 'shared-network')?.id;
+    const operationsAccountId = accounts.find((a) => a.key === 'operations')?.id;
     const sharedNetworkConfig = mandatoryAccountConfig['shared-network'];
 
     new SharedNetwork.Stack(this, 'SharedNetwork', {
@@ -40,6 +42,15 @@ export class App extends cdk.App {
       },
       stackName: 'PBMMAccel-OrganizationalUnits',
       organizationalUnits: organizationalUnits,
+      accounts: accounts,
+    });
+
+    new Operations.Stack(this, 'Operations', {
+      env: {
+        account: operationsAccountId,
+        region: cdk.Aws.REGION,
+      },
+      stackName: 'PBMMAccel-Operations',
     });
 
     // Add accelerator tag to all resources

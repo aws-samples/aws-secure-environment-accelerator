@@ -38,7 +38,8 @@
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "colors": "^1.4.0",
     "io-ts": "2.1.2",
-    "io-ts-types": "^0.5.6"
+    "io-ts-types": "^0.5.6",
+    "@aws-cdk/aws-ram": "^1.31.0"
   },
   "jest": {
     "preset": "ts-jest",
