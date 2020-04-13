@@ -19,7 +19,10 @@
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     },
     "accounts": {
-      "master-account-name": "master",
+      "lz-primary-account": "master",
+      "lz-security-account": "security",
+      "lz-log-archive-account": "log-archive",
+      "lz-shared-services-account": "shared-services",
       "mandatory": ["perimeter", "shared-network", "operations"]
     },
     "ou": {
@@ -394,7 +397,7 @@
       }
     },
     "master": {
-      "account-name": "master",
+      "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
       "ou": "core",
       "limits": {
