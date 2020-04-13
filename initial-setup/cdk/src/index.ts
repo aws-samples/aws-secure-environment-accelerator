@@ -104,6 +104,10 @@ export namespace InitialSetup {
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
 
+      const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
+        description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
+      });
+
       const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
@@ -142,12 +146,7 @@ export namespace InitialSetup {
               commands: ['npm install --global pnpm', 'pnpm install'],
             },
             build: {
-              commands: [
-                'cd initial-setup/templates',
-                'pnpm install',
-                'pnpx cdk bootstrap --plugin "$(pwd)/../../plugins/assume-role" --app "pnpx ts-node src/index.ts"',
-                'pnpx cdk deploy "*" --require-approval never --plugin "$(pwd)/../../plugins/assume-role" --app "pnpx ts-node src/index.ts"',
-              ],
+              commands: ['cd initial-setup/templates', 'bash codebuild-deploy.sh'],
             },
           },
         }),
@@ -170,6 +169,10 @@ export namespace InitialSetup {
             ACCOUNTS_SECRET_ID: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: accountsSecret.secretArn,
+            },
+            STACK_OUTPUT_SECRET_ID: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: stackOutputSecret.secretArn,
             },
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -220,10 +223,7 @@ export namespace InitialSetup {
           input: {
             avmProductName,
             avmPortfolioName,
-            'accountName.$': '$.accountName',
-            'emailAddress.$': '$.emailAddress',
-            'organizationalUnit.$': '$.organizationalUnit',
-            'isMasterAccount.$': '$.isMasterAccount',
+            'account.$': '$',
           },
         }),
       });
@@ -262,6 +262,11 @@ export namespace InitialSetup {
         }),
       });
 
+      // Initialize the role in all accounts excluding the primary
+      // We exclude the primary as this stack is probably installed in the primary account as well
+      // and you cannot create a stack set instance in your own account
+      const installRolesInstanceAccountIds = '$.accounts[?(@.primary != true)].id';
+
       const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
         task: new tasks.StartExecution(installRolesStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
@@ -277,12 +282,15 @@ export namespace InitialSetup {
               s3BucketName: installRoleTemplate.s3BucketName,
               s3ObjectKey: installRoleTemplate.s3ObjectKey,
             },
-            'instanceAccounts.$': '$.accounts[?(@.master != true)].id', // Initialize the role in non-master accounts
+            'instanceAccounts.$': installRolesInstanceAccountIds,
             instanceRegions: [stack.region],
           },
         }),
         resultPath: 'DISCARD',
       });
+
+      // TODO We might want to load this from the Landing Zone configuration
+      const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
 
       const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
         functionProps: {
@@ -291,30 +299,54 @@ export namespace InitialSetup {
         },
         functionPayload: {
           roleName: props.executionRoleName,
-          policyName: 'aws-landing-zone-core-mandatory-preventive-guardrails',
+          policyName: coreMandatoryScpName,
         },
         resultPath: 'DISCARD',
       });
 
-      const deployStateMachine = new sfn.StateMachine(this, 'DeplyStateMachine', {
+      const storeStackOutput = new CodeTask(this, 'Store Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
           lambdas: props.lambdas,
           role: pipelineRole,
-          functionPayload: {
-            codeBuildProjectName: project.projectName,
-            sourceBucketName: solutionZip.s3BucketName,
-            sourceBucketKey: solutionZip.s3ObjectKey,
-          },
         }),
       });
 
-      const deployTask = new sfn.Task(this, 'Deploy Initial Setup', {
+      const deployTaskCommonInput = {
+        codeBuildProjectName: project.projectName,
+        sourceBucketName: solutionZip.s3BucketName,
+        sourceBucketKey: solutionZip.s3ObjectKey,
+      };
+
+      const deployLogArchiveTask = new sfn.Task(this, 'Deploy Log Archive Stacks', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
-            codeBuildProjectName: project.projectName,
-            sourceBucketName: solutionZip.s3BucketName,
-            sourceBucketKey: solutionZip.s3ObjectKey,
+            ...deployTaskCommonInput,
+            appPath: 'apps/log-archive.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const deploySharedNetworkTask = new sfn.Task(this, 'Deploy Shared Network Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/shared-network.ts',
           },
         }),
         resultPath: 'DISCARD',
@@ -327,7 +359,9 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(deployTask),
+          .next(deployLogArchiveTask)
+          .next(storeStackOutput)
+          .next(deploySharedNetworkTask),
       });
     }
   }

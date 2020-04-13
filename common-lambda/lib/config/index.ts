@@ -130,9 +130,14 @@ export const MandatoryAccountConfigType = t.interface({
 });
 
 export const GlobalOptionsAccountsConfigType = t.interface({
-  'master-account-name': NonEmptyString,
+  'lz-primary-account': t.string,
+  'lz-security-account': t.string,
+  'lz-log-archive-account': t.string,
+  'lz-shared-services-account': t.string,
   mandatory: t.array(t.string),
 });
+
+export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
   accounts: GlobalOptionsAccountsConfigType,
