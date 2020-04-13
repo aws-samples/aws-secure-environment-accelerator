@@ -5,68 +5,34 @@
     "zones": {
       "account": "shared-network",
       "names": {
-        "public": [
-          "dept.cloud-nuage.canada.ca"
-        ],
-        "private": [
-          "dept.cloud-nuage.gc.ca"
-        ],
-        "on-premise": [
-          "dept.gc.ca"
-        ]
+        "public": ["dept.cloud-nuage.canada.ca"],
+        "private": ["dept.cloud-nuage.gc.ca"],
+        "on-premise": ["dept.gc.ca"]
       },
       "resolvers": {
         "vpc": "Endpoint",
         "subnet": "Endpoint",
-        "outbound-ips": [
-          "7.23.0.1",
-          "7.26.0.2"
-        ]
+        "outbound-ips": ["7.23.0.1", "7.26.0.2"]
       }
     },
     "on-prem": {
-      "cidr": [
-        "7.0.0.0/8",
-        "10.0.0.0/8"
-      ]
+      "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     },
     "accounts": {
       "lz-primary-account": "master",
       "lz-security-account": "security",
       "lz-log-archive-account": "log-archive",
       "lz-shared-services-account": "shared-services",
-      "mandatory": [
-        "perimeter",
-        "shared-network",
-        "operations"
-      ]
+      "mandatory": ["perimeter", "shared-network", "operations"]
     },
     "ou": {
-      "ignore": [
-        "core"
-      ],
-      "mandatory": [
-        "central"
-      ],
-      "additional": [
-        "sandbox",
-        "unclass",
-        "dev",
-        "test",
-        "prod"
-      ]
+      "ignore": ["core"],
+      "mandatory": ["central"],
+      "additional": ["sandbox", "unclass", "dev", "test", "prod"]
     },
     "userids": {
-      "master-breakglass-ids": [
-        "bgUser1",
-        "bgUser2",
-        "bgUser3"
-      ],
-      "master-Ops-ids": [
-        "OpsUser1",
-        "OpsUser2",
-        "OpsUser3"
-      ]
+      "master-breakglass-ids": ["bgUser1", "bgUser2", "bgUser3"],
+      "master-Ops-ids": ["OpsUser1", "OpsUser2", "OpsUser3"]
     }
   },
   "mandatory-account-configs": {
@@ -74,15 +40,18 @@
       "account-name": "Perimeter",
       "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
+      "limits": {},
       "vpc": {
         "deploy": "local",
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
         "region": "ca-central-1",
+		"use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": true,
         "vgw": true,
+        "vgw-asn": "65789",
         "pcx": false,
         "natgw": {
           "subnet": "Public_az1"
@@ -149,9 +118,7 @@
             ]
           }
         ],
-        "gateway-endpoints": [
-          "s3"
-        ],
+        "gateway-endpoints": ["s3"],
         "route-tables": [
           {
             "name": "default"
@@ -242,21 +209,11 @@
             "associate-to-tgw": "Main",
             "account": "shared-network",
             "associate-type": "VPN",
-            "rt-associate": [
-              "core"
-            ],
-            "rt-propogate": [
-              "core",
-              "segregated",
-              "shared",
-              "standalone"
-            ],
+            "rt-associate": ["core"],
+            "rt-propogate": ["core", "segregated", "shared", "standalone"],
             "blackhole-route": false,
             "attach-subnets": [],
-            "options": [
-              "DNS-support",
-              "IPv6-support"
-            ]
+            "options": ["DNS-support", "IPv6-support"]
           }
         }
       }
@@ -265,6 +222,7 @@
       "account-name": "Operations",
       "email": "bmycroft+lzT-operations@amazon.com",
       "ou": "core",
+      "limits": {},
       "vpc": {
         "deploy": "shared",
         "source": "shared-network",
@@ -277,10 +235,21 @@
           "deploy": true,
           "subnet": "GCWide",
           "size": "enterprise",
-          "restrict_srcips": [
-            "7.0.0.0/8",
-            "10.0.0.0/8"
-          ]
+          "dns-domain": "brian.local",
+          "netbios-domain": "brian",
+          "share-to-master": true,
+          "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
+          "password-policies": {
+            "history": 24,
+            "max-age": 90,
+            "min-age": 1,
+            "min-len": 12,
+            "complexity": true,
+            "reversible": false
+          },
+		  "ad-groups": ["Provisioning", "LogArchive-View","Security-Admin","Security-View"],
+		  "adc-group": "ADConnector",
+		  "ad-users": ["adconnector(ADConnector)","Brian(*)"]
         },
         "ops-dashboard": {
           "deploy": true
@@ -290,10 +259,7 @@
         },
         "rdweb-pwd": {
           "deploy": true,
-          "restrict_srcips": [
-            "7.0.0.0/8",
-            "10.0.0.0/8"
-          ]
+          "restrict_srcips": ["7.0.0.0/8", "10.0.0.0/8"]
         }
       }
     },
@@ -301,11 +267,18 @@
       "account-name": "SharedNetwork",
       "email": "bmycroft+lzT-network@amazon.com",
       "ou": "core",
+      "limits": {
+        "Amazon VPC/Interface VPC endpoints per VPC": 200,
+        "Amazon VPC/VPCs per Region": 15,
+        "AWS CloudFormation/Stack count": 400,
+        "AWS CloudFormation/Stack sets per administrator account": 400
+      },
       "vpc": {
         "deploy": "local",
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
         "region": "ca-central-1",
+		"use-central-endpoints": false,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -345,23 +318,11 @@
           "associate-to-tgw": "Main",
           "account": "local",
           "associate-type": "ATTACH",
-          "tgw-rt-associate": [
-            "core"
-          ],
-          "tgw-rt-propagate": [
-            "core",
-            "segregated",
-            "shared",
-            "standalone"
-          ],
+          "tgw-rt-associate": ["core"],
+          "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
           "blackhole-route": false,
-          "attach-subnets": [
-            "Endpoint"
-          ],
-          "options": [
-            "DNS-support",
-            "IPv6-support"
-          ]
+          "attach-subnets": ["Endpoint"],
+          "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": {
           "subnet": "Endpoint",
@@ -431,12 +392,7 @@
             "Default-route-table-propagation": false,
             "Auto-accept-sharing-attachments": false
           },
-          "route-tables": [
-            "core",
-            "segregated",
-            "shared",
-            "standalone"
-          ]
+          "route-tables": ["core", "segregated", "shared", "standalone"]
         }
       }
     },
@@ -444,11 +400,16 @@
       "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
       "ou": "core",
+      "limits": {
+        "AWS Organizations/Maximum accounts": 20,
+        "AWS CloudFormation/Stack count": 400
+      },
       "vpc": {
         "deploy": "local",
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
         "region": "ca-central-1",
+		"use-central-endpoints": false,
         "flow-logs": false,
         "log-retention": 90,
         "igw": false,
@@ -502,6 +463,12 @@
         "interface-endpoints": false
       },
       "deployments": {
+        "adc": {
+          "deploy": true,
+          "subnet": "ForSSO",
+          "size": "small",
+          "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"]
+        },
         "sso": {
           "deploy": true
         }
@@ -516,6 +483,7 @@
         "cidr": "10.1.0.0/16",
         "cidr2": "100.96.252.0/23",
         "region": "ca-central-1",
+		"use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -530,6 +498,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -552,6 +521,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -574,6 +544,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -596,6 +567,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -617,7 +589,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -640,6 +613,7 @@
           {
             "name": "GCWide",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -660,10 +634,7 @@
             ]
           }
         ],
-        "gateway-endpoints": [
-          "s3",
-          "dynamodb"
-        ],
+        "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
             "name": "default"
@@ -713,22 +684,11 @@
           "associate-to-tgw": "Main",
           "account": "shared-network",
           "associate-type": "ATTACH",
-          "tgw-rt-associate": [
-            "shared"
-          ],
-          "tgw-rt-propagate": [
-            "core",
-            "shared",
-            "segregated"
-          ],
+          "tgw-rt-associate": ["shared"],
+          "tgw-rt-propagate": ["core", "shared", "segregated"],
           "blackhole-route": false,
-          "attach-subnets": [
-            "TGW"
-          ],
-          "options": [
-            "DNS-support",
-            "IPv6-support"
-          ]
+          "attach-subnets": ["TGW"],
+          "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
       }
@@ -739,6 +699,7 @@
         "name": "Dev",
         "cidr": "10.2.0.0/16",
         "region": "ca-central-1",
+		"use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -749,6 +710,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -771,6 +733,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -793,6 +756,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -815,6 +779,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -836,7 +801,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -857,10 +823,7 @@
             ]
           }
         ],
-        "gateway-endpoints": [
-          "s3",
-          "dynamodb"
-        ],
+        "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
             "name": "default"
@@ -887,21 +850,11 @@
           "associate-to-tgw": "Main",
           "account": "shared-network",
           "associate-type": "ATTACH",
-          "tgw-rt-associate": [
-            "segregated"
-          ],
-          "tgw-rt-propagate": [
-            "core",
-            "shared"
-          ],
+          "tgw-rt-associate": ["segregated"],
+          "tgw-rt-propagate": ["core", "shared"],
           "blackhole-route": true,
-          "attach-subnets": [
-            "TGW"
-          ],
-          "options": [
-            "DNS-support",
-            "IPv6-support"
-          ]
+          "attach-subnets": ["TGW"],
+          "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
       }
@@ -912,6 +865,7 @@
         "name": "Test",
         "cidr": "10.3.0.0/16",
         "region": "ca-central-1",
+		"use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -922,6 +876,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -944,6 +899,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -966,6 +922,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -988,6 +945,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1009,7 +967,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1030,10 +989,7 @@
             ]
           }
         ],
-        "gateway-endpoints": [
-          "s3",
-          "dynamodb"
-        ],
+        "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
             "name": "default"
@@ -1060,21 +1016,11 @@
           "associate-to-tgw": "Main",
           "account": "shared-network",
           "associate-type": "ATTACH",
-          "tgw-rt-associate": [
-            "segregated"
-          ],
-          "tgw-rt-propagate": [
-            "core",
-            "shared"
-          ],
+          "tgw-rt-associate": ["segregated"],
+          "tgw-rt-propagate": ["core", "shared"],
           "blackhole-route": true,
-          "attach-subnets": [
-            "TGW"
-          ],
-          "options": [
-            "DNS-support",
-            "IPv6-support"
-          ]
+          "attach-subnets": ["TGW"],
+          "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
       }
@@ -1085,6 +1031,7 @@
         "name": "Prod",
         "cidr": "10.4.0.0/16",
         "region": "ca-central-1",
+		"use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -1095,6 +1042,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1117,6 +1065,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1139,6 +1088,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1161,6 +1111,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1182,7 +1133,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1203,10 +1155,7 @@
             ]
           }
         ],
-        "gateway-endpoints": [
-          "s3",
-          "dynamodb"
-        ],
+        "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
             "name": "default"
@@ -1233,21 +1182,11 @@
           "associate-to-tgw": "Main",
           "account": "shared-network",
           "associate-type": "ATTACH",
-          "tgw-rt-associate": [
-            "segregated"
-          ],
-          "tgw-rt-propagate": [
-            "core",
-            "shared"
-          ],
+          "tgw-rt-associate": ["segregated"],
+          "tgw-rt-propagate": ["core", "shared"],
           "blackhole-route": true,
-          "attach-subnets": [
-            "TGW"
-          ],
-          "options": [
-            "DNS-support",
-            "IPv6-support"
-          ]
+          "attach-subnets": ["TGW"],
+          "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
       }
@@ -1258,6 +1197,7 @@
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
         "region": "ca-central-1",
+		"use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -1268,6 +1208,7 @@
           {
             "name": "TGW",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1290,6 +1231,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1312,6 +1254,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1334,6 +1277,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": true,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1355,7 +1299,8 @@
           },
           {
             "name": "Mgmt",
-            "share-to-ou-accounts": true,
+            "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1376,10 +1321,7 @@
             ]
           }
         ],
-        "gateway-endpoints": [
-          "s3",
-          "dynamodb"
-        ],
+        "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
             "name": "default"
@@ -1406,21 +1348,11 @@
           "associate-to-tgw": "Main",
           "account": "shared-network",
           "associate-type": "ATTACH",
-          "tgw-rt-associate": [
-            "segregated"
-          ],
-          "tgw-rt-propagate": [
-            "core",
-            "shared"
-          ],
+          "tgw-rt-associate": ["segregated"],
+          "tgw-rt-propagate": ["core", "shared"],
           "blackhole-route": true,
-          "attach-subnets": [
-            "TGW"
-          ],
-          "options": [
-            "DNS-support",
-            "IPv6-support"
-          ]
+          "attach-subnets": ["TGW"],
+          "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
       }
@@ -1431,20 +1363,20 @@
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
         "region": "ca-central-1",
+		"use-central-endpoints": false,
         "flow-logs": true,
         "log-retention": 90,
         "igw": true,
         "vgw": false,
         "pcx": false,
         "natgw": {
-          "subnets": [
-            "Web_az1"
-          ]
+          "subnets": ["Web_az1"]
         },
         "subnets": [
           {
             "name": "Web",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1467,6 +1399,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1489,6 +1422,7 @@
           {
             "name": "Data",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
@@ -1511,6 +1445,7 @@
           {
             "name": "Mgmt",
             "share-to-ou-accounts": false,
+            "share-to-specific-accounts": [],
             "definitions": [
               {
                 "az": "a",
