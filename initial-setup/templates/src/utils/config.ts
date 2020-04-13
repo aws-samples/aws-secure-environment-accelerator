@@ -1,5 +1,5 @@
-import { SecretsManager } from "@aws-pbmm/common-lambda/lib/aws/secrets-manager";
-import { AcceleratorConfig } from "@aws-pbmm/common-lambda/lib/config";
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -12,7 +12,7 @@ export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
     const contents = fs.readFileSync(configPath);
     return AcceleratorConfig.fromBuffer(contents);
   }
-  
+
   const secretId = process.env.CONFIG_SECRET_ID;
   if (!secretId) {
     throw new Error(`The environment variable "CONFIG_SECRET_ID" needs to be set`);

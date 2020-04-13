@@ -78,7 +78,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         throw new Error(`Cannot detect Landing Zone account type for account with name "${lzAccount.name}"`);
       }
 
-      const acceleratorAccount = accounts.find(a => a.landingZoneAccountType === lzAccountType);
+      const acceleratorAccount = accounts.find((a) => a.landingZoneAccountType === lzAccountType);
       if (acceleratorAccount) {
         // When we find configuration for this account in the Accelerator config, then verify if properties match
         if (acceleratorAccount.accountName !== lzAccount.name) {
@@ -177,7 +177,7 @@ function getAccountKeyByLzAccountType(
 function getLandingZoneAccountTypeBySsmParameters(
   ssmParameters: { name: string; value: string }[],
 ): LandingZoneAccountType | undefined {
-  const accountIdParameter = ssmParameters.find(p => p.value === '$[AccountId]');
+  const accountIdParameter = ssmParameters.find((p) => p.value === '$[AccountId]');
   if (!accountIdParameter) {
     return undefined;
   }

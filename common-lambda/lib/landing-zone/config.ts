@@ -7,10 +7,12 @@ import { optional } from '../config/types';
 export const AccountConfigType = t.interface({
   name: t.string,
   email: optional(t.string),
-  ssm_parameters: t.array(t.interface({
-    name: t.string,
-    value: t.string,
-  })),
+  ssm_parameters: t.array(
+    t.interface({
+      name: t.string,
+      value: t.string,
+    }),
+  ),
 });
 
 export const OrganizationalUnitType = t.interface({

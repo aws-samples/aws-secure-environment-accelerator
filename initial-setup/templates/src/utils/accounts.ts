@@ -1,11 +1,11 @@
-import { SecretsManager } from "@aws-pbmm/common-lambda/lib/aws/secrets-manager";
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import * as fs from 'fs';
 import * as path from 'path';
 
 export type Accounts = { key: string; id: string }[];
 
 export function getAccountId(accounts: Accounts, accountKey: string): string {
-  const account = accounts.find(a => a.key === accountKey);
+  const account = accounts.find((a) => a.key === accountKey);
   if (!account) {
     throw new Error(`Cannot find account with key "${accountKey}"`);
   }
@@ -21,7 +21,7 @@ export async function loadAccounts(): Promise<Accounts> {
     const contents = fs.readFileSync(accountsPath);
     return JSON.parse(contents.toString());
   }
-  
+
   const secretId = process.env.ACCOUNTS_SECRET_ID;
   if (!secretId) {
     throw new Error(`The environment variable "ACCOUNTS_SECRET_ID" needs to be set`);
