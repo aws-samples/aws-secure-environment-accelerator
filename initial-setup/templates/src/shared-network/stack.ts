@@ -7,7 +7,6 @@ import { Bucket } from '@aws-cdk/aws-s3';
 
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
-import { Vpc } from '../common/vpc';
 
 export namespace SharedNetwork {
   export interface StackProps extends cdk.StackProps {
