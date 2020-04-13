@@ -29,12 +29,12 @@ export namespace Perimeter {
 
       // Add outputs to Stack
       new cdk.CfnOutput(this, `${vpcConfig.name}`, {
-        value: vpc.vpcId
+        value: vpc.vpcId,
       });
 
-      for(const [key, value] of vpc.subnets) {
+      for (const [key, value] of vpc.subnets) {
         new cdk.CfnOutput(this, `${key}`, {
-          value: value
+          value: value,
         });
       }
     }
