@@ -82,8 +82,8 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     warnings.push(
       `There are ${organizationalUnits.length} organizational units in the organization while there are only ` +
         `${lzOrganizationalUnits.length} organizational units in the Landing Zone configuration\n` +
-        `  Organizational units in organization: ${organizationalUnits.map(ou => ou.Name).join(', ')}\n` +
-        `  Organizational units in config:       ${lzOrganizationalUnits.map(ou => ou.name).join(', ')}\n`,
+        `  Organizational units in organization: ${organizationalUnits.map((ou) => ou.Name).join(', ')}\n` +
+        `  Organizational units in config:       ${lzOrganizationalUnits.map((ou) => ou.name).join(', ')}\n`,
     );
   }
 
@@ -94,7 +94,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       continue;
     }
 
-    const organizationalUnit = organizationalUnits.find(ou => ou.Name === lzOrganizationalUnitName);
+    const organizationalUnit = organizationalUnits.find((ou) => ou.Name === lzOrganizationalUnitName);
     if (!organizationalUnit) {
       errors.push(`Cannot find organizational unit "${lzOrganizationalUnitName}" that is used by Landing Zone`);
       continue;
@@ -107,7 +107,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         continue;
       }
 
-      const acceleratorAccount = accounts.find(a => a.landingZoneAccountType === lzAccountType);
+      const acceleratorAccount = accounts.find((a) => a.landingZoneAccountType === lzAccountType);
       if (acceleratorAccount) {
         // When we find configuration for this account in the Accelerator config, then verify if properties match
         if (acceleratorAccount.accountName !== lzAccount.name) {
@@ -158,13 +158,15 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   // Verify if there are additional accounts in the OU that are not managed by Landing Zone or Accelerator
   for (const organizationalUnit of organizationalUnits) {
     const accountsInOu = await organizations.listAccountsForParent(organizationalUnit.Id!);
-    const acceleratorAccountsInOu = accounts.filter(account => account.organizationalUnit === organizationalUnit.Name);
+    const acceleratorAccountsInOu = accounts.filter(
+      (account) => account.organizationalUnit === organizationalUnit.Name,
+    );
     if (accountsInOu.length !== acceleratorAccountsInOu.length) {
       warnings.push(
         `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Name}" while there are only ` +
           `${acceleratorAccountsInOu.length} accounts in the Landing Zone and Accelerator configuration\n` +
-          `  Accounts in OU:     ${accountsInOu.map(a => a.Name).join(', ')}\n` +
-          `  Accounts in config: ${acceleratorAccountsInOu.map(a => a.accountName).join(', ')}\n`,
+          `  Accounts in OU:     ${accountsInOu.map((a) => a.Name).join(', ')}\n` +
+          `  Accounts in config: ${acceleratorAccountsInOu.map((a) => a.accountName).join(', ')}\n`,
       );
     }
   }
@@ -227,7 +229,7 @@ function getAccountKeyByLzAccountType(
 function getLandingZoneAccountTypeBySsmParameters(
   ssmParameters: { name: string; value: string }[],
 ): LandingZoneAccountType | undefined {
-  const accountIdParameter = ssmParameters.find(p => p.value === '$[AccountId]');
+  const accountIdParameter = ssmParameters.find((p) => p.value === '$[AccountId]');
   if (!accountIdParameter) {
     return undefined;
   }
@@ -243,12 +245,3 @@ function getLandingZoneAccountTypeBySsmParameters(
   }
   return undefined;
 }
-
-// tslint:disable-next-line: no-floating-promises
-(async () => {
-  const result = await handler({
-    configSecretSourceId: 'accelerator/config',
-    configSecretInProgressId: 'PipelineConfigSecretInProgr-lEkobcVVOo5v',
-  });
-  console.log(JSON.stringify(result, null, 2));
-})();
