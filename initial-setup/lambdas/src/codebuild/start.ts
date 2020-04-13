@@ -4,13 +4,14 @@ interface CodeBuildStartInput {
   codeBuildProjectName: string;
   sourceBucketName: string;
   sourceBucketKey: string;
+  appPath: string;
 }
 
 export const handler = async (input: CodeBuildStartInput) => {
   console.log(`Starting CodeBuild build...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { codeBuildProjectName, sourceBucketName, sourceBucketKey } = input;
+  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, appPath } = input;
 
   const codeBuild = new aws.CodeBuild();
   const response = await codeBuild
@@ -21,6 +22,13 @@ export const handler = async (input: CodeBuildStartInput) => {
       artifactsOverride: {
         type: 'NO_ARTIFACTS',
       },
+      environmentVariablesOverride: [
+        {
+          name: 'APP_PATH',
+          value: appPath,
+          type: 'PLAINTEXT',
+        },
+      ],
     })
     .promise();
 

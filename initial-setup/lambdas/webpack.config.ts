@@ -12,6 +12,7 @@ const config: webpack.Configuration = {
     'add-role-to-scp': './src/add-role-to-scp-step.ts',
     'load-accounts': './src/load-accounts-step.ts',
     'load-configuration': './src/load-configuration-step.ts',
+    'store-stack-output': './src/store-stack-output-step.ts',
     'codebuild/start': './src/codebuild/start.ts',
     'codebuild/verify': './src/codebuild/verify.ts',
     'create-stack/create': './src/create-stack/create.ts',

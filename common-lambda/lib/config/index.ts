@@ -21,7 +21,8 @@ export const NatGatewayConfig = t.interface({
 
 export const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
-  cidr,
+  cidr: optional(cidr),
+  cidr2: optional(cidr),
   'route-table': NonEmptyString,
   disabled: fromNullable(t.boolean, false),
 });
@@ -59,10 +60,10 @@ export const TransitGatewayAttachConfig = t.interface({
   options: optional(t.array(TransitGatewayAttachOption)),
 });
 
-export const InterfaceEndpointName = NonEmptyString; // TODO Define all endpoints here
+export const InterfaceEndpointName = t.string; // TODO Define all endpoints here
 
 export const InterfaceEndpointConfig = t.interface({
-  subnet: NonEmptyString,
+  subnet: t.string,
   endpoints: t.array(InterfaceEndpointName),
 });
 
@@ -70,6 +71,7 @@ export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
   name: NonEmptyString,
   cidr: optional(cidr),
+  cidr2: optional(cidr),
   region: optional(region),
   'flow-logs': fromNullable(t.boolean, false),
   'log-retention': optional(t.number),
@@ -111,6 +113,14 @@ export const AccountConfigType = t.interface({
   }),
 });
 
+export const OrganizationalUnitConfigType = t.interface({
+  vpc: VpcConfigType,
+});
+
+export const OrganizationalUnitsType = t.interface({
+  central: OrganizationalUnitConfigType,
+});
+
 export const MandatoryAccountConfigType = t.interface({
   operations: AccountConfigType,
   'shared-network': AccountConfigType,
@@ -119,9 +129,14 @@ export const MandatoryAccountConfigType = t.interface({
 });
 
 export const GlobalOptionsAccountsConfigType = t.interface({
-  'master-account-name': NonEmptyString,
+  'lz-primary-account': t.string,
+  'lz-security-account': t.string,
+  'lz-log-archive-account': t.string,
+  'lz-shared-services-account': t.string,
   mandatory: t.array(t.string),
 });
+
+export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
   accounts: GlobalOptionsAccountsConfigType,
@@ -130,11 +145,13 @@ export const GlobalOptionsConfigType = t.interface({
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
   'mandatory-account-configs': MandatoryAccountConfigType,
+  'organizational-units': OrganizationalUnitsType,
 });
 
 export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
 export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+export type OrganizationalUnits = t.TypeOf<typeof OrganizationalUnitsType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {

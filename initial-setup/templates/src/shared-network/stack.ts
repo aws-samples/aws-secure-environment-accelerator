@@ -1,4 +1,7 @@
 import * as cdk from '@aws-cdk/core';
+import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { FlowLogs } from '../common/flow-logs';
+import { InterfaceEndpoints } from '../common/interface-endpoints';
 import { Vpc } from '../common/vpc';
 import { Bucket } from '@aws-cdk/aws-s3';
 import { S3 } from '../common/s3';
@@ -6,7 +9,7 @@ import { KMS } from '../common/kms';
 import { FlowLogs } from '../common/flow-logs';
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
-import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { Vpc } from '../common/vpc';
 
 export namespace SharedNetwork {
   export interface StackProps extends cdk.StackProps {
@@ -94,6 +97,11 @@ export namespace SharedNetwork {
           new TransitGatewayAttachment(this, 'tgw_attach', tgwAttachProps);
         }
       }
+
+      new InterfaceEndpoints(this, 'InterfaceEndpoints', {
+        vpc,
+        accountConfig: accountProps,
+      });
     }
   }
 }
