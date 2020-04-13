@@ -1,8 +1,9 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc } from '../common/vpc';
 import { Bucket } from '@aws-cdk/aws-s3';
+import { S3 } from '../common/s3';
+import { KMS } from '../common/kms';
 import { FlowLogs } from '../common/flow-logs';
-
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -22,15 +23,30 @@ export namespace SharedNetwork {
       const vpcConfig = accountProps.vpc!!;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
-      //Creating FlowLog for VPC
-      if (vpcConfig['flow-logs']) {
-        //TODO Get the S3 bucket or ARN
-        const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
-          bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
-        });
+      // kms key to encrypt s3 buckets
+      const kmsKeyS3 = new KMS(this, 'kmsKeyS3', {
+        alias: 'PBMMAccel-Key',
+        description: 'PBMM Accel key for encrypting s3 buckets',
+        enableKeyRotation: false,
+        enabled: true,
+      });
 
-        const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
-      }
+      // bucket name format: pbmmaccel-{account #}-{region}-flowlogs
+      // const flowLogBucketName = `pbmmaccel-${props.env?.account}-${props.env?.region}-flowlogs`
+      const flowLogBucketName = 'pbmmaccel-421338879487-ca-central-1-flowlogs';
+
+      // s3 bucket to collect vpc-flow-logs
+      const s3 = new S3(this, 's3', { bucketName: flowLogBucketName });
+
+      // Creating FlowLog for VPC
+      // if (vpcConfig['flow-logs']) {
+      //   //TODO Get the S3 bucket or ARN
+      //   const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
+      //     bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
+      //   });
+
+      //   const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
+      // }
 
       // Creating TGW for Shared-Network Account
       const deployments = accountProps.deployments;
