@@ -18,7 +18,7 @@ export namespace OrganizationalUnit {
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
       // Add Outputs to Stack
-      
+
       // Adding Output for VPC
       new cdk.CfnOutput(this, `Vpc${vpcConfig.name}`, {
         value: vpc.vpcId,
