@@ -317,6 +317,19 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storeShareNetworkStackOutput = new CodeTask(this, 'Store Shared Network Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
           lambdas: props.lambdas,
@@ -361,7 +374,8 @@ export namespace InitialSetup {
           .next(addRoleToScpTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
-          .next(deploySharedNetworkTask),
+          .next(deploySharedNetworkTask)
+          .next(storeShareNetworkStackOutput),
       });
     }
   }
