@@ -29,8 +29,8 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
   const template = stackToCloudFormation(stack);
   const resources = resourcesToList(template.Resources);
 
-  const tgw = resources.filter((r) => r.Type === 'AWS::EC2::TransitGateway');
-  const tgwRoutes = resources.filter((r) => r.Type === 'AWS::EC2::TransitGatewayRouteTable');
+  const tgw = resources.filter(r => r.Type === 'AWS::EC2::TransitGateway');
+  const tgwRoutes = resources.filter(r => r.Type === 'AWS::EC2::TransitGatewayRouteTable');
 
   // There should only be one internet gateway
   expect(tgw).toHaveLength(1);

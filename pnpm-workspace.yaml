@@ -1,8 +1,6 @@
 packages:
   - common-cdk
   - common-lambda
-  - plugins/**
-  - pipeline/**
-  - accelerator/**
-  - initial-setup/**
-  - account-setup/**
+  - plugins/*
+  - accelerator/*
+  - initial-setup/*

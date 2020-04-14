@@ -1,20 +1,20 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc } from '../common/vpc';
 import { OrganizationalUnits } from '@aws-pbmm/common-lambda/lib/config';
-import { KeyObject } from 'crypto';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 export namespace OrganizationalUnit {
-  export interface StackProps extends cdk.StackProps {
+  export interface StackProps extends AcceleratorStackProps {
     organizationalUnits: OrganizationalUnits;
   }
 
-  export class Stack extends cdk.Stack {
+  export class Stack extends AcceleratorStack {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
 
       const orgUnitProps = props.organizationalUnits;
 
-      const vpcConfig = orgUnitProps.central.vpc!!;
+      const vpcConfig = orgUnitProps.central.vpc;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
       // Add Outputs to Stack
@@ -27,14 +27,14 @@ export namespace OrganizationalUnit {
       // Adding Outputs for Subnets
       for (const [key, value] of vpc.subnets) {
         new cdk.CfnOutput(this, `${vpcConfig.name}Subnet${key}`, {
-          value: value,
+          value,
         });
       }
 
       // Adding Outputs for RouteTables
       for (const [key, value] of vpc.routeTableNameToIdMap) {
         new cdk.CfnOutput(this, `${vpcConfig.name}RouteTable${key}`, {
-          value: value,
+          value,
         });
       }
     }

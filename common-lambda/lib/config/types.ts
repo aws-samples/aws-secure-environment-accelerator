@@ -15,7 +15,7 @@ export const cidr = new t.Type<IPv4CidrRange, string, unknown>(
         return t.failure(s, context, e);
       }
     }),
-  (c) => c.toCidrString(),
+  c => c.toCidrString(),
 );
 
 export class EnumType<T> extends t.Type<T> {
@@ -24,7 +24,7 @@ export class EnumType<T> extends t.Type<T> {
   public constructor(values: ReadonlyArray<T>, name?: string) {
     super(
       name || 'enum',
-      (u): u is T => values.some((v) => v === u),
+      (u): u is T => values.some(v => v === u),
       (u, c) => (this.is(u) ? t.success(u) : t.failure(u, c)),
       t.identity,
     );

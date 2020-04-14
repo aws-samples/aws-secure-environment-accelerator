@@ -39,7 +39,7 @@ export class SecretsManager {
   async *listSecretsGenerator(input: smn.ListSecretsRequest = {}): AsyncIterableIterator<smn.SecretListEntry> {
     yield* listWithNextTokenGenerator<smn.ListSecretsRequest, smn.ListSecretsResponse, smn.SecretListEntry>(
       this.client.listSecrets.bind(this.client),
-      (r) => r.SecretList!!,
+      r => r.SecretList!,
       input,
     );
   }
