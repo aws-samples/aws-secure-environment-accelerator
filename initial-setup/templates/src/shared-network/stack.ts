@@ -7,13 +7,14 @@ import { Bucket } from '@aws-cdk/aws-s3';
 
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 export namespace SharedNetwork {
-  export interface StackProps extends cdk.StackProps {
+  export interface StackProps extends AcceleratorStackProps {
     accountConfig: AccountConfig;
   }
 
-  export class Stack extends cdk.Stack {
+  export class Stack extends AcceleratorStack {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
 

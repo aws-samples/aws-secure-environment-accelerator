@@ -1,8 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
-import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadContext } from '../utils/context';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -15,11 +15,13 @@ async function main() {
 
   const app = new cdk.App();
 
-  const stack = new cdk.Stack(app, 'LogArchive', {
+  const stack = new AcceleratorStack(app, 'LogArchive', {
     env: {
       account: getAccountId(accounts, 'log-archive'),
       region: cdk.Aws.REGION,
     },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-LogArchive',
   });
 
@@ -28,12 +30,6 @@ async function main() {
   new cdk.CfnOutput(stack, 'LogBucketArn', {
     value: bucket.bucketArn,
   });
-
-  // Add accelerator tag to all resources
-  cdk.Tag.add(app, 'Accelerator', context.acceleratorName);
-
-  // Add name tag to all resources
-  app.node.applyAspect(new AcceleratorNameTagger());
 }
 
 // tslint:disable-next-line: no-floating-promises
