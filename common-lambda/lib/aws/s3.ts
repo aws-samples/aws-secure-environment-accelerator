@@ -12,11 +12,11 @@ export class S3 {
 
   async getObjectBody(input: s3.GetObjectRequest): Promise<s3.Body> {
     const object = await this.client.getObject(input).promise();
-    return object.Body!!;
+    return object.Body!;
   }
 
   async getObjectBodyAsString(input: s3.GetObjectRequest): Promise<string> {
-    return this.getObjectBody(input).then((body) => body.toString());
+    return this.getObjectBody(input).then(body => body.toString());
   }
 
   async putObject(input: s3.PutObjectRequest): Promise<s3.PutObjectOutput> {

@@ -1,8 +1,8 @@
 import * as cdk from '@aws-cdk/core';
-import * as s3 from '@aws-cdk/aws-s3';
+import { Perimeter } from '../perimeter/stack';
 import { getAccountId, loadAccounts } from '../utils/accounts';
+import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -11,24 +11,26 @@ process.on('unhandledRejection', (reason, _) => {
 
 async function main() {
   const context = loadContext();
+  const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
+
+  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
+
+  // TODO Get these values dynamically
+  const perimeterAccountId = getAccountId(accounts, 'perimeter');
+  const perimeterConfig = mandatoryAccountConfig.perimeter;
 
   const app = new cdk.App();
 
-  const stack = new AcceleratorStack(app, 'LogArchive', {
+  new Perimeter.Stack(app, 'Perimeter', {
     env: {
-      account: getAccountId(accounts, 'log-archive'),
+      account: perimeterAccountId,
       region: cdk.Aws.REGION,
     },
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-LogArchive',
-  });
-
-  const bucket = new s3.Bucket(stack, 'LogArchiveBucket');
-
-  new cdk.CfnOutput(stack, 'LogBucketArn', {
-    value: bucket.bucketArn,
+    stackName: 'PBMMAccel-Perimeter',
+    accountConfig: perimeterConfig,
   });
 }
 
