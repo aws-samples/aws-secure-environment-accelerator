@@ -1,6 +1,7 @@
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig, GlobalOptionsAccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
+import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 
 export interface LoadConfigurationInput {
   configSecretSourceId: string;
@@ -9,6 +10,7 @@ export interface LoadConfigurationInput {
 
 export interface LoadConfigurationOutput {
   accounts: ConfigurationAccount[];
+  warnings: string[];
 }
 
 export type LandingZoneAccountType = 'primary' | 'security' | 'log-archive' | 'shared-services';
@@ -64,25 +66,52 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     });
   }
 
-  for (const lzOrganizationalUnit of landingZoneStack.config.organizational_units) {
+  const organizations = new Organizations();
+  const organizationalUnits = await organizations.listOrganizationalUnits();
+
+  console.log(`Found organizational units:`);
+  console.log(JSON.stringify(organizationalUnits, null, 2));
+
+  // Keep track of errors and warnings instead of failing immediately
+  const errors = [];
+  const warnings = [];
+
+  // Verify if there are additional OUs that are not managed by Landing Zone
+  const lzOrganizationalUnits = landingZoneStack.config.organizational_units;
+  if (organizationalUnits.length !== lzOrganizationalUnits.length) {
+    warnings.push(
+      `There are ${organizationalUnits.length} organizational units in the organization while there are only ` +
+        `${lzOrganizationalUnits.length} organizational units in the Landing Zone configuration\n` +
+        `  Organizational units in organization: ${organizationalUnits.map((ou) => ou.Name).join(', ')}\n` +
+        `  Organizational units in config:       ${lzOrganizationalUnits.map((ou) => ou.name).join(', ')}\n`,
+    );
+  }
+
+  // Next we verify if the Landing Zone account configuration matches the Accelerator account configuration
+  for (const lzOrganizationalUnit of lzOrganizationalUnits) {
     const lzOrganizationalUnitName = lzOrganizationalUnit.name;
     if (!lzOrganizationalUnit.core_accounts) {
       continue;
     }
 
+    const organizationalUnit = organizationalUnits.find((ou) => ou.Name === lzOrganizationalUnitName);
+    if (!organizationalUnit) {
+      errors.push(`Cannot find organizational unit "${lzOrganizationalUnitName}" that is used by Landing Zone`);
+      continue;
+    }
+
     for (const lzAccount of lzOrganizationalUnit.core_accounts) {
-      // TODO Check if Accelerator OU    matches LZ OU
-      // TODO Check if Accelerator email matches LZ email
       const lzAccountType = getLandingZoneAccountTypeBySsmParameters(lzAccount.ssm_parameters);
       if (!lzAccountType) {
-        throw new Error(`Cannot detect Landing Zone account type for account with name "${lzAccount.name}"`);
+        errors.push(`Cannot detect Landing Zone account type for account with name "${lzAccount.name}"`);
+        continue;
       }
 
       const acceleratorAccount = accounts.find((a) => a.landingZoneAccountType === lzAccountType);
       if (acceleratorAccount) {
         // When we find configuration for this account in the Accelerator config, then verify if properties match
         if (acceleratorAccount.accountName !== lzAccount.name) {
-          throw new Error(
+          errors.push(
             `The Acceleror account name and Landing Zone account name for account type "${lzAccountType}" do not match.\n` +
               `"${acceleratorAccount.accountName}" != "${lzAccount.name}"`,
           );
@@ -90,43 +119,66 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         // Only validate email address and OU for non-primary accounts
         if (lzAccountType !== 'primary') {
           if (acceleratorAccount.emailAddress !== lzAccount.email) {
-            throw new Error(
+            errors.push(
               `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
                 `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
             );
           }
           if (acceleratorAccount.organizationalUnit !== lzOrganizationalUnitName) {
-            throw new Error(
+            errors.push(
               `The Acceleror account OU and Landing Zone OU email for account type "${lzAccountType}" do not match.\n` +
                 `"${acceleratorAccount.organizationalUnit}" != "${lzOrganizationalUnitName}"`,
             );
           }
         }
       } else {
+        // We found a Landing Zone account that is not defined in the Accelerator config
         const accountKey = getAccountKeyByLzAccountType(accountsConfig, lzAccountType);
         if (!accountKey) {
-          throw new Error(`Cannot detect account key for Landing Zone account type ${lzAccount}`);
+          errors.push(`Cannot detect account key for Landing Zone account type ${lzAccount}`);
         }
         const emailAddress = lzAccount.email;
         if (!emailAddress) {
-          throw new Error(`Email address in Landing Zone for account with name "${lzAccount.name}" is not set`);
+          errors.push(`Email address in Landing Zone for account with name "${lzAccount.name}" is not set`);
         }
 
-        accounts.push({
-          accountKey,
-          accountName: lzAccount.name,
-          emailAddress,
-          organizationalUnit: lzOrganizationalUnitName,
-          landingZoneAccountType: lzAccountType,
-        });
+        if (accountKey && emailAddress) {
+          accounts.push({
+            accountKey,
+            accountName: lzAccount.name,
+            emailAddress,
+            organizationalUnit: lzOrganizationalUnitName,
+            landingZoneAccountType: lzAccountType,
+          });
+        }
       }
     }
   }
 
-  // Find all relevant accounts in the organization
+  // Verify if there are additional accounts in the OU that are not managed by Landing Zone or Accelerator
+  for (const organizationalUnit of organizationalUnits) {
+    const accountsInOu = await organizations.listAccountsForParent(organizationalUnit.Id!);
+    const acceleratorAccountsInOu = accounts.filter(
+      (account) => account.organizationalUnit === organizationalUnit.Name,
+    );
+    if (accountsInOu.length !== acceleratorAccountsInOu.length) {
+      warnings.push(
+        `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Name}" while there are only ` +
+          `${acceleratorAccountsInOu.length} accounts in the Landing Zone and Accelerator configuration\n` +
+          `  Accounts in OU:     ${accountsInOu.map((a) => a.Name).join(', ')}\n` +
+          `  Accounts in config: ${acceleratorAccountsInOu.map((a) => a.accountName).join(', ')}\n`,
+      );
+    }
+  }
+
+  // Throw all errors at once
+  if (errors.length > 0) {
+    throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
+  }
+
   return {
     accounts,
-    // TODO Add more relevant configuration values
+    warnings,
   };
 };
 

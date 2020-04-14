@@ -125,9 +125,8 @@ export class AccountVendingMachine {
   /**
    * Is the account created using account-vending-machine available now?
    * @param accountName
-   * @param provisionToken
    */
-  async isAccountAvailable(accountName: string, provisionToken: string): Promise<AccountAvailableOutput> {
+  async isAccountAvailable(accountName: string): Promise<AccountAvailableOutput> {
     const SearchProvisionedProductsOutput = await this.client.searchProvisionedProducts(accountName);
     const provisionedProductStatus = SearchProvisionedProductsOutput?.ProvisionedProducts?.[0].Status;
 
