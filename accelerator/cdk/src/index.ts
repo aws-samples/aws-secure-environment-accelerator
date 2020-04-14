@@ -1,7 +1,6 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import { InitialSetup } from '@aws-pbmm/initial-setup-cdk/src';
-import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -34,11 +33,6 @@ async function main() {
     solutionRoot,
     executionRoleName,
   });
-
-  // Add accelerator tag to all resources
-  cdk.Tag.add(app, 'Accelerator', acceleratorName);
-  // Add name tag to all resources
-  app.node.applyAspect(new AcceleratorNameTagger());
 }
 
 // tslint:disable-next-line: no-floating-promises
