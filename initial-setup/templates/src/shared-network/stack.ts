@@ -99,7 +99,7 @@ export namespace SharedNetwork {
       }
 
       // Adding Outputs for RouteTables
-      for (const [key, value] of vpc.routeTables) {
+      for (const [key, value] of vpc.routeTableNameToIdMap) {
         new cdk.CfnOutput(this, `${vpcConfig.name}RouteTable${key}`, {
           value: value,
         });

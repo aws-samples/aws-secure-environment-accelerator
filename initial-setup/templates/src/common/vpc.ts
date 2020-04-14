@@ -11,7 +11,7 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new Map<string, string[]>();
   readonly subnets = new Map<string, string>();
-  readonly routeTables = new Map<string, string>();
+  readonly routeTableNameToIdMap = new Map<string, string>();
 
   constructor(parent: cdk.Construct, name: string, props: VpcConfig) {
     super(parent, name);
@@ -71,7 +71,7 @@ export class Vpc extends cdk.Construct {
         const routeTable = new ec2.CfnRouteTable(this, routeTableName, {
           vpcId: vpcObj.ref,
         });
-        this.routeTables.set(routeTableName, routeTable.ref);
+        this.routeTableNameToIdMap.set(routeTableName, routeTable.ref);
         if (!routeTableProp.routes?.find((r) => r.target === 'IGW')) {
           natRouteTables.push(routeTableProp.name);
         }
@@ -141,7 +141,7 @@ export class Vpc extends cdk.Construct {
         }
 
         // Find the route table ID for the route table name
-        const routeTableId = this.routeTables.get(routeTableName);
+        const routeTableId = this.routeTableNameToIdMap.get(routeTableName);
         if (!routeTableId) {
           throw new Error(`Cannot find route table with name "${routeTableName}"`);
         }
@@ -179,7 +179,7 @@ export class Vpc extends cdk.Construct {
 
       // Attach NatGw Routes to Non IGW Route Tables
       for (const natRoute of natRouteTables) {
-        const routeTableId = this.routeTables.get(natRoute);
+        const routeTableId = this.routeTableNameToIdMap.get(natRoute);
         const routeParams: ec2.CfnRouteProps = {
           routeTableId: routeTableId!!,
           destinationCidrBlock: '0.0.0.0/0',
