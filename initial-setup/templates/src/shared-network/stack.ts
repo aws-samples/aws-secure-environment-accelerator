@@ -1,15 +1,12 @@
 import * as cdk from '@aws-cdk/core';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as kms from '@aws-cdk/aws-kms';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { FlowLogs } from '../common/flow-logs';
 import { InterfaceEndpoints } from '../common/interface-endpoints';
 import { Vpc } from '../common/vpc';
-import { Bucket } from '@aws-cdk/aws-s3';
-import { S3 } from '../common/s3';
-import { KMS } from '../common/kms';
 import { FlowLogs } from '../common/flow-logs';
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
-import { Vpc } from '../common/vpc';
 
 export namespace SharedNetwork {
   export interface StackProps extends cdk.StackProps {
@@ -26,30 +23,84 @@ export namespace SharedNetwork {
       const vpcConfig = accountProps.vpc!!;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
-      // kms key to encrypt s3 buckets
-      const kmsKeyS3 = new KMS(this, 'kmsKeyS3', {
+      const kmsKey = new kms.Key(this, 'kms', {
         alias: 'PBMMAccel-Key',
-        description: 'PBMM Accel key for encrypting s3 buckets',
+        description: 'Key used to encrypt PBMM Accel s3 bucket',
         enableKeyRotation: false,
         enabled: true,
       });
 
-      // bucket name format: pbmmaccel-{account #}-{region}-flowlogs
-      // const flowLogBucketName = `pbmmaccel-${props.env?.account}-${props.env?.region}-flowlogs`
-      const flowLogBucketName = 'pbmmaccel-421338879487-ca-central-1-flowlogs';
+      // bucket name format: pbmmaccel-{account #}-{region}
+      const flowLogBucketName = `pbmmaccel-${props.env?.account}-ca-central-1-1`;
 
       // s3 bucket to collect vpc-flow-logs
-      const s3 = new S3(this, 's3', { bucketName: flowLogBucketName });
+      const s3BucketForVpcFlowLogs = new s3.CfnBucket(this, 's3', {
+        bucketName: flowLogBucketName,
+        publicAccessBlockConfiguration: {
+          blockPublicAcls: true,
+          blockPublicPolicy: true,
+          ignorePublicAcls: true,
+          restrictPublicBuckets: true,
+        },
+        versioningConfiguration: {
+          status: 'enabled',
+        },
+        bucketEncryption: {
+          serverSideEncryptionConfiguration: [
+            {
+              serverSideEncryptionByDefault: {
+                sseAlgorithm: 'AWS-KMS',
+                kmsMasterKeyId: kmsKey.keyId,
+              },
+            },
+          ],
+        },
+        lifecycleConfiguration: {
+          rules: [
+            {
+              id: 'PBMMAccel-s3-life-cycle-policy-rule-1',
+              status: 'enabled',
+              abortIncompleteMultipartUpload: {
+                daysAfterInitiation: 7,
+              },
+              expirationInDays: 90,
+              noncurrentVersionExpirationInDays: 90,
+            },
+          ],
+        },
+        replicationConfiguration: {
+          role: 'arn:aws:iam::491550984887:role/AcceleratorPipelineRole',
+          rules: [
+            {
+              id: 'PBMMAccel-s3-replication-rule-1',
+              status: 'enabled',
+              prefix: '',
+              destination: {
+                bucket: 'arn:aws:s3:::pbmmaccel-491550984887-ca-central-1/421338879487',
+                account: 'arn:aws:organizations::120663061453:account/o-mp109j1eyo/491550984887',
+                encryptionConfiguration: {
+                  replicaKmsKeyId: 'arn:aws:kms:ca-central-1:421338879487:key/ccf0712b-b852-4dd8-9006-d10710c67cb5',
+                },
+                storageClass: 'Standard',
+              },
+              sourceSelectionCriteria: {
+                sseKmsEncryptedObjects: {
+                  status: 'encrypted',
+                },
+              },
+            },
+          ],
+        },
+      });
 
       // Creating FlowLog for VPC
-      // if (vpcConfig['flow-logs']) {
-      //   //TODO Get the S3 bucket or ARN
-      //   const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
-      //     bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
-      //   });
+      if (vpcConfig['flow-logs']) {
+        const s3BucketCreated = s3.Bucket.fromBucketAttributes(this, id + `bucket`, {
+          bucketArn: s3BucketForVpcFlowLogs.attrArn,
+        });
 
-      //   const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
-      // }
+        const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: s3BucketCreated });
+      }
 
       // Creating TGW for Shared-Network Account
       const deployments = accountProps.deployments;

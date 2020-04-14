@@ -19,7 +19,7 @@ async function main() {
   const outputs = await loadStackOutputs();
 
   // TODO Do something with the bucket ARN
-  const logBucketArn = getStackOutput(outputs, 'log-archive', 'LogBucketArn');
+  // const logBucketArn = getStackOutput(outputs, 'log-archive', 'LogBucketArn');
 
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
 
