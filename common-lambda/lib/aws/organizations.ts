@@ -28,7 +28,7 @@ export class Organizations {
 
     const summaries = listWithNextTokenGenerator<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
-      (r) => r.Policies!,
+      r => r.Policies!,
       input,
     );
     for await (const summary of summaries) {
@@ -44,7 +44,7 @@ export class Organizations {
   async listRoots(): Promise<org.Root[]> {
     return listWithNextToken<org.ListRootsRequest, org.ListRootsResponse, org.Root>(
       this.client.listRoots.bind(this.client),
-      (r) => r.Roots!!,
+      r => r.Roots!!,
       {},
     );
   }
@@ -52,25 +52,66 @@ export class Organizations {
   async listAccounts(): Promise<org.Account[]> {
     return listWithNextToken<org.ListAccountsRequest, org.ListAccountsResponse, org.Account>(
       this.client.listAccounts.bind(this.client),
-      (r) => r.Accounts!!,
+      r => r.Accounts!!,
       {},
+    );
+  }
+
+  async listAccountsForParent(parentId: string): Promise<org.Account[]> {
+    return listWithNextToken<org.ListAccountsForParentRequest, org.ListAccountsForParentResponse, org.Account>(
+      this.client.listAccountsForParent.bind(this.client),
+      r => r.Accounts!,
+      {
+        ParentId: parentId,
+      },
     );
   }
 
   async listParents(accountId: string): Promise<org.Parent[]> {
     return listWithNextToken<org.ListParentsRequest, org.ListParentsResponse, org.Parent>(
       this.client.listParents.bind(this.client),
-      (r) => r.Parents!!,
+      r => r.Parents!!,
       {
         ChildId: accountId,
       },
     );
   }
 
+  async listOrganizationalUnits(): Promise<org.OrganizationalUnit[]> {
+    const result: org.OrganizationalUnit[] = [];
+
+    const roots = await this.listRoots();
+    // Build a queue of parent IDs we need to fetch the children for
+    // Start with the roots
+    const parentIdQueue = roots.map(root => root.Id!);
+    let parentIdQueuePos = 0;
+    while (parentIdQueuePos < parentIdQueue.length) {
+      // Get the next parent ID in the queue
+      const parentId = parentIdQueue[parentIdQueuePos++];
+      const organizationalUnits = await this.listOrganizationalUnitsForParent(parentId);
+      for (const child of organizationalUnits) {
+        result.push(child);
+        // Add child ID to the parent ID queue so we look for their children too
+        parentIdQueue.push(child.Id!);
+      }
+    }
+    return result;
+  }
+
+  async listOrganizationalUnitsForParent(parentId: string): Promise<org.OrganizationalUnit[]> {
+    return listWithNextToken<
+      org.ListOrganizationalUnitsForParentRequest,
+      org.ListOrganizationalUnitsForParentResponse,
+      org.OrganizationalUnit
+    >(this.client.listOrganizationalUnitsForParent.bind(this.client), r => r.OrganizationalUnits!, {
+      ParentId: parentId,
+    });
+  }
+
   async listPolicies(input: org.ListPoliciesRequest): Promise<org.PolicySummary[]> {
     return listWithNextToken<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
-      (r) => r.Policies!!,
+      r => r.Policies!!,
       input,
     );
   }
