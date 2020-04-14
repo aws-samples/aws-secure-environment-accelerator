@@ -23,7 +23,7 @@ export class Vpc extends cdk.Construct {
     const vpcName = props.name;
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
-      cidrBlock: props.cidr!!.toCidrString(),
+      cidrBlock: props.cidr!.toCidrString(),
     });
 
     let extendVpc;
@@ -84,7 +84,7 @@ export class Vpc extends cdk.Construct {
           vpcId: vpcObj.ref,
         });
         this.routeTableNameToIdMap.set(routeTableName, routeTable.ref);
-        if (!routeTableProp.routes?.find((r) => r.target === 'IGW')) {
+        if (!routeTableProp.routes?.find(r => r.target === 'IGW')) {
           natRouteTables.push(routeTableProp.name);
         }
 
@@ -132,7 +132,7 @@ export class Vpc extends cdk.Construct {
         }
 
         // TODO Move this splitting stuff to a function so we can test it
-        const az = getRegionAz(props.region!!, subnetDefinition.az);
+        const az = getRegionAz(props.region!, subnetDefinition.az);
 
         const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
@@ -193,7 +193,7 @@ export class Vpc extends cdk.Construct {
       for (const natRoute of natRouteTables) {
         const routeTableId = this.routeTableNameToIdMap.get(natRoute);
         const routeParams: ec2.CfnRouteProps = {
-          routeTableId: routeTableId!!,
+          routeTableId: routeTableId!,
           destinationCidrBlock: '0.0.0.0/0',
           natGatewayId: natgw?.ref,
         };

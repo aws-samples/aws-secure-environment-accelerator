@@ -18,7 +18,7 @@ export namespace Perimeter {
       const accountProps = props.accountConfig;
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc!!;
+      const vpcConfig = accountProps.vpc;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
       // Creating Interface endpoints
@@ -34,7 +34,7 @@ export namespace Perimeter {
 
       for (const [key, value] of vpc.subnets) {
         new cdk.CfnOutput(this, `${key}`, {
-          value: value,
+          value,
         });
       }
     }

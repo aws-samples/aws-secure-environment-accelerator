@@ -23,7 +23,7 @@ export class STS {
       })
       .promise();
 
-    const result = response.Credentials!!;
+    const result = response.Credentials!;
     return new aws.Credentials({
       accessKeyId: result.AccessKeyId,
       secretAccessKey: result.SecretAccessKey,

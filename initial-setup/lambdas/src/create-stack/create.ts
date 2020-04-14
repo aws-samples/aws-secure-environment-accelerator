@@ -36,27 +36,27 @@ export const handler = async (input: CreateMasterExecutionRoleInput, context: Co
   } = input;
 
   // Read the template as the master account
-  const s3creds = new aws.Credentials(stackTemplateArtifactCredentials!!);
+  const s3creds = new aws.Credentials(stackTemplateArtifactCredentials!);
   const s3 = new S3(s3creds);
   const artifact = await s3.getObjectBody({
-    Bucket: stackTemplateArtifactBucket!!,
-    Key: stackTemplateArtifactKey!!,
+    Bucket: stackTemplateArtifactBucket!,
+    Key: stackTemplateArtifactKey!,
   });
 
   // Extract the stack template from the ZIP file
   const zip = new AdmZip(artifact as Buffer);
-  const stackTemplate = zip.readAsText(stackTemplateArtifactPath!!);
+  const stackTemplate = zip.readAsText(stackTemplateArtifactPath!);
 
   console.debug(`Creating stack template`);
   console.debug(stackTemplate);
 
   const sts = new STS();
-  const credentials = await sts.getCredentialsForRoleArn(assumeRoleArn!!);
+  const credentials = await sts.getCredentialsForRoleArn(assumeRoleArn);
 
   // Deploy the stack using the assumed role in the current region
   const cfn = new CloudFormation(credentials);
   await cfn.createOrUpdateStack({
-    StackName: stackName!!,
+    StackName: stackName,
     TemplateBody: stackTemplate,
     Capabilities: stackCapabilities,
     Parameters: objectToCloudFormationParameters(stackParameters),

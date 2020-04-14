@@ -20,15 +20,15 @@ export namespace SharedNetwork {
       const accountProps = props.accountConfig;
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc!!;
+      const vpcConfig = accountProps.vpc;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
-      //Creating FlowLog for VPC
+      // Creating FlowLog for VPC
       if (vpcConfig['flow-logs']) {
-        //TODO Get the S3 bucket or ARN
-        //const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
-        //  bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
-        //});
+        // TODO Get the S3 bucket or ARN
+        // const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
+        //   bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
+        // });
         // const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
       }
 
@@ -37,7 +37,7 @@ export namespace SharedNetwork {
       const twgDeployment = deployments.tgw;
       const twgAttach = vpcConfig['tgw-attach'];
       if (twgDeployment) {
-        const tgw = new TransitGateway(this, twgDeployment.name!!, twgDeployment);
+        const tgw = new TransitGateway(this, twgDeployment.name!, twgDeployment);
         if (twgAttach) {
           // TBD Account Check
 
@@ -46,21 +46,21 @@ export namespace SharedNetwork {
           // **** Attach VPC to TGW ********
           // Prepare props for TGW Attachment
           let subnetIds: string[] = [];
-          const vpcTgwAttach = vpcConfig['tgw-attach']!!;
-          const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!!;
+          const vpcTgwAttach = vpcConfig['tgw-attach']!;
+          const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!;
           for (const subnet of vpcTgwAttachSubnets) {
             subnetIds = subnetIds.concat(vpc.azSubnets.get(subnet) as string[]);
           }
 
           const tgwRouteAssociations: string[] = [];
           const tgwRoutePropagates: string[] = [];
-          const vpcTgwRTAssociate = vpcTgwAttach['tgw-rt-associate']!!;
+          const vpcTgwRTAssociate = vpcTgwAttach['tgw-rt-associate']!;
           for (const route of vpcTgwRTAssociate) {
             if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
               tgwRouteAssociations.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
             }
           }
-          const vpcTgwRTPropagate = vpcTgwAttach['tgw-rt-propagate']!!;
+          const vpcTgwRTPropagate = vpcTgwAttach['tgw-rt-propagate']!;
           for (const route of vpcTgwRTPropagate) {
             if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
               tgwRoutePropagates.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
@@ -94,14 +94,14 @@ export namespace SharedNetwork {
       // Adding Outputs for Subnets
       for (const [key, value] of vpc.subnets) {
         new cdk.CfnOutput(this, `${vpcConfig.name}Subnet${key}`, {
-          value: value,
+          value,
         });
       }
 
       // Adding Outputs for RouteTables
       for (const [key, value] of vpc.routeTableNameToIdMap) {
         new cdk.CfnOutput(this, `${vpcConfig.name}RouteTable${key}`, {
-          value: value,
+          value,
         });
       }
     }

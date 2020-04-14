@@ -15,11 +15,11 @@ export const handler = async (input: Partial<CheckStepInput>) => {
   const { assumeRoleArn, stackName } = input;
 
   const sts = new STS();
-  const credentials = await sts.getCredentialsForRoleArn(assumeRoleArn!!);
+  const credentials = await sts.getCredentialsForRoleArn(assumeRoleArn!);
 
   // Deploy the stack using the assumed role in the current region
   const cfn = new CloudFormation(credentials);
-  const stack = await cfn.describeStack(stackName!!);
+  const stack = await cfn.describeStack(stackName!);
   if (!stack) {
     return {
       status: 'FAILURE',
@@ -27,7 +27,7 @@ export const handler = async (input: Partial<CheckStepInput>) => {
     };
   }
 
-  const status = stack.StackStatus!!;
+  const status = stack.StackStatus;
   if (SUCCESS_STATUSES.includes(status)) {
     return {
       status: 'SUCCESS',
@@ -36,7 +36,7 @@ export const handler = async (input: Partial<CheckStepInput>) => {
   } else if (FAILED_STATUSES.includes(status)) {
     return {
       status: 'FAILURE',
-      statusReason: stack!.StackStatusReason,
+      statusReason: stack.StackStatusReason,
     };
   }
   return {

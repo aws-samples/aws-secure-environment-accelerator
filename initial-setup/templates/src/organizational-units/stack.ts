@@ -14,7 +14,7 @@ export namespace OrganizationalUnit {
 
       const orgUnitProps = props.organizationalUnits;
 
-      const vpcConfig = orgUnitProps.central.vpc!!;
+      const vpcConfig = orgUnitProps.central.vpc;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
       // Add Outputs to Stack
@@ -27,14 +27,14 @@ export namespace OrganizationalUnit {
       // Adding Outputs for Subnets
       for (const [key, value] of vpc.subnets) {
         new cdk.CfnOutput(this, `${vpcConfig.name}Subnet${key}`, {
-          value: value,
+          value,
         });
       }
 
       // Adding Outputs for RouteTables
       for (const [key, value] of vpc.routeTableNameToIdMap) {
         new cdk.CfnOutput(this, `${vpcConfig.name}RouteTable${key}`, {
-          value: value,
+          value,
         });
       }
     }
