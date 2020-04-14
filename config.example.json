@@ -103,12 +103,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "default",
+                "route-table": "OnPremise_Shared",
                 "cidr": "100.96.251.0/28"
               },
               {
                 "az": "b",
-                "route-table": "default",
+                "route-table": "OnPremise_Shared",
                 "cidr": "100.96.251.32/28"
               }
             ]
@@ -117,7 +117,7 @@
         "gateway-endpoints": ["s3"],
         "route-tables": [
           {
-            "name": "default"
+            "name": "OnPremise_Shared"
           },
           {
             "name": "Public_Shared",
@@ -284,19 +284,13 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "default",
+                "route-table": "Endpoint_Shared",
                 "cidr": "10.7.0.0/24"
               },
               {
                 "az": "b",
-                "route-table": "default",
+                "route-table": "Endpoint_Shared",
                 "cidr": "10.7.1.0/24"
-              },
-              {
-                "az": "d",
-                "route-table": "default",
-                "cidr": "10.7.2.0/24",
-                "disabled": true
               }
             ]
           }
@@ -304,7 +298,7 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "default"
+            "name": "Endpoint_Shared"
           }
         ],
         "tgw-attach": {
@@ -434,19 +428,13 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "default",
+                "route-table": "ForSSO_Shared",
                 "cidr": "10.249.1.0/27"
               },
               {
                 "az": "b",
-                "route-table": "default",
+                "route-table": "ForSSO_Shared",
                 "cidr": "10.249.1.32/27"
-              },
-              {
-                "az": "d",
-                "route-table": "default",
-                "cidr": "10.249.1.64/27",
-                "disabled": true
               }
             ]
           }
@@ -454,7 +442,7 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "default",
+            "name": "ForSSO_Shared",
             "routes": [
               {
                 "destination": {
@@ -645,9 +633,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "CentralVPC_Common",
             "routes": [
               {
@@ -834,9 +819,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "DevVPC_Common",
             "routes": [
               {
@@ -999,9 +981,6 @@
         ],
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
-          {
-            "name": "default"
-          },
           {
             "name": "TestVPC_Common",
             "routes": [
@@ -1166,9 +1145,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "ProdVPC_Common",
             "routes": [
               {
@@ -1332,9 +1308,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "UnClassVPC_Common",
             "routes": [
               {
@@ -1476,9 +1449,6 @@
         ],
         "gateway-endpoints": [],
         "route-tables": [
-          {
-            "name": "default"
-          },
           {
             "name": "SandboxVPC_IGW",
             "routes": [
