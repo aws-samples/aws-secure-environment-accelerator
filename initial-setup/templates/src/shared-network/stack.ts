@@ -83,6 +83,27 @@ export namespace SharedNetwork {
         vpc,
         accountConfig: accountProps,
       });
+
+      // Add Outputs to Stack
+
+      // Adding Output for VPC
+      new cdk.CfnOutput(this, `Vpc${vpcConfig.name}`, {
+        value: vpc.vpcId,
+      });
+
+      // Adding Outputs for Subnets
+      for (const [key, value] of vpc.subnets) {
+        new cdk.CfnOutput(this, `${vpcConfig.name}Subnet${key}`, {
+          value: value,
+        });
+      }
+
+      // Adding Outputs for RouteTables
+      for (const [key, value] of vpc.routeTableNameToIdMap) {
+        new cdk.CfnOutput(this, `${vpcConfig.name}RouteTable${key}`, {
+          value: value,
+        });
+      }
     }
   }
 }
