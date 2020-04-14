@@ -53,7 +53,7 @@ export class Vpc extends cdk.Construct {
         type: 'ipsec.1',
       };
       // @ts-ignore
-      if (typeof VirtualPrivateGatewayConfig.is(vgwConfig) && vgwConfig.asn) {
+      if (VirtualPrivateGatewayConfig.is(vgwConfig) && vgwConfig.asn) {
         // @ts-ignore
         vgwProps.amazonSideAsn = vgwConfig.asn;
       }
