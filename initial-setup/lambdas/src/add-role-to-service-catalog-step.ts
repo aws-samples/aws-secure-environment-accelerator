@@ -25,7 +25,7 @@ export const handler = async (input: AddRoleToServiceCatalog) => {
   const listPrincipalsForPortfolio = await catalog.listPrincipalsForPortfolio(portfolioId);
 
   // Check if the role is already there, otherwise we associate it to the portfolio
-  const principal = listPrincipalsForPortfolio.Principals?.find((p) => p.PrincipalARN === roleArn);
+  const principal = listPrincipalsForPortfolio.Principals?.find(p => p.PrincipalARN === roleArn);
   if (principal) {
     return {
       status: 'SUCCESS',

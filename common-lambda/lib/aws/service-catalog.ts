@@ -45,7 +45,7 @@ export class ServiceCatalog {
 
   async findPortfolioByName(portfolioName: string): Promise<PortfolioDetail | undefined> {
     const listPortfolios = await this.listPortfolios();
-    return listPortfolios?.PortfolioDetails?.find((p) => p.DisplayName === portfolioName);
+    return listPortfolios?.PortfolioDetails?.find(p => p.DisplayName === portfolioName);
   }
 
   /**

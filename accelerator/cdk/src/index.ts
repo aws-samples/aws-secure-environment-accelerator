@@ -8,7 +8,7 @@ process.on('unhandledRejection', (reason, _) => {
   process.exit(1);
 });
 
-(async () => {
+async function main() {
   const configSecretName = 'accelerator/config'; // TODO Should we get this name from a variable?
 
   // Load accelerator name from context
@@ -39,4 +39,7 @@ process.on('unhandledRejection', (reason, _) => {
   cdk.Tag.add(app, 'Accelerator', acceleratorName);
   // Add name tag to all resources
   app.node.applyAspect(new AcceleratorNameTagger());
-})();
+}
+
+// tslint:disable-next-line: no-floating-promises
+main();

@@ -29,7 +29,7 @@ export class FlowLogs extends cdk.Construct {
 
     new ec2.CfnFlowLog(this, 'VPCFlowLog', {
       deliverLogsPermissionArn: flowLogRole.roleArn,
-      resourceId: props.vpcId!!,
+      resourceId: props.vpcId,
       resourceType: 'VPC',
       trafficType: 'ALL',
       logDestination: props.s3Bucket.bucketArn,
