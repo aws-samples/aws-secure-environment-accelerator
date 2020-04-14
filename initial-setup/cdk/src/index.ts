@@ -352,6 +352,18 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const enableResourceShareTask = new CodeTask(this, 'Enable Resource Sharing', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('enable-resource-share'),
+          role: pipelineRole,
+        },
+        // functionPayload: {
+        //   roleName: props.executionRoleName,
+        //   policyName: coreMandatoryScpName,
+        // },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -359,6 +371,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
+          .next(enableResourceShareTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
           .next(deploySharedNetworkTask),

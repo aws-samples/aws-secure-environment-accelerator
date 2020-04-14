@@ -46,6 +46,7 @@ async function main() {
     },
     stackName: 'PBMMAccel-OrganizationalUnits',
     organizationalUnits,
+    accounts: accounts,
   });
 
   // Add accelerator tag to all resources
