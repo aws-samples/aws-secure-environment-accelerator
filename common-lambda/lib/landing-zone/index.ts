@@ -24,9 +24,7 @@ export class LandingZone {
     const stacks = this.cfn.listStacksGenerator({
       StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
     });
-    console.log(stacks);
     for await (const summary of stacks) {
-      console.log(summary.StackName);
       const stack = await this.cfn.describeStack(summary.StackId!);
       if (stack) {
         const outputs: cfn.Outputs = stack.Outputs || [];
