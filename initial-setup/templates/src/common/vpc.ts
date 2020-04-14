@@ -1,10 +1,15 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 
-import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { VpcConfig, VirtualPrivateGatewayConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 
 function getRegionAz(region: string, az: string): string {
   return region.split('-')[region.split('-').length - 1] + az;
+}
+
+interface VGWProps {
+  type: string;
+  amazonSideAsn?: number;
 }
 
 export class Vpc extends cdk.Construct {
@@ -44,10 +49,17 @@ export class Vpc extends cdk.Construct {
     let vgw;
     let vgwAttach;
     if (props.vgw) {
-      // Create VGW
-      vgw = new ec2.CfnVPNGateway(this, `${props.name}_vgw`, {
+      const vgwConfig = props.vgw;
+      const vgwProps: VGWProps = {
         type: 'ipsec.1',
-      });
+      };
+      // @ts-ignore
+      if (VirtualPrivateGatewayConfig.is(vgwConfig) && vgwConfig.asn) {
+        // @ts-ignore
+        vgwProps.amazonSideAsn = vgwConfig.asn;
+      }
+      // Create VGW
+      vgw = new ec2.CfnVPNGateway(this, `${props.name}_vpg`, vgwProps);
       // Attach VGW to VPC
       vgwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.name}_attach_vgw`, {
         vpcId: vpcObj.ref,
