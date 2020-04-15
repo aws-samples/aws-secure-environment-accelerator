@@ -14,7 +14,7 @@ export namespace OrganizationalUnit {
 
       const orgUnitProps = props.organizationalUnits;
 
-      const vpcConfig = orgUnitProps.central.vpc!;
+      const vpcConfig = orgUnitProps.central.vpc;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
       // Add Outputs to Stack

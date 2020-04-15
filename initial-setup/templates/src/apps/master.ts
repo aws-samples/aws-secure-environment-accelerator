@@ -21,7 +21,7 @@ async function main() {
 
   // TODO Get these values dynamically
   const masteAccountAccountId = getAccountId(accounts, 'master');
-  const masteAccountConfig = mandatoryAccountConfig['master'];
+  const masteAccountConfig = mandatoryAccountConfig.master;
 
   const app = new cdk.App();
 
