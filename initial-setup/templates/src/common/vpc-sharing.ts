@@ -36,7 +36,7 @@ function prepareSubnetIdArn(subId: string, acctId: string, regnId?: string) {
 
 function replaceAll(templateArn: String, inputs: any) {
   var regexp = new RegExp(Object.keys(inputs).join('|'), 'gi');
-  var modified_string = templateArn.replace(regexp, function(matched) {
+  var modified_string = templateArn.replace(regexp, function (matched) {
     return inputs[matched];
   });
   return modified_string;
