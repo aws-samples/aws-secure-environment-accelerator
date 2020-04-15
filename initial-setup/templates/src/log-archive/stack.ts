@@ -1,17 +1,17 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
-import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 export namespace LogArchive {
-  // export interface StackProps extends cdk.StackProps {
-  //   accountConfig: AccountConfig;
-  // }
-
+  export interface StackProps extends cdk.StackProps {
+    centralLogRetentionInDays: number;
+  }
+  
   export class Stack extends cdk.Stack {
-    constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
-      super(scope, id, props);
+    readonly s3BucketArn: string;
+    readonly s3KmsKeyArn: string;
 
-      // const accountProps = props.accountConfig;
+    constructor(scope: cdk.Construct, id: string, props: StackProps) {
+      super(scope, id, props);
 
       // bucket name format: pbmmaccel-{account #}-{region}
       const replBucketName = `pbmmaccel-${props.env?.account}-ca-central-1`;
@@ -33,12 +33,18 @@ export namespace LogArchive {
         id: 'PBMMAccel-s3-life-cycle-policy-rule-1',
         enabled: true,
         abortIncompleteMultipartUploadAfter: cdk.Duration.days(7),
-        expiration: cdk.Duration.days(730),
-        noncurrentVersionExpiration: cdk.Duration.days(730),
+        expiration: cdk.Duration.days(props.centralLogRetentionInDays),
+        noncurrentVersionExpiration: cdk.Duration.days(props.centralLogRetentionInDays),
       };
 
       // attach life cycle policy to the s3 bucket
       s3BucketForVpcFlowLogs.addLifecycleRule(s3LifeCycleRule);
+
+      // store the s3 bucket arn for later reference
+      this.s3BucketArn = s3BucketForVpcFlowLogs.bucketArn;
+
+      // store the s3 bucket - kms key arn for later reference
+      this.s3KmsKeyArn = s3BucketForVpcFlowLogs.encryptionKey?.keyArn ? s3BucketForVpcFlowLogs.encryptionKey?.keyArn : '';
     }
   }
 }
