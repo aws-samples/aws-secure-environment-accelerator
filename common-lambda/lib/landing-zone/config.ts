@@ -15,17 +15,18 @@ export const AccountConfigType = t.interface({
   ),
 });
 
-export const OrganizationalUnitType = t.interface({
+export const OrganizationalUnitConfigType = t.interface({
   name: t.string,
-  include_in_baseline_products: t.array(t.string),
   core_accounts: fromNullable(t.array(AccountConfigType), []),
 });
+
+export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export const LandingZoneConfigType = t.interface({
   region: t.string,
   version: t.unknown,
   nested_ou_delimiter: t.string,
-  organizational_units: t.array(OrganizationalUnitType),
+  organizational_units: t.array(OrganizationalUnitConfigType),
 });
 
 export type LandingZoneConfig = t.TypeOf<typeof LandingZoneConfigType>;

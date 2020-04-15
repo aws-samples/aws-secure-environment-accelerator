@@ -121,13 +121,6 @@ export const OrganizationalUnitsType = t.interface({
   central: OrganizationalUnitConfigType,
 });
 
-export const MandatoryAccountConfigType = t.interface({
-  operations: AccountConfigType,
-  'shared-network': AccountConfigType,
-  master: AccountConfigType,
-  perimeter: AccountConfigType,
-});
-
 export const GlobalOptionsAccountsConfigType = t.interface({
   'lz-primary-account': t.string,
   'lz-security-account': t.string,
@@ -144,7 +137,7 @@ export const GlobalOptionsConfigType = t.interface({
 
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
-  'mandatory-account-configs': MandatoryAccountConfigType,
+  'mandatory-account-configs': t.record(t.string, AccountConfigType),
   'organizational-units': OrganizationalUnitsType,
 });
 
