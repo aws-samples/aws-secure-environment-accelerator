@@ -20,6 +20,11 @@ export async function* listWithNextTokenGenerator<Input extends WithNextToken, R
 ): AsyncIterable<Value> {
   let token: string | undefined;
   do {
+    if (token) {
+      // Throttle requests
+      await delay(1000);
+    }
+
     const response: Response = await requester({
       ...input,
       NextToken: token,
@@ -27,4 +32,8 @@ export async function* listWithNextTokenGenerator<Input extends WithNextToken, R
     token = response.NextToken;
     yield* values(response);
   } while (token !== undefined);
+}
+
+async function delay(ms: number) {
+  return new Promise((resolve, reject) => setTimeout(resolve, ms));
 }

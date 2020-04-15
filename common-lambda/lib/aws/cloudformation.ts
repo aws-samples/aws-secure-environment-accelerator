@@ -64,7 +64,9 @@ export class CloudFormation {
         })
         .promise();
       return response.Stacks?.[0];
-    } catch {
+    } catch(e) {
+      console.warn(`Ignoring error in describeStack`);
+      console.warn(e);
       return undefined;
     }
   }
@@ -112,7 +114,9 @@ export class CloudFormation {
         })
         .promise();
       return response.StackSet;
-    } catch {
+    } catch (e) {
+      console.warn(`Ignoring error in describeStack`);
+      console.warn(e);
       return undefined;
     }
   }

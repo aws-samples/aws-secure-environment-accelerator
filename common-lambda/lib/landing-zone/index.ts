@@ -25,19 +25,25 @@ export class LandingZone {
       StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
     });
     for await (const summary of stacks) {
-      const stack = await this.cfn.describeStack(summary.StackId!);
-      if (stack) {
-        const outputs: cfn.Outputs = stack.Outputs || [];
-        const versionOutput = outputs.find((output) => output.OutputKey === LandingZoneStack.VERSION_OUTPUT_KEY);
-        const bucketOutput = outputs.find((output) => output.OutputKey === LandingZoneStack.BUCKET_OUTPUT_KEY);
-        if (versionOutput && bucketOutput) {
-          return LandingZoneStack.fromStack({
-            credentials: this.credentials,
-            versionOutput,
-            bucketOutput,
-          });
-        }
+      const stack = await this.cfn.describeStack(summary.StackName);
+      if (!stack) {
+        console.warn(`Cannot describe stack with name "${summary.StackName}" and ID "${summary.StackId}"`);
+        continue;
       }
+
+      const outputs: cfn.Outputs = stack.Outputs || [];
+      const versionOutput = outputs.find(output => output.OutputKey === LandingZoneStack.VERSION_OUTPUT_KEY);
+      const bucketOutput = outputs.find(output => output.OutputKey === LandingZoneStack.BUCKET_OUTPUT_KEY);
+      if (!versionOutput || !bucketOutput) {
+        console.warn(`Cannot find Landing Zone outputs for version and bucket in stack with name "${summary.StackName}"`);
+        continue;
+      }
+
+      return LandingZoneStack.fromStack({
+        credentials: this.credentials,
+        versionOutput,
+        bucketOutput,
+      });
     }
     return null;
   }
