@@ -107,8 +107,8 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ]),
   );
 
-  const vpc = resources.find((r) => r.Type === 'AWS::EC2::VPC')!!;
-  const subnets = resources.filter((r) => r.Type === 'AWS::EC2::Subnet');
+  const vpc = resources.find(r => r.Type === 'AWS::EC2::VPC')!!;
+  const subnets = resources.filter(r => r.Type === 'AWS::EC2::Subnet');
 
   // There should be 4 subnets as 2 of the 6 given subnets are disabled
   expect(subnets).toHaveLength(4);
@@ -158,8 +158,8 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ]),
   );
 
-  const routeTables = resources.filter((r) => r.Type === 'AWS::EC2::RouteTable');
-  const associations = resources.filter((r) => r.Type === 'AWS::EC2::SubnetRouteTableAssociation');
+  const routeTables = resources.filter(r => r.Type === 'AWS::EC2::RouteTable');
+  const associations = resources.filter(r => r.Type === 'AWS::EC2::SubnetRouteTableAssociation');
 
   // There's a single route table
   expect(routeTables).toHaveLength(1);
@@ -167,7 +167,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
   // The route table is associated with all the subnets
   expect(associations).toHaveLength(4);
 
-  const vpcEndpoints = resources.filter((r) => r.Type === 'AWS::EC2::VPCEndpoint');
+  const vpcEndpoints = resources.filter(r => r.Type === 'AWS::EC2::VPCEndpoint');
 
   // The VPCEndpoints Endpoints count is 2
   expect(vpcEndpoints).toHaveLength(2);
@@ -228,7 +228,7 @@ test('the VPC creation should create the internet gateway', () => {
   const template = stackToCloudFormation(stack);
   const resources = resourcesToList(template.Resources);
 
-  const internetGateways = resources.filter((r) => r.Type === 'AWS::EC2::InternetGateway');
+  const internetGateways = resources.filter(r => r.Type === 'AWS::EC2::InternetGateway');
 
   // There should only be one internet gateway
   expect(internetGateways).toHaveLength(1);
@@ -268,8 +268,8 @@ test('the VPC creation should create the VPN gateway', () => {
     ]),
   );
 
-  const vpc = resources.find((r) => r.Type === 'AWS::EC2::VPC')!!;
-  const vpnGateway = resources.find((r) => r.Type === 'AWS::EC2::VPNGateway')!!;
+  const vpc = resources.find(r => r.Type === 'AWS::EC2::VPC')!!;
+  const vpnGateway = resources.find(r => r.Type === 'AWS::EC2::VPNGateway')!!;
 
   // There should only be one VPN Gateway Attachment
   expect(resources).toEqual(
@@ -365,19 +365,19 @@ test('the VPC creation should create the NAT gateway', () => {
   const resources = resourcesToList(template.Resources);
 
   // There should be only on EIP Created
-  const eip = resources.filter((r) => r.Type === 'AWS::EC2::EIP');
+  const eip = resources.filter(r => r.Type === 'AWS::EC2::EIP');
   expect(eip).toHaveLength(1);
 
   // There should NAT Gatewsy Created
-  const natGateways = resources.filter((r) => r.Type === 'AWS::EC2::NatGateway');
+  const natGateways = resources.filter(r => r.Type === 'AWS::EC2::NatGateway');
   expect(natGateways).toHaveLength(1);
 
   // Route Tables
-  const routeTables = resources.filter((r) => r.Type === 'AWS::EC2::RouteTable');
+  const routeTables = resources.filter(r => r.Type === 'AWS::EC2::RouteTable');
 
-  const privateRoute = routeTables.find((x) => x.LogicalId.startsWith('SharedNetworkPrivate'));
-  const routes = resources.filter((r) => r.Type === 'AWS::EC2::Route');
-  const natRoute = routes.find((x) => x.Properties.NatGatewayId!! != undefined);
+  const privateRoute = routeTables.find(x => x.LogicalId.startsWith('SharedNetworkPrivate'));
+  const routes = resources.filter(r => r.Type === 'AWS::EC2::Route');
+  const natRoute = routes.find(x => x.Properties.NatGatewayId!! != undefined);
 
   // Check NAT Gateway Route is assigned to Private Route Table which doesn't have IGW assigned
   expect(routes).toEqual(

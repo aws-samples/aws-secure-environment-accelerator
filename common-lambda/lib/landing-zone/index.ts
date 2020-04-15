@@ -28,8 +28,8 @@ export class LandingZone {
       const stack = await this.cfn.describeStack(summary.StackId!);
       if (stack) {
         const outputs: cfn.Outputs = stack.Outputs || [];
-        const versionOutput = outputs.find((output) => output.OutputKey === LandingZoneStack.VERSION_OUTPUT_KEY);
-        const bucketOutput = outputs.find((output) => output.OutputKey === LandingZoneStack.BUCKET_OUTPUT_KEY);
+        const versionOutput = outputs.find(output => output.OutputKey === LandingZoneStack.VERSION_OUTPUT_KEY);
+        const bucketOutput = outputs.find(output => output.OutputKey === LandingZoneStack.BUCKET_OUTPUT_KEY);
         if (versionOutput && bucketOutput) {
           return LandingZoneStack.fromStack({
             credentials: this.credentials,

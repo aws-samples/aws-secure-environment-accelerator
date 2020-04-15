@@ -16,8 +16,8 @@ export class TransitGateway extends cdk.Construct {
 
     // TODO Verify if features are mandatory
     const features = props.features;
-    // TODO Remove the !! operator and verify if route tables are mandatory
-    const routeTables = props['route-tables']!!;
+    // TODO Remove the ! operator and verify if route tables are mandatory
+    const routeTables = props['route-tables']!;
 
     const tgwObject = new ec2.CfnTransitGateway(this, name, {
       dnsSupport: enableDisableProperty(features?.['DNS-support']),
