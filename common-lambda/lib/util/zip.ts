@@ -8,9 +8,10 @@ export function zipFiles(out: string, fn: (archive: archiver.Archiver) => void) 
   return new Promise((resolve, reject) => {
     fn(archive);
 
-    archive.on('error', (err) => reject(err)).pipe(stream);
-
+    archive.on('error', err => reject(err)).pipe(stream);
     stream.on('close', () => resolve());
+
+    // tslint:disable-next-line: no-floating-promises
     archive.finalize();
   });
 }

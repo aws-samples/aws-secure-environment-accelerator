@@ -13,7 +13,7 @@ export interface StackOutput {
 export type StackOutputs = StackOutput[];
 
 export function getStackOutput(outputs: StackOutputs, accountKey: string, outputKey: string): string {
-  const output = outputs.find((o) => o.outputKey === outputKey && o.accountKey === accountKey);
+  const output = outputs.find(o => o.outputKey === outputKey && o.accountKey === accountKey);
   if (!output) {
     throw new Error(`Cannot find output with key "${outputKey}" in account with key "${accountKey}"`);
   }
