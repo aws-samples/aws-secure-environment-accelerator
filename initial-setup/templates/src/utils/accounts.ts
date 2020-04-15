@@ -2,7 +2,7 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import * as fs from 'fs';
 import * as path from 'path';
 
-export type Accounts = { key: string; id: string, arn: string }[];
+export type Accounts = { key: string; id: string; arn: string }[];
 
 export function getAccountId(accounts: Accounts, accountKey: string): string {
   const account = accounts.find((a) => a.key === accountKey);

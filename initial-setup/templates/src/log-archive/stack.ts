@@ -5,7 +5,7 @@ export namespace LogArchive {
   export interface StackProps extends cdk.StackProps {
     centralLogRetentionInDays: number;
   }
-  
+
   export class Stack extends cdk.Stack {
     readonly s3BucketArn: string;
     readonly s3KmsKeyArn: string;
@@ -44,7 +44,9 @@ export namespace LogArchive {
       this.s3BucketArn = s3BucketForVpcFlowLogs.bucketArn;
 
       // store the s3 bucket - kms key arn for later reference
-      this.s3KmsKeyArn = s3BucketForVpcFlowLogs.encryptionKey?.keyArn ? s3BucketForVpcFlowLogs.encryptionKey?.keyArn : '';
+      this.s3KmsKeyArn = s3BucketForVpcFlowLogs.encryptionKey?.keyArn
+        ? s3BucketForVpcFlowLogs.encryptionKey?.keyArn
+        : '';
     }
   }
 }

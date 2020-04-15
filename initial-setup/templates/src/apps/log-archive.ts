@@ -17,8 +17,8 @@ async function main() {
   const accounts = await loadAccounts();
 
   // TODO Get these values dynamically
-  const globalOptionsConfig = acceleratorConfig["global-options"];
-  const centralLogRetention = globalOptionsConfig["central-log-retention"];
+  const globalOptionsConfig = acceleratorConfig['global-options'];
+  const centralLogRetention = globalOptionsConfig['central-log-retention'];
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
 
   const app = new cdk.App();
