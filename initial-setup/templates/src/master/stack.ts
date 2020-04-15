@@ -2,13 +2,14 @@ import * as cdk from '@aws-cdk/core';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoints } from '../common/interface-endpoints';
 import { Vpc } from '../common/vpc';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 export namespace Master {
-  export interface StackProps extends cdk.StackProps {
+  export interface StackProps extends AcceleratorStackProps {
     accountConfig: AccountConfig;
   }
 
-  export class Stack extends cdk.Stack {
+  export class Stack extends AcceleratorStack {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
 

@@ -30,6 +30,8 @@ async function main() {
       account: masteAccountAccountId,
       region: cdk.Aws.REGION,
     },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-Master',
     accountConfig: masteAccountConfig,
   });
