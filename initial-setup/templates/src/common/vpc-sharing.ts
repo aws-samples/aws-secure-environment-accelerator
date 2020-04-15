@@ -35,7 +35,6 @@ function prepareSubnetIdArn(subId: string, acctId: string, regnId?: string) {
 }
 
 function replaceAll(templateArn: string, inputs: any) {
-  console.log("find type of inputs", typeof(inputs));
   const regexp = new RegExp(Object.keys(inputs).join('|'), 'gi');
   const modifiedString = templateArn.replace(regexp, function getSubnetArn(matched: string) {
     return inputs[matched];
