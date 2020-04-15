@@ -138,8 +138,23 @@ export const GlobalOptionsAccountsConfigType = t.interface({
 
 export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
 
+export const ZoneNamesConfigType = t.interface({
+  public: t.array(t.string),
+  private: t.array(t.string)
+});
+
+export const GlobalOptionsZonesConfigType = t.interface({
+  account: NonEmptyString,
+  "resolver-vpc": NonEmptyString,
+  "resolver-subnet": NonEmptyString,
+  names: ZoneNamesConfigType,
+});
+
+export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigType>;
+
 export const GlobalOptionsConfigType = t.interface({
   accounts: GlobalOptionsAccountsConfigType,
+  zones: GlobalOptionsZonesConfigType
 });
 
 export const AcceleratorConfigType = t.interface({

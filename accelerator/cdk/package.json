@@ -33,6 +33,7 @@
     "@aws-cdk/aws-iam": "1.32.2",
     "@aws-cdk/aws-kms": "1.32.2",
     "@aws-cdk/aws-lambda": "1.32.2",
+    "@aws-cdk/aws-route53resolver": "^1.32.2",
     "@aws-cdk/aws-s3": "1.32.2",
     "@aws-cdk/aws-s3-assets": "1.32.2",
     "@aws-cdk/aws-sns": "1.32.2",
@@ -42,7 +43,9 @@
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "@aws-pbmm/initial-setup-cdk": "workspace:^0.0.1",
+    "@types/cfn-response": "^1.0.3",
     "aws-sdk": "2.585.0",
+    "cfn-response": "^1.0.1",
     "tempy": "0.5.0"
   }
 }
