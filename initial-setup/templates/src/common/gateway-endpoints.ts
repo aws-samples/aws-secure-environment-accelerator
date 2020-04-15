@@ -33,7 +33,7 @@ export class GatewayEndpoints extends cdk.Construct {
 
     const { vpc, accountConfig } = props;
 
-    const vpcConfig = accountConfig.vpc;
+    const vpcConfig = accountConfig.vpc!;
     const gatewayEndpoints = vpcConfig['gateway-endpoints'] || [];
     for (const gatewayEndpoint of gatewayEndpoints) {
       new GatewayEndpoint(this, gatewayEndpoint, {
