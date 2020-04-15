@@ -8,7 +8,7 @@
       "names": {
         "public": ["dept.cloud-nuage.canada.ca"],
         "private": ["dept.cloud-nuage.gc.ca"]
-      },
+      }
     },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]

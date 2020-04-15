@@ -323,6 +323,32 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storePerimeterStackOutput = new CodeTask(this, 'Store Perimeter Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const storeMasterStackOutput = new CodeTask(this, 'Store Master Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
           lambdas: props.lambdas,
@@ -358,6 +384,28 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deployPerimeterAccountkTask = new sfn.Task(this, 'Deploy Perimeter Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/perimeter.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const deployMasterAccountkTask = new sfn.Task(this, 'Deploy Master Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/master.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -368,7 +416,11 @@ export namespace InitialSetup {
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
           .next(deploySharedNetworkTask)
-          .next(storeShareNetworkStackOutput),
+          .next(storeShareNetworkStackOutput)
+          .next(deployPerimeterAccountkTask)
+          .next(storePerimeterStackOutput)
+          .next(deployMasterAccountkTask)
+          .next(storeMasterStackOutput),
       });
     }
   }
