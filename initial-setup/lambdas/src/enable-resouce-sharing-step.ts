@@ -4,7 +4,7 @@ import { RAM } from '@aws-pbmm/common-lambda/lib/aws/ram';
 export const handler = async () => {
   console.log(`Enable resource sharing between the accounts in an organization ...`);
 
-  //Enable resource sharing within the Orgnization
+  // Enable resource sharing within the Orgnization
   const ram = new RAM();
   await ram.enableResourceSharing();
 

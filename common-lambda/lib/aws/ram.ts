@@ -11,10 +11,16 @@ export class RAM {
 
   async enableResourceSharing(): Promise<void> {
     const params = {};
-    this.client.enableSharingWithAwsOrganization(params, function (err, data) {
+    this.client.enableSharingWithAwsOrganization(params, function callback(
+      err: aws.AWSError,
+      data: aws.RAM.EnableSharingWithAwsOrganizationResponse,
+    ) {
       // an error occurred
-      if (err) console.log(err, err.stack);
-      else console.log(data); // successful response
+      if (err) {
+        console.log(err, err.stack);
+      } else {
+        console.log(data);
+      } // successful response
     });
   }
 }

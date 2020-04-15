@@ -24,9 +24,9 @@ export class VPCSharing extends cdk.Construct {
   }
 }
 
-//Function to prepare actual Subnet ARN by taking inputs of region, accountId and subnetId
+// Function to prepare actual Subnet ARN by taking inputs of region, accountId and subnetId
 function prepareSubnetIdArn(subId: string, acctId: string, regnId?: string) {
-  let modifiedString = replaceAll(subnetArnTemplate, {
+  const modifiedString = replaceAll(subnetArnTemplate, {
     subnetId: subId,
     accountId: acctId,
     region: regnId,
@@ -34,10 +34,11 @@ function prepareSubnetIdArn(subId: string, acctId: string, regnId?: string) {
   return modifiedString;
 }
 
-function replaceAll(templateArn: String, inputs: any) {
-  var regexp = new RegExp(Object.keys(inputs).join('|'), 'gi');
-  var modified_string = templateArn.replace(regexp, function (matched) {
+function replaceAll(templateArn: string, inputs: any) {
+  console.log("find type of inputs", typeof(inputs));
+  const regexp = new RegExp(Object.keys(inputs).join('|'), 'gi');
+  const modifiedString = templateArn.replace(regexp, function getSubnetArn(matched: string) {
     return inputs[matched];
   });
-  return modified_string;
+  return modifiedString;
 }

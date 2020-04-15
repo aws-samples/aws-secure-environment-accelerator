@@ -23,7 +23,7 @@ export namespace SharedNetwork {
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
       const vpcConfig = accountProps.vpc!;
       const vpc = new Vpc(this, 'vpc', {
-        vpcConfig: vpcConfig,
+        vpcConfig,
       });
 
       // Creating FlowLog for VPC

@@ -27,7 +27,7 @@ export class ResourceTags extends cdk.Construct {
     });
 
     const resource = new cfn.CustomResource(this, 'TagResource', {
-      provider: cfn.CustomResourceProvider.lambda(func),
+      provider: cfn.CustomResourceProvider.fromLambda(func),
       properties: props,
     });
   }

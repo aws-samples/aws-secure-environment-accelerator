@@ -49,7 +49,7 @@ async function main() {
     acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-OrganizationalUnits',
     organizationalUnits,
-    accounts: accounts,
+    accounts,
   });
 }
 

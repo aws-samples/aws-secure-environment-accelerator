@@ -36,7 +36,7 @@ export class Vpc extends cdk.Construct {
     const vpcName = props.vpcConfig.name;
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
-      cidrBlock: props.vpcConfig.cidr!!.toCidrString(),
+      cidrBlock: props.vpcConfig.cidr!.toCidrString(),
     });
 
     let extendVpc;
@@ -150,7 +150,7 @@ export class Vpc extends cdk.Construct {
 
         // TODO Move this splitting stuff to a function so we can test it
 
-        const az = getRegionAz(props.vpcConfig.region!!, subnetDefinition.az);
+        const az = getRegionAz(props.vpcConfig.region!, subnetDefinition.az);
         const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
           cidrBlock: subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString() || '',
@@ -163,13 +163,13 @@ export class Vpc extends cdk.Construct {
         this.subnets.set(`${propSubnetName}_az${key + 1}`, subnet.ref);
         subnetAzs.push(subnet.ref);
 
-        //Share Central Subnet to sub-accounts
+        // Share Central Subnet to sub-accounts
         if (subnetConfig['share-to-specific-accounts'] && subnetConfig['share-to-specific-accounts'].length > 0) {
           let accountIndex: number = 0;
-          let accountIds: string[] = [];
+          const accountIds: string[] = [];
           const accountNames = subnetConfig['share-to-specific-accounts'];
           for (const accountName of accountNames) {
-            let accountId = getAccountId(props.accounts!, accountName);
+            const accountId = getAccountId(props.accounts!, accountName);
             if (accountId) {
               accountIds[accountIndex] = accountId;
               accountIndex++;

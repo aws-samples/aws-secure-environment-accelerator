@@ -9,7 +9,7 @@ export namespace Operations {
   export class Stack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
       super(scope, id, props);
-      //TODO Attach Tags to the Subnets shared by shared-Network account
+      // TODO Attach Tags to the Subnets shared by shared-Network account
     }
   }
 }

@@ -14,9 +14,9 @@ export namespace OrganizationalUnit {
       super(scope, id, props);
 
       const orgUnitProps = props.organizationalUnits;
-      const vpcConfig = orgUnitProps.central.vpc!;
+      const vpcConfig = orgUnitProps.central.vpc;
       const vpc = new Vpc(this, 'vpc', {
-        vpcConfig: vpcConfig,
+        vpcConfig,
         accounts: props.accounts,
       });
 
