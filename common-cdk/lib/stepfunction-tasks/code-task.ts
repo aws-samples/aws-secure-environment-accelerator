@@ -43,7 +43,7 @@ export class CodeTask extends sfn.StateMachineFragment {
     });
 
     const task = new sfn.Task(this, id, {
-      task: new tasks.RunLambdaTask(func, {
+      task: new tasks.InvokeFunction(func, {
         payload: props.functionPayload,
       }),
       ...props,
