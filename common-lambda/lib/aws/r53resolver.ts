@@ -12,6 +12,6 @@ export class Route53Resolver {
   }
 
   async getEndpointIpAddress(endpointId: string): Promise<route53resolver.ListResolverEndpointIpAddressesResponse> {
-    return this.client.listResolverEndpointIpAddresses({ ResolverEndpointId: endpointId}).promise();
+    return this.client.listResolverEndpointIpAddresses({ ResolverEndpointId: endpointId }).promise();
   }
 }

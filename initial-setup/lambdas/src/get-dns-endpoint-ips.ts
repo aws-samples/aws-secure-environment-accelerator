@@ -1,12 +1,12 @@
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
 import * as cfnresponse from 'cfn-response';
-import { Context, CloudFormationCustomResourceEvent} from 'aws-lambda'
+import { Context, CloudFormationCustomResourceEvent } from 'aws-lambda';
 
 export interface Input {
   endpointId: string;
 }
 
-export const handler = async (event:CloudFormationCustomResourceEvent, context: Context) => {
+export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
   console.log(`Retriving Default IPAdress for DNS Resolver Endpoint ...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -15,9 +15,9 @@ export const handler = async (event:CloudFormationCustomResourceEvent, context: 
 
   const endpointResponse = await r53resolver.getEndpointIpAddress(resolver);
   const ips: string[] = [];
-  for(const ipaddress of endpointResponse.IpAddresses! || []){
-    ips.push(ipaddress.Ip!)
+  for (const ipaddress of endpointResponse.IpAddresses! || []) {
+    ips.push(ipaddress.Ip!);
   }
   console.log(ips);
-  cfnresponse.send(event, context, 'SUCCESS', ips, `${resolver.replace('-','')}`)
+  cfnresponse.send(event, context, 'SUCCESS', ips, `${resolver.replace('-', '')}`);
 };

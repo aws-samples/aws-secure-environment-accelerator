@@ -15,7 +15,7 @@ import * as tempy from 'tempy';
 import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
-import * as lambda from "@aws-cdk/aws-lambda";
+import * as lambda from '@aws-cdk/aws-lambda';
 import { RunLambdaTask } from '@aws-cdk/aws-stepfunctions-tasks';
 
 interface BuildProps {
@@ -131,7 +131,7 @@ export namespace InitialSetup {
       const cfnLambda = new lambda.Function(this, 'DnsEndpointIPPoller', {
         runtime: lambda.Runtime.NODEJS_12_X,
         code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
-        handler: "index.handler"
+        handler: 'index.handler',
       });
 
       // Define a build specification to build the initial setup templates
