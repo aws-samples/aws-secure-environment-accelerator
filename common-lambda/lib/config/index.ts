@@ -6,7 +6,7 @@ import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import { isLeft } from 'fp-ts/lib/Either';
 
 export const VirtualPrivateGatewayConfig = t.interface({
-  // TODO
+  asn: optional(t.number),
 });
 
 export const PeeringConnectionConfig = t.interface({
@@ -171,7 +171,7 @@ export namespace AcceleratorConfig {
 export function parse<S, T>(type: t.Decoder<S, T>, content: S): T {
   const result = type.decode(content);
   if (isLeft(result)) {
-    const errors = PathReporter.report(result).map((error) => `* ${error}`);
+    const errors = PathReporter.report(result).map(error => `* ${error}`);
     const errorMessage = errors.join('\n');
     throw new Error(`Could not parse content:\n${errorMessage}`);
   }

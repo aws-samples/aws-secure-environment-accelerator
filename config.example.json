@@ -4,16 +4,11 @@
     "central-log-retention": 730,
     "zones": {
       "account": "shared-network",
+	  "resolver-vpc": "endpoint",
       "names": {
         "public": ["dept.cloud-nuage.canada.ca"],
-        "private": ["dept.cloud-nuage.gc.ca"],
-        "on-premise": ["dept.gc.ca"]
+        "private": ["dept.cloud-nuage.gc.ca"]
       },
-      "resolvers": {
-        "vpc": "Endpoint",
-        "subnet": "Endpoint",
-        "outbound-ips": ["7.23.0.1", "7.26.0.2"]
-      }
     },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
@@ -30,7 +25,7 @@
       "mandatory": ["central"],
       "additional": ["sandbox", "unclass", "dev", "test", "prod"]
     },
-    "userids": {
+    "iam-userids": {
       "master-breakglass-ids": ["bgUser1", "bgUser2", "bgUser3"],
       "master-Ops-ids": ["OpsUser1", "OpsUser2", "OpsUser3"]
     }
@@ -46,12 +41,13 @@
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
         "region": "ca-central-1",
-		"use-central-endpoints": true,
+        "use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": true,
-        "vgw": true,
-        "vgw-asn": "65789",
+        "vgw": {
+          "asn": 65789
+        },
         "pcx": false,
         "natgw": {
           "subnet": "Public_az1"
@@ -107,12 +103,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "default",
+                "route-table": "OnPremise_Shared",
                 "cidr": "100.96.251.0/28"
               },
               {
                 "az": "b",
-                "route-table": "default",
+                "route-table": "OnPremise_Shared",
                 "cidr": "100.96.251.32/28"
               }
             ]
@@ -121,7 +117,7 @@
         "gateway-endpoints": ["s3"],
         "route-tables": [
           {
-            "name": "default"
+            "name": "OnPremise_Shared"
           },
           {
             "name": "Public_Shared",
@@ -144,8 +140,8 @@
                 "target": "ENI-FW-az1-p2"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               }
             ]
           },
@@ -161,8 +157,8 @@
                 "target": "ENI-FW-az2-p2"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               }
             ]
           },
@@ -223,20 +219,17 @@
       "email": "bmycroft+lzT-operations@amazon.com",
       "ou": "core",
       "limits": {},
-      "vpc": {
-        "deploy": "shared",
-        "source": "shared-network",
-        "name": "Central",
-        "region": "ca-central-1",
-        "subnets": []
-      },
       "deployments": {
         "mad": {
           "deploy": true,
+          "vpc-name": "central",
+          "region": "ca-central-1",
           "subnet": "GCWide",
           "size": "enterprise",
           "dns-domain": "brian.local",
           "netbios-domain": "brian",
+          "central-resolver-rule-account": "shared-network",
+          "central-resolver-rule-vpc": "endpoint",
           "share-to-master": true,
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "password-policies": {
@@ -278,7 +271,7 @@
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
         "region": "ca-central-1",
-		"use-central-endpoints": false,
+        "use-central-endpoints": false,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -291,19 +284,13 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "default",
+                "route-table": "Endpoint_Shared",
                 "cidr": "10.7.0.0/24"
               },
               {
                 "az": "b",
-                "route-table": "default",
+                "route-table": "Endpoint_Shared",
                 "cidr": "10.7.1.0/24"
-              },
-              {
-                "az": "d",
-                "route-table": "default",
-                "cidr": "10.7.2.0/24",
-                "disabled": true
               }
             ]
           }
@@ -311,7 +298,7 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "default"
+            "name": "Endpoint_Shared"
           }
         ],
         "tgw-attach": {
@@ -379,7 +366,22 @@
             "ssmmessages",
             "states"
           ]
-        }
+        },
+		"resolvers": {
+           "subnet": "Endpoint",
+           "outbound": true,
+		   "inbound": true
+        },
+        "on-premise-rules": [
+          {
+            "zone": "dept.gc.ca",
+            "outbound-ips": ["7.23.0.1", "7.26.0.2"]
+          },
+          {
+            "zone": "test.ca",
+            "outbound-ips": ["7.23.0.1", "7.26.0.2"]
+          }
+        ]
       },
       "deployments": {
         "tgw": {
@@ -409,7 +411,7 @@
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
         "region": "ca-central-1",
-		"use-central-endpoints": false,
+        "use-central-endpoints": false,
         "flow-logs": false,
         "log-retention": 90,
         "igw": false,
@@ -426,19 +428,13 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "default",
+                "route-table": "ForSSO_Shared",
                 "cidr": "10.249.1.0/27"
               },
               {
                 "az": "b",
-                "route-table": "default",
+                "route-table": "ForSSO_Shared",
                 "cidr": "10.249.1.32/27"
-              },
-              {
-                "az": "d",
-                "route-table": "default",
-                "cidr": "10.249.1.64/27",
-                "disabled": true
               }
             ]
           }
@@ -446,7 +442,7 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "default",
+            "name": "ForSSO_Shared",
             "routes": [
               {
                 "destination": {
@@ -637,9 +633,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "CentralVPC_Common",
             "routes": [
               {
@@ -647,12 +640,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           },
@@ -664,12 +657,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               },
               {
                 "destination": {
@@ -826,9 +819,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "DevVPC_Common",
             "routes": [
               {
@@ -836,12 +826,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
@@ -992,9 +982,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "TestVPC_Common",
             "routes": [
               {
@@ -1002,12 +989,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
@@ -1158,9 +1145,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "ProdVPC_Common",
             "routes": [
               {
@@ -1168,12 +1152,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
@@ -1324,9 +1308,6 @@
         "gateway-endpoints": ["s3", "dynamodb"],
         "route-tables": [
           {
-            "name": "default"
-          },
-          {
             "name": "UnClassVPC_Common",
             "routes": [
               {
@@ -1334,12 +1315,12 @@
                 "target": "TGW"
               },
               {
-                "destination": "GW-endpoint-s3",
-                "target": "GW-endpoint-s3"
+                "destination": "s3",
+                "target": "s3"
               },
               {
-                "destination": "GW-endpoint-DynamoDB",
-                "target": "GW-endpoint-DynamoDB"
+                "destination": "DynamoDB",
+                "target": "DynamoDB"
               }
             ]
           }
@@ -1468,9 +1449,6 @@
         ],
         "gateway-endpoints": [],
         "route-tables": [
-          {
-            "name": "default"
-          },
           {
             "name": "SandboxVPC_IGW",
             "routes": [

@@ -23,7 +23,7 @@ export const OrganizationalUnitType = t.interface({
 
 export const LandingZoneConfigType = t.interface({
   region: t.string,
-  version: t.any,
+  version: t.unknown,
   nested_ou_delimiter: t.string,
   organizational_units: t.array(OrganizationalUnitType),
 });
