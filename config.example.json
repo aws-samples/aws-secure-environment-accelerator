@@ -4,11 +4,11 @@
     "central-log-retention": 730,
     "zones": {
       "account": "shared-network",
-	  "resolver-vpc": "endpoint",
+      "resolver-vpc": "endpoint",
       "names": {
         "public": ["dept.cloud-nuage.canada.ca"],
         "private": ["dept.cloud-nuage.gc.ca"]
-      },
+      }
     },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
@@ -28,6 +28,12 @@
     "iam-userids": {
       "master-breakglass-ids": ["bgUser1", "bgUser2", "bgUser3"],
       "master-Ops-ids": ["OpsUser1", "OpsUser2", "OpsUser3"]
+    },
+    "passwords": {
+      "mad": {
+        "secret-name": "accelerator/passwords/mad",
+        "length": 16
+      }
     }
   },
   "mandatory-account-configs": {
@@ -232,6 +238,7 @@
           "central-resolver-rule-vpc": "endpoint",
           "share-to-master": true,
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
+          "password-ref": "mad",
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -240,9 +247,9 @@
             "complexity": true,
             "reversible": false
           },
-		  "ad-groups": ["Provisioning", "LogArchive-View","Security-Admin","Security-View"],
-		  "adc-group": "ADConnector",
-		  "ad-users": ["adconnector(ADConnector)","Brian(*)"]
+          "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
+          "adc-group": "ADConnector",
+          "ad-users": ["adconnector(ADConnector)", "Brian(*)"]
         },
         "ops-dashboard": {
           "deploy": true
@@ -367,10 +374,10 @@
             "states"
           ]
         },
-		"resolvers": {
-           "subnet": "Endpoint",
-           "outbound": true,
-		   "inbound": true
+        "resolvers": {
+          "subnet": "Endpoint",
+          "outbound": true,
+          "inbound": true
         },
         "on-premise-rules": [
           {
@@ -479,7 +486,7 @@
         "cidr": "10.1.0.0/16",
         "cidr2": "100.96.252.0/23",
         "region": "ca-central-1",
-		"use-central-endpoints": true,
+        "use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -692,7 +699,7 @@
         "name": "Dev",
         "cidr": "10.2.0.0/16",
         "region": "ca-central-1",
-		"use-central-endpoints": true,
+        "use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -855,7 +862,7 @@
         "name": "Test",
         "cidr": "10.3.0.0/16",
         "region": "ca-central-1",
-		"use-central-endpoints": true,
+        "use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -1018,7 +1025,7 @@
         "name": "Prod",
         "cidr": "10.4.0.0/16",
         "region": "ca-central-1",
-		"use-central-endpoints": true,
+        "use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -1181,7 +1188,7 @@
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
         "region": "ca-central-1",
-		"use-central-endpoints": true,
+        "use-central-endpoints": true,
         "flow-logs": true,
         "log-retention": 90,
         "igw": false,
@@ -1344,7 +1351,7 @@
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
         "region": "ca-central-1",
-		"use-central-endpoints": false,
+        "use-central-endpoints": false,
         "flow-logs": true,
         "log-retention": 90,
         "igw": true,

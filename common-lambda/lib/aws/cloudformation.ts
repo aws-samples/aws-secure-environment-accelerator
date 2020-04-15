@@ -64,7 +64,7 @@ export class CloudFormation {
         })
         .promise();
       return response.Stacks?.[0];
-    } catch(e) {
+    } catch (e) {
       console.warn(`Ignoring error in describeStack`);
       console.warn(e);
       return undefined;

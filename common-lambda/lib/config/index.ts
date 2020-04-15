@@ -107,7 +107,7 @@ export const AccountConfigType = t.interface({
   'account-name': NonEmptyString,
   email: NonEmptyString,
   ou: NonEmptyString,
-  vpc: VpcConfigType,
+  vpc: optional(VpcConfigType),
   deployments: t.interface({
     tgw: optional(DeploymentConfigType),
   }),
@@ -121,6 +121,24 @@ export const OrganizationalUnitsType = t.interface({
   central: OrganizationalUnitConfigType,
 });
 
+export const MandatoryAccountConfigType = t.interface({
+  operations: AccountConfigType,
+  'shared-network': AccountConfigType,
+  master: AccountConfigType,
+  perimeter: AccountConfigType,
+});
+
+export const PasswordConfigType = t.interface({
+  'secret-name': t.string,
+  length: t.number,
+});
+
+export type PasswordConfig = t.TypeOf<typeof PasswordConfigType>;
+
+export const PasswordsConfigType = t.record(t.string, PasswordConfigType);
+
+export type PasswordsConfig = t.TypeOf<typeof PasswordsConfigType>;
+
 export const GlobalOptionsAccountsConfigType = t.interface({
   'lz-primary-account': t.string,
   'lz-security-account': t.string,
@@ -133,6 +151,7 @@ export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsC
 
 export const GlobalOptionsConfigType = t.interface({
   accounts: GlobalOptionsAccountsConfigType,
+  passwords: fromNullable(PasswordsConfigType, {}),
 });
 
 export const AcceleratorConfigType = t.interface({

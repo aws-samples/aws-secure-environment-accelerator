@@ -35,7 +35,9 @@ export class LandingZone {
       const versionOutput = outputs.find(output => output.OutputKey === LandingZoneStack.VERSION_OUTPUT_KEY);
       const bucketOutput = outputs.find(output => output.OutputKey === LandingZoneStack.BUCKET_OUTPUT_KEY);
       if (!versionOutput || !bucketOutput) {
-        console.warn(`Cannot find Landing Zone outputs for version and bucket in stack with name "${summary.StackName}"`);
+        console.warn(
+          `Cannot find Landing Zone outputs for version and bucket in stack with name "${summary.StackName}"`,
+        );
         continue;
       }
 
