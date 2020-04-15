@@ -11,20 +11,6 @@ export class TagResources {
   }
 
   async createTags(input: ec2.CreateTagsRequest): Promise<void> {
-    // const params = {
-    //   Resources: ['subnet-05bf9e405795f7e1e'],
-    //   Tags: [
-    //     {
-    //       Key: 'Stack',
-    //       Value: 'Development',
-    //     },
-    //     {
-    //       Key: 'Name',
-    //       Value: 'Central_VPC',
-    //     },
-    //   ],
-    // };
-
     this.client.createTags(input, function (err, data) {
       if (err) console.log(err, err.stack);
       // an error occurred

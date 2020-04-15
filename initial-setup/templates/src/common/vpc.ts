@@ -3,6 +3,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import { VPCSharing } from '../common/vpc-sharing';
 
 import { VpcConfig, VirtualPrivateGatewayConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { getAccountId } from '../utils/accounts';
 
 export interface VPCProps extends cdk.StackProps {
   vpcConfig: VpcConfig;
@@ -168,7 +169,7 @@ export class Vpc extends cdk.Construct {
           let accountIds: string[] = [];
           const accountNames = subnetConfig['share-to-specific-accounts'];
           for (const accountName of accountNames) {
-            let accountId = props.accounts?.find(a => a.key === accountName)?.id;
+            let accountId = getAccountId(props.accounts!, accountName);
             if (accountId) {
               accountIds[accountIndex] = accountId;
               accountIndex++;

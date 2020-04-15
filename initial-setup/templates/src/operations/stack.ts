@@ -9,13 +9,7 @@ export namespace Operations {
   export class Stack extends cdk.Stack {
     constructor(scope: cdk.Construct, id: string, props: cdk.StackProps) {
       super(scope, id, props);
-
-      const resourceTags = [
-        { Resources: ['subnet-048c29b8cc44159bb'], Tags: [{ Key: 'Name', Value: 'Web_az1' }] },
-        { Resources: ['subnet-0d9d6e80ac0eb6c54'], Tags: [{ Key: 'Name', Value: 'Web_az2' }] },
-      ];
-
-      const attachTags = new ResourceTags(this, 'attach-tags', resourceTags[0]);
+      //TODO Attach Tags to the Subnets shared by shared-Network account
     }
   }
 }

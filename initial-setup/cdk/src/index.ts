@@ -363,10 +363,6 @@ export namespace InitialSetup {
           code: props.lambdas.codeForEntry('enable-resource-share'),
           role: pipelineRole,
         },
-        // functionPayload: {
-        //   roleName: props.executionRoleName,
-        //   policyName: coreMandatoryScpName,
-        // },
         resultPath: 'DISCARD',
       });
 
