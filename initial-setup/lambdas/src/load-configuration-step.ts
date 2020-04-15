@@ -174,14 +174,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         continue;
       }
 
-      if (lzAccountType === 'primary') {
-        // If the account is a primary account, then look for it by its email
-        const account = accountsInOu.find(a => a.Email === lzAccount.email);
-        if (!account) {
-          errors.push(`Cannot find primary account with email "${lzAccount.email}" that is used by Landing Zone`);
-          continue;
-        }
-      } else {
+      if (lzAccountType !== 'primary') {
         // If the account is a non-primary account, then look for it by its name
         const account = accountsInOu.find(a => a.Name === lzAccount.name);
         if (!account) {

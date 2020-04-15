@@ -137,7 +137,6 @@ function reset() {
         core_accounts: [
           {
             name: 'primary',
-            email: 'lz@amazon.com',
             ssm_parameters: [
               {
                 name: '/org/primary/account_id',
