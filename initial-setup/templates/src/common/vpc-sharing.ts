@@ -16,7 +16,7 @@ export class VPCSharing extends cdk.Construct {
 
     const subnetArn = prepareSubnetIdArn(props.subnetId, props.sourceAccountId, props.region);
     new ram.CfnResourceShare(this, 'vpc_sharing', {
-      name: 'vpc-sharing',
+      name: `${id}_Subnet_Sharing`,
       allowExternalPrincipals: false,
       principals: props.targetAccountIds,
       resourceArns: [subnetArn],

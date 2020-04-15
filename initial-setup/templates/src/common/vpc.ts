@@ -84,7 +84,7 @@ export class Vpc extends cdk.Construct {
           vpcId: vpcObj.ref,
         });
         routeTableNameToIdMap.set(routeTableName, routeTable.ref);
-        if (!routeTableProp.routes?.find((r) => r.target === 'IGW')) {
+        if (!routeTableProp.routes?.find(r => r.target === 'IGW')) {
           natRouteTables.push(routeTableProp.name);
         }
 
@@ -123,7 +123,7 @@ export class Vpc extends cdk.Construct {
     }
 
     const subnetsConfig = props.vpcConfig.subnets || [];
-    const srcAccountId = props.accounts?.find((a) => a.key === props.vpcConfig.deploy)?.id;
+    const srcAccountId = props.accounts?.find(a => a.key === props.vpcConfig.deploy)?.id;
     let subnetIndex: number = 0;
     for (const subnetConfig of subnetsConfig) {
       const subnetAzs: string[] = [];
@@ -149,24 +149,20 @@ export class Vpc extends cdk.Construct {
         subnetAzs.push(subnet.ref);
 
         //Share Central Subnet to sub-accounts
-        if (
-          subnetConfig['share-to-ou-accounts'] &&
-          subnetConfig['share-to-specific-accounts'] &&
-          subnetConfig['share-to-specific-accounts'].length > 0
-        ) {
-          let index: number = 0;
+        if (subnetConfig['share-to-specific-accounts'] && subnetConfig['share-to-specific-accounts'].length > 0) {
+          let accountIndex: number = 0;
           let accountIds: string[] = [];
           const accountNames = subnetConfig['share-to-specific-accounts'];
-          for (const name of accountNames) {
-            let accountId = props.accounts?.find((a) => a.key === name)?.id;
+          for (const accountName of accountNames) {
+            let accountId = props.accounts?.find(a => a.key === accountName)?.id;
             if (accountId) {
-              accountIds[index] = accountId;
-              index++;
+              accountIds[accountIndex] = accountId;
+              accountIndex++;
             }
           }
 
           if (srcAccountId) {
-            new VPCSharing(this, `${vpcName}_${propSubnetName}_vpc_sharing${key + 1}`, {
+            new VPCSharing(this, `${vpcName}_${propSubnetName}_${key + 1}`, {
               subnetId: subnet.ref,
               sourceAccountId: srcAccountId,
               targetAccountIds: accountIds,
