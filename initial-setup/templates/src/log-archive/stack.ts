@@ -17,6 +17,12 @@ export namespace LogArchive {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
 
+      // TODO list all account IDs here
+      const subaccountIds = [props.sharedNetWorkAccountId];
+      const subaccountPrincipals = subaccountIds.map(
+        subaccountId => new iam.AccountPrincipal(subaccountId),
+      );
+
       const s3KmsKey = new kms.Key(this, 's3KmsKey', {
         alias: 'PBMMAccel-Key',
         description: 'PBMM Accel - KMS Key used by s3',
@@ -25,21 +31,19 @@ export namespace LogArchive {
         removalPolicy: cdk.RemovalPolicy.RETAIN,
       });
 
-      // TODO list all account IDs here
       // add policy required for s3 replication to the KMS key
       s3KmsKey.addToResourcePolicy(
         new iam.PolicyStatement({
           sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
           effect: iam.Effect.ALLOW,
-          principals: [new iam.AccountPrincipal(props.sharedNetWorkAccountId)],
+          principals: subaccountPrincipals,
           actions: ['kms:Encrypt'],
           resources: ['*'],
         }),
-        true,
       );
 
       // bucket name format: pbmmaccel-{account #}-{region}
-      const replBucketName = `pbmmaccel-${props.env?.account}-ca-central-1`;
+      const replBucketName = `pbmmaccel-${this.account}-${this.region}`;
 
       // s3 bucket to collect vpc-flow-logs
       const s3BucketForVpcFlowLogs = new s3.Bucket(this, 's3ReplicationBucket', {
@@ -65,9 +69,7 @@ export namespace LogArchive {
       // add policy required for s3 replication to the s3 bucket
       s3BucketForVpcFlowLogs.addToResourcePolicy(
         new iam.PolicyStatement({
-          sid: 'S3ReplicationPolicyStmt1',
-          effect: iam.Effect.ALLOW,
-          principals: [new iam.AccountPrincipal(props.sharedNetWorkAccountId)],
+          principals: subaccountPrincipals,
           actions: [
             's3:GetBucketVersioning',
             's3:PutBucketVersioning',
@@ -75,7 +77,7 @@ export namespace LogArchive {
             's3:ReplicateDelete',
             's3:ObjectOwnerOverrideToBucketOwner',
           ],
-          resources: [s3BucketForVpcFlowLogs.bucketArn, s3BucketForVpcFlowLogs.bucketArn + '/*'],
+          resources: [s3BucketForVpcFlowLogs.bucketArn, s3BucketForVpcFlowLogs.arnForObjects('*')],
         }),
       );
 

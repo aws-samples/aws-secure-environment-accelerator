@@ -7,7 +7,7 @@ import { CfnBucket } from '@aws-cdk/aws-s3';
 
 export interface FlowLogsProps {
   vpcId: string;
-  s3Bucket: CfnBucket;
+  bucketArn: string;
 }
 
 export class FlowLogs extends cdk.Construct {
@@ -32,7 +32,7 @@ export class FlowLogs extends cdk.Construct {
       resourceId: props.vpcId,
       resourceType: 'VPC',
       trafficType: 'ALL',
-      logDestination: props.s3Bucket.attrArn + '/flowlogs',
+      logDestination: `${props.bucketArn}/flowlogs`,
       logDestinationType: 's3',
     });
   }
