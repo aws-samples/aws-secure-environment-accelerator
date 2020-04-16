@@ -40,7 +40,7 @@ async function main() {
     acceleratorExecutionRoleName,
     logArchiveAccountId,
     logArchiveS3BucketArn,
-    logArchiveS3KmsKeyArn
+    logArchiveS3KmsKeyArn,
   });
 
   const organizationalUnits = acceleratorConfig['organizational-units'];
