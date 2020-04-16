@@ -2,14 +2,15 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as kms from '@aws-cdk/aws-kms';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 export namespace LogArchive {
-  export interface StackProps extends cdk.StackProps {
+  export interface StackProps extends AcceleratorStackProps {
     centralLogRetentionInDays: number;
     sharedNetWorkAccountId: string;
   }
 
-  export class Stack extends cdk.Stack {
+  export class Stack extends AcceleratorStack {
     readonly s3BucketArn: string;
     readonly s3KmsKeyArn: string;
 

@@ -112,7 +112,7 @@ export namespace SharedNetwork {
                 },
                 storageClass: 'STANDARD',
                 accessControlTranslation: {
-                  owner: 'Destination'
+                  owner: 'Destination',
                 },
               },
             },
@@ -125,7 +125,7 @@ export namespace SharedNetwork {
         // const s3BucketCreated = s3.Bucket.fromBucketAttributes(this, id + `bucket`, {
         //   bucketArn: s3BucketForVpcFlowLogs.attrArn,
         // });
-        
+
         const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: s3BucketForVpcFlowLogs });
       }
 

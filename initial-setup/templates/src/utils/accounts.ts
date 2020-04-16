@@ -13,7 +13,7 @@ export function getAccountId(accounts: Accounts, accountKey: string): string {
 }
 
 export function getAccountArn(accounts: Accounts, accountKey: string): string {
-  const account = accounts.find((a) => a.arn === accountKey);
+  const account = accounts.find(a => a.arn === accountKey);
   if (!account) {
     throw new Error(`Cannot find account with key "${accountKey}"`);
   }
