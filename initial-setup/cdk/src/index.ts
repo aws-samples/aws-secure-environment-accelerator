@@ -94,14 +94,17 @@ export namespace InitialSetup {
       const stack = cdk.Stack.of(this);
 
       const accountsSecret = new secrets.Secret(this, 'Accounts', {
+        secretName: 'accelerator/accounts',
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
 
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
+        secretName: 'accelerator/outputs',
         description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
       });
 
       const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
+        secretName: 'accelerator/config/in-progress',
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
 
@@ -120,6 +123,7 @@ export namespace InitialSetup {
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: 'AcceleratorPipelineRole',
         assumedBy: new iam.CompositePrincipal(
+          // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
@@ -185,6 +189,17 @@ export namespace InitialSetup {
           configSecretInProgressId: configSecretInProgress.secretArn,
         },
         resultPath: '$.configuration',
+      });
+
+      const createPasswordsTask = new CodeTask(this, 'Create Passwords', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('create-passwords'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configSecretId: configSecretInProgress.secretArn,
+        },
+        resultPath: 'DISCARD',
       });
 
       // TODO We might want to load this from the Landing Zone configuration
@@ -368,6 +383,7 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
+          .next(createPasswordsTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)
