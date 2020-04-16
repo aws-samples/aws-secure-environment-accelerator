@@ -3,6 +3,7 @@ import * as cfn from 'aws-sdk/clients/cloudformation';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { Intersect } from '../util/types';
 import { collectAsync } from '../util/generator';
+import { delay } from '../util/delay';
 
 export type CreateOrUpdateStackInput = Intersect<cfn.CreateStackInput, cfn.UpdateStackInput>;
 export type CreateOrUpdateStackOutput = Intersect<cfn.CreateStackOutput, cfn.UpdateStackOutput>;
@@ -56,18 +57,26 @@ export class CloudFormation {
    * @return AWS.CloudFormation.Stack or null
    */
   async describeStack(stackName: string): Promise<cfn.Stack | undefined> {
-    try {
-      // AmazonCloudFormationException is thrown when the stack does not exist
-      const response = await this.client
-        .describeStacks({
-          StackName: stackName,
-        })
-        .promise();
-      return response.Stacks?.[0];
-    } catch (e) {
-      console.warn(`Ignoring error in describeStack`);
-      console.warn(e);
-      return undefined;
+    let tries = 3;
+    // TODO Create a helper method for the retry
+    while (tries-- > 0) {
+      try {
+        // AmazonCloudFormationException is thrown when the stack does not exist
+        const response = await this.client
+          .describeStacks({
+            StackName: stackName,
+          })
+          .promise();
+        return response.Stacks?.[0];
+      } catch (error) {
+        if (error.code === 'Throttling') {
+          await delay(500);
+          continue;
+        }
+        console.warn(`Ignoring error in describeStack`);
+        console.warn(error);
+        return undefined;
+      }
     }
   }
 
