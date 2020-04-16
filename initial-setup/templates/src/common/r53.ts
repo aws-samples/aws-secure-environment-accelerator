@@ -6,7 +6,7 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as lambda from '@aws-cdk/aws-lambda';
 
 import { AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { AcceleratorConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Context } from '../utils/context';
 import { StackOutputs } from '../utils/outputs';
 import { getStackOutput } from '../utils/outputs';
@@ -61,8 +61,8 @@ export class Route53 extends cdk.Construct {
 
     const mandatoryAccounts: Array<string> = Object.keys(mandatoryAccountConfig);
     for (const account of mandatoryAccounts) {
-      const accountConfig = (mandatoryAccountConfig as any)[account];
-      const vpcConfig = accountConfig.vpc! as VpcConfig;
+      const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
+      const vpcConfig = accountConfig.vpc!;
       if (!vpcConfig) continue; // Ignore if no VPC Config specified
       const resolvers = vpcConfig.resolvers;
       if (!resolvers) continue; // Ignore if no resolvers for VPC
@@ -113,7 +113,7 @@ export class Route53 extends cdk.Construct {
         const scg = new ec2.CfnSecurityGroup(this, `${vpcConfig.name}_outbound_sg`, {
           groupDescription: 'Security Group for Public Hosted Zone Outbound EndpointRoute53',
           vpcId: getStackOutput(props.outputs, 'shared-network', `Vpc${vpcConfig.name}`),
-          groupName: `${vpcConfig.name}_outbound_sg`,
+          groupName: `${vpcConfig.name}_outbound_sg2`,
         });
 
         // Create Outbound Resolver Endpoint
@@ -132,8 +132,7 @@ export class Route53 extends cdk.Construct {
             AccountId: props.env?.account,
           },
         });
-        const outBountEndpointIps = outboundIpPooler.getAtt('Ips');
-        const ips = cdk.Fn.split(',', outBountEndpointIps.toString());
+        const ips = cdk.Fn.split(',', outboundIpPooler.getAtt('Ips').toString());
         const ruletargetIps: Array<r53Resolver.CfnResolverRule.TargetAddressProperty> = [];
         for (const ip of ips) {
           ruletargetIps.push({
@@ -141,13 +140,24 @@ export class Route53 extends cdk.Construct {
             port: '53',
           });
         }
+        console.log(ruletargetIps);
         const inCloudPrivateRule = new r53Resolver.CfnResolverRule(this, 'InCloudPrivateRule', {
           domainName: privateHostedZoneProps[0],
           ruleType: 'FORWARD',
           resolverEndpointId: outBoundEndpoint.ref,
           name: 'InCloudPrivateRule',
-          targetIps: ruletargetIps,
+          targetIps: [
+            {
+              ip: outboundIpPooler.getAtt('IpAddress1').toString(),
+              port: '53',
+            },
+            {
+              ip: outboundIpPooler.getAtt('IpAddress2').toString(),
+              port: '53',
+            },
+          ],
         });
+        inCloudPrivateRule.node.addDependency(outboundIpPooler);
       }
     }
   }

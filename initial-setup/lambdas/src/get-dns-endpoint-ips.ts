@@ -1,6 +1,6 @@
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
 import { Context, CloudFormationCustomResourceEvent } from 'aws-lambda';
-import * as cfnresponse from 'cfn-response';
+import {send as sendResponse, SUCCESS, FAILED, ResponseStatus} from 'cfn-response';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 
 export interface Input {
@@ -11,7 +11,17 @@ export interface Input {
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
   console.log(`Retriving Default IPAdress for DNS Resolver Endpoint ...`);
   console.log(JSON.stringify(event, null, 2));
-
+  let physicalResourceId = 'EndpointIps';
+  const sendResponsePromise = (
+    responseStatus: ResponseStatus,
+    responseData?: object,
+    physicalResourceId?: string
+  ): Promise<unknown> => {
+      return new Promise((resolve) => {
+          context.done = resolve;
+          sendResponse(event, context, responseStatus, responseData, physicalResourceId);
+      });
+  };
   try {
     const accountId = event['ResourceProperties']['AccountId'];
     const endpoitId = event['ResourceProperties']['EndpointResolver'];
@@ -19,13 +29,16 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, 'AcceleratorPipelineRole');
     const r53resolver = new Route53Resolver(credentials);
     const endpointResponse = await r53resolver.getEndpointIpAddress(endpoitId);
-    const ips: string[] = [];
-    for (const ipaddress of endpointResponse.IpAddresses! || []) {
-      ips.push(ipaddress.Ip!);
+    interface Output {
+      [key: string]: string
     }
-    console.log(ips);
-    cfnresponse.send(event, context, cfnresponse.SUCCESS, { Ips: ips });
+    let output: Output = {};
+    for (const [key, ipaddress]  of endpointResponse.IpAddresses?.entries() || [].entries()) {
+      output[`IpAddress${key + 1}`] = ipaddress.Ip!;
+    }
+    console.log(output);
+    await sendResponsePromise(SUCCESS, output ,physicalResourceId);
   } catch (error) {
-    cfnresponse.send(event, context, cfnresponse.FAILED, {});
+    await sendResponsePromise(FAILED,{},physicalResourceId)
   }
 };
