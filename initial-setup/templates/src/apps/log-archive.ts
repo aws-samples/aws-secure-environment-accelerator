@@ -20,6 +20,7 @@ async function main() {
   const globalOptionsConfig = acceleratorConfig['global-options'];
   const centralLogRetention = globalOptionsConfig['central-log-retention'];
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const sharedNetworkAccountId = getAccountId(accounts, 'shared-network');
 
   const app = new cdk.App();
 
@@ -30,6 +31,7 @@ async function main() {
     },
     stackName: 'PBMMAccel-LogArchive',
     centralLogRetentionInDays: centralLogRetention,
+    sharedNetWorkAccountId: sharedNetworkAccountId,
   });
 
   // store the s3 bucket arn for later reference

@@ -178,6 +178,10 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.executionRoleName,
             },
+            ACCELERATOR_EXECUTION_ROLE_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.executionRoleName,
+            },
           },
         },
       });

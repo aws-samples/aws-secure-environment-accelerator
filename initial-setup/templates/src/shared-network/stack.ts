@@ -1,4 +1,5 @@
 import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as kms from '@aws-cdk/aws-kms';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -11,6 +12,10 @@ import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../comm
 export namespace SharedNetwork {
   export interface StackProps extends cdk.StackProps {
     accountConfig: AccountConfig;
+    acceleratorExecutionRoleName: string;
+    logArchiveAccountId: string;
+    logArchiveS3BucketArn: string;
+    logArchiveS3KmsKeyArn: string;
   }
 
   export class Stack extends cdk.Stack {
@@ -23,7 +28,25 @@ export namespace SharedNetwork {
       const vpcConfig = accountProps.vpc!!;
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
-      const kmsKey = new kms.Key(this, 'kms', {
+      // execution role arn's
+      const sharedNetworkAccelExecRoleArn = `arn:aws:iam::${props.env?.account}:role/${props.acceleratorExecutionRoleName}`;
+      const logArchiveAccelExecRoleArn = `arn:aws:iam::${props.logArchiveAccountId}:role/${props.acceleratorExecutionRoleName}`;
+
+      // get the role from arn
+      const accelExecRoleArn = iam.Role.fromRoleArn(this, id + `role`, sharedNetworkAccelExecRoleArn);
+
+      // permissions required for s3 replication
+      const s3ReplicationPolicyStatement = new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['iam:GetRole', 'iam:PassRole'],
+        resources: [logArchiveAccelExecRoleArn],
+      });
+
+      // add permisssions necessary for s3 replication to the accelerator execution role
+      accelExecRoleArn.addToPolicy(s3ReplicationPolicyStatement);
+
+      // kms key used for vpc-flow-logs s3 bucket encryption
+      const kmsKey = new kms.Key(this, 'kmsKeyForVpcFlowLogsS3', {
         alias: 'PBMMAccel-Key',
         description: 'Key used to encrypt PBMM Accel s3 bucket',
         enableKeyRotation: false,
@@ -31,10 +54,10 @@ export namespace SharedNetwork {
       });
 
       // bucket name format: pbmmaccel-{account #}-{region}
-      const flowLogBucketName = `pbmmaccel-${props.env?.account}-ca-central-1-1`;
+      const flowLogBucketName = `pbmmaccel-${props.env?.account}-ca-central-1`;
 
       // s3 bucket to collect vpc-flow-logs
-      const s3BucketForVpcFlowLogs = new s3.CfnBucket(this, 's3', {
+      const s3BucketForVpcFlowLogs = new s3.CfnBucket(this, 's3ForVpcFlowLogs', {
         bucketName: flowLogBucketName,
         publicAccessBlockConfiguration: {
           blockPublicAcls: true,
@@ -43,13 +66,13 @@ export namespace SharedNetwork {
           restrictPublicBuckets: true,
         },
         versioningConfiguration: {
-          status: 'enabled',
+          status: 'Enabled',
         },
         bucketEncryption: {
           serverSideEncryptionConfiguration: [
             {
               serverSideEncryptionByDefault: {
-                sseAlgorithm: 'AWS-KMS',
+                sseAlgorithm: 'aws:kms',
                 kmsMasterKeyId: kmsKey.keyId,
               },
             },
@@ -59,34 +82,34 @@ export namespace SharedNetwork {
           rules: [
             {
               id: 'PBMMAccel-s3-life-cycle-policy-rule-1',
-              status: 'enabled',
+              status: 'Enabled',
               abortIncompleteMultipartUpload: {
                 daysAfterInitiation: 7,
               },
-              expirationInDays: 90,
-              noncurrentVersionExpirationInDays: 90,
+              expirationInDays: vpcConfig['log-retention'],
+              noncurrentVersionExpirationInDays: vpcConfig['log-retention'],
             },
           ],
         },
         replicationConfiguration: {
-          role: 'arn:aws:iam::491550984887:role/AcceleratorPipelineRole',
+          role: sharedNetworkAccelExecRoleArn,
           rules: [
             {
               id: 'PBMMAccel-s3-replication-rule-1',
-              status: 'enabled',
+              status: 'Enabled',
               prefix: '',
-              destination: {
-                bucket: 'arn:aws:s3:::pbmmaccel-491550984887-ca-central-1/421338879487',
-                account: 'arn:aws:organizations::120663061453:account/o-mp109j1eyo/491550984887',
-                encryptionConfiguration: {
-                  replicaKmsKeyId: 'arn:aws:kms:ca-central-1:421338879487:key/ccf0712b-b852-4dd8-9006-d10710c67cb5',
-                },
-                storageClass: 'Standard',
-              },
               sourceSelectionCriteria: {
                 sseKmsEncryptedObjects: {
-                  status: 'encrypted',
+                  status: 'Enabled',
                 },
+              },
+              destination: {
+                bucket: `${props.logArchiveS3BucketArn}/${props.env?.account}`,
+                account: props.logArchiveAccountId,
+                encryptionConfiguration: {
+                  replicaKmsKeyId: props.logArchiveS3KmsKeyArn,
+                },
+                storageClass: 'STANDARD',
               },
             },
           ],
