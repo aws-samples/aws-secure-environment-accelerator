@@ -9,10 +9,11 @@ export function loadContext(): Context {
     return {
       acceleratorName: 'PBMM',
       acceleratorPrefix: 'PBMMAccel-',
-      cfnDnsEndopintIpsLambdaArn: 'arn:aws:lambda:ca-central-1:144459094893:function:PBMMAccel-InitialSetup-PipelineDnsEndpointIPPoller-4XC0DLYZ6L0M',
+      cfnDnsEndopintIpsLambdaArn:
+        'arn:aws:lambda:ca-central-1:144459094893:function:PBMMAccel-InitialSetup-PipelineDnsEndpointIPPoller-4XC0DLYZ6L0M',
     };
   }
-  
+
   return {
     acceleratorName: process.env.ACCELERATOR_NAME!,
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,

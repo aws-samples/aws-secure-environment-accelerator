@@ -41,7 +41,7 @@ async function main() {
     stackName: 'PBMMAccel-GlobalOptions',
     context,
     acceleratorConfig,
-    outputs
+    outputs,
   });
 
   // Add accelerator tag to all resources

@@ -11,25 +11,24 @@ import { Context } from '../utils/context';
 import { StackOutputs } from '../utils/outputs';
 import { getStackOutput } from '../utils/outputs';
 
-
 export interface StackProps extends AcceleratorStackProps {
   acceleratorConfig: AcceleratorConfig;
   context: Context;
-  outputs: StackOutputs
+  outputs: StackOutputs;
 }
 
 interface ruleTargetIps {
-  ip : string,
-  port: string
+  ip: string;
+  port: string;
 }
 
 export class Route53 extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: StackProps) {
     super(parent, name);
 
-    const zoneConfig = props.acceleratorConfig["global-options"].zones;
+    const zoneConfig = props.acceleratorConfig['global-options'].zones;
     const mandatoryAccountConfig = props.acceleratorConfig['mandatory-account-configs'];
-    
+
     const publicHostedZoneProps = zoneConfig.names.public;
     const privateHostedZoneProps = zoneConfig.names.private;
 
@@ -44,7 +43,7 @@ export class Route53 extends cdk.Construct {
       publicZoneToDomainMap.set(domain, zone.ref);
     }
 
-    const zoneEndpointVpcId = getStackOutput(props.outputs, zoneConfig.account, `Vpc${zoneConfig["resolver-vpc"]}`)
+    const zoneEndpointVpcId = getStackOutput(props.outputs, zoneConfig.account, `Vpc${zoneConfig['resolver-vpc']}`);
     // Form VPC Properties for Private Hosted Zone
     const vpcProps: r53.CfnHostedZone.VPCProperty = {
       vpcId: zoneEndpointVpcId,
@@ -61,37 +60,43 @@ export class Route53 extends cdk.Construct {
     }
 
     const mandatoryAccounts: Array<string> = Object.keys(mandatoryAccountConfig);
-    for ( const account of mandatoryAccounts){
+    for (const account of mandatoryAccounts) {
       const accountConfig = (mandatoryAccountConfig as any)[account];
       const vpcConfig = accountConfig.vpc! as VpcConfig;
       if (!vpcConfig) continue; // Ignore if no VPC Config specified
       const resolvers = vpcConfig.resolvers;
-      if(!resolvers) continue; // Ignore if no resolvers for VPC
+      if (!resolvers) continue; // Ignore if no resolvers for VPC
       const endpointSubnet = vpcConfig.subnets?.find(x => x.name === resolvers?.subnet);
-      if(!endpointSubnet){
-        console.error(`Subnet provided in resolvers doesn't exist in Subnet = ${resolvers.subnet} and VPC = ${vpcConfig.name}`);
+      if (!endpointSubnet) {
+        console.error(
+          `Subnet provided in resolvers doesn't exist in Subnet = ${resolvers.subnet} and VPC = ${vpcConfig.name}`,
+        );
         continue;
       }
       const subnetDefinitions = endpointSubnet?.definitions;
       let ipAddress: Array<r53Resolver.CfnResolverEndpoint.IpAddressRequestProperty> = [];
-      if(!subnetDefinitions){
+      if (!subnetDefinitions) {
         console.error(`No Subnets definitions defined for ${resolvers.subnet}`);
         continue;
       }
-      for(const [key, subnet] of subnetDefinitions.entries()){
-        if (subnet.disabled){
+      for (const [key, subnet] of subnetDefinitions.entries()) {
+        if (subnet.disabled) {
           continue;
         }
         ipAddress.push({
-          subnetId: getStackOutput(props.outputs, zoneConfig.account, `${vpcConfig.name}Subnet${endpointSubnet?.name}az${key + 1}`)
+          subnetId: getStackOutput(
+            props.outputs,
+            zoneConfig.account,
+            `${vpcConfig.name}Subnet${endpointSubnet?.name}az${key + 1}`,
+          ),
         });
       }
 
-      if (resolvers?.inbound){
+      if (resolvers?.inbound) {
         // Create Security Group for Inbound Endpoint
         const scg = new ec2.CfnSecurityGroup(this, `${vpcConfig.name}_inbound_sg`, {
           groupDescription: 'Security Group for Public Hosted Zone Inbound EndpointRoute53',
-          vpcId: getStackOutput(props.outputs, "shared-network", `Vpc${vpcConfig.name}`),
+          vpcId: getStackOutput(props.outputs, 'shared-network', `Vpc${vpcConfig.name}`),
           groupName: `${vpcConfig.name}_inbound_sg`,
         });
 
@@ -101,14 +106,13 @@ export class Route53 extends cdk.Construct {
           ipAddresses: ipAddress,
           securityGroupIds: [scg.ref],
         });
-
       }
 
-      if (resolvers?.outbound){
+      if (resolvers?.outbound) {
         // Create Security Group for Outbound Endpoint
         const scg = new ec2.CfnSecurityGroup(this, `${vpcConfig.name}_outbound_sg`, {
           groupDescription: 'Security Group for Public Hosted Zone Outbound EndpointRoute53',
-          vpcId: getStackOutput(props.outputs, "shared-network", `Vpc${vpcConfig.name}`),
+          vpcId: getStackOutput(props.outputs, 'shared-network', `Vpc${vpcConfig.name}`),
           groupName: `${vpcConfig.name}_outbound_sg`,
         });
 
@@ -120,21 +124,21 @@ export class Route53 extends cdk.Construct {
         });
 
         const lambdaFnc = lambda.Function.fromFunctionArn(this, 'CfnLambda', props.context.cfnDnsEndopintIpsLambdaArn);
-        
+
         const outboundIpPooler = new cfn.CustomResource(this, 'OutBoundIPPooler', {
           provider: cfn.CustomResourceProvider.lambda(lambdaFnc),
           properties: {
             EndpointResolver: outBoundEndpoint.ref,
-            AccountId: props.env?.account
+            AccountId: props.env?.account,
           },
         });
         const outBountEndpointIps = outboundIpPooler.getAtt('Ips');
         const ips = cdk.Fn.split(',', outBountEndpointIps.toString());
         const ruletargetIps: Array<r53Resolver.CfnResolverRule.TargetAddressProperty> = [];
-        for( const ip of ips){
+        for (const ip of ips) {
           ruletargetIps.push({
             ip,
-            port: '53'
+            port: '53',
           });
         }
         const inCloudPrivateRule = new r53Resolver.CfnResolverRule(this, 'InCloudPrivateRule', {

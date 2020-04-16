@@ -90,7 +90,7 @@ export const VpcConfigType = t.interface({
   'route-tables': optional(t.array(RouteTableConfig)),
   'tgw-attach': optional(TransitGatewayAttachConfig),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
-  resolvers: optional(ResolversConfigType)
+  resolvers: optional(ResolversConfigType),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;

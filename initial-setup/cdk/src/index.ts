@@ -138,7 +138,7 @@ export namespace InitialSetup {
         runtime: lambda.Runtime.NODEJS_12_X,
         code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
         handler: 'index.handler',
-        role: cfnLambdaRole
+        role: cfnLambdaRole,
       });
 
       // Allow Cloudformation to trigger the handler
@@ -197,7 +197,7 @@ export namespace InitialSetup {
             CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: cfnLambda.functionArn,
-            }
+            },
           },
         },
       });
