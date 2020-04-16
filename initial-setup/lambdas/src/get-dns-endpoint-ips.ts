@@ -1,6 +1,6 @@
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
 import { Context, CloudFormationCustomResourceEvent } from 'aws-lambda';
-import {send as sendResponse, SUCCESS, FAILED, ResponseStatus} from 'cfn-response';
+import { send as sendResponse, SUCCESS, FAILED, ResponseStatus } from 'cfn-response';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 
 export interface Input {
@@ -15,12 +15,12 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   const sendResponsePromise = (
     responseStatus: ResponseStatus,
     responseData?: object,
-    physicalResourceId?: string
+    physicalResourceId?: string,
   ): Promise<unknown> => {
-      return new Promise((resolve) => {
-          context.done = resolve;
-          sendResponse(event, context, responseStatus, responseData, physicalResourceId);
-      });
+    return new Promise(resolve => {
+      context.done = resolve;
+      sendResponse(event, context, responseStatus, responseData, physicalResourceId);
+    });
   };
   try {
     const accountId = event['ResourceProperties']['AccountId'];
@@ -30,15 +30,15 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     const r53resolver = new Route53Resolver(credentials);
     const endpointResponse = await r53resolver.getEndpointIpAddress(endpoitId);
     interface Output {
-      [key: string]: string
+      [key: string]: string;
     }
     let output: Output = {};
-    for (const [key, ipaddress]  of endpointResponse.IpAddresses?.entries() || [].entries()) {
+    for (const [key, ipaddress] of endpointResponse.IpAddresses?.entries() || [].entries()) {
       output[`IpAddress${key + 1}`] = ipaddress.Ip!;
     }
     console.log(output);
-    await sendResponsePromise(SUCCESS, output ,physicalResourceId);
+    await sendResponsePromise(SUCCESS, output, physicalResourceId);
   } catch (error) {
-    await sendResponsePromise(FAILED,{},physicalResourceId)
+    await sendResponsePromise(FAILED, {}, physicalResourceId);
   }
 };
