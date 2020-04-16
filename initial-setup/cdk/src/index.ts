@@ -128,11 +128,26 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
+      const cfnLambdaRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
+        roleName: 'LambdaRoleRoute53Resolver',
+        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+      });
+
       const cfnLambda = new lambda.Function(this, 'DnsEndpointIPPoller', {
         runtime: lambda.Runtime.NODEJS_12_X,
         code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
         handler: 'index.handler',
+        role: cfnLambdaRole
       });
+
+      // Allow Cloudformation to trigger the handler
+      cfnLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
+        action: 'lambda:InvokeFunction',
+        principal: new iam.ArnPrincipal('arn:aws:iam::983612491393:role/AcceleratorPipelineRole'),
+      });
+
+      // ArnPrincipal('arn:aws:iam::983612491393:role/AWSReservedSSO_AdministratorAccess_5d90eb8378e65f42'), // I think CloudFormation is going to be the service that is invoking our Lambda function, right?
 
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'DeployProject', {
@@ -179,6 +194,10 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.executionRoleName,
             },
+            CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: cfnLambda.functionArn,
+            }
           },
         },
       });

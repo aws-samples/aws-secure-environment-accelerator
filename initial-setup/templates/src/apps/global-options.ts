@@ -5,7 +5,7 @@ import { GlobalOptions } from '../global-options/stack';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
-import { getStackOutput, loadStackOutputs } from '../utils/outputs';
+import { loadStackOutputs } from '../utils/outputs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -28,20 +28,6 @@ async function main() {
     zonesConfig['resolver-subnet'],
   ];
   const zonesCreationAccountId = getAccountId(accounts, zoneAccount);
-  const resolverVpcId = getStackOutput(outputs, zonesConfig.account, `Vpc${resolverVpc}`);
-  let subnets: string[] = [];
-  // const zoneAccountVpcConfig = (acceleratorConfig["mandatory-account-configs"] as any)[zoneAccount].vpc!;
-  try {
-    for (let azCount = 1; true; azCount++) {
-      subnets.push(getStackOutput(outputs, zonesConfig.account, `${resolverVpc}Subnet${resolverSubnet}az${azCount}`));
-    }
-  } catch (error) {
-    console.log('No more Subnets available');
-  }
-  const resolverSubnetId = subnets.join(',');
-
-  zonesConfig['resolver-vpc'] = resolverVpcId as NonEmptyString;
-  zonesConfig['resolver-subnet'] = resolverSubnetId as NonEmptyString;
 
   const app = new cdk.App();
 
@@ -53,7 +39,9 @@ async function main() {
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-GlobalOptions',
-    zonesConfig,
+    context,
+    acceleratorConfig,
+    outputs
   });
 
   // Add accelerator tag to all resources

@@ -67,6 +67,12 @@ export const InterfaceEndpointConfig = t.interface({
   endpoints: t.array(InterfaceEndpointName),
 });
 
+export const ResolversConfigType = t.interface({
+  subnet: NonEmptyString,
+  outbound: t.boolean,
+  inbound: t.boolean,
+});
+
 export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
   name: NonEmptyString,
@@ -84,6 +90,7 @@ export const VpcConfigType = t.interface({
   'route-tables': optional(t.array(RouteTableConfig)),
   'tgw-attach': optional(TransitGatewayAttachConfig),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
+  resolvers: optional(ResolversConfigType)
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
