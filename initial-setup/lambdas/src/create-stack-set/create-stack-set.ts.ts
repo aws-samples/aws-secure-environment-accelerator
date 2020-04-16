@@ -80,7 +80,7 @@ function parametersEqual(a: cfn.Parameters | undefined, b: cfn.Parameters | unde
   }
 
   for (const pa of a) {
-    const found = b.find((pb) => {
+    const found = b.find(pb => {
       return pb.ParameterKey === pa.ParameterKey && pb.ParameterValue === pa.ParameterValue;
     });
     if (!found) {

@@ -44,7 +44,7 @@ export class Organizations {
   async listRoots(): Promise<org.Root[]> {
     return listWithNextToken<org.ListRootsRequest, org.ListRootsResponse, org.Root>(
       this.client.listRoots.bind(this.client),
-      (r) => r.Roots!!,
+      r => r.Roots!,
       {},
     );
   }
@@ -52,7 +52,7 @@ export class Organizations {
   async listAccounts(): Promise<org.Account[]> {
     return listWithNextToken<org.ListAccountsRequest, org.ListAccountsResponse, org.Account>(
       this.client.listAccounts.bind(this.client),
-      (r) => r.Accounts!!,
+      r => r.Accounts!,
       {},
     );
   }
@@ -70,7 +70,7 @@ export class Organizations {
   async listParents(accountId: string): Promise<org.Parent[]> {
     return listWithNextToken<org.ListParentsRequest, org.ListParentsResponse, org.Parent>(
       this.client.listParents.bind(this.client),
-      (r) => r.Parents!!,
+      r => r.Parents!,
       {
         ChildId: accountId,
       },
@@ -111,7 +111,7 @@ export class Organizations {
   async listPolicies(input: org.ListPoliciesRequest): Promise<org.PolicySummary[]> {
     return listWithNextToken<org.ListPoliciesRequest, org.ListPoliciesResponse, org.PolicySummary>(
       this.client.listPolicies.bind(this.client),
-      (r) => r.Policies!!,
+      r => r.Policies!,
       input,
     );
   }

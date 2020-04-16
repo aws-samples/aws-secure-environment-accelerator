@@ -5,7 +5,7 @@
   "scripts": {
     "build": "pnpx tsc --noEmit",
     "test": "pnpx jest",
-    "lint": "tslint 'src/**/*.ts'"
+    "lint": "tslint --project tsconfig.json 'src/**/*.ts'"
   },
   "main": "src/index.ts",
   "files": [

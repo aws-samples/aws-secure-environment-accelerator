@@ -6,7 +6,7 @@ import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import { isLeft } from 'fp-ts/lib/Either';
 
 export const VirtualPrivateGatewayConfig = t.interface({
-  // TODO
+  asn: optional(t.number),
 });
 
 export const PeeringConnectionConfig = t.interface({
@@ -107,7 +107,7 @@ export const AccountConfigType = t.interface({
   'account-name': NonEmptyString,
   email: NonEmptyString,
   ou: NonEmptyString,
-  vpc: VpcConfigType,
+  vpc: optional(VpcConfigType),
   deployments: t.interface({
     tgw: optional(DeploymentConfigType),
   }),
@@ -128,6 +128,17 @@ export const MandatoryAccountConfigType = t.interface({
   perimeter: AccountConfigType,
 });
 
+export const PasswordConfigType = t.interface({
+  'secret-name': t.string,
+  length: t.number,
+});
+
+export type PasswordConfig = t.TypeOf<typeof PasswordConfigType>;
+
+export const PasswordsConfigType = t.record(t.string, PasswordConfigType);
+
+export type PasswordsConfig = t.TypeOf<typeof PasswordsConfigType>;
+
 export const GlobalOptionsAccountsConfigType = t.interface({
   'lz-primary-account': t.string,
   'lz-security-account': t.string,
@@ -141,11 +152,12 @@ export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsC
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   accounts: GlobalOptionsAccountsConfigType,
+  passwords: fromNullable(PasswordsConfigType, {}),
 });
 
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
-  'mandatory-account-configs': MandatoryAccountConfigType,
+  'mandatory-account-configs': t.record(t.string, AccountConfigType),
   'organizational-units': OrganizationalUnitsType,
 });
 
@@ -171,7 +183,7 @@ export namespace AcceleratorConfig {
 export function parse<S, T>(type: t.Decoder<S, T>, content: S): T {
   const result = type.decode(content);
   if (isLeft(result)) {
-    const errors = PathReporter.report(result).map((error) => `* ${error}`);
+    const errors = PathReporter.report(result).map(error => `* ${error}`);
     const errorMessage = errors.join('\n');
     throw new Error(`Could not parse content:\n${errorMessage}`);
   }

@@ -6,14 +6,15 @@ import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import * as cdk from '@aws-cdk/core';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { zipFiles } from '@aws-pbmm/common-lambda/lib/util/zip';
 import { Archiver } from 'archiver';
 import * as path from 'path';
 import * as tempy from 'tempy';
+import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
-import { BuildTask } from './tasks/build-task';
 
 interface BuildProps {
   lambdas: WebpackBuild;
@@ -29,22 +30,14 @@ export namespace InitialSetup {
     executionRoleName: string;
   }
 
-  export interface Props extends cdk.StackProps, CommonProps {}
+  export interface Props extends AcceleratorStackProps, CommonProps {}
 }
 
-export class InitialSetup extends cdk.Stack {
+export class InitialSetup extends AcceleratorStack {
   constructor(scope: cdk.Construct, id: string, props: InitialSetup.Props & BuildProps) {
-    super(scope, id);
+    super(scope, id, props);
 
-    new InitialSetup.Pipeline(this, 'Pipeline', {
-      configSecretName: props.configSecretName,
-      acceleratorPrefix: props.acceleratorPrefix,
-      acceleratorName: props.acceleratorName,
-      solutionRoot: props.solutionRoot,
-      executionRoleName: props.executionRoleName,
-      lambdas: props.lambdas,
-      solutionZipPath: props.solutionZipPath,
-    });
+    new InitialSetup.Pipeline(this, 'Pipeline', props);
   }
 
   static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props) {
@@ -101,14 +94,17 @@ export namespace InitialSetup {
       const stack = cdk.Stack.of(this);
 
       const accountsSecret = new secrets.Secret(this, 'Accounts', {
+        secretName: 'accelerator/accounts',
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
 
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
+        secretName: 'accelerator/outputs',
         description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
       });
 
       const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
+        secretName: 'accelerator/config/in-progress',
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
 
@@ -119,14 +115,15 @@ export namespace InitialSetup {
 
       // TODO This should be the repo containing our code in the future
       // Upload the templates ZIP as an asset to S3
-      const solutionZip = new s3assets.Asset(this, 'Code', {
+      const solutionZip = new s3assets.Asset(this, 'SolutionZip', {
         path: props.solutionZipPath,
       });
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
-      const pipelineRole = new iam.Role(this, 'PipelineRole', {
+      const pipelineRole = new iam.Role(this, 'Role', {
         roleName: 'AcceleratorPipelineRole',
         assumedBy: new iam.CompositePrincipal(
+          // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
@@ -134,7 +131,7 @@ export namespace InitialSetup {
       });
 
       // Define a build specification to build the initial setup templates
-      const project = new codebuild.PipelineProject(this, 'CdkDeploy', {
+      const project = new codebuild.PipelineProject(this, 'DeployProject', {
         role: pipelineRole,
         buildSpec: codebuild.BuildSpec.fromObject({
           version: '0.2',
@@ -196,6 +193,17 @@ export namespace InitialSetup {
           configSecretInProgressId: configSecretInProgress.secretArn,
         },
         resultPath: '$.configuration',
+      });
+
+      const createPasswordsTask = new CodeTask(this, 'Create Passwords', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('create-passwords'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configSecretId: configSecretInProgress.secretArn,
+        },
+        resultPath: 'DISCARD',
       });
 
       // TODO We might want to load this from the Landing Zone configuration
@@ -321,6 +329,19 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storeShareNetworkStackOutput = new CodeTask(this, 'Store Shared Network Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
           lambdas: props.lambdas,
@@ -358,6 +379,7 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
+          .next(createPasswordsTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)
@@ -365,7 +387,8 @@ export namespace InitialSetup {
           .next(addRoleToScpTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
-          .next(deploySharedNetworkTask),
+          .next(deploySharedNetworkTask)
+          .next(storeShareNetworkStackOutput),
       });
     }
   }

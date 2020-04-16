@@ -6,7 +6,7 @@
     "bootstrap": "pnpx cdk bootstrap",
     "deploy": "pnpx cdk deploy",
     "synth": "pnpx cdk synth",
-    "lint": "tslint 'src/**/*.ts'"
+    "lint": "tslint --project tsconfig.json 'src/**/*.ts'"
   },
   "devDependencies": {
     "@types/jest": "25.1.4",

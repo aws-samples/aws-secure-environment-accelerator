@@ -5,7 +5,7 @@ import * as path from 'path';
 export type Accounts = { key: string; id: string; arn: string }[];
 
 export function getAccountId(accounts: Accounts, accountKey: string): string {
-  const account = accounts.find((a) => a.key === accountKey);
+  const account = accounts.find(a => a.key === accountKey);
   if (!account) {
     throw new Error(`Cannot find account with key "${accountKey}"`);
   }

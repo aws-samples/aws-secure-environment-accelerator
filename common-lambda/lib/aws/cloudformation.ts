@@ -38,7 +38,7 @@ export class CloudFormation {
   listStacksGenerator(input: cfn.ListStacksInput): AsyncIterable<cfn.StackSummary> {
     return listWithNextTokenGenerator<cfn.ListStacksInput, cfn.ListStacksOutput, cfn.StackSummary>(
       this.client.listStacks.bind(this.client),
-      (r) => r.StackSummaries!,
+      r => r.StackSummaries!,
       input,
     );
   }
@@ -64,7 +64,9 @@ export class CloudFormation {
         })
         .promise();
       return response.Stacks?.[0];
-    } catch {
+    } catch (e) {
+      console.warn(`Ignoring error in describeStack`);
+      console.warn(e);
       return undefined;
     }
   }
@@ -112,7 +114,9 @@ export class CloudFormation {
         })
         .promise();
       return response.StackSet;
-    } catch {
+    } catch (e) {
+      console.warn(`Ignoring error in describeStack`);
+      console.warn(e);
       return undefined;
     }
   }
@@ -120,7 +124,7 @@ export class CloudFormation {
   async listStackInstances(stackSetName: string, accountId?: string): Promise<cfn.StackInstanceSummary[]> {
     return listWithNextToken<cfn.ListStackInstancesInput, cfn.ListStackInstancesOutput, cfn.StackInstanceSummary>(
       this.client.listStackInstances.bind(this.client),
-      (r) => r.Summaries!!,
+      r => r.Summaries!,
       {
         StackSetName: stackSetName,
         StackInstanceAccount: accountId,
@@ -133,7 +137,7 @@ export class CloudFormation {
       cfn.ListStackSetOperationsInput,
       cfn.ListStackSetOperationsOutput,
       cfn.StackSetOperationSummary
-    >(this.client.listStackSetOperations.bind(this.client), (r) => r.Summaries!!, {
+    >(this.client.listStackSetOperations.bind(this.client), r => r.Summaries!, {
       StackSetName: stackSetName,
     });
   }
@@ -211,7 +215,7 @@ export function objectToCloudFormationParameters(
   if (!obj) {
     return undefined;
   }
-  return Object.getOwnPropertyNames(obj).map((key) => {
+  return Object.getOwnPropertyNames(obj).map(key => {
     return {
       ParameterKey: key,
       ParameterValue: obj[key],

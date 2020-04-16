@@ -43,6 +43,7 @@ export class CodeTask extends sfn.StateMachineFragment {
     });
 
     const task = new sfn.Task(this, id, {
+      // tslint:disable-next-line: deprecation
       task: new tasks.InvokeFunction(func, {
         payload: props.functionPayload,
       }),

@@ -103,7 +103,7 @@ export class InterfaceEndpoints extends cdk.Construct {
 
     const { vpc, accountConfig } = props;
 
-    const vpcConfig = accountConfig.vpc;
+    const vpcConfig = accountConfig.vpc!;
     const vpcRegion = vpcConfig.region;
     if (!t.string.is(vpcRegion)) {
       console.log('Skipping interface endpoint as "region" is not set');

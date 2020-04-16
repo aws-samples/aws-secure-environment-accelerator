@@ -1,5 +1,4 @@
 import * as cdk from '@aws-cdk/core';
-import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
 import { OrganizationalUnit } from '../organizational-units/stack';
 import { LogArchive } from '../log-archive/stack';
 import { getAccountId, loadAccounts } from '../utils/accounts';
@@ -29,6 +28,8 @@ async function main() {
       account: logArchiveAccountId,
       region: cdk.Aws.REGION,
     },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-LogArchive',
     centralLogRetentionInDays: centralLogRetention,
     sharedNetWorkAccountId: sharedNetworkAccountId,
@@ -50,15 +51,11 @@ async function main() {
       account: logArchiveAccountId,
       region: cdk.Aws.REGION,
     },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-OrganizationalUnits',
     organizationalUnits,
   });
-
-  // Add accelerator tag to all resources
-  cdk.Tag.add(app, 'Accelerator', context.acceleratorName);
-
-  // Add name tag to all resources
-  app.node.applyAspect(new AcceleratorNameTagger());
 }
 
 // tslint:disable-next-line: no-floating-promises

@@ -1,5 +1,4 @@
 import * as cdk from '@aws-cdk/core';
-import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
 import { OrganizationalUnit } from '../organizational-units/stack';
 import { SharedNetwork } from '../shared-network/stack';
 import { getAccountId, loadAccounts } from '../utils/accounts';
@@ -35,6 +34,8 @@ async function main() {
       account: sharedNetworkAccountId,
       region: cdk.Aws.REGION,
     },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-SharedNetwork',
     accountConfig: sharedNetworkConfig,
     acceleratorExecutionRoleName,
@@ -49,15 +50,11 @@ async function main() {
       account: sharedNetworkAccountId,
       region: cdk.Aws.REGION,
     },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-OrganizationalUnits',
     organizationalUnits,
   });
-
-  // Add accelerator tag to all resources
-  cdk.Tag.add(app, 'Accelerator', context.acceleratorName);
-
-  // Add name tag to all resources
-  app.node.applyAspect(new AcceleratorNameTagger());
 }
 
 // tslint:disable-next-line: no-floating-promises
