@@ -138,8 +138,6 @@ export class Vpc extends cdk.Construct {
     }
 
     const subnetsConfig = props.vpcConfig.subnets || [];
-    const srcAccountId = props.accounts?.find(a => a.key === props.vpcConfig.deploy)?.id;
-    let subnetIndex: number = 0;
     for (const subnetConfig of subnetsConfig) {
       const subnetAzs: string[] = [];
       const propSubnetName = subnetConfig.name;
@@ -162,34 +160,6 @@ export class Vpc extends cdk.Construct {
         }
         this.subnets.set(`${propSubnetName}_az${key + 1}`, subnet.ref);
         subnetAzs.push(subnet.ref);
-
-        // Share Central Subnet to sub-accounts
-        if (subnetConfig['share-to-specific-accounts'] && subnetConfig['share-to-specific-accounts'].length > 0) {
-          let accountIndex: number = 0;
-          const accountIds: string[] = [];
-          const accountNames = subnetConfig['share-to-specific-accounts'];
-          for (const accountName of accountNames) {
-            const accountId = getAccountId(props.accounts!, accountName);
-            if (accountId) {
-              accountIds[accountIndex] = accountId;
-              accountIndex++;
-            }
-          }
-
-          if (srcAccountId) {
-            new VPCSharing(this, `${vpcName}_${propSubnetName}_${key + 1}`, {
-              subnetId: subnet.ref,
-              sourceAccountId: srcAccountId,
-              targetAccountIds: accountIds,
-              region: props.vpcConfig.region!,
-            });
-            this.subnetTagProps[subnetIndex] = {
-              resources: [subnet.ref],
-              tags: [{ Key: 'Name', Value: `${propSubnetName}_az${key + 1}` }],
-            };
-            subnetIndex++;
-          }
-        }
 
         // Attach Subnet to Route-Table
         const routeTableName = subnetDefinition['route-table'];

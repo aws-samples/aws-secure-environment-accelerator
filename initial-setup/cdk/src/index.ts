@@ -381,6 +381,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const vpcSharingTask = new sfn.Task(this, 'VPC Sharing Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/vpc-sharing.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(createPasswordsTask)
@@ -393,7 +404,8 @@ export namespace InitialSetup {
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
           .next(deploySharedNetworkTask)
-          .next(storeShareNetworkStackOutput),
+          .next(storeShareNetworkStackOutput)
+          .next(vpcSharingTask),
       });
     }
   }

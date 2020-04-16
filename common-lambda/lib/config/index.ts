@@ -165,6 +165,7 @@ export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
 export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 export type OrganizationalUnits = t.TypeOf<typeof OrganizationalUnitsType>;
+export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {
