@@ -11,8 +11,8 @@ export interface VPCProps extends cdk.StackProps {
 }
 
 interface SubnetShareProps {
-  Resources: string[];
-  Tags: { Key: string; Value: string }[];
+  resources: string[];
+  tags: { Key: string; Value: string }[];
 }
 
 function getRegionAz(region: string, az: string): string {
@@ -181,11 +181,11 @@ export class Vpc extends cdk.Construct {
               subnetId: subnet.ref,
               sourceAccountId: srcAccountId,
               targetAccountIds: accountIds,
-              region: props.vpcConfig.region,
+              region: props.vpcConfig.region!,
             });
             this.subnetTagProps[subnetIndex] = {
-              Resources: [subnet.ref],
-              Tags: [{ Key: 'Name', Value: `${propSubnetName}_az${key + 1}` }],
+              resources: [subnet.ref],
+              tags: [{ Key: 'Name', Value: `${propSubnetName}_az${key + 1}` }],
             };
             subnetIndex++;
           }
