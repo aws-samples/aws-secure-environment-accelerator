@@ -23,6 +23,8 @@ const config: webpack.Configuration = {
     'create-stack-set/verify': './src/create-stack-set/verify.ts',
     'create-account/create': './src/create-account/create.ts',
     'create-account/verify': './src/create-account/verify.ts',
+    'enable-resource-share': './src/enable-resouce-sharing-step.ts',
+    'attach-tags-to-subnets': './src/add-tags-to-resources.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

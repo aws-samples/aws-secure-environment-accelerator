@@ -13,19 +13,22 @@ export namespace Master {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
 
-      const accountProps = props.accountConfig;
-      if (!accountProps.vpc) {
+      const { accountConfig } = props;
+      const vpcConfig = accountConfig.vpc;
+      if (!vpcConfig) {
         console.log('No VPC Config Specified for Master Account');
         return;
       }
+
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc;
+      const vpc = new Vpc(this, 'vpc', {
+        vpcConfig,
+      });
 
-      const vpc = new Vpc(this, 'vpc', vpcConfig);
-
+      // Creating Interface endpoints
       new InterfaceEndpoints(this, 'InterfaceEndpoints', {
         vpc,
-        accountConfig: accountProps,
+        accountConfig,
       });
     }
   }

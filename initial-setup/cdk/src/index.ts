@@ -444,6 +444,39 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const enableResourceShareTask = new CodeTask(this, 'Enable Resource Sharing', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('enable-resource-share'),
+          role: pipelineRole,
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const vpcSharingTask = new sfn.Task(this, 'VPC Sharing Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/vpc-sharing.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const attachTagsTask = new CodeTask(this, 'Attach Tags to Shared Subnets', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('attach-tags-to-subnets'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.executionRoleName,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       const deployPerimeterAccountkTask = new sfn.Task(this, 'Deploy Perimeter Stacks', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
@@ -473,6 +506,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
+          .next(enableResourceShareTask)
           .next(addRoleToKmsKeyTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
@@ -481,7 +515,9 @@ export namespace InitialSetup {
           .next(deployPerimeterAccountkTask)
           .next(storePerimeterStackOutput)
           .next(deployMasterAccountkTask)
-          .next(storeMasterStackOutput),
+          .next(storeMasterStackOutput)
+          .next(vpcSharingTask)
+          .next(attachTagsTask),
       });
     }
   }
