@@ -7,6 +7,10 @@ Configure the AWS CLI so that CDK can deploy in the AWS account.
     export AWS_PROFILE=aws-account-profile
     export AWS_REGION=ca-central-1
 
+If required, install the pnpm package manager.
+
+    https://pnpm.js.org/en/installation
+
 Install the `pnpm` dependencies.
 
     pnpm install

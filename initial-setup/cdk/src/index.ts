@@ -5,6 +5,7 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import * as cdk from '@aws-cdk/core';
+import * as kms from '@aws-cdk/aws-kms';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
@@ -152,6 +153,39 @@ export namespace InitialSetup {
       });
 
       // ArnPrincipal('arn:aws:iam::983612491393:role/AWSReservedSSO_AdministratorAccess_5d90eb8378e65f42'), // I think CloudFormation is going to be the service that is invoking our Lambda function, right?
+      // This key is used to encrypt passwords in sub accounts
+      const passwordsKey = new kms.Key(this, 'PasswordsKey', {
+        alias: 'Passwords',
+        description: 'This key is used to encrypt passwords that are used by sub accounts.',
+      });
+
+      // Allow the pipeline role to administer this key
+      passwordsKey.grant(pipelineRole, 'kms:*');
+
+      // Allow secrets manager to use this KMS key
+      passwordsKey.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid:
+            'Allow access through AWS Secrets Manager for all principals in the account that are authorized to use AWS Secrets Manager',
+          effect: iam.Effect.ALLOW,
+          actions: [
+            'kms:Encrypt',
+            'kms:Decrypt',
+            'kms:ReEncrypt*',
+            'kms:GenerateDataKey*',
+            'kms:CreateGrant',
+            'kms:DescribeKey',
+          ],
+          principals: [new iam.AnyPrincipal()],
+          resources: ['*'],
+          conditions: {
+            StringEquals: {
+              'kms:ViaService': `secretsmanager.${cdk.Aws.REGION}.amazonaws.com`,
+              'kms:CallerAccount': cdk.Aws.ACCOUNT_ID,
+            },
+          },
+        }),
+      );
 
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'DeployProject', {
@@ -194,6 +228,14 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: stackOutputSecret.secretArn,
             },
+            PASSWORDS_KMS_KEY_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: passwordsKey.keyArn,
+            },
+            ACCELERATOR_EXECUTION_ROLE_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.executionRoleName,
+            },
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.executionRoleName,
@@ -216,17 +258,6 @@ export namespace InitialSetup {
           configSecretInProgressId: configSecretInProgress.secretArn,
         },
         resultPath: '$.configuration',
-      });
-
-      const createPasswordsTask = new CodeTask(this, 'Create Passwords', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('create-passwords'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          configSecretId: configSecretInProgress.secretArn,
-        },
-        resultPath: 'DISCARD',
       });
 
       // TODO We might want to load this from the Landing Zone configuration
@@ -311,7 +342,7 @@ export namespace InitialSetup {
             stackParameters: {
               RoleName: props.executionRoleName,
               // TODO Only add root role for development environments
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,arn:aws:iam::${stack.account}:role/Admin,${pipelineRole.roleArn}`,
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
@@ -335,6 +366,19 @@ export namespace InitialSetup {
         functionPayload: {
           roleName: props.executionRoleName,
           policyName: coreMandatoryScpName,
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const addRoleToKmsKeyTask = new CodeTask(this, 'Add Execution Roles to Passwords KMS Key', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('add-role-to-kms-key'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          roleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+          kmsKeyId: passwordsKey.keyId,
         },
         resultPath: 'DISCARD',
       });
@@ -450,12 +494,12 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
-          .next(createPasswordsTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
+          .next(addRoleToKmsKeyTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
           .next(deploySharedNetworkTask)

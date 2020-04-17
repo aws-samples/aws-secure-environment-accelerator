@@ -141,17 +141,6 @@ export const MandatoryAccountConfigType = t.interface({
   perimeter: AccountConfigType,
 });
 
-export const PasswordConfigType = t.interface({
-  'secret-name': t.string,
-  length: t.number,
-});
-
-export type PasswordConfig = t.TypeOf<typeof PasswordConfigType>;
-
-export const PasswordsConfigType = t.record(t.string, PasswordConfigType);
-
-export type PasswordsConfig = t.TypeOf<typeof PasswordsConfigType>;
-
 export const GlobalOptionsAccountsConfigType = t.interface({
   'lz-primary-account': t.string,
   'lz-security-account': t.string,
@@ -176,9 +165,9 @@ export const GlobalOptionsZonesConfigType = t.interface({
 export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
+  'central-log-retention': t.number,
   accounts: GlobalOptionsAccountsConfigType,
   zones: GlobalOptionsZonesConfigType,
-  passwords: fromNullable(PasswordsConfigType, {}),
 });
 
 export const AcceleratorConfigType = t.interface({

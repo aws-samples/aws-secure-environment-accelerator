@@ -8,6 +8,7 @@ const config: webpack.Configuration = {
   target: 'node',
   externals: ['aws-sdk', 'aws-lambda'],
   entry: {
+    'add-role-to-kms-key': './src/add-role-to-kms-key-step.ts',
     'add-role-to-service-catalog': './src/add-role-to-service-catalog-step.ts',
     'add-role-to-scp': './src/add-role-to-scp-step.ts',
     'load-accounts': './src/load-accounts-step.ts',
@@ -15,7 +16,6 @@ const config: webpack.Configuration = {
     'store-stack-output': './src/store-stack-output-step.ts',
     'codebuild/start': './src/codebuild/start.ts',
     'codebuild/verify': './src/codebuild/verify.ts',
-    'create-passwords': './src/create-passwords-step.ts',
     'create-stack/create': './src/create-stack/create.ts',
     'create-stack/verify': './src/create-stack/verify.ts',
     'create-stack-set/create-stack-set': './src/create-stack-set/create-stack-set.ts',
