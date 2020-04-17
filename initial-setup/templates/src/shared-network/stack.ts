@@ -31,7 +31,7 @@ export namespace SharedNetwork {
 
       // Create a role that will be able to replicate to the log-archive bucket
       const replicationRole = new iam.Role(this, 'ReplicationRole', {
-        roleName: 'ReplicationRole',
+        roleName: 'PBMMAccelS3ReplicationRole',
         assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
       });
 
@@ -47,7 +47,7 @@ export namespace SharedNetwork {
       kmsKey.grantEncryptDecrypt(replicationRole);
 
       // bucket name format: pbmmaccel-{account #}-{region}
-      const flowLogBucketName = `pbmmaccel-${props.env?.account}-ca-central-1`;
+      const flowLogBucketName = `pbmmaccel-${this.account}-${this.region}`;
 
       // s3 bucket to collect vpc-flow-logs
       const s3BucketForVpcFlowLogs = new s3.CfnBucket(this, 's3ForVpcFlowLogs', {
@@ -156,10 +156,6 @@ export namespace SharedNetwork {
 
       // Creating FlowLog for VPC
       if (vpcConfig['flow-logs']) {
-        // const s3BucketCreated = s3.Bucket.fromBucketAttributes(this, id + `bucket`, {
-        //   bucketArn: s3BucketForVpcFlowLogs.attrArn,
-        // });
-
         new FlowLogs(this, 'flowlog', {
           vpcId: vpc.vpcId,
           bucketArn: s3BucketForVpcFlowLogs.attrArn,
