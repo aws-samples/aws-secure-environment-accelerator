@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { VpcConfig, VirtualPrivateGatewayConfig } from '@aws-pbmm/common-lambda/lib/config';
 
-export interface VPCProps extends cdk.StackProps {
+export interface VpcProps extends cdk.StackProps {
   vpcConfig: VpcConfig;
   accounts?: { key: string; id: string }[];
 }
@@ -22,7 +22,7 @@ export class Vpc extends cdk.Construct {
   readonly subnets = new Map<string, string>();
   readonly routeTableNameToIdMap = new Map<string, string>();
 
-  constructor(parent: cdk.Construct, name: string, props: VPCProps) {
+  constructor(parent: cdk.Construct, name: string, props: VpcProps) {
     super(parent, name);
     const vpcName = props.vpcConfig.name;
     // Create Custom VPC using CFN construct as tags override option not available in default construct

@@ -1,11 +1,11 @@
 import * as cdk from '@aws-cdk/core';
 import { getAccountId } from '../utils/accounts';
-import { VPCSharing } from './vpc-sharing';
+import { VpcSharing } from './vpc-sharing';
 import { StackOutputs, getStackOutput } from '../utils/outputs';
 import { OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/config';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
-export namespace ShareVPC {
+export namespace ShareVpc {
   export interface StackProps extends AcceleratorStackProps {
     stackOutputs: StackOutputs;
     organizationalUnit: OrganizationalUnit;
@@ -42,7 +42,7 @@ export namespace ShareVPC {
                 orgAccountName,
                 `${props.organizationalUnit.vpc.name}Subnet${subnetConfig.name}az${key + 1}`,
               );
-              new VPCSharing(this, `${vpcName}_${subnetConfig.name}_${key + 1}`, {
+              new VpcSharing(this, `${vpcName}_${subnetConfig.name}_${key + 1}`, {
                 subnetId: subnetIdStackOut,
                 sourceAccountId,
                 targetAccountIds: accountIds,

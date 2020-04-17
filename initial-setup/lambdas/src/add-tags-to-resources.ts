@@ -58,7 +58,7 @@ export const handler = async (input: CreateTagsRequestInput) => {
                   },
                 ],
               };
-              const isTagFound = await tagResources.isTagsFound(params);
+              const isTagFound = await tagResources.hasTag(params);
               if (!isTagFound) {
                 console.log(`Creating Tag for subnet ${subnetIdFromStackOutput} in Account ${accountName}`);
                 await tagResources.createTags({

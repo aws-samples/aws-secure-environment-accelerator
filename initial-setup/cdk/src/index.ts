@@ -404,7 +404,7 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.executionRoleName,
-          configSecretSourceId: props.configSecretName,
+          configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
