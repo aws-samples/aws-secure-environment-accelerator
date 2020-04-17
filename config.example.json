@@ -28,12 +28,6 @@
     "iam-userids": {
       "master-breakglass-ids": ["bgUser1", "bgUser2", "bgUser3"],
       "master-Ops-ids": ["OpsUser1", "OpsUser2", "OpsUser3"]
-    },
-    "passwords": {
-      "mad": {
-        "secret-name": "accelerator/passwords/mad",
-        "length": 16
-      }
     }
   },
   "mandatory-account-configs": {
@@ -52,7 +46,7 @@
         "log-retention": 90,
         "igw": true,
         "vgw": {
-          "asn": 65789
+          "asn": 65534
         },
         "pcx": false,
         "natgw": {
@@ -238,7 +232,6 @@
           "central-resolver-rule-vpc": "endpoint",
           "share-to-master": true,
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
-          "password-ref": "mad",
           "password-policies": {
             "history": 24,
             "max-age": 90,
