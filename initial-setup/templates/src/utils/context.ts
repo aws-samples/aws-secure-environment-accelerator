@@ -5,7 +5,6 @@ export interface Context {
   acceleratorName: string;
   acceleratorPrefix: string;
   acceleratorExecutionRoleName: string;
-  passwordsKmsKeyArn: string;
 }
 
 export function loadContext(): Context {
@@ -21,6 +20,5 @@ export function loadContext(): Context {
     acceleratorName: process.env.ACCELERATOR_NAME!,
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
-    passwordsKmsKeyArn: process.env.PASSWORDS_KMS_KEY_ARN!,
   };
 }
