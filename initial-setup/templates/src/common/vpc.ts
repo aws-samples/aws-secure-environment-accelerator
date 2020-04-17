@@ -10,11 +10,6 @@ export interface VPCProps extends cdk.StackProps {
   accounts?: { key: string; id: string }[];
 }
 
-interface SubnetShareProps {
-  resources: string[];
-  tags: { Key: string; Value: string }[];
-}
-
 function getRegionAz(region: string, az: string): string {
   return region.split('-')[region.split('-').length - 1] + az;
 }
@@ -28,7 +23,6 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new Map<string, string[]>();
   readonly subnets = new Map<string, string>();
-  readonly subnetTagProps: SubnetShareProps[] = [];
   readonly routeTableNameToIdMap = new Map<string, string>();
 
   constructor(parent: cdk.Construct, name: string, props: VPCProps) {

@@ -20,10 +20,6 @@ export namespace OrganizationalUnit {
         accounts: props.accounts,
       });
 
-      // Add Outputs to Stack
-      console.log('subnet share props', vpc.subnetTagProps);
-      new cdk.CfnOutput(this, 'SubnetTagInfo', { value: JSON.stringify(vpc.subnetTagProps) });
-
       // Adding Output for VPC
       new cdk.CfnOutput(this, `Vpc${vpcConfig.name}`, {
         value: vpc.vpcId,

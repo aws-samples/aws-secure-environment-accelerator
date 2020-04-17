@@ -13,4 +13,9 @@ export class TagResources {
   async createTags(input: ec2.CreateTagsRequest): Promise<void> {
     await this.client.createTags(input).promise();
   }
+
+  async isTagsFound(input: ec2.DescribeTagsRequest): Promise<boolean> {
+    const result = await this.client.describeTags(input).promise();
+    return result.Tags!.length > 0;
+  }
 }

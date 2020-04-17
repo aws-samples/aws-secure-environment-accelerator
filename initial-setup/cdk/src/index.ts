@@ -392,6 +392,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const attachTagsTask = new CodeTask(this, 'Attach Tags to Shared Subnets', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('attach-tags-to-subnets'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.executionRoleName,
+          configSecretSourceId: props.configSecretName,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(createPasswordsTask)
@@ -405,7 +419,8 @@ export namespace InitialSetup {
           .next(storeStackOutput)
           .next(deploySharedNetworkTask)
           .next(storeShareNetworkStackOutput)
-          .next(vpcSharingTask),
+          .next(vpcSharingTask)
+          .next(attachTagsTask),
       });
     }
   }

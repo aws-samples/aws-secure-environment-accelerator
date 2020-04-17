@@ -12,19 +12,14 @@ export namespace ShareVPC {
     accounts: { key: string; id: string }[];
   }
 
-  interface SubnetShareProps {
-    accountId: string;
-    resources: string[];
-    tags: { Key: string; Value: string }[];
-  }
-
   export class Stack extends AcceleratorStack {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
       const vpcName = props.organizationalUnit.vpc.name;
-      const OrgAccountName = props.organizationalUnit.vpc.deploy!;
+      const orgAccountName = props.organizationalUnit.vpc.deploy!;
       const region = props.organizationalUnit.vpc.region;
-      const sourceAccountId = getAccountId(props.accounts, OrgAccountName);
+      const sourceAccountId = getAccountId(props.accounts, orgAccountName);
+
       props.organizationalUnit.vpc.subnets?.forEach(subnetConfig => {
         if (subnetConfig['share-to-specific-accounts'] && subnetConfig['share-to-specific-accounts'].length > 0) {
           let accountIndex: number = 0;
@@ -42,12 +37,13 @@ export namespace ShareVPC {
               if (subnetDefinition.disabled) {
                 continue;
               }
+              const subnetIdStackOut = getStackOutput(
+                props.stackOutputs,
+                orgAccountName,
+                `${props.organizationalUnit.vpc.name}Subnet${subnetConfig.name}az${key + 1}`,
+              );
               new VPCSharing(this, `${vpcName}_${subnetConfig.name}_${key + 1}`, {
-                subnetId: getStackOutput(
-                  props.stackOutputs,
-                  OrgAccountName,
-                  `${props.organizationalUnit.vpc.name}Subnet${subnetConfig.name}az${key + 1}`,
-                ),
+                subnetId: subnetIdStackOut,
                 sourceAccountId,
                 targetAccountIds: accountIds,
                 region: region!,

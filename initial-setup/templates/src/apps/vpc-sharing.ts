@@ -22,6 +22,11 @@ async function main() {
   const app = new cdk.App();
 
   for (const [orgKey, orgUnit] of Object.entries(organziationalUnits)) {
+    //TODO Remove the below conditional block in the future when all the accounts are ready
+    if (orgUnit.vpc.name != 'Central') {
+      continue;
+    }
+
     const subnets = orgUnit.vpc.subnets!;
     for (const [key, subnet] of subnets.entries()) {
       if (subnet['share-to-specific-accounts']!.length > 0) {
