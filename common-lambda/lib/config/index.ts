@@ -75,7 +75,7 @@ export const ResolversConfigType = t.interface({
 
 export const OnPremZoneConfigType = t.interface({
   zone: NonEmptyString,
-  'outbound-ips': t.array(NonEmptyString)
+  'outbound-ips': t.array(NonEmptyString),
 });
 
 export const VpcConfigType = t.interface({
@@ -96,7 +96,7 @@ export const VpcConfigType = t.interface({
   'tgw-attach': optional(TransitGatewayAttachConfig),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
-  'on-premise-rules': optional(t.array(OnPremZoneConfigType))
+  'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;

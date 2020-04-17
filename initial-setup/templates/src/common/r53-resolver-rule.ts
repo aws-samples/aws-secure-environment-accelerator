@@ -19,15 +19,15 @@ export class Route53ResolverRule extends cdk.Construct {
   readonly ruleId: string;
   constructor(parent: cdk.Construct, name: string, props: Route53ResolverRuleProps) {
     super(parent, name);
-      
+
     const inBoundRuleTargetIps: Array<r53Resolver.CfnResolverRule.TargetAddressProperty> = [];
-    for(const ip of props.ipAddresses.split(',')){
+    for (const ip of props.ipAddresses.split(',')) {
       inBoundRuleTargetIps.push({
         ip: ip,
         port: '53',
       });
     }
-    
+
     const rule = new r53Resolver.CfnResolverRule(this, name, {
       domainName: props.domain,
       ruleType: props.ruleType,

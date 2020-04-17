@@ -17,16 +17,16 @@ export namespace GlobalOptions {
   export class Stack extends AcceleratorStack {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
-      const zonesConfig = props.acceleratorConfig["global-options"].zones;
+      const zonesConfig = props.acceleratorConfig['global-options'].zones;
       const mandatoryAccountConfig = props.acceleratorConfig['mandatory-account-configs'];
-      
+
       // Creating Hosted Zones based on config
       const vpcId = getStackOutput(props.outputs, zonesConfig.account, `Vpc${zonesConfig['resolver-vpc']}`);
-      const route53ZonesProps:Route53ZonesProps = {
+      const route53ZonesProps: Route53ZonesProps = {
         zonesConfig: zonesConfig,
         vpcId,
         vpcRegion: props.env?.region || 'ca-central-1',
-      }
+      };
       const r53Zones = new Route53Zones(this, 'DNSResolvers', route53ZonesProps);
 
       // Create Endpoints per Account and VPC
@@ -34,8 +34,8 @@ export namespace GlobalOptions {
       for (const account of mandatoryAccounts) {
         const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
         const vpcConfig = accountConfig.vpc!;
-        if(!vpcConfig) continue;
-        if(!vpcConfig.resolvers) continue;
+        if (!vpcConfig) continue;
+        if (!vpcConfig.resolvers) continue;
         // Call r53-resolver-endpoint per Account
         const r53ResolverEndpoints = new Route53ResolverEndpoint(this, 'ResolverEndpoints', {
           vpcConfig,
@@ -46,14 +46,14 @@ export namespace GlobalOptions {
         });
 
         // For each Private hosted Zone created in 1) above, create a Resolver rule which points to the Inbound-Endpoint-IP's
-        for(const [domain, pzid] of r53Zones.privateZoneToDomainMap.entries()){
-          if(r53ResolverEndpoints.inBoundEndpoint && r53ResolverEndpoints.outBoundEndpoint){
+        for (const [domain, pzid] of r53Zones.privateZoneToDomainMap.entries()) {
+          if (r53ResolverEndpoints.inBoundEndpoint && r53ResolverEndpoints.outBoundEndpoint) {
             const privateRule = new Route53ResolverRule(this, `${domainToName(domain)}-phz-rule`, {
               domain,
               endPoint: r53ResolverEndpoints.outBoundEndpoint,
               ipAddresses: r53ResolverEndpoints.inBoundEndpointIps,
               ruleType: 'FORWARD',
-              name: `${domainToName(domain)}-phz-rule`
+              name: `${domainToName(domain)}-phz-rule`,
             });
             privateRule.node.addDependency(r53ResolverEndpoints);
           }
@@ -61,14 +61,14 @@ export namespace GlobalOptions {
 
         // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
 
-        for(const onPremRuleConfig of vpcConfig["on-premise-rules"]! || []){
-          if(r53ResolverEndpoints.outBoundEndpoint){
+        for (const onPremRuleConfig of vpcConfig['on-premise-rules']! || []) {
+          if (r53ResolverEndpoints.outBoundEndpoint) {
             const privateRule = new Route53ResolverRule(this, `${domainToName(onPremRuleConfig.zone)}-phz-rule`, {
               domain: onPremRuleConfig.zone,
               endPoint: r53ResolverEndpoints.outBoundEndpoint,
               ipAddresses: r53ResolverEndpoints.inBoundEndpointIps,
               ruleType: 'FORWARD',
-              name: `${domainToName(onPremRuleConfig.zone)}-phz-rule`
+              name: `${domainToName(onPremRuleConfig.zone)}-phz-rule`,
             });
             privateRule.node.addDependency(r53ResolverEndpoints);
           }
@@ -78,6 +78,6 @@ export namespace GlobalOptions {
   }
 }
 
-function domainToName(domain:string): string{
+function domainToName(domain: string): string {
   return domain.replace(/\./gi, '-');
 }

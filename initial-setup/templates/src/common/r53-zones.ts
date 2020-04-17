@@ -28,7 +28,7 @@ export class Route53Zones extends cdk.Construct {
         name: domain,
         hostedZoneConfig: {
           comment: `AWS Public Endpoint Zone - ${domain}`,
-        }
+        },
       });
       this.publicZoneToDomainMap.set(domain, zone.ref);
     }
@@ -46,7 +46,7 @@ export class Route53Zones extends cdk.Construct {
         vpcs: [vpcProps],
         hostedZoneConfig: {
           comment: `AWS Private Endpoint Zone - ${domain}`,
-        }
+        },
       });
       this.privateZoneToDomainMap.set(domain, zone.ref);
     }

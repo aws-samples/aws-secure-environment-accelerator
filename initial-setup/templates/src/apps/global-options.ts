@@ -22,7 +22,7 @@ async function main() {
 
   // TODO Get these values dynamically
   const zonesConfig = globalOptionsConfig.zones;
-  const zoneAccount = zonesConfig.account
+  const zoneAccount = zonesConfig.account;
   const zonesCreationAccountId = getAccountId(accounts, zoneAccount);
 
   const app = new cdk.App();
