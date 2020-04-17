@@ -151,6 +151,7 @@ export const GlobalOptionsAccountsConfigType = t.interface({
 export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
+  'central-log-retention': t.number,
   accounts: GlobalOptionsAccountsConfigType,
   passwords: fromNullable(PasswordsConfigType, {}),
 });
