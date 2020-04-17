@@ -19,9 +19,7 @@ export namespace LogArchive {
 
       // TODO list all account IDs here
       const subaccountIds = [props.sharedNetWorkAccountId];
-      const subaccountPrincipals = subaccountIds.map(
-        subaccountId => new iam.AccountPrincipal(subaccountId),
-      );
+      const subaccountPrincipals = subaccountIds.map(subaccountId => new iam.AccountPrincipal(subaccountId));
 
       const s3KmsKey = new kms.Key(this, 's3KmsKey', {
         alias: 'PBMMAccel-Key',
