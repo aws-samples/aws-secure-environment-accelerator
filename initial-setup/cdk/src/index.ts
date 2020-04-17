@@ -517,7 +517,7 @@ export namespace InitialSetup {
           .next(deployMasterAccountkTask)
           .next(storeMasterStackOutput)
           .next(vpcSharingTask)
-          .next(attachTagsTask)
+          .next(attachTagsTask),
       });
     }
   }
