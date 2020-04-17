@@ -7,6 +7,7 @@ import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { getStackOutput, loadStackOutputs } from '../utils/outputs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -15,6 +16,7 @@ process.on('unhandledRejection', (reason, _) => {
 
 async function main() {
   const context = loadContext();
+  const outputs = await loadStackOutputs();
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
 
@@ -63,7 +65,7 @@ async function main() {
     acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-SharedNetwork',
     accountConfig: sharedNetworkConfig,
-    acceleratorExecutionRoleName,
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
     logArchiveAccountId,
     logArchiveS3BucketArn,
     logArchiveS3KmsKeyArn,
