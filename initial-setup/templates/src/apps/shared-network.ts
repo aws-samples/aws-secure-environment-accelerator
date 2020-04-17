@@ -19,6 +19,9 @@ async function main() {
   const accounts = await loadAccounts();
 
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
+  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', 's3BucketArn');
+  const logArchiveS3KmsKeyArn = getStackOutput(outputs, 'log-archive', 's3KmsKeyArn');
 
   const masterAccountId = getAccountId(accounts, 'master');
 
@@ -60,6 +63,10 @@ async function main() {
     acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-SharedNetwork',
     accountConfig: sharedNetworkConfig,
+    acceleratorExecutionRoleName,
+    logArchiveAccountId,
+    logArchiveS3BucketArn,
+    logArchiveS3KmsKeyArn,
   });
   mainStack.addDependency(secretsStack);
 
