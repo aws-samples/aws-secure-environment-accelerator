@@ -27,16 +27,16 @@ export const handler = async (input: CreateTagsRequestInput) => {
   const organziationalUnits = acceleratorConfig['organizational-units'];
   const sts = new STS();
 
-  for (let orgUnit of Object.values(organziationalUnits)) {
-    //TODO Remove the below conditional block in the future when all the accounts are ready
-    if (orgUnit.vpc.name != 'Central') {
+  for (const orgUnit of Object.values(organziationalUnits)) {
+    // TODO Remove the below conditional block in the future when all the accounts are ready
+    if (orgUnit.vpc.name !== 'Central') {
       continue;
     }
 
     const sourceAccountId = getAccountId(accounts, orgUnit.vpc.deploy!);
     const orgAccountName = orgUnit.vpc.deploy!;
     for (const subnetConfig of orgUnit.vpc.subnets!.values()) {
-      if (subnetConfig['share-to-specific-accounts'] && subnetConfig['share-to-specific-accounts'].length > 0) {
+      if (subnetConfig['share-to-specific-accounts']!.length > 0) {
         const accountNames = subnetConfig['share-to-specific-accounts'];
         if (sourceAccountId) {
           for (const [key, subnetDefinition] of subnetConfig.definitions.entries()) {
@@ -45,12 +45,12 @@ export const handler = async (input: CreateTagsRequestInput) => {
             }
             const subnetIdOutputValue = `${orgUnit.vpc.name}Subnet${subnetConfig.name}az${key + 1}`;
             const subnetIdFromStackOutput = getStackOutput(outputs, orgAccountName, subnetIdOutputValue);
-            for (const accountName of accountNames) {
+            for (const accountName of accountNames!) {
               const accountId = getAccountId(accounts, accountName);
               const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
               const tagResources = new TagResources(credentials);
 
-              var params = {
+              const params = {
                 Filters: [
                   {
                     Name: 'resource-id',

@@ -21,11 +21,11 @@ export namespace ShareVPC {
       const sourceAccountId = getAccountId(props.accounts, orgAccountName);
 
       props.organizationalUnit.vpc.subnets?.forEach(subnetConfig => {
-        if (subnetConfig['share-to-specific-accounts'] && subnetConfig['share-to-specific-accounts'].length > 0) {
+        if (subnetConfig['share-to-specific-accounts']!.length > 0) {
           let accountIndex: number = 0;
           const accountIds: string[] = [];
           const accountNames = subnetConfig['share-to-specific-accounts'];
-          for (const accountName of accountNames) {
+          for (const accountName of accountNames!) {
             const accountId = getAccountId(props.accounts, accountName);
             if (accountId) {
               accountIds[accountIndex] = accountId;
