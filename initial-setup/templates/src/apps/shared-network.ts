@@ -17,10 +17,11 @@ async function main() {
   const accounts = await loadAccounts();
   const outputs = await loadStackOutputs();
 
-  // TODO Do something with the bucket ARN
-  const logBucketArn = getStackOutput(outputs, 'log-archive', 'LogBucketArn');
-
+  const acceleratorExecutionRoleName = context.acceleratorExecutionRoleName;
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
+  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', 's3BucketArn');
+  const logArchiveS3KmsKeyArn = getStackOutput(outputs, 'log-archive', 's3KmsKeyArn');
 
   // TODO Get these values dynamically
   const sharedNetworkAccountId = getAccountId(accounts, 'shared-network');
@@ -37,6 +38,10 @@ async function main() {
     acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-SharedNetwork',
     accountConfig: sharedNetworkConfig,
+    acceleratorExecutionRoleName,
+    logArchiveAccountId,
+    logArchiveS3BucketArn,
+    logArchiveS3KmsKeyArn,
   });
 
   const organizationalUnits = acceleratorConfig['organizational-units'];
