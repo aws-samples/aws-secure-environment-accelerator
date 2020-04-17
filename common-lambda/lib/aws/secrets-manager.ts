@@ -57,4 +57,8 @@ export class SecretsManager {
       yield await this.getSecret(secretId);
     }
   }
+
+  async putResourcePolicy(input: smn.PutResourcePolicyRequest): Promise<smn.PutResourcePolicyResponse> {
+    return this.client.putResourcePolicy(input).promise();
+  }
 }
