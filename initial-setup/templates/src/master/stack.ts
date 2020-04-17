@@ -14,9 +14,12 @@ export namespace Master {
       super(scope, id, props);
 
       const accountProps = props.accountConfig;
-
+      if (!accountProps.vpc){
+        console.log("No VPC Config Specified for Master Account");
+        return;
+      }
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc!;
+      const vpcConfig = accountProps.vpc;
 
       const vpc = new Vpc(this, 'vpc', vpcConfig);
 
