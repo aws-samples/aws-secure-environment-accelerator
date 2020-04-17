@@ -11,7 +11,7 @@ export interface Input {
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
   console.log(`Retriving Default IPAdress for DNS Resolver Endpoint ...`);
   console.log(JSON.stringify(event, null, 2));
-  let physicalResourceId = 'EndpointIps';
+  
   const sendResponsePromise = (
     responseStatus: ResponseStatus,
     responseData?: object,
@@ -22,6 +22,13 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
       sendResponse(event, context, responseStatus, responseData, physicalResourceId);
     });
   };
+
+  let physicalResourceId = 'EndpointIps';
+  const requestType = event["ResourceProperties"]["RequestType"];
+  if (requestType === 'Delete'){
+    console.log("No operation to perform Delete Stack");
+    await sendResponsePromise(SUCCESS, {}, physicalResourceId);
+  }
   try {
     const accountId = event['ResourceProperties']['AccountId'];
     const endpoitId = event['ResourceProperties']['EndpointResolver'];
@@ -36,7 +43,6 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     for (const [key, ipaddress] of endpointResponse.IpAddresses?.entries() || [].entries()) {
       output[`IpAddress${key + 1}`] = ipaddress.Ip!;
     }
-    console.log(output);
     await sendResponsePromise(SUCCESS, output, physicalResourceId);
   } catch (error) {
     await sendResponsePromise(FAILED, {}, physicalResourceId);

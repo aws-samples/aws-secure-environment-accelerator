@@ -37,8 +37,6 @@
     "@aws-cdk/core": "1.32.2",
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
-    "@types/cfn-response": "^1.0.3",
-    "cfn-response": "^1.0.1",
     "colors": "1.4.0",
     "io-ts": "2.1.2",
     "io-ts-types": "0.5.6"

@@ -148,7 +148,7 @@ export namespace InitialSetup {
       // Allow Cloudformation to trigger the handler
       cfnLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
         action: 'lambda:InvokeFunction',
-        principal: new iam.ArnPrincipal('arn:aws:iam::983612491393:role/AcceleratorPipelineRole'),
+        principal: new iam.AnyPrincipal(), //iam.ArnPrincipal('arn:aws:iam::983612491393:role/AcceleratorPipelineRole'),
       });
 
       // ArnPrincipal('arn:aws:iam::983612491393:role/AWSReservedSSO_AdministratorAccess_5d90eb8378e65f42'), // I think CloudFormation is going to be the service that is invoking our Lambda function, right?

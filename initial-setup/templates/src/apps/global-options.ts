@@ -22,11 +22,7 @@ async function main() {
 
   // TODO Get these values dynamically
   const zonesConfig = globalOptionsConfig.zones;
-  const [zoneAccount, resolverVpc, resolverSubnet] = [
-    zonesConfig.account,
-    zonesConfig['resolver-vpc'],
-    zonesConfig['resolver-subnet'],
-  ];
+  const zoneAccount = zonesConfig.account
   const zonesCreationAccountId = getAccountId(accounts, zoneAccount);
 
   const app = new cdk.App();

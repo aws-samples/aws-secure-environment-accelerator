@@ -39,7 +39,8 @@
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.585.0",
     "generate-password": "^1.5.1",
-    "original-fs": "1.1.0"
+    "original-fs": "1.1.0",
+    "@types/cfn-response": "1.0.3"
   },
   "jest": {
     "preset": "ts-jest",
