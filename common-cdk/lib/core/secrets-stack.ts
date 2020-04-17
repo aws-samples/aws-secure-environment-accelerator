@@ -4,7 +4,7 @@ import * as kms from '@aws-cdk/aws-kms';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import { AcceleratorStack, AcceleratorStackProps } from './accelerator-stack';
 
-export interface SecretsStackProps extends AcceleratorStackProps {}
+export type SecretsStackProps = AcceleratorStackProps;
 
 export interface SecretProps extends Omit<secrets.SecretProps, 'encryptionKey'> {
   /**
@@ -16,7 +16,7 @@ export interface SecretProps extends Omit<secrets.SecretProps, 'encryptionKey'> 
    *
    * @default ['secretsmanager:GetSecretValue']
    */
-  actions?: string[],
+  actions?: string[];
   /**
    * Principals to read access.
    */
