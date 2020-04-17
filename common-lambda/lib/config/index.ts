@@ -139,12 +139,13 @@ export const GlobalOptionsAccountsConfigType = t.interface({
 export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
+  'central-log-retention': t.number,
   accounts: GlobalOptionsAccountsConfigType,
 });
 
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
-  'mandatory-account-configs': MandatoryAccountConfigType,
+  'mandatory-account-configs': t.record(t.string, AccountConfigType),
   'organizational-units': OrganizationalUnitsType,
 });
 

@@ -35,6 +35,7 @@
     "@aws-cdk/aws-lambda": "1.32.2",
     "@aws-cdk/aws-s3": "1.32.2",
     "@aws-cdk/aws-s3-assets": "1.32.2",
+    "@aws-cdk/aws-secretsmanager": "1.32.2",
     "@aws-cdk/aws-sns": "1.32.2",
     "@aws-cdk/aws-stepfunctions": "1.32.2",
     "@aws-cdk/aws-stepfunctions-tasks": "1.32.2",

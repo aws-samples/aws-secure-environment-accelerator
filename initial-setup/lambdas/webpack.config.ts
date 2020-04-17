@@ -8,6 +8,7 @@ const config: webpack.Configuration = {
   target: 'node',
   externals: ['aws-sdk', 'aws-lambda'],
   entry: {
+    'add-role-to-kms-key': './src/add-role-to-kms-key-step.ts',
     'add-role-to-service-catalog': './src/add-role-to-service-catalog-step.ts',
     'add-role-to-scp': './src/add-role-to-scp-step.ts',
     'load-accounts': './src/load-accounts-step.ts',

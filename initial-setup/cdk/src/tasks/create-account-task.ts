@@ -91,7 +91,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
     createTask.next(
       new sfn.Choice(scope, 'Account Creation Started?')
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), waitTask)
-        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), waitTask)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NOT_RELEVANT'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'IN_PROGRESS'), waitTask)
         .otherwise(fail)

@@ -1,19 +1,18 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
-import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-
+// import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 // import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { IBucket } from '@aws-cdk/aws-s3';
+import { CfnBucket } from '@aws-cdk/aws-s3';
 
-export interface FlowLogsProps extends AcceleratorStackProps {
+export interface FlowLogsProps {
   vpcId: string;
-  s3Bucket: IBucket;
+  bucketArn: string;
 }
 
-export class FlowLogs extends AcceleratorStack {
+export class FlowLogs extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: FlowLogsProps) {
-    super(scope, id, props);
+    super(scope, id);
 
     const flowLogRole = new iam.Role(this, id + `flowlogrole`, {
       roleName: 'AcceleratorVPCFlowLogsRole',
@@ -33,7 +32,7 @@ export class FlowLogs extends AcceleratorStack {
       resourceId: props.vpcId,
       resourceType: 'VPC',
       trafficType: 'ALL',
-      logDestination: props.s3Bucket.bucketArn,
+      logDestination: `${props.bucketArn}/flowlogs`,
       logDestinationType: 's3',
     });
   }
