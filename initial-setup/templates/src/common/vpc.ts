@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { VpcConfig, VirtualPrivateGatewayConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { VpcConfig, VirtualPrivateGatewayConfig, NatGatewayConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 export interface VpcProps extends cdk.StackProps {
   vpcConfig: VpcConfig;
@@ -24,11 +24,14 @@ export class Vpc extends cdk.Construct {
 
   constructor(parent: cdk.Construct, name: string, props: VpcProps) {
     super(parent, name);
+
     const vpcName = props.vpcConfig.name;
+
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
       cidrBlock: props.vpcConfig.cidr!.toCidrString(),
     });
+    this.vpcId = vpcObj.ref;
 
     let extendVpc;
     if (props.vpcConfig.cidr2) {
@@ -183,16 +186,24 @@ export class Vpc extends cdk.Construct {
       });
     }
 
-    let natgw;
     // Create NAT Gateway
     if (props.vpcConfig.natgw) {
       const natgwProps = props.vpcConfig.natgw;
+      if (!NatGatewayConfig.is(natgwProps)) {
+        console.log(`Skipping NAT gateway creation`);
+        return;
+      }
+
+      const subnetId = this.subnets.get(natgwProps.subnet);
+      if (!subnetId) {
+        throw new Error(`Cannot find NAT gateway subnet name "${natgwProps.subnet}"`);
+      }
+
       const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
 
-      natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
+      const natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
         allocationId: eip.attrAllocationId,
-        // @ts-ignore
-        subnetId: this.subnets.get(natgwprops.vpcConfig.subnet),
+        subnetId,
       });
 
       // Attach NatGw Routes to Non IGW Route Tables
@@ -206,6 +217,5 @@ export class Vpc extends cdk.Construct {
         const cfnRoute = new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
       }
     }
-    this.vpcId = vpcObj.ref;
   }
 }

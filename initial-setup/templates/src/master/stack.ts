@@ -22,7 +22,7 @@ export namespace Master {
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
       const vpc = new Vpc(this, 'vpc', {
-        vpcConfig
+        vpcConfig,
       });
 
       // Creating Interface endpoints
