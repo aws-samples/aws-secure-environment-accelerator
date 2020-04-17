@@ -1,5 +1,6 @@
 import { AWSError, Request } from 'aws-sdk';
 import { collectAsync } from '../util/generator';
+import { delay } from '../util/delay';
 
 export type WithNextToken = { NextToken?: string };
 
@@ -32,8 +33,4 @@ export async function* listWithNextTokenGenerator<Input extends WithNextToken, R
     token = response.NextToken;
     yield* values(response);
   } while (token !== undefined);
-}
-
-async function delay(ms: number) {
-  return new Promise((resolve, reject) => setTimeout(resolve, ms));
 }
