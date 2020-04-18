@@ -30,6 +30,7 @@ export const SubnetDefinitionConfig = t.interface({
 export const SubnetConfig = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
+  'share-to-specific-accounts': optional(t.array(t.string)),
   definitions: t.array(SubnetDefinitionConfig),
 });
 
@@ -107,7 +108,7 @@ export const AccountConfigType = t.interface({
   'account-name': NonEmptyString,
   email: NonEmptyString,
   ou: NonEmptyString,
-  vpc: VpcConfigType,
+  vpc: optional(VpcConfigType),
   deployments: t.interface({
     tgw: optional(DeploymentConfigType),
   }),
@@ -139,12 +140,13 @@ export const GlobalOptionsAccountsConfigType = t.interface({
 export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
+  'central-log-retention': t.number,
   accounts: GlobalOptionsAccountsConfigType,
 });
 
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
-  'mandatory-account-configs': MandatoryAccountConfigType,
+  'mandatory-account-configs': t.record(t.string, AccountConfigType),
   'organizational-units': OrganizationalUnitsType,
 });
 
@@ -152,6 +154,7 @@ export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
 export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 export type OrganizationalUnits = t.TypeOf<typeof OrganizationalUnitsType>;
+export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {

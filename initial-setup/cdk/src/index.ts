@@ -5,6 +5,7 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import * as cdk from '@aws-cdk/core';
+import * as kms from '@aws-cdk/aws-kms';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
@@ -94,14 +95,17 @@ export namespace InitialSetup {
       const stack = cdk.Stack.of(this);
 
       const accountsSecret = new secrets.Secret(this, 'Accounts', {
+        secretName: 'accelerator/accounts',
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
 
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
+        secretName: 'accelerator/outputs',
         description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
       });
 
       const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
+        secretName: 'accelerator/config/in-progress',
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
 
@@ -120,11 +124,46 @@ export namespace InitialSetup {
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: 'AcceleratorPipelineRole',
         assumedBy: new iam.CompositePrincipal(
+          // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
+
+      // This key is used to encrypt passwords in sub accounts
+      const passwordsKey = new kms.Key(this, 'PasswordsKey', {
+        alias: 'Passwords',
+        description: 'This key is used to encrypt passwords that are used by sub accounts.',
+      });
+
+      // Allow the pipeline role to administer this key
+      passwordsKey.grant(pipelineRole, 'kms:*');
+
+      // Allow secrets manager to use this KMS key
+      passwordsKey.addToResourcePolicy(
+        new iam.PolicyStatement({
+          sid:
+            'Allow access through AWS Secrets Manager for all principals in the account that are authorized to use AWS Secrets Manager',
+          effect: iam.Effect.ALLOW,
+          actions: [
+            'kms:Encrypt',
+            'kms:Decrypt',
+            'kms:ReEncrypt*',
+            'kms:GenerateDataKey*',
+            'kms:CreateGrant',
+            'kms:DescribeKey',
+          ],
+          principals: [new iam.AnyPrincipal()],
+          resources: ['*'],
+          conditions: {
+            StringEquals: {
+              'kms:ViaService': `secretsmanager.${cdk.Aws.REGION}.amazonaws.com`,
+              'kms:CallerAccount': cdk.Aws.ACCOUNT_ID,
+            },
+          },
+        }),
+      );
 
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'DeployProject', {
@@ -166,6 +205,14 @@ export namespace InitialSetup {
             STACK_OUTPUT_SECRET_ID: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: stackOutputSecret.secretArn,
+            },
+            PASSWORDS_KMS_KEY_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: passwordsKey.keyArn,
+            },
+            ACCELERATOR_EXECUTION_ROLE_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.executionRoleName,
             },
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -269,7 +316,7 @@ export namespace InitialSetup {
             stackParameters: {
               RoleName: props.executionRoleName,
               // TODO Only add root role for development environments
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,arn:aws:iam::${stack.account}:role/Admin,${pipelineRole.roleArn}`,
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
@@ -297,6 +344,19 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const addRoleToKmsKeyTask = new CodeTask(this, 'Add Execution Roles to Passwords KMS Key', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('add-role-to-kms-key'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          roleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+          kmsKeyId: passwordsKey.keyId,
+        },
+        resultPath: 'DISCARD',
+      });
+
       const storeStackOutput = new CodeTask(this, 'Store Stack Output', {
         functionProps: {
           code: props.lambdas.codeForEntry('store-stack-output'),
@@ -311,6 +371,32 @@ export namespace InitialSetup {
       });
 
       const storeShareNetworkStackOutput = new CodeTask(this, 'Store Shared Network Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const storePerimeterStackOutput = new CodeTask(this, 'Store Perimeter Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const storeMasterStackOutput = new CodeTask(this, 'Store Master Stack Output', {
         functionProps: {
           code: props.lambdas.codeForEntry('store-stack-output'),
           role: pipelineRole,
@@ -358,6 +444,61 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const enableResourceShareTask = new CodeTask(this, 'Enable Resource Sharing', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('enable-resource-share'),
+          role: pipelineRole,
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const vpcSharingTask = new sfn.Task(this, 'VPC Sharing Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/vpc-sharing.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const attachTagsTask = new CodeTask(this, 'Attach Tags to Shared Subnets', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('attach-tags-to-subnets'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.executionRoleName,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const deployPerimeterAccountkTask = new sfn.Task(this, 'Deploy Perimeter Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/perimeter.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const deployMasterAccountkTask = new sfn.Task(this, 'Deploy Master Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/master.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -365,10 +506,18 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
+          .next(enableResourceShareTask)
+          .next(addRoleToKmsKeyTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
           .next(deploySharedNetworkTask)
-          .next(storeShareNetworkStackOutput),
+          .next(storeShareNetworkStackOutput)
+          .next(deployPerimeterAccountkTask)
+          .next(storePerimeterStackOutput)
+          .next(deployMasterAccountkTask)
+          .next(storeMasterStackOutput)
+          .next(vpcSharingTask)
+          .next(attachTagsTask),
       });
     }
   }

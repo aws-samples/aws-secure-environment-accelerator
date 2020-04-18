@@ -4,7 +4,7 @@ import { InterfaceEndpoints } from '../common/interface-endpoints';
 import { Vpc } from '../common/vpc';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
-export namespace Perimeter {
+export namespace Master {
   export interface StackProps extends AcceleratorStackProps {
     accountConfig: AccountConfig;
   }
@@ -30,17 +30,6 @@ export namespace Perimeter {
         vpc,
         accountConfig,
       });
-
-      // Add outputs to Stack
-      new cdk.CfnOutput(this, `${vpcConfig.name}`, {
-        value: vpc.vpcId,
-      });
-
-      for (const [key, value] of vpc.subnets) {
-        new cdk.CfnOutput(this, `${key}`, {
-          value,
-        });
-      }
     }
   }
 }

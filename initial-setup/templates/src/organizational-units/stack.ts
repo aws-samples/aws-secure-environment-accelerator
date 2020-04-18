@@ -6,6 +6,7 @@ import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/li
 export namespace OrganizationalUnit {
   export interface StackProps extends AcceleratorStackProps {
     organizationalUnits: OrganizationalUnits;
+    accounts: { key: string; id: string }[];
   }
 
   export class Stack extends AcceleratorStack {
@@ -13,11 +14,11 @@ export namespace OrganizationalUnit {
       super(scope, id, props);
 
       const orgUnitProps = props.organizationalUnits;
-
       const vpcConfig = orgUnitProps.central.vpc;
-      const vpc = new Vpc(this, 'vpc', vpcConfig);
-
-      // Add Outputs to Stack
+      const vpc = new Vpc(this, 'vpc', {
+        vpcConfig,
+        accounts: props.accounts,
+      });
 
       // Adding Output for VPC
       new cdk.CfnOutput(this, `Vpc${vpcConfig.name}`, {

@@ -8,88 +8,85 @@ import { Vpc } from '../../src/common/vpc';
 test('the VPC creation should create the correct amount of subnets', () => {
   const stack = new cdk.Stack();
 
-  new Vpc(
-    stack,
-    'SharedNetwork',
-    parse(VpcConfigType, {
-      name: 'shared-network',
-      cidr: '10.2.0.0/16',
-      region: 'ca-central-1',
-      igw: false,
-      vgw: false,
-      pcx: false,
-      natgw: false,
-      'gateway-endpoints': ['s3', 'dynamodb'],
-      subnets: [
-        {
-          name: 'TGW',
-          'share-to-ou-accounts': false,
-          definitions: [
-            {
-              az: 'a',
-              'route-table': 'DevVPC_Common',
-              cidr: '10.2.88.0/27',
-            },
-            {
-              az: 'b',
-              'route-table': 'DevVPC_Common',
-              cidr: '10.2.88.32/27',
-            },
-            {
-              az: 'd',
-              'route-table': 'DevVPC_Common',
-              cidr: '10.2.88.64/27',
-              disabled: true,
-            },
-          ],
-        },
-        {
-          name: 'Web',
-          'share-to-ou-accounts': true,
-          definitions: [
-            {
-              az: 'a',
-              'route-table': 'DevVPC_Common',
-              cidr: '10.2.32.0/20',
-            },
-            {
-              az: 'b',
-              'route-table': 'DevVPC_Common',
-              cidr: '10.2.128.0/20',
-            },
-            {
-              az: 'd',
-              'route-table': 'DevVPC_Common',
-              cidr: '10.2.192.0/20',
-              disabled: true,
-            },
-          ],
-        },
-      ],
-      'route-tables': [
-        {
-          name: 'default',
-        },
-        {
-          name: 'DevVPC_Common',
-          routes: [
-            {
-              destination: '0.0.0.0/0',
-              target: 'TGW',
-            },
-            {
-              destination: 's3',
-              target: 's3',
-            },
-            {
-              destination: 'DynamoDB',
-              target: 'DynamoDB',
-            },
-          ],
-        },
-      ],
-    }),
-  );
+  const vpcConfig = parse(VpcConfigType, {
+    name: 'shared-network',
+    cidr: '10.2.0.0/16',
+    region: 'ca-central-1',
+    igw: false,
+    vgw: false,
+    pcx: false,
+    natgw: false,
+    'gateway-endpoints': ['s3', 'dynamodb'],
+    subnets: [
+      {
+        name: 'TGW',
+        'share-to-ou-accounts': false,
+        definitions: [
+          {
+            az: 'a',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.2.88.0/27',
+          },
+          {
+            az: 'b',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.2.88.32/27',
+          },
+          {
+            az: 'd',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.2.88.64/27',
+            disabled: true,
+          },
+        ],
+      },
+      {
+        name: 'Web',
+        'share-to-ou-accounts': true,
+        definitions: [
+          {
+            az: 'a',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.2.32.0/20',
+          },
+          {
+            az: 'b',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.2.128.0/20',
+          },
+          {
+            az: 'd',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.2.192.0/20',
+            disabled: true,
+          },
+        ],
+      },
+    ],
+    'route-tables': [
+      {
+        name: 'default',
+      },
+      {
+        name: 'DevVPC_Common',
+        routes: [
+          {
+            destination: '0.0.0.0/0',
+            target: 'TGW',
+          },
+          {
+            destination: 's3',
+            target: 's3',
+          },
+          {
+            destination: 'DynamoDB',
+            target: 'DynamoDB',
+          },
+        ],
+      },
+    ],
+  });
+  new Vpc(stack, 'SharedNetwork', { vpcConfig });
 
   // Convert the stack to a CloudFormation template
   const template = stackToCloudFormation(stack);
@@ -176,53 +173,47 @@ test('the VPC creation should create the correct amount of subnets', () => {
 test('the VPC creation should throw an error when a subnet uses a route table that does not exist', () => {
   const stack = new cdk.Stack();
 
-  expect(() => {
-    new Vpc(
-      stack,
-      'SharedNetwork',
-      parse(VpcConfigType, {
-        name: 'shared-network',
-        cidr: '10.2.0.0/16',
-        region: 'ca-central-1',
-        igw: false,
-        vgw: false,
-        pcx: false,
-        natgw: false,
-        subnets: [
+  const vpcConfig = parse(VpcConfigType, {
+    name: 'shared-network',
+    cidr: '10.2.0.0/16',
+    region: 'ca-central-1',
+    igw: false,
+    vgw: false,
+    pcx: false,
+    natgw: false,
+    subnets: [
+      {
+        name: 'TGW',
+        'share-to-ou-accounts': false,
+        definitions: [
           {
-            name: 'TGW',
-            'share-to-ou-accounts': false,
-            definitions: [
-              {
-                az: 'a',
-                'route-table': 'DevVPC_Common',
-                cidr: '10.2.88.0/27',
-              },
-            ],
+            az: 'a',
+            'route-table': 'DevVPC_Common',
+            cidr: '10.2.88.0/27',
           },
         ],
-      }),
-    );
+      },
+    ],
+  });
+  expect(() => {
+    new Vpc(stack, 'SharedNetwork', { vpcConfig });
   }).toThrowError();
 });
 
 test('the VPC creation should create the internet gateway', () => {
   const stack = new cdk.Stack();
 
-  new Vpc(
-    stack,
-    'SharedNetwork',
-    parse(VpcConfigType, {
-      name: 'shared-network',
-      cidr: '10.2.0.0/16',
-      region: 'ca-central-1',
-      igw: true,
-      vgw: false,
-      pcx: false,
-      natgw: false,
-      subnets: [],
-    }),
-  );
+  const vpcConfig = parse(VpcConfigType, {
+    name: 'shared-network',
+    cidr: '10.2.0.0/16',
+    region: 'ca-central-1',
+    igw: true,
+    vgw: false,
+    pcx: false,
+    natgw: false,
+    subnets: [],
+  });
+  new Vpc(stack, 'SharedNetwork', { vpcConfig });
 
   // Convert the stack to a CloudFormation template
   const template = stackToCloudFormation(stack);
@@ -237,20 +228,17 @@ test('the VPC creation should create the internet gateway', () => {
 test('the VPC creation should create the VPN gateway', () => {
   const stack = new cdk.Stack();
 
-  new Vpc(
-    stack,
-    'SharedNetwork',
-    parse(VpcConfigType, {
-      name: 'shared-network',
-      cidr: '10.2.0.0/16',
-      region: 'ca-central-1',
-      igw: false,
-      vgw: true,
-      pcx: false,
-      natgw: false,
-      subnets: [],
-    }),
-  );
+  const vpcConfig = parse(VpcConfigType, {
+    name: 'shared-network',
+    cidr: '10.2.0.0/16',
+    region: 'ca-central-1',
+    igw: false,
+    vgw: true,
+    pcx: false,
+    natgw: false,
+    subnets: [],
+  });
+  new Vpc(stack, 'SharedNetwork', { vpcConfig });
 
   // Convert the stack to a CloudFormation template
   const template = stackToCloudFormation(stack);
@@ -292,73 +280,70 @@ test('the VPC creation should create the VPN gateway', () => {
 test('the VPC creation should create the NAT gateway', () => {
   const stack = new cdk.Stack();
 
-  new Vpc(
-    stack,
-    'SharedNetwork',
-    parse(VpcConfigType, {
-      name: 'shared-network',
-      cidr: '10.2.0.0/16',
-      region: 'ca-central-1',
-      igw: true,
-      vgw: false,
-      pcx: false,
-      natgw: {
-        subnet: 'Public_az1',
+  const vpcConfig = parse(VpcConfigType, {
+    name: 'shared-network',
+    cidr: '10.2.0.0/16',
+    region: 'ca-central-1',
+    igw: true,
+    vgw: false,
+    pcx: false,
+    natgw: {
+      subnet: 'Public_az1',
+    },
+    'gateway-endpoints': ['s3', 'dynamodb'],
+    subnets: [
+      {
+        name: 'Private',
+        'share-to-ou-accounts': false,
+        definitions: [
+          {
+            az: 'a',
+            'route-table': 'Private',
+            cidr: '10.2.88.0/27',
+          },
+          {
+            az: 'b',
+            'route-table': 'Private',
+            cidr: '10.2.88.32/27',
+          },
+        ],
       },
-      'gateway-endpoints': ['s3', 'dynamodb'],
-      subnets: [
-        {
-          name: 'Private',
-          'share-to-ou-accounts': false,
-          definitions: [
-            {
-              az: 'a',
-              'route-table': 'Private',
-              cidr: '10.2.88.0/27',
-            },
-            {
-              az: 'b',
-              'route-table': 'Private',
-              cidr: '10.2.88.32/27',
-            },
-          ],
-        },
-        {
-          name: 'Public',
-          'share-to-ou-accounts': true,
-          definitions: [
-            {
-              az: 'a',
-              'route-table': 'Public',
-              cidr: '10.2.32.0/20',
-            },
-            {
-              az: 'b',
-              'route-table': 'Public',
-              cidr: '10.2.128.0/20',
-            },
-          ],
-        },
-      ],
-      'route-tables': [
-        {
-          name: 'default',
-        },
-        {
-          name: 'Public',
-          routes: [
-            {
-              destination: '0.0.0.0/0',
-              target: 'IGW',
-            },
-          ],
-        },
-        {
-          name: 'Private',
-        },
-      ],
-    }),
-  );
+      {
+        name: 'Public',
+        'share-to-ou-accounts': true,
+        definitions: [
+          {
+            az: 'a',
+            'route-table': 'Public',
+            cidr: '10.2.32.0/20',
+          },
+          {
+            az: 'b',
+            'route-table': 'Public',
+            cidr: '10.2.128.0/20',
+          },
+        ],
+      },
+    ],
+    'route-tables': [
+      {
+        name: 'default',
+      },
+      {
+        name: 'Public',
+        routes: [
+          {
+            destination: '0.0.0.0/0',
+            target: 'IGW',
+          },
+        ],
+      },
+      {
+        name: 'Private',
+      },
+    ],
+  });
+  new Vpc(stack, 'SharedNetwork', { vpcConfig });
 
   // Convert the stack to a CloudFormation template
   const template = stackToCloudFormation(stack);

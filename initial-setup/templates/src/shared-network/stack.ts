@@ -1,10 +1,11 @@
 import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as kms from '@aws-cdk/aws-kms';
 import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { FlowLogs } from '../common/flow-logs';
 import { InterfaceEndpoints } from '../common/interface-endpoints';
 import { Vpc } from '../common/vpc';
-import { Bucket } from '@aws-cdk/aws-s3';
-
+import { FlowLogs } from '../common/flow-logs';
 import { TransitGateway } from '../common/transit-gateway';
 import { TransitGatewayAttachment, TransitGatewayAttachmentProps } from '../common/transit-gateway-attachment';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
@@ -12,6 +13,10 @@ import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/li
 export namespace SharedNetwork {
   export interface StackProps extends AcceleratorStackProps {
     accountConfig: AccountConfig;
+    acceleratorExecutionRoleName: string;
+    logArchiveAccountId: string;
+    logArchiveS3BucketArn: string;
+    logArchiveS3KmsKeyArn: string;
   }
 
   export class Stack extends AcceleratorStack {
@@ -21,16 +26,142 @@ export namespace SharedNetwork {
       const accountProps = props.accountConfig;
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc;
-      const vpc = new Vpc(this, 'vpc', vpcConfig);
+      const vpcConfig = accountProps.vpc!;
+      const vpc = new Vpc(this, 'vpc', {
+        vpcConfig,
+      });
+
+      // Create a role that will be able to replicate to the log-archive bucket
+      const replicationRole = new iam.Role(this, 'ReplicationRole', {
+        roleName: 'PBMMAccelS3ReplicationRole',
+        assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
+      });
+
+      // kms key used for vpc-flow-logs s3 bucket encryption
+      const kmsKey = new kms.Key(this, 'kmsKeyForVpcFlowLogsS3', {
+        alias: 'PBMMAccel-Key',
+        description: 'Key used to encrypt PBMM Accel s3 bucket',
+        enableKeyRotation: false,
+        enabled: true,
+      });
+
+      // Grant access for the ReplicationRole to read and write
+      kmsKey.grantEncryptDecrypt(replicationRole);
+
+      // bucket name format: pbmmaccel-{account #}-{region}
+      const flowLogBucketName = `pbmmaccel-${this.account}-${this.region}`;
+
+      // s3 bucket to collect vpc-flow-logs
+      const s3BucketForVpcFlowLogs = new s3.CfnBucket(this, 's3ForVpcFlowLogs', {
+        bucketName: flowLogBucketName,
+        publicAccessBlockConfiguration: {
+          blockPublicAcls: true,
+          blockPublicPolicy: true,
+          ignorePublicAcls: true,
+          restrictPublicBuckets: true,
+        },
+        versioningConfiguration: {
+          status: 'Enabled',
+        },
+        bucketEncryption: {
+          serverSideEncryptionConfiguration: [
+            {
+              serverSideEncryptionByDefault: {
+                sseAlgorithm: 'aws:kms',
+                kmsMasterKeyId: kmsKey.keyId,
+              },
+            },
+          ],
+        },
+        lifecycleConfiguration: {
+          rules: [
+            {
+              id: 'PBMMAccel-s3-life-cycle-policy-rule-1',
+              status: 'Enabled',
+              abortIncompleteMultipartUpload: {
+                daysAfterInitiation: 7,
+              },
+              expirationInDays: vpcConfig['log-retention'],
+              noncurrentVersionExpirationInDays: vpcConfig['log-retention'],
+            },
+          ],
+        },
+        replicationConfiguration: {
+          role: replicationRole.roleArn,
+          rules: [
+            {
+              id: 'PBMMAccel-s3-replication-rule-1',
+              status: 'Enabled',
+              prefix: '',
+              sourceSelectionCriteria: {
+                sseKmsEncryptedObjects: {
+                  status: 'Enabled',
+                },
+              },
+              destination: {
+                bucket: props.logArchiveS3BucketArn,
+                account: props.logArchiveAccountId,
+                encryptionConfiguration: {
+                  replicaKmsKeyId: props.logArchiveS3KmsKeyArn,
+                },
+                storageClass: 'STANDARD',
+                accessControlTranslation: {
+                  owner: 'Destination',
+                },
+              },
+            },
+          ],
+        },
+      });
+
+      // Grant the replication role the actions to replicate the objects in the bucket
+      replicationRole.addToPolicy(
+        new iam.PolicyStatement({
+          actions: [
+            's3:GetObjectLegalHold',
+            's3:GetObjectRetention',
+            's3:GetObjectVersion',
+            's3:GetObjectVersionAcl',
+            's3:GetObjectVersionForReplication',
+            's3:GetObjectVersionTagging',
+            's3:GetReplicationConfiguration',
+            's3:ListBucket',
+            's3:ReplicateDelete',
+            's3:ReplicateObject',
+            's3:ReplicateTags',
+          ],
+          resources: [s3BucketForVpcFlowLogs.attrArn, `${s3BucketForVpcFlowLogs.attrArn}/*`],
+        }),
+      );
+
+      // Allow the replication role to replicate objects to the log archive bucket
+      replicationRole.addToPolicy(
+        new iam.PolicyStatement({
+          actions: [
+            's3:ReplicateObject',
+            's3:ReplicateDelete',
+            's3:ReplicateTags',
+            's3:GetObjectVersionTagging',
+            's3:ObjectOwnerOverrideToBucketOwner',
+          ],
+          resources: [props.logArchiveS3BucketArn, `${props.logArchiveS3BucketArn}/*`],
+        }),
+      );
+
+      // Allow the replication role to encrypt using the log archive KMS key
+      replicationRole.addToPolicy(
+        new iam.PolicyStatement({
+          actions: ['kms:Encrypt'],
+          resources: [props.logArchiveS3KmsKeyArn],
+        }),
+      );
 
       // Creating FlowLog for VPC
       if (vpcConfig['flow-logs']) {
-        // TODO Get the S3 bucket or ARN
-        // const bucket = Bucket.fromBucketAttributes(this, id + `bucket`, {
-        //   bucketArn: 'arn:aws:s3:::vpcflowlog-bucket',
-        // });
-        // const flowLog = new FlowLogs(this, 'flowlog', { vpcId: vpc.vpcId, s3Bucket: bucket });
+        new FlowLogs(this, 'flowlog', {
+          vpcId: vpc.vpcId,
+          bucketArn: s3BucketForVpcFlowLogs.attrArn,
+        });
       }
 
       // Creating TGW for Shared-Network Account
