@@ -14,10 +14,7 @@ export class TransitGateway extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: DeploymentConfig) {
     super(parent, name);
 
-    // TODO Verify if features are mandatory
     const features = props.features;
-    // TODO Remove the ! operator and verify if route tables are mandatory
-    const routeTables = props['route-tables']!;
 
     const tgwObject = new ec2.CfnTransitGateway(this, name, {
       dnsSupport: enableDisableProperty(features?.['DNS-support']),
@@ -28,6 +25,7 @@ export class TransitGateway extends cdk.Construct {
       amazonSideAsn: props.asn,
     });
 
+    const routeTables = props['route-tables'] || [];
     for (const routeTableName of routeTables) {
       const cfnRouteTable = new ec2.CfnTransitGatewayRouteTable(this, `${name}_tgw_${routeTableName}`, {
         transitGatewayId: tgwObject.ref,

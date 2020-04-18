@@ -71,9 +71,9 @@ export const InterfaceEndpointConfig = t.interface({
 export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
   name: NonEmptyString,
-  cidr: optional(cidr),
+  region,
+  cidr,
   cidr2: optional(cidr),
-  region: optional(region),
   'flow-logs': fromNullable(t.boolean, false),
   'log-retention': optional(t.number),
   igw: t.union([t.boolean, t.undefined]),
@@ -118,10 +118,6 @@ export const OrganizationalUnitConfigType = t.interface({
   vpc: VpcConfigType,
 });
 
-export const OrganizationalUnitsType = t.interface({
-  central: OrganizationalUnitConfigType,
-});
-
 export const MandatoryAccountConfigType = t.interface({
   operations: AccountConfigType,
   'shared-network': AccountConfigType,
@@ -147,14 +143,13 @@ export const GlobalOptionsConfigType = t.interface({
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
   'mandatory-account-configs': t.record(t.string, AccountConfigType),
-  'organizational-units': OrganizationalUnitsType,
+  'organizational-units': t.record(t.string, OrganizationalUnitConfigType),
 });
 
 export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
 export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
-export type OrganizationalUnits = t.TypeOf<typeof OrganizationalUnitsType>;
-export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
+export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {

@@ -1,35 +1,51 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { VpcConfig, VirtualPrivateGatewayConfig, NatGatewayConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { pascalCase } from 'pascal-case';
+import {
+  VpcConfig,
+  VirtualPrivateGatewayConfig,
+  NatGatewayConfig,
+  InterfaceEndpointConfig,
+} from '@aws-pbmm/common-lambda/lib/config';
+import { Account, getAccountId } from '../utils/accounts';
+import { VpcSubnetShare } from './vpc-subnet-share';
+import { InterfaceEndpoints } from './interface-endpoints';
+import { VpcStack } from '../apps/main';
+import { FlowLogs } from './flow-logs';
+import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 
-export interface VpcProps extends cdk.StackProps {
+interface CommonProps {
+  accounts: Account[];
   vpcConfig: VpcConfig;
-  accounts?: { key: string; id: string }[];
+  /**
+   * The name of the organizational unit if this VPC is in an organizational unit account.
+   */
+  organizationalUnitName?: string;
 }
 
-function getRegionAz(region: string, az: string): string {
-  return region.split('-')[region.split('-').length - 1] + az;
-}
-
-interface VGWProps {
-  type: string;
-  amazonSideAsn?: number;
-}
+export interface VpcProps extends cdk.StackProps, CommonProps {}
 
 export class Vpc extends cdk.Construct {
+  readonly name: string;
+  readonly region: Region;
+
   readonly vpcId: string;
   readonly azSubnets = new Map<string, string[]>();
   readonly subnets = new Map<string, string>();
   readonly routeTableNameToIdMap = new Map<string, string>();
 
-  constructor(parent: cdk.Construct, name: string, props: VpcProps) {
-    super(parent, name);
+  constructor(stack: VpcStack, name: string, props: VpcProps) {
+    super(stack, name);
 
+    const { accounts, vpcConfig, organizationalUnitName } = props;
     const vpcName = props.vpcConfig.name;
+
+    this.name = props.vpcConfig.name;
+    this.region = vpcConfig.region;
 
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
-      cidrBlock: props.vpcConfig.cidr!.toCidrString(),
+      cidrBlock: props.vpcConfig.cidr.toCidrString(),
     });
     this.vpcId = vpcObj.ref;
 
@@ -56,18 +72,13 @@ export class Vpc extends cdk.Construct {
     let vgw;
     let vgwAttach;
 
-    if (props.vpcConfig.vgw) {
-      const vgwConfig = props.vpcConfig.vgw;
-      const vgwProps: VGWProps = {
-        type: 'ipsec.1',
-      };
-      // @ts-ignore
-      if (VirtualPrivateGatewayConfig.is(vgwConfig) && vgwConfig.asn) {
-        // @ts-ignore
-        vgwProps.amazonSideAsn = vgwConfig.asn;
-      }
+    const vgwConfig = props.vpcConfig.vgw;
+    if (VirtualPrivateGatewayConfig.is(vgwConfig)) {
       // Create VGW
-      vgw = new ec2.CfnVPNGateway(this, `${props.vpcConfig.name}_vpg`, vgwProps);
+      vgw = new ec2.CfnVPNGateway(this, `${props.vpcConfig.name}_vpg`, {
+        type: 'ipsec.1',
+        amazonSideAsn: vgwConfig.asn,
+      });
       // Attach VGW to VPC
       vgwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.vpcConfig.name}_attach_vgw`, {
         vpcId: vpcObj.ref,
@@ -77,7 +88,6 @@ export class Vpc extends cdk.Construct {
 
     const s3Routes: string[] = [];
     const dynamoRoutes: string[] = [];
-    const routeTableNameToIdMap = new Map<string, string>();
     const routeTablesProps = props.vpcConfig['route-tables'];
     const natRouteTables: string[] = [];
     if (routeTablesProps) {
@@ -140,14 +150,16 @@ export class Vpc extends cdk.Construct {
           continue;
         }
 
-        // TODO Move this splitting stuff to a function so we can test it
+        const subnetCidr = subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString();
+        if (!subnetCidr) {
+          throw new Error(`Subnet with name "${propSubnetName}" does not have a CIDR block`);
+        }
 
-        const az = getRegionAz(props.vpcConfig.region!, subnetDefinition.az);
         const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
         const subnet = new ec2.CfnSubnet(this, subnetName, {
-          cidrBlock: subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString() || '',
+          cidrBlock: subnetCidr,
           vpcId: vpcObj.ref,
-          availabilityZone: `${props.vpcConfig.region}${subnetDefinition.az}`,
+          availabilityZone: `${this.region}${subnetDefinition.az}`,
         });
         if (extendVpc) {
           subnet.addDependsOn(extendVpc);
@@ -177,7 +189,8 @@ export class Vpc extends cdk.Construct {
     }
 
     // Create VPC Gateway End Point
-    for (const gwEndpointName of props.vpcConfig['gateway-endpoints'] ? props.vpcConfig['gateway-endpoints'] : []) {
+    const gatewayEndpoints = props.vpcConfig['gateway-endpoints'] || [];
+    for (const gwEndpointName of gatewayEndpoints) {
       const gwService = new ec2.GatewayVpcEndpointAwsService(gwEndpointName.toLowerCase());
       new ec2.CfnVPCEndpoint(this, `Endpoint_${gwEndpointName}`, {
         serviceName: gwService.name,
@@ -187,13 +200,8 @@ export class Vpc extends cdk.Construct {
     }
 
     // Create NAT Gateway
-    if (props.vpcConfig.natgw) {
-      const natgwProps = props.vpcConfig.natgw;
-      if (!NatGatewayConfig.is(natgwProps)) {
-        console.log(`Skipping NAT gateway creation`);
-        return;
-      }
-
+    const natgwProps = vpcConfig.natgw;
+    if (NatGatewayConfig.is(natgwProps)) {
       const subnetId = this.subnets.get(natgwProps.subnet);
       if (!subnetId) {
         throw new Error(`Cannot find NAT gateway subnet name "${natgwProps.subnet}"`);
@@ -215,6 +223,89 @@ export class Vpc extends cdk.Construct {
           natGatewayId: natgw?.ref,
         };
         const cfnRoute = new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+      }
+    } else {
+      console.log(`Skipping NAT gateway creation`);
+    }
+
+    // Create interface endpoints
+    const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
+    if (InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
+      new InterfaceEndpoints(this, 'InterfaceEndpoints', {
+        vpc: this,
+        subnetName: interfaceEndpointConfig.subnet,
+        interfaceEndpoints: interfaceEndpointConfig.endpoints,
+      });
+    }
+
+    // Create flow logs
+    const flowLogs = vpcConfig['flow-logs'];
+    if (flowLogs) {
+      const flowLogBucket = stack.getOrCreateFlowLogBucket();
+
+      new FlowLogs(this, 'FlowLogs', {
+        vpcId: this.vpcId,
+        bucketArn: flowLogBucket.bucketArn,
+      });
+    }
+
+    // Share VPC subnet
+    new VpcSubnetSharing(this, 'Sharing', {
+      accounts,
+      vpcConfig,
+      organizationalUnitName,
+      subnetNameToSubnetIdsMap: this.azSubnets,
+    });
+  }
+}
+
+interface VpcSubnetSharingProps extends CommonProps {
+  subnetNameToSubnetIdsMap: Map<string, string[]>;
+}
+
+/**
+ * Auxiliary construct that takes care of VPC subnet sharing.
+ */
+class VpcSubnetSharing extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props: VpcSubnetSharingProps) {
+    super(scope, id);
+
+    const stack = cdk.Stack.of(this);
+    const { accounts, vpcConfig, subnetNameToSubnetIdsMap, organizationalUnitName } = props;
+
+    const subnets = vpcConfig.subnets || [];
+    for (const subnet of subnets) {
+      const subnetIds = subnetNameToSubnetIdsMap.get(subnet.name);
+      if (!subnetIds) {
+        throw new Error(`Cannot find subnet with name "${subnet.name}" in VPC`);
+      }
+
+      // Share to accounts with a specific name
+      const shareToAccounts = subnet['share-to-specific-accounts'] || [];
+      const shareToAccountIds = shareToAccounts.map(key => getAccountId(accounts, key));
+
+      // Share to accounts in this OU
+      const shareToOuAccounts = subnet['share-to-ou-accounts'];
+      if (shareToOuAccounts) {
+        if (!organizationalUnitName) {
+          throw new Error(`Cannot share subnet with OU accounts because the subnet is not in a OU`);
+        }
+
+        const ouAccounts = accounts.filter(a => a.ou === organizationalUnitName);
+        const ouAccountIds = ouAccounts.map(a => getAccountId(accounts, a.key));
+        shareToAccountIds.push(...ouAccountIds);
+      }
+
+      if (shareToAccountIds.length > 0) {
+        const shareName = `${pascalCase(vpcConfig.name)}-${pascalCase(subnet.name)}`;
+
+        new VpcSubnetShare(this, `Share${shareName}`, {
+          name: shareName,
+          subnetIds,
+          sourceAccountId: stack.account,
+          targetAccountIds: shareToAccountIds,
+          region: vpcConfig.region,
+        });
       }
     }
   }

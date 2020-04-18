@@ -25,15 +25,8 @@ export namespace SharedNetwork {
 
       const accountProps = props.accountConfig;
 
-      // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
-      const vpcConfig = accountProps.vpc!;
-      const vpc = new Vpc(this, 'vpc', {
-        vpcConfig,
-      });
-
       // Create a role that will be able to replicate to the log-archive bucket
       const replicationRole = new iam.Role(this, 'ReplicationRole', {
-        roleName: 'PBMMAccelS3ReplicationRole',
         assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
       });
 
@@ -156,14 +149,6 @@ export namespace SharedNetwork {
         }),
       );
 
-      // Creating FlowLog for VPC
-      if (vpcConfig['flow-logs']) {
-        new FlowLogs(this, 'flowlog', {
-          vpcId: vpc.vpcId,
-          bucketArn: s3BucketForVpcFlowLogs.attrArn,
-        });
-      }
-
       // Creating TGW for Shared-Network Account
       const deployments = accountProps.deployments;
       const twgDeployment = deployments.tgw;
@@ -210,11 +195,6 @@ export namespace SharedNetwork {
           new TransitGatewayAttachment(this, 'tgw_attach', tgwAttachProps);
         }
       }
-
-      new InterfaceEndpoints(this, 'InterfaceEndpoints', {
-        vpc,
-        accountConfig: accountProps,
-      });
 
       // Add Outputs to Stack
 

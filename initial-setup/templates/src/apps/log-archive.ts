@@ -44,19 +44,6 @@ async function main() {
   new cdk.CfnOutput(logArchiveStack, 's3KmsKeyArn', {
     value: logArchiveStack.s3KmsKeyArn,
   });
-
-  const organizationalUnits = acceleratorConfig['organizational-units'];
-  new OrganizationalUnit.Stack(app, 'OrganizationalUnits', {
-    env: {
-      account: logArchiveAccountId,
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-OrganizationalUnits',
-    organizationalUnits,
-    accounts,
-  });
 }
 
 // tslint:disable-next-line: no-floating-promises
