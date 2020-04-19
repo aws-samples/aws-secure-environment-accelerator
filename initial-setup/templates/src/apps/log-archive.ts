@@ -1,14 +1,18 @@
 import * as cdk from '@aws-cdk/core';
-import { OrganizationalUnit } from '../organizational-units/stack';
-import { LogArchive } from '../log-archive/stack';
+import * as iam from '@aws-cdk/aws-iam';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { LogArchiveBucket } from '../common/log-archive-bucket';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
+
+export const OUTPUT_LOG_ARCHIVE_BUCKET_ARN = 'LogArchiveBucketArn';
+export const OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN = 'LogArchiveEncryptionKey';
 
 async function main() {
   const context = loadContext();
@@ -17,13 +21,12 @@ async function main() {
 
   // TODO Get these values dynamically
   const globalOptionsConfig = acceleratorConfig['global-options'];
-  const centralLogRetention = globalOptionsConfig['central-log-retention'];
+  const logRetentionInDays = globalOptionsConfig['central-log-retention'];
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
-  const sharedNetworkAccountId = getAccountId(accounts, 'shared-network');
 
   const app = new cdk.App();
 
-  const logArchiveStack = new LogArchive.Stack(app, 'LogArchive', {
+  const stack = new AcceleratorStack(app, 'LogArchive', {
     env: {
       account: logArchiveAccountId,
       region: cdk.Aws.REGION,
@@ -31,18 +34,25 @@ async function main() {
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-LogArchive',
-    centralLogRetentionInDays: centralLogRetention,
-    sharedNetWorkAccountId: sharedNetworkAccountId,
   });
 
+  // Create the log archive bucket
+  const bucket = new LogArchiveBucket(stack, 'LogArchive', {
+    logRetention: cdk.Duration.days(logRetentionInDays),
+  });
+
+  // Grant all accounts access to the log archive bucket
+  const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
+  bucket.grantReplicate(...principals);
+
   // store the s3 bucket arn for later reference
-  new cdk.CfnOutput(logArchiveStack, 's3BucketArn', {
-    value: logArchiveStack.s3BucketArn,
+  new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
+    value: bucket.bucketArn,
   });
 
   // store the s3 bucket - kms key arn for later reference
-  new cdk.CfnOutput(logArchiveStack, 's3KmsKeyArn', {
-    value: logArchiveStack.s3KmsKeyArn,
+  new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
+    value: bucket.encryptionKeyArn,
   });
 }
 

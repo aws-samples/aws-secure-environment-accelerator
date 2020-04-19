@@ -1,22 +1,29 @@
-import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { pascalCase } from 'pascal-case';
-import {
-  VpcConfig,
-  VirtualPrivateGatewayConfig,
-  NatGatewayConfig,
-  InterfaceEndpointConfig,
-} from '@aws-pbmm/common-lambda/lib/config';
-import { Account, getAccountId } from '../utils/accounts';
-import { VpcSubnetShare } from './vpc-subnet-share';
-import { InterfaceEndpoints } from './interface-endpoints';
-import { VpcStack } from '../apps/main';
-import { FlowLogs } from './flow-logs';
+import * as cdk from '@aws-cdk/core';
+import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
+import { pascalCase } from 'pascal-case';
+import { Account, getAccountId } from '../utils/accounts';
+import { FlowLog } from './flow-log';
+import { InterfaceEndpoints } from './interface-endpoints';
+import { VpcStack } from './vpc-stack';
+import { VpcSubnetShare } from './vpc-subnet-share';
+import { TransitGateway } from './transit-gateway';
+import { TransitGatewayAttachment } from './transit-gateway-attachment';
 
 interface CommonProps {
+  /**
+   * List of accounts in the organization.
+   */
   accounts: Account[];
-  vpcConfig: VpcConfig;
+  /**
+   * The VPC configuration for the VPC.
+   */
+  vpcConfig: config.VpcConfig;
+  /**
+   * Transit gateway deployment.
+   */
+  tgwDeployment?: config.DeploymentConfig;
   /**
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */
@@ -73,12 +80,15 @@ export class Vpc extends cdk.Construct {
     let vgwAttach;
 
     const vgwConfig = props.vpcConfig.vgw;
-    if (VirtualPrivateGatewayConfig.is(vgwConfig)) {
+    if (vgwConfig) {
+      const amazonSideAsn = config.VirtualPrivateGatewayConfig.is(vgwConfig) ? vgwConfig.asn : undefined;
+
       // Create VGW
       vgw = new ec2.CfnVPNGateway(this, `${props.vpcConfig.name}_vpg`, {
         type: 'ipsec.1',
-        amazonSideAsn: vgwConfig.asn,
+        amazonSideAsn,
       });
+
       // Attach VGW to VPC
       vgwAttach = new ec2.CfnVPCGatewayAttachment(this, `${props.vpcConfig.name}_attach_vgw`, {
         vpcId: vpcObj.ref,
@@ -201,7 +211,7 @@ export class Vpc extends cdk.Construct {
 
     // Create NAT Gateway
     const natgwProps = vpcConfig.natgw;
-    if (NatGatewayConfig.is(natgwProps)) {
+    if (config.NatGatewayConfig.is(natgwProps)) {
       const subnetId = this.subnets.get(natgwProps.subnet);
       if (!subnetId) {
         throw new Error(`Cannot find NAT gateway subnet name "${natgwProps.subnet}"`);
@@ -222,15 +232,60 @@ export class Vpc extends cdk.Construct {
           destinationCidrBlock: '0.0.0.0/0',
           natGatewayId: natgw?.ref,
         };
-        const cfnRoute = new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+        new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
     }
 
+    // Creating TGW for Shared-Network Account
+    const tgwDeployment = props.tgwDeployment;
+    if (tgwDeployment) {
+      const twgAttach = vpcConfig['tgw-attach'];
+      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
+      if (twgAttach) {
+        // TBD Account Check
+
+        // TBD TGW Name Check
+
+        // **** Attach VPC to TGW ********
+        // Prepare props for TGW Attachment
+        let subnetIds: string[] = [];
+        const vpcTgwAttach = vpcConfig['tgw-attach']!;
+        const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!;
+        for (const subnet of vpcTgwAttachSubnets) {
+          subnetIds = subnetIds.concat(this.azSubnets.get(subnet) as string[]);
+        }
+
+        const tgwRouteAssociations: string[] = [];
+        const tgwRoutePropagates: string[] = [];
+        const vpcTgwRTAssociate = vpcTgwAttach['tgw-rt-associate']!;
+        for (const route of vpcTgwRTAssociate) {
+          if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
+            tgwRouteAssociations.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
+          }
+        }
+        const vpcTgwRTPropagate = vpcTgwAttach['tgw-rt-propagate']!;
+        for (const route of vpcTgwRTPropagate) {
+          if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
+            tgwRoutePropagates.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
+          }
+        }
+
+        // Attach VPC To TGW
+        new TransitGatewayAttachment(this, 'TgwAttach', {
+          vpcId: this.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates: tgwRouteAssociations,
+          tgwRoutePropagates,
+        });
+      }
+    }
+
     // Create interface endpoints
     const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
-    if (InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
+    if (config.InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
       new InterfaceEndpoints(this, 'InterfaceEndpoints', {
         vpc: this,
         subnetName: interfaceEndpointConfig.subnet,
@@ -243,7 +298,7 @@ export class Vpc extends cdk.Construct {
     if (flowLogs) {
       const flowLogBucket = stack.getOrCreateFlowLogBucket();
 
-      new FlowLogs(this, 'FlowLogs', {
+      new FlowLog(this, 'FlowLogs', {
         vpcId: this.vpcId,
         bucketArn: flowLogBucket.bucketArn,
       });
@@ -282,7 +337,7 @@ class VpcSubnetSharing extends cdk.Construct {
 
       // Share to accounts with a specific name
       const shareToAccounts = subnet['share-to-specific-accounts'] || [];
-      const shareToAccountIds = shareToAccounts.map(key => getAccountId(accounts, key));
+      const shareToAccountIds = shareToAccounts.map((accountKey: string) => getAccountId(accounts, accountKey));
 
       // Share to accounts in this OU
       const shareToOuAccounts = subnet['share-to-ou-accounts'];

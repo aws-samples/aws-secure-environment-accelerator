@@ -2,13 +2,22 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
 
-export interface FlowLogsProps {
+export interface FlowLogProps {
+  /**
+   * The ID of the VPC to enable flow logging for.
+   */
   vpcId: string;
+  /**
+   * The bucket where to write the logs to.
+   */
   bucketArn: string;
 }
 
-export class FlowLogs extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: FlowLogsProps) {
+/**
+ * Auxiliary construct that enables flow log for the given VPC.
+ */
+export class FlowLog extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props: FlowLogProps) {
     super(scope, id);
 
     const role = new iam.Role(this, 'Role', {
@@ -17,7 +26,6 @@ export class FlowLogs extends cdk.Construct {
 
     role.addToPolicy(
       new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
         actions: ['logs:CreateLogDelivery', 'logs:DeleteLogDelivery'],
         resources: ['*'],
       }),
@@ -27,9 +35,9 @@ export class FlowLogs extends cdk.Construct {
       deliverLogsPermissionArn: role.roleArn,
       resourceId: props.vpcId,
       resourceType: 'VPC',
-      trafficType: 'ALL',
+      trafficType: ec2.FlowLogTrafficType.ALL,
       logDestination: `${props.bucketArn}/flowlogs`,
-      logDestinationType: 's3',
+      logDestinationType: ec2.FlowLogDestinationType.S3,
     });
   }
 }

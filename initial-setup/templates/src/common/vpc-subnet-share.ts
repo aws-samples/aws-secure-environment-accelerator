@@ -9,6 +9,9 @@ export interface VpcSubnetShareProps {
   region: string;
 }
 
+/**
+ * Auxiliary construct that creates a resource share for the given subnet IDs.
+ */
 export class VpcSubnetShare extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: VpcSubnetShareProps) {
     super(scope, id);

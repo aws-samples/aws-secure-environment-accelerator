@@ -3,15 +3,20 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
 
-export interface FlowLogBucketProps {
-  expirationInDays: number;
-  replication?: {
-    accountId: string;
-    kmsKeyArn: string;
-    bucketArn: string;
-  };
+export interface FlowLogBucketReplication {
+  accountId: string;
+  kmsKeyArn: string;
+  bucketArn: string;
 }
 
+export interface FlowLogBucketProps {
+  expirationInDays: number;
+  replication?: FlowLogBucketReplication;
+}
+
+/**
+ * Auxiliary bucket that allows replication of flow logs into another bucket.
+ */
 export class FlowLogBucket extends cdk.Construct {
   private bucket: s3.CfnBucket;
 
@@ -88,7 +93,7 @@ export class FlowLogBucket extends cdk.Construct {
             },
           },
         ],
-      }
+      };
     }
 
     // s3 bucket to collect vpc-flow-logs

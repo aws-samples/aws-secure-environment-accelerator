@@ -1351,7 +1351,7 @@
         "vgw": false,
         "pcx": false,
         "natgw": {
-          "subnets": ["Web_az1"]
+          "subnet": "Web_az1"
         },
         "subnets": [
           {
