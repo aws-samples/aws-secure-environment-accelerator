@@ -36,8 +36,10 @@ export namespace GlobalOptions {
       const mandatoryAccounts: Array<string> = Object.keys(mandatoryAccountConfig);
       const organizationalUnits: Array<string> = Object.keys(organizationalUnitsConfig);
       for (const account of mandatoryAccounts.concat(organizationalUnits)) {
-        
-        const accountConfig = account in mandatoryAccountConfig? (mandatoryAccountConfig as any)[account] as AccountConfig: (organizationalUnitsConfig as any)[account] as OrganizationalUnit;
+        const accountConfig =
+          account in mandatoryAccountConfig
+            ? ((mandatoryAccountConfig as any)[account] as AccountConfig)
+            : ((organizationalUnitsConfig as any)[account] as OrganizationalUnit);
         const vpcConfig = accountConfig.vpc!;
         if (!vpcConfig) continue;
         if (!vpcConfig.resolvers) continue;
@@ -64,8 +66,8 @@ export namespace GlobalOptions {
             privateRule.node.addDependency(r53ResolverEndpoints);
 
             // Add RuleId to Output
-            new cdk.CfnOutput(this, `${vpcConfig.name}PHZRule${domain}`,{
-              value: privateRule.ruleId
+            new cdk.CfnOutput(this, `${vpcConfig.name}PHZRule${domain}`, {
+              value: privateRule.ruleId,
             });
           }
         }
@@ -77,7 +79,7 @@ export namespace GlobalOptions {
             const privateRule = new Route53ResolverRule(this, `${domainToName(onPremRuleConfig.zone)}-phz-rule`, {
               domain: onPremRuleConfig.zone,
               endPoint: r53ResolverEndpoints.outBoundEndpoint,
-              ipAddresses: onPremRuleConfig["outbound-ips"].join(','),
+              ipAddresses: onPremRuleConfig['outbound-ips'].join(','),
               ruleType: 'FORWARD',
               name: `${domainToName(onPremRuleConfig.zone)}-phz-rule`,
               vpcId: r53ResolverEndpoints.vpcId,
@@ -85,8 +87,8 @@ export namespace GlobalOptions {
             privateRule.node.addDependency(r53ResolverEndpoints);
 
             // Add RuleId to Output
-            new cdk.CfnOutput(this, `${vpcConfig.name}PHZRule${onPremRuleConfig.zone}`,{
-              value: privateRule.ruleId
+            new cdk.CfnOutput(this, `${vpcConfig.name}PHZRule${onPremRuleConfig.zone}`, {
+              value: privateRule.ruleId,
             });
           }
         }
@@ -124,32 +126,32 @@ export namespace GlobalOptions {
 
       // // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
       for (const account of mandatoryAccounts) {
-       const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
-       const deploymentConfig = accountConfig.deployments;
-       if( !deploymentConfig.mad ) continue;
-       const madConfig = deploymentConfig.mad;
-       let madIPs;
-       try{
-        madIPs = getStackOutput(props.outputs, account, `MAD${madConfig["dns-domain"].replace(/\./gi, '')}`);
-       }catch(error){
-         console.log(`MAD is not deployed yet in account ${account}`);
-         continue;
-       }
-       const resolverAccount = madConfig["central-resolver-rule-account"];
-       const resolverVpc = madConfig["central-resolver-rule-vpc"];
-       const vpcId = getStackOutput(props.outputs, resolverAccount, `Vpc${resolverVpc}`);
-       const rule = new Route53ResolverRule(this, `${domainToName(madConfig["dns-domain"])}-phz-rule`, {
-          domain: madConfig["dns-domain"],
+        const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
+        const deploymentConfig = accountConfig.deployments;
+        if (!deploymentConfig.mad) continue;
+        const madConfig = deploymentConfig.mad;
+        let madIPs;
+        try {
+          madIPs = getStackOutput(props.outputs, account, `MAD${madConfig['dns-domain'].replace(/\./gi, '')}`);
+        } catch (error) {
+          console.log(`MAD is not deployed yet in account ${account}`);
+          continue;
+        }
+        const resolverAccount = madConfig['central-resolver-rule-account'];
+        const resolverVpc = madConfig['central-resolver-rule-vpc'];
+        const vpcId = getStackOutput(props.outputs, resolverAccount, `Vpc${resolverVpc}`);
+        const rule = new Route53ResolverRule(this, `${domainToName(madConfig['dns-domain'])}-phz-rule`, {
+          domain: madConfig['dns-domain'],
           endPoint: vpcOutBoundMapping.get(resolverVpc)!,
           ipAddresses: madIPs,
           ruleType: 'FORWARD',
-          name: `${domainToName(madConfig["dns-domain"])}-phz-rule`,
+          name: `${domainToName(madConfig['dns-domain'])}-phz-rule`,
           vpcId: vpcId,
         });
 
         // Add RuleId to Output
-        new cdk.CfnOutput(this, `${resolverVpc}PHZRule${madConfig["dns-domain"]}`,{
-          value: rule.ruleId
+        new cdk.CfnOutput(this, `${resolverVpc}PHZRule${madConfig['dns-domain']}`, {
+          value: rule.ruleId,
         });
       }
       // Add Outputs

@@ -136,8 +136,10 @@ export namespace InitialSetup {
       const cfnLambdaRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
         roleName: 'LambdaRoleRoute53Resolver',
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53ResolverReadOnlyAccess'),
-          iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchLogsFullAccess')],
+        managedPolicies: [
+          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53ResolverReadOnlyAccess'),
+          iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchLogsFullAccess'),
+        ],
       });
 
       const cfnLambda = new lambda.Function(this, 'DnsEndpointIPPoller', {
