@@ -45,6 +45,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     }
     await sendResponsePromise(SUCCESS, output, physicalResourceId);
   } catch (error) {
+    console.log(error);
     await sendResponsePromise(FAILED, {}, physicalResourceId);
   }
 };

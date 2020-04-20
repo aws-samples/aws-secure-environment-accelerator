@@ -137,8 +137,7 @@ export namespace InitialSetup {
         roleName: 'LambdaRoleRoute53Resolver',
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
         managedPolicies: [
-          iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53ResolverReadOnlyAccess'),
-          iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchLogsFullAccess'),
+          iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess'),
         ],
       });
 
