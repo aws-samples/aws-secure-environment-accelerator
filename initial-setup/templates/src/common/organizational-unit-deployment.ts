@@ -1,11 +1,12 @@
 import * as cdk from '@aws-cdk/core';
-import { OrganizationalUnitConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { Context } from 'vm';
+import { OrganizationalUnitConfig, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '../common/vpc';
 import { Account } from '../utils/accounts';
 import { MandatoryAccountDeployment } from './mandatory-account-deployment';
+import { Context } from '../utils/context';
 
 export interface OrganizationalUnitDeploymentProps {
+  acceleratorConfig: AcceleratorConfig;
   context: Context;
   /**
    * The accounts in the organization.

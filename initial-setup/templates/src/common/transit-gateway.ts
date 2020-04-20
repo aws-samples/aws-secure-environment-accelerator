@@ -8,15 +8,15 @@ function enableDisableProperty(feature: boolean | undefined): string {
 }
 
 export class TransitGateway extends cdk.Construct {
-  readonly tgwId: string;
-  readonly tgwRouteTableNameToIdMap = new Map<string, string>();
+  private readonly tgw: ec2.CfnTransitGateway;
+  private readonly tgwRouteTableNameToIdMap: { [routeTableName: string]: ec2.CfnTransitGatewayRouteTable } = {};
 
   constructor(parent: cdk.Construct, name: string, props: DeploymentConfig) {
     super(parent, name);
 
-    const features = props.features;
+    const { features } = props;
 
-    const tgwObject = new ec2.CfnTransitGateway(this, name, {
+    this.tgw = new ec2.CfnTransitGateway(this, name, {
       dnsSupport: enableDisableProperty(features?.['DNS-support']),
       vpnEcmpSupport: enableDisableProperty(features?.['VPN-ECMP-support']),
       defaultRouteTableAssociation: enableDisableProperty(features?.['Default-route-table-association']),
@@ -28,10 +28,21 @@ export class TransitGateway extends cdk.Construct {
     const routeTables = props['route-tables'] || [];
     for (const routeTableName of routeTables) {
       const cfnRouteTable = new ec2.CfnTransitGatewayRouteTable(this, `${name}_tgw_${routeTableName}`, {
-        transitGatewayId: tgwObject.ref,
+        transitGatewayId: this.tgw.ref,
       });
-      this.tgwRouteTableNameToIdMap.set(routeTableName, cfnRouteTable.ref);
+      this.tgwRouteTableNameToIdMap[routeTableName] = cfnRouteTable;
     }
-    this.tgwId = tgwObject.ref;
+  }
+
+  get tgwId(): string {
+    return this.tgw.ref;
+  }
+
+  getRouteTableByName(routeTableName: string): ec2.CfnTransitGatewayRouteTable | undefined {
+    return this.tgwRouteTableNameToIdMap[routeTableName];
+  }
+
+  getRouteTableIdByName(routeTableName: string): string | undefined {
+    return this.getRouteTableByName(routeTableName)?.ref;
   }
 }

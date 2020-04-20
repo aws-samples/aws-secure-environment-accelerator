@@ -1,10 +1,9 @@
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { FlowLogBucket, FlowLogBucketReplication } from '../common/flow-log-bucket';
+import { FlowLogBucket, FlowLogBucketProps } from '../common/flow-log-bucket';
 
 export interface VpcStackProps extends AcceleratorStackProps {
-  flowLogExpirationInDays: number;
-  flowLogBucketReplication?: FlowLogBucketReplication;
+  flowLogBucket: FlowLogBucketProps;
 }
 
 /**
@@ -25,10 +24,7 @@ export class VpcStack extends AcceleratorStack {
    */
   getOrCreateFlowLogBucket(): FlowLogBucket {
     if (!this.flowLogBucket) {
-      this.flowLogBucket = new FlowLogBucket(this, 'FlowLogBucket', {
-        expirationInDays: this.props.flowLogExpirationInDays,
-        replication: this.props.flowLogBucketReplication,
-      });
+      this.flowLogBucket = new FlowLogBucket(this, 'FlowLogBucket', this.props.flowLogBucket);
     }
     return this.flowLogBucket;
   }

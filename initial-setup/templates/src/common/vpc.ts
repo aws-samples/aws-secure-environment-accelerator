@@ -1,17 +1,17 @@
-import * as ec2 from '@aws-cdk/aws-ec2';
 import * as cdk from '@aws-cdk/core';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { pascalCase } from 'pascal-case';
-import { Account, getAccountId } from '../utils/accounts';
+import { Account } from '../utils/accounts';
 import { FlowLog } from './flow-log';
 import { InterfaceEndpoints } from './interface-endpoints';
 import { VpcStack } from './vpc-stack';
-import { VpcSubnetShare } from './vpc-subnet-share';
 import { TransitGateway } from './transit-gateway';
 import { TransitGatewayAttachment } from './transit-gateway-attachment';
+import { VpcSubnetSharing } from './vpc-subnet-sharing';
 
-interface CommonProps {
+export interface VpcCommonProps {
   /**
    * List of accounts in the organization.
    */
@@ -30,15 +30,49 @@ interface CommonProps {
   organizationalUnitName?: string;
 }
 
-export interface VpcProps extends cdk.StackProps, CommonProps {}
+export interface AzSubnet {
+  subnet: ec2.CfnSubnet;
+  subnetName: string;
+  az: string;
+}
+
+/**
+ * Auxiliary class that makes management and lookup of subnets easier.
+ */
+export class AzSubnets {
+  readonly subnets: AzSubnet[] = [];
+
+  push(value: AzSubnet): this {
+    this.subnets.push(value);
+    return this;
+  }
+
+  getAzSubnetsForSubnetName(subnetName: string): AzSubnet[] {
+    return this.subnets.filter(s => s.subnetName === subnetName);
+  }
+
+  getAzSubnetIdsForSubnetName(subnetName: string): string[] {
+    return this.getAzSubnetsForSubnetName(subnetName).map(s => s.subnet.ref);
+  }
+
+  getAzSubnetForNameAndAz(subnetName: string, az: string): AzSubnet | undefined {
+    return this.subnets.find(s => s.subnetName === subnetName && s.az === az);
+  }
+
+  getAzSubnetIdForNameAndAz(subnetName: string, az: string): string | undefined {
+    return this.getAzSubnetForNameAndAz(subnetName, az)?.subnet?.ref;
+  }
+}
+
+export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
 
 export class Vpc extends cdk.Construct {
   readonly name: string;
   readonly region: Region;
 
   readonly vpcId: string;
-  readonly azSubnets = new Map<string, string[]>();
-  readonly subnets = new Map<string, string>();
+  readonly subnets = new AzSubnets();
+
   readonly routeTableNameToIdMap = new Map<string, string>();
 
   constructor(stack: VpcStack, name: string, props: VpcProps) {
@@ -153,20 +187,21 @@ export class Vpc extends cdk.Construct {
 
     const subnetsConfig = props.vpcConfig.subnets || [];
     for (const subnetConfig of subnetsConfig) {
-      const subnetAzs: string[] = [];
-      const propSubnetName = subnetConfig.name;
-      for (const [key, subnetDefinition] of subnetConfig.definitions.entries()) {
+      const subnetName = subnetConfig.name;
+      for (const subnetDefinition of subnetConfig.definitions.values()) {
         if (subnetDefinition.disabled) {
           continue;
         }
 
         const subnetCidr = subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString();
         if (!subnetCidr) {
-          throw new Error(`Subnet with name "${propSubnetName}" does not have a CIDR block`);
+          throw new Error(
+            `Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`,
+          );
         }
 
-        const subnetName = `${vpcName}_${propSubnetName}_az${key + 1}`;
-        const subnet = new ec2.CfnSubnet(this, subnetName, {
+        const subnetId = pascalCase(`${subnetName}-${subnetDefinition.az}`);
+        const subnet = new ec2.CfnSubnet(this, `Subnet${subnetId}`, {
           cidrBlock: subnetCidr,
           vpcId: vpcObj.ref,
           availabilityZone: `${this.region}${subnetDefinition.az}`,
@@ -174,8 +209,11 @@ export class Vpc extends cdk.Construct {
         if (extendVpc) {
           subnet.addDependsOn(extendVpc);
         }
-        this.subnets.set(`${propSubnetName}_az${key + 1}`, subnet.ref);
-        subnetAzs.push(subnet.ref);
+        this.subnets.push({
+          subnet,
+          subnetName,
+          az: subnetDefinition.az,
+        });
 
         // Attach Subnet to Route-Table
         const routeTableName = subnetDefinition['route-table'];
@@ -190,12 +228,11 @@ export class Vpc extends cdk.Construct {
         }
 
         // Associate the route table with the subnet
-        new ec2.CfnSubnetRouteTableAssociation(this, `${subnetName}_ ${routeTableName}`, {
+        new ec2.CfnSubnetRouteTableAssociation(this, `RouteTable${subnetId}`, {
           routeTableId,
           subnetId: subnet.ref,
         });
       }
-      this.azSubnets.set(propSubnetName, subnetAzs);
     }
 
     // Create VPC Gateway End Point
@@ -212,9 +249,10 @@ export class Vpc extends cdk.Construct {
     // Create NAT Gateway
     const natgwProps = vpcConfig.natgw;
     if (config.NatGatewayConfig.is(natgwProps)) {
-      const subnetId = this.subnets.get(natgwProps.subnet);
+      const subnetConfig = natgwProps.subnet;
+      const subnetId = this.subnets.getAzSubnetIdForNameAndAz(subnetConfig.name, subnetConfig.az);
       if (!subnetId) {
-        throw new Error(`Cannot find NAT gateway subnet name "${natgwProps.subnet}"`);
+        throw new Error(`Cannot find NAT gateway subnet name "${subnetConfig.name}" in AZ "${subnetConfig.az}"`);
       }
 
       const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
@@ -244,40 +282,22 @@ export class Vpc extends cdk.Construct {
       const twgAttach = vpcConfig['tgw-attach'];
       const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
       if (twgAttach) {
-        // TBD Account Check
+        const attachConfig = vpcConfig['tgw-attach']!;
 
-        // TBD TGW Name Check
+        const attachSubnetsConfig = attachConfig['attach-subnets'] || [];
+        const associateConfig = attachConfig['tgw-rt-associate'] || [];
+        const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
 
-        // **** Attach VPC to TGW ********
-        // Prepare props for TGW Attachment
-        let subnetIds: string[] = [];
-        const vpcTgwAttach = vpcConfig['tgw-attach']!;
-        const vpcTgwAttachSubnets = vpcTgwAttach['attach-subnets']!;
-        for (const subnet of vpcTgwAttachSubnets) {
-          subnetIds = subnetIds.concat(this.azSubnets.get(subnet) as string[]);
-        }
-
-        const tgwRouteAssociations: string[] = [];
-        const tgwRoutePropagates: string[] = [];
-        const vpcTgwRTAssociate = vpcTgwAttach['tgw-rt-associate']!;
-        for (const route of vpcTgwRTAssociate) {
-          if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
-            tgwRouteAssociations.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
-          }
-        }
-        const vpcTgwRTPropagate = vpcTgwAttach['tgw-rt-propagate']!;
-        for (const route of vpcTgwRTPropagate) {
-          if (tgw.tgwRouteTableNameToIdMap && tgw.tgwRouteTableNameToIdMap.get(route)) {
-            tgwRoutePropagates.push(tgw.tgwRouteTableNameToIdMap.get(route) as string);
-          }
-        }
+        const subnetIds = attachSubnetsConfig.flatMap(subnet => this.subnets.getAzSubnetIdsForSubnetName(subnet) || []);
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
 
         // Attach VPC To TGW
         new TransitGatewayAttachment(this, 'TgwAttach', {
           vpcId: this.vpcId,
           subnetIds,
           transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates: tgwRouteAssociations,
+          tgwRouteAssociates,
           tgwRoutePropagates,
         });
       }
@@ -309,59 +329,7 @@ export class Vpc extends cdk.Construct {
       accounts,
       vpcConfig,
       organizationalUnitName,
-      subnetNameToSubnetIdsMap: this.azSubnets,
+      subnets: this.subnets,
     });
-  }
-}
-
-interface VpcSubnetSharingProps extends CommonProps {
-  subnetNameToSubnetIdsMap: Map<string, string[]>;
-}
-
-/**
- * Auxiliary construct that takes care of VPC subnet sharing.
- */
-class VpcSubnetSharing extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: VpcSubnetSharingProps) {
-    super(scope, id);
-
-    const stack = cdk.Stack.of(this);
-    const { accounts, vpcConfig, subnetNameToSubnetIdsMap, organizationalUnitName } = props;
-
-    const subnets = vpcConfig.subnets || [];
-    for (const subnet of subnets) {
-      const subnetIds = subnetNameToSubnetIdsMap.get(subnet.name);
-      if (!subnetIds) {
-        throw new Error(`Cannot find subnet with name "${subnet.name}" in VPC`);
-      }
-
-      // Share to accounts with a specific name
-      const shareToAccounts = subnet['share-to-specific-accounts'] || [];
-      const shareToAccountIds = shareToAccounts.map((accountKey: string) => getAccountId(accounts, accountKey));
-
-      // Share to accounts in this OU
-      const shareToOuAccounts = subnet['share-to-ou-accounts'];
-      if (shareToOuAccounts) {
-        if (!organizationalUnitName) {
-          throw new Error(`Cannot share subnet with OU accounts because the subnet is not in a OU`);
-        }
-
-        const ouAccounts = accounts.filter(a => a.ou === organizationalUnitName);
-        const ouAccountIds = ouAccounts.map(a => getAccountId(accounts, a.key));
-        shareToAccountIds.push(...ouAccountIds);
-      }
-
-      if (shareToAccountIds.length > 0) {
-        const shareName = `${pascalCase(vpcConfig.name)}-${pascalCase(subnet.name)}`;
-
-        new VpcSubnetShare(this, `Share${shareName}`, {
-          name: shareName,
-          subnetIds,
-          sourceAccountId: stack.account,
-          targetAccountIds: shareToAccountIds,
-          region: vpcConfig.region,
-        });
-      }
-    }
   }
 }

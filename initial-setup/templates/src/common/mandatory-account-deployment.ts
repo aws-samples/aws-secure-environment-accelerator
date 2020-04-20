@@ -1,13 +1,13 @@
 import * as cdk from '@aws-cdk/core';
-import { AccountConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AccountConfig, VpcConfig, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { pascalCase } from 'pascal-case';
-import { Context } from 'vm';
 import { Vpc } from '../common/vpc';
 import { VpcStack } from '../common/vpc-stack';
 import { Account, getAccountId } from '../utils/accounts';
-import { FlowLogBucketReplication } from './flow-log-bucket';
+import { Context } from '../utils/context';
 
 export interface MandatoryAccountDeploymentProps {
+  acceleratorConfig: AcceleratorConfig;
   context: Context;
   /**
    * The accounts in the organization.
@@ -21,8 +21,9 @@ export interface MandatoryAccountDeploymentProps {
    * The account config to use for this deployment.
    */
   accountConfig: AccountConfig;
-  flowLogExpirationInDays: number;
-  flowLogBucketReplication?: FlowLogBucketReplication;
+  logArchiveAccountId: string;
+  logArchiveS3BucketArn: string;
+  logArchiveS3KmsKeyArn: string;
 }
 
 /**
@@ -35,7 +36,15 @@ export class MandatoryAccountDeployment extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: MandatoryAccountDeploymentProps) {
     super(scope, id);
 
-    const { context, accounts, accountKey, flowLogExpirationInDays, flowLogBucketReplication } = props;
+    const {
+      context,
+      accounts,
+      accountKey,
+      acceleratorConfig,
+      logArchiveAccountId,
+      logArchiveS3BucketArn,
+      logArchiveS3KmsKeyArn,
+    } = props;
 
     this.accountConfig = props.accountConfig;
 
@@ -47,8 +56,14 @@ export class MandatoryAccountDeployment extends cdk.Construct {
       stackName: `PBMMAccel-Networking${pascalCase(accountKey)}`,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
-      flowLogExpirationInDays,
-      flowLogBucketReplication,
+      flowLogBucket: {
+        expirationInDays: acceleratorConfig['global-options']['central-log-retention'],
+        replication: {
+          accountId: logArchiveAccountId,
+          bucketArn: logArchiveS3BucketArn,
+          kmsKeyArn: logArchiveS3KmsKeyArn,
+        },
+      },
     });
 
     const vpcConfig: VpcConfig | undefined = this.accountConfig.vpc;

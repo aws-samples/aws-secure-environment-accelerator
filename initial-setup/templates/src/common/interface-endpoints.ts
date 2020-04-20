@@ -2,9 +2,7 @@ import * as cloudformation from '@aws-cdk/aws-cloudformation';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
-import { InterfaceEndpointConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { bgRed } from 'colors/safe';
-import * as t from 'io-ts';
 import { Vpc } from './vpc';
 
 interface InterfaceEndpointProps {
@@ -104,7 +102,7 @@ export class InterfaceEndpoints extends cdk.Construct {
 
     const { vpc, subnetName, interfaceEndpoints } = props;
 
-    const subnetIds = vpc.azSubnets.get(subnetName);
+    const subnetIds = vpc.subnets.getAzSubnetIdsForSubnetName(subnetName);
     if (!subnetIds) {
       throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
     }

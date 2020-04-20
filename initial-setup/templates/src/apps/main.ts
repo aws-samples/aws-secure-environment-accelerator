@@ -23,8 +23,6 @@ async function main() {
   const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
   const logArchiveS3KmsKeyArn = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
 
-  const centralLogRetention = acceleratorConfig['global-options']['central-log-retention'];
-
   const app = new cdk.App();
 
   // Create all the VPCs for the mandatory accounts
@@ -37,12 +35,10 @@ async function main() {
       accounts,
       accountKey,
       accountConfig,
-      flowLogExpirationInDays: centralLogRetention,
-      flowLogBucketReplication: {
-        accountId: logArchiveAccountId,
-        bucketArn: logArchiveS3BucketArn,
-        kmsKeyArn: logArchiveS3KmsKeyArn,
-      },
+      acceleratorConfig,
+      logArchiveAccountId,
+      logArchiveS3BucketArn,
+      logArchiveS3KmsKeyArn,
     });
     mandatoryAccountDeployments[accountKey] = deployment;
   }
@@ -54,6 +50,7 @@ async function main() {
     new OrganizationalUnitDeployment(app, id, {
       context,
       accounts,
+      acceleratorConfig,
       ouKey,
       ouConfig,
       mandatoryAccountDeployments,

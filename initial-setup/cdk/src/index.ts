@@ -420,21 +420,19 @@ export namespace InitialSetup {
 
       const enableResourceShareTask = new CodeTask(this, 'Enable Resource Sharing', {
         functionProps: {
-          code: props.lambdas.codeForEntry('enable-resource-share'),
+          code: props.lambdas.codeForEntry('enable-resource-sharing'),
           role: pipelineRole,
         },
         resultPath: 'DISCARD',
       });
 
-      const attachTagsTask = new CodeTask(this, 'Attach Tags to Shared Subnets', {
+      const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
         functionProps: {
-          code: props.lambdas.codeForEntry('attach-tags-to-subnets'),
+          code: props.lambdas.codeForEntry('add-tags-to-shared-resources'),
           role: pipelineRole,
         },
         functionPayload: {
-          'accounts.$': '$.accounts',
           assumeRoleName: props.executionRoleName,
-          configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
@@ -453,7 +451,7 @@ export namespace InitialSetup {
           .next(storeStackOutput)
           .next(deployMainTask)
           .next(storeMainOutput)
-          .next(attachTagsTask),
+          .next(addTagsToSharedResourcesTask),
       });
     }
   }

@@ -16,7 +16,10 @@ export const PeeringConnectionConfig = t.interface({
 });
 
 export const NatGatewayConfig = t.interface({
-  subnet: NonEmptyString,
+  subnet: t.interface({
+    name: t.string,
+    az: t.string,
+  }),
 });
 
 export const SubnetDefinitionConfig = t.interface({
