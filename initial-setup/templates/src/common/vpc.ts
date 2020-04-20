@@ -66,6 +66,12 @@ export class AzSubnets {
 
 export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
 
+/**
+ * This construct creates a VPC, NAT gateway, internet gateway, virtual private gateway, route tables, subnets,
+ * gateway endpoints, interface endpoints and transit gateway. It also allows VPC flow logging and VPC sharing.
+ *
+ * The construct is quite large and could be broken down into several smaller constructs.
+ */
 export class Vpc extends cdk.Construct {
   readonly name: string;
   readonly region: Region;
