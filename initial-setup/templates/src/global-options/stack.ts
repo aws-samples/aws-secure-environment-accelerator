@@ -83,14 +83,18 @@ export namespace GlobalOptions {
 
         for (const onPremRuleConfig of vpcConfig['on-premise-rules']! || []) {
           if (r53ResolverEndpoints.outBoundEndpoint) {
-            const privateRule = new Route53ResolverRule(this, `${domainToName(onPremRuleConfig.zone)}-on-prem-phz-rule`, {
-              domain: onPremRuleConfig.zone,
-              endPoint: r53ResolverEndpoints.outBoundEndpoint,
-              ipAddresses: onPremRuleConfig['outbound-ips'].join(','),
-              ruleType: 'FORWARD',
-              name: `${domainToName(onPremRuleConfig.zone)}-phz-rule`,
-              vpcId: r53ResolverEndpoints.vpcId,
-            });
+            const privateRule = new Route53ResolverRule(
+              this,
+              `${domainToName(onPremRuleConfig.zone)}-on-prem-phz-rule`,
+              {
+                domain: onPremRuleConfig.zone,
+                endPoint: r53ResolverEndpoints.outBoundEndpoint,
+                ipAddresses: onPremRuleConfig['outbound-ips'].join(','),
+                ruleType: 'FORWARD',
+                name: `${domainToName(onPremRuleConfig.zone)}-phz-rule`,
+                vpcId: r53ResolverEndpoints.vpcId,
+              },
+            );
             privateRule.node.addDependency(r53ResolverEndpoints);
 
             // Add RuleId to Output
