@@ -1,10 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as r53 from '@aws-cdk/aws-route53';
 
-import { AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { GlobalOptionsZonesConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutputs } from '../utils/outputs';
-import { getStackOutput } from '../utils/outputs';
 
 export interface Route53ZonesProps {
   zonesConfig: GlobalOptionsZonesConfig;

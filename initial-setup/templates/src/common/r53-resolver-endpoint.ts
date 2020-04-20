@@ -21,6 +21,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
   readonly outBoundEndpoint: string = '';
   readonly inBoundEndpointIps: string = '';
   readonly outBoundEndpointIps: string = '';
+  readonly vpcId: string;
   constructor(parent: cdk.Construct, name: string, props: Route53ResolverEndpointProps) {
     super(parent, name);
     const vpcConfig = props.vpcConfig;
@@ -28,6 +29,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     const endpointSubnet = vpcConfig.subnets?.find(x => x.name === resolvers?.subnet);
     const accountName = vpcConfig.deploy === 'local' ? props.accountName : vpcConfig.deploy;
     const vpcId = getStackOutput(props.outputs, accountName!, `Vpc${vpcConfig.name}`);
+    this.vpcId = vpcId;
     if (!endpointSubnet) {
       console.error(
         `Subnet provided in resolvers doesn't exist in Subnet = ${resolvers.subnet} and VPC = ${vpcConfig.name}`,

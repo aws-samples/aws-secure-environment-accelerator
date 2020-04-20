@@ -1,11 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import * as lambda from '@aws-cdk/aws-lambda';
 import * as r53Resolver from '@aws-cdk/aws-route53resolver';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-
-import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { Context } from '../utils/context';
-import { StackOutputs, getStackOutput } from '../utils/outputs';
 
 export interface Route53ResolverRuleProps {
   endPoint: string;
@@ -13,6 +7,7 @@ export interface Route53ResolverRuleProps {
   domain: string;
   name: string;
   ruleType: string;
+  vpcId: string;
 }
 
 export class Route53ResolverRule extends cdk.Construct {
@@ -35,6 +30,11 @@ export class Route53ResolverRule extends cdk.Construct {
       resolverEndpointId: props.endPoint,
       name: props.name,
       targetIps: inBoundRuleTargetIps,
+    });
+
+    new r53Resolver.CfnResolverRuleAssociation(this, `${name}-association`, {
+      resolverRuleId: rule.ref,
+      vpcId: props.vpcId,
     });
     this.ruleId = rule.ref;
   }

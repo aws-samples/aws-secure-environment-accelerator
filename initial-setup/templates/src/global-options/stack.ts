@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { AccountConfig, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AccountConfig, AcceleratorConfig, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/config';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { Route53Zones, Route53ZonesProps } from '../common/r53-zones';
 import { Route53ResolverEndpoint } from '../common/r53-resolver-endpoint';
@@ -17,8 +17,11 @@ export namespace GlobalOptions {
   export class Stack extends AcceleratorStack {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
+      const vpcInBoundMapping = new Map<string, string>();
+      const vpcOutBoundMapping = new Map<string, string>();
       const zonesConfig = props.acceleratorConfig['global-options'].zones;
       const mandatoryAccountConfig = props.acceleratorConfig['mandatory-account-configs'];
+      const organizationalUnitsConfig = props.acceleratorConfig['organizational-units'];
 
       // Creating Hosted Zones based on config
       const vpcId = getStackOutput(props.outputs, zonesConfig.account, `Vpc${zonesConfig['resolver-vpc']}`);
@@ -31,8 +34,10 @@ export namespace GlobalOptions {
 
       // Create Endpoints per Account and VPC
       const mandatoryAccounts: Array<string> = Object.keys(mandatoryAccountConfig);
-      for (const account of mandatoryAccounts) {
-        const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
+      const organizationalUnits: Array<string> = Object.keys(organizationalUnitsConfig);
+      for (const account of mandatoryAccounts.concat(organizationalUnits)) {
+        
+        const accountConfig = account in mandatoryAccountConfig? (mandatoryAccountConfig as any)[account] as AccountConfig: (organizationalUnitsConfig as any)[account] as OrganizationalUnit;
         const vpcConfig = accountConfig.vpc!;
         if (!vpcConfig) continue;
         if (!vpcConfig.resolvers) continue;
@@ -54,8 +59,14 @@ export namespace GlobalOptions {
               ipAddresses: r53ResolverEndpoints.inBoundEndpointIps,
               ruleType: 'FORWARD',
               name: `${domainToName(domain)}-phz-rule`,
+              vpcId: r53ResolverEndpoints.vpcId,
             });
             privateRule.node.addDependency(r53ResolverEndpoints);
+
+            // Add RuleId to Output
+            new cdk.CfnOutput(this, `${vpcConfig.name}PHZRule${domain}`,{
+              value: privateRule.ruleId
+            });
           }
         }
 
@@ -66,13 +77,94 @@ export namespace GlobalOptions {
             const privateRule = new Route53ResolverRule(this, `${domainToName(onPremRuleConfig.zone)}-phz-rule`, {
               domain: onPremRuleConfig.zone,
               endPoint: r53ResolverEndpoints.outBoundEndpoint,
-              ipAddresses: r53ResolverEndpoints.inBoundEndpointIps,
+              ipAddresses: onPremRuleConfig["outbound-ips"].join(','),
               ruleType: 'FORWARD',
               name: `${domainToName(onPremRuleConfig.zone)}-phz-rule`,
+              vpcId: r53ResolverEndpoints.vpcId,
             });
             privateRule.node.addDependency(r53ResolverEndpoints);
+
+            // Add RuleId to Output
+            new cdk.CfnOutput(this, `${vpcConfig.name}PHZRule${onPremRuleConfig.zone}`,{
+              value: privateRule.ruleId
+            });
           }
         }
+
+        // Adding VPC Inbound Endpoint to Output
+        if (r53ResolverEndpoints.inBoundEndpoint) {
+          vpcInBoundMapping.set(vpcConfig.name, r53ResolverEndpoints.inBoundEndpoint);
+          new cdk.CfnOutput(this, `${vpcConfig.name}InboundEndpoint`, {
+            value: r53ResolverEndpoints.inBoundEndpoint,
+          });
+        }
+
+        // Adding VPC Outbound Endpoint to Output
+        if (r53ResolverEndpoints.outBoundEndpoint) {
+          vpcOutBoundMapping.set(vpcConfig.name, r53ResolverEndpoints.outBoundEndpoint);
+          new cdk.CfnOutput(this, `${vpcConfig.name}OutboundEndpoint`, {
+            value: r53ResolverEndpoints.inBoundEndpoint,
+          });
+        }
+
+        // Adding Inbound IPs to Output
+        if (r53ResolverEndpoints.inBoundEndpointIps) {
+          new cdk.CfnOutput(this, `${vpcConfig.name}InboundEndpointIPs`, {
+            value: r53ResolverEndpoints.inBoundEndpointIps,
+          });
+        }
+
+        // Adding Outbound IPs to Output
+        if (r53ResolverEndpoints.outBoundEndpointIps) {
+          new cdk.CfnOutput(this, `${vpcConfig.name}OutboundEndpointIPs`, {
+            value: r53ResolverEndpoints.outBoundEndpointIps,
+          });
+        }
+      }
+
+      // // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
+      for (const account of mandatoryAccounts) {
+       const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
+       const deploymentConfig = accountConfig.deployments;
+       if( !deploymentConfig.mad ) continue;
+       const madConfig = deploymentConfig.mad;
+       let madIPs;
+       try{
+        madIPs = getStackOutput(props.outputs, account, `MAD${madConfig["dns-domain"].replace(/\./gi, '')}`);
+       }catch(error){
+         console.log(`MAD is not deployed yet in account ${account}`);
+         continue;
+       }
+       const resolverAccount = madConfig["central-resolver-rule-account"];
+       const resolverVpc = madConfig["central-resolver-rule-vpc"];
+       const vpcId = getStackOutput(props.outputs, resolverAccount, `Vpc${resolverVpc}`);
+       const rule = new Route53ResolverRule(this, `${domainToName(madConfig["dns-domain"])}-phz-rule`, {
+          domain: madConfig["dns-domain"],
+          endPoint: vpcOutBoundMapping.get(resolverVpc)!,
+          ipAddresses: madIPs,
+          ruleType: 'FORWARD',
+          name: `${domainToName(madConfig["dns-domain"])}-phz-rule`,
+          vpcId: vpcId,
+        });
+
+        // Add RuleId to Output
+        new cdk.CfnOutput(this, `${resolverVpc}PHZRule${madConfig["dns-domain"]}`,{
+          value: rule.ruleId
+        });
+      }
+      // Add Outputs
+      // Add Public Hosted Zone to Output
+      for (const [domain, phz] of r53Zones.publicZoneToDomainMap.entries()) {
+        new cdk.CfnOutput(this, `PHZ${domain}`, {
+          value: phz,
+        });
+      }
+
+      // Add Private Hosted Zone to Output
+      for (const [domain, phz] of r53Zones.privateZoneToDomainMap.entries()) {
+        new cdk.CfnOutput(this, `PHZ${domain}`, {
+          value: phz,
+        });
       }
     }
   }

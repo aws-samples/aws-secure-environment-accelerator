@@ -136,7 +136,8 @@ export namespace InitialSetup {
       const cfnLambdaRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
         roleName: 'LambdaRoleRoute53Resolver',
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonRoute53ResolverReadOnlyAccess'),
+          iam.ManagedPolicy.fromAwsManagedPolicyName('CloudWatchLogsFullAccess')],
       });
 
       const cfnLambda = new lambda.Function(this, 'DnsEndpointIPPoller', {
@@ -342,7 +343,7 @@ export namespace InitialSetup {
             stackParameters: {
               RoleName: props.executionRoleName,
               // TODO Only add root role for development environments
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,arn:aws:iam::${stack.account}:role/Admin,${pipelineRole.roleArn}`,
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
@@ -525,6 +526,30 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deployGlobalOptionsTask = new sfn.Task(this, 'Deploy Global Options Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/global-options.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const storeGlobalOptionsStackOutput = new CodeTask(this, 'Store Global Options Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -543,7 +568,9 @@ export namespace InitialSetup {
           .next(deployMasterAccountkTask)
           .next(storeMasterStackOutput)
           .next(vpcSharingTask)
-          .next(attachTagsTask),
+          .next(attachTagsTask)
+          .next(deployGlobalOptionsTask)
+          .next(storeGlobalOptionsStackOutput),
       });
     }
   }
