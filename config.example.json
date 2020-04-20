@@ -19,6 +19,8 @@
       "account-name": "SharedNetwork",
       "email": "bmycroft+lzT-network@amazon.com",
       "ou": "core",
+	  "share-mad-from": "operations",
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
       "limits": {
         "Amazon VPC/Interface VPC endpoints per VPC": 200,
         "Amazon VPC/VPCs per Region": 15,
@@ -162,6 +164,8 @@
       "email": "bmycroft+lzT-operations@amazon.com",
       "ou": "core",
       "limits": {},
+      "share-mad-from": "",
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
       "deployments": {
         "mad": {
           "deploy": true,
@@ -204,6 +208,8 @@
       "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
       "limits": {},
+	  "share-mad-from": "",
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
       "vpc": {
         "deploy": "local",
         "name": "Perimeter",
@@ -387,14 +393,16 @@
     "master": {
       "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
+	  "share-mad-from": "operations",
+      "kms-cmk": ["PBMMAccel-Key"]
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
         "AWS CloudFormation/Stack count": 400
       },
 	  "iam": {
 	     "users": {
-            "master-breakglass-ids": ["bgUser1", "bgUser2", "bgUser3"],
-            "master-Ops-ids": ["OpsUser1", "OpsUser2", "OpsUser3"]
+            "master-breakglass-ids": ["bgUser1", "bgUser2"],
+            "master-Ops-ids": ["OpsUser1", "OpsUser2"]
 		 },
 		 "roles": {
 		 }
@@ -464,28 +472,44 @@
       }
     },
 	"log-archive": {
-      "account-name": "log-archive"
+      "account-name": "log-archive",
+	  "share-mad-from": "",
+	  "kms-cmk": ["PBMMAccel-Key"]
 	},
 	"security": {
       "account-name": "security"
+      "share-mad-from": "",
+      "kms-cmk": ["PBMMAccel-Key"]
 	},
 	"shared-services": {
       "account-name": "shared-services"
+	  "share-mad-from": "",
+      "kms-cmk": []
 	}
   },
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
       "email": "bmycroft+FunAcct@amazon.com",
-      "ou": "sandbox"
+      "ou": "sandbox",
+	  "share-mad-from": "",
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
+  	  "iam": {
+	     "users": {},
+		 "roles": {
+            "Role1": ["bgUser1", "bgUser2"],
+            "Role2": ["OpsUser1", "OpsUser2"]		 }
+      }
 	 }
   },
   "organizational-units": {
     "core": {
-	   "type": ignore,
+	  "type": ignore,
+	  "share-mad-from": ""
 	},
 	"central": {
 	  "type": mandatory,
+	  "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Central",
@@ -701,6 +725,7 @@
     },
     "dev": {
 	  "type": workload,
+	  "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Dev",
@@ -865,6 +890,7 @@
     },
     "test": {
 	  "type": workload,
+	  "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Test",
@@ -1029,6 +1055,7 @@
     },
     "prod": {
 	  "type": workload,
+	  "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Prod",
@@ -1193,6 +1220,7 @@
     },
     "unclass": {
 	  "type": workload,
+	  "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "UnClass",
@@ -1357,6 +1385,7 @@
     },
     "sandbox": {
       "type": workload,
+	  "share-mad-from": "",
       "vpc": {
         "deploy": "local",
         "name": "Sandbox",
