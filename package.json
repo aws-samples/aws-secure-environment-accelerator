@@ -9,5 +9,8 @@
     "hooks": {
       "pre-commit": "pnpx pretty-quick --pattern **/*.ts"
     }
+  },
+  "dependencies": {
+    "cfn-response": "^1.0.1"
   }
 }

@@ -83,7 +83,7 @@ export namespace GlobalOptions {
 
         for (const onPremRuleConfig of vpcConfig['on-premise-rules']! || []) {
           if (r53ResolverEndpoints.outBoundEndpoint) {
-            const privateRule = new Route53ResolverRule(this, `${domainToName(onPremRuleConfig.zone)}-phz-rule`, {
+            const privateRule = new Route53ResolverRule(this, `${domainToName(onPremRuleConfig.zone)}-on-prem-phz-rule`, {
               domain: onPremRuleConfig.zone,
               endPoint: r53ResolverEndpoints.outBoundEndpoint,
               ipAddresses: onPremRuleConfig['outbound-ips'].join(','),
@@ -153,7 +153,7 @@ export namespace GlobalOptions {
           endPoint: vpcOutBoundMapping.get(resolverVpc)!,
           ipAddresses: madIPs,
           ruleType: 'FORWARD',
-          name: `${domainToName(madConfig['dns-domain'])}-phz-rule`,
+          name: `${domainToName(madConfig['dns-domain'])}-mad-phz-rule`,
           vpcId,
         });
 
