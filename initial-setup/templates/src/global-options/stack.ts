@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { AccountConfig, AcceleratorConfig, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/config';
+import { AccountConfig, AcceleratorConfig, OrganizationalUnit, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { Route53Zones, Route53ZonesProps } from '../common/r53-zones';
 import { Route53ResolverEndpoint } from '../common/r53-resolver-endpoint';
@@ -33,14 +33,17 @@ export namespace GlobalOptions {
       const r53Zones = new Route53Zones(this, 'DNSResolvers', route53ZonesProps);
 
       // Create Endpoints per Account and VPC
-      const mandatoryAccounts: string[] = Object.keys(mandatoryAccountConfig);
-      const organizationalUnits: string[] = Object.keys(organizationalUnitsConfig);
-      for (const account of mandatoryAccounts.concat(organizationalUnits)) {
-        const accountConfig =
-          account in mandatoryAccountConfig
-            ? ((mandatoryAccountConfig as any)[account] as AccountConfig)
-            : ((organizationalUnitsConfig as any)[account] as OrganizationalUnit);
-        const vpcConfig = accountConfig.vpc!;
+      interface vpcConfigType {
+        [key: string] : VpcConfig 
+      };
+      const vpcConfigs: vpcConfigType = {};
+      for( const [account, vpcConfig] of Object.entries(mandatoryAccountConfig)){
+        vpcConfigs[account] = vpcConfig.vpc!;
+      }
+      for( const [account, vpcConfig] of Object.entries(organizationalUnitsConfig)){
+        vpcConfigs[account] = vpcConfig.vpc!;
+      }
+      for (const [account, vpcConfig] of Object.entries(vpcConfigs)) {
         if (!vpcConfig) {
           continue;
         }
@@ -129,8 +132,7 @@ export namespace GlobalOptions {
       }
 
       // // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
-      for (const account of mandatoryAccounts) {
-        const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
+      for (const [account, accountConfig] of Object.entries(mandatoryAccountConfig)) {
         const deploymentConfig = accountConfig.deployments;
         if (!deploymentConfig.mad) {
           continue;
