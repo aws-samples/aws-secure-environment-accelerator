@@ -114,21 +114,21 @@ export const DeploymentConfigType = t.interface({
 // });
 
 export const MADConfigType = t.interface({
-    deploy: t.boolean,
-    'vpc-name': t.string,
-    region: t.string,
-    subnet: t.string,
-    size: t.string,
-    'dns-domain': t.string,
-    'netbios-domain': t.string,
-    'central-resolver-rule-account': t.string,
-    'central-resolver-rule-vpc': t.string,
-    'share-to-master': t.boolean,
-    'restrict_srcips': t.array(cidr),
-    // 'password-policies': PasswordPolicyType,
-    'ad-groups': t.array(t.string),
-    'adc-group': t.string,
-    'ad-users': t.array(t.string)
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  region: t.string,
+  subnet: t.string,
+  size: t.string,
+  'dns-domain': t.string,
+  'netbios-domain': t.string,
+  'central-resolver-rule-account': t.string,
+  'central-resolver-rule-vpc': t.string,
+  'share-to-master': t.boolean,
+  restrict_srcips: t.array(cidr),
+  // 'password-policies': PasswordPolicyType,
+  'ad-groups': t.array(t.string),
+  'adc-group': t.string,
+  'ad-users': t.array(t.string),
 });
 
 export const AccountConfigType = t.interface({

@@ -18,7 +18,7 @@ async function main() {
   const outputs = await loadStackOutputs();
 
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  const subnetInfo = getStackOutput(outputs, "shared-network", "SubnetInfo");
+  const subnetInfo = getStackOutput(outputs, 'shared-network', 'SubnetInfo');
 
   // TODO Get these values dynamically
   const operationsNetworkAccountId = getAccountId(accounts, 'operations');
@@ -33,7 +33,7 @@ async function main() {
     },
     stackName: 'PBMMAccel-Operations',
     accountConfig: operationsConfig,
-    subnetInfoOutput: subnetInfo
+    subnetInfoOutput: subnetInfo,
   });
 
   // Add accelerator tag to all resources
