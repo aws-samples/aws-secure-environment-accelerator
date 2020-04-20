@@ -6,7 +6,6 @@ export class Route53Resolver {
 
   public constructor(credentials?: aws.Credentials) {
     this.client = new aws.Route53Resolver({
-      region: 'ca-central-1',
       credentials,
     });
   }

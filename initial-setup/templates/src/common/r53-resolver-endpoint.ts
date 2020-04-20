@@ -41,7 +41,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       console.error(`No Subnets definitions defined for ${resolvers.subnet}`);
       return;
     }
-    let ipAddress: Array<r53Resolver.CfnResolverEndpoint.IpAddressRequestProperty> = [];
+    const ipAddress: r53Resolver.CfnResolverEndpoint.IpAddressRequestProperty[] = [];
     for (const [key, subnet] of subnetDefinitions.entries()) {
       if (subnet.disabled) {
         continue;
@@ -54,12 +54,15 @@ export class Route53ResolverEndpoint extends cdk.Construct {
         ),
       });
     }
-    let vpcInSg, vpcOutSg, inBoundEndpoint, outBoundEndpoint;
+    let vpcInSg;
+    let vpcOutSg;
+    let inBoundEndpoint;
+    let outBoundEndpoint;
     if (resolvers?.inbound) {
       // Create Security Group for Inbound Endpoint
       vpcInSg = new ec2.CfnSecurityGroup(this, `${vpcConfig.name}_inbound_sg`, {
         groupDescription: 'Security Group for Public Hosted Zone Inbound EndpointRoute53',
-        vpcId: vpcId,
+        vpcId,
         groupName: `${vpcConfig.name}_inbound_sg`,
       });
 
@@ -77,7 +80,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       // Create Security Group for Outbound Endpoint
       vpcOutSg = new ec2.CfnSecurityGroup(this, `${vpcConfig.name}_outbound_sg`, {
         groupDescription: 'Security Group for Public Hosted Zone Outbound EndpointRoute53',
-        vpcId: vpcId,
+        vpcId,
         groupName: `${vpcConfig.name}_outbound_sg`,
       });
 
@@ -99,14 +102,14 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       );
       // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
       const inBoundIpPooler = new cfn.CustomResource(this, 'InBoundIPPooler', {
-        provider: cfn.CustomResourceProvider.lambda(lambdaFnc),
+        provider: cfn.CustomResourceProvider.fromLambda(lambdaFnc),
         properties: {
           EndpointResolver: inBoundEndpoint.ref,
           AccountId: props.accountId,
         },
       });
 
-      let targetIps: Array<string> = [''];
+      const targetIps: string[] = [''];
       for (let i = 1; i <= ipAddress.length; i++) {
         targetIps.push(inBoundIpPooler.getAttString(`IpAddress${i}`));
       }
@@ -121,14 +124,14 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       );
       // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
       const outBoundIpPooler = new cfn.CustomResource(this, 'OutBoundIPPooler', {
-        provider: cfn.CustomResourceProvider.lambda(lambdaFnc),
+        provider: cfn.CustomResourceProvider.fromLambda(lambdaFnc),
         properties: {
           EndpointResolver: outBoundEndpoint.ref,
           AccountId: props.accountId,
         },
       });
 
-      let targetIps: Array<string> = [''];
+      const targetIps: string[] = [''];
       for (let i = 1; i <= ipAddress.length; i++) {
         targetIps.push(outBoundIpPooler.getAttString(`IpAddress${i}`));
       }

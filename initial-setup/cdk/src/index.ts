@@ -17,7 +17,6 @@ import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { RunLambdaTask } from '@aws-cdk/aws-stepfunctions-tasks';
 
 interface BuildProps {
   lambdas: WebpackBuild;
@@ -149,10 +148,9 @@ export namespace InitialSetup {
       // Allow Cloudformation to trigger the handler
       cfnLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
         action: 'lambda:InvokeFunction',
-        principal: new iam.AnyPrincipal(), //iam.ArnPrincipal('arn:aws:iam::983612491393:role/AcceleratorPipelineRole'),
+        principal: new iam.AnyPrincipal(),
       });
 
-      // ArnPrincipal('arn:aws:iam::983612491393:role/AWSReservedSSO_AdministratorAccess_5d90eb8378e65f42'), // I think CloudFormation is going to be the service that is invoking our Lambda function, right?
       // This key is used to encrypt passwords in sub accounts
       const passwordsKey = new kms.Key(this, 'PasswordsKey', {
         alias: 'Passwords',

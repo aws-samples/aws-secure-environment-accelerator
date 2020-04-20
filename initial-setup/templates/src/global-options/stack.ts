@@ -26,23 +26,27 @@ export namespace GlobalOptions {
       // Creating Hosted Zones based on config
       const vpcId = getStackOutput(props.outputs, zonesConfig.account, `Vpc${zonesConfig['resolver-vpc']}`);
       const route53ZonesProps: Route53ZonesProps = {
-        zonesConfig: zonesConfig,
+        zonesConfig,
         vpcId,
         vpcRegion: props.env?.region || 'ca-central-1',
       };
       const r53Zones = new Route53Zones(this, 'DNSResolvers', route53ZonesProps);
 
       // Create Endpoints per Account and VPC
-      const mandatoryAccounts: Array<string> = Object.keys(mandatoryAccountConfig);
-      const organizationalUnits: Array<string> = Object.keys(organizationalUnitsConfig);
+      const mandatoryAccounts: string[] = Object.keys(mandatoryAccountConfig);
+      const organizationalUnits: string[] = Object.keys(organizationalUnitsConfig);
       for (const account of mandatoryAccounts.concat(organizationalUnits)) {
         const accountConfig =
           account in mandatoryAccountConfig
             ? ((mandatoryAccountConfig as any)[account] as AccountConfig)
             : ((organizationalUnitsConfig as any)[account] as OrganizationalUnit);
         const vpcConfig = accountConfig.vpc!;
-        if (!vpcConfig) continue;
-        if (!vpcConfig.resolvers) continue;
+        if (!vpcConfig){
+          continue;
+        }
+        if (!vpcConfig.resolvers){
+          continue;
+        }
         // Call r53-resolver-endpoint per Account
         const r53ResolverEndpoints = new Route53ResolverEndpoint(this, 'ResolverEndpoints', {
           vpcConfig,
@@ -128,7 +132,9 @@ export namespace GlobalOptions {
       for (const account of mandatoryAccounts) {
         const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
         const deploymentConfig = accountConfig.deployments;
-        if (!deploymentConfig.mad) continue;
+        if (!deploymentConfig.mad){
+          continue;
+        }
         const madConfig = deploymentConfig.mad;
         let madIPs;
         try {
@@ -146,7 +152,7 @@ export namespace GlobalOptions {
           ipAddresses: madIPs,
           ruleType: 'FORWARD',
           name: `${domainToName(madConfig['dns-domain'])}-phz-rule`,
-          vpcId: vpcId,
+          vpcId,
         });
 
         // Add RuleId to Output

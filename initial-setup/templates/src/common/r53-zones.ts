@@ -21,7 +21,7 @@ export class Route53Zones extends cdk.Construct {
 
     // Create Public Hosted Zones
     for (const domain of publicHostedZoneProps) {
-      let zone = new r53.CfnHostedZone(this, `${domain.replace('.', '-')}_pz`, {
+      const zone = new r53.CfnHostedZone(this, `${domain.replace('.', '-')}_pz`, {
         name: domain,
         hostedZoneConfig: {
           comment: `AWS Public Endpoint Zone - ${domain}`,
@@ -38,7 +38,7 @@ export class Route53Zones extends cdk.Construct {
 
     // Create Private Hosted Zones
     for (const domain of privateHostedZoneProps) {
-      let zone = new r53.CfnHostedZone(this, `${domain.replace('.', '-')}_pz`, {
+      const zone = new r53.CfnHostedZone(this, `${domain.replace('.', '-')}_pz`, {
         name: domain,
         vpcs: [vpcProps],
         hostedZoneConfig: {
