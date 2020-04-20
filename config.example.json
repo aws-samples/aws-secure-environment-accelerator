@@ -50,7 +50,10 @@
         },
         "pcx": false,
         "natgw": {
-          "subnet": "Public_az1"
+          "subnet": {
+            "name": "Public",
+            "az": "a"
+          }
         },
         "subnets": [
           {

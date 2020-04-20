@@ -11,7 +11,9 @@ test('the VPC creation should create the correct amount of subnets', () => {
   const stack = new VpcStack(app, 'Stack', {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel',
-    flowLogExpirationInDays: 30,
+    flowLogBucket: {
+      expirationInDays: 30,
+    },
   });
 
   const vpcConfig = parse(VpcConfigType, {
@@ -184,7 +186,9 @@ test('the VPC creation should throw an error when a subnet uses a route table th
   const stack = new VpcStack(app, 'Stack', {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel',
-    flowLogExpirationInDays: 30,
+    flowLogBucket: {
+      expirationInDays: 30,
+    },
   });
 
   const vpcConfig = parse(VpcConfigType, {
@@ -222,7 +226,9 @@ test('the VPC creation should create the internet gateway', () => {
   const stack = new VpcStack(app, 'Stack', {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel',
-    flowLogExpirationInDays: 30,
+    flowLogBucket: {
+      expirationInDays: 30,
+    },
   });
 
   const vpcConfig = parse(VpcConfigType, {
@@ -255,7 +261,9 @@ test('the VPC creation should create the VPN gateway', () => {
   const stack = new VpcStack(app, 'Stack', {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel',
-    flowLogExpirationInDays: 30,
+    flowLogBucket: {
+      expirationInDays: 30,
+    },
   });
 
   const vpcConfig = parse(VpcConfigType, {
@@ -315,7 +323,9 @@ test('the VPC creation should create the NAT gateway', () => {
   const stack = new VpcStack(app, 'Stack', {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel',
-    flowLogExpirationInDays: 30,
+    flowLogBucket: {
+      expirationInDays: 30,
+    },
   });
 
   const vpcConfig = parse(VpcConfigType, {
@@ -326,7 +336,10 @@ test('the VPC creation should create the NAT gateway', () => {
     vgw: false,
     pcx: false,
     natgw: {
-      subnet: 'Public_az1',
+      subnet: {
+        name: 'Public',
+        az: 'a',
+      },
     },
     'gateway-endpoints': ['s3', 'dynamodb'],
     subnets: [
