@@ -231,7 +231,7 @@
           "netbios-domain": "brian",
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "Endpoint",
-		  "log-group-name": "PBMMAccel-MAD-brian-local-LG",
+          "log-group-name": "PBMMAccel-MAD-brian-local-LG",
           "share-to-master": true,
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "password-policies": {
@@ -572,7 +572,7 @@
       "deployments": {
         "adc": {
           "deploy": true,
-		  "vpc-name": "ForSSO",
+          "vpc-name": "ForSSO",
           "subnet": "ForSSO",
           "size": "small",
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"]
@@ -630,7 +630,7 @@
           "source": "master",
           "source-vpc": "ForSSO",
           "source-subnets": "ForSSO",
-		  "local-subnets": "GCWide"
+          "local-subnets": "GCWide"
         },
         "natgw": false,
         "subnets": [
@@ -1766,7 +1766,7 @@
         },
         "interface-endpoints": false
       },
-	        "iam": {
+      "iam": {
         "users": [],
         "policies": [
           {
