@@ -34,13 +34,13 @@ export namespace GlobalOptions {
 
       // Create Endpoints per Account and VPC
       interface vpcConfigType {
-        [key: string] : VpcConfig 
-      };
+        [key: string]: VpcConfig;
+      }
       const vpcConfigs: vpcConfigType = {};
-      for( const [account, vpcConfig] of Object.entries(mandatoryAccountConfig)){
+      for (const [account, vpcConfig] of Object.entries(mandatoryAccountConfig)) {
         vpcConfigs[account] = vpcConfig.vpc!;
       }
-      for( const [account, vpcConfig] of Object.entries(organizationalUnitsConfig)){
+      for (const [account, vpcConfig] of Object.entries(organizationalUnitsConfig)) {
         vpcConfigs[account] = vpcConfig.vpc!;
       }
       for (const [account, vpcConfig] of Object.entries(vpcConfigs)) {
