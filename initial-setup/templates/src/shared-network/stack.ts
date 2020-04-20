@@ -27,7 +27,9 @@ export namespace SharedNetwork {
 
       // Create VPC, Subnets, RouteTables and Routes on Shared-Network Account
       const vpcConfig = accountProps.vpc!;
-      const vpc = new Vpc(this, 'vpc', vpcConfig);
+      const vpc = new Vpc(this, 'vpc', {
+        vpcConfig,
+      });
 
       // Create a role that will be able to replicate to the log-archive bucket
       const replicationRole = new iam.Role(this, 'ReplicationRole', {
