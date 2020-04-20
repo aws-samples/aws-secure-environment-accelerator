@@ -18,16 +18,18 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     physicalResourceId?: string,
   ): Promise<unknown> => {
     return new Promise(resolve => {
+      // tslint:disable-next-line:deprecation
       context.done = resolve;
+      // tslint:disable-next-line
       sendResponse(event, context, responseStatus, responseData, physicalResourceId);
     });
   };
 
-  const physicalResourceId = 'EndpointIps';
+  const resourceId = 'EndpointIps';
   const requestType = event.ResourceProperties.RequestType;
   if (requestType === 'Delete') {
     console.log('No operation to perform Delete Stack');
-    await sendResponsePromise(SUCCESS, {}, physicalResourceId);
+    await sendResponsePromise(SUCCESS, {}, resourceId);
   }
   try {
     const accountId = event.ResourceProperties.AccountId;
@@ -43,9 +45,9 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     for (const [key, ipaddress] of endpointResponse.IpAddresses?.entries() || [].entries()) {
       output[`IpAddress${key + 1}`] = ipaddress.Ip!;
     }
-    await sendResponsePromise(SUCCESS, output, physicalResourceId);
+    await sendResponsePromise(SUCCESS, output, resourceId);
   } catch (error) {
     console.log(error);
-    await sendResponsePromise(FAILED, {}, physicalResourceId);
+    await sendResponsePromise(FAILED, {}, resourceId);
   }
 };

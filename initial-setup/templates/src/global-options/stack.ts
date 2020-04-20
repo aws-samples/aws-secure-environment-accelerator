@@ -33,15 +33,15 @@ export namespace GlobalOptions {
       const r53Zones = new Route53Zones(this, 'DNSResolvers', route53ZonesProps);
 
       // Create Endpoints per Account and VPC
-      interface vpcConfigType {
+      interface VpcConfigType {
         [key: string]: VpcConfig;
       }
-      const vpcConfigs: vpcConfigType = {};
+      const vpcConfigs: VpcConfigType = {};
       for (const [account, vpcConfig] of Object.entries(mandatoryAccountConfig)) {
         vpcConfigs[account] = vpcConfig.vpc!;
       }
       for (const [account, vpcConfig] of Object.entries(organizationalUnitsConfig)) {
-        vpcConfigs[account] = vpcConfig.vpc!;
+        vpcConfigs[account] = vpcConfig.vpc;
       }
       for (const [account, vpcConfig] of Object.entries(vpcConfigs)) {
         if (!vpcConfig) {
@@ -151,14 +151,14 @@ export namespace GlobalOptions {
         }
         const resolverAccount = madConfig['central-resolver-rule-account'];
         const resolverVpc = madConfig['central-resolver-rule-vpc'];
-        const vpcId = getStackOutput(props.outputs, resolverAccount, `Vpc${resolverVpc}`);
+        const resolverVpcId = getStackOutput(props.outputs, resolverAccount, `Vpc${resolverVpc}`);
         const rule = new Route53ResolverRule(this, `${domainToName(madConfig['dns-domain'])}-phz-rule`, {
           domain: madConfig['dns-domain'],
           endPoint: vpcOutBoundMapping.get(resolverVpc)!,
           ipAddresses: madIPs,
           ruleType: 'FORWARD',
           name: `${domainToName(madConfig['dns-domain'])}-mad-phz-rule`,
-          vpcId,
+          vpcId: resolverVpcId,
         });
 
         // Add RuleId to Output
