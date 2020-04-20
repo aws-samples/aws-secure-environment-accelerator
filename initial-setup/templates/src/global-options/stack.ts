@@ -41,10 +41,10 @@ export namespace GlobalOptions {
             ? ((mandatoryAccountConfig as any)[account] as AccountConfig)
             : ((organizationalUnitsConfig as any)[account] as OrganizationalUnit);
         const vpcConfig = accountConfig.vpc!;
-        if (!vpcConfig){
+        if (!vpcConfig) {
           continue;
         }
-        if (!vpcConfig.resolvers){
+        if (!vpcConfig.resolvers) {
           continue;
         }
         // Call r53-resolver-endpoint per Account
@@ -132,7 +132,7 @@ export namespace GlobalOptions {
       for (const account of mandatoryAccounts) {
         const accountConfig = (mandatoryAccountConfig as any)[account] as AccountConfig;
         const deploymentConfig = accountConfig.deployments;
-        if (!deploymentConfig.mad){
+        if (!deploymentConfig.mad) {
           continue;
         }
         const madConfig = deploymentConfig.mad;

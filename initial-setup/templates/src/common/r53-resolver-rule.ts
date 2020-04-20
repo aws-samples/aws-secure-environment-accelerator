@@ -17,7 +17,7 @@ export class Route53ResolverRule extends cdk.Construct {
 
     const inBoundRuleTargetIps: r53Resolver.CfnResolverRule.TargetAddressProperty[] = [];
     for (const ip of props.ipAddresses.split(',')) {
-      if (!ip){
+      if (!ip) {
         continue;
       }
       inBoundRuleTargetIps.push({
