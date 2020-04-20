@@ -22,8 +22,7 @@
 	  "share-mad-from": "operations",
       "kms-cmk": ["EBS-Default-key", "PBMMAccel-Key"],
   	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -187,8 +186,7 @@
       "share-mad-from": "",
       "kms-cmk": ["EBS-Default-key", "PBMMAccel-Key"],
   	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -270,8 +268,7 @@
 	  "share-mad-from": "",
       "kms-cmk": ["EBS-Default-key", "PBMMAccel-Key"],
   	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -819,8 +816,7 @@
         "interface-endpoints": false
       }
 	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -1013,8 +1009,7 @@
         "interface-endpoints": false
       }
 	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -1207,8 +1202,7 @@
         "interface-endpoints": false
       }
 	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -1401,8 +1395,7 @@
         "interface-endpoints": false
       }
 	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -1595,8 +1588,7 @@
         "interface-endpoints": false
       },
 	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
@@ -1762,8 +1754,7 @@
         "interface-endpoints": false
       },
 	  "iam": {
-	     "users": [{  
-		 }],
+	     "users": [],
 		 "policies": [
 		 {
             "Policy-Name": "Default-Boundary-Policy",
