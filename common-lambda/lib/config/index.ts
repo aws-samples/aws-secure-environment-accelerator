@@ -104,6 +104,33 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
+// export const PasswordPolicyType = t.interface({
+//   history: t.number,
+//   'max-age': t.number,
+//   'min-age': t.number,
+//   'min-len': t.number,
+//   complexity: t.boolean,
+//   reversible: t.boolean
+// });
+
+export const MADConfigType = t.interface({
+    deploy: t.boolean,
+    'vpc-name': t.string,
+    region: t.string,
+    subnet: t.string,
+    size: t.string,
+    'dns-domain': t.string,
+    'netbios-domain': t.string,
+    'central-resolver-rule-account': t.string,
+    'central-resolver-rule-vpc': t.string,
+    'share-to-master': t.boolean,
+    'restrict_srcips': t.array(cidr),
+    // 'password-policies': PasswordPolicyType,
+    'ad-groups': t.array(t.string),
+    'adc-group': t.string,
+    'ad-users': t.array(t.string)
+});
+
 export const AccountConfigType = t.interface({
   'account-name': NonEmptyString,
   email: NonEmptyString,
@@ -111,6 +138,7 @@ export const AccountConfigType = t.interface({
   vpc: optional(VpcConfigType),
   deployments: t.interface({
     tgw: optional(DeploymentConfigType),
+    mad: optional(MADConfigType),
   }),
 });
 
