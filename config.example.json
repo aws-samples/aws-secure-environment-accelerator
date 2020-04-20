@@ -20,7 +20,27 @@
       "email": "bmycroft+lzT-network@amazon.com",
       "ou": "core",
 	  "share-mad-from": "operations",
-      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"],
+  	  "iam": {
+	     "users": [{  
+		 }],
+		 "policies": [
+		 {
+            "Policy-Name": "Default-Boundary-Policy",
+			"Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+		 }
+		 ],
+		 "roles": [
+		 {
+            "Role": "EC2-Default-SSM-AD",
+			"Type": "EC2",
+			"Policies": ["AmazonSSMManagedInstanceCore","AmazonSSMDirectoryServiceAccess"],
+			"BoundaryPolicy": ["Default-Boundary-Policy"],
+			"SourceAccount": "",
+			"SourceAccount-role": ""
+		 }
+		 ]
+      }
       "limits": {
         "Amazon VPC/Interface VPC endpoints per VPC": 200,
         "Amazon VPC/VPCs per Region": 15,
@@ -165,7 +185,36 @@
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
-      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"],
+  	  "iam": {
+	     "users": [{  
+		 }],
+		 "policies": [
+		 {
+            "Policy-Name": "Default-Boundary-Policy",
+			"Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+		 }
+		 ],
+		 "roles": [
+		 {
+            "Role": "EC2-Default-SSM-AD",
+			"Type": "EC2",
+			"Policies": ["AmazonSSMManagedInstanceCore","AmazonSSMDirectoryServiceAccess"],
+			"BoundaryPolicy": ["Default-Boundary-Policy"],
+			"SourceAccount": "",
+			"SourceAccount-role": ""
+		 },
+		 {
+            "Role": "Test-Role",
+			"Type": "Account",
+			"Policies": ["AdministratorAccess"],
+			"SourceAccount": "security",
+			"SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+			"Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+			"BoundaryPolicy": ["Default-Boundary-Policy"]
+		 }
+		 ]
+      }
       "deployments": {
         "mad": {
           "deploy": true,
@@ -189,7 +238,16 @@
           },
           "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
           "adc-group": "ADConnector",
-          "ad-users": ["adconnector(ADConnector)", "Brian(*)"]
+          "ad-users": [
+		  {
+            "user": "adconnector",
+			"groups": ["ADConnector"]
+		  },
+		  {
+            "user": "Brian",
+			"groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View", "AWS Delegated Administrators"]
+		  }
+		  ]
         },
         "ops-dashboard": {
           "deploy": true
@@ -209,7 +267,37 @@
       "ou": "core",
       "limits": {},
 	  "share-mad-from": "",
-      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"],
+  	  "iam": {
+	     "users": [{  
+		 }],
+		 "policies": [
+		 {
+            "Policy-Name": "Default-Boundary-Policy",
+			"Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+		 },
+		 {
+            "Policy-Name": "Fortigate-Policy",
+			"Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Fortigate-policy.txt"
+		 }
+		 ],
+		 "roles": [
+		 {
+            "Role": "EC2-Default-SSM-AD",
+			"Type": "EC2",
+			"Policies": ["AmazonSSMManagedInstanceCore","AmazonSSMDirectoryServiceAccess"],
+			"BoundaryPolicy": ["Default-Boundary-Policy"],
+			"SourceAccount": "",
+			"SourceAccount-role": ""
+		 },
+		 {
+            "Role": "Forigate-Role",
+			"Type": "EC2",
+			"Policies": ["Fortigate-Policy"],
+			"BoundaryPolicy": ["Default-Boundary-Policy"]
+		 }
+		 ]
+      }
       "vpc": {
         "deploy": "local",
         "name": "Perimeter",
@@ -394,18 +482,33 @@
       "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
 	  "share-mad-from": "operations",
-      "kms-cmk": ["PBMMAccel-Key"]
+      "kms-cmk": ["PBMMAccel-Key"],
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
         "AWS CloudFormation/Stack count": 400
       },
 	  "iam": {
-	     "users": {
-            "master-breakglass-ids": ["bgUser1", "bgUser2"],
-            "master-Ops-ids": ["OpsUser1", "OpsUser2"]
+		"users": {
+            "user-ids": ["bgUser1","bgUser2"],
+			"group": "BreakGlassAdmins",
+            "Policies": ["Administrators"],
+            "BoundaryPolicy": "Default-Boundary-Policy"
+		 }, {
+            "user-ids": ["OpsUser1","OpsUser2"],
+			"group": "OpsAdmins",
+            "Policies": ["Administrators"],
+            "BoundaryPolicy": "Default-Boundary-Policy"
 		 },
-		 "roles": {
+		"policies": [
+		 {
+            "Policy-Name": "Default-Boundary-Policy",
+			"Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
 		 }
+		],
+		"roles": [
+		 {
+		 }
+		]
       }
       "vpc": {
         "deploy": "local",
@@ -477,12 +580,12 @@
 	  "kms-cmk": ["PBMMAccel-Key"]
 	},
 	"security": {
-      "account-name": "security"
+      "account-name": "security",
       "share-mad-from": "",
       "kms-cmk": ["PBMMAccel-Key"]
 	},
 	"shared-services": {
-      "account-name": "shared-services"
+      "account-name": "shared-services",
 	  "share-mad-from": "",
       "kms-cmk": []
 	}
@@ -493,14 +596,37 @@
       "email": "bmycroft+FunAcct@amazon.com",
       "ou": "sandbox",
 	  "share-mad-from": "",
-      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"]
+      "kms-cmk": ["EBS-Default", "PBMMAccel-Key"],
   	  "iam": {
-	     "users": {},
-		 "roles": {
-            "Role1": ["bgUser1", "bgUser2"],
-            "Role2": ["OpsUser1", "OpsUser2"]		 }
+	     "users": [{  
+		 }],
+		 "policies": [
+		 {
+            "Policy-Name": "Default-Boundary-Policy",
+			"Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+		 }
+		 ],
+		 "roles": [
+		 {
+            "Role": "EC2-Default-SSM-AD",
+			"Type": "EC2",
+			"Policies": ["AmazonSSMManagedInstanceCore","AmazonSSMDirectoryServiceAccess"],
+			"BoundaryPolicy": ["Default-Boundary-Policy"],
+			"SourceAccount": "",
+			"SourceAccount-role": ""
+		 },
+		 {
+            "Role": "Test-Role",
+			"Type": "Account",
+			"Policies": ["AdministratorAccess"],
+			"SourceAccount": "security",
+			"SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+			"Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+			"BoundaryPolicy": ["Default-Boundary-Policy"]
+		 }
+		 ]
       }
-	 }
+	}
   },
   "organizational-units": {
     "core": {
