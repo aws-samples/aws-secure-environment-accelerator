@@ -463,6 +463,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const associateHostedZones = new sfn.Task(this, 'Associate Hosted Zones Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/associate-hosted-zones.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       const attachTagsTask = new CodeTask(this, 'Attach Tags to Shared Subnets', {
         functionProps: {
           code: props.lambdas.codeForEntry('attach-tags-to-subnets'),
@@ -517,6 +528,7 @@ export namespace InitialSetup {
           .next(deployMasterAccountkTask)
           .next(storeMasterStackOutput)
           .next(vpcSharingTask)
+          .next(associateHostedZones)
           .next(attachTagsTask),
       });
     }
