@@ -40,7 +40,8 @@
     "aws-sdk": "2.585.0",
     "generate-password": "1.5.1",
     "original-fs": "1.1.0",
-    "@types/cfn-response": "1.0.3"
+    "@types/cfn-response": "1.0.3",
+    "cfn-response": "^1.0.1"
   },
   "jest": {
     "preset": "ts-jest",

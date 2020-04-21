@@ -31,7 +31,7 @@ export class Route53ResolverRule extends cdk.Construct {
       ruleType: props.ruleType,
       resolverEndpointId: props.endPoint,
       name: props.name,
-      targetIps: targetIps,
+      targetIps,
     });
 
     new r53Resolver.CfnResolverRuleAssociation(this, `${name}-association`, {
