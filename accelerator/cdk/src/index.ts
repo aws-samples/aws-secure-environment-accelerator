@@ -32,17 +32,12 @@ async function main() {
   const solutionRoot = path.join(__dirname, '..', '..', '..');
 
   // Create the initial setup pipeline stack
-  const initialSetup = await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
+  await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
     configSecretName,
     acceleratorPrefix,
     acceleratorName,
     solutionRoot,
     executionRoleName,
-  });
-
-  new cdk.CfnOutput(initialSetup, 'PipelineStateMachineArn', {
-    exportName: 'PipelineStateMachineArn',
-    value: initialSetup.pipeline.stateMachineArn,
   });
 }
 

@@ -1,0 +1,175 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import * as cdk from '@aws-cdk/core';
+import * as codebuild from '@aws-cdk/aws-codebuild';
+import * as codepipeline from '@aws-cdk/aws-codepipeline';
+import * as actions from '@aws-cdk/aws-codepipeline-actions';
+import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as s3 from '@aws-cdk/aws-s3';
+
+process.on('unhandledRejection', (reason, _) => {
+  console.error(reason);
+  process.exit(1);
+});
+
+async function main() {
+  const app = new cdk.App();
+
+  const stack = new cdk.Stack(app, 'BootstrapStack', {
+    stackName: 'AcceleratorBootstrap',
+  });
+
+  const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
+    default: 'PBMM',
+    description: 'The name of the Accelerator. The name will used as value for the Accelerator tag.',
+  });
+
+  const acceleratorPrefix = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
+    default: 'PBMMAccel-',
+    description: 'The prefix that will be used by the Accelerator when creating resources.',
+  });
+
+  const acceleratorConfigSecretId = new cdk.CfnParameter(stack, 'AcceleratorSecretId', {
+    default: 'accelerator/config',
+    description: 'The ID of the secret that contains the Accelerator configuration.',
+  });
+
+  const githubOauthSecretId = new cdk.CfnParameter(stack, 'GithubSecretId', {
+    default: 'accelerator/github-token',
+    description: 'The token to use to access the Github repository.',
+  });
+
+  const githubOwner = new cdk.CfnParameter(stack, 'GithubOwner', {
+    default: 'aws-samples',
+    description: 'The owner of the Github repository containing the Accelerator code.',
+  });
+
+  const githubRepository = new cdk.CfnParameter(stack, 'GithubRepository', {
+    default: 'aws-pbmm-accelerator',
+    description: 'The name of the Github repository containing the Accelerator code.',
+  });
+
+  const githubBranch = new cdk.CfnParameter(stack, 'GithubBranch', {
+    default: 'release',
+    description: 'The branch of the Github repository containing the Accelerator code.',
+  });
+
+  const bootstrapProjectRole = new iam.Role(stack, 'BootstrapRole', {
+    assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
+    managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+  });
+
+  // Define a build specification to build the initial setup templates
+  const bootstrapProject = new codebuild.PipelineProject(stack, 'BootstrapProject', {
+    role: bootstrapProjectRole,
+    buildSpec: codebuild.BuildSpec.fromObject({
+      version: '0.2',
+      phases: {
+        install: {
+          'runtime-versions': {
+            nodejs: 12,
+          },
+          commands: ['npm install --global pnpm', 'pnpm install'],
+        },
+        build: {
+          commands: ['cd accelerator/cdk', 'pnpx cdk deploy --require-approval never'],
+        },
+      },
+    }),
+    environment: {
+      buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+      computeType: codebuild.ComputeType.MEDIUM,
+      environmentVariables: {
+        ACCELERATOR_NAME: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: acceleratorName.valueAsString,
+        },
+        ACCELERATOR_PREFIX: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: acceleratorPrefix.valueAsString,
+        },
+        ACCELERATOR_CONFIG_SECRET_ID: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: acceleratorConfigSecretId.valueAsString,
+        },
+      },
+    },
+  });
+
+  const sourceArtifact = new codepipeline.Artifact();
+
+  const pipelineStateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${acceleratorPrefix.valueAsString}-Pipeline`;
+
+  const pipelineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
+
+  const pipelineExecutionRole = new iam.Role(stack, 'ExecutePipelineRole', {
+    assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+  });
+
+  pipelineExecutionRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      resources: ['*'],
+    }),
+  );
+
+  pipelineExecutionRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['stepfunctions:StartExecution'],
+      resources: [pipelineStateMachineArn],
+    }),
+  );
+
+  const pipelineExecutionLambda = new lambda.Function(stack, 'ExecutePipelineLambda', {
+    role: pipelineExecutionRole,
+    runtime: lambda.Runtime.NODEJS_12_X,
+    code: lambda.Code.fromInline(pipelineStartExecutionCode.toString()),
+    handler: 'index.handler',
+    environment: {
+      STATE_MACHINE_ARN: pipelineStateMachineArn,
+    },
+  });
+
+  new codepipeline.Pipeline(stack, 'Pipeline', {
+    // The default bucket is encrypted. That is not necessary here so create a custom bucket.
+    artifactBucket: new s3.Bucket(stack, 'ArtifactsBucket'),
+    stages: [
+      {
+        stageName: 'Source',
+        actions: [
+          new actions.GitHubSourceAction({
+            actionName: 'GithubSource',
+            owner: githubOwner.valueAsString,
+            repo: githubRepository.valueAsString,
+            branch: githubBranch.valueAsString,
+            oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
+            output: sourceArtifact,
+          }),
+        ],
+      },
+      {
+        stageName: 'Deploy',
+        actions: [
+          new actions.CodeBuildAction({
+            actionName: 'DeployAccelerator',
+            project: bootstrapProject,
+            input: sourceArtifact,
+          }),
+        ],
+      },
+      {
+        stageName: 'Execute',
+        actions: [
+          new actions.LambdaInvokeAction({
+            actionName: 'ExecuteAcceleratorPipeline',
+            lambda: pipelineExecutionLambda,
+          }),
+        ],
+      },
+    ],
+  });
+}
+
+// tslint:disable-next-line: no-floating-promises
+main();
