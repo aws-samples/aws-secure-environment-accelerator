@@ -8,30 +8,41 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 async function main() {
-  const configSecretName = 'accelerator/config'; // TODO Should we get this name from a variable?
-
-  // Load accelerator name from context
+  // Load accelerator parameters
   const app = new cdk.App();
-  const acceleratorPrefix = app.node.tryGetContext('prefix');
-  const acceleratorName = app.node.tryGetContext('accelerator');
+  const acceleratorName = process.env.ACCELERATOR_NAME;
+  const acceleratorPrefix = process.env.ACCELERATOR_PREFIX;
+  const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID;
+  const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME || 'AcceleratorPipelineRole';
+
+  if (!acceleratorName) {
+    throw new Error(`Please set environment variable "ACCELERATOR_NAME"`);
+  } else if (!acceleratorPrefix) {
+    throw new Error(`Please set environment variable "ACCELERATOR_PREFIX"`);
+  } else if (!configSecretName) {
+    throw new Error(`Please set environment variable "ACCELERATOR_CONFIG_SECRET_ID"`);
+  }
 
   console.log(`Found accelerator context:`);
-  console.log(`  Prefix: ${acceleratorPrefix}`);
   console.log(`  Name: ${acceleratorName}`);
+  console.log(`  Prefix: ${acceleratorPrefix}`);
+  console.log(`  Configuration: ${configSecretName}`);
 
   // Find the root director of the solution
   const solutionRoot = path.join(__dirname, '..', '..', '..');
 
-  // This role will be installed in subaccounts and assumed by the pipeline
-  const executionRoleName = 'AcceleratorPipelineRole';
-
   // Create the initial setup pipeline stack
-  await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
+  const initialSetup = await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
     configSecretName,
     acceleratorPrefix,
     acceleratorName,
     solutionRoot,
     executionRoleName,
+  });
+
+  new cdk.CfnOutput(initialSetup, 'PipelineStateMachineArn', {
+    exportName: 'PipelineStateMachineArn',
+    value: initialSetup.pipeline.stateMachineArn,
   });
 }
 

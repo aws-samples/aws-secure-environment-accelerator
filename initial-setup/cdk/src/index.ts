@@ -35,13 +35,15 @@ export namespace InitialSetup {
 }
 
 export class InitialSetup extends AcceleratorStack {
+  readonly pipeline: InitialSetup.Pipeline;
+
   constructor(scope: cdk.Construct, id: string, props: InitialSetup.Props & BuildProps) {
     super(scope, id, props);
 
-    new InitialSetup.Pipeline(this, 'Pipeline', props);
+    this.pipeline = new InitialSetup.Pipeline(this, 'Pipeline', props);
   }
 
-  static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props) {
+  static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props): Promise<InitialSetup> {
     const initialSetupRoot = path.join(props.solutionRoot, 'initial-setup');
     const lambdasRoot = path.join(initialSetupRoot, 'lambdas');
 
@@ -89,6 +91,8 @@ export namespace InitialSetup {
   }
 
   export class Pipeline extends cdk.Construct {
+    private readonly stateMachine: sfn.StateMachine;
+
     constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
       super(scope, id);
 
@@ -438,7 +442,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      new sfn.StateMachine(this, 'StateMachine', {
+      this.stateMachine = new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
@@ -453,6 +457,10 @@ export namespace InitialSetup {
           .next(storeMainOutput)
           .next(addTagsToSharedResourcesTask),
       });
+    }
+
+    get stateMachineArn(): string {
+      return this.stateMachine.stateMachineArn;
     }
   }
 }
