@@ -99,7 +99,7 @@ async function main() {
 
   const sourceArtifact = new codepipeline.Artifact();
 
-  const pipelineStateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${acceleratorPrefix.valueAsString}-Pipeline`;
+  const pipelineStateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${acceleratorPrefix.valueAsString}Pipeline`;
 
   const pipelineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
