@@ -28,7 +28,8 @@ export namespace InitialSetup {
     acceleratorPrefix: string;
     acceleratorName: string;
     solutionRoot: string;
-    executionRoleName: string;
+    pipelineName: string;
+    pipelineExecutionRole: string;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -212,11 +213,11 @@ export namespace InitialSetup {
             },
             ACCELERATOR_EXECUTION_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.executionRoleName,
+              value: props.pipelineExecutionRole,
             },
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.executionRoleName,
+              value: props.pipelineExecutionRole,
             },
           },
         },
@@ -314,7 +315,7 @@ export namespace InitialSetup {
             stackName: `${props.acceleratorPrefix}PipelineRole`,
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
-              RoleName: props.executionRoleName,
+              RoleName: props.pipelineExecutionRole,
               // TODO Only add root role for development environments
               AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,arn:aws:iam::${stack.account}:role/Admin,${pipelineRole.roleArn}`,
             },
@@ -338,7 +339,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          roleName: props.executionRoleName,
+          roleName: props.pipelineExecutionRole,
           policyName: coreMandatoryScpName,
         },
         resultPath: 'DISCARD',
@@ -350,7 +351,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          roleName: props.executionRoleName,
+          roleName: props.pipelineExecutionRole,
           'accounts.$': '$.accounts',
           kmsKeyId: passwordsKey.keyId,
         },
@@ -364,7 +365,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.pipelineExecutionRole,
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -377,7 +378,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.pipelineExecutionRole,
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -432,14 +433,14 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.pipelineExecutionRole,
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
-        stateMachineName: `${props.acceleratorPrefix}Pipeline`,
+        stateMachineName: props.pipelineName,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)

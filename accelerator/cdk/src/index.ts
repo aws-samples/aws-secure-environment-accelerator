@@ -13,7 +13,8 @@ async function main() {
   const acceleratorName = process.env.ACCELERATOR_NAME;
   const acceleratorPrefix = process.env.ACCELERATOR_PREFIX;
   const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID;
-  const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME || 'AcceleratorPipelineRole';
+  const pipelineName = process.env.ACCELERATOR_PIPELINE_NAME;
+  const pipelineExecutionRole = process.env.ACCELERATOR_EXECUTION_ROLE_NAME || 'AcceleratorPipelineRole';
 
   if (!acceleratorName) {
     throw new Error(`Please set environment variable "ACCELERATOR_NAME"`);
@@ -21,6 +22,8 @@ async function main() {
     throw new Error(`Please set environment variable "ACCELERATOR_PREFIX"`);
   } else if (!configSecretName) {
     throw new Error(`Please set environment variable "ACCELERATOR_CONFIG_SECRET_ID"`);
+  } else if (!pipelineName) {
+    throw new Error(`Please set environment variable "ACCELERATOR_PIPELINE_NAME"`);
   }
 
   console.log(`Found accelerator context:`);
@@ -37,7 +40,8 @@ async function main() {
     acceleratorPrefix,
     acceleratorName,
     solutionRoot,
-    executionRoleName,
+    pipelineName,
+    pipelineExecutionRole,
   });
 }
 

@@ -55,6 +55,15 @@ async function main() {
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
 
+  const pipelineName = `${acceleratorPrefix.valueAsString}Pipeline`;
+
+  // The pipeline state machine name has to match the name of the state machine in initial setup
+  const pipelineStateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${pipelineName}`;
+
+  // Use the `start-execution.js` script in the assets folder
+  const pipelineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
+
+  // Boot
   const bootstrapProjectRole = new iam.Role(stack, 'BootstrapRole', {
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
     managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
@@ -93,17 +102,13 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: acceleratorConfigSecretId.valueAsString,
         },
+        ACCELERATOR_PIPELINE_NAME: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: pipelineName,
+        },
       },
     },
   });
-
-  const sourceArtifact = new codepipeline.Artifact();
-
-  // The pipeline state machine name has to match the name of the state machine in initial setup
-  const pipelineStateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${acceleratorPrefix.valueAsString}Pipeline`;
-
-  // Use the `start-execution.js` script in the assets folder
-  const pipelineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
   // The role that will be used to start the state machine
   const pipelineExecutionRole = new iam.Role(stack, 'ExecutePipelineRole', {
@@ -121,7 +126,7 @@ async function main() {
   // Grant permissions to start the state machine
   pipelineExecutionRole.addToPolicy(
     new iam.PolicyStatement({
-      actions: ['stepfunctions:StartExecution'],
+      actions: ['states:StartExecution'],
       resources: [pipelineStateMachineArn],
     }),
   );
@@ -136,6 +141,9 @@ async function main() {
       STATE_MACHINE_ARN: pipelineStateMachineArn,
     },
   });
+
+  // This artifact is used as output for the Github code and as input for the build step
+  const sourceArtifact = new codepipeline.Artifact();
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
     // The default bucket is encrypted
