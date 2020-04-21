@@ -4,7 +4,7 @@ import * as path from 'path';
 export interface Context {
   acceleratorName: string;
   acceleratorPrefix: string;
-  cfnDnsEndopintIpsLambdaArn: string;
+  cfnDnsEndpointIpsLambdaArn: string;
   acceleratorExecutionRoleName: string;
 }
 
@@ -21,7 +21,7 @@ export function loadContext(): Context {
   return {
     acceleratorName: process.env.ACCELERATOR_NAME!,
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
-    cfnDnsEndopintIpsLambdaArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
+    cfnDnsEndpointIpsLambdaArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
   };
 }

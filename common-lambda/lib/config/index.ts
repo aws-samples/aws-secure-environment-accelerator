@@ -117,7 +117,7 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
-export const MADConfigType = t.interface({
+export const MadConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   region: t.string,
@@ -142,7 +142,7 @@ export const AccountConfigType = t.interface({
   vpc: optional(VpcConfigType),
   deployments: t.interface({
     tgw: optional(DeploymentConfigType),
-    mad: optional(MADConfigType),
+    mad: optional(MadConfigType),
   }),
 });
 

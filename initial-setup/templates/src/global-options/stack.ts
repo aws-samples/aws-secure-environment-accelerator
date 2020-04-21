@@ -14,6 +14,10 @@ export namespace GlobalOptions {
     outputs: StackOutputs;
   }
 
+  interface VpcConfigType {
+    [key: string]: VpcConfig;
+  }
+
   export class Stack extends AcceleratorStack {
     constructor(scope: cdk.Construct, id: string, props: StackProps) {
       super(scope, id, props);
@@ -33,9 +37,6 @@ export namespace GlobalOptions {
       const r53Zones = new Route53Zones(this, 'DNSResolvers', route53ZonesProps);
 
       // Create Endpoints per Account and VPC
-      interface VpcConfigType {
-        [key: string]: VpcConfig;
-      }
       const vpcConfigs: VpcConfigType = {};
       for (const [account, vpcConfig] of Object.entries(mandatoryAccountConfig)) {
         vpcConfigs[account] = vpcConfig.vpc!;
@@ -124,13 +125,6 @@ export namespace GlobalOptions {
         if (r53ResolverEndpoints.inBoundEndpointIps) {
           new cdk.CfnOutput(this, `${vpcConfig.name}InboundEndpointIPs`, {
             value: r53ResolverEndpoints.inBoundEndpointIps,
-          });
-        }
-
-        // Adding Outbound IPs to Output
-        if (r53ResolverEndpoints.outBoundEndpointIps) {
-          new cdk.CfnOutput(this, `${vpcConfig.name}OutboundEndpointIPs`, {
-            value: r53ResolverEndpoints.outBoundEndpointIps,
           });
         }
       }

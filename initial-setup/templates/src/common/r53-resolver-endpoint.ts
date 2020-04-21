@@ -20,12 +20,14 @@ export class Route53ResolverEndpoint extends cdk.Construct {
   readonly inBoundEndpoint: string = '';
   readonly outBoundEndpoint: string = '';
   readonly inBoundEndpointIps: string = '';
-  readonly outBoundEndpointIps: string = '';
-  readonly vpcId: string;
+  readonly vpcId: string = '';
   constructor(parent: cdk.Construct, name: string, props: Route53ResolverEndpointProps) {
     super(parent, name);
     const vpcConfig = props.vpcConfig;
-    const resolvers = vpcConfig.resolvers!;
+    const resolvers = vpcConfig.resolvers;
+    if( !resolvers ){
+      return;
+    }
     const endpointSubnet = vpcConfig.subnets?.find(x => x.name === resolvers?.subnet);
     const accountName = vpcConfig.deploy === 'local' ? props.accountName : vpcConfig.deploy;
     const vpcId = getStackOutput(props.outputs, accountName!, `Vpc${vpcConfig.name}`);
@@ -98,7 +100,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       const lambdaFnc = lambda.Function.fromFunctionArn(
         this,
         'CfnInBoundEndpointIpPooler',
-        props.context.cfnDnsEndopintIpsLambdaArn,
+        props.context.cfnDnsEndpointIpsLambdaArn,
       );
       // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
       const inBoundIpPooler = new cfn.CustomResource(this, 'InBoundIPPooler', {
@@ -108,34 +110,12 @@ export class Route53ResolverEndpoint extends cdk.Construct {
           AccountId: props.accountId,
         },
       });
-
+      
       const targetIps: string[] = [''];
       for (let i = 1; i <= ipAddress.length; i++) {
         targetIps.push(inBoundIpPooler.getAttString(`IpAddress${i}`));
       }
       this.inBoundEndpointIps = targetIps.join(',');
-    }
-
-    if (outBoundEndpoint) {
-      const lambdaFnc = lambda.Function.fromFunctionArn(
-        this,
-        'CfnOuBoundEndpointIpPooler',
-        props.context.cfnDnsEndopintIpsLambdaArn,
-      );
-      // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
-      const outBoundIpPooler = new cfn.CustomResource(this, 'OutBoundIPPooler', {
-        provider: cfn.CustomResourceProvider.fromLambda(lambdaFnc),
-        properties: {
-          EndpointResolver: outBoundEndpoint.ref,
-          AccountId: props.accountId,
-        },
-      });
-
-      const targetIps: string[] = [''];
-      for (let i = 1; i <= ipAddress.length; i++) {
-        targetIps.push(outBoundIpPooler.getAttString(`IpAddress${i}`));
-      }
-      this.outBoundEndpointIps = targetIps.join(',');
     }
   }
 }
