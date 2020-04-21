@@ -99,14 +99,18 @@ async function main() {
 
   const sourceArtifact = new codepipeline.Artifact();
 
+  // The pipeline state machine name has to match the name of the state machine in initial setup
   const pipelineStateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${acceleratorPrefix.valueAsString}Pipeline`;
 
+  // Use the `start-execution.js` script in the assets folder
   const pipelineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
+  // The role that will be used to start the state machine
   const pipelineExecutionRole = new iam.Role(stack, 'ExecutePipelineRole', {
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 
+  // Grant permissions to write logs
   pipelineExecutionRole.addToPolicy(
     new iam.PolicyStatement({
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
@@ -114,6 +118,7 @@ async function main() {
     }),
   );
 
+  // Grant permissions to start the state machine
   pipelineExecutionRole.addToPolicy(
     new iam.PolicyStatement({
       actions: ['stepfunctions:StartExecution'],
@@ -121,6 +126,7 @@ async function main() {
     }),
   );
 
+  // Create the Lambda function that is responsible for launching the state machine
   const pipelineExecutionLambda = new lambda.Function(stack, 'ExecutePipelineLambda', {
     role: pipelineExecutionRole,
     runtime: lambda.Runtime.NODEJS_12_X,
@@ -132,7 +138,8 @@ async function main() {
   });
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
-    // The default bucket is encrypted. That is not necessary here so create a custom bucket.
+    // The default bucket is encrypted
+    // That is not necessary for this pipeline so we create a custom unencrypted bucket.
     artifactBucket: new s3.Bucket(stack, 'ArtifactsBucket'),
     stages: [
       {
