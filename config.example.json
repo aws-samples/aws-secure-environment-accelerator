@@ -322,7 +322,10 @@
         },
         "pcx": false,
         "natgw": {
-          "subnet": "Public_az1"
+          "subnet": {
+            "name": "Public",
+            "az": "a"
+          }
         },
         "subnets": [
           {
@@ -1533,7 +1536,10 @@
         "vgw": false,
         "pcx": false,
         "natgw": {
-          "subnets": ["Web_az1"]
+          "subnet": {
+            "name": "Web",
+            "az": "a"
+          }
         },
         "subnets": [
           {

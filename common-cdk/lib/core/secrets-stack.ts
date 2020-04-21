@@ -84,7 +84,7 @@ export class SecretsStack extends AcceleratorStack {
     return secret;
   }
 
-  protected onPrepare() {
+  protected onPrepare(): void {
     console.debug(`Adding decrypt access to secrets key for principals ${this.principals.join(', ')}`);
 
     this.encryptionKey.addToResourcePolicy(
