@@ -463,20 +463,23 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const associateHostedZones = new sfn.Task(this, 'Associate Hosted Zones Stacks', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/associate-hosted-zones.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
       const attachTagsTask = new CodeTask(this, 'Attach Tags to Shared Subnets', {
         functionProps: {
           code: props.lambdas.codeForEntry('attach-tags-to-subnets'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.executionRoleName,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const associateHostedZones = new CodeTask(this, 'Associate Hosted Zones Stacks', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('associate-hosted-zones'),
           role: pipelineRole,
         },
         functionPayload: {
@@ -528,8 +531,8 @@ export namespace InitialSetup {
           .next(deployMasterAccountkTask)
           .next(storeMasterStackOutput)
           .next(vpcSharingTask)
-          .next(associateHostedZones)
-          .next(attachTagsTask),
+          .next(attachTagsTask)
+          .next(associateHostedZones),
       });
     }
   }
