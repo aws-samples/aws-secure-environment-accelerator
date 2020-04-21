@@ -11,8 +11,9 @@ export const VirtualPrivateGatewayConfig = t.interface({
 
 export const PeeringConnectionConfig = t.interface({
   source: NonEmptyString,
-  subnets: NonEmptyString,
-  // TODO
+  'source-vpc': NonEmptyString,
+  'source-subnets': NonEmptyString,
+  'local-subnets': NonEmptyString,
 });
 
 export const NatGatewayConfig = t.interface({
@@ -117,6 +118,10 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
+export const ADUserConfig = t.interface({
+  user: NonEmptyString,
+  groups: t.array(t.string),
+});
 export const MadConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
@@ -132,7 +137,7 @@ export const MadConfigType = t.interface({
   // 'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
   'adc-group': t.string,
-  'ad-users': t.array(t.string),
+  'ad-users': t.array(ADUserConfig),
 });
 
 export const AccountConfigType = t.interface({
@@ -140,10 +145,10 @@ export const AccountConfigType = t.interface({
   email: NonEmptyString,
   ou: NonEmptyString,
   vpc: optional(VpcConfigType),
-  deployments: t.interface({
+  deployments: optional(t.interface({
     tgw: optional(DeploymentConfigType),
     mad: optional(MadConfigType),
-  }),
+  })),
 });
 
 export const OrganizationalUnitConfigType = t.interface({
@@ -157,7 +162,6 @@ export const OrganizationalUnitsType = t.interface({
 export const MandatoryAccountConfigType = t.interface({
   operations: AccountConfigType,
   'shared-network': AccountConfigType,
-  master: AccountConfigType,
   perimeter: AccountConfigType,
 });
 
@@ -194,6 +198,7 @@ export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
   'mandatory-account-configs': t.record(t.string, AccountConfigType),
   'organizational-units': OrganizationalUnitsType,
+  'lz-account-configs': t.record(t.string, AccountConfigType),
 });
 
 export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;

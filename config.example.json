@@ -587,16 +587,22 @@
     "log-archive": {
       "account-name": "log-archive",
       "share-mad-from": "",
+      "ou":"core",
+      "email": "bmycroft+lzT+logs@amazon.com",
       "kms-cmk": ["PBMMAccel-Key"]
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
+      "ou":"core",
+      "email": "bmycroft+lzT+security@amazon.com",
       "kms-cmk": ["PBMMAccel-Key"]
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
+      "ou":"core",
+      "email": "bmycroft+lzT+services@amazon.com",
       "kms-cmk": []
     }
   },

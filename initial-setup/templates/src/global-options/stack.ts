@@ -132,13 +132,13 @@ export namespace GlobalOptions {
       // // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
       for (const [account, accountConfig] of Object.entries(mandatoryAccountConfig)) {
         const deploymentConfig = accountConfig.deployments;
-        if (!deploymentConfig.mad) {
+        if ( !deploymentConfig || !deploymentConfig.mad) {
           continue;
         }
         const madConfig = deploymentConfig.mad;
         let madIPs;
         try {
-          madIPs = getStackOutput(props.outputs, account, `MAD${madConfig['dns-domain'].replace(/\./gi, '')}`);
+          madIPs = getStackOutput(props.outputs, account, `MADIPs${madConfig['dns-domain'].replace(/\./gi, '')}`);
         } catch (error) {
           console.log(`MAD is not deployed yet in account ${account}`);
           continue;
