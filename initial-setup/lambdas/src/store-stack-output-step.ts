@@ -9,7 +9,7 @@ export interface StoreStackOutputInput {
   accounts: Account[];
 }
 
-interface AccountStackOutput {
+export interface AccountStackOutput {
   accountKey: string;
   outputKey?: string;
   outputValue?: string;

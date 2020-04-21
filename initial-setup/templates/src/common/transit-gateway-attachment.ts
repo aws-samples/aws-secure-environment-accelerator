@@ -12,6 +12,7 @@ export interface TransitGatewayAttachmentProps {
 export class TransitGatewayAttachment extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps) {
     super(parent, name);
+
     const tgwAttach = new ec2.CfnTransitGatewayAttachment(this, name, props);
     for (const [index, route] of props.tgwRouteAssociates?.entries() || []) {
       new ec2.CfnTransitGatewayRouteTableAssociation(this, `tgw_associate_${index}`, {
