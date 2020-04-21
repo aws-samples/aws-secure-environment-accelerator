@@ -55,15 +55,15 @@ async function main() {
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
 
-  const pipelineName = `${acceleratorPrefix.valueAsString}Pipeline`;
+  const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine`;
 
-  // The pipeline state machine name has to match the name of the state machine in initial setup
-  const pipelineStateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${pipelineName}`;
+  // The state machine name has to match the name of the state machine in initial setup
+  const stateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${stateMachineName}`;
 
   // Use the `start-execution.js` script in the assets folder
-  const pipelineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
+  const stateMachineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
-  // Boot
+  // Role that is used by the CodeBuild project
   const bootstrapProjectRole = new iam.Role(stack, 'BootstrapRole', {
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
     managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
@@ -102,21 +102,21 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: acceleratorConfigSecretId.valueAsString,
         },
-        ACCELERATOR_PIPELINE_NAME: {
+        ACCELERATOR_STATE_MACHINE_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: pipelineName,
+          value: stateMachineName,
         },
       },
     },
   });
 
   // The role that will be used to start the state machine
-  const pipelineExecutionRole = new iam.Role(stack, 'ExecutePipelineRole', {
+  const stateMachineExecutionRole = new iam.Role(stack, 'ExecutionRoleName', {
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 
   // Grant permissions to write logs
-  pipelineExecutionRole.addToPolicy(
+  stateMachineExecutionRole.addToPolicy(
     new iam.PolicyStatement({
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
@@ -124,21 +124,21 @@ async function main() {
   );
 
   // Grant permissions to start the state machine
-  pipelineExecutionRole.addToPolicy(
+  stateMachineExecutionRole.addToPolicy(
     new iam.PolicyStatement({
       actions: ['states:StartExecution'],
-      resources: [pipelineStateMachineArn],
+      resources: [stateMachineArn],
     }),
   );
 
   // Create the Lambda function that is responsible for launching the state machine
-  const pipelineExecutionLambda = new lambda.Function(stack, 'ExecutePipelineLambda', {
-    role: pipelineExecutionRole,
+  const stateMachineStartExecutionLambda = new lambda.Function(stack, 'ExecutionLambda', {
+    role: stateMachineExecutionRole,
     runtime: lambda.Runtime.NODEJS_12_X,
-    code: lambda.Code.fromInline(pipelineStartExecutionCode.toString()),
+    code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
     handler: 'index.handler',
     environment: {
-      STATE_MACHINE_ARN: pipelineStateMachineArn,
+      STATE_MACHINE_ARN: stateMachineArn,
     },
   });
 
@@ -177,8 +177,8 @@ async function main() {
         stageName: 'Execute',
         actions: [
           new actions.LambdaInvokeAction({
-            actionName: 'ExecuteAcceleratorPipeline',
-            lambda: pipelineExecutionLambda,
+            actionName: 'ExecuteAcceleratorStateMachine',
+            lambda: stateMachineStartExecutionLambda,
           }),
         ],
       },

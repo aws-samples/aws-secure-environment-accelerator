@@ -13,8 +13,8 @@ async function main() {
   const acceleratorName = process.env.ACCELERATOR_NAME;
   const acceleratorPrefix = process.env.ACCELERATOR_PREFIX;
   const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID;
-  const pipelineName = process.env.ACCELERATOR_PIPELINE_NAME;
-  const pipelineExecutionRole = process.env.ACCELERATOR_EXECUTION_ROLE_NAME || 'AcceleratorPipelineRole';
+  const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME;
+  const stateMachineExecutionRole = process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || 'AcceleratorPipelineRole';
 
   if (!acceleratorName) {
     throw new Error(`Please set environment variable "ACCELERATOR_NAME"`);
@@ -22,7 +22,7 @@ async function main() {
     throw new Error(`Please set environment variable "ACCELERATOR_PREFIX"`);
   } else if (!configSecretName) {
     throw new Error(`Please set environment variable "ACCELERATOR_CONFIG_SECRET_ID"`);
-  } else if (!pipelineName) {
+  } else if (!stateMachineName) {
     throw new Error(`Please set environment variable "ACCELERATOR_PIPELINE_NAME"`);
   }
 
@@ -40,8 +40,8 @@ async function main() {
     acceleratorPrefix,
     acceleratorName,
     solutionRoot,
-    pipelineName,
-    pipelineExecutionRole,
+    stateMachineName,
+    stateMachineExecutionRole,
   });
 }
 
