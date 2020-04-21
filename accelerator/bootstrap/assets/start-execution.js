@@ -1,6 +1,6 @@
 const aws = require('aws-sdk');
 
-exports.handler = async function(event) {
+exports.handler = async function(event, context) {
   const codepipeline = new aws.CodePipeline();
   const jobId = event['CodePipeline.job'].id;
   try {
