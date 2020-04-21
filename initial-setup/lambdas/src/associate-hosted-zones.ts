@@ -52,7 +52,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const allHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
   const allPrivateHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
   const allPrivateHostedZonesId: string[] = [];
-  let hostedZonesAccountId : string;
+  let hostedZonesAccountId: string;
   let hostedZonesAccountCredentials: aws.Credentials;
 
   // get all hosted zones ID
@@ -141,7 +141,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     const hostedZonesRoute53 = new Route53(hostedZonesAccountCredentials!);
 
-    for(const privateHostedZoneId of allPrivateHostedZonesId) {
+    for (const privateHostedZoneId of allPrivateHostedZonesId) {
       const vpcId = getStackOutput(outputs, vpcAccountName, `Vpc${vpcConfig.name}`);
       const vpcRegion = vpcConfig.region;
 
@@ -151,7 +151,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
         VPC: {
           VPCId: vpcId,
           VPCRegion: vpcRegion,
-        }
+        },
       };
       const createVPCAssociationAuthorizationResponse: CreateVPCAssociationAuthorizationResponse = await hostedZonesRoute53.createVPCAssociationAuthorization(
         createVPCAssociationAuthorizationRequest,
@@ -163,7 +163,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
         VPC: {
           VPCId: vpcId,
           VPCRegion: vpcRegion,
-        }
+        },
       };
       const associateVPCWithHostedZoneResponse: AssociateVPCWithHostedZoneResponse = await vpcRoute53.associateVPCWithHostedZone(
         associateVPCWithHostedZoneRequest,
@@ -175,7 +175,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
         VPC: {
           VPCId: vpcId,
           VPCRegion: vpcRegion,
-        }
+        },
       };
       const deleteVPCAssociationAuthorizationResponse: DeleteVPCAssociationAuthorizationResponse = await hostedZonesRoute53.deleteVPCAssociationAuthorization(
         deleteVPCAssociationAuthorizationRequest,
@@ -204,18 +204,18 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     const hostedZonesRoute53 = new Route53(hostedZonesAccountCredentials!);
 
-    for(const privateHostedZoneId of allPrivateHostedZonesId) {
+    for (const privateHostedZoneId of allPrivateHostedZonesId) {
       const vpcId = getStackOutput(outputs, vpcAccountName, `Vpc${vpcConfig.name}`);
       const vpcRegion = vpcConfig.region;
 
       // authorize association of VPC with Hosted zones
-      if(vpcAccountId !== hostedZonesAccountId!) {
+      if (vpcAccountId !== hostedZonesAccountId!) {
         const createVPCAssociationAuthorizationRequest: CreateVPCAssociationAuthorizationRequest = {
           HostedZoneId: privateHostedZoneId,
           VPC: {
             VPCId: vpcId,
             VPCRegion: vpcRegion,
-          }
+          },
         };
         const createVPCAssociationAuthorizationResponse: CreateVPCAssociationAuthorizationResponse = await hostedZonesRoute53.createVPCAssociationAuthorization(
           createVPCAssociationAuthorizationRequest,
@@ -228,20 +228,20 @@ export const handler = async (input: AssociateHostedZonesInput) => {
         VPC: {
           VPCId: vpcId,
           VPCRegion: vpcRegion,
-        }
+        },
       };
       const associateVPCWithHostedZoneResponse: AssociateVPCWithHostedZoneResponse = await vpcRoute53.associateVPCWithHostedZone(
         associateVPCWithHostedZoneRequest,
       );
 
       // delete association of VPC with Hosted zones
-      if(vpcAccountId !== hostedZonesAccountId!) {
+      if (vpcAccountId !== hostedZonesAccountId!) {
         const deleteVPCAssociationAuthorizationRequest: DeleteVPCAssociationAuthorizationRequest = {
           HostedZoneId: privateHostedZoneId,
           VPC: {
             VPCId: vpcId,
             VPCRegion: vpcRegion,
-          }
+          },
         };
         const deleteVPCAssociationAuthorizationResponse: DeleteVPCAssociationAuthorizationResponse = await hostedZonesRoute53.deleteVPCAssociationAuthorization(
           deleteVPCAssociationAuthorizationRequest,
