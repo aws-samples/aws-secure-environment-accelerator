@@ -132,7 +132,7 @@ export namespace GlobalOptions {
       // // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
       for (const [account, accountConfig] of Object.entries(mandatoryAccountConfig)) {
         const deploymentConfig = accountConfig.deployments;
-        if ( !deploymentConfig || !deploymentConfig.mad) {
+        if (!deploymentConfig || !deploymentConfig.mad) {
           continue;
         }
         const madConfig = deploymentConfig.mad;

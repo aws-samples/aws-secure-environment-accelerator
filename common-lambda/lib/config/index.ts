@@ -145,10 +145,12 @@ export const AccountConfigType = t.interface({
   email: NonEmptyString,
   ou: NonEmptyString,
   vpc: optional(VpcConfigType),
-  deployments: optional(t.interface({
-    tgw: optional(DeploymentConfigType),
-    mad: optional(MadConfigType),
-  })),
+  deployments: optional(
+    t.interface({
+      tgw: optional(DeploymentConfigType),
+      mad: optional(MadConfigType),
+    }),
+  ),
 });
 
 export const OrganizationalUnitConfigType = t.interface({
