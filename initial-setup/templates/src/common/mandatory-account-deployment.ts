@@ -77,7 +77,7 @@ export class MandatoryAccountDeployment extends cdk.Construct {
       new Vpc(this.vpcStack, vpcConfig.name, {
         accounts,
         vpcConfig,
-        tgwDeployment: this.accountConfig.deployments.tgw,
+        tgwDeployment: this.accountConfig.deployments?.tgw,
       });
     }
   }

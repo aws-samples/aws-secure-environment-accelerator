@@ -157,7 +157,7 @@ export const AccountConfigType = t.interface({
 });
 
 export const OrganizationalUnitConfigType = t.interface({
-  vpc: VpcConfigType,
+  vpc: optional(VpcConfigType),
 });
 
 export const MandatoryAccountConfigType = t.interface({
@@ -198,7 +198,7 @@ export const GlobalOptionsConfigType = t.interface({
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
   'mandatory-account-configs': t.record(t.string, AccountConfigType),
-  'organizational-units': t.record(t.string, OrganizationalUnitConfigType),  
+  'organizational-units': t.record(t.string, OrganizationalUnitConfigType),
   'lz-account-configs': t.record(t.string, AccountConfigType),
 });
 
