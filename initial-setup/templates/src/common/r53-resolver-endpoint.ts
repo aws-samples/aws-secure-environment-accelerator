@@ -25,7 +25,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     super(parent, name);
     const vpcConfig = props.vpcConfig;
     const resolvers = vpcConfig.resolvers;
-    if( !resolvers ){
+    if (!resolvers) {
       return;
     }
     const endpointSubnet = vpcConfig.subnets?.find(x => x.name === resolvers?.subnet);
@@ -110,7 +110,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
           AccountId: props.accountId,
         },
       });
-      
+
       const targetIps: string[] = [''];
       for (let i = 1; i <= ipAddress.length; i++) {
         targetIps.push(inBoundIpPooler.getAttString(`IpAddress${i}`));

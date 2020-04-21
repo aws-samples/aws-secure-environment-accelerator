@@ -25,7 +25,7 @@ function sendResponsePromise(
     // tslint:disable-next-line
     sendResponse(event, context, responseStatus, responseData, physicalResourceId);
   });
-};
+}
 
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
   console.log(`Retriving Default IPAdress for DNS Resolver Endpoint ...`);
