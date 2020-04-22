@@ -104,16 +104,16 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
-// export const PasswordPolicyType = t.interface({
-//   history: t.number,
-//   'max-age': t.number,
-//   'min-age': t.number,
-//   'min-len': t.number,
-//   complexity: t.boolean,
-//   reversible: t.boolean
-// });
+export const PasswordPolicyType = t.interface({
+  history: t.number,
+  'max-age': t.number,
+  'min-age': t.number,
+  'min-len': t.number,
+  complexity: t.boolean,
+  reversible: t.boolean,
+});
 
-export const MADConfigType = t.interface({
+export const MadConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   region: t.string,
@@ -125,7 +125,7 @@ export const MADConfigType = t.interface({
   'central-resolver-rule-vpc': t.string,
   'share-to-master': t.boolean,
   restrict_srcips: t.array(cidr),
-  // 'password-policies': PasswordPolicyType,
+  'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(t.string),
@@ -138,7 +138,7 @@ export const AccountConfigType = t.interface({
   vpc: optional(VpcConfigType),
   deployments: t.interface({
     tgw: optional(DeploymentConfigType),
-    mad: optional(MADConfigType),
+    mad: optional(MadConfigType),
   }),
 });
 
@@ -183,6 +183,7 @@ export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 export type OrganizationalUnits = t.TypeOf<typeof OrganizationalUnitsType>;
 export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
+export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {

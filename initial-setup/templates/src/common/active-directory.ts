@@ -1,40 +1,37 @@
 import * as cdk from '@aws-cdk/core';
 import { CfnMicrosoftAD } from '@aws-cdk/aws-directoryservice';
-import { AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
+import * as secrets from '@aws-cdk/aws-secretsmanager';
 
 export interface ActiveDirectoryProps extends cdk.StackProps {
-  accountConfig: AccountConfig;
+  madDeploymentConfig: MadDeploymentConfig;
   subnetInfo: {
     vpcId: string;
     subnetIds: string[];
-    vpcName: string;
-    subnetName: string;
   };
+  password: secrets.Secret;
 }
 
 export class ActiveDirectory extends cdk.Construct {
-  readonly dnsIpAddresses: string[] = [];
+  readonly directoryId: string;
+  readonly dnsIps: string[];
+  readonly outputPrefix: string;
   constructor(scope: cdk.Construct, id: string, props: ActiveDirectoryProps) {
     super(scope, id);
-    const deployment = props.accountConfig.deployments.mad;
-    if (
-      deployment?.deploy &&
-      deployment['vpc-name'] === props.subnetInfo.vpcName &&
-      deployment.subnet === props.subnetInfo.subnetName
-    ) {
-      const microsoftAD = new CfnMicrosoftAD(this, 'MicrosoftAD', {
-        name: deployment['dns-domain'],
-        password: 'Test1234', //TODO get password from secret's manager
-        vpcSettings: {
-          subnetIds: props.subnetInfo.subnetIds,
-          vpcId: props.subnetInfo.vpcId,
-        },
-        createAlias: true,
-        edition: deployment.size,
-        shortName: deployment['netbios-domain'],
-        enableSso: true,
-      });
-      this.dnsIpAddresses = microsoftAD.attrDnsIpAddresses;
-    }
+    console.log('AD password ', props.password.secretValue.toString());
+    const deployment = props.madDeploymentConfig;
+    const microsoftAD = new CfnMicrosoftAD(this, 'MicrosoftAD', {
+      name: deployment['dns-domain'],
+      password: props.password.secretValue.toString(),
+      vpcSettings: {
+        subnetIds: props.subnetInfo.subnetIds,
+        vpcId: props.subnetInfo.vpcId,
+      },
+      edition: deployment.size,
+      shortName: deployment['netbios-domain'],
+    });
+    this.directoryId = microsoftAD.ref;
+    this.dnsIps = microsoftAD.attrDnsIpAddresses;
+    this.outputPrefix = `Mad${deployment['vpc-name']}Subnet${deployment.subnet}`;
   }
 }

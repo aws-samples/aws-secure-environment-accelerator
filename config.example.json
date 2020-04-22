@@ -229,6 +229,7 @@
           "size": "enterprise",
           "dns-domain": "brian.local",
           "netbios-domain": "brian",
+          "log-group-name": "PBMMAccel-MAD-brian-local-LG",
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "endpoint",
           "share-to-master": true,
