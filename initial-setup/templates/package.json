@@ -43,7 +43,8 @@
     "generate-password": "1.5.1",
     "io-ts": "2.1.2",
     "io-ts-types": "0.5.6",
-    "@aws-cdk/aws-directoryservice": "1.32.2"
+    "@aws-cdk/aws-directoryservice": "1.32.2",
+    "pascal-case": "^3.1.1"
   },
   "jest": {
     "preset": "ts-jest",

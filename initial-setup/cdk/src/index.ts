@@ -357,7 +357,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const storeStackOutput = new CodeTask(this, 'Store Stack Output', {
+      const storeStackOutput = new CodeTask(this, 'Store Log Archive Stack Output', {
         functionProps: {
           code: props.lambdas.codeForEntry('store-stack-output'),
           role: pipelineRole,
@@ -370,33 +370,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const storeShareNetworkStackOutput = new CodeTask(this, 'Store Shared Network Stack Output', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const storePerimeterStackOutput = new CodeTask(this, 'Store Perimeter Stack Output', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const storeMasterStackOutput = new CodeTask(this, 'Store Master Stack Output', {
+      const storeMainOutput = new CodeTask(this, 'Store Main Stack Output', {
         functionProps: {
           code: props.lambdas.codeForEntry('store-stack-output'),
           role: pipelineRole,
@@ -446,12 +420,12 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const deploySharedNetworkTask = new sfn.Task(this, 'Deploy Shared Network Stacks', {
+      const deployMainTask = new sfn.Task(this, 'Deploy Main Stacks', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             ...deployTaskCommonInput,
-            appPath: 'apps/shared-network.ts',
+            appPath: 'apps/main.ts',
           },
         }),
         resultPath: 'DISCARD',
@@ -459,56 +433,21 @@ export namespace InitialSetup {
 
       const enableResourceShareTask = new CodeTask(this, 'Enable Resource Sharing', {
         functionProps: {
-          code: props.lambdas.codeForEntry('enable-resource-share'),
+          code: props.lambdas.codeForEntry('enable-resource-sharing'),
           role: pipelineRole,
         },
         resultPath: 'DISCARD',
       });
 
-      const vpcSharingTask = new sfn.Task(this, 'VPC Sharing Stacks', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/vpc-sharing.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const attachTagsTask = new CodeTask(this, 'Attach Tags to Shared Subnets', {
+      const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
         functionProps: {
-          code: props.lambdas.codeForEntry('attach-tags-to-subnets'),
+          code: props.lambdas.codeForEntry('add-tags-to-shared-resources'),
           role: pipelineRole,
         },
         functionPayload: {
-          'accounts.$': '$.accounts',
           assumeRoleName: props.executionRoleName,
-          configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
-        resultPath: 'DISCARD',
-      });
-
-      const deployPerimeterAccountkTask = new sfn.Task(this, 'Deploy Perimeter Stacks', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/perimeter.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const deployMasterAccountkTask = new sfn.Task(this, 'Deploy Master Stacks', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/master.ts',
-          },
-        }),
         resultPath: 'DISCARD',
       });
 
@@ -534,14 +473,9 @@ export namespace InitialSetup {
           .next(addRoleToKmsKeyTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
-          .next(deploySharedNetworkTask)
-          .next(storeShareNetworkStackOutput)
-          .next(deployPerimeterAccountkTask)
-          .next(storePerimeterStackOutput)
-          .next(deployMasterAccountkTask)
-          .next(storeMasterStackOutput)
-          .next(vpcSharingTask)
-          .next(attachTagsTask)
+          .next(deployMainTask)
+          .next(storeMainOutput)
+          .next(addTagsToSharedResourcesTask)          
           .next(deployOperationsAccountkTask)
           .next(storeOperationsStackOutput),
       });
