@@ -402,7 +402,8 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const blockS3PublicAccessTask = new CodeTask(this, 'S3 Block Public Access', {
+      // TODO We could put this task in a map task and apply to all accounts individually
+      const blockS3PublicAccessTask = new CodeTask(this, 'Block S3 Public Access', {
         functionProps: {
           code: props.lambdas.codeForEntry('s3-block-public-access'),
           role: pipelineRole,

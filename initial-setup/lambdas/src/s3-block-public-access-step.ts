@@ -27,8 +27,8 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
 
   const sts = new STS();
 
+  // TODO Cache the account credentials in the STS class to improve reusability
   const accountCredentials: { [accountId: string]: aws.Credentials } = {};
-
   const getAccountCredentials = async (accountId: string): Promise<aws.Credentials> => {
     if (accountCredentials[accountId]) {
       return accountCredentials[accountId];
@@ -38,33 +38,32 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     return credentials;
   };
 
-  const s3BlockPublicAccess = async (accountId: string): Promise<void> => {
+  const putPublicAccessBlock = async (accountId: string, blockPublicAccess: boolean): Promise<void> => {
     const credentials = await getAccountCredentials(accountId);
     const s3control = new S3Control(credentials);
     const putPublicAccessBlockRequest: PutPublicAccessBlockRequest = {
       AccountId: accountId,
       PublicAccessBlockConfiguration: {
-        BlockPublicAcls: true,
-        BlockPublicPolicy: true,
-        IgnorePublicAcls: true,
-        RestrictPublicBuckets: true,
+        BlockPublicAcls: blockPublicAccess,
+        BlockPublicPolicy: blockPublicAccess,
+        IgnorePublicAcls: blockPublicAccess,
+        RestrictPublicBuckets: blockPublicAccess,
       },
     };
     await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
   };
 
-  const mandatoryAccountConfigs = config['mandatory-account-configs'];
-
   // for all mandatory accounts
-  for (const mandatoryAccountConfig of Object.values(mandatoryAccountConfigs)) {
-    const accountName = mandatoryAccountConfig['account-name'];
-    const account = accounts.find(a => a.name === accountName);
-    const accountId = account?.id;
+  const mandatoryAccountConfigs = config['mandatory-account-configs'];
+  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
+    const account = accounts.find(a => a.key === accountKey);
+    if (!account) {
+      throw new Error(`Cannot find account with key "${accountKey}"`)
+    }
 
     // if flag is undefined or false, turn ON s3 block public access
-    if (!mandatoryAccountConfig['enable-s3-public-access']) {
-      await s3BlockPublicAccess(accountId!);
-    }
+    const blockPublicAccess = !accountConfig['enable-s3-public-access'];
+    await putPublicAccessBlock(account.id, blockPublicAccess);
   }
 
   return {
