@@ -27,7 +27,6 @@
       "email": "bmycroft+lzT-network@amazon.com",
       "ou": "core",
       "share-mad-from": "operations",
-      "kms-cmk": ["EBS-Default-key", "PBMMAccel-Key"],
       "iam": {
         "users": [],
         "policies": [
@@ -195,7 +194,6 @@
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
-      "kms-cmk": ["EBS-Default-key", "PBMMAccel-Key"],
       "iam": {
         "users": [],
         "policies": [
@@ -230,6 +228,7 @@
       },
       "deployments": {
         "mad": {
+          "dir-id": 1001,
           "deploy": true,
           "vpc-name": "Central",
           "region": "ca-central-1",
@@ -248,7 +247,10 @@
             "min-age": 1,
             "min-len": 12,
             "complexity": true,
-            "reversible": false
+            "reversible": false,
+            "failed-attaempts": 6,
+            "lockout-duration": 30,
+            "lockout-attempts-reset": 30
           },
           "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
           "adc-group": "ADConnector",
@@ -287,7 +289,6 @@
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
-      "kms-cmk": ["EBS-Default-key", "PBMMAccel-Key"],
       "iam": {
         "users": [],
         "policies": [
@@ -508,7 +509,6 @@
       "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
       "share-mad-from": "operations",
-      "kms-cmk": ["PBMMAccel-Key"],
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
         "AWS CloudFormation/Stack count": 400
@@ -590,7 +590,9 @@
           "vpc-name": "ForSSO",
           "subnet": "ForSSO",
           "size": "small",
-          "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"]
+          "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
+          "connect-account-key": "operations",
+          "connect-dir-id": 1001
         },
         "sso": {
           "deploy": true
@@ -601,22 +603,20 @@
       "account-name": "log-archive",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+logs@amazon.com",
-      "kms-cmk": ["PBMMAccel-Key"]
+      "email": "bmycroft+lzT+logs@amazon.com"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+security@amazon.com",
-      "kms-cmk": ["PBMMAccel-Key"]
+      "email": "bmycroft+lzT+security@amazon.com"
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
       "ou": "core",
       "email": "bmycroft+lzT+services@amazon.com",
-      "kms-cmk": []
+      "enable-s3-public-access": true
     }
   },
   "workload-account-configs": {
@@ -624,8 +624,7 @@
       "account-name": "TheFunAccount",
       "email": "bmycroft+FunAcct@amazon.com",
       "ou": "sandbox",
-      "share-mad-from": "",
-      "kms-cmk": ["EBS-Default-key", "PBMMAccel-Key"]
+      "share-mad-from": ""
     }
   },
   "organizational-units": {
