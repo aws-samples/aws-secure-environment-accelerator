@@ -5,7 +5,6 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import * as cdk from '@aws-cdk/core';
-import * as kms from '@aws-cdk/aws-kms';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';

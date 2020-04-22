@@ -47,7 +47,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     const ipAddresses = response.IpAddresses || [];
 
     const output: { [key: string]: string | undefined } = {};
-    ipAddresses.forEach((ipAddress, index) => output[`IpAddress${index}`] = ipAddress.Ip);
+    ipAddresses.forEach((ipAddress, index) => (output[`IpAddress${index}`] = ipAddress.Ip));
 
     await sendResponsePromise(event, context, SUCCESS, output, resourceId);
   } catch (error) {

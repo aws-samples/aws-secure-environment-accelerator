@@ -66,7 +66,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     const createResolvers = (accountKey: string, vpcConfig: VpcConfig) => {
       const resolversConfig = vpcConfig.resolvers;
       if (!resolversConfig) {
-        console.debug(`Skipping resolver creation for VPC "${vpcConfig}" in account "${accountKey}"`);
+        console.debug(`Skipping resolver creation for VPC "${vpcConfig.name}" in account "${accountKey}"`);
         return;
       }
       const vpcSubnet = vpcConfig.subnets?.find(s => s.name === resolversConfig.subnet);
@@ -122,7 +122,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
       // For each Private hosted Zone created in 1) above, create a Resolver rule which points to the Inbound-Endpoint-IP's
       if (r53ResolverEndpoints.inboundEndpointRef && r53ResolverEndpoints.outboundEndpointRef) {
-        for (const [domain, pzid] of r53Zones.privateZoneToDomainMap.entries()) {
+        for (const [domain, _] of r53Zones.privateZoneToDomainMap.entries()) {
           const rule = new Route53ResolverRule(this, `${domainToName(domain)}-phz-rule`, {
             domain,
             endpoint: r53ResolverEndpoints.outboundEndpointRef,

@@ -296,7 +296,9 @@ export class Vpc extends cdk.Construct {
         const associateConfig = attachConfig['tgw-rt-associate'] || [];
         const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
 
-        const subnetIds = attachSubnetsConfig.flatMap(subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || []);
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
         const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
         const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
 
