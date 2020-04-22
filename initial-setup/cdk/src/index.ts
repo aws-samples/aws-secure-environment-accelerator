@@ -316,7 +316,7 @@ export namespace InitialSetup {
             stackParameters: {
               RoleName: props.executionRoleName,
               // TODO Only add root role for development environments
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,arn:aws:iam::${stack.account}:role/Admin,${pipelineRole.roleArn}`,
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
@@ -475,7 +475,7 @@ export namespace InitialSetup {
           .next(storeStackOutput)
           .next(deployMainTask)
           .next(storeMainOutput)
-          .next(addTagsToSharedResourcesTask)          
+          .next(addTagsToSharedResourcesTask)
           .next(deployOperationsAccountkTask)
           .next(storeOperationsStackOutput),
       });

@@ -21,4 +21,8 @@ export class DirectoryService {
   async enableCloudWatchLogs(input: ds.CreateLogSubscriptionRequest): Promise<void> {
     await this.client.createLogSubscription(input).promise();
   }
+
+  async createAdConnector(input: ds.ConnectDirectoryRequest): Promise<void> {
+    await this.client.connectDirectory(input).promise();
+  }
 }
