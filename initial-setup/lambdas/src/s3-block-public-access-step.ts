@@ -35,7 +35,7 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
 
     const s3control = new S3Control(credentials);
 
-    const input: PutPublicAccessBlockRequest = {
+    const putPublicAccessBlockRequest: PutPublicAccessBlockRequest = {
       AccountId: accountId!,
       PublicAccessBlockConfiguration: {
         BlockPublicAcls: true,
@@ -46,7 +46,7 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     };
 
     // TODO check the flag before the call; flag yet to be added in config file
-    await s3control.getPublicAccessBlock(input);
+    await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
   }
 
   return {

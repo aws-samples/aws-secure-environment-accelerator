@@ -15,7 +15,7 @@ export class S3Control {
    * @param input
    */
   async putPublicAccessBlock(input: s3control.PutPublicAccessBlockRequest): Promise<void> {
-    this.client.putPublicAccessBlock(input).promise();
+    await this.client.putPublicAccessBlock(input).promise();
   }
 
   /**
