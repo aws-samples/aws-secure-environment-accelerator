@@ -74,11 +74,30 @@ export class MandatoryAccountDeployment extends cdk.Construct {
     } else {
       console.debug(`Deploying VPC in account "${accountKey}"`);
 
-      new Vpc(this.vpcStack, vpcConfig.name, {
+      const vpc = new Vpc(this.vpcStack, vpcConfig.name, {
         accounts,
         vpcConfig,
-        tgwDeployment: this.accountConfig.deployments.tgw,
+        tgwDeployment: this.accountConfig.deployments?.tgw,
       });
+
+      // Adding Output for VPC
+      new cdk.CfnOutput(this.vpcStack, `Vpc${vpcConfig.name}`, {
+        value: vpc.vpcId,
+      });
+
+      // Adding Outputs for Subnets
+      for (const subnet of vpc.subnets.subnets) {
+        new cdk.CfnOutput(this.vpcStack, `${vpcConfig.name}Subnet${subnet.subnetId}`, {
+          value: subnet.subnet.ref,
+        });
+      }
+
+      // Adding Outputs for RouteTables
+      for (const [key, value] of vpc.routeTableNameToIdMap) {
+        new cdk.CfnOutput(this.vpcStack, `${vpcConfig.name}RouteTable${key}`, {
+          value,
+        });
+      }
     }
   }
 }

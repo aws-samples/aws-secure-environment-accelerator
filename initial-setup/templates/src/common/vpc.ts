@@ -34,6 +34,7 @@ export interface AzSubnet {
   subnet: ec2.CfnSubnet;
   subnetName: string;
   az: string;
+  subnetId: string;
 }
 
 /**
@@ -219,6 +220,7 @@ export class Vpc extends cdk.Construct {
           subnet,
           subnetName,
           az: subnetDefinition.az,
+          subnetId,
         });
 
         // Attach Subnet to Route-Table

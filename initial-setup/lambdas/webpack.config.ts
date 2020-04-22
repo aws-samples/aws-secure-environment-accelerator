@@ -24,6 +24,7 @@ const config: webpack.Configuration = {
     'create-stack-set/verify': './src/create-stack-set/verify.ts',
     'create-account/create': './src/create-account/create.ts',
     'create-account/verify': './src/create-account/verify.ts',
+    'get-dns-endpoint-ipaddress': './src/get-dns-endpoint-ips.ts',
     'enable-resource-sharing': './src/enable-resource-sharing-step.ts',
   },
   output: {

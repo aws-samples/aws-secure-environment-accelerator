@@ -16,6 +16,7 @@ import * as tempy from 'tempy';
 import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
+import * as lambda from '@aws-cdk/aws-lambda';
 
 interface BuildProps {
   lambdas: WebpackBuild;
@@ -131,39 +132,24 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      // This key is used to encrypt passwords in sub accounts
-      const passwordsKey = new kms.Key(this, 'PasswordsKey', {
-        alias: 'Passwords',
-        description: 'This key is used to encrypt passwords that are used by sub accounts.',
+      const cfnLambdaRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
+        roleName: 'LambdaRoleRoute53Resolver',
+        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      // Allow the pipeline role to administer this key
-      passwordsKey.grant(pipelineRole, 'kms:*');
+      const cfnLambda = new lambda.Function(this, 'DnsEndpointIPPoller', {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
+        handler: 'index.handler',
+        role: cfnLambdaRole,
+      });
 
-      // Allow secrets manager to use this KMS key
-      passwordsKey.addToResourcePolicy(
-        new iam.PolicyStatement({
-          sid:
-            'Allow access through AWS Secrets Manager for all principals in the account that are authorized to use AWS Secrets Manager',
-          effect: iam.Effect.ALLOW,
-          actions: [
-            'kms:Encrypt',
-            'kms:Decrypt',
-            'kms:ReEncrypt*',
-            'kms:GenerateDataKey*',
-            'kms:CreateGrant',
-            'kms:DescribeKey',
-          ],
-          principals: [new iam.AnyPrincipal()],
-          resources: ['*'],
-          conditions: {
-            StringEquals: {
-              'kms:ViaService': `secretsmanager.${cdk.Aws.REGION}.amazonaws.com`,
-              'kms:CallerAccount': cdk.Aws.ACCOUNT_ID,
-            },
-          },
-        }),
-      );
+      // Allow Cloudformation to trigger the handler
+      cfnLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
+        action: 'lambda:InvokeFunction',
+        principal: new iam.AnyPrincipal(),
+      });
 
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'DeployProject', {
@@ -206,10 +192,6 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: stackOutputSecret.secretArn,
             },
-            PASSWORDS_KMS_KEY_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: passwordsKey.keyArn,
-            },
             ACCELERATOR_EXECUTION_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.executionRoleName,
@@ -217,6 +199,10 @@ export namespace InitialSetup {
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.executionRoleName,
+            },
+            CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: cfnLambda.functionArn,
             },
           },
         },
@@ -316,7 +302,7 @@ export namespace InitialSetup {
             stackParameters: {
               RoleName: props.executionRoleName,
               // TODO Only add root role for development environments
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,arn:aws:iam::${stack.account}:role/Admin,${pipelineRole.roleArn}`,
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
@@ -340,19 +326,6 @@ export namespace InitialSetup {
         functionPayload: {
           roleName: props.executionRoleName,
           policyName: coreMandatoryScpName,
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const addRoleToKmsKeyTask = new CodeTask(this, 'Add Execution Roles to Passwords KMS Key', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('add-role-to-kms-key'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          roleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
-          kmsKeyId: passwordsKey.keyId,
         },
         resultPath: 'DISCARD',
       });
@@ -438,6 +411,30 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deployDependentTask = new sfn.Task(this, 'Deploy Dependent Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/dependent-stacks.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const storeDependentOutput = new CodeTask(this, 'Store Dependent Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -446,12 +443,13 @@ export namespace InitialSetup {
           .next(installRolesTask)
           .next(addRoleToScpTask)
           .next(enableResourceShareTask)
-          .next(addRoleToKmsKeyTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
           .next(deployMainTask)
           .next(storeMainOutput)
-          .next(addTagsToSharedResourcesTask),
+          .next(addTagsToSharedResourcesTask)
+          .next(deployDependentTask)
+          .next(storeDependentOutput),
       });
     }
   }
