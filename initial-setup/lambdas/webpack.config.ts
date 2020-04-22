@@ -26,6 +26,7 @@ const config: webpack.Configuration = {
     'create-account/verify': './src/create-account/verify.ts',
     'get-dns-endpoint-ipaddress': './src/get-dns-endpoint-ips.ts',
     'enable-resource-sharing': './src/enable-resource-sharing-step.ts',
+    's3-block-public-access': './src/s3-block-public-access-step.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

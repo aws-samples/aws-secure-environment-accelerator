@@ -152,6 +152,7 @@ export const MandatoryAccountConfigType = t.interface({
   'account-name': NonEmptyString,
   email: NonEmptyString,
   ou: NonEmptyString,
+  'enable-s3-public-access': fromNullable(t.boolean, false),
   vpc: optional(VpcConfigType),
   deployments: optional(
     t.interface({
