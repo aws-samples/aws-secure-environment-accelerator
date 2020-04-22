@@ -25,6 +25,7 @@ const config: webpack.Configuration = {
     'create-account/create': './src/create-account/create.ts',
     'create-account/verify': './src/create-account/verify.ts',
     'enable-resource-sharing': './src/enable-resource-sharing-step.ts',
+    's3-block-public-access': './src/s3-block-public-access-step.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

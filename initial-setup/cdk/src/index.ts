@@ -426,6 +426,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const s3BlockPublicAccessTask = new CodeTask(this, 'S3 Block Public Access', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('s3-block-public-access'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          assumeRoleName: props.executionRoleName,
+        },
+        resultPath: 'DISCARD',
+      });
+
       const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
         functionProps: {
           code: props.lambdas.codeForEntry('add-tags-to-shared-resources'),
@@ -446,6 +457,7 @@ export namespace InitialSetup {
           .next(installRolesTask)
           .next(addRoleToScpTask)
           .next(enableResourceShareTask)
+          .next(s3BlockPublicAccessTask)
           .next(addRoleToKmsKeyTask)
           .next(deployLogArchiveTask)
           .next(storeStackOutput)
