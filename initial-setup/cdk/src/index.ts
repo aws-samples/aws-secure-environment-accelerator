@@ -433,6 +433,8 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.executionRoleName,
+          configSecretSourceId: props.configSecretName,
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });

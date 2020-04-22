@@ -1,25 +1,34 @@
 import * as aws from 'aws-sdk';
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
 import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
-import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
+import { Account } from './load-accounts-step';
 
 interface S3BlockPublicAccessInput {
   assumeRoleName: string;
+  configSecretSourceId: string;
+  accounts: Account[];
 }
 
 export const handler = async (input: S3BlockPublicAccessInput) => {
   console.log('Turning ON S3 Block Public Access at account level for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName } = input;
+  const { assumeRoleName, configSecretSourceId, accounts } = input;
 
-  const organizations = new Organizations();
+  const secrets = new SecretsManager();
+  const source = await secrets.getSecret(configSecretSourceId);
+
+  // load the configuration from Secrets Manager
+  const configString = source.SecretString!;
+  const config = AcceleratorConfig.fromString(configString);
+
   const sts = new STS();
 
-  const organizationAccounts = await organizations.listAccounts();
-
   const accountCredentials: { [accountId: string]: aws.Credentials } = {};
+
   const getAccountCredentials = async (accountId: string): Promise<aws.Credentials> => {
     if (accountCredentials[accountId]) {
       return accountCredentials[accountId];
@@ -29,14 +38,11 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     return credentials;
   };
 
-  for (const accounts of organizationAccounts) {
-    const accountId = accounts.Id;
-    const credentials = await getAccountCredentials(accountId!);
-
+  const s3BlockPublicAccess = async (accountId: string): Promise<void> => {
+    const credentials = await getAccountCredentials(accountId);
     const s3control = new S3Control(credentials);
-
     const putPublicAccessBlockRequest: PutPublicAccessBlockRequest = {
-      AccountId: accountId!,
+      AccountId: accountId,
       PublicAccessBlockConfiguration: {
         BlockPublicAcls: true,
         BlockPublicPolicy: true,
@@ -44,9 +50,34 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
         RestrictPublicBuckets: true,
       },
     };
-
-    // TODO check the flag before the call; flag yet to be added in config file
     await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
+  };
+
+  const mandatoryAccountConfigs = config['mandatory-account-configs'];
+  const lzAccountConfigs = config['lz-account-configs'];
+
+  // for all mandatory accounts
+  for(const mandatoryAccountConfig of Object.values(mandatoryAccountConfigs)) {
+    const accountName = mandatoryAccountConfig['account-name'];
+    const account = accounts.find(a => a.name === accountName);
+    const accountId = account?.id;
+
+    // if flag is undefined or false, turn ON s3 block public access
+    if(!mandatoryAccountConfig['enable-s3-public-access']) {
+      await s3BlockPublicAccess(accountId!);
+    }
+  }
+
+  // for all landing zone accounts
+  for(const lzAccountConfig of Object.values(lzAccountConfigs)) {
+    const accountName = lzAccountConfig['account-name'];
+    const account = accounts.find(a => a.name === accountName);
+    const accountId = account?.id;
+
+    // if flag is undefined or false, turn ON s3 block public access
+    if(!lzAccountConfig['enable-s3-public-access']) {
+      await s3BlockPublicAccess(accountId!);
+    }
   }
 
   return {
