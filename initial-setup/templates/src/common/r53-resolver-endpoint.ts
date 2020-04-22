@@ -3,7 +3,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as r53Resolver from '@aws-cdk/aws-route53resolver';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as lambda from '@aws-cdk/aws-lambda';
-
+import { pascalCase } from 'pascal-case';
 import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Context } from '../utils/context';
 import { StackOutputs, getStackOutput } from '../utils/outputs';
@@ -48,11 +48,12 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       if (subnet.disabled) {
         continue;
       }
+      const subnetId =  pascalCase(`${endpointSubnet?.name}$${subnet.az}`)
       ipAddress.push({
         subnetId: getStackOutput(
           props.outputs,
           accountName!,
-          `${vpcConfig.name}Subnet${endpointSubnet?.name}az${key + 1}`,
+          `${vpcConfig.name}Subnet${subnetId}`,
         ),
       });
     }

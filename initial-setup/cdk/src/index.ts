@@ -411,6 +411,30 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deployDependentTask = new sfn.Task(this, 'Deploy Dependent Stacks', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/dependent-stacks.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const storeDependentOutput = new CodeTask(this, 'Store Dependent Stack Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -423,7 +447,9 @@ export namespace InitialSetup {
           .next(storeStackOutput)
           .next(deployMainTask)
           .next(storeMainOutput)
-          .next(addTagsToSharedResourcesTask),
+          .next(addTagsToSharedResourcesTask)
+          .next(deployDependentTask)
+          .next(storeDependentOutput),
       });
     }
   }

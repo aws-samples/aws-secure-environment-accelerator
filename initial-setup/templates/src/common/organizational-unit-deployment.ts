@@ -62,11 +62,31 @@ export class OrganizationalUnitDeployment extends cdk.Construct {
       console.debug(`Deploying non-local VPC for organizational unit "${ouKey}" in account "${accountKey}"`);
 
       const deployment = deployments[accountKey];
-      new Vpc(deployment.vpcStack, vpcConfig.name, {
+      const vpc = new Vpc(deployment.vpcStack, vpcConfig.name, {
         accounts,
         vpcConfig,
         organizationalUnitName: ouKey,
       });
+
+      // Adding Output for VPC
+      new cdk.CfnOutput(deployment.vpcStack, `Vpc${vpcConfig.name}`, {
+        value: vpc.vpcId,
+      });
+
+      // Adding Outputs for Subnets
+      for (const subnet of vpc.subnets.subnets) {
+        new cdk.CfnOutput(deployment.vpcStack, `${vpcConfig.name}Subnet${subnet.subnetId}`, {
+          value: subnet.subnet.ref,
+        });
+      }
+      
+
+      // Adding Outputs for RouteTables
+      for (const [key, value] of vpc.routeTableNameToIdMap) {
+        new cdk.CfnOutput(deployment.vpcStack, `${vpcConfig.name}RouteTable${key}`, {
+          value,
+        });
+      }
     }
   }
 }
