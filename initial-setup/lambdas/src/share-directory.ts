@@ -15,7 +15,7 @@ export const handler = async (input: ShareDirectoryInput) => {
   const { accounts, assumeRoleName } = input;
 
   const masterAccountId = getAccountId(accounts, 'master');
-  const accountId = getAccountId(accounts, "operations");
+  const accountId = getAccountId(accounts, 'operations');
 
   const sts = new STS();
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
@@ -23,25 +23,25 @@ export const handler = async (input: ShareDirectoryInput) => {
   const directoryService = new DirectoryService(credentials);
 
   await directoryService.enableCloudWatchLogs({
-    DirectoryId: "", // TODO get id
-    LogGroupName: "", // TODO get group name
+    DirectoryId: '', // TODO get id
+    LogGroupName: '', // TODO get group name
   });
 
   // if (shareToMaster) {
   if (true) {
     await directoryService.shareDirectory({
-      DirectoryId: "",
-      ShareMethod: "",
+      DirectoryId: '',
+      ShareMethod: '',
       ShareTarget: {
-        Id: "",
-        Type: "",
+        Id: '',
+        Type: '',
       },
     });
 
     const masterCredentials = await sts.getCredentialsForAccountAndRole(masterAccountId, assumeRoleName);
     const masterDirectoryService = new DirectoryService(masterCredentials);
     await masterDirectoryService.acceptDirectory({
-      SharedDirectoryId: "",
+      SharedDirectoryId: '',
     });
   }
 };
