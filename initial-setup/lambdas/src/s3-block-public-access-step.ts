@@ -54,7 +54,6 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
   };
 
   const mandatoryAccountConfigs = config['mandatory-account-configs'];
-  const lzAccountConfigs = config['lz-account-configs'];
 
   // for all mandatory accounts
   for (const mandatoryAccountConfig of Object.values(mandatoryAccountConfigs)) {
@@ -64,18 +63,6 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
 
     // if flag is undefined or false, turn ON s3 block public access
     if (!mandatoryAccountConfig['enable-s3-public-access']) {
-      await s3BlockPublicAccess(accountId!);
-    }
-  }
-
-  // for all landing zone accounts
-  for (const lzAccountConfig of Object.values(lzAccountConfigs)) {
-    const accountName = lzAccountConfig['account-name'];
-    const account = accounts.find(a => a.name === accountName);
-    const accountId = account?.id;
-
-    // if flag is undefined or false, turn ON s3 block public access
-    if (!lzAccountConfig['enable-s3-public-access']) {
       await s3BlockPublicAccess(accountId!);
     }
   }
