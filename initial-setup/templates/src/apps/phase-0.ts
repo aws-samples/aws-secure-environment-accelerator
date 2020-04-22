@@ -11,9 +11,18 @@ process.on('unhandledRejection', (reason, _) => {
   process.exit(1);
 });
 
+export const OUTPUT_LOG_ARCHIVE_ACCOUNT_ID = 'LogArchiveAccountId';
 export const OUTPUT_LOG_ARCHIVE_BUCKET_ARN = 'LogArchiveBucketArn';
 export const OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN = 'LogArchiveEncryptionKey';
 
+/**
+ * This is the main entry point to deploy phase 0.
+ *
+ * The following resources are deployed in phase 0:
+ *   - Log archive bucket
+ *
+ * TODO This phase could be merged into phase 1.
+ */
 async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
@@ -45,6 +54,11 @@ async function main() {
   const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
   bucket.grantReplicate(...principals);
 
+  // store the s3 bucket - kms key arn for later reference
+  new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
+    value: logArchiveAccountId,
+  });
+
   // store the s3 bucket arn for later reference
   new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
     value: bucket.bucketArn,
@@ -54,6 +68,15 @@ async function main() {
   new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
     value: bucket.encryptionKeyArn,
   });
+
+  // TODO Replace above outputs with JSON output
+  // new JsonOutputValue(stack, 'LogArchiveOutput', {
+  //   type: 'LogArchiveOutput',
+  //   value: {
+  //     bucketArn: bucket.bucketArn,
+  //     encryptionKeyArn: bucket.encryptionKeyArn,
+  //   },
+  // });
 }
 
 // tslint:disable-next-line: no-floating-promises

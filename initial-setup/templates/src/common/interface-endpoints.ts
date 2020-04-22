@@ -102,7 +102,7 @@ export class InterfaceEndpoints extends cdk.Construct {
 
     const { vpc, subnetName, interfaceEndpoints } = props;
 
-    const subnetIds = vpc.subnets.getAzSubnetIdsForSubnetName(subnetName);
+    const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
     if (!subnetIds) {
       throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
     }

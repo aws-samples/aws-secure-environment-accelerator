@@ -2,7 +2,7 @@ import * as aws from 'aws-sdk';
 import { TagResources } from '@aws-pbmm/common-lambda/lib/aws/resource-tagging';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { AccountStackOutput } from './store-stack-output-step';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 interface CreateTagsRequestInput {
   assumeRoleName: string;
@@ -23,11 +23,6 @@ interface AddTagToResourceOutput {
 
 type AddTagToResourceOutputs = AddTagToResourceOutput[];
 
-interface TypedOutput {
-  type?: 'AddTagsToResources';
-  resources?: AddTagToResourceOutputs;
-}
-
 export const handler = async (input: CreateTagsRequestInput) => {
   console.log(`Adding tags to shared resource...`);
   console.log(JSON.stringify(input, null, 2));
@@ -36,7 +31,7 @@ export const handler = async (input: CreateTagsRequestInput) => {
 
   const secrets = new SecretsManager();
   const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const outputs = JSON.parse(outputsString.SecretString!) as AccountStackOutput[];
+  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
   const accountCredentials: { [accountId: string]: aws.Credentials } = {};
@@ -49,30 +44,25 @@ export const handler = async (input: CreateTagsRequestInput) => {
     return credentials;
   };
 
-  for (const output of outputs) {
-    let parsed: TypedOutput | undefined;
-    try {
-      parsed = JSON.parse(output.outputValue!) as TypedOutput;
-      // tslint:disable-next-line: no-empty
-    } catch {}
+  const addTagsToResourcesOutputs: AddTagToResourceOutputs[] = getStackJsonOutput(outputs, {
+    outputType: 'AddTagsToResources',
+  });
 
-    // Verify if the output is a 'AddTagsToResources' output
-    if (parsed && parsed.type === 'AddTagsToResources' && parsed.resources) {
-      for (const shared of parsed.resources) {
-        const { resourceId, resourceType, targetAccountIds, tags } = shared;
-        for (const targetAccountId of targetAccountIds) {
-          console.log(`Tagging resource "${resourceId}" in account "${targetAccountId}"`);
+  for (const addTagsToResourcesOutput of addTagsToResourcesOutputs) {
+    for (const addTagsToResources of addTagsToResourcesOutput) {
+      const { resourceId, resourceType, targetAccountIds, tags } = addTagsToResources;
+      for (const targetAccountId of targetAccountIds) {
+        console.log(`Tagging resource "${resourceId}" in account "${targetAccountId}"`);
 
-          const credentials = await getAccountCredentials(targetAccountId);
-          if (resourceType === 'subnet') {
-            const tagResources = new TagResources(credentials);
-            await tagResources.createTags({
-              Resources: [resourceId],
-              Tags: tags.map(t => ({ Key: t.key, Value: t.value })),
-            });
-          } else {
-            throw new Error(`Unsupported resource type "${resourceType}"`);
-          }
+        const credentials = await getAccountCredentials(targetAccountId);
+        if (resourceType === 'subnet') {
+          const tagResources = new TagResources(credentials);
+          await tagResources.createTags({
+            Resources: [resourceId],
+            Tags: tags.map(t => ({ Key: t.key, Value: t.value })),
+          });
+        } else {
+          throw new Error(`Unsupported resource type "${resourceType}"`);
         }
       }
     }

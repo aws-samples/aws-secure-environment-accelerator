@@ -5,7 +5,6 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import * as cdk from '@aws-cdk/core';
-import * as kms from '@aws-cdk/aws-kms';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
@@ -16,6 +15,7 @@ import * as tempy from 'tempy';
 import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
+import * as lambda from '@aws-cdk/aws-lambda';
 
 interface BuildProps {
   lambdas: WebpackBuild;
@@ -131,39 +131,28 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      // This key is used to encrypt passwords in sub accounts
-      const passwordsKey = new kms.Key(this, 'PasswordsKey', {
-        alias: 'Passwords',
-        description: 'This key is used to encrypt passwords that are used by sub accounts.',
+      // TODO Restrict role permissions
+      const dnsEndpointIpPollerRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
+        roleName: 'LambdaRoleRoute53Resolver',
+        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      // Allow the pipeline role to administer this key
-      passwordsKey.grant(pipelineRole, 'kms:*');
+      const dnsEndpointIpPollerLambda = new lambda.Function(this, 'DnsEndpointIpPoller', {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
+        handler: 'index.handler',
+        role: dnsEndpointIpPollerRole,
+        environment: {
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
+        },
+      });
 
-      // Allow secrets manager to use this KMS key
-      passwordsKey.addToResourcePolicy(
-        new iam.PolicyStatement({
-          sid:
-            'Allow access through AWS Secrets Manager for all principals in the account that are authorized to use AWS Secrets Manager',
-          effect: iam.Effect.ALLOW,
-          actions: [
-            'kms:Encrypt',
-            'kms:Decrypt',
-            'kms:ReEncrypt*',
-            'kms:GenerateDataKey*',
-            'kms:CreateGrant',
-            'kms:DescribeKey',
-          ],
-          principals: [new iam.AnyPrincipal()],
-          resources: ['*'],
-          conditions: {
-            StringEquals: {
-              'kms:ViaService': `secretsmanager.${cdk.Aws.REGION}.amazonaws.com`,
-              'kms:CallerAccount': cdk.Aws.ACCOUNT_ID,
-            },
-          },
-        }),
-      );
+      // Allow Cloudformation to trigger the handler
+      dnsEndpointIpPollerLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
+        action: 'lambda:InvokeFunction',
+        principal: new iam.AnyPrincipal(),
+      });
 
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'DeployProject', {
@@ -206,10 +195,6 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: stackOutputSecret.secretArn,
             },
-            PASSWORDS_KMS_KEY_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: passwordsKey.keyArn,
-            },
             ACCELERATOR_EXECUTION_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.executionRoleName,
@@ -217,6 +202,10 @@ export namespace InitialSetup {
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.executionRoleName,
+            },
+            CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: dnsEndpointIpPollerLambda.functionArn,
             },
           },
         },
@@ -316,7 +305,7 @@ export namespace InitialSetup {
             stackParameters: {
               RoleName: props.executionRoleName,
               // TODO Only add root role for development environments
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,arn:aws:iam::${stack.account}:role/Admin,${pipelineRole.roleArn}`,
+              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
             stackTemplate: {
               s3BucketName: installRoleTemplate.s3BucketName,
@@ -344,41 +333,10 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const addRoleToKmsKeyTask = new CodeTask(this, 'Add Execution Roles to Passwords KMS Key', {
+      const enableResourceSharingTask = new CodeTask(this, 'Enable Resource Sharing', {
         functionProps: {
-          code: props.lambdas.codeForEntry('add-role-to-kms-key'),
+          code: props.lambdas.codeForEntry('enable-resource-sharing'),
           role: pipelineRole,
-        },
-        functionPayload: {
-          roleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
-          kmsKeyId: passwordsKey.keyId,
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const storeStackOutput = new CodeTask(this, 'Store Log Archive Stack Output', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const storeMainOutput = new CodeTask(this, 'Store Main Stack Output', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
@@ -396,37 +354,55 @@ export namespace InitialSetup {
         sourceBucketKey: solutionZip.s3ObjectKey,
       };
 
-      const deployLogArchiveTask = new sfn.Task(this, 'Deploy Log Archive Stacks', {
+      const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             ...deployTaskCommonInput,
-            appPath: 'apps/log-archive.ts',
+            appPath: 'apps/phase-0.ts',
           },
         }),
         resultPath: 'DISCARD',
       });
 
-      const deployMainTask = new sfn.Task(this, 'Deploy Main Stacks', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/main.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const enableResourceShareTask = new CodeTask(this, 'Enable Resource Sharing', {
+      const storePhase0Output = new CodeTask(this, 'Store Phase 0 Output', {
         functionProps: {
-          code: props.lambdas.codeForEntry('enable-resource-sharing'),
+          code: props.lambdas.codeForEntry('store-stack-output'),
           role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
 
-      const s3BlockPublicAccessTask = new CodeTask(this, 'S3 Block Public Access', {
+      const deployPhase1Task = new sfn.Task(this, 'Deploy Phase 1', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-1.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const storePhase1Output = new CodeTask(this, 'Store Phase 1 Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const blockS3PublicAccessTask = new CodeTask(this, 'S3 Block Public Access', {
         functionProps: {
           code: props.lambdas.codeForEntry('s3-block-public-access'),
           role: pipelineRole,
@@ -451,6 +427,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deployPhase2Task = new sfn.Task(this, 'Deploy Phase 2', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-2.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -458,13 +445,13 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(enableResourceShareTask)
-          .next(s3BlockPublicAccessTask)
-          .next(addRoleToKmsKeyTask)
-          .next(deployLogArchiveTask)
-          .next(storeStackOutput)
-          .next(deployMainTask)
-          .next(storeMainOutput)
+          .next(blockS3PublicAccessTask)
+          .next(enableResourceSharingTask)
+          .next(deployPhase0Task)
+          .next(storePhase0Output)
+          .next(deployPhase1Task)
+          .next(storePhase1Output)
+          .next(deployPhase2Task)
           .next(addTagsToSharedResourcesTask),
       });
     }

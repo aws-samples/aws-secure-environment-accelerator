@@ -71,13 +71,15 @@ export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
  * gateway endpoints, interface endpoints and transit gateway. It also allows VPC flow logging and VPC sharing.
  *
  * The construct is quite large and could be broken down into several smaller constructs.
+ *
+ * TODO: Decouple this class from the configuration file.
  */
 export class Vpc extends cdk.Construct {
   readonly name: string;
   readonly region: Region;
 
   readonly vpcId: string;
-  readonly subnets = new AzSubnets();
+  readonly azSubnets = new AzSubnets();
 
   readonly routeTableNameToIdMap = new Map<string, string>();
 
@@ -215,7 +217,7 @@ export class Vpc extends cdk.Construct {
         if (extendVpc) {
           subnet.addDependsOn(extendVpc);
         }
-        this.subnets.push({
+        this.azSubnets.push({
           subnet,
           subnetName,
           az: subnetDefinition.az,
@@ -256,7 +258,7 @@ export class Vpc extends cdk.Construct {
     const natgwProps = vpcConfig.natgw;
     if (config.NatGatewayConfig.is(natgwProps)) {
       const subnetConfig = natgwProps.subnet;
-      const subnetId = this.subnets.getAzSubnetIdForNameAndAz(subnetConfig.name, subnetConfig.az);
+      const subnetId = this.azSubnets.getAzSubnetIdForNameAndAz(subnetConfig.name, subnetConfig.az);
       if (!subnetId) {
         throw new Error(`Cannot find NAT gateway subnet name "${subnetConfig.name}" in AZ "${subnetConfig.az}"`);
       }
@@ -294,7 +296,9 @@ export class Vpc extends cdk.Construct {
         const associateConfig = attachConfig['tgw-rt-associate'] || [];
         const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
 
-        const subnetIds = attachSubnetsConfig.flatMap(subnet => this.subnets.getAzSubnetIdsForSubnetName(subnet) || []);
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
         const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
         const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
 
@@ -335,7 +339,7 @@ export class Vpc extends cdk.Construct {
       accounts,
       vpcConfig,
       organizationalUnitName,
-      subnets: this.subnets,
+      subnets: this.azSubnets,
     });
   }
 }
