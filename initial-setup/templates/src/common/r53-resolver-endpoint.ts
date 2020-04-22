@@ -48,13 +48,9 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       if (subnet.disabled) {
         continue;
       }
-      const subnetId =  pascalCase(`${endpointSubnet?.name}$${subnet.az}`)
+      const subnetId = pascalCase(`${endpointSubnet?.name}$${subnet.az}`);
       ipAddress.push({
-        subnetId: getStackOutput(
-          props.outputs,
-          accountName!,
-          `${vpcConfig.name}Subnet${subnetId}`,
-        ),
+        subnetId: getStackOutput(props.outputs, accountName!, `${vpcConfig.name}Subnet${subnetId}`),
       });
     }
     let vpcInSg;

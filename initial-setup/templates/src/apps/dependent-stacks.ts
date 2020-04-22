@@ -21,11 +21,11 @@ async function main() {
 
   const globalOptionsConfig = acceleratorConfig['global-options'];
   const zonesConfig = globalOptionsConfig.zones;
-  
+
   const deployment = new DependentResources(app, 'GlobalOptionsDNSResolversStack', {
     env: {
-        account: getAccountId(accounts, zonesConfig.account),
-        region: cdk.Aws.REGION,
+      account: getAccountId(accounts, zonesConfig.account),
+      region: cdk.Aws.REGION,
     },
     stackName: `PBMMAccel-GlobalOptionsDNSResolvers`,
     acceleratorName: context.acceleratorName,
@@ -38,9 +38,9 @@ async function main() {
     context,
     acceleratorConfig,
   });
-  for( const [key, value] of globalOptionsStack.outputs){
+  for (const [key, value] of globalOptionsStack.outputs) {
     new cdk.CfnOutput(deployment, key, {
-      value
+      value,
     });
   }
 }

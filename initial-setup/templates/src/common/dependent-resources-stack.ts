@@ -6,7 +6,6 @@ import { AcceleratorStackProps, AcceleratorStack } from '@aws-pbmm/common-cdk/li
  * Auxiliary construct that creates VPCs for mandatory accounts.
  */
 export class DependentResources extends AcceleratorStack {
-
   constructor(scope: cdk.Construct, id: string, props: AcceleratorStackProps) {
     super(scope, id, props);
   }

@@ -79,7 +79,6 @@ export class OrganizationalUnitDeployment extends cdk.Construct {
           value: subnet.subnet.ref,
         });
       }
-      
 
       // Adding Outputs for RouteTables
       for (const [key, value] of vpc.routeTableNameToIdMap) {
