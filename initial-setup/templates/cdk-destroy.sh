@@ -9,7 +9,7 @@ shift
 ARGS=$@
 if [ -z "$ARGS" ]
 then
-  ARGS="*"
+  ARGS="'*'"
 fi
 
 pnpx cdk destroy \

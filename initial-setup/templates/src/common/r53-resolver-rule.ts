@@ -2,42 +2,43 @@ import * as cdk from '@aws-cdk/core';
 import * as r53Resolver from '@aws-cdk/aws-route53resolver';
 
 export interface Route53ResolverRuleProps {
-  endPoint: string;
-  ipAddresses: string; // Ip Address seperated by ,
-  domain: string;
-  name: string;
-  ruleType: string;
   vpcId: string;
+  name: string;
+  domain: string;
+  ruleType: string;
+  ipAddresses: string[];
+  endpoint?: string;
 }
 
+/**
+ * Auxiliary construct that creates a Route53 resolver rule for the and associates it with the given VPC.
+ */
 export class Route53ResolverRule extends cdk.Construct {
-  readonly ruleId: string;
-  constructor(parent: cdk.Construct, name: string, props: Route53ResolverRuleProps) {
-    super(parent, name);
+  private readonly rule: r53Resolver.CfnResolverRule;
 
-    const targetIps: r53Resolver.CfnResolverRule.TargetAddressProperty[] = [];
-    for (const ip of props.ipAddresses.split(',')) {
-      if (!ip) {
-        continue;
-      }
-      targetIps.push({
-        ip,
-        port: '53',
-      });
-    }
+  constructor(parent: cdk.Construct, id: string, props: Route53ResolverRuleProps) {
+    super(parent, id);
 
-    const rule = new r53Resolver.CfnResolverRule(this, name, {
+    const targetIps = props.ipAddresses.map(ip => ({
+      ip,
+      port: '53',
+    }));
+
+    this.rule = new r53Resolver.CfnResolverRule(this, 'Rule', {
       domainName: props.domain,
       ruleType: props.ruleType,
-      resolverEndpointId: props.endPoint,
+      resolverEndpointId: props.endpoint,
       name: props.name,
       targetIps,
     });
 
-    new r53Resolver.CfnResolverRuleAssociation(this, `${name}-association`, {
-      resolverRuleId: rule.ref,
+    new r53Resolver.CfnResolverRuleAssociation(this, 'Association', {
+      resolverRuleId: this.rule.ref,
       vpcId: props.vpcId,
     });
-    this.ruleId = rule.ref;
+  }
+
+  get ruleId(): string {
+    return this.rule.ref;
   }
 }

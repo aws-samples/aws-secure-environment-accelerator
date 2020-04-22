@@ -14,7 +14,7 @@
       "kebab-case"
     ],
     "forin": true,
-    "indent": false, // This is handled by Prettier
+    "indent": false,
     "interface-name": [
       true,
       "never-prefix"
@@ -23,18 +23,21 @@
     "jsx-no-lambda": false,
     "jsx-no-multiline-js": false,
     "label-position": true,
-    "max-line-length": false, // This is handled by Prettier
+    "max-line-length": false,
     "max-classes-per-file": false,
     "member-ordering": false,
     "no-any": true,
     "no-arg": true,
     "no-bitwise": true,
     "no-console": false,
-    "no-consecutive-blank-lines": false, // This is handled by Prettier
+    "no-consecutive-blank-lines": false,
     "no-construct": true,
     "no-debugger": true,
     "no-duplicate-variable": true,
-    "no-empty": true,
+    "no-empty": [
+      true,
+      "allow-empty-catch"
+    ],
     "no-eval": true,
     "no-implicit-dependencies": false,
     "no-namespace": false,
@@ -45,11 +48,11 @@
     "no-trailing-whitespace": false,
     "no-unused-expression": false,
     "no-use-before-declare": false,
-    "one-line": false, // This is handled by Prettier
+    "one-line": false,
     "prefer-conditional-expression": false,
-    "quotemark": false, // This is handled by Prettier
+    "quotemark": false,
     "radix": true,
-    "semicolon": false, // This is handled by Prettier
+    "semicolon": false,
     "switch-default": true,
     "trailing-comma": false,
     "triple-equals": [
@@ -61,7 +64,7 @@
       "parameter",
       "property-declaration"
     ],
-    "typedef-whitespace": false, // This is handled by Prettier
+    "typedef-whitespace": false,
     "variable-name": [
       true,
       "ban-keywords",
@@ -69,7 +72,7 @@
       "allow-leading-underscore",
       "allow-pascal-case"
     ],
-    "whitespace": false // This is handled by Prettier
+    "whitespace": false
   },
   "extends": [
     "tslint:latest",

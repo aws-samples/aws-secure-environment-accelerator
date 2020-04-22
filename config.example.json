@@ -39,7 +39,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -202,7 +206,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -241,7 +249,7 @@
             "complexity": true,
             "reversible": false,
             "failed-attaempts": 6,
-            "lockout-duration":	30,
+            "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
           "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
@@ -297,7 +305,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -590,19 +602,19 @@
     "log-archive": {
       "account-name": "log-archive",
       "share-mad-from": "",
-      "ou":"core",
+      "ou": "core",
       "email": "bmycroft+lzT+logs@amazon.com"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
-      "ou":"core",
+      "ou": "core",
       "email": "bmycroft+lzT+security@amazon.com"
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
-      "ou":"core",
+      "ou": "core",
       "email": "bmycroft+lzT+services@amazon.com",
       "enable-s3-public-access": true
     }
@@ -836,7 +848,7 @@
         },
         "interface-endpoints": false
       },
-	  "iam": {
+      "iam": {
         "users": [],
         "policies": [
           {
@@ -848,7 +860,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -1029,7 +1045,7 @@
         },
         "interface-endpoints": false
       },
-	  "iam": {
+      "iam": {
         "users": [],
         "policies": [
           {
@@ -1041,7 +1057,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -1056,7 +1076,7 @@
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]
-      }  
+      }
     },
     "test": {
       "type": "workload",
@@ -1222,7 +1242,7 @@
         },
         "interface-endpoints": false
       },
-	  "iam": {
+      "iam": {
         "users": [],
         "policies": [
           {
@@ -1234,7 +1254,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -1415,7 +1439,7 @@
         },
         "interface-endpoints": false
       },
-	  "iam": {
+      "iam": {
         "users": [],
         "policies": [
           {
@@ -1427,7 +1451,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -1608,7 +1636,7 @@
         },
         "interface-endpoints": false
       },
-	  "iam": {
+      "iam": {
         "users": [],
         "policies": [
           {
@@ -1620,7 +1648,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""
@@ -1789,7 +1821,11 @@
           {
             "Role": "EC2-Default-SSM-AD",
             "Type": "EC2",
-            "Policies": ["AmazonSSMManagedInstanceCore", "AmazonSSMDirectoryServiceAccess", "CloudWatchAgentServerPolicy"],
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
             "BoundaryPolicy": ["Default-Boundary-Policy"],
             "SourceAccount": "",
             "SourceAccount-role": ""

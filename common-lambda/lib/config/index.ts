@@ -78,6 +78,8 @@ export const ResolversConfigType = t.interface({
   inbound: t.boolean,
 });
 
+export type ResolversConfig = t.TypeOf<typeof ResolversConfigType>;
+
 export const OnPremZoneConfigType = t.interface({
   zone: NonEmptyString,
   'outbound-ips': t.array(NonEmptyString),
@@ -121,10 +123,13 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
+export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+
 export const ADUserConfig = t.interface({
   user: NonEmptyString,
   groups: t.array(t.string),
 });
+
 export const MadConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
@@ -143,7 +148,7 @@ export const MadConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
-export const AccountConfigType = t.interface({
+export const MandatoryAccountConfigType = t.interface({
   'account-name': NonEmptyString,
   email: NonEmptyString,
   ou: NonEmptyString,
@@ -156,15 +161,21 @@ export const AccountConfigType = t.interface({
   ),
 });
 
+export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
+
+export const MandatoryAccountsConfigType = t.record(t.string, MandatoryAccountConfigType);
+
+export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountsConfigType>;
+
 export const OrganizationalUnitConfigType = t.interface({
   vpc: optional(VpcConfigType),
 });
 
-export const MandatoryAccountConfigType = t.interface({
-  operations: AccountConfigType,
-  'shared-network': AccountConfigType,
-  perimeter: AccountConfigType,
-});
+export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
+
+export const OrganizationalUnitsConfigType = t.record(t.string, OrganizationalUnitConfigType);
+
+export type OrganizationalUnitsConfig = t.TypeOf<typeof OrganizationalUnitsConfigType>;
 
 export const GlobalOptionsAccountsConfigType = t.interface({
   'lz-primary-account': t.string,
@@ -195,17 +206,15 @@ export const GlobalOptionsConfigType = t.interface({
   zones: GlobalOptionsZonesConfigType,
 });
 
+export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
+
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
-  'mandatory-account-configs': t.record(t.string, AccountConfigType),
+  'mandatory-account-configs': MandatoryAccountsConfigType,
   'organizational-units': t.record(t.string, OrganizationalUnitConfigType),
-  'lz-account-configs': t.record(t.string, AccountConfigType),
 });
 
 export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
-export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
-export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
-export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {
