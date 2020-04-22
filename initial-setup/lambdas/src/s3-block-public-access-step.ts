@@ -58,7 +58,7 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
     const account = accounts.find(a => a.key === accountKey);
     if (!account) {
-      throw new Error(`Cannot find account with key "${accountKey}"`)
+      throw new Error(`Cannot find account with key "${accountKey}"`);
     }
 
     // if flag is undefined or false, turn ON s3 block public access
