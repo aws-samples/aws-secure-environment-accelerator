@@ -1,118 +1,135 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import * as r53Resolver from '@aws-cdk/aws-route53resolver';
+import * as r53resolver from '@aws-cdk/aws-route53resolver';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { pascalCase } from 'pascal-case';
-import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Context } from '../utils/context';
-import { StackOutputs, getStackOutput } from '../utils/outputs';
 
 export interface Route53ResolverEndpointProps {
-  vpcConfig: VpcConfig;
   context: Context;
-  outputs: StackOutputs;
-  accountId: string;
-  accountName: string;
+  /**
+   * The name that will be added to the description of the endpoint resolvers.
+   */
+  name: string;
+  /**
+   * The VPC ID to use when creating resolver endpoints.
+   */
+  vpcId: string;
+  /**
+   * The subnet IDs to use when creating resolver endpoints.
+   */
+  subnetIds: string[];
 }
 
 export class Route53ResolverEndpoint extends cdk.Construct {
-  readonly inBoundEndpoint: string = '';
-  readonly outBoundEndpoint: string = '';
-  readonly inBoundEndpointIps: string = '';
-  readonly vpcId: string = '';
-  constructor(parent: cdk.Construct, name: string, props: Route53ResolverEndpointProps) {
-    super(parent, name);
-    const vpcConfig = props.vpcConfig;
-    const resolvers = vpcConfig.resolvers;
-    if (!resolvers) {
-      return;
-    }
-    const endpointSubnet = vpcConfig.subnets?.find(x => x.name === resolvers?.subnet);
-    const accountName = vpcConfig.deploy === 'local' ? props.accountName : vpcConfig.deploy;
-    const vpcId = getStackOutput(props.outputs, accountName!, `Vpc${vpcConfig.name}`);
-    this.vpcId = vpcId;
-    if (!endpointSubnet) {
-      console.error(
-        `Subnet provided in resolvers doesn't exist in Subnet = ${resolvers.subnet} and VPC = ${vpcConfig.name}`,
-      );
-      return;
-    }
-    const subnetDefinitions = endpointSubnet?.definitions;
-    if (!subnetDefinitions) {
-      console.error(`No Subnets definitions defined for ${resolvers.subnet}`);
-      return;
-    }
-    const ipAddress: r53Resolver.CfnResolverEndpoint.IpAddressRequestProperty[] = [];
-    for (const [key, subnet] of subnetDefinitions.entries()) {
-      if (subnet.disabled) {
-        continue;
-      }
-      const subnetId = pascalCase(`${endpointSubnet?.name}$${subnet.az}`);
-      ipAddress.push({
-        subnetId: getStackOutput(props.outputs, accountName!, `${vpcConfig.name}Subnet${subnetId}`),
-      });
-    }
-    let vpcInSg;
-    let vpcOutSg;
-    let inBoundEndpoint;
-    let outBoundEndpoint;
-    if (resolvers?.inbound) {
-      // Create Security Group for Inbound Endpoint
-      vpcInSg = new ec2.CfnSecurityGroup(this, `${vpcConfig.name}_inbound_sg`, {
-        groupDescription: 'Security Group for Public Hosted Zone Inbound EndpointRoute53',
-        vpcId,
-        groupName: `${vpcConfig.name}_inbound_sg`,
-      });
+  private readonly props: Route53ResolverEndpointProps;
 
-      // Create Inbound Resolver Endpoint
-      inBoundEndpoint = new r53Resolver.CfnResolverEndpoint(this, `${resolvers.subnet}_inbound_endpoint`, {
-        direction: 'INBOUND',
-        ipAddresses: ipAddress,
-        securityGroupIds: [vpcInSg.ref],
-        name: `${vpcConfig.name} Inbound Endpoint`,
-      });
-      this.inBoundEndpoint = inBoundEndpoint.ref;
+  private _inboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
+  private _outboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
+  private _inboundEndpointIps: string[] = [];
+
+  constructor(parent: cdk.Construct, id: string, props: Route53ResolverEndpointProps) {
+    super(parent, id);
+    this.props = props;
+  }
+
+  /**
+   * Enable inbound endpoints. An custom resource will also be created to reference the inbound endpoint's IP addresses.
+   */
+  enableInboundEndpoint(): r53resolver.CfnResolverEndpoint {
+    if (this._inboundEndpoint) {
+      return this._inboundEndpoint;
     }
 
-    if (resolvers?.outbound) {
-      // Create Security Group for Outbound Endpoint
-      vpcOutSg = new ec2.CfnSecurityGroup(this, `${vpcConfig.name}_outbound_sg`, {
-        groupDescription: 'Security Group for Public Hosted Zone Outbound EndpointRoute53',
-        vpcId,
-        groupName: `${vpcConfig.name}_outbound_sg`,
-      });
+    // Create Security Group for Inbound Endpoint
+    const securityGroup = new ec2.CfnSecurityGroup(this, `InboundSecurityGroup`, {
+      groupDescription: 'Security Group for Public Hosted Zone Inbound EndpointRoute53',
+      vpcId: this.props.vpcId,
+      groupName: `${this.props.name}_inbound_sg`,
+    });
 
-      // Create Outbound Resolver Endpoint
-      outBoundEndpoint = new r53Resolver.CfnResolverEndpoint(this, `${resolvers.subnet}_outbound_endpoint`, {
-        direction: 'OUTBOUND',
-        ipAddresses: ipAddress,
-        securityGroupIds: [vpcOutSg.ref],
-        name: `${vpcConfig.name} Outbound Endpoint`,
-      });
-      this.outBoundEndpoint = outBoundEndpoint.ref;
+    const ipAddresses = this.props.subnetIds.map(subnetId => ({
+      subnetId,
+    }));
+
+    // Create Inbound Resolver Endpoint
+    this._inboundEndpoint = new r53resolver.CfnResolverEndpoint(this, `InboundEndpoint`, {
+      direction: 'INBOUND',
+      ipAddresses,
+      securityGroupIds: [securityGroup.ref],
+      name: `${this.props.name} Inbound Endpoint`,
+    });
+
+    const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
+      this,
+      'CfnInBoundEndpointIpPooler',
+      this.props.context.cfnDnsEndpointIpsLambdaArn,
+    );
+
+    // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
+    const getDnsEndpointIpsResource = new cfn.CustomResource(this, 'InboundIp', {
+      provider: cfn.CustomResourceProvider.fromLambda(getDnsEndpointIpsLambda),
+      properties: {
+        EndpointResolver: this._inboundEndpoint.ref,
+        AccountId: cdk.Aws.ACCOUNT_ID,
+      },
+    });
+
+    // Every IP address that we supply to inbound endpoint will result in an DNS endpoint IP
+    this._inboundEndpointIps = ipAddresses.map((_, index) => {
+      return getDnsEndpointIpsResource.getAttString(`IpAddress${index}`);
+    });
+
+    return this._inboundEndpoint;
+  }
+
+  /**
+   * Enable outbound endpoints.
+   */
+  enableOutboundEndpoint(): r53resolver.CfnResolverEndpoint {
+    if (this._outboundEndpoint) {
+      return this._outboundEndpoint;
     }
 
-    if (inBoundEndpoint) {
-      const lambdaFnc = lambda.Function.fromFunctionArn(
-        this,
-        'CfnInBoundEndpointIpPooler',
-        props.context.cfnDnsEndpointIpsLambdaArn,
-      );
-      // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
-      const inBoundIpPooler = new cfn.CustomResource(this, 'InBoundIPPooler', {
-        provider: cfn.CustomResourceProvider.fromLambda(lambdaFnc),
-        properties: {
-          EndpointResolver: inBoundEndpoint.ref,
-          AccountId: props.accountId,
-        },
-      });
+    // Create Security Group for Outbound Endpoint
+    const securityGroup = new ec2.CfnSecurityGroup(this, `OutboundSecurityGroup`, {
+      groupDescription: 'Security Group for Public Hosted Zone Outbound EndpointRoute53',
+      vpcId: this.props.vpcId,
+      groupName: `${this.props.name}_outbound_sg`,
+    });
 
-      const targetIps: string[] = [''];
-      for (let i = 1; i <= ipAddress.length; i++) {
-        targetIps.push(inBoundIpPooler.getAttString(`IpAddress${i}`));
-      }
-      this.inBoundEndpointIps = targetIps.join(',');
-    }
+    const ipAddresses = this.props.subnetIds.map(subnetId => ({
+      subnetId,
+    }));
+
+    // Create Outbound Resolver Endpoint
+    this._outboundEndpoint = new r53resolver.CfnResolverEndpoint(this, `OutboundEndpoint`, {
+      direction: 'OUTBOUND',
+      ipAddresses,
+      securityGroupIds: [securityGroup.ref],
+      name: `${this.props.name} Outbound Endpoint`,
+    });
+    return this._outboundEndpoint;
+  }
+
+  get inboundEndpoint(): r53resolver.CfnResolverEndpoint | undefined {
+    return this._inboundEndpoint;
+  }
+
+  get inboundEndpointRef(): string | undefined {
+    return this.inboundEndpoint?.ref;
+  }
+
+  get outboundEndpoint(): r53resolver.CfnResolverEndpoint | undefined {
+    return this._outboundEndpoint;
+  }
+
+  get outboundEndpointRef(): string | undefined {
+    return this.outboundEndpoint?.ref;
+  }
+
+  get inboundEndpointIps(): string[] {
+    // Return a copy of the list so the original one isn't mutable
+    return [...this._inboundEndpointIps];
   }
 }

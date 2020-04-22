@@ -132,21 +132,25 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      const cfnLambdaRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
+      // TODO Restrict role permissions
+      const dnsEndpointIpPollerRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
         roleName: 'LambdaRoleRoute53Resolver',
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      const cfnLambda = new lambda.Function(this, 'DnsEndpointIPPoller', {
+      const dnsEndpointIpPollerLambda = new lambda.Function(this, 'DnsEndpointIpPoller', {
         runtime: lambda.Runtime.NODEJS_12_X,
         code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
         handler: 'index.handler',
-        role: cfnLambdaRole,
+        role: dnsEndpointIpPollerRole,
+        environment: {
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
+        },
       });
 
       // Allow Cloudformation to trigger the handler
-      cfnLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
+      dnsEndpointIpPollerLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
         action: 'lambda:InvokeFunction',
         principal: new iam.AnyPrincipal(),
       });
@@ -202,7 +206,7 @@ export namespace InitialSetup {
             },
             CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: cfnLambda.functionArn,
+              value: dnsEndpointIpPollerLambda.functionArn,
             },
           },
         },
@@ -330,28 +334,10 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const storeStackOutput = new CodeTask(this, 'Store Log Archive Stack Output', {
+      const enableResourceSharingTask = new CodeTask(this, 'Enable Resource Sharing', {
         functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
+          code: props.lambdas.codeForEntry('enable-resource-sharing'),
           role: pipelineRole,
-        },
-        functionPayload: {
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const storeMainOutput = new CodeTask(this, 'Store Main Stack Output', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
@@ -369,32 +355,50 @@ export namespace InitialSetup {
         sourceBucketKey: solutionZip.s3ObjectKey,
       };
 
-      const deployLogArchiveTask = new sfn.Task(this, 'Deploy Log Archive Stacks', {
+      const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             ...deployTaskCommonInput,
-            appPath: 'apps/log-archive.ts',
+            appPath: 'apps/phase-0.ts',
           },
         }),
         resultPath: 'DISCARD',
       });
 
-      const deployMainTask = new sfn.Task(this, 'Deploy Main Stacks', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/main.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const enableResourceShareTask = new CodeTask(this, 'Enable Resource Sharing', {
+      const storePhase0Output = new CodeTask(this, 'Store Phase 0 Output', {
         functionProps: {
-          code: props.lambdas.codeForEntry('enable-resource-sharing'),
+          code: props.lambdas.codeForEntry('store-stack-output'),
           role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const deployPhase1Task = new sfn.Task(this, 'Deploy Phase 1', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-1.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const storePhase1Output = new CodeTask(this, 'Store Phase 1 Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
@@ -411,27 +415,14 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const deployDependentTask = new sfn.Task(this, 'Deploy Dependent Stacks', {
+      const deployPhase2Task = new sfn.Task(this, 'Deploy Phase 2', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             ...deployTaskCommonInput,
-            appPath: 'apps/dependent-stacks.ts',
+            appPath: 'apps/phase-2.ts',
           },
         }),
-        resultPath: 'DISCARD',
-      });
-
-      const storeDependentOutput = new CodeTask(this, 'Store Dependent Stack Output', {
-        functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
-          role: pipelineRole,
-        },
-        functionPayload: {
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
-          'accounts.$': '$.accounts',
-        },
         resultPath: 'DISCARD',
       });
 
@@ -442,14 +433,13 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(enableResourceShareTask)
-          .next(deployLogArchiveTask)
-          .next(storeStackOutput)
-          .next(deployMainTask)
-          .next(storeMainOutput)
-          .next(addTagsToSharedResourcesTask)
-          .next(deployDependentTask)
-          .next(storeDependentOutput),
+          .next(enableResourceSharingTask)
+          .next(deployPhase0Task)
+          .next(storePhase0Output)
+          .next(deployPhase1Task)
+          .next(storePhase1Output)
+          .next(deployPhase2Task)
+          .next(addTagsToSharedResourcesTask),
       });
     }
   }

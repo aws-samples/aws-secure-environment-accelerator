@@ -12,6 +12,7 @@ export interface Route53ZonesProps {
 export class Route53Zones extends cdk.Construct {
   readonly publicZoneToDomainMap = new Map<string, string>();
   readonly privateZoneToDomainMap = new Map<string, string>();
+
   constructor(parent: cdk.Construct, name: string, props: Route53ZonesProps) {
     super(parent, name);
 
