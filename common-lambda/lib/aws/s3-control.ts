@@ -12,7 +12,7 @@ export class S3Control {
 
   /**
    * to put the s3 public access block setting at account level
-   * @param input 
+   * @param input
    */
   async putPublicAccessBlock(input: s3control.PutPublicAccessBlockRequest): Promise<void> {
     this.client.putPublicAccessBlock(input).promise();
@@ -20,10 +20,11 @@ export class S3Control {
 
   /**
    * to get the s3 public access block setting at account level
-   * @param input 
+   * @param input
    */
-  async getPublicAccessBlock(input: s3control.GetPublicAccessBlockRequest): Promise<s3control.GetPublicAccessBlockOutput> {
+  async getPublicAccessBlock(
+    input: s3control.GetPublicAccessBlockRequest,
+  ): Promise<s3control.GetPublicAccessBlockOutput> {
     return this.client.getPublicAccessBlock(input).promise();
   }
-
 }

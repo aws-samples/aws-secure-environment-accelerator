@@ -1,8 +1,6 @@
 import * as aws from 'aws-sdk';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
-import {
-  PutPublicAccessBlockRequest,
-} from 'aws-sdk/clients/s3control';
+import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 
@@ -20,7 +18,7 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
   const sts = new STS();
 
   const organizationAccounts = await organizations.listAccounts();
-  
+
   const accountCredentials: { [accountId: string]: aws.Credentials } = {};
   const getAccountCredentials = async (accountId: string): Promise<aws.Credentials> => {
     if (accountCredentials[accountId]) {
@@ -36,7 +34,7 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     const credentials = await getAccountCredentials(accountId!);
 
     const s3control = new S3Control(credentials);
-    
+
     const input: PutPublicAccessBlockRequest = {
       AccountId: accountId!,
       PublicAccessBlockConfiguration: {
@@ -46,7 +44,7 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
         RestrictPublicBuckets: true,
       },
     };
-    
+
     // TODO check the flag before the call; flag yet to be added in config file
     await s3control.getPublicAccessBlock(input);
   }
