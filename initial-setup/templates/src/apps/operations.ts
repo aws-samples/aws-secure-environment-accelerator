@@ -44,27 +44,26 @@ async function main() {
   for (const accountConfig of Object.values(mandatoryAccountConfig)) {
     const madDeploymentConfig = accountConfig.deployments!.mad;
     if (madDeploymentConfig && madDeploymentConfig.deploy) {
-      
-      let vpcIdKey: string;
-      const subnetKeys: string[] = [];
-      let deployedAccountName: string;
+      // let vpcIdKey: string;
+      // const subnetKeys: string[] = [];
+      // let deployedAccountName: string;
 
-      for (const orgUnit of Object.values(organizationUnits)) {
-        if (orgUnit.vpc?.name === madDeploymentConfig['vpc-name']) {
-          deployedAccountName = orgUnit.vpc.deploy!;
-          for (const subnet of orgUnit.vpc.subnets!) {
-            if (subnet.name === madDeploymentConfig.subnet) {
-              vpcIdKey = ''; // TODO get the VPC Key Id
-              for (const [key, definition] of Object.entries(subnet.definitions)) {
-                if (!definition.disabled) {
-                  subnetKeys.push(definition.az);
-                } // TODO get the subnet ids
-                // break; // TODO
-              }
-            }
-          }
-        }
-      }
+      // for (const orgUnit of Object.values(organizationUnits)) {
+      //   if (orgUnit.vpc?.name === madDeploymentConfig['vpc-name']) {
+      //     deployedAccountName = orgUnit.vpc.deploy!;
+      //     for (const subnet of orgUnit.vpc.subnets!) {
+      //       if (subnet.name === madDeploymentConfig.subnet) {
+      //         vpcIdKey = ''; // TODO get the VPC Key Id
+      //         for (const [key, definition] of Object.entries(subnet.definitions)) {
+      //           if (!definition.disabled) {
+      //             subnetKeys.push(definition.az);
+      //           } // TODO get the subnet ids
+      //           // break; // TODO
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
 
       const accountId = getAccountId(accounts, accountConfig['account-name']);
       const madPassword = secretsStack.createSecret('MadPassword', {

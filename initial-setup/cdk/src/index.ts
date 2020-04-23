@@ -462,6 +462,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const enableDirectoryShareTask = new CodeTask(this, 'Enable Directory Sharing', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('enable-directory-sharing'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.executionRoleName,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
@@ -477,7 +491,8 @@ export namespace InitialSetup {
           .next(storeMainOutput)
           .next(addTagsToSharedResourcesTask)
           .next(deployOperationsAccountkTask)
-          .next(storeOperationsStackOutput),
+          .next(storeOperationsStackOutput)
+          .next(enableDirectoryShareTask),
       });
     }
   }

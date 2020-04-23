@@ -2,6 +2,8 @@ import * as cdk from '@aws-cdk/core';
 import { CfnMicrosoftAD } from '@aws-cdk/aws-directoryservice';
 import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
+import * as logs from '@aws-cdk/aws-logs';
+import * as iam from '@aws-cdk/aws-iam';
 
 export interface ActiveDirectoryProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -18,23 +20,27 @@ export class ActiveDirectory extends cdk.Construct {
   readonly outputPrefix: string;
   constructor(scope: cdk.Construct, id: string, props: ActiveDirectoryProps) {
     super(scope, id);
+    const { madDeploymentConfig, subnetInfo, password } = props;
 
-    const { password } = props;
+    const createLogGroup = new logs.LogGroup(this, 'MadLogGroup', {
+      logGroupName: `/aws/directoryservice/${madDeploymentConfig['log-group-name']}`,
+    });
 
-    console.log('AD password ', password.secretValue.toString());
-    const deployment = props.madDeploymentConfig;
+    const servicePrincipal = new iam.ServicePrincipal('ds.amazonaws.com');
+    createLogGroup.grant(servicePrincipal, 'logs:PutLogEvents', 'logs:CreateLogStream');
+
     const microsoftAD = new CfnMicrosoftAD(this, 'MicrosoftAD', {
-      name: deployment['dns-domain'],
+      name: madDeploymentConfig['dns-domain'],
       password: password.secretValue.toString(),
       vpcSettings: {
-        subnetIds: props.subnetInfo.subnetIds,
-        vpcId: props.subnetInfo.vpcId,
+        subnetIds: subnetInfo.subnetIds,
+        vpcId: subnetInfo.vpcId,
       },
-      edition: deployment.size,
-      shortName: deployment['netbios-domain'],
+      edition: madDeploymentConfig.size,
+      shortName: madDeploymentConfig['netbios-domain'],
     });
     this.directoryId = microsoftAD.ref;
     this.dnsIps = microsoftAD.attrDnsIpAddresses;
-    this.outputPrefix = `Mad${deployment['vpc-name']}Subnet${deployment.subnet}`;
+    this.outputPrefix = `Mad${madDeploymentConfig['vpc-name']}Subnet${madDeploymentConfig.subnet}`;
   }
 }

@@ -10,8 +10,9 @@ export class DirectoryService {
     });
   }
 
-  async shareDirectory(input: ds.ShareDirectoryRequest): Promise<void> {
-    await this.client.shareDirectory(input).promise();
+  async shareDirectory(input: ds.ShareDirectoryRequest): Promise<string> {
+    const result = await this.client.shareDirectory(input).promise();
+    return result.SharedDirectoryId!;
   }
 
   async acceptDirectory(input: ds.AcceptSharedDirectoryRequest): Promise<void> {
@@ -24,5 +25,17 @@ export class DirectoryService {
 
   async createAdConnector(input: ds.ConnectDirectoryRequest): Promise<void> {
     await this.client.connectDirectory(input).promise();
+  }
+
+  async hasLogGroup(input: ds.ListLogSubscriptionsRequest): Promise<boolean> {
+    const result = await this.client.listLogSubscriptions(input).promise();
+    return result.LogSubscriptions!.length > 0;
+  }
+
+  async describeSharedDirectories(input: ds.DescribeSharedDirectoriesRequest): Promise<string[]> {
+    const result = await this.client.describeSharedDirectories(input).promise();
+    const sharedDirectoriesResult = result.SharedDirectories;
+    const sharedAccounts = sharedDirectoriesResult!.map(o => o.SharedAccountId!);
+    return sharedAccounts;
   }
 }

@@ -10,16 +10,14 @@ interface ShareDirectoryInput {
   accounts: Account[];
   stackOutputSecretId: string;
   assumeRoleName: string;
-  configSecretId: string;
+  configSecretSourceId: string;
 }
 
 export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD  to Master account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, assumeRoleName, stackOutputSecretId, configSecretId } = input;
-
-  const masterAccountId = getAccountId(accounts, 'master');
+  const { accounts, assumeRoleName, stackOutputSecretId, configSecretSourceId: configSecretId } = input;
 
   const secrets = new SecretsManager();
   const configString = await secrets.getSecret(configSecretId);
@@ -29,6 +27,7 @@ export const handler = async (input: ShareDirectoryInput) => {
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutputs;
 
   const sts = new STS();
+  const masterAccountId = getAccountId(accounts, 'master'); // TODO get it dynamically
 
   for (const mandatoryConfig of Object.values(acceleratorConfig['mandatory-account-configs'])) {
     const madConfig = mandatoryConfig.deployments?.mad;
@@ -36,33 +35,43 @@ export const handler = async (input: ShareDirectoryInput) => {
       const directoryId = getStackOutput(
         outputs,
         mandatoryConfig['account-name'],
-        `MAD${madConfig['vpc-name']}Subnet${madConfig.subnet}Id`,
+        `Mad${madConfig['vpc-name']}Subnet${madConfig.subnet}Id`,
       );
 
       const accountId = getAccountId(accounts, mandatoryConfig['account-name']);
       const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
       const directoryService = new DirectoryService(credentials);
+      const hasLogGroup = await directoryService.hasLogGroup({ DirectoryId: directoryId });
 
-      await directoryService.enableCloudWatchLogs({
-        DirectoryId: directoryId,
-        LogGroupName: 'PBMM-Active-Directory', // TODO get group name
-      });
+      if (!hasLogGroup) {
+        await directoryService.enableCloudWatchLogs({
+          DirectoryId: directoryId,
+          LogGroupName: `/aws/directoryservice/${madConfig['log-group-name']}`,
+        });
+      }
 
       if (madConfig['share-to-master']) {
-        await directoryService.shareDirectory({
-          DirectoryId: directoryId,
-          ShareMethod: 'ORGANIZATIONS',
-          ShareTarget: {
-            Id: masterAccountId,
-            Type: 'Account',
-          },
-        });
+        const sharedAccounts = await directoryService.describeSharedDirectories({ OwnerDirectoryId: directoryId });
 
-        const masterCredentials = await sts.getCredentialsForAccountAndRole(masterAccountId, assumeRoleName);
-        const masterDirectoryService = new DirectoryService(masterCredentials);
-        await masterDirectoryService.acceptDirectory({
-          SharedDirectoryId: directoryId,
-        });
+        if (!sharedAccounts.includes(masterAccountId)) {
+          const sharedDirectoryId = await directoryService.shareDirectory({
+            DirectoryId: directoryId,
+            ShareMethod: 'HANDSHAKE', // Sharing outside of an organization use ORGANIZATIONS
+            ShareTarget: {
+              Id: masterAccountId,
+              Type: 'ACCOUNT',
+            },
+          });
+
+          if (sharedDirectoryId) {
+            console.log('Accepting the request from master account');
+            const masterCredentials = await sts.getCredentialsForAccountAndRole(masterAccountId, assumeRoleName);
+            const masterDirectoryService = new DirectoryService(masterCredentials);
+            await masterDirectoryService.acceptDirectory({
+              SharedDirectoryId: sharedDirectoryId,
+            });
+          }
+        }
       }
     }
   }
