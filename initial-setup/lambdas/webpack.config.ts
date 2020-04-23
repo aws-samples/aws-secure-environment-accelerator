@@ -27,7 +27,7 @@ const config: webpack.Configuration = {
     'get-dns-endpoint-ipaddress': './src/get-dns-endpoint-ips.ts',
     'enable-resource-sharing': './src/enable-resource-sharing-step.ts',
     's3-block-public-access': './src/s3-block-public-access-step.ts',
-    'associate-hosted-zones': '.src/associate-hosted-zones.ts',
+    'associate-hosted-zones': './src/associate-hosted-zones-step.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
