@@ -149,13 +149,15 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
         .afterwards(),
     );
 
-    waitCreateInstancesTask.next(verifyCreateInstancesTask).next(
-      new sfn.Choice(scope, 'Stack Set Instances Creation Done?')
-        .when(sfn.Condition.stringEquals(verifyCreateInstancesTaskStatusPath, 'SUCCESS'), updateInstancesTask)
-        .when(sfn.Condition.stringEquals(verifyCreateInstancesTaskStatusPath, 'IN_PROGRESS'), waitCreateInstancesTask)
-        .otherwise(fail)
-        .afterwards(),
-    );
+    waitCreateInstancesTask
+      .next(verifyCreateInstancesTask)
+      .next(
+        new sfn.Choice(scope, 'Stack Set Instances Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyCreateInstancesTaskStatusPath, 'SUCCESS'), updateInstancesTask)
+          .when(sfn.Condition.stringEquals(verifyCreateInstancesTaskStatusPath, 'IN_PROGRESS'), waitCreateInstancesTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
     updateInstancesTask.next(
       new sfn.Choice(scope, 'Stack Set Instances Updated?')
@@ -165,13 +167,15 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
         .afterwards(),
     );
 
-    waitUpdateInstancesTask.next(verifyUpdateInstancesTask).next(
-      new sfn.Choice(scope, 'Stack Set Instances Update Done?')
-        .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'SUCCESS'), deleteInstancesTask)
-        .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'IN_PROGRESS'), waitUpdateInstancesTask)
-        .otherwise(fail)
-        .afterwards(),
-    );
+    waitUpdateInstancesTask
+      .next(verifyUpdateInstancesTask)
+      .next(
+        new sfn.Choice(scope, 'Stack Set Instances Update Done?')
+          .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'SUCCESS'), deleteInstancesTask)
+          .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'IN_PROGRESS'), waitUpdateInstancesTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
     deleteInstancesTask.next(
       new sfn.Choice(scope, 'Stack Set Instances Deleted?')
@@ -181,21 +185,25 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
         .afterwards(),
     );
 
-    waitDeleteInstancesTask.next(verifyDeleteInstancesTask).next(
-      new sfn.Choice(scope, 'Stack Set Instances Deletion Done?')
-        .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'SUCCESS'), pass)
-        .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'), waitDeleteInstancesTask)
-        .otherwise(fail)
-        .afterwards(),
-    );
+    waitDeleteInstancesTask
+      .next(verifyDeleteInstancesTask)
+      .next(
+        new sfn.Choice(scope, 'Stack Set Instances Deletion Done?')
+          .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'), waitDeleteInstancesTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
-    waitTask.next(verifyTask).next(
-      new sfn.Choice(scope, 'Stack Set Creation Done?')
-        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), createInstancesTask)
-        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
-        .otherwise(fail)
-        .afterwards(),
-    );
+    waitTask
+      .next(verifyTask)
+      .next(
+        new sfn.Choice(scope, 'Stack Set Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), createInstancesTask)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
     const chain = sfn.Chain.start(createTask).next(
       new sfn.Choice(scope, 'Stack Set Created?')
