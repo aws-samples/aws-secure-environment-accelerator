@@ -9,11 +9,6 @@ export type CreateOrUpdateStackInput = Intersect<cfn.CreateStackInput, cfn.Updat
 export type CreateOrUpdateStackOutput = Intersect<cfn.CreateStackOutput, cfn.UpdateStackOutput>;
 export type CreateOrUpdateStackSetInput = Intersect<cfn.CreateStackSetInput, cfn.UpdateStackSetInput>;
 export type CreateOrUpdateStackSetOutput = Intersect<cfn.CreateStackSetOutput, cfn.UpdateStackSetOutput>;
-export type CreateOrUpdateStackInstancesInput = Intersect<cfn.CreateStackInstancesInput, cfn.UpdateStackInstancesInput>;
-export type CreateOrUpdateStackInstancesOutput = Intersect<
-  cfn.CreateStackInstancesOutput,
-  cfn.UpdateStackInstancesOutput
->;
 
 export class CloudFormation {
   private readonly client: aws.CloudFormation;
@@ -165,6 +160,27 @@ export class CloudFormation {
     return this.client.updateStackSet(input).promise();
   }
 
+  /**
+   * Wrapper around AWS.CloudFormation.createStackInstances.
+   */
+  async createStackInstances(input: cfn.CreateStackInstancesInput): Promise<cfn.CreateStackInstancesOutput> {
+    return this.client.createStackInstances(input).promise();
+  }
+
+  /**
+   * Wrapper around AWS.CloudFormation.updateStackInstances.
+   */
+  async updateStackInstances(input: cfn.UpdateStackInstancesInput): Promise<cfn.UpdateStackInstancesOutput> {
+    return this.client.updateStackInstances(input).promise();
+  }
+
+  /**
+   * Wrapper around AWS.CloudFormation.deleteStackInstances.
+   */
+  async deleteStackInstances(input: cfn.DeleteStackInstancesInput): Promise<cfn.DeleteStackInstancesOutput> {
+    return this.client.deleteStackInstances(input).promise();
+  }
+
   async createOrUpdateStackSet(input: CreateOrUpdateStackSetInput): Promise<CreateOrUpdateStackSetOutput | undefined> {
     const stackSetName = input.StackSetName;
     const stackSet = await this.describeStackSet(stackSetName);
@@ -183,37 +199,6 @@ export class CloudFormation {
       }
     } else {
       return this.createStackSet(input);
-    }
-  }
-
-  async createOrUpdateStackSetInstances(
-    input: CreateOrUpdateStackInstancesInput,
-  ): Promise<CreateOrUpdateStackInstancesOutput | undefined> {
-    const inputWithOperationPreferences = {
-      OperationPreferences: {
-        FailureTolerancePercentage: 100,
-        MaxConcurrentPercentage: 100,
-      },
-      ...input,
-    };
-
-    const stackSetName = inputWithOperationPreferences.StackSetName;
-    console.log(`Creating instances for stack set "${stackSetName}"`);
-
-    try {
-      // FIXME Calling create or update on stack instances always fails with OperationInProgressException
-      const instances = await this.listStackInstances(stackSetName);
-      if (instances.length === 0) {
-        return this.client.createStackInstances(inputWithOperationPreferences).promise();
-      } else {
-        return this.client.updateStackInstances(inputWithOperationPreferences).promise();
-      }
-    } catch (e) {
-      if (e.errorType !== 'OperationInProgressException') {
-        throw e;
-      }
-      console.warn(`Warning while creating stack instances`);
-      console.warn(e);
     }
   }
 }

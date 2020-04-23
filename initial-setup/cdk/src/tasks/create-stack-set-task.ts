@@ -69,10 +69,52 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       },
     });
 
-    const verifyInstancesTaskResultPath = '$.verifyInstancesOutput';
-    const verifyInstancesTaskStatusPath = `${verifyInstancesTaskResultPath}.status`;
-    const verifyInstancesTask = new CodeTask(scope, 'Verify Stack Set Instances Creation', {
-      resultPath: verifyInstancesTaskResultPath,
+    const verifyCreateInstancesTaskResultPath = '$.verifyCreateInstancesOutput';
+    const verifyCreateInstancesTaskStatusPath = `${verifyCreateInstancesTaskResultPath}.status`;
+    const verifyCreateInstancesTask = new CodeTask(scope, 'Verify Stack Set Instances Creation', {
+      resultPath: verifyCreateInstancesTaskResultPath,
+      functionProps: {
+        role,
+        code: lambdas.codeForEntry('create-stack-set/verify'),
+      },
+    });
+
+    const updateInstancesTaskResultPath = '$.updateInstancesOutput';
+    const updateInstancesTaskStatusPath = `${updateInstancesTaskResultPath}.status`;
+    const updateInstancesTask = new CodeTask(scope, `Start Stack Set Instance Update`, {
+      resultPath: updateInstancesTaskResultPath,
+      functionPayload,
+      functionProps: {
+        role,
+        code: lambdas.codeForEntry('create-stack-set/update-stack-set-instances'),
+      },
+    });
+
+    const verifyUpdateInstancesTaskResultPath = '$.verifyUpdateInstancesOutput';
+    const verifyUpdateInstancesTaskStatusPath = `${verifyUpdateInstancesTaskResultPath}.status`;
+    const verifyUpdateInstancesTask = new CodeTask(scope, 'Verify Stack Set Instances Update', {
+      resultPath: verifyUpdateInstancesTaskResultPath,
+      functionProps: {
+        role,
+        code: lambdas.codeForEntry('create-stack-set/verify'),
+      },
+    });
+
+    const deleteInstancesTaskResultPath = '$.deleteInstancesOutput';
+    const deleteInstancesTaskStatusPath = `${deleteInstancesTaskResultPath}.status`;
+    const deleteInstancesTask = new CodeTask(scope, `Start Stack Set Instance Deletion`, {
+      resultPath: deleteInstancesTaskResultPath,
+      functionPayload,
+      functionProps: {
+        role,
+        code: lambdas.codeForEntry('create-stack-set/delete-stack-set-instances'),
+      },
+    });
+
+    const verifyDeleteInstancesTaskResultPath = '$.verifyUpdateInstancesOutput';
+    const verifyDeleteInstancesTaskStatusPath = `${verifyDeleteInstancesTaskResultPath}.status`;
+    const verifyDeleteInstancesTask = new CodeTask(scope, 'Verify Stack Set Instances Deletion', {
+      resultPath: verifyDeleteInstancesTaskResultPath,
       functionProps: {
         role,
         code: lambdas.codeForEntry('create-stack-set/verify'),
@@ -83,7 +125,15 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const waitInstancesTask = new sfn.Wait(scope, 'Wait for Stack Set Instances Creation', {
+    const waitCreateInstancesTask = new sfn.Wait(scope, 'Wait for Stack Set Instances Creation', {
+      time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
+    });
+
+    const waitUpdateInstancesTask = new sfn.Wait(scope, 'Wait for Stack Set Instances Update', {
+      time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
+    });
+
+    const waitDeleteInstancesTask = new sfn.Wait(scope, 'Wait for Stack Set Instances Deletion', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
@@ -93,31 +143,59 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
 
     createInstancesTask.next(
       new sfn.Choice(scope, 'Stack Set Instances Created?')
-        .when(sfn.Condition.stringEquals(createInstancesTaskStatusPath, 'UP_TO_DATE'), pass)
-        .when(sfn.Condition.stringEquals(createInstancesTaskStatusPath, 'SUCCESS'), waitInstancesTask)
+        .when(sfn.Condition.stringEquals(createInstancesTaskStatusPath, 'UP_TO_DATE'), updateInstancesTask)
+        .when(sfn.Condition.stringEquals(createInstancesTaskStatusPath, 'SUCCESS'), waitCreateInstancesTask)
         .otherwise(fail)
         .afterwards(),
     );
 
-    waitInstancesTask
-      .next(verifyInstancesTask)
-      .next(
-        new sfn.Choice(scope, 'Stack Set Instances Creation Done?')
-          .when(sfn.Condition.stringEquals(verifyInstancesTaskStatusPath, 'SUCCESS'), pass)
-          .when(sfn.Condition.stringEquals(verifyInstancesTaskStatusPath, 'IN_PROGRESS'), waitInstancesTask)
-          .otherwise(fail)
-          .afterwards(),
-      );
+    waitCreateInstancesTask.next(verifyCreateInstancesTask).next(
+      new sfn.Choice(scope, 'Stack Set Instances Creation Done?')
+        .when(sfn.Condition.stringEquals(verifyCreateInstancesTaskStatusPath, 'SUCCESS'), updateInstancesTask)
+        .when(sfn.Condition.stringEquals(verifyCreateInstancesTaskStatusPath, 'IN_PROGRESS'), waitCreateInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
 
-    waitTask
-      .next(verifyTask)
-      .next(
-        new sfn.Choice(scope, 'Stack Set Creation Done?')
-          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), createInstancesTask)
-          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
-          .otherwise(fail)
-          .afterwards(),
-      );
+    updateInstancesTask.next(
+      new sfn.Choice(scope, 'Stack Set Instances Updated?')
+        .when(sfn.Condition.stringEquals(updateInstancesTaskStatusPath, 'UP_TO_DATE'), deleteInstancesTask)
+        .when(sfn.Condition.stringEquals(updateInstancesTaskStatusPath, 'SUCCESS'), waitUpdateInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
+
+    waitUpdateInstancesTask.next(verifyUpdateInstancesTask).next(
+      new sfn.Choice(scope, 'Stack Set Instances Update Done?')
+        .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'SUCCESS'), deleteInstancesTask)
+        .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'IN_PROGRESS'), waitUpdateInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
+
+    deleteInstancesTask.next(
+      new sfn.Choice(scope, 'Stack Set Instances Deleted?')
+        .when(sfn.Condition.stringEquals(deleteInstancesTaskStatusPath, 'UP_TO_DATE'), pass)
+        .when(sfn.Condition.stringEquals(deleteInstancesTaskStatusPath, 'SUCCESS'), waitDeleteInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
+
+    waitDeleteInstancesTask.next(verifyDeleteInstancesTask).next(
+      new sfn.Choice(scope, 'Stack Set Instances Deletion Done?')
+        .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'SUCCESS'), pass)
+        .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'), waitDeleteInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
+
+    waitTask.next(verifyTask).next(
+      new sfn.Choice(scope, 'Stack Set Creation Done?')
+        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), createInstancesTask)
+        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
 
     const chain = sfn.Chain.start(createTask).next(
       new sfn.Choice(scope, 'Stack Set Created?')
