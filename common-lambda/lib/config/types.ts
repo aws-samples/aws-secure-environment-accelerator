@@ -19,15 +19,17 @@ export const cidr = new t.Type<IPv4CidrRange, string, unknown>(
 );
 
 export class EnumType<T> extends t.Type<T> {
-  public readonly _tag: 'EnumType' = 'EnumType';
+  readonly _tag: 'EnumType' = 'EnumType';
+  readonly values: readonly T[];
 
-  public constructor(values: ReadonlyArray<T>, name?: string) {
+  constructor(values: ReadonlyArray<T>, name?: string) {
     super(
       name || 'enum',
       (u): u is T => values.some(v => v === u),
       (u, c) => (this.is(u) ? t.success(u) : t.failure(u, c)),
       t.identity,
     );
+    this.values = values;
   }
 }
 

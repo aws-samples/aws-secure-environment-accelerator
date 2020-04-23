@@ -1,6 +1,7 @@
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { LandingZoneAccountType, LoadConfigurationOutput } from './load-configuration-step';
+import { LoadConfigurationOutput } from './load-configuration-step';
+import { LandingZoneAccountType } from '@aws-pbmm/common-lambda/lib/config';
 
 export interface LoadAccountsInput {
   accountsSecretId: string;
@@ -16,14 +17,6 @@ export interface Account {
   name: string;
   email: string;
   ou: string;
-  /**
-   * Using JSONPath in step machines does not always work to filter [?@.type != "primary"] so we store primary as a
-   * boolean here.
-   */
-  primary: boolean;
-  /**
-   * The type of the Landing Zone account if it is a Landing Zone account.
-   */
   type?: LandingZoneAccountType;
 }
 
@@ -56,8 +49,6 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       );
     }
 
-    // TODO Verify organizational unit
-
     accounts.push({
       key: accountConfig.accountKey,
       id: organizationAccount.Id!,
@@ -66,7 +57,6 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       email: organizationAccount.Email!,
       ou: accountConfig.organizationalUnit,
       type: accountConfig.landingZoneAccountType,
-      primary: accountConfig.landingZoneAccountType === 'primary',
     });
   }
 

@@ -122,7 +122,7 @@ export namespace InitialSetup {
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
-        roleName: 'AcceleratorPipelineRole',
+        roleName: 'AcceleratorMasterRole',
         assumedBy: new iam.CompositePrincipal(
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
@@ -291,11 +291,6 @@ export namespace InitialSetup {
         }),
       });
 
-      // Initialize the role in all accounts excluding the primary
-      // We exclude the primary as this stack is probably installed in the primary account as well
-      // and you cannot create a stack set instance in your own account
-      const installRolesInstanceAccountIds = '$.accounts[?(@.primary != true)].id';
-
       const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
         task: new tasks.StartExecution(installRolesStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
@@ -311,7 +306,7 @@ export namespace InitialSetup {
               s3BucketName: installRoleTemplate.s3BucketName,
               s3ObjectKey: installRoleTemplate.s3ObjectKey,
             },
-            'instanceAccounts.$': installRolesInstanceAccountIds,
+            'instanceAccounts.$': '$.accounts[*].id',
             instanceRegions: [stack.region],
           },
         }),
