@@ -66,11 +66,40 @@ async function main() {
   // Role that is used by the CodeBuild project
   const bootstrapProjectRole = new iam.Role(stack, 'BootstrapRole', {
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
-    managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
   });
+
+  // Allow all CloudFormation permissions
+  bootstrapProjectRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['cloudformation:*'],
+      resources: [`arn:aws:cloudformation:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:stack/*`],
+    }),
+  );
+
+  // Allow the role to access the CDK asset bucket
+  bootstrapProjectRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:*'],
+      resources: [`arn:aws:s3:::cdktoolkit-stagingbucket-*`],
+    }),
+  );
+
+  // Allow the role to create anything through CloudFormation
+  bootstrapProjectRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['*'],
+      resources: ['*'],
+      conditions: {
+        'ForAnyValue:StringEquals': {
+          'aws:CalledVia': ['cloudformation.amazonaws.com'],
+        },
+      },
+    }),
+  );
 
   // Define a build specification to build the initial setup templates
   const bootstrapProject = new codebuild.PipelineProject(stack, 'BootstrapProject', {
+    projectName: `${acceleratorPrefix.valueAsString}BootstrapProject`,
     role: bootstrapProjectRole,
     buildSpec: codebuild.BuildSpec.fromObject({
       version: '0.2',
@@ -146,6 +175,7 @@ async function main() {
   const sourceArtifact = new codepipeline.Artifact();
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
+    pipelineName: `${acceleratorPrefix.valueAsString}BootstrapPipeline`,
     // The default bucket is encrypted
     // That is not necessary for this pipeline so we create a custom unencrypted bucket.
     artifactBucket: new s3.Bucket(stack, 'ArtifactsBucket'),
