@@ -74,16 +74,18 @@ export class VpcSubnetSharing extends cdk.Construct {
 
     // Output the shared resources and their tags so that the `add-tags-to-shared-resources-step` step in the state
     // machine will add the tags to the shared resources.
-    new AddTagsToResourcesOutput(this, 'OutputSharedResources', {
-      dependencies: sharedSubnets.map(o => o.subnet),
-      produceResources: () =>
-        sharedSubnets.map(o => ({
-          resourceId: o.subnet.ref,
-          resourceType: 'subnet',
-          sourceAccountId: o.sourceAccountId,
-          targetAccountIds: o.targetAccountIds,
-          tags: o.subnet.tags.renderTags(),
-        })),
-    });
+    if (sharedSubnets.length > 0) {
+      new AddTagsToResourcesOutput(this, 'OutputSharedResources', {
+        dependencies: sharedSubnets.map(o => o.subnet),
+        produceResources: () =>
+          sharedSubnets.map(o => ({
+            resourceId: o.subnet.ref,
+            resourceType: 'subnet',
+            sourceAccountId: o.sourceAccountId,
+            targetAccountIds: o.targetAccountIds,
+            tags: o.subnet.tags.renderTags(),
+          })),
+      });
+    }
   }
 }

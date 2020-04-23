@@ -2,19 +2,12 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { Account } from './load-accounts-step';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { CloudFormation } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 export interface StoreStackOutputInput {
   stackOutputSecretId: string;
   assumeRoleName: string;
   accounts: Account[];
-}
-
-export interface AccountStackOutput {
-  accountKey: string;
-  outputKey?: string;
-  outputValue?: string;
-  outputDescription?: string;
-  outputExportName?: string;
 }
 
 export const handler = async (input: StoreStackOutputInput) => {
@@ -23,7 +16,7 @@ export const handler = async (input: StoreStackOutputInput) => {
 
   const { stackOutputSecretId, assumeRoleName, accounts } = input;
 
-  const outputs: AccountStackOutput[] = [];
+  const outputs: StackOutput[] = [];
   for (const account of accounts) {
     const sts = new STS();
     const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
@@ -62,4 +55,9 @@ export const handler = async (input: StoreStackOutputInput) => {
     SecretId: stackOutputSecretId,
     SecretString: JSON.stringify(outputs),
   });
+
+  return {
+    status: 'SUCCESS',
+    statusReason: outputs,
+  };
 };
