@@ -439,7 +439,7 @@ export namespace InitialSetup {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
-          .next(createAccountsTask)
+          // .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
