@@ -38,9 +38,9 @@ export const SubnetConfig = t.interface({
   definitions: t.array(SubnetDefinitionConfig),
 });
 
-export const gatewayEndpointTypes = ['s3', 'dynamodb'];
+export const GATEWAY_ENDPOINT_TYPES = ['s3', 'dynamodb'] as const;
 
-export const GatewayEndpointType = enumType<typeof gatewayEndpointTypes[number]>(gatewayEndpointTypes);
+export const GatewayEndpointType = enumType<typeof GATEWAY_ENDPOINT_TYPES[number]>(GATEWAY_ENDPOINT_TYPES);
 
 export const RouteConfig = t.interface({
   destination: t.unknown, // TODO Can be string or destination in another account
@@ -148,7 +148,16 @@ export const MadConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
+export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
+
+export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
+  LANDING_ZONE_ACCOUNT_TYPES,
+);
+
+export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
+
 export const MandatoryAccountConfigType = t.interface({
+  'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': NonEmptyString,
   email: NonEmptyString,
   ou: NonEmptyString,
@@ -178,16 +187,6 @@ export const OrganizationalUnitsConfigType = t.record(t.string, OrganizationalUn
 
 export type OrganizationalUnitsConfig = t.TypeOf<typeof OrganizationalUnitsConfigType>;
 
-export const GlobalOptionsAccountsConfigType = t.interface({
-  'lz-primary-account': t.string,
-  'lz-security-account': t.string,
-  'lz-log-archive-account': t.string,
-  'lz-shared-services-account': t.string,
-  mandatory: t.array(t.string),
-});
-
-export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
-
 export const ZoneNamesConfigType = t.interface({
   public: t.array(t.string),
   private: t.array(t.string),
@@ -203,7 +202,6 @@ export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigT
 
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
-  accounts: GlobalOptionsAccountsConfigType,
   zones: GlobalOptionsZonesConfigType,
 });
 
