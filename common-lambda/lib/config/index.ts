@@ -11,12 +11,16 @@ export const VirtualPrivateGatewayConfig = t.interface({
 
 export const PeeringConnectionConfig = t.interface({
   source: NonEmptyString,
-  subnets: NonEmptyString,
-  // TODO
+  'source-vpc': NonEmptyString,
+  'source-subnets': NonEmptyString,
+  'local-subnets': NonEmptyString,
 });
 
 export const NatGatewayConfig = t.interface({
-  subnet: NonEmptyString,
+  subnet: t.interface({
+    name: t.string,
+    az: t.string,
+  }),
 });
 
 export const SubnetDefinitionConfig = t.interface({
@@ -68,12 +72,25 @@ export const InterfaceEndpointConfig = t.interface({
   endpoints: t.array(InterfaceEndpointName),
 });
 
+export const ResolversConfigType = t.interface({
+  subnet: NonEmptyString,
+  outbound: t.boolean,
+  inbound: t.boolean,
+});
+
+export type ResolversConfig = t.TypeOf<typeof ResolversConfigType>;
+
+export const OnPremZoneConfigType = t.interface({
+  zone: NonEmptyString,
+  'outbound-ips': t.array(NonEmptyString),
+});
+
 export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
   name: NonEmptyString,
-  cidr: optional(cidr),
+  region,
+  cidr,
   cidr2: optional(cidr),
-  region: optional(region),
   'use-central-endpoints': fromNullable(t.boolean, false),
   'flow-logs': fromNullable(t.boolean, false),
   'log-retention': optional(t.number),
@@ -86,6 +103,8 @@ export const VpcConfigType = t.interface({
   'route-tables': optional(t.array(RouteTableConfig)),
   'tgw-attach': optional(TransitGatewayAttachConfig),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
+  resolvers: optional(ResolversConfigType),
+  'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
@@ -105,30 +124,60 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
-export const AccountConfigType = t.interface({
-  'account-name': NonEmptyString,
-  email: NonEmptyString,
-  ou: NonEmptyString,
-  vpc: optional(VpcConfigType),
-  deployments: t.interface({
-    tgw: optional(DeploymentConfigType),
-  }),
+export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+
+export const ADUserConfig = t.interface({
+  user: NonEmptyString,
+  groups: t.array(t.string),
 });
 
-export const OrganizationalUnitConfigType = t.interface({
-  vpc: VpcConfigType,
-});
-
-export const OrganizationalUnitsType = t.interface({
-  central: OrganizationalUnitConfigType,
+export const MadConfigType = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  region: t.string,
+  subnet: t.string,
+  size: t.string,
+  'dns-domain': t.string,
+  'netbios-domain': t.string,
+  'central-resolver-rule-account': t.string,
+  'central-resolver-rule-vpc': t.string,
+  'share-to-master': t.boolean,
+  restrict_srcips: t.array(cidr),
+  // 'password-policies': PasswordPolicyType,
+  'ad-groups': t.array(t.string),
+  'adc-group': t.string,
+  'ad-users': t.array(ADUserConfig),
 });
 
 export const MandatoryAccountConfigType = t.interface({
-  operations: AccountConfigType,
-  'shared-network': AccountConfigType,
-  master: AccountConfigType,
-  perimeter: AccountConfigType,
+  'account-name': NonEmptyString,
+  email: NonEmptyString,
+  ou: NonEmptyString,
+  'enable-s3-public-access': fromNullable(t.boolean, false),
+  vpc: optional(VpcConfigType),
+  deployments: optional(
+    t.interface({
+      tgw: optional(DeploymentConfigType),
+      mad: optional(MadConfigType),
+    }),
+  ),
 });
+
+export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
+
+export const MandatoryAccountsConfigType = t.record(t.string, MandatoryAccountConfigType);
+
+export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountsConfigType>;
+
+export const OrganizationalUnitConfigType = t.interface({
+  vpc: optional(VpcConfigType),
+});
+
+export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
+
+export const OrganizationalUnitsConfigType = t.record(t.string, OrganizationalUnitConfigType);
+
+export type OrganizationalUnitsConfig = t.TypeOf<typeof OrganizationalUnitsConfigType>;
 
 export const GlobalOptionsAccountsConfigType = t.interface({
   'lz-primary-account': t.string,
@@ -140,22 +189,34 @@ export const GlobalOptionsAccountsConfigType = t.interface({
 
 export type GlobalOptionsAccountsConfig = t.TypeOf<typeof GlobalOptionsAccountsConfigType>;
 
+export const ZoneNamesConfigType = t.interface({
+  public: t.array(t.string),
+  private: t.array(t.string),
+});
+
+export const GlobalOptionsZonesConfigType = t.interface({
+  account: NonEmptyString,
+  'resolver-vpc': NonEmptyString,
+  names: ZoneNamesConfigType,
+});
+
+export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigType>;
+
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   accounts: GlobalOptionsAccountsConfigType,
+  zones: GlobalOptionsZonesConfigType,
 });
+
+export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
 
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
-  'mandatory-account-configs': t.record(t.string, AccountConfigType),
-  'organizational-units': OrganizationalUnitsType,
+  'mandatory-account-configs': MandatoryAccountsConfigType,
+  'organizational-units': t.record(t.string, OrganizationalUnitConfigType),
 });
 
 export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
-export type AccountConfig = t.TypeOf<typeof AccountConfigType>;
-export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
-export type OrganizationalUnits = t.TypeOf<typeof OrganizationalUnitsType>;
-export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {

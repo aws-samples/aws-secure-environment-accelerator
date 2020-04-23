@@ -4,6 +4,7 @@ import * as path from 'path';
 export interface Context {
   acceleratorName: string;
   acceleratorPrefix: string;
+  cfnDnsEndpointIpsLambdaArn: string;
   acceleratorExecutionRoleName: string;
 }
 
@@ -16,9 +17,11 @@ export function loadContext(): Context {
     const contents = fs.readFileSync(configPath);
     return JSON.parse(contents.toString());
   }
+
   return {
     acceleratorName: process.env.ACCELERATOR_NAME!,
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
+    cfnDnsEndpointIpsLambdaArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
   };
 }

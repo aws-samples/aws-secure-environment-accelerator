@@ -9,10 +9,10 @@ shift
 ARGS=$@
 if [ -z "$ARGS" ]
 then
-  ARGS="*"
+  ARGS="'*'"
 fi
 
 pnpx cdk destroy \
   --require-approval never \
   --plugin "$(pwd)/../../plugins/assume-role" \
-  --app "pnpx ts-node src/$APP_PATH" "$ARGS"
+  --app "pnpx ts-node src/$APP_PATH" $ARGS

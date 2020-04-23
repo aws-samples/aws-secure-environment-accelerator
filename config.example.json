@@ -4,14 +4,11 @@
     "central-log-retention": 730,
     "zones": {
       "account": "shared-network",
-      "resolver-vpc": "endpoint",
+      "resolver-vpc": "Endpoint",
       "names": {
         "public": ["dept.cloud-nuage.canada.ca"],
         "private": ["dept.cloud-nuage.gc.ca"]
       }
-    },
-    "on-prem": {
-      "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     },
     "accounts": {
       "lz-primary-account": "master",
@@ -20,22 +17,311 @@
       "lz-shared-services-account": "shared-services",
       "mandatory": ["perimeter", "shared-network", "operations"]
     },
-    "ou": {
-      "ignore": ["core"],
-      "mandatory": ["central"],
-      "additional": ["sandbox", "unclass", "dev", "test", "prod"]
-    },
-    "iam-userids": {
-      "master-breakglass-ids": ["bgUser1", "bgUser2", "bgUser3"],
-      "master-Ops-ids": ["OpsUser1", "OpsUser2", "OpsUser3"]
+    "on-prem": {
+      "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
   },
   "mandatory-account-configs": {
+    "shared-network": {
+      "account-name": "SharedNetwork",
+      "email": "bmycroft+lzT-network@amazon.com",
+      "ou": "core",
+      "share-mad-from": "operations",
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          }
+        ]
+      },
+      "limits": {
+        "Amazon VPC/Interface VPC endpoints per VPC": 200,
+        "Amazon VPC/VPCs per Region": 15,
+        "AWS CloudFormation/Stack count": 400,
+        "AWS CloudFormation/Stack sets per administrator account": 400
+      },
+      "vpc": {
+        "deploy": "local",
+        "name": "Endpoint",
+        "cidr": "10.7.0.0/22",
+        "region": "ca-central-1",
+        "use-central-endpoints": false,
+        "flow-logs": true,
+        "log-retention": 90,
+        "igw": false,
+        "vgw": false,
+        "pcx": false,
+        "natgw": false,
+        "subnets": [
+          {
+            "name": "Endpoint",
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "Endpoint_Shared",
+                "cidr": "10.7.0.0/24"
+              },
+              {
+                "az": "b",
+                "route-table": "Endpoint_Shared",
+                "cidr": "10.7.1.0/24"
+              }
+            ]
+          }
+        ],
+        "gateway-endpoints": [],
+        "route-tables": [
+          {
+            "name": "Endpoint_Shared"
+          }
+        ],
+        "tgw-attach": {
+          "associate-to-tgw": "Main",
+          "account": "local",
+          "associate-type": "ATTACH",
+          "tgw-rt-associate": ["core"],
+          "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
+          "blackhole-route": false,
+          "attach-subnets": ["Endpoint"],
+          "options": ["DNS-support", "IPv6-support"]
+        },
+        "interface-endpoints": {
+          "subnet": "Endpoint",
+          "endpoints": [
+            "access-analyzer",
+            "application-autoscaling",
+            "appmesh-envoy-management",
+            "athena",
+            "autoscaling",
+            "autoscaling-plans",
+            "clouddirectory",
+            "cloudformation",
+            "cloudtrail",
+            "codebuild",
+            "codecommit",
+            "codecommit-fips",
+            "codepipeline",
+            "config",
+            "datasync",
+            "ec2",
+            "ec2messages",
+            "ecr.dkr",
+            "ecs",
+            "ecs-agent",
+            "ecs-telemetry",
+            "elasticfilesystem",
+            "elasticfilesystem-fips",
+            "elasticloadbalancing",
+            "elasticmapreduce",
+            "events",
+            "execute-api",
+            "git-codecommit",
+            "git-codecommit-fips",
+            "glue",
+            "kinesis-streams",
+            "kms",
+            "logs",
+            "monitoring",
+            "sagemaker.api",
+            "sagemaker.runtime",
+            "secretsmanager",
+            "servicecatalog",
+            "sms",
+            "sns",
+            "sqs",
+            "ssm",
+            "storagegateway",
+            "sts",
+            "transfer",
+            "workspaces",
+            "awsconnector",
+            "ecr.api",
+            "kinesis-firehose",
+            "ssmmessages",
+            "states"
+          ]
+        },
+        "resolvers": {
+          "subnet": "Endpoint",
+          "outbound": true,
+          "inbound": true
+        },
+        "on-premise-rules": [
+          {
+            "zone": "dept.gc.ca",
+            "outbound-ips": ["7.23.0.1", "7.26.0.2"]
+          },
+          {
+            "zone": "test.ca",
+            "outbound-ips": ["7.23.0.1", "7.26.0.2"]
+          }
+        ]
+      },
+      "deployments": {
+        "tgw": {
+          "name": "Main",
+          "asn": 64512,
+          "features": {
+            "DNS-support": true,
+            "VPN-ECMP-support": true,
+            "Default-route-table-association": false,
+            "Default-route-table-propagation": false,
+            "Auto-accept-sharing-attachments": false
+          },
+          "route-tables": ["core", "segregated", "shared", "standalone"]
+        }
+      }
+    },
+    "operations": {
+      "account-name": "Operations",
+      "email": "bmycroft+lzT-operations@amazon.com",
+      "ou": "core",
+      "limits": {},
+      "share-mad-from": "",
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Test-Role",
+            "Type": "Account",
+            "Policies": ["AdministratorAccess"],
+            "SourceAccount": "security",
+            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
+      },
+      "deployments": {
+        "mad": {
+          "dir-id": 1001,
+          "deploy": true,
+          "vpc-name": "Central",
+          "region": "ca-central-1",
+          "subnet": "GCWide",
+          "size": "enterprise",
+          "dns-domain": "brian.local",
+          "netbios-domain": "brian",
+          "central-resolver-rule-account": "shared-network",
+          "central-resolver-rule-vpc": "Endpoint",
+          "log-group-name": "PBMMAccel-MAD-brian-local-LG",
+          "share-to-master": true,
+          "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
+          "password-policies": {
+            "history": 24,
+            "max-age": 90,
+            "min-age": 1,
+            "min-len": 12,
+            "complexity": true,
+            "reversible": false,
+            "failed-attaempts": 6,
+            "lockout-duration": 30,
+            "lockout-attempts-reset": 30
+          },
+          "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
+          "adc-group": "ADConnector",
+          "ad-users": [
+            {
+              "user": "adconnector",
+              "groups": ["ADConnector"]
+            },
+            {
+              "user": "Brian",
+              "groups": [
+                "Provisioning",
+                "LogArchive-View",
+                "Security-Admin",
+                "Security-View",
+                "AWS Delegated Administrators"
+              ]
+            }
+          ]
+        },
+        "ops-dashboard": {
+          "deploy": true
+        },
+        "syslog": {
+          "deploy": true
+        },
+        "rdweb-pwd": {
+          "deploy": true,
+          "restrict_srcips": ["7.0.0.0/8", "10.0.0.0/8"]
+        }
+      }
+    },
     "perimeter": {
       "account-name": "Perimeter",
       "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
       "limits": {},
+      "share-mad-from": "",
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          },
+          {
+            "Policy-Name": "Fortigate-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Fortigate-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Forigate-Role",
+            "Type": "EC2",
+            "Policies": ["Fortigate-Policy"],
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
+      },
       "vpc": {
         "deploy": "local",
         "name": "Perimeter",
@@ -50,7 +336,10 @@
         },
         "pcx": false,
         "natgw": {
-          "subnet": "Public_az1"
+          "subnet": {
+            "name": "Public",
+            "az": "a"
+          }
         },
         "subnets": [
           {
@@ -213,198 +502,39 @@
           }
         }
       }
-    },
-    "operations": {
-      "account-name": "Operations",
-      "email": "bmycroft+lzT-operations@amazon.com",
-      "ou": "core",
-      "limits": {},
-      "deployments": {
-        "mad": {
-          "deploy": true,
-          "vpc-name": "central",
-          "region": "ca-central-1",
-          "subnet": "GCWide",
-          "size": "enterprise",
-          "dns-domain": "brian.local",
-          "netbios-domain": "brian",
-          "central-resolver-rule-account": "shared-network",
-          "central-resolver-rule-vpc": "endpoint",
-          "share-to-master": true,
-          "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
-          "password-policies": {
-            "history": 24,
-            "max-age": 90,
-            "min-age": 1,
-            "min-len": 12,
-            "complexity": true,
-            "reversible": false
-          },
-          "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
-          "adc-group": "ADConnector",
-          "ad-users": ["adconnector(ADConnector)", "Brian(*)"]
-        },
-        "ops-dashboard": {
-          "deploy": true
-        },
-        "syslog": {
-          "deploy": true
-        },
-        "rdweb-pwd": {
-          "deploy": true,
-          "restrict_srcips": ["7.0.0.0/8", "10.0.0.0/8"]
-        }
-      }
-    },
-    "shared-network": {
-      "account-name": "SharedNetwork",
-      "email": "bmycroft+lzT-network@amazon.com",
-      "ou": "core",
-      "limits": {
-        "Amazon VPC/Interface VPC endpoints per VPC": 200,
-        "Amazon VPC/VPCs per Region": 15,
-        "AWS CloudFormation/Stack count": 400,
-        "AWS CloudFormation/Stack sets per administrator account": 400
-      },
-      "vpc": {
-        "deploy": "local",
-        "name": "Endpoint",
-        "cidr": "10.7.0.0/22",
-        "region": "ca-central-1",
-        "use-central-endpoints": false,
-        "flow-logs": true,
-        "log-retention": 90,
-        "igw": false,
-        "vgw": false,
-        "pcx": false,
-        "natgw": false,
-        "subnets": [
-          {
-            "name": "Endpoint",
-            "definitions": [
-              {
-                "az": "a",
-                "route-table": "Endpoint_Shared",
-                "cidr": "10.7.0.0/24"
-              },
-              {
-                "az": "b",
-                "route-table": "Endpoint_Shared",
-                "cidr": "10.7.1.0/24"
-              }
-            ]
-          }
-        ],
-        "gateway-endpoints": [],
-        "route-tables": [
-          {
-            "name": "Endpoint_Shared"
-          }
-        ],
-        "tgw-attach": {
-          "associate-to-tgw": "Main",
-          "account": "local",
-          "associate-type": "ATTACH",
-          "tgw-rt-associate": ["core"],
-          "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
-          "blackhole-route": false,
-          "attach-subnets": ["Endpoint"],
-          "options": ["DNS-support", "IPv6-support"]
-        },
-        "interface-endpoints": {
-          "subnet": "Endpoint",
-          "endpoints": [
-            "access-analyzer",
-            "application-autoscaling",
-            "appmesh-envoy-management",
-            "athena",
-            "autoscaling",
-            "autoscaling-plans",
-            "clouddirectory",
-            "cloudformation",
-            "cloudtrail",
-            "codebuild",
-            "codecommit",
-            "codecommit-fips",
-            "codepipeline",
-            "config",
-            "datasync",
-            "ec2",
-            "ec2messages",
-            "ecr.dkr",
-            "ecs",
-            "ecs-agent",
-            "ecs-telemetry",
-            "elasticfilesystem",
-            "elasticfilesystem-fips",
-            "elasticloadbalancing",
-            "elasticmapreduce",
-            "events",
-            "execute-api",
-            "git-codecommit",
-            "git-codecommit-fips",
-            "glue",
-            "kinesis-streams",
-            "kms",
-            "logs",
-            "monitoring",
-            "sagemaker.api",
-            "sagemaker.runtime",
-            "secretsmanager",
-            "servicecatalog",
-            "sms",
-            "sns",
-            "sqs",
-            "ssm",
-            "storagegateway",
-            "sts",
-            "transfer",
-            "workspaces",
-            "awsconnector",
-            "ecr.api",
-            "kinesis-firehose",
-            "ssmmessages",
-            "states"
-          ]
-        },
-        "resolvers": {
-          "subnet": "Endpoint",
-          "outbound": true,
-          "inbound": true
-        },
-        "on-premise-rules": [
-          {
-            "zone": "dept.gc.ca",
-            "outbound-ips": ["7.23.0.1", "7.26.0.2"]
-          },
-          {
-            "zone": "test.ca",
-            "outbound-ips": ["7.23.0.1", "7.26.0.2"]
-          }
-        ]
-      },
-      "deployments": {
-        "tgw": {
-          "name": "Main",
-          "asn": 64512,
-          "features": {
-            "DNS-support": true,
-            "VPN-ECMP-support": true,
-            "Default-route-table-association": false,
-            "Default-route-table-propagation": false,
-            "Auto-accept-sharing-attachments": false
-          },
-          "route-tables": ["core", "segregated", "shared", "standalone"]
-        }
-      }
-    },
+    }
+  },
+  "lz-account-configs": {
     "master": {
       "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
-      "ou": "core",
+      "share-mad-from": "operations",
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
         "AWS CloudFormation/Stack count": 400
+      },
+      "iam": {
+        "users": [
+          {
+            "user-ids": ["bgUser1", "bgUser2"],
+            "group": "BreakGlassAdmins",
+            "Policies": ["Administrators"],
+            "BoundaryPolicy": "Default-Boundary-Policy"
+          },
+          {
+            "user-ids": ["OpsUser1", "OpsUser2"],
+            "group": "OpsAdmins",
+            "Policies": ["Administrators"],
+            "BoundaryPolicy": "Default-Boundary-Policy"
+          }
+        ],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": []
       },
       "vpc": {
         "deploy": "local",
@@ -416,11 +546,7 @@
         "log-retention": 90,
         "igw": false,
         "vgw": false,
-        "pcx": {
-          "source": "shared-network",
-          "vpc": "Central",
-          "subnets": "GCWide"
-        },
+        "pcx": false,
         "natgw": false,
         "subnets": [
           {
@@ -461,18 +587,54 @@
       "deployments": {
         "adc": {
           "deploy": true,
+          "vpc-name": "ForSSO",
           "subnet": "ForSSO",
           "size": "small",
-          "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"]
+          "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
+          "connect-account-key": "operations",
+          "connect-dir-id": 1001
         },
         "sso": {
           "deploy": true
         }
       }
+    },
+    "log-archive": {
+      "account-name": "log-archive",
+      "share-mad-from": "",
+      "ou": "core",
+      "email": "bmycroft+lzT+logs@amazon.com"
+    },
+    "security": {
+      "account-name": "security",
+      "share-mad-from": "",
+      "ou": "core",
+      "email": "bmycroft+lzT+security@amazon.com"
+    },
+    "shared-services": {
+      "account-name": "shared-services",
+      "share-mad-from": "",
+      "ou": "core",
+      "email": "bmycroft+lzT+services@amazon.com",
+      "enable-s3-public-access": true
+    }
+  },
+  "workload-account-configs": {
+    "fun-acct": {
+      "account-name": "TheFunAccount",
+      "email": "bmycroft+FunAcct@amazon.com",
+      "ou": "sandbox",
+      "share-mad-from": ""
     }
   },
   "organizational-units": {
+    "core": {
+      "type": "ignore",
+      "share-mad-from": ""
+    },
     "central": {
+      "type": "mandatory",
+      "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Central",
@@ -486,8 +648,9 @@
         "vgw": false,
         "pcx": {
           "source": "master",
-          "vpc": "ForSSO",
-          "subnets": "ForSSO"
+          "source-vpc": "ForSSO",
+          "source-subnets": "ForSSO",
+          "local-subnets": "GCWide"
         },
         "natgw": false,
         "subnets": [
@@ -684,9 +847,43 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
+      },
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Test-Role",
+            "Type": "Account",
+            "Policies": ["AdministratorAccess"],
+            "SourceAccount": "security",
+            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
       }
     },
     "dev": {
+      "type": "workload",
+      "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Dev",
@@ -847,9 +1044,43 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
+      },
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Test-Role",
+            "Type": "Account",
+            "Policies": ["AdministratorAccess"],
+            "SourceAccount": "security",
+            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
       }
     },
     "test": {
+      "type": "workload",
+      "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Test",
@@ -1010,9 +1241,43 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
+      },
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Test-Role",
+            "Type": "Account",
+            "Policies": ["AdministratorAccess"],
+            "SourceAccount": "security",
+            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
       }
     },
     "prod": {
+      "type": "workload",
+      "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "Prod",
@@ -1173,9 +1438,43 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
+      },
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Test-Role",
+            "Type": "Account",
+            "Policies": ["AdministratorAccess"],
+            "SourceAccount": "security",
+            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
       }
     },
     "unclass": {
+      "type": "workload",
+      "share-mad-from": "operations",
       "vpc": {
         "deploy": "shared-network",
         "name": "UnClass",
@@ -1336,9 +1635,43 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
+      },
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Test-Role",
+            "Type": "Account",
+            "Policies": ["AdministratorAccess"],
+            "SourceAccount": "security",
+            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
       }
     },
     "sandbox": {
+      "type": "workload",
+      "share-mad-from": "",
       "vpc": {
         "deploy": "local",
         "name": "Sandbox",
@@ -1351,7 +1684,10 @@
         "vgw": false,
         "pcx": false,
         "natgw": {
-          "subnets": ["Web_az1"]
+          "subnet": {
+            "name": "Web",
+            "az": "a"
+          }
         },
         "subnets": [
           {
@@ -1472,6 +1808,38 @@
           "associate-to-tgw": false
         },
         "interface-endpoints": false
+      },
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "Policy-Name": "Default-Boundary-Policy",
+            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "Role": "EC2-Default-SSM-AD",
+            "Type": "EC2",
+            "Policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "BoundaryPolicy": ["Default-Boundary-Policy"],
+            "SourceAccount": "",
+            "SourceAccount-role": ""
+          },
+          {
+            "Role": "Test-Role",
+            "Type": "Account",
+            "Policies": ["AdministratorAccess"],
+            "SourceAccount": "security",
+            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
+            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "BoundaryPolicy": ["Default-Boundary-Policy"]
+          }
+        ]
       }
     }
   }

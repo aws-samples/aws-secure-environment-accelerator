@@ -1,6 +1,5 @@
 import * as aws from 'aws-sdk';
 import AdmZip from 'adm-zip';
-import { Context } from 'aws-lambda';
 import { CloudFormation, objectToCloudFormationParameters } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
@@ -20,7 +19,7 @@ interface CreateMasterExecutionRoleInput {
   };
 }
 
-export const handler = async (input: CreateMasterExecutionRoleInput, context: Context) => {
+export const handler = async (input: CreateMasterExecutionRoleInput) => {
   console.log(`Creating stack...`);
   console.log(JSON.stringify(input, null, 2));
 

@@ -9,7 +9,7 @@ export class RAM {
     });
   }
 
-  async enableResourceSharing(): Promise<void> {
+  async enableSharingWithAwsOrganization(): Promise<void> {
     await this.client.enableSharingWithAwsOrganization({}).promise();
   }
 }

@@ -2,9 +2,7 @@ import * as cloudformation from '@aws-cdk/aws-cloudformation';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
-import { AccountConfig, InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { bgRed } from 'colors/safe';
-import * as t from 'io-ts';
 import { Vpc } from './vpc';
 
 interface InterfaceEndpointProps {
@@ -91,7 +89,8 @@ class InterfaceEndpoint extends cdk.Construct {
 
 export interface InterfaceEndpointsProps {
   vpc: Vpc;
-  accountConfig: AccountConfig;
+  subnetName: string;
+  interfaceEndpoints: string[];
 }
 
 /**
@@ -101,33 +100,12 @@ export class InterfaceEndpoints extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: InterfaceEndpointsProps) {
     super(scope, id);
 
-    const { vpc, accountConfig } = props;
+    const { vpc, subnetName, interfaceEndpoints } = props;
 
-    const vpcConfig = accountConfig.vpc!;
-    const vpcRegion = vpcConfig.region;
-    if (!t.string.is(vpcRegion)) {
-      console.log('Skipping interface endpoint as "region" is not set');
-      return;
-    }
-
-    const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
-    if (!InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
-      console.log('Skipping interface endpoint as "interface-endpoints" is not set');
-      return;
-    }
-
-    if (!t.string.is(interfaceEndpointConfig.subnet)) {
-      console.log('Skipping interface endpoint as "subnet" is not set');
-      return;
-    }
-
-    const subnetName = interfaceEndpointConfig.subnet;
-    const subnetIds = vpc.azSubnets.get(subnetName);
+    const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
     if (!subnetIds) {
       throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
     }
-
-    const interfaceEndpoints = interfaceEndpointConfig?.endpoints || [];
 
     // TODO Support Sagemaker Notebook endpoint
     if (interfaceEndpoints.includes('notebook')) {
@@ -151,7 +129,7 @@ export class InterfaceEndpoints extends cdk.Construct {
         new InterfaceEndpoint(nested, serviceName, {
           serviceName,
           vpcId: vpc.vpcId,
-          vpcRegion,
+          vpcRegion: vpc.region,
           subnetIds,
         });
       }
