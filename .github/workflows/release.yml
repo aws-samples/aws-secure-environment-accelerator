@@ -1,0 +1,55 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm
+      - name: Build Accelerator Installer
+        id: build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_DEFAULT_BRANCH: ${{ github.ref }}
+          INSTALLER_STACK_DIR: ./accelerator/installer
+          INSTALLER_STACK_NAME: AcceleratorInstaller
+          OUTPUT_DIR: templates
+        run: |
+          cd "${INSTALLER_STACK_DIR}"
+          pnpm install
+          pnpx cdk synth --output "${OUTPUT_DIR}" "${INSTALLER_STACK_NAME}"
+          echo $(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
+          echo ::set-output name=template_name::${INSTALLER_STACK_NAME}.template.json
+          echo ::set-output name=template_path::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: true
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEMPLATE_PATH: ${{ steps.build.outputs.template_path }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.build.outputs.template_path }}
+          asset_name: ${{ steps.build.outputs.template_name }}
+          asset_content_type: application/json
