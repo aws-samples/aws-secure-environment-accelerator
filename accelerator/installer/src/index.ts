@@ -16,8 +16,8 @@ process.on('unhandledRejection', (reason, _) => {
 async function main() {
   const app = new cdk.App();
 
-  const stack = new cdk.Stack(app, 'BootstrapStack', {
-    stackName: 'AcceleratorBootstrap',
+  const stack = new cdk.Stack(app, 'InstallerStack', {
+    stackName: 'AcceleratorInstaller',
   });
 
   const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
@@ -64,12 +64,12 @@ async function main() {
   const stateMachineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
   // Role that is used by the CodeBuild project
-  const bootstrapProjectRole = new iam.Role(stack, 'BootstrapRole', {
+  const installerProjectRole = new iam.Role(stack, 'InstallerRole', {
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
   });
 
   // Allow all CloudFormation permissions
-  bootstrapProjectRole.addToPolicy(
+  installerProjectRole.addToPolicy(
     new iam.PolicyStatement({
       actions: ['cloudformation:*'],
       resources: [`arn:aws:cloudformation:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:stack/*`],
@@ -77,7 +77,7 @@ async function main() {
   );
 
   // Allow the role to access the CDK asset bucket
-  bootstrapProjectRole.addToPolicy(
+  installerProjectRole.addToPolicy(
     new iam.PolicyStatement({
       actions: ['s3:*'],
       resources: [`arn:aws:s3:::cdktoolkit-stagingbucket-*`],
@@ -85,7 +85,7 @@ async function main() {
   );
 
   // Allow the role to create anything through CloudFormation
-  bootstrapProjectRole.addToPolicy(
+  installerProjectRole.addToPolicy(
     new iam.PolicyStatement({
       actions: ['*'],
       resources: ['*'],
@@ -98,9 +98,9 @@ async function main() {
   );
 
   // Define a build specification to build the initial setup templates
-  const bootstrapProject = new codebuild.PipelineProject(stack, 'BootstrapProject', {
-    projectName: `${acceleratorPrefix.valueAsString}BootstrapProject`,
-    role: bootstrapProjectRole,
+  const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
+    projectName: `${acceleratorPrefix.valueAsString}InstallerProject`,
+    role: installerProjectRole,
     buildSpec: codebuild.BuildSpec.fromObject({
       version: '0.2',
       phases: {
@@ -175,7 +175,7 @@ async function main() {
   const sourceArtifact = new codepipeline.Artifact();
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
-    pipelineName: `${acceleratorPrefix.valueAsString}BootstrapPipeline`,
+    pipelineName: `${acceleratorPrefix.valueAsString}InstallerPipeline`,
     // The default bucket is encrypted
     // That is not necessary for this pipeline so we create a custom unencrypted bucket.
     artifactBucket: new s3.Bucket(stack, 'ArtifactsBucket'),
@@ -198,7 +198,7 @@ async function main() {
         actions: [
           new actions.CodeBuildAction({
             actionName: 'DeployAccelerator',
-            project: bootstrapProject,
+            project: installerProject,
             input: sourceArtifact,
           }),
         ],
@@ -214,6 +214,8 @@ async function main() {
       },
     ],
   });
+
+  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName.valueAsString));
 }
 
 // tslint:disable-next-line: no-floating-promises

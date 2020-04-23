@@ -1,5 +1,5 @@
 {
-  "name": "@aws-pbmm/accelerator-bootstrap",
+  "name": "@aws-pbmm/accelerator-installer",
   "version": "0.0.1",
   "scripts": {
     "test": "pnpx jest",
