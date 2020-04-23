@@ -28,7 +28,8 @@ export namespace InitialSetup {
     acceleratorPrefix: string;
     acceleratorName: string;
     solutionRoot: string;
-    executionRoleName: string;
+    stateMachineName: string;
+    stateMachineExecutionRole: string;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -41,7 +42,7 @@ export class InitialSetup extends AcceleratorStack {
     new InitialSetup.Pipeline(this, 'Pipeline', props);
   }
 
-  static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props) {
+  static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props): Promise<InitialSetup> {
     const initialSetupRoot = path.join(props.solutionRoot, 'initial-setup');
     const lambdasRoot = path.join(initialSetupRoot, 'lambdas');
 
@@ -144,7 +145,7 @@ export namespace InitialSetup {
         handler: 'index.handler',
         role: dnsEndpointIpPollerRole,
         environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
         },
       });
 
@@ -197,11 +198,11 @@ export namespace InitialSetup {
             },
             ACCELERATOR_EXECUTION_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.executionRoleName,
+              value: props.stateMachineExecutionRole,
             },
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.executionRoleName,
+              value: props.stateMachineExecutionRole,
             },
             CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -303,7 +304,7 @@ export namespace InitialSetup {
             stackName: `${props.acceleratorPrefix}PipelineRole`,
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
-              RoleName: props.executionRoleName,
+              RoleName: props.stateMachineExecutionRole,
               // TODO Only add root role for development environments
               AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
@@ -327,7 +328,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          roleName: props.executionRoleName,
+          roleName: props.stateMachineExecutionRole,
           policyName: coreMandatoryScpName,
         },
         resultPath: 'DISCARD',
@@ -372,7 +373,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -396,7 +397,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -409,7 +410,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
         },
@@ -422,7 +423,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
@@ -440,6 +441,7 @@ export namespace InitialSetup {
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
+        stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
