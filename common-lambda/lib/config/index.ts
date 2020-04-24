@@ -180,10 +180,10 @@ export const MandatoryAccountConfigType = t.interface({
   ou: NonEmptyString,
   'enable-s3-public-access': fromNullable(t.boolean, false),
   vpc: optional(VpcConfigType),
-  deployments: t.interface({
+  deployments: optional(t.interface({
     tgw: optional(DeploymentConfigType),
     mad: optional(MadConfigType),
-  }),
+  })),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
