@@ -57,7 +57,7 @@ async function main() {
 
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
   for (const accountConfig of Object.values(mandatoryAccountConfig)) {
-    const madDeploymentConfig = accountConfig.deployments.mad;
+    const madDeploymentConfig = accountConfig.deployments!.mad;
     if (madDeploymentConfig && madDeploymentConfig.deploy) {
       const accountId = getAccountId(accounts, accountConfig['account-name']);
       const madPassword = secretsStack.createSecret('MadPassword', {
