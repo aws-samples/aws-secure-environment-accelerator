@@ -149,12 +149,13 @@ export const MadConfigType = t.interface({
   'netbios-domain': t.string,
   'central-resolver-rule-account': t.string,
   'central-resolver-rule-vpc': t.string,
+  'log-group-name': t.string,
   'share-to-master': t.boolean,
   restrict_srcips: t.array(cidr),
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
   'adc-group': t.string,
-  'ad-users': t.array(t.string),
+  'ad-users': t.array(ADUserConfig),
 });
 
 export const AccountConfigType = t.interface({

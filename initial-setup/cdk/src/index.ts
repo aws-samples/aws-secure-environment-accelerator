@@ -435,7 +435,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const enableDirectoryShareTask = new CodeTask(this, 'Enable Directory Sharing', {
+      const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
           code: props.lambdas.codeForEntry('enable-directory-sharing'),
           role: pipelineRole,
@@ -465,7 +465,7 @@ export namespace InitialSetup {
           .next(storePhase1Output)
           .next(deployPhase2Task)
           .next(addTagsToSharedResourcesTask)
-          .next(enableDirectoryShareTask),
+          .next(enableDirectorySharingTask),
       });
     }
   }

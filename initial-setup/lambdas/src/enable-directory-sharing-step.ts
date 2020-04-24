@@ -4,7 +4,7 @@ import { Account } from './load-accounts-step';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getAccountId } from '../../templates/src/utils/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { getStackOutput, StackOutputs } from '../../templates/src/utils/outputs';
+import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 interface ShareDirectoryInput {
   accounts: Account[];
@@ -24,7 +24,7 @@ export const handler = async (input: ShareDirectoryInput) => {
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
   const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutputs;
+  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
   const masterAccountId = getAccountId(accounts, 'master'); // TODO get it dynamically
