@@ -8,16 +8,23 @@ You need an AWS account with Landing Zone deployed.
 
 ### Using the Installer
 
+1. Login to the Organization MASTER AWS account where AWS Landing Zone is deployed with AdministratorAccess.
+2. Set the region to Canada (ca-central-1).
+3. Grant the AcceleratorMasterRole access to use the AwsLandingZoneKMSKey.
+
 #### Create a GitHub Personal Access Token.
 
 1. You can find the instructions on how to create a personal access token here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
 2. Select the scope `repo: Full control over private repositories`.
 3. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token`.
+   (Store a new secret, Other type of secrets, Plaintext, paste your secret with no formatting no leading or trailing spaces, select DefaultEncryptionKey, Next, set the secret name, Disable rotation, Next, Store)
 
 #### Create an Accelerator Configuration File
 
 1. You can use the [`config.example.json`](./config.example.json) file as base.
 2. Make sure to update the account names and email addresses to match the ones in your account.
+   ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING***
+   ***Expected file content and values will be defined in future***
 3. Store the configuration file in Secrets Manager as plain text. Name the secret `accelerator/config`.
 
 #### Deploy the Accelerator Installer Stack
@@ -25,12 +32,14 @@ You need an AWS account with Landing Zone deployed.
 1. You can find the latest release in the repository: https://github.com/aws-samples/aws-pbmm-accelerator/releases
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account.
-4. Fill out the required parameters.
+4. Fill out the required parameters (at this time, set the branch to master, accept the other defaults).
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
 state machine should start automatically and deploy the Accelerator in your account.
 
-### Using the Command-Line
+After the pipline executes, the state machine will execute (Step functions).
+
+### Using the Command-Line (Not required if followed above process)
 
 Configure the AWS CLI so that CDK can deploy in the AWS account.
 
