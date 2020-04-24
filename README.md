@@ -13,12 +13,16 @@ You need an AWS account with Landing Zone deployed.
 1. You can find the instructions on how to create a personal access token here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
 2. Select the scope `repo: Full control over private repositories`.
 3. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token`.
+   - Via the AWS console;
+   - Via the AWS CLI `aws secretsmanager create-secret --name accelerator/github-token --secret-string <token>`
 
 #### Create an Accelerator Configuration File
 
 1. You can use the [`config.example.json`](./config.example.json) file as base.
 2. Make sure to update the account names and email addresses to match the ones in your account.
 3. Store the configuration file in Secrets Manager as plain text. Name the secret `accelerator/config`.
+   - Via the AWS console;
+   - Via the AWS CLI `aws secretsmanager create-secret --name accelerator/config --secret-string file://<path>`
 
 #### Deploy the Accelerator Installer Stack
 
