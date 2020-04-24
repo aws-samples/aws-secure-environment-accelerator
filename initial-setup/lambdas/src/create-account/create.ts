@@ -1,5 +1,5 @@
 import { AccountVendingMachine, CreateAccountOutput } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
-import { LandingZoneAccountType, ConfigurationAccount } from '../load-configuration-step';
+import { ConfigurationAccount } from '../load-configuration-step';
 
 interface CreateMasterExecutionRoleInput {
   avmPortfolioName: string;
@@ -13,7 +13,6 @@ export const handler = async (input: CreateMasterExecutionRoleInput): Promise<Cr
 
   const { avmPortfolioName, avmProductName, account } = input;
 
-  // TODO Find a better way to detect the master account
   if (account.landingZoneAccountType) {
     return {
       status: 'NOT_RELEVANT',

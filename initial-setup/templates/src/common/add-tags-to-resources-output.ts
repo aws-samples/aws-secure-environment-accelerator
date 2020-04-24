@@ -1,4 +1,5 @@
 import * as cdk from '@aws-cdk/core';
+import { JsonOutputValue, JsonOutputProps } from './json-output';
 
 export interface Tag {
   key: string;
@@ -12,7 +13,7 @@ export interface AddTagsToResource {
   tags: Tag[];
 }
 
-export interface AddTagsToResourcesOutputProps {
+export interface AddTagsToResourcesOutputProps extends Omit<JsonOutputProps, 'value' | 'type'> {
   /**
    * List of dependencies that need to be resolved before calling `produceResources`.
    */
@@ -34,15 +35,12 @@ export class AddTagsToResourcesOutput extends cdk.Construct {
 
     // Use cdk.Lazy here and add dependency on the subnets to make sure the tags are attached to the subnet before
     // rendering the tags
-    const output = new cdk.CfnOutput(this, 'AddTagsToResources', {
-      value: cdk.Lazy.stringValue({
-        // Render the subnet IDs and tags and convert to a JSON string
-        produce: () =>
-          JSON.stringify({
-            type: 'AddTagsToResources',
-            resources: props.produceResources(),
-          }),
-      }),
+    const output = new JsonOutputValue(this, 'AddTagsToResources', {
+      type: 'AddTagsToResources',
+      value: props.produceResources,
+      description: props.description,
+      condition: props.condition,
+      exportName: props.exportName,
     });
     for (const dependency of props.dependencies) {
       output.node.addDependency(dependency);

@@ -38,6 +38,7 @@ jest.mock('@aws-pbmm/common-lambda/lib/landing-zone', () => ({
 }));
 
 jest.mock('@aws-pbmm/common-lambda/lib/config', () => ({
+  LANDING_ZONE_ACCOUNT_TYPES: ['primary', 'security', 'log-archive', 'shared-services'],
   AcceleratorConfig: class {
     static fromString() {
       return values.acceleratorConfig;

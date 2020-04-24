@@ -13,43 +13,46 @@ test('the handler should be successfully return when the configuration is correc
   });
 
   expect(result.accounts).toHaveLength(5);
-  expect(result.accounts).toMatchObject([
-    {
-      accountKey: 'primary-key',
-      accountName: 'primary',
-      emailAddress: 'lz@amazon.com',
-      landingZoneAccountType: 'primary',
-      organizationalUnit: 'core',
-    },
-    {
-      accountKey: 'shared-network-key',
-      accountName: 'shared-network',
-      emailAddress: 'lz+shared-network@amazon.com',
-      landingZoneAccountType: undefined,
-      organizationalUnit: 'core',
-    },
-    {
-      accountKey: 'security-account-key',
-      accountName: 'security',
-      emailAddress: 'lz+security@amazon.com',
-      landingZoneAccountType: 'security',
-      organizationalUnit: 'core',
-    },
-    {
-      accountKey: 'log-archive-key',
-      accountName: 'log-archive',
-      emailAddress: 'lz+log-archive@amazon.com',
-      landingZoneAccountType: 'log-archive',
-      organizationalUnit: 'core',
-    },
-    {
-      accountKey: 'shared-services-key',
-      accountName: 'shared-services',
-      emailAddress: 'lz+shared-services@amazon.com',
-      landingZoneAccountType: 'shared-services',
-      organizationalUnit: 'core',
-    },
-  ]);
+
+  expect(result.accounts).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        accountKey: 'primary-key',
+        accountName: 'primary',
+        emailAddress: 'lz@amazon.com',
+        landingZoneAccountType: 'primary',
+        organizationalUnit: 'core',
+      }),
+      expect.objectContaining({
+        accountKey: 'log-archive-key',
+        accountName: 'log-archive',
+        emailAddress: 'lz+log-archive@amazon.com',
+        landingZoneAccountType: 'log-archive',
+        organizationalUnit: 'core',
+      }),
+      expect.objectContaining({
+        accountKey: 'security-key',
+        accountName: 'security',
+        emailAddress: 'lz+security@amazon.com',
+        landingZoneAccountType: 'security',
+        organizationalUnit: 'core',
+      }),
+      expect.objectContaining({
+        accountKey: 'shared-services-key',
+        accountName: 'shared-services',
+        emailAddress: 'lz+shared-services@amazon.com',
+        landingZoneAccountType: 'shared-services',
+        organizationalUnit: 'core',
+      }),
+      expect.objectContaining({
+        accountKey: 'shared-network-key',
+        accountName: 'shared-network',
+        emailAddress: 'lz+shared-network@amazon.com',
+        landingZoneAccountType: undefined,
+        organizationalUnit: 'core',
+      }),
+    ]),
+  );
 });
 
 test('the handler should throw an error when the Accelerator config email does not match the account email', async () => {
@@ -180,19 +183,30 @@ function reset() {
   };
 
   mocks.values.acceleratorConfig = {
-    'global-options': {
-      accounts: {
-        'lz-primary-account': 'primary-key',
-        'lz-security-account': 'security-account-key',
-        'lz-log-archive-account': 'log-archive-key',
-        'lz-shared-services-account': 'shared-services-key',
-      },
-    },
     'mandatory-account-configs': {
       'primary-key': {
         ou: 'core',
+        'landing-zone-account-type': 'primary',
         'account-name': 'primary',
         email: 'lz@amazon.com',
+      },
+      'log-archive-key': {
+        ou: 'core',
+        'landing-zone-account-type': 'log-archive',
+        'account-name': 'log-archive',
+        email: 'lz+log-archive@amazon.com',
+      },
+      'security-key': {
+        ou: 'core',
+        'landing-zone-account-type': 'security',
+        'account-name': 'security',
+        email: 'lz+security@amazon.com',
+      },
+      'shared-services-key': {
+        ou: 'core',
+        'landing-zone-account-type': 'shared-services',
+        'account-name': 'shared-services',
+        email: 'lz+shared-services@amazon.com',
       },
       'shared-network-key': {
         ou: 'core',

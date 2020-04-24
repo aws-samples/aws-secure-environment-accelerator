@@ -1,26 +1,9 @@
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import * as fs from 'fs';
 import * as path from 'path';
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
-export interface StackOutput {
-  accountKey: string;
-  outputKey?: string;
-  outputValue?: string;
-  outputDescription?: string;
-  outputExportName?: string;
-}
-
-export type StackOutputs = StackOutput[];
-
-export function getStackOutput(outputs: StackOutputs, accountKey: string, outputKey: string): string {
-  const output = outputs.find(o => o.outputKey === outputKey && o.accountKey === accountKey);
-  if (!output) {
-    throw new Error(`Cannot find output with key "${outputKey}" in account with key "${accountKey}"`);
-  }
-  return output.outputValue!;
-}
-
-export async function loadStackOutputs(): Promise<StackOutputs> {
+export async function loadStackOutputs(): Promise<StackOutput[]> {
   if (process.env.CONFIG_MODE === 'development') {
     const outputsPath = path.join(__dirname, '..', '..', 'outputs.json');
     if (!fs.existsSync(outputsPath)) {
