@@ -90,11 +90,11 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
 
     const ec2 = new EC2(credentials);
     const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(true);
-    console.log('enableEbsEncryptionByDefaultResult: ',enableEbsEncryptionByDefaultResult);
+    console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
 
     const modifyEbsDefaultKmsKeyIdResult = ec2.modifyEbsDefaultKmsKeyId(kmsKey.KeyMetadata!.KeyId, true);
-    console.log('modifyEbsDefaultKmsKeyIdResult: ',modifyEbsDefaultKmsKeyIdResult);
-  }
+    console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
+  };
 
   const mandatoryAccountConfigs = config['mandatory-account-configs'];
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {

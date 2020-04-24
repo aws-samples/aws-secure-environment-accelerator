@@ -1,9 +1,5 @@
 import * as aws from 'aws-sdk';
-import {
-  CreateKeyRequest,
-  CreateKeyResponse,
-  CreateAliasRequest,
-} from 'aws-sdk/clients/kms';
+import { CreateKeyRequest, CreateKeyResponse, CreateAliasRequest } from 'aws-sdk/clients/kms';
 
 export class KMS {
   private readonly client: aws.KMS;
@@ -16,7 +12,7 @@ export class KMS {
 
   /**
    * to create KMS key
-   * @param params 
+   * @param params
    */
   async createKey(params: CreateKeyRequest): Promise<CreateKeyResponse> {
     return this.client.createKey(params).promise();
@@ -24,15 +20,14 @@ export class KMS {
 
   /**
    * to create alias for a kms key
-   * @param aliasName 
-   * @param targetKeyId 
+   * @param aliasName
+   * @param targetKeyId
    */
   async createAlias(aliasName: string, targetKeyId: string): Promise<void> {
     const params: CreateAliasRequest = {
       AliasName: aliasName,
-      TargetKeyId: targetKeyId
+      TargetKeyId: targetKeyId,
     };
     this.client.createAlias(params);
   }
-
 }
