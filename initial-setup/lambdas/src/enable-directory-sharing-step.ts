@@ -20,7 +20,7 @@ interface MadOutput {
 }
 
 export const handler = async (input: ShareDirectoryInput) => {
-  console.log(`Sharing MAD  to Master account ...`);
+  console.log(`Sharing MAD to another account ...`);
   console.log(JSON.stringify(input, null, 2));
 
   const { accounts, assumeRoleName, stackOutputSecretId, configSecretSourceId: configSecretId } = input;
@@ -65,24 +65,24 @@ export const handler = async (input: ShareDirectoryInput) => {
     }
 
     if (madConfig['share-to-account']) {
-      const masterAccountId = getAccountId(accounts, madConfig['share-to-account']);
+      const sharedAccountId = getAccountId(accounts, madConfig['share-to-account']);
       const sharedAccounts = await directoryService.findSharedAccounts({ OwnerDirectoryId: directoryId });
 
-      if (!sharedAccounts.includes(masterAccountId)) {
+      if (!sharedAccounts.includes(sharedAccountId)) {
         const sharedDirectoryId = await directoryService.shareDirectory({
           DirectoryId: directoryId,
           ShareMethod: 'HANDSHAKE', // Sharing outside of an organization use ORGANIZATIONS
           ShareTarget: {
-            Id: masterAccountId,
+            Id: sharedAccountId,
             Type: 'ACCOUNT',
           },
         });
 
         if (sharedDirectoryId) {
-          console.log('Accepting the request from master account');
-          const masterCredentials = await sts.getCredentialsForAccountAndRole(masterAccountId, assumeRoleName);
-          const masterDirectoryService = new DirectoryService(masterCredentials);
-          await masterDirectoryService.acceptDirectory({
+          console.log('Accepting the request from shared account');
+          const sharedAccountCredentials = await sts.getCredentialsForAccountAndRole(sharedAccountId, assumeRoleName);
+          const sharedAccountDirectoryService = new DirectoryService(sharedAccountCredentials);
+          await sharedAccountDirectoryService.acceptDirectory({
             SharedDirectoryId: sharedDirectoryId,
           });
         }
