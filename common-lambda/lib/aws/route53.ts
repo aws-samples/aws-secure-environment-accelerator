@@ -21,42 +21,87 @@ export class Route53 {
 
   /**
    * to list the hosted zones
-   * @param input
+   * @param maxItems
+   * @param nextMarker
    */
-  async listHostedZones(input: ListHostedZonesRequest): Promise<ListHostedZonesResponse> {
-    return await this.client.listHostedZones(input).promise();
+  async listHostedZones(maxItems: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
+    let params: ListHostedZonesRequest = {};
+    if (nextMarker) {
+      params = {
+        MaxItems: maxItems,
+        Marker: nextMarker,
+      };
+    } else {
+      params = {
+        MaxItems: maxItems,
+      };
+    }
+    return this.client.listHostedZones(params).promise();
   }
 
   /**
    * to authorize the association of VPC with Hosted zone
    * must use the account that is used to create Hosted zone, to execute the request
-   * @param input
+   * @param privateHostedZoneId
+   * @param vpcId
+   * @param vpcRegion
    */
   async associateVPCWithHostedZone(
-    input: AssociateVPCWithHostedZoneRequest,
+    privateHostedZoneId: string,
+    vpcId: string,
+    vpcRegion: string,
   ): Promise<AssociateVPCWithHostedZoneResponse> {
-    return await this.client.associateVPCWithHostedZone(input).promise();
+    const params: AssociateVPCWithHostedZoneRequest = {
+      HostedZoneId: privateHostedZoneId,
+      VPC: {
+        VPCId: vpcId,
+        VPCRegion: vpcRegion,
+      },
+    };
+    return this.client.associateVPCWithHostedZone(params).promise();
   }
 
   /**
    * to associate the VPC with Hosted zone
    * must use the account that is used to create the VPC, to execute the request
-   * @param input
+   * @param privateHostedZoneId
+   * @param vpcId
+   * @param vpcRegion
    */
   async createVPCAssociationAuthorization(
-    input: CreateVPCAssociationAuthorizationRequest,
+    privateHostedZoneId: string,
+    vpcId: string,
+    vpcRegion: string,
   ): Promise<CreateVPCAssociationAuthorizationResponse> {
-    return await this.client.createVPCAssociationAuthorization(input).promise();
+    const params: AssociateVPCWithHostedZoneRequest = {
+      HostedZoneId: privateHostedZoneId,
+      VPC: {
+        VPCId: vpcId,
+        VPCRegion: vpcRegion,
+      },
+    };
+    return this.client.createVPCAssociationAuthorization(params).promise();
   }
 
   /**
    * to remove authorization to associate VPC with Hosted zone
    * must use the account that is used to create Hosted zone, to execute the request
-   * @param input
+   * @param privateHostedZoneId
+   * @param vpcId
+   * @param vpcRegion
    */
   async deleteVPCAssociationAuthorization(
-    input: DeleteVPCAssociationAuthorizationRequest,
+    privateHostedZoneId: string,
+    vpcId: string,
+    vpcRegion: string,
   ): Promise<DeleteVPCAssociationAuthorizationResponse> {
-    return await this.client.deleteVPCAssociationAuthorization(input).promise();
+    const params: AssociateVPCWithHostedZoneRequest = {
+      HostedZoneId: privateHostedZoneId,
+      VPC: {
+        VPCId: vpcId,
+        VPCRegion: vpcRegion,
+      },
+    };
+    return this.client.deleteVPCAssociationAuthorization(params).promise();
   }
 }
