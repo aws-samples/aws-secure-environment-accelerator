@@ -234,6 +234,8 @@
           "log-group-name": "PBMMAccel-MAD-brian-local-LG",
           "share-to-master": true,
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
+          "num-rdgw-hosts": 1,
+          "RDGWInstanceType": "t2.large", 
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -245,7 +247,8 @@
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
-          "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
+          "ad-groups": ["Provisioning"],
+          "ad-per-account-groups": ["-Admins", "-PowerUser", "-View"],
           "adc-group": "ADConnector",
           "ad-users": [
             {
@@ -256,10 +259,16 @@
               "user": "Brian",
               "groups": [
                 "Provisioning",
-                "LogArchive-View",
-                "Security-Admin",
-                "Security-View",
+                "*-View",
+                "*-Admin",
+                "*-PowerUsers",
                 "AWS Delegated Administrators"
+              ]
+            },
+            {
+              "user": "TestUser",
+              "groups": [
+                "*-View"
               ]
             }
           ]
