@@ -27,7 +27,7 @@ export const handler = async (input: CreateStackSetInstancesInput) => {
 
   console.log(`Creating stack instances for accounts ${instanceAccountsToBeCreated.join(', ')}`);
 
-  await cfn.updateStackInstances({
+  await cfn.createStackInstances({
     StackSetName: stackName,
     Accounts: instanceAccountsToBeCreated,
     Regions: instanceRegions,
