@@ -17,7 +17,7 @@ export interface ActiveDirectoryProps extends cdk.StackProps {
 export class ActiveDirectory extends cdk.Construct {
   readonly directoryId: string;
   readonly dnsIps: string[];
-  readonly outputPrefix: string;
+
   constructor(scope: cdk.Construct, id: string, props: ActiveDirectoryProps) {
     super(scope, id);
     const { madDeploymentConfig, subnetInfo, password } = props;
@@ -41,6 +41,5 @@ export class ActiveDirectory extends cdk.Construct {
     });
     this.directoryId = microsoftAD.ref;
     this.dnsIps = microsoftAD.attrDnsIpAddresses;
-    this.outputPrefix = `Mad${madDeploymentConfig['vpc-name']}Subnet${madDeploymentConfig.subnet}`;
   }
 }

@@ -452,7 +452,8 @@ export namespace InitialSetup {
 
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
-          code: props.lambdas.codeForEntry('enable-directory-sharing'),
+          code: lambdaCode,
+          handler: 'index.enableDirectorySharingStep',
           role: pipelineRole,
         },
         functionPayload: {

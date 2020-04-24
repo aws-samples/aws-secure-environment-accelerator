@@ -4,13 +4,19 @@ import { Account } from './load-accounts-step';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getAccountId } from '../../templates/src/utils/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 interface ShareDirectoryInput {
   accounts: Account[];
   stackOutputSecretId: string;
   assumeRoleName: string;
   configSecretSourceId: string;
+}
+
+interface MadOutput {
+  vpcName: string;
+  directoryId: string;
+  dnsIps: string;
 }
 
 export const handler = async (input: ShareDirectoryInput) => {
@@ -27,50 +33,58 @@ export const handler = async (input: ShareDirectoryInput) => {
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
-  const masterAccountId = getAccountId(accounts, 'master'); // TODO get it dynamically
 
-  for (const mandatoryConfig of Object.values(acceleratorConfig['mandatory-account-configs'])) {
+  for (const [accountKey, mandatoryConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
     const madConfig = mandatoryConfig.deployments?.mad;
-    if (madConfig && madConfig.deploy) {
-      const directoryId = getStackOutput(
-        outputs,
-        mandatoryConfig['account-name'],
-        `Mad${madConfig['vpc-name']}Subnet${madConfig.subnet}Id`,
-      );
+    if (!madConfig || !madConfig.deploy) {
+      continue;
+    }
 
-      const accountId = getAccountId(accounts, mandatoryConfig['account-name']);
-      const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-      const directoryService = new DirectoryService(credentials);
-      const hasLogGroup = await directoryService.hasLogGroup({ DirectoryId: directoryId });
+    const madOutputs: MadOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'MadOutput',
+    });
 
-      if (!hasLogGroup) {
-        await directoryService.enableCloudWatchLogs({
+    const madOuput = madOutputs.find(output => output.vpcName === madConfig['vpc-name']);
+    if (!madOuput || !madOuput.directoryId) {
+      throw new Error(`Cannot find madOuput with vpc name ${madConfig['vpc-name']}`);
+    }
+
+    const directoryId = madOuput.directoryId;
+
+    const accountId = getAccountId(accounts, accountKey);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+    const directoryService = new DirectoryService(credentials);
+    const hasLogGroup = await directoryService.hasLogGroup({ DirectoryId: directoryId });
+
+    if (!hasLogGroup) {
+      await directoryService.enableCloudWatchLogs({
+        DirectoryId: directoryId,
+        LogGroupName: `/aws/directoryservice/${madConfig['log-group-name']}`,
+      });
+    }
+
+    if (madConfig['share-to-account']) {
+      const masterAccountId = getAccountId(accounts, madConfig['share-to-account']);
+      const sharedAccounts = await directoryService.findSharedAccounts({ OwnerDirectoryId: directoryId });
+
+      if (!sharedAccounts.includes(masterAccountId)) {
+        const sharedDirectoryId = await directoryService.shareDirectory({
           DirectoryId: directoryId,
-          LogGroupName: `/aws/directoryservice/${madConfig['log-group-name']}`,
+          ShareMethod: 'HANDSHAKE', // Sharing outside of an organization use ORGANIZATIONS
+          ShareTarget: {
+            Id: masterAccountId,
+            Type: 'ACCOUNT',
+          },
         });
-      }
 
-      if (madConfig['share-to-master']) {
-        const sharedAccounts = await directoryService.describeSharedDirectories({ OwnerDirectoryId: directoryId });
-
-        if (!sharedAccounts.includes(masterAccountId)) {
-          const sharedDirectoryId = await directoryService.shareDirectory({
-            DirectoryId: directoryId,
-            ShareMethod: 'HANDSHAKE', // Sharing outside of an organization use ORGANIZATIONS
-            ShareTarget: {
-              Id: masterAccountId,
-              Type: 'ACCOUNT',
-            },
+        if (sharedDirectoryId) {
+          console.log('Accepting the request from master account');
+          const masterCredentials = await sts.getCredentialsForAccountAndRole(masterAccountId, assumeRoleName);
+          const masterDirectoryService = new DirectoryService(masterCredentials);
+          await masterDirectoryService.acceptDirectory({
+            SharedDirectoryId: sharedDirectoryId,
           });
-
-          if (sharedDirectoryId) {
-            console.log('Accepting the request from master account');
-            const masterCredentials = await sts.getCredentialsForAccountAndRole(masterAccountId, assumeRoleName);
-            const masterDirectoryService = new DirectoryService(masterCredentials);
-            await masterDirectoryService.acceptDirectory({
-              SharedDirectoryId: sharedDirectoryId,
-            });
-          }
         }
       }
     }

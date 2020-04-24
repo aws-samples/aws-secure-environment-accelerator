@@ -150,7 +150,7 @@ export const MadConfigType = t.interface({
   'central-resolver-rule-account': t.string,
   'central-resolver-rule-vpc': t.string,
   'log-group-name': t.string,
-  'share-to-master': t.boolean,
+  'share-to-account': optional(t.string),
   restrict_srcips: t.array(cidr),
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
