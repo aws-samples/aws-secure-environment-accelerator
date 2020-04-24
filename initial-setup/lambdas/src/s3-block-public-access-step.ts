@@ -5,6 +5,9 @@ import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
 import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { Account } from './load-accounts-step';
+import { KMS } from '@aws-pbmm/common-lambda/lib/aws/kms';
+import { CreateKeyRequest } from 'aws-sdk/clients/kms';
+import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 
 interface S3BlockPublicAccessInput {
   assumeRoleName: string;
@@ -13,7 +16,7 @@ interface S3BlockPublicAccessInput {
 }
 
 export const handler = async (input: S3BlockPublicAccessInput) => {
-  console.log('Turning ON S3 Block Public Access at account level for all accounts in an organization ...');
+  console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
   const { assumeRoleName, configSecretSourceId, accounts } = input;
@@ -53,7 +56,46 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
   };
 
-  // for all mandatory accounts
+  const enableEbsDefaultEncryption = async (accountId: string): Promise<void> => {
+    const credentials = await getAccountCredentials(accountId);
+    const kms = new KMS(credentials);
+
+    const kmsKeyPolicy: string = `{
+      'Id': 'key-consolepolicy-3',
+      'Version': '2012-10-17',
+      'Statement': [
+          {
+              'Sid': 'Enable IAM User Permissions',
+              'Effect': 'Allow',
+              'Principal': {
+                  "AWS": 'arn:aws:iam::${accountId}:root'
+              },
+              'Action': 'kms:*',
+              'Resource': '*'
+          }
+      ]
+    }`;
+
+    const createKeyRequest: CreateKeyRequest = {
+      Policy: kmsKeyPolicy,
+      Description: 'Default KMS key used for the encryption of EBS',
+      KeyUsage: 'ENCRYPT_DECRYPT', // default value
+      CustomerMasterKeySpec: 'SYMMETRIC_DEFAULT', // default value
+      Origin: 'AWS_KMS', // default value
+      BypassPolicyLockoutSafetyCheck: true,
+    };
+    const kmsKey = await kms.createKey(createKeyRequest);
+
+    kms.createAlias('EBS-Default-Key', kmsKey.KeyMetadata!.KeyId);
+
+    const ec2 = new EC2(credentials);
+    const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(true);
+    console.log('enableEbsEncryptionByDefaultResult: ',enableEbsEncryptionByDefaultResult);
+
+    const modifyEbsDefaultKmsKeyIdResult = ec2.modifyEbsDefaultKmsKeyId(kmsKey.KeyMetadata!.KeyId, true);
+    console.log('modifyEbsDefaultKmsKeyIdResult: ',modifyEbsDefaultKmsKeyIdResult);
+  }
+
   const mandatoryAccountConfigs = config['mandatory-account-configs'];
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
     const account = accounts.find(a => a.key === accountKey);
@@ -64,10 +106,14 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     // if flag is undefined or false, turn ON s3 block public access
     const blockPublicAccess = !accountConfig['enable-s3-public-access'];
     await putPublicAccessBlock(account.id, blockPublicAccess);
+    console.log(`Block S3 public access turned ON for account - ${accountKey}`);
+
+    await enableEbsDefaultEncryption(account.id);
+    console.log(`EBS default encryption turned ON with KMS CMK for account - ${accountKey}`);
   }
 
   return {
     status: 'SUCCESS',
-    statusReason: 'Successfully turned ON S3 Block Public Access at account level for all accounts.',
+    statusReason: 'Successfully defaults set at account level for all accounts in an organization.',
   };
 };
