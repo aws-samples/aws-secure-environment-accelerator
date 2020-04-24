@@ -226,7 +226,7 @@
           "vpc-name": "Central",
           "region": "ca-central-1",
           "subnet": "GCWide",
-          "size": "enterprise",
+          "size": "Enterprise",
           "dns-domain": "brian.local",
           "netbios-domain": "brian",
           "central-resolver-rule-account": "shared-network",
