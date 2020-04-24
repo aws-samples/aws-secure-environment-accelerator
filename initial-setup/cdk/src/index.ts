@@ -419,7 +419,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           'accounts.$': '$.accounts',
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
