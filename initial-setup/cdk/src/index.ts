@@ -296,7 +296,7 @@ export namespace InitialSetup {
 
       const installRolesStateMachine = new sfn.StateMachine(this, 'InstallRolesStateMachine', {
         definition: new CreateStackSetTask(this, 'Install', {
-          lambdaCode: lambdaCode,
+          lambdaCode,
           role: pipelineRole,
         }),
       });
@@ -350,7 +350,7 @@ export namespace InitialSetup {
 
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
-          lambdaCode: lambdaCode,
+          lambdaCode,
           role: pipelineRole,
         }),
       });
@@ -454,7 +454,7 @@ export namespace InitialSetup {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
-          // .next(createAccountsTask)
+          .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)

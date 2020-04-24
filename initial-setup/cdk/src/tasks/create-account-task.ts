@@ -81,13 +81,15 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'Account Creation Failed');
 
-    waitTask.next(verifyTask).next(
-      new sfn.Choice(scope, 'Account Creation Done?')
-        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
-        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
-        .otherwise(fail)
-        .afterwards(),
-    );
+    waitTask
+      .next(verifyTask)
+      .next(
+        new sfn.Choice(scope, 'Account Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
     createTask.next(
       new sfn.Choice(scope, 'Account Creation Started?')

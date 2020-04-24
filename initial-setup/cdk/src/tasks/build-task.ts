@@ -71,13 +71,15 @@ export class BuildTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'Build Failed');
 
-    waitTask.next(verifyTask).next(
-      new sfn.Choice(scope, 'Build Finished?')
-        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
-        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
-        .otherwise(fail)
-        .afterwards(),
-    );
+    waitTask
+      .next(verifyTask)
+      .next(
+        new sfn.Choice(scope, 'Build Finished?')
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
     const chain = sfn.Chain.start(startTask).next(
       new sfn.Choice(scope, 'Build Started?')

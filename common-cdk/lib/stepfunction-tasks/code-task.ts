@@ -10,8 +10,7 @@ export namespace CodeTask {
    *   * `handler`, `runtime` are excluded;
    *   * other properties are optional.
    */
-  export type FunctionProps = Pick<lambda.FunctionProps, 'code'> &
-    Partial<Omit<lambda.FunctionProps, 'runtime'>>;
+  export type FunctionProps = Pick<lambda.FunctionProps, 'code'> & Partial<Omit<lambda.FunctionProps, 'runtime'>>;
 
   export interface Props extends Partial<Omit<sfn.TaskProps, 'task'>> {
     /**
