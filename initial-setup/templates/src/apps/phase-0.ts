@@ -5,6 +5,7 @@ import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { LogArchiveBucket } from '../common/log-archive-bucket';
+import * as lambda from '@aws-cdk/aws-lambda';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -32,8 +33,31 @@ async function main() {
   const globalOptionsConfig = acceleratorConfig['global-options'];
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const masterAccountId = getAccountId(accounts, 'master');
 
   const app = new cdk.App();
+
+  // Master Stack to update Custom Resource Lambda Functions invoke permissions
+  const masterStack = new AcceleratorStack(app, 'MasterStackForCustomResources', {
+    env: {
+      account: masterAccountId,
+      region: cdk.Aws.REGION,
+    },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    stackName: 'PBMMAccel-CfnCustomResource-Permissions',
+  });
+  
+  for (const [index, func] of context.customResourceFunctions.entries()){
+    for (const account of accounts) {
+      new lambda.CfnPermission(masterStack, `${func.functionName}${account.key}InvokePermission`,{
+        functionName: func.functionName,
+        action: 'lambda:InvokeFunction',
+        principal: `arn:aws:iam::${getAccountId(accounts, account.key)}:role/${context.acceleratorExecutionRoleName}`,
+      });
+    }
+  }
+  
 
   const stack = new AcceleratorStack(app, 'LogArchive', {
     env: {

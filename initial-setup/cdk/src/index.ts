@@ -143,15 +143,10 @@ export namespace InitialSetup {
         code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
         handler: 'index.handler',
         role: dnsEndpointIpPollerRole,
+        functionName: 'CfnCustomResourceR53EndpointIPPooler',
         environment: {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
         },
-      });
-
-      // Allow Cloudformation to trigger the handler
-      dnsEndpointIpPollerLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
-        action: 'lambda:InvokeFunction',
-        principal: new iam.AnyPrincipal(),
       });
 
       // Define a build specification to build the initial setup templates
@@ -206,6 +201,10 @@ export namespace InitialSetup {
             CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: dnsEndpointIpPollerLambda.functionArn,
+            },
+            CFN_DNS_ENDPOINT_IPS_FUNCTION_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: dnsEndpointIpPollerLambda.functionName,
             },
           },
         },
@@ -439,20 +438,34 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storePhase2Output = new CodeTask(this, 'Store Phase 2 Output', {
+        functionProps: {
+          code: props.lambdas.codeForEntry('store-stack-output'),
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.executionRoleName,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         definition: sfn.Chain.start(loadConfigurationTask)
-          .next(addRoleToServiceCatalog)
-          .next(createAccountsTask)
-          .next(loadAccountsTask)
-          .next(installRolesTask)
-          .next(addRoleToScpTask)
-          .next(blockS3PublicAccessTask)
-          .next(enableResourceSharingTask)
-          .next(deployPhase0Task)
-          .next(storePhase0Output)
-          .next(deployPhase1Task)
-          .next(storePhase1Output)
+          // .next(addRoleToServiceCatalog)
+          // .next(createAccountsTask)
+          // .next(loadAccountsTask)
+          // .next(installRolesTask)
+          // .next(addRoleToScpTask)
+          // .next(blockS3PublicAccessTask)
+          // .next(enableResourceSharingTask)
+          // .next(deployPhase0Task)
+          // .next(storePhase0Output)
+          // .next(deployPhase1Task)
+          // .next(storePhase1Output)
           .next(deployPhase2Task)
+          .next(storePhase2Output)
           .next(addTagsToSharedResourcesTask),
       });
     }
