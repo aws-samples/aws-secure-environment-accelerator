@@ -15,6 +15,7 @@
     "@babel/preset-typescript": "7.9.0",
     "@types/adm-zip": "0.4.32",
     "@types/aws-lambda": "8.10.46",
+    "@types/cfn-response": "1.0.3",
     "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
     "@types/webpack": "4.41.8",
@@ -38,10 +39,9 @@
     "adm-zip": "0.4.14",
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.585.0",
+    "cfn-response": "1.0.1",
     "generate-password": "1.5.1",
-    "original-fs": "1.1.0",
-    "@types/cfn-response": "1.0.3",
-    "cfn-response": "^1.0.1"
+    "original-fs": "1.1.0"
   },
   "jest": {
     "preset": "ts-jest",
