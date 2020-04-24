@@ -77,10 +77,14 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     // if interface endpoints are defined, pick the account name
     if (!t.string.is(interfaceEndpointConfig.subnet)) {
-      console.log(`Hosted Zones are not created in the account with account key - ${accountKey}. Moving to next account.`);
+      console.log(
+        `Hosted Zones are not created in the account with account key - ${accountKey}. Moving to next account.`,
+      );
       continue;
     }
-    console.log(`Hosted Zones are created in the account with account key - ${accountKey}. Finding all private hosted zones.`);
+    console.log(
+      `Hosted Zones are created in the account with account key - ${accountKey}. Finding all private hosted zones.`,
+    );
 
     hostedZonesAccountId = getAccountId(accounts, accountKey);
     hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
@@ -116,14 +120,19 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     console.log('All Private Hosted Zones ID: ', allPrivateHostedZonesId);
   }
 
-  const associateHostedZones = async (vpcAccountId: string, hostedZonesAccountId: string, 
-    privateHostedZoneId: string, vpcId: string, vpcRegion: string): Promise<void> => {
+  const associateHostedZones = async (
+    vpcAccountId: string,
+    hostedZonesAccountId: string,
+    privateHostedZoneId: string,
+    vpcId: string,
+    vpcRegion: string,
+  ): Promise<void> => {
     const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
     const vpcRoute53 = new Route53(vpcAccountCredentials);
 
     hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
     const hostedZonesRoute53 = new Route53(hostedZonesAccountCredentials);
-  
+
     // authorize association of VPC with Hosted zones
     if (vpcAccountId !== hostedZonesAccountId!) {
       const createVPCAssociationAuthorizationResponse: CreateVPCAssociationAuthorizationResponse = await hostedZonesRoute53.createVPCAssociationAuthorization(
@@ -131,7 +140,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
         vpcId,
         vpcRegion,
       );
-      console.log('createVPCAssociationAuthorizationResponse: ',createVPCAssociationAuthorizationResponse);
+      console.log('createVPCAssociationAuthorizationResponse: ', createVPCAssociationAuthorizationResponse);
     }
 
     // associate VPC with Hosted zones
@@ -140,7 +149,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
       vpcId,
       vpcRegion,
     );
-    console.log('associateVPCWithHostedZoneResponse: ',associateVPCWithHostedZoneResponse);
+    console.log('associateVPCWithHostedZoneResponse: ', associateVPCWithHostedZoneResponse);
 
     // delete association of VPC with Hosted zones
     if (vpcAccountId !== hostedZonesAccountId!) {
@@ -149,7 +158,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
         vpcId,
         vpcRegion,
       );
-      console.log('deleteVPCAssociationAuthorizationResponse: ',deleteVPCAssociationAuthorizationResponse);
+      console.log('deleteVPCAssociationAuthorizationResponse: ', deleteVPCAssociationAuthorizationResponse);
     }
   };
 
@@ -164,7 +173,9 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     console.log(`account-key: ${accountKey}; use-central-endpoints: ${vpcConfig['use-central-endpoints']}`);
     if (vpcConfig['use-central-endpoints'] === false) {
-      console.log(`use-central-enpoints is set as false for organizational unit with key - ${accountKey}. Moving to next account.`);
+      console.log(
+        `use-central-enpoints is set as false for organizational unit with key - ${accountKey}. Moving to next account.`,
+      );
       continue;
     }
 
@@ -191,13 +202,17 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     console.log(`org-key: ${orgKey}; use-central-endpoints: ${vpcConfig['use-central-endpoints']}`);
     if (vpcConfig['use-central-endpoints'] === false) {
-      console.log(`use-central-enpoints is set as false for organizational unit with key - ${orgKey}. Moving to next org unit.`);
+      console.log(
+        `use-central-enpoints is set as false for organizational unit with key - ${orgKey}. Moving to next org unit.`,
+      );
       continue;
     }
 
     const vpcAccountKey = orgUnit.vpc!.deploy!;
     if (mandatoryAccountKeys.includes(vpcAccountKey)) {
-      console.log(`Association of private hosted zones done already for the account with account key - ${vpcAccountKey}. Moving to next org unit.`);
+      console.log(
+        `Association of private hosted zones done already for the account with account key - ${vpcAccountKey}. Moving to next org unit.`,
+      );
       continue;
     }
 

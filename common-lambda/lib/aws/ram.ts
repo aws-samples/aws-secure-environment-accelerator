@@ -16,7 +16,7 @@ export class RAM {
 
   /**
    * to create resource share
-   * @param input 
+   * @param input
    */
   async createResourceShare(input: CreateResourceShareRequest): Promise<CreateResourceShareResponse> {
     return this.client.createResourceShare(input).promise();

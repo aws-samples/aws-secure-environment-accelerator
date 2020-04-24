@@ -1,6 +1,9 @@
 import * as aws from 'aws-sdk';
-import { ListResolverEndpointIpAddressesResponse, 
-  ListResolverRulesRequest, ListResolverRulesResponse} from 'aws-sdk/clients/route53resolver';
+import {
+  ListResolverEndpointIpAddressesResponse,
+  ListResolverRulesRequest,
+  ListResolverRulesResponse,
+} from 'aws-sdk/clients/route53resolver';
 
 export class Route53Resolver {
   private readonly client: aws.Route53Resolver;
@@ -22,7 +25,7 @@ export class Route53Resolver {
    */
   async listResolverRules(maxResults: number, nextToken?: string): Promise<ListResolverRulesResponse> {
     let params: ListResolverRulesRequest = {};
-    if(nextToken) {
+    if (nextToken) {
       params = {
         MaxResults: maxResults,
         NextToken: nextToken,
@@ -33,5 +36,5 @@ export class Route53Resolver {
       };
     }
     return this.client.listResolverRules(params).promise();
-  } 
+  }
 }
