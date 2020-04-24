@@ -3,6 +3,8 @@ import {
   ListResolverEndpointIpAddressesResponse,
   ListResolverRulesRequest,
   ListResolverRulesResponse,
+  AssociateResolverRuleRequest,
+  AssociateResolverRuleResponse,
 } from 'aws-sdk/clients/route53resolver';
 
 export class Route53Resolver {
@@ -36,5 +38,20 @@ export class Route53Resolver {
       };
     }
     return this.client.listResolverRules(params).promise();
+  }
+
+  /**
+   * to associate resolver rule
+   * @param resolverRuleId
+   * @param vpcId
+   * @param name
+   */
+  async associateResolverRule(resolverRuleId: string, vpcId: string, name?: string): Promise<AssociateResolverRuleResponse> {
+    const param: AssociateResolverRuleRequest = {
+      ResolverRuleId: resolverRuleId,
+      VPCId: vpcId,
+      Name: name
+    };
+    return this.client.associateResolverRule(param).promise();
   }
 }

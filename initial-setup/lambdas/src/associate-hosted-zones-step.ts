@@ -5,7 +5,7 @@ import {
   CreateVPCAssociationAuthorizationResponse,
   DeleteVPCAssociationAuthorizationResponse,
 } from 'aws-sdk/clients/route53';
-import { ListResolverRulesResponse } from 'aws-sdk/clients/route53resolver';
+import { ListResolverRulesResponse, AssociateResolverRuleResponse } from 'aws-sdk/clients/route53resolver';
 import { CreateResourceShareRequest, CreateResourceShareResponse } from 'aws-sdk/clients/ram';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig, VpcConfigType, InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -120,6 +120,9 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     console.log('All Private Hosted Zones ID: ', allPrivateHostedZonesId);
   }
 
+  let sharedAccountIdsWithVpcIds: { [accountId: string]: string } = {};
+  let sharedAccountIdsWithCredentials: { [accountId: string]: aws.Credentials } = {};
+
   const associateHostedZones = async (
     vpcAccountId: string,
     hostedZonesAccountId: string,
@@ -127,8 +130,12 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     vpcId: string,
     vpcRegion: string,
   ): Promise<void> => {
+    sharedAccountIdsWithVpcIds[vpcAccountId] = vpcId;
+
     const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
     const vpcRoute53 = new Route53(vpcAccountCredentials);
+
+    sharedAccountIdsWithCredentials[vpcAccountId] = vpcAccountCredentials;
 
     hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
     const hostedZonesRoute53 = new Route53(hostedZonesAccountCredentials);
@@ -230,10 +237,38 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
   const route53Resolver = new Route53Resolver(hostedZonesAccountCredentials!);
   const listResolverRulesResponse: ListResolverRulesResponse = await route53Resolver.listResolverRules(1);
-  console.log(listResolverRulesResponse);
+  console.log('Route 53 - Resolver Rules: ',listResolverRulesResponse);
+
+  let resolverRuleArns: string[] = [];
+  let resolverRuleIds: string[] = [];
+  for(const resolverRule of listResolverRulesResponse.ResolverRules!) {
+    if(resolverRule.RuleType === 'FORWARD') {
+      resolverRuleArns.push(resolverRule.Arn!);
+      resolverRuleIds.push(resolverRule.Id!);
+    }
+  }
+  console.log('resolverRuleArns: ',resolverRuleArns);
 
   const ram = new RAM(hostedZonesAccountCredentials!);
-  // ram.createResourceShare();
+  
+  const sharedAccountIds = Array.from(sharedAccountIdsWithVpcIds.keys);
+  const params: CreateResourceShareRequest = {
+    name: 'pbmm-accel-shared-resolver-rules',
+    resourceArns: resolverRuleArns,
+    principals: sharedAccountIds,
+  };
+  const createResourceShareResponse: CreateResourceShareResponse = await ram.createResourceShare(params);
+  console.log('Resource Share Response: ',createResourceShareResponse);
+
+  for(const eachAccountId of sharedAccountIds) {
+    const sharedVpcId = sharedAccountIdsWithVpcIds[eachAccountId];
+    const credentials = sharedAccountIdsWithCredentials[eachAccountId];
+    const r53Resolver = new Route53Resolver(credentials);
+    for(const resolverRuleId of resolverRuleIds) {
+      const associateResolverRuleResponse = await r53Resolver.associateResolverRule(resolverRuleId, sharedVpcId);
+      console.log('associateResolverRuleResponse: ',associateResolverRuleResponse);
+    }
+  }
 
   return {
     status: 'SUCCESS',

@@ -73,7 +73,7 @@ export class Route53 {
     vpcId: string,
     vpcRegion: string,
   ): Promise<CreateVPCAssociationAuthorizationResponse> {
-    const params: AssociateVPCWithHostedZoneRequest = {
+    const params: CreateVPCAssociationAuthorizationRequest = {
       HostedZoneId: privateHostedZoneId,
       VPC: {
         VPCId: vpcId,
@@ -95,7 +95,7 @@ export class Route53 {
     vpcId: string,
     vpcRegion: string,
   ): Promise<DeleteVPCAssociationAuthorizationResponse> {
-    const params: AssociateVPCWithHostedZoneRequest = {
+    const params: DeleteVPCAssociationAuthorizationRequest = {
       HostedZoneId: privateHostedZoneId,
       VPC: {
         VPCId: vpcId,
