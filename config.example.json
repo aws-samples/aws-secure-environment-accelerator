@@ -10,13 +10,6 @@
         "private": ["dept.cloud-nuage.gc.ca"]
       }
     },
-    "accounts": {
-      "lz-primary-account": "master",
-      "lz-security-account": "security",
-      "lz-log-archive-account": "log-archive",
-      "lz-shared-services-account": "shared-services",
-      "mandatory": ["perimeter", "shared-network", "operations"]
-    },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
@@ -502,12 +495,12 @@
           }
         }
       }
-    }
-  },
-  "lz-account-configs": {
+    },
     "master": {
       "account-name": "primary",
       "email": "bmycroft+lzT@amazon.com",
+      "ou": "core",
+      "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
@@ -603,19 +596,22 @@
       "account-name": "log-archive",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+logs@amazon.com"
+      "email": "bmycroft+lzT+logs@amazon.com",
+      "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+security@amazon.com"
+      "email": "bmycroft+lzT+security@amazon.com",
+      "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
       "ou": "core",
       "email": "bmycroft+lzT+services@amazon.com",
+      "landing-zone-account-type": "shared-services",
       "enable-s3-public-access": true
     }
   },
