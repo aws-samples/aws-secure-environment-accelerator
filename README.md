@@ -23,8 +23,9 @@ You need an AWS account with Landing Zone deployed.
 
 1. You can use the [`config.example.json`](./config.example.json) file as base.
 2. Make sure to update the account names and email addresses to match the ones in your account.
-   ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING***
-   ***Expected file content and values will be defined in future***
+
+   ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING.  Expected file content and values will be defined in future***
+   
 3. Store the configuration file in Secrets Manager as plain text. Name the secret `accelerator/config`.
 
 #### Deploy the Accelerator Installer Stack
