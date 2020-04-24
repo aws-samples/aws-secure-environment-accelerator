@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
@@ -7,7 +8,7 @@ import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 export namespace CreateStackSetTask {
   export interface Props {
     role: iam.IRole;
-    lambdas: WebpackBuild;
+    lambdaCode: lambda.Code;
     functionPayload?: { [key: string]: unknown };
     waitSeconds?: number;
   }
@@ -20,7 +21,7 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateStackSetTask.Props) {
     super(scope, id);
 
-    const { role, lambdas, functionPayload, waitSeconds = 10 } = props;
+    const { role, lambdaCode, functionPayload, waitSeconds = 10 } = props;
 
     role.addToPolicy(
       new iam.PolicyStatement({
@@ -44,7 +45,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       functionPayload,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/create-stack-set'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.createStackSet',
       },
     });
 
@@ -54,7 +56,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/verify'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.verify',
       },
     });
 
@@ -65,7 +68,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       functionPayload,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/create-stack-set-instances'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.createStackSetInstances',
       },
     });
 
@@ -75,7 +79,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       resultPath: verifyCreateInstancesTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/verify'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.verify',
       },
     });
 
@@ -86,7 +91,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       functionPayload,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/update-stack-set-instances'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.updateStackSetInstances',
       },
     });
 
@@ -96,7 +102,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       resultPath: verifyUpdateInstancesTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/verify'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.verify',
       },
     });
 
@@ -107,7 +114,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       functionPayload,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/delete-stack-set-instances'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.deleteStackSetInstances',
       },
     });
 
@@ -117,7 +125,8 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       resultPath: verifyDeleteInstancesTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack-set/verify'),
+        code: lambdaCode,
+        handler: 'index.createStackSet.verify',
       },
     });
 
