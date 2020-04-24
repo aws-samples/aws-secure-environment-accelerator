@@ -416,7 +416,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const associateHostedZones = new CodeTask(this, 'Associate Hosted Zones Stacks', {
+      const associateHostedZones = new CodeTask(this, 'Associate Hosted Zones', {
         functionProps: {
           code: props.lambdas.codeForEntry('associate-hosted-zones'),
           role: pipelineRole,
