@@ -42,6 +42,7 @@
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "@types/cfn-response": "^1.0.3",
     "colors": "1.4.0",
+    "constructs": "2.0.1",
     "generate-password": "1.5.1",
     "io-ts": "2.1.2",
     "io-ts-types": "0.5.6",

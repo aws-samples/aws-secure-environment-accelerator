@@ -1,3 +1,4 @@
+import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
@@ -18,7 +19,7 @@ import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import * as lambda from '@aws-cdk/aws-lambda';
 
 interface BuildProps {
-  lambdas: WebpackBuild;
+  lambdaCode: lambda.Code;
   solutionZipPath: string;
 }
 
@@ -52,6 +53,9 @@ export class InitialSetup extends AcceleratorStack {
       webpackConfigFile: 'webpack.config.ts',
     });
 
+    // All lambdas are bundled into index.js
+    const lambdaCode = lambdas.codeForEntry();
+
     const solutionZipPath = tempy.file({
       extension: 'zip',
     });
@@ -77,7 +81,7 @@ export class InitialSetup extends AcceleratorStack {
 
     return new InitialSetup(scope, id, {
       ...props,
-      lambdas,
+      lambdaCode,
       solutionZipPath,
     });
   }
@@ -85,13 +89,15 @@ export class InitialSetup extends AcceleratorStack {
 
 export namespace InitialSetup {
   export interface PipelineProps extends CommonProps {
-    lambdas: WebpackBuild;
+    lambdaCode: lambda.Code;
     solutionZipPath: string;
   }
 
   export class Pipeline extends cdk.Construct {
     constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
       super(scope, id);
+
+      const { lambdaCode } = props;
 
       const stack = cdk.Stack.of(this);
 
@@ -141,8 +147,8 @@ export namespace InitialSetup {
 
       const dnsEndpointIpPollerLambda = new lambda.Function(this, 'DnsEndpointIpPoller', {
         runtime: lambda.Runtime.NODEJS_12_X,
-        code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
-        handler: 'index.handler',
+        code: lambdaCode,
+        handler: 'index.getDnsEndpointIps',
         role: dnsEndpointIpPollerRole,
         environment: {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
@@ -214,7 +220,8 @@ export namespace InitialSetup {
 
       const loadConfigurationTask = new CodeTask(this, 'Load Configuration', {
         functionProps: {
-          code: props.lambdas.codeForEntry('load-configuration'),
+          code: lambdaCode,
+          handler: 'index.loadConfigurationStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -230,7 +237,8 @@ export namespace InitialSetup {
 
       const addRoleToServiceCatalog = new CodeTask(this, 'Add Execution Role to Service Catalog', {
         functionProps: {
-          code: props.lambdas.codeForEntry('add-role-to-service-catalog'),
+          code: lambdaCode,
+          handler: 'index.addRoleToServiceCatalogStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -242,7 +250,7 @@ export namespace InitialSetup {
 
       const createAccountStateMachine = new sfn.StateMachine(scope, 'CreateAccountStateMachine', {
         definition: new CreateAccountTask(scope, 'Create', {
-          lambdas: props.lambdas,
+          lambdaCode,
           role: pipelineRole,
         }),
       });
@@ -268,7 +276,8 @@ export namespace InitialSetup {
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
-          code: props.lambdas.codeForEntry('load-accounts'),
+          code: lambdaCode,
+          handler: 'index.loadAccountsStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -287,7 +296,7 @@ export namespace InitialSetup {
 
       const installRolesStateMachine = new sfn.StateMachine(this, 'InstallRolesStateMachine', {
         definition: new CreateStackSetTask(this, 'Install', {
-          lambdas: props.lambdas,
+          lambdaCode: lambdaCode,
           role: pipelineRole,
         }),
       });
@@ -319,7 +328,8 @@ export namespace InitialSetup {
 
       const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
         functionProps: {
-          code: props.lambdas.codeForEntry('add-role-to-scp'),
+          code: lambdaCode,
+          handler: 'index.addRoleToScpStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -331,7 +341,8 @@ export namespace InitialSetup {
 
       const enableResourceSharingTask = new CodeTask(this, 'Enable Resource Sharing', {
         functionProps: {
-          code: props.lambdas.codeForEntry('enable-resource-sharing'),
+          code: lambdaCode,
+          handler: 'index.enableResourceSharingStep',
           role: pipelineRole,
         },
         resultPath: 'DISCARD',
@@ -339,7 +350,7 @@ export namespace InitialSetup {
 
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
-          lambdas: props.lambdas,
+          lambdaCode: lambdaCode,
           role: pipelineRole,
         }),
       });
@@ -363,7 +374,8 @@ export namespace InitialSetup {
 
       const storePhase0Output = new CodeTask(this, 'Store Phase 0 Output', {
         functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -387,7 +399,8 @@ export namespace InitialSetup {
 
       const storePhase1Output = new CodeTask(this, 'Store Phase 1 Output', {
         functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -401,7 +414,8 @@ export namespace InitialSetup {
       // TODO We could put this task in a map task and apply to all accounts individually
       const blockS3PublicAccessTask = new CodeTask(this, 'Block S3 Public Access', {
         functionProps: {
-          code: props.lambdas.codeForEntry('s3-block-public-access'),
+          code: lambdaCode,
+          handler: 'index.s3BlockPublicAccessStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -414,7 +428,8 @@ export namespace InitialSetup {
 
       const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
         functionProps: {
-          code: props.lambdas.codeForEntry('add-tags-to-shared-resources'),
+          code: lambdaCode,
+          handler: 'index.addTagsToSharedResourcesStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -439,7 +454,7 @@ export namespace InitialSetup {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
-          .next(createAccountsTask)
+          // .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)

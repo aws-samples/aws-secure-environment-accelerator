@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
@@ -7,7 +8,7 @@ import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 export namespace CreateAccountTask {
   export interface Props {
     role: iam.IRole;
-    lambdas: WebpackBuild;
+    lambdaCode: lambda.Code;
     waitSeconds?: number;
   }
 }
@@ -19,7 +20,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateAccountTask.Props) {
     super(scope, id);
 
-    const { role, lambdas, waitSeconds = 60 } = props;
+    const { role, lambdaCode, waitSeconds = 60 } = props;
 
     role.addToPolicy(
       new iam.PolicyStatement({
@@ -56,7 +57,8 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
       resultPath: createTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-account/create'),
+        code: lambdaCode,
+        handler: 'index.createAccount.create',
       },
     });
 
@@ -66,7 +68,8 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-account/verify'),
+        code: lambdaCode,
+        handler: 'index.createAccount.verify',
       },
     });
 
@@ -78,15 +81,13 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'Account Creation Failed');
 
-    waitTask
-      .next(verifyTask)
-      .next(
-        new sfn.Choice(scope, 'Account Creation Done?')
-          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
-          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
-          .otherwise(fail)
-          .afterwards(),
-      );
+    waitTask.next(verifyTask).next(
+      new sfn.Choice(scope, 'Account Creation Done?')
+        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
 
     createTask.next(
       new sfn.Choice(scope, 'Account Creation Started?')

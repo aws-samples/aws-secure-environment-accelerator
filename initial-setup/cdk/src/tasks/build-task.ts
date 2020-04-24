@@ -1,13 +1,13 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
-import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 
 export namespace BuildTask {
   export interface Props {
     role: iam.IRole;
-    lambdas: WebpackBuild;
+    lambdaCode: lambda.Code;
     functionPayload?: { [key: string]: unknown };
     waitSeconds?: number;
   }
@@ -20,7 +20,7 @@ export class BuildTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: BuildTask.Props) {
     super(scope, id);
 
-    const { role, lambdas, functionPayload, waitSeconds = 10 } = props;
+    const { role, lambdaCode, functionPayload, waitSeconds = 10 } = props;
 
     role.addToPolicy(
       new iam.PolicyStatement({
@@ -44,7 +44,8 @@ export class BuildTask extends sfn.StateMachineFragment {
       functionPayload,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('codebuild/start'),
+        code: lambdaCode,
+        handler: 'index.codebuild.start',
       },
     });
 
@@ -54,7 +55,8 @@ export class BuildTask extends sfn.StateMachineFragment {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('codebuild/verify'),
+        code: lambdaCode,
+        handler: 'index.codebuild.verify',
       },
       functionPayload: {
         'buildId.$': `${startTaskResultPath}.buildId`,
@@ -69,15 +71,13 @@ export class BuildTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'Build Failed');
 
-    waitTask
-      .next(verifyTask)
-      .next(
-        new sfn.Choice(scope, 'Build Finished?')
-          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
-          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
-          .otherwise(fail)
-          .afterwards(),
-      );
+    waitTask.next(verifyTask).next(
+      new sfn.Choice(scope, 'Build Finished?')
+        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+        .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
 
     const chain = sfn.Chain.start(startTask).next(
       new sfn.Choice(scope, 'Build Started?')
