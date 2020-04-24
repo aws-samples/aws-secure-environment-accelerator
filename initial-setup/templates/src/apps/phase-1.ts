@@ -30,7 +30,7 @@ export interface VpcOutput {
   vpcName: string;
   subnets: VpcSubnetOutput[];
   routeTables: object;
-  pcx?:string;
+  pcx?: string;
 }
 
 /**

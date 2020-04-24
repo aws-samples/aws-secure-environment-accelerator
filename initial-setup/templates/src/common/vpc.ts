@@ -36,7 +36,7 @@ export interface AzSubnet {
   az: string;
 }
 
-export interface RouteTables{
+export interface RouteTables {
   [key: string]: string;
 }
 
@@ -85,7 +85,7 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
 
-  readonly routeTableNameToIdMap:RouteTables = {};
+  readonly routeTableNameToIdMap: RouteTables = {};
 
   constructor(stack: VpcStack, name: string, props: VpcProps) {
     super(stack, name);
