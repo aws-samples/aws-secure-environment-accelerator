@@ -237,20 +237,20 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
   const route53Resolver = new Route53Resolver(hostedZonesAccountCredentials!);
   const listResolverRulesResponse: ListResolverRulesResponse = await route53Resolver.listResolverRules(1);
-  console.log('Route 53 - Resolver Rules: ',listResolverRulesResponse);
+  console.log('Route 53 - Resolver Rules: ', listResolverRulesResponse);
 
   let resolverRuleArns: string[] = [];
   let resolverRuleIds: string[] = [];
-  for(const resolverRule of listResolverRulesResponse.ResolverRules!) {
-    if(resolverRule.RuleType === 'FORWARD') {
+  for (const resolverRule of listResolverRulesResponse.ResolverRules!) {
+    if (resolverRule.RuleType === 'FORWARD') {
       resolverRuleArns.push(resolverRule.Arn!);
       resolverRuleIds.push(resolverRule.Id!);
     }
   }
-  console.log('resolverRuleArns: ',resolverRuleArns);
+  console.log('resolverRuleArns: ', resolverRuleArns);
 
   const ram = new RAM(hostedZonesAccountCredentials!);
-  
+
   const sharedAccountIds = Array.from(sharedAccountIdsWithVpcIds.keys);
   const params: CreateResourceShareRequest = {
     name: 'pbmm-accel-shared-resolver-rules',
@@ -258,15 +258,15 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     principals: sharedAccountIds,
   };
   const createResourceShareResponse: CreateResourceShareResponse = await ram.createResourceShare(params);
-  console.log('Resource Share Response: ',createResourceShareResponse);
+  console.log('Resource Share Response: ', createResourceShareResponse);
 
-  for(const eachAccountId of sharedAccountIds) {
+  for (const eachAccountId of sharedAccountIds) {
     const sharedVpcId = sharedAccountIdsWithVpcIds[eachAccountId];
     const credentials = sharedAccountIdsWithCredentials[eachAccountId];
     const r53Resolver = new Route53Resolver(credentials);
-    for(const resolverRuleId of resolverRuleIds) {
+    for (const resolverRuleId of resolverRuleIds) {
       const associateResolverRuleResponse = await r53Resolver.associateResolverRule(resolverRuleId, sharedVpcId);
-      console.log('associateResolverRuleResponse: ',associateResolverRuleResponse);
+      console.log('associateResolverRuleResponse: ', associateResolverRuleResponse);
     }
   }
 

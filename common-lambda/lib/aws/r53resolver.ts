@@ -46,11 +46,15 @@ export class Route53Resolver {
    * @param vpcId
    * @param name
    */
-  async associateResolverRule(resolverRuleId: string, vpcId: string, name?: string): Promise<AssociateResolverRuleResponse> {
+  async associateResolverRule(
+    resolverRuleId: string,
+    vpcId: string,
+    name?: string,
+  ): Promise<AssociateResolverRuleResponse> {
     const param: AssociateResolverRuleRequest = {
       ResolverRuleId: resolverRuleId,
       VPCId: vpcId,
-      Name: name
+      Name: name,
     };
     return this.client.associateResolverRule(param).promise();
   }
