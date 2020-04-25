@@ -34,6 +34,7 @@ You need an AWS account with Landing Zone deployed.
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account.
 4. Fill out the required parameters (at this time, set the branch to master, accept the other defaults).
+5. Apply a tag on the stack, Accelerator=PBMM (case sensative).
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
 state machine should start automatically and deploy the Accelerator in your account.
