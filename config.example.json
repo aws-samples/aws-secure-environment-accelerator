@@ -10,6 +10,14 @@
         "private": ["dept.cloud-nuage.gc.ca"]
       }
     },
+    "security-hub-frameworks": {
+      "enable-aws-foundational": true,
+      "foundation-controls-to-disable": ["IAM.1"],
+      "enable-cis-foundations": true,
+      "cis-foundations-controls-to-disable": ["CIS1.3","CIS1.11"],
+      "enable-pci-dss": true,
+      "pci-dss-controls-to-disable": ["PCI.IAM.3","PCIDSS8.3.1"]
+    },	
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
