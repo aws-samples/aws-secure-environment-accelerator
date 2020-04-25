@@ -140,6 +140,7 @@ export const ADUserConfig = t.interface({
 });
 
 export const MadConfigType = t.interface({
+  'dir-id': t.number,
   deploy: t.boolean,
   'vpc-name': t.string,
   region: t.string,

@@ -68,7 +68,7 @@ async function main() {
       secretName: `accelerator/${accountKey}/mad/password`,
       description: 'Password for Managed Active Directory.',
       generateSecretString: {
-        passwordLength: madDeploymentConfig['password-policies']['min-len'],
+        passwordLength: 16,
       },
       principals: [new iam.AccountPrincipal(accountId)],
     });
@@ -106,6 +106,7 @@ async function main() {
     new JsonOutputValue(stack, 'MadOutput', {
       type: 'MadOutput',
       value: {
+        id: madDeploymentConfig['dir-id'],
         vpcName: madDeploymentConfig['vpc-name'],
         directoryId: activeDirectory.directoryId,
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),

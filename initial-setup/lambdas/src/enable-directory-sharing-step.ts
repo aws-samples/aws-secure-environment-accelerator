@@ -14,6 +14,7 @@ interface ShareDirectoryInput {
 }
 
 interface MadOutput {
+  id: number;
   vpcName: string;
   directoryId: string;
   dnsIps: string;
@@ -45,7 +46,7 @@ export const handler = async (input: ShareDirectoryInput) => {
       outputType: 'MadOutput',
     });
 
-    const madOuput = madOutputs.find(output => output.vpcName === madConfig['vpc-name']);
+    const madOuput = madOutputs.find(output => output.id === madConfig['dir-id']);
     if (!madOuput || !madOuput.directoryId) {
       throw new Error(`Cannot find madOuput with vpc name ${madConfig['vpc-name']}`);
     }
