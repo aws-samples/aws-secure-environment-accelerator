@@ -131,6 +131,7 @@ export const ADUserConfig = t.interface({
 });
 
 export const MadConfigType = t.interface({
+  'dir-id': t.number,
   deploy: t.boolean,
   'vpc-name': t.string,
   region: t.string,
@@ -140,12 +141,22 @@ export const MadConfigType = t.interface({
   'netbios-domain': t.string,
   'central-resolver-rule-account': t.string,
   'central-resolver-rule-vpc': t.string,
-  'share-to-master': t.boolean,
+  'share-to-account': t.string,
   restrict_srcips: t.array(cidr),
   // 'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
+});
+
+export const adcConfigType = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  subnet: t.string,
+  size: t.string,
+  restrict_srcips: t.array(cidr),
+  'connect-account-key': t.string,
+  'connect-dir-id': t.number,
 });
 
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
@@ -167,6 +178,7 @@ export const MandatoryAccountConfigType = t.interface({
     t.interface({
       tgw: optional(DeploymentConfigType),
       mad: optional(MadConfigType),
+      adc: optional(adcConfigType),
     }),
   ),
 });

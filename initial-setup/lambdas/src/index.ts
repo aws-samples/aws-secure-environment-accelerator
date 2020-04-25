@@ -8,6 +8,7 @@ export { handler as loadAccountsStep } from './load-accounts-step';
 export { handler as loadConfigurationStep } from './load-configuration-step';
 export { handler as s3BlockPublicAccessStep } from './s3-block-public-access-step';
 export { handler as storeStackOutputStep } from './store-stack-output-step';
+export { handler as createADConnectorStep} from './create-ad-connector-step';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

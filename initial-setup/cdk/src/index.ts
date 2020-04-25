@@ -450,6 +450,21 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const createAdConnectorTask = new CodeTask(this, 'Create AD Connector', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.createADConnectorStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.stateMachineExecutionRole,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -465,7 +480,8 @@ export namespace InitialSetup {
           .next(deployPhase1Task)
           .next(storePhase1Output)
           .next(deployPhase2Task)
-          .next(addTagsToSharedResourcesTask),
+          .next(addTagsToSharedResourcesTask)
+          .next(createAdConnectorTask),
       });
     }
   }
