@@ -67,12 +67,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "Endpoint_Shared",
+                "route-table": "EndpointVPC_Common",
                 "cidr": "10.7.0.0/24"
               },
               {
                 "az": "b",
-                "route-table": "Endpoint_Shared",
+                "route-table": "EndpointVPC_Common",
                 "cidr": "10.7.1.0/24"
               }
             ]
@@ -81,7 +81,7 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "Endpoint_Shared"
+            "name": "EndpointVPC_Common"
           }
         ],
         "tgw-attach": {
@@ -364,12 +364,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "FWMgmt_az1",
+                "route-table": "FWMgmt_azA",
                 "cidr": "100.96.251.16/28"
               },
               {
                 "az": "b",
-                "route-table": "FWMgmt_az2",
+                "route-table": "FWMgmt_azB",
                 "cidr": "100.96.251.48/28"
               }
             ]
@@ -379,12 +379,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "Proxy_az1",
+                "route-table": "Proxy_azA",
                 "cidr": "100.96.250.0/25"
               },
               {
                 "az": "b",
-                "route-table": "Proxy_az2",
+                "route-table": "Proxy_azB",
                 "cidr": "100.96.250.128/25"
               }
             ]
@@ -420,7 +420,7 @@
             ]
           },
           {
-            "name": "FWMgmt_az1",
+            "name": "FWMgmt_azA",
             "routes": [
               {
                 "destination": "7.0.0.0/8",
@@ -437,7 +437,7 @@
             ]
           },
           {
-            "name": "FWMgmt_az2",
+            "name": "FWMgmt_azB",
             "routes": [
               {
                 "destination": "7.0.0.0/8",
@@ -454,7 +454,7 @@
             ]
           },
           {
-            "name": "Proxy_az1",
+            "name": "Proxy_azA",
             "routes": [
               {
                 "destination": "0.0.0.0/0",
@@ -463,7 +463,7 @@
             ]
           },
           {
-            "name": "Proxy_az2",
+            "name": "Proxy_azB",
             "routes": [
               {
                 "destination": "0.0.0.0/0",
@@ -685,7 +685,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "share-to-specific-accounts": [],
+            "share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -708,7 +708,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "share-to-specific-accounts": [],
+            "share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -804,7 +804,7 @@
           {
             "name": "Mgmt",
             "share-to-ou-accounts": false,
-            "share-to-specific-accounts": [],
+            "share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -2018,7 +2018,7 @@
             "routes": [
               {
                 "destination": "0.0.0.0/0",
-                "target": "NATGW_Web_az1"
+                "target": "NATGW_Web_azA"
               }
             ]
           }
