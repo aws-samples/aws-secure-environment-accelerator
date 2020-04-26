@@ -61,17 +61,17 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     const kms = new KMS(credentials);
 
     const kmsKeyPolicy: string = `{
-      'Id': 'key-consolepolicy-3',
-      'Version': '2012-10-17',
-      'Statement': [
+      "Version": "2012-10-17",
+      "Id": "key-consolepolicy-3",
+      "Statement": [
           {
-              'Sid': 'Enable IAM User Permissions',
-              'Effect': 'Allow',
-              'Principal': {
-                  "AWS": 'arn:aws:iam::${accountId}:root'
+              "Sid": "Enable IAM User Permissions",
+              "Effect": "Allow",
+              "Principal": {
+                  "AWS": "arn:aws:iam::${accountId}:root"
               },
-              'Action': 'kms:*',
-              'Resource': '*'
+              "Action": "kms:*",
+              "Resource": "*"
           }
       ]
     }`;
@@ -84,15 +84,17 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
       Origin: 'AWS_KMS', // default value
       BypassPolicyLockoutSafetyCheck: true,
     };
-    const kmsKey = await kms.createKey(createKeyRequest);
+    const createKeyResponse = await kms.createKey(createKeyRequest);
+    console.log('createKeyResponse: ',createKeyResponse);
 
-    kms.createAlias('EBS-Default-Key', kmsKey.KeyMetadata!.KeyId);
+    await kms.createAlias('alias/EBS-Default-Key', createKeyResponse.KeyMetadata!.KeyId);
+    console.log('KMS key alias set.');
 
     const ec2 = new EC2(credentials);
-    const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(true);
+    const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(false);
     console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
 
-    const modifyEbsDefaultKmsKeyIdResult = ec2.modifyEbsDefaultKmsKeyId(kmsKey.KeyMetadata!.KeyId, true);
+    const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(createKeyResponse.KeyMetadata!.KeyId, false);
     console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
   };
 
