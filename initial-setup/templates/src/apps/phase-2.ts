@@ -6,11 +6,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import {
-  PeeringConnectionConfig,
-  VpcConfig,
-  VpcConfigType,
-} from '@aws-pbmm/common-lambda/lib/config';
+import { PeeringConnectionConfig, VpcConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { PeeringConnection } from '../common/peering-connection';
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
@@ -141,16 +137,16 @@ async function main() {
       outputType: 'VpcOutput',
     });
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
-    if (!vpcOutput){
+    if (!vpcOutput) {
       throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
     }
     const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey: pcxConfig.source,
       outputType: 'VpcOutput',
     });
-    const peerVpcOutout = peerVpcOutputs.find(x => x.vpcName === pcxConfig["source-vpc"]);
-    if (!peerVpcOutout){
-      throw new Error(`No VPC Found in outputs for VPC name "${pcxConfig["source-vpc"]}"`);
+    const peerVpcOutout = peerVpcOutputs.find(x => x.vpcName === pcxConfig['source-vpc']);
+    if (!peerVpcOutout) {
+      throw new Error(`No VPC Found in outputs for VPC name "${pcxConfig['source-vpc']}"`);
     }
     const peerOwnerId = getAccountId(accounts, pcxConfig.source);
     const pcx = new PeeringConnection.PeeringConnectionDeployment(
@@ -160,7 +156,7 @@ async function main() {
         vpcId: vpcOutput.vpcId,
         peerVpcId: peerVpcOutout.vpcId,
         peerRoleArn,
-        peerOwnerId
+        peerOwnerId,
       },
     );
     vpcOutput.pcx = pcx.pcxId;

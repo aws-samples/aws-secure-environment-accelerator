@@ -45,8 +45,8 @@ export const GatewayEndpointType = enumType<typeof GATEWAY_ENDPOINT_TYPES[number
 export const PcxRouteConfigType = t.interface({
   account: NonEmptyString,
   vpc: NonEmptyString,
-  subnet: NonEmptyString
-})
+  subnet: NonEmptyString,
+});
 
 export const RouteConfig = t.interface({
   destination: t.union([t.string, PcxRouteConfigType]), // TODO Can be string or destination in another account

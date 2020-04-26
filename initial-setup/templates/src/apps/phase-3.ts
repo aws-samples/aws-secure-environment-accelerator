@@ -61,10 +61,10 @@ async function main() {
    * Code to create Peering Connection in all accounts
    */
   for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-    const vpcConfig  = accountConfig.vpc!;
+    const vpcConfig = accountConfig.vpc!;
     const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy;
-    const currentRouteTable = vpcConfig["route-tables"]?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
-    if (!currentRouteTable){
+    const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
+    if (!currentRouteTable) {
       continue;
     }
     const routeTables = currentRouteTable?.routes?.find(x => x.target.startsWith('pcx-'));
@@ -81,15 +81,13 @@ async function main() {
         acceleratorPrefix: context.acceleratorPrefix,
       },
     );
-    
+
     const pcxRoute = new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name!}`, {
       accountKey: accountKey!,
       vpcName: vpcConfig.name!,
       vpcConfigs: accountConfigs!,
       outputs,
     });
-
-
   }
 }
 // tslint:disable-next-line: no-floating-promises

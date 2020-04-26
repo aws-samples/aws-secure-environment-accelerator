@@ -24,7 +24,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
 
   const resourceId = 'AddPcxRoute';
   const requestType = event.RequestType;
-  if (requestType === 'Delete') {
+  console.log(event.RequestType);
   if (requestType == 'Delete') {
     console.log('No operation to perform Delete Stack');
     await sendResponsePromise(event, context, SUCCESS, {}, resourceId);

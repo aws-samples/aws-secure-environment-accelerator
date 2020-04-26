@@ -7,7 +7,7 @@ import {
   AccountConfig,
   OrganizationalUnitConfig,
   PcxRouteConfig,
-  PcxRouteConfigType
+  PcxRouteConfigType,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../apps/phase-1';
@@ -46,7 +46,7 @@ export namespace PeeringConnection {
       vpcConfig,
     };
   }
-  
+
   export interface PeeringConnectionProps {
     /**
      * Source VPC ID for Peering.
@@ -92,12 +92,12 @@ export namespace PeeringConnection {
       this.pcxId = pcx.ref;
     }
   }
-  
+
   export interface PeeringConnectionRoutesProps {
     /**
      * Source VPC Name .
      */
-    accountKey: string,
+    accountKey: string;
     /**
      * Source VPC Name .
      */
@@ -113,45 +113,40 @@ export namespace PeeringConnection {
     outputs: StackOutput[];
   }
 
-  export class PeeringConnectionRoutes extends cdk.Construct{
+  export class PeeringConnectionRoutes extends cdk.Construct {
     constructor(scope: cdk.Construct, id: string, props: PeeringConnectionRoutesProps) {
       super(scope, id);
-      
-      const {
-        accountKey,
-        vpcName,
-        vpcConfigs,
-        outputs
-      } = props;
+
+      const { accountKey, vpcName, vpcConfigs, outputs } = props;
       const vpcConfig = getVpcConfig(vpcConfigs, accountKey, vpcName);
       const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
         accountKey,
         outputType: 'VpcOutput',
       });
       const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcName);
-      if (!vpcOutput){
-        throw new Error(`No VPC Created with name "${vpcName}"`)
+      if (!vpcOutput) {
+        throw new Error(`No VPC Created with name "${vpcName}"`);
       }
-      const routeTable = vpcConfig?.["route-tables"]?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
+      const routeTable = vpcConfig?.['route-tables']?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
       const routes = routeTable?.routes;
-      if (!routes){
+      if (!routes) {
         return;
       }
       const routeTableId = Object.entries(vpcOutput.routeTables).find(x => x[0] === routeTable?.name)?.[1];
       if (!routeTableId) {
         throw new Error(`Cannot find route table with name "${routeTable?.name}"`);
       }
-      for ( const route of routes){
-        if (!PcxRouteConfigType.is(route.destination)){
+      for (const route of routes) {
+        if (!PcxRouteConfigType.is(route.destination)) {
           continue;
         }
-        const pcxRoute: PcxRouteConfig = route.destination; 
+        const pcxRoute: PcxRouteConfig = route.destination;
         const targetVpcConfig = getVpcConfig(vpcConfigs, pcxRoute.account, pcxRoute.vpc);
         const targetSubnet = targetVpcConfig?.subnets?.find(x => x.name === pcxRoute.subnet);
-        if (!targetSubnet){
+        if (!targetSubnet) {
           throw new Error(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
         }
-        
+
         // Add Route to RouteTable
         for (const [index, subnet] of targetSubnet.definitions.entries()) {
           if (subnet.disabled) {
