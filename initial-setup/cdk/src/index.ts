@@ -428,7 +428,8 @@ export namespace InitialSetup {
 
       const associateHostedZones = new CodeTask(this, 'Associate Hosted Zones', {
         functionProps: {
-          code: props.lambdas.codeForEntry('associate-hosted-zones'),
+          code: lambdaCode,
+          handler: 'index.associateHostedZonesStep',
           role: pipelineRole,
         },
         functionPayload: {

@@ -174,14 +174,14 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     // if VPC section not found, move to next account
     const vpcConfig = accountConfig.vpc;
     if (!VpcConfigType.is(vpcConfig)) {
-      console.log(`VPC is not defined for organizational unit with key - ${accountKey}. Moving to next account.`);
+      console.log(`VPC is not defined for account with key - ${accountKey}. Moving to next account.`);
       continue;
     }
 
     console.log(`account-key: ${accountKey}; use-central-endpoints: ${vpcConfig['use-central-endpoints']}`);
     if (vpcConfig['use-central-endpoints'] === false) {
       console.log(
-        `use-central-enpoints is set as false for organizational unit with key - ${accountKey}. Moving to next account.`,
+        `use-central-enpoints is set as false for account with key - ${accountKey}. Moving to next account.`,
       );
       continue;
     }
