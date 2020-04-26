@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
@@ -7,7 +8,7 @@ import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 export namespace CreateStackTask {
   export interface Props {
     role: iam.IRole;
-    lambdas: WebpackBuild;
+    lambdaCode: lambda.Code;
     waitSeconds?: number;
   }
 }
@@ -19,7 +20,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateStackTask.Props) {
     super(scope, id);
 
-    const { role, lambdas, waitSeconds = 10 } = props;
+    const { role, lambdaCode, waitSeconds = 10 } = props;
 
     role.addToPolicy(
       new iam.PolicyStatement({
@@ -40,7 +41,8 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       resultPath: 'DISCARD',
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack/create'),
+        code: lambdaCode,
+        handler: 'index.createStack.create',
       },
     });
 
@@ -50,7 +52,8 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
-        code: lambdas.codeForEntry('create-stack/verify'),
+        code: lambdaCode,
+        handler: 'index.createStack.verify',
       },
     });
 

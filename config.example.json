@@ -226,7 +226,7 @@
           "vpc-name": "Central",
           "region": "ca-central-1",
           "subnet": "GCWide",
-          "size": "enterprise",
+          "size": "Enterprise",
           "dns-domain": "brian.local",
           "netbios-domain": "brian",
           "central-resolver-rule-account": "shared-network",
@@ -234,6 +234,8 @@
           "log-group-name": "PBMMAccel-MAD-brian-local-LG",
           "share-to-master": true,
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
+          "num-rdgw-hosts": 1,
+          "RDGWInstanceType": "t2.large", 
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -245,7 +247,8 @@
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
-          "ad-groups": ["Provisioning", "LogArchive-View", "Security-Admin", "Security-View"],
+          "ad-groups": ["Provisioning"],
+          "ad-per-account-groups": ["-Admins", "-PowerUser", "-View"],
           "adc-group": "ADConnector",
           "ad-users": [
             {
@@ -256,10 +259,16 @@
               "user": "Brian",
               "groups": [
                 "Provisioning",
-                "LogArchive-View",
-                "Security-Admin",
-                "Security-View",
+                "*-View",
+                "*-Admin",
+                "*-PowerUsers",
                 "AWS Delegated Administrators"
+              ]
+            },
+            {
+              "user": "TestUser",
+              "groups": [
+                "*-View"
               ]
             }
           ]
@@ -740,6 +749,56 @@
                 "cidr": "10.1.208.0/20",
                 "disabled": true
               }
+            ],
+            "nacls": [
+              {
+                "rule": 100,
+                "protocol": "-1",
+                "ports": "-1",
+                "rule-action": "deny",
+                "egress": true,
+                "cidr-blocks": [
+                  {
+                    "subnet": "Web"
+                  },
+                  {
+                    "vpc": "central",
+                    "subnet": ["Data"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": "-1",
+                "ports": "-1",
+                "rule-action": "allow",
+                "egress": true,
+                "cidr-blocks": ["0.0.0.0/0"]
+              },
+              {
+                "rule": 100,
+                "protocol": "-1",
+                "ports": "-1",
+                "rule-action": "deny",
+                "egress": false,
+                "cidr-blocks": [
+                  {
+                    "subnet": "Web"
+                  },
+                  {
+                    "vpc": "central",
+                    "subnet": ["Data"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": -1,
+                "ports": "-1",
+                "rule-action": "allow",
+                "egress": false,
+                "cidr-blocks": ["0.0.0.0/0"]
+              }
             ]
           },
           {
@@ -828,6 +887,170 @@
                   "master-ForSSO-ForSSO-CIDR": null
                 },
                 "target": "pcx-master-ForSSO"
+              }
+            ]
+          }
+        ],
+        "security-groups": [
+          {
+            "name": "Mgmt",
+            "inbound-rules": [
+              {
+                "description": "Allow Mgmt Traffic Inbound",
+                "type": ["RDP", "SSH"],
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Central VPC Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                  }
+                ]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0"]
+              }
+            ]
+          },
+          {
+            "name": "Web",
+            "inbound-rules": [
+              {
+                "description": "Web Traffic Inbound",
+                "type": ["HTTP", "HTTPS"],
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Central VPC Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                  }
+                ]
+              },
+              {
+                "description": "Mgmt Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "vpc": "Central",
+                    "security-group": ["Mgmt"]
+                  }
+                ]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0"]
+              }
+            ]
+          },
+          {
+            "name": "App",
+            "inbound-rules": [
+              {
+                "description": "Central VPC Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                  }
+                ]
+              },
+              {
+                "description": "Mgmt Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "security-group": ["Mgmt"]
+                  }
+                ]
+              },
+              {
+                "description": "Web Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "security-group": ["Web"]
+                  }
+                ]
+              },
+              {
+                "description": "Allow East/West Communication Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "security-group": ["App"]
+                  }
+                ]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0"]
+              }
+            ]
+          },
+          {
+            "name": "Data",
+            "inbound-rules": [
+              {
+                "description": "Central VPC Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                  }
+                ]
+              },
+              {
+                "description": "Mgmt Traffic Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "security-group": ["Mgmt"]
+                  }
+                ]
+              },
+              {
+                "description": "App Traffic Inbound",
+                "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                "source": [
+                  {
+                    "security-group": ["App"]
+                  }
+                ]
+              },
+              {
+                "description": "Allow East/West Communication Inbound",
+                "type": ["ALL"],
+                "source": [
+                  {
+                    "security-group": ["Data"]
+                  }
+                ]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0"]
               }
             ]
           }
