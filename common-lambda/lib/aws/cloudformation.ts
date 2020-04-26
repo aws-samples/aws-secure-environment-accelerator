@@ -65,7 +65,8 @@ export class CloudFormation {
         return response.Stacks?.[0];
       } catch (error) {
         if (error.code === 'Throttling') {
-          await delay(500);
+          console.warn(`Retrying because of throttling`);
+          await delay(1000);
           continue;
         }
         console.warn(`Ignoring error in describeStack`);

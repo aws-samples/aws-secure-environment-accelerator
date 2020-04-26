@@ -111,7 +111,11 @@ async function main() {
           commands: ['npm install --global pnpm', 'pnpm install'],
         },
         build: {
-          commands: ['cd accelerator/cdk', 'pnpx cdk deploy --require-approval never'],
+          commands: [
+            'cd accelerator/cdk',
+            'pnpx cdk bootstrap --require-approval never',
+            'pnpx cdk deploy --require-approval never',
+          ],
         },
       },
     }),
