@@ -1,4 +1,4 @@
-import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
+import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { Context, CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { send as sendResponse, SUCCESS, FAILED, ResponseStatus } from 'cfn-response';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
@@ -19,10 +19,10 @@ function sendResponsePromise(
 }
 
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
-  console.log(`Retrieving default IP address for DNS resolver endpoint...`);
+  console.log(`Adding Route to Route Table...`);
   console.log(JSON.stringify(event, null, 2));
 
-  const resourceId = 'EndpointIps';
+  const resourceId = 'AddPcxRoute';
   const requestType = event.RequestType;
   if (requestType === 'Delete') {
     console.log('No operation to perform Delete Stack');
@@ -36,20 +36,19 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     }
 
     const accountId = event.ResourceProperties.AccountId;
-    const endpointId = event.ResourceProperties.EndpointResolver;
+    const routeTableId = event.ResourceProperties.RouteTableId;
+    const pcxId = event.ResourceProperties.PeeringConnectionId;
+    const destinationCidrblock = event.ResourceProperties.DestinationCidrBlock;
 
     const sts = new STS();
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, executionRoleName);
 
     // Find route53 endpoint IP addresses
-    const r53resolver = new Route53Resolver(credentials);
-    const response = await r53resolver.getEndpointIpAddress(endpointId);
-    const ipAddresses = response.IpAddresses || [];
+    const ec2 = new EC2(credentials);
+    const response = await ec2.createRouteForPcx(routeTableId, destinationCidrblock, pcxId);
+    console.log(response);
 
-    const output: { [key: string]: string | undefined } = {};
-    ipAddresses.forEach((ipAddress, index) => (output[`IpAddress${index}`] = ipAddress.Ip));
-
-    await sendResponsePromise(event, context, SUCCESS, output, resourceId);
+    await sendResponsePromise(event, context, SUCCESS, {}, resourceId);
   } catch (error) {
     console.error(error);
 

@@ -1,5 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as cfn from '@aws-cdk/aws-cloudformation';
+
 import {
   VpcConfig,
   PeeringConnectionConfig,
@@ -92,7 +95,7 @@ export class PeeringConnectionDeployment extends cdk.Construct {
     if (!PeeringConnectionConfig.is(pcxConfig)) {
       return;
     }
-    const peerOwnerId = getAccountId(accounts, 'shared-network');
+    const peerOwnerId = getAccountId(accounts, pcxConfig.source);
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey,
       outputType: 'VpcOutput',
@@ -125,11 +128,17 @@ export class PeeringConnectionDeployment extends cdk.Construct {
     this.vpcOutput = vpcOutput;
 
     const peerSubnetDefnitions = peerVpcConfig.subnets?.find(x => x.name === pcxConfig['source-subnets'])?.definitions;
+    const subnetDefnitions = vpcConfig.subnets?.find(x => x.name === pcxConfig["local-subnets"])?.definitions;
 
     if (!peerSubnetDefnitions) {
       throw new Error(`Can't find Subnet Cidr for Subnet "${pcxConfig['source-subnets']}"`);
     }
 
+    if (!subnetDefnitions) {
+      throw new Error(`Can't find Subnet Cidr for Subnet "${pcxConfig["local-subnets"]}"`);
+    }
+
+    
     const subnetConfig = vpcConfig.subnets?.find(x => x.name === pcxConfig['local-subnets']);
     const routeTables = new Set(subnetConfig?.definitions.map(x => x['route-table']));
     for (const routeTableName of routeTables) {
@@ -151,6 +160,46 @@ export class PeeringConnectionDeployment extends cdk.Construct {
             vpcPeeringConnectionId: pcx.ref,
           });
         }
+      }
+    }
+
+    // Adding routes to Peer VPC Subnet Route Table
+    const peerSubnetConfig = peerVpcConfig.subnets?.find(x => x.name === pcxConfig["source-subnets"]);
+    const peerRouteTables = new Set(peerSubnetConfig?.definitions.map(x => x['route-table']));
+    for (const routeTableName of peerRouteTables) {
+      const routeTable = peerVpcConfig['route-tables']?.find(x => x.name === routeTableName);
+      const routes = routeTable?.routes?.find(x => x.target === `pcx-${accountKey}-${vpcConfig.name}`);
+      if (!routes) {
+        continue;
+      }
+      const routeTableId = Object.entries(peerVpcOutput.routeTables).find(x => x[0] === routeTableName)?.[1];
+      if (!routeTableId) {
+        throw new Error(`Cannot find route table with name "${routeTableName}"`);
+      }
+
+      // Add Route to RouteTable
+      for (const [index, subnet] of subnetDefnitions.entries()) {
+        if (subnet.disabled) {
+          continue;
+        }
+        const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
+          this,
+          `CfnAddPcxRoute-${index}`,
+          context.customResourceFunctions.find(
+            x => x.functionName === 'CfnCustomResourceAddPcxRouteLamba')?.functionArn!,
+        );
+
+        // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
+        const getDnsEndpointIpsResource = new cfn.CustomResource(this, `PcxRoute-${routeTableName}-${index}`, {
+          provider: cfn.CustomResourceProvider.fromLambda(getDnsEndpointIpsLambda),
+          properties: {
+            RouteTableId: routeTableId,
+            AccountId: peerOwnerId,
+            PeeringConnectionId: pcx.ref,
+            DestinationCidrBlock: subnet.cidr?.toCidrString() || subnet.cidr2?.toCidrString(),
+          },
+        });
+        
       }
     }
   }

@@ -42,12 +42,12 @@ async function main() {
    * @param accountKey : Target Account Key, Access will be provided to this accout
    */
   const createIamRole = (roleName: string, sourceAccount: string, targetAccount: string): string => {
-    const iamRolePeering = new AcceleratorStack(app, `${roleName}Stack`, {
+    const iamRolePeering = new AcceleratorStack(app, `PBMMAccel-B-${roleName}Stack`, {
       env: {
         account: getAccountId(accounts, sourceAccount),
         region: cdk.Aws.REGION,
       },
-      stackName: `PBMMAccel-${roleName}Stack`,
+      stackName: `PBMMAccel-B-${roleName}Stack`,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
     });
@@ -101,12 +101,12 @@ async function main() {
   const zonesConfig = globalOptionsConfig.zones;
   const zonesAccountKey = zonesConfig.account;
 
-  const deployment = new AcceleratorStack(app, 'GlobalOptionsDNSResolversStack', {
+  const deployment = new AcceleratorStack(app, 'PBMMAccel-A-GlobalOptionsDNSResolversStack', {
     env: {
       account: getAccountId(accounts, zonesAccountKey),
       region: cdk.Aws.REGION,
     },
-    stackName: `PBMMAccel-GlobalOptionsDNSResolvers`,
+    stackName: `PBMMAccel-A-GlobalOptionsDNSResolvers`,
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
   });
@@ -133,18 +133,22 @@ async function main() {
       continue;
     }
     const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+    let roleStatus;
     if (!rolesForPeering.includes(roleName)) {
-      const roleStatus = createIamRole(roleName, pcxConfig.source, accountKey);
+      roleStatus = createIamRole(roleName, pcxConfig.source, accountKey);
       rolesForPeering.push(roleName);
+    }
+    else{
+      roleStatus = 'SUCCESS';
     }
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
 
-    const pcxDeployment = new AcceleratorStack(app, `PcxDeployment${accountKey}${pcxConfig['source-vpc']}Stack`, {
+    const pcxDeployment = new AcceleratorStack(app, `PBMMAccel-C-PcxDeployment${accountKey}${pcxConfig['source-vpc']}Stack`, {
       env: {
         account: getAccountId(accounts, accountKey),
         region: cdk.Aws.REGION,
       },
-      stackName: `PBMMAccel-PcxDeployment${accountKey}${vpcConfig.name}Stack`,
+      stackName: `PBMMAccel-C-PcxDeployment${accountKey}${vpcConfig.name}Stack`,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
     });

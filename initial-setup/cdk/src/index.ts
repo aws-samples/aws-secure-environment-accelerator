@@ -132,7 +132,7 @@ export namespace InitialSetup {
       });
 
       // TODO Restrict role permissions
-      const dnsEndpointIpPollerRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
+      const cfnCustomResourceRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
         roleName: 'LambdaRoleRoute53Resolver',
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
@@ -142,8 +142,19 @@ export namespace InitialSetup {
         runtime: lambda.Runtime.NODEJS_12_X,
         code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
         handler: 'index.handler',
-        role: dnsEndpointIpPollerRole,
+        role: cfnCustomResourceRole,
         functionName: 'CfnCustomResourceR53EndpointIPPooler',
+        environment: {
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
+        },
+      });
+
+      const addPcxRouteLambda = new lambda.Function(this, 'AddPcxRouteLamba', {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        code: props.lambdas.codeForEntry('add-pcx-route'),
+        handler: 'index.handler',
+        role: cfnCustomResourceRole,
+        functionName: 'CfnCustomResourceAddPcxRouteLamba',
         environment: {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
         },
@@ -205,6 +216,14 @@ export namespace InitialSetup {
             CFN_DNS_ENDPOINT_IPS_FUNCTION_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: dnsEndpointIpPollerLambda.functionName,
+            },
+            CFN_ADD_PCX_ROUTE_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: addPcxRouteLambda.functionArn,
+            },
+            CFN_ADD_PCX_ROUTE_FUNCTION_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: addPcxRouteLambda.functionName,
             },
           },
         },
