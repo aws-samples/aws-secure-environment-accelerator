@@ -92,63 +92,19 @@ export class ServiceCatalog {
       .promise();
   }
 
-  /**
-   * Launch Product AVM by ProductId, ProvisioningArtifactId, and ProvisioningParameters
-   * @param productId
-   * @param provisionToken
-   * @param provisioningArtifactId
-   * @param productAVMParam
-   */
-  async launchProductAVM(
-    productId: string,
-    provisionToken: string,
-    provisioningArtifactId: string,
-    productAVMParam: ProductAVMParam,
-  ): Promise<ProvisionProductOutput> {
-    const provisionProductInput: ProvisionProductInput = {
-      ProductId: productId /* required */,
-      ProvisionToken: provisionToken /* required */,
-      ProvisionedProductName: productAVMParam.accountName /* required */,
-      ProvisioningArtifactId: provisioningArtifactId /* required */,
-      ProvisioningParameters: [
-        {
-          Key: 'AccountName',
-          Value: productAVMParam.accountName,
-        },
-        {
-          Key: 'AccountEmail',
-          Value: productAVMParam.accountEmail,
-        },
-        {
-          Key: 'OrgUnitName',
-          Value: productAVMParam.orgUnitName,
-        },
-        {
-          Key: 'VPCOptions',
-          Value: 'No-Primary-VPC' /* CA PBMM requirement. Please do not alter. */,
-        },
-        {
-          Key: 'VPCRegion',
-          Value: 'ca-central-1' /* CA PBMM requirement. Please do not alter. */,
-        },
-        {
-          Key: 'VPCCidr',
-          Value: '10.0.0.0/16' /* CA PBMM requirement. Please do not alter. */,
-        },
-        {
-          Key: 'PeerVPC',
-          Value: 'false' /* CA PBMM requirement. Please do not alter. */,
-        },
-      ],
-      Tags: [
-        {
-          Key: 'Accelerator' /* required */,
-          Value: 'PBMM' /* required */,
-        },
-      ],
-    };
-
-    return this.client.provisionProduct(provisionProductInput).promise();
+  async provisionProduct(input: ProvisionProductInput): Promise<ProvisionProductOutput> {
+    return this.client
+      .provisionProduct({
+        ...input,
+        Tags: [
+          ...(input.Tags || []),
+          {
+            Key: 'Accelerator',
+            Value: 'PBMM',
+          },
+        ],
+      })
+      .promise();
   }
 
   /**

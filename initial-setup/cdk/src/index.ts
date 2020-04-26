@@ -1,3 +1,4 @@
+import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
@@ -18,7 +19,7 @@ import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import * as lambda from '@aws-cdk/aws-lambda';
 
 interface BuildProps {
-  lambdas: WebpackBuild;
+  lambdaCode: lambda.Code;
   solutionZipPath: string;
 }
 
@@ -28,7 +29,8 @@ export namespace InitialSetup {
     acceleratorPrefix: string;
     acceleratorName: string;
     solutionRoot: string;
-    executionRoleName: string;
+    stateMachineName: string;
+    stateMachineExecutionRole: string;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -41,7 +43,7 @@ export class InitialSetup extends AcceleratorStack {
     new InitialSetup.Pipeline(this, 'Pipeline', props);
   }
 
-  static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props) {
+  static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props): Promise<InitialSetup> {
     const initialSetupRoot = path.join(props.solutionRoot, 'initial-setup');
     const lambdasRoot = path.join(initialSetupRoot, 'lambdas');
 
@@ -50,6 +52,9 @@ export class InitialSetup extends AcceleratorStack {
       workingDir: lambdasRoot,
       webpackConfigFile: 'webpack.config.ts',
     });
+
+    // All lambdas are bundled into index.js
+    const lambdaCode = lambdas.codeForEntry();
 
     const solutionZipPath = tempy.file({
       extension: 'zip',
@@ -76,7 +81,7 @@ export class InitialSetup extends AcceleratorStack {
 
     return new InitialSetup(scope, id, {
       ...props,
-      lambdas,
+      lambdaCode,
       solutionZipPath,
     });
   }
@@ -84,13 +89,15 @@ export class InitialSetup extends AcceleratorStack {
 
 export namespace InitialSetup {
   export interface PipelineProps extends CommonProps {
-    lambdas: WebpackBuild;
+    lambdaCode: lambda.Code;
     solutionZipPath: string;
   }
 
   export class Pipeline extends cdk.Construct {
     constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
       super(scope, id);
+
+      const { lambdaCode } = props;
 
       const stack = cdk.Stack.of(this);
 
@@ -122,41 +129,50 @@ export namespace InitialSetup {
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
-        roleName: 'AcceleratorPipelineRole',
+        roleName: 'AcceleratorMasterRole',
         assumedBy: new iam.CompositePrincipal(
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AWSLambdaBasicExecutionRole')],
       });
 
       // TODO Restrict role permissions
       const cfnCustomResourceRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
         roleName: 'LambdaRoleRoute53Resolver',
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
+
+      cfnCustomResourceRole.addToPolicy(
+        new iam.PolicyStatement({
+          resources: ['*'],
+          actions: [
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents"],
+        }),
+      );
 
       const dnsEndpointIpPollerLambda = new lambda.Function(this, 'DnsEndpointIpPoller', {
         runtime: lambda.Runtime.NODEJS_12_X,
-        code: props.lambdas.codeForEntry('get-dns-endpoint-ipaddress'),
-        handler: 'index.handler',
+        code: lambdaCode,
+        handler: 'index.getDnsEndpointIps',
         role: cfnCustomResourceRole,
         functionName: 'CfnCustomResourceR53EndpointIPPooler',
         environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
         },
       });
 
       const addPcxRouteLambda = new lambda.Function(this, 'AddPcxRouteLamba', {
         runtime: lambda.Runtime.NODEJS_12_X,
-        code: props.lambdas.codeForEntry('add-pcx-route'),
-        handler: 'index.handler',
+        code: lambdaCode,
+        handler: 'index.addPcxRouteToRouteTable',
         role: cfnCustomResourceRole,
         functionName: 'CfnCustomResourceAddPcxRouteLamba',
         environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.executionRoleName,
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
         },
       });
 
@@ -203,11 +219,11 @@ export namespace InitialSetup {
             },
             ACCELERATOR_EXECUTION_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.executionRoleName,
+              value: props.stateMachineExecutionRole,
             },
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.executionRoleName,
+              value: props.stateMachineExecutionRole,
             },
             CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -231,7 +247,8 @@ export namespace InitialSetup {
 
       const loadConfigurationTask = new CodeTask(this, 'Load Configuration', {
         functionProps: {
-          code: props.lambdas.codeForEntry('load-configuration'),
+          code: lambdaCode,
+          handler: 'index.loadConfigurationStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -247,7 +264,8 @@ export namespace InitialSetup {
 
       const addRoleToServiceCatalog = new CodeTask(this, 'Add Execution Role to Service Catalog', {
         functionProps: {
-          code: props.lambdas.codeForEntry('add-role-to-service-catalog'),
+          code: lambdaCode,
+          handler: 'index.addRoleToServiceCatalogStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -259,7 +277,7 @@ export namespace InitialSetup {
 
       const createAccountStateMachine = new sfn.StateMachine(scope, 'CreateAccountStateMachine', {
         definition: new CreateAccountTask(scope, 'Create', {
-          lambdas: props.lambdas,
+          lambdaCode,
           role: pipelineRole,
         }),
       });
@@ -285,7 +303,8 @@ export namespace InitialSetup {
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
-          code: props.lambdas.codeForEntry('load-accounts'),
+          code: lambdaCode,
+          handler: 'index.loadAccountsStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -304,15 +323,10 @@ export namespace InitialSetup {
 
       const installRolesStateMachine = new sfn.StateMachine(this, 'InstallRolesStateMachine', {
         definition: new CreateStackSetTask(this, 'Install', {
-          lambdas: props.lambdas,
+          lambdaCode,
           role: pipelineRole,
         }),
       });
-
-      // Initialize the role in all accounts excluding the primary
-      // We exclude the primary as this stack is probably installed in the primary account as well
-      // and you cannot create a stack set instance in your own account
-      const installRolesInstanceAccountIds = '$.accounts[?(@.primary != true)].id';
 
       const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
         task: new tasks.StartExecution(installRolesStateMachine, {
@@ -321,7 +335,7 @@ export namespace InitialSetup {
             stackName: `${props.acceleratorPrefix}PipelineRole`,
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
-              RoleName: props.executionRoleName,
+              RoleName: props.stateMachineExecutionRole,
               // TODO Only add root role for development environments
               AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
@@ -329,7 +343,7 @@ export namespace InitialSetup {
               s3BucketName: installRoleTemplate.s3BucketName,
               s3ObjectKey: installRoleTemplate.s3ObjectKey,
             },
-            'instanceAccounts.$': installRolesInstanceAccountIds,
+            'instanceAccounts.$': '$.accounts[*].id',
             instanceRegions: [stack.region],
           },
         }),
@@ -341,11 +355,12 @@ export namespace InitialSetup {
 
       const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
         functionProps: {
-          code: props.lambdas.codeForEntry('add-role-to-scp'),
+          code: lambdaCode,
+          handler: 'index.addRoleToScpStep',
           role: pipelineRole,
         },
         functionPayload: {
-          roleName: props.executionRoleName,
+          roleName: props.stateMachineExecutionRole,
           policyName: coreMandatoryScpName,
         },
         resultPath: 'DISCARD',
@@ -353,7 +368,8 @@ export namespace InitialSetup {
 
       const enableResourceSharingTask = new CodeTask(this, 'Enable Resource Sharing', {
         functionProps: {
-          code: props.lambdas.codeForEntry('enable-resource-sharing'),
+          code: lambdaCode,
+          handler: 'index.enableResourceSharingStep',
           role: pipelineRole,
         },
         resultPath: 'DISCARD',
@@ -361,7 +377,7 @@ export namespace InitialSetup {
 
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
-          lambdas: props.lambdas,
+          lambdaCode,
           role: pipelineRole,
         }),
       });
@@ -385,12 +401,13 @@ export namespace InitialSetup {
 
       const storePhase0Output = new CodeTask(this, 'Store Phase 0 Output', {
         functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
           role: pipelineRole,
         },
         functionPayload: {
           stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -409,12 +426,13 @@ export namespace InitialSetup {
 
       const storePhase1Output = new CodeTask(this, 'Store Phase 1 Output', {
         functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
           role: pipelineRole,
         },
         functionPayload: {
           stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -423,11 +441,12 @@ export namespace InitialSetup {
       // TODO We could put this task in a map task and apply to all accounts individually
       const blockS3PublicAccessTask = new CodeTask(this, 'Block S3 Public Access', {
         functionProps: {
-          code: props.lambdas.codeForEntry('s3-block-public-access'),
+          code: lambdaCode,
+          handler: 'index.s3BlockPublicAccessStep',
           role: pipelineRole,
         },
         functionPayload: {
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
         },
@@ -436,11 +455,12 @@ export namespace InitialSetup {
 
       const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
         functionProps: {
-          code: props.lambdas.codeForEntry('add-tags-to-shared-resources'),
+          code: lambdaCode,
+          handler: 'index.addTagsToSharedResourcesStep',
           role: pipelineRole,
         },
         functionPayload: {
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
@@ -459,23 +479,25 @@ export namespace InitialSetup {
 
       const storePhase2Output = new CodeTask(this, 'Store Phase 2 Output', {
         functionProps: {
-          code: props.lambdas.codeForEntry('store-stack-output'),
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
           role: pipelineRole,
         },
         functionPayload: {
           stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.executionRoleName,
+          assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
+        stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
-          // .next(addRoleToServiceCatalog)
-          // .next(createAccountsTask)
-          // .next(loadAccountsTask)
-          // .next(installRolesTask)
+          .next(addRoleToServiceCatalog)
+          .next(createAccountsTask)
+          .next(loadAccountsTask)
+          .next(installRolesTask)
           // .next(addRoleToScpTask)
           // .next(blockS3PublicAccessTask)
           // .next(enableResourceSharingTask)

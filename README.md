@@ -1,5 +1,10 @@
 # PBMM Accelerator
 
+## Requirements
+
+- NodeJS 12.x
+- pnpm version 4.x https://github.com/pnpm/pnpm
+
 ## Installation
 
 Configure the AWS CLI so that CDK can deploy in the AWS account.

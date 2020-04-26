@@ -67,7 +67,8 @@ export class AccountVendingMachine {
 
     // find service catalog Product - ProvisioningArtifactId by ProductId
     const listProvisioningArtifactsOutput = await this.client.findProvisioningArtifact(productId);
-    const provisioningArtifactId = listProvisioningArtifactsOutput?.ProvisioningArtifactDetails?.[0].Id;
+    const provisioningArtifact = listProvisioningArtifactsOutput?.ProvisioningArtifactDetails?.find(a => a.Active);
+    const provisioningArtifactId = provisioningArtifact?.Id;
     if (!provisioningArtifactId) {
       return {
         status: 'FAILURE',
@@ -75,24 +76,47 @@ export class AccountVendingMachine {
       };
     }
 
-    // prepare param for AVM product launch
-    const productAVMParam: ProductAVMParam = {
-      accountName,
-      accountEmail: emailAddress,
-      orgUnitName: organizationalUnit,
-    };
-
     const provisionToken = uuidv4();
 
     // launch AVM Product
     let provisionProductOutput;
     try {
-      provisionProductOutput = await this.client.launchProductAVM(
-        productId,
-        provisionToken,
-        provisioningArtifactId,
-        productAVMParam,
-      );
+      provisionProductOutput = await this.client.provisionProduct({
+        ProductId: productId,
+        ProvisionToken: provisionToken,
+        ProvisioningArtifactId: provisioningArtifactId,
+        ProvisionedProductName: accountName,
+        ProvisioningParameters: [
+          {
+            Key: 'AccountName',
+            Value: accountName,
+          },
+          {
+            Key: 'AccountEmail',
+            Value: emailAddress,
+          },
+          {
+            Key: 'OrgUnitName',
+            Value: organizationalUnit,
+          },
+          {
+            Key: 'VPCOptions',
+            Value: 'No-Primary-VPC' /* CA PBMM requirement. Please do not alter. */,
+          },
+          {
+            Key: 'VPCRegion',
+            Value: 'ca-central-1' /* CA PBMM requirement. Please do not alter. */,
+          },
+          {
+            Key: 'VPCCidr',
+            Value: '10.0.0.0/16' /* CA PBMM requirement. Please do not alter. */,
+          },
+          {
+            Key: 'PeerVPC',
+            Value: 'false' /* CA PBMM requirement. Please do not alter. */,
+          },
+        ],
+      });
     } catch (e) {
       console.log('Exception Message: ' + e.message);
       if (e.message === 'A stack named ' + accountName + ' already exists.') {

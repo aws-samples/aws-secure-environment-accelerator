@@ -20,17 +20,29 @@ export class WebpackBuild {
   private static tempDirectoryCache = new TempDirectoryCache(path.join(__dirname, 'webpack-build-cache.json'));
 
   private readonly outputPath: string;
+  private readonly codeByEntryMap: { [entryName: string]: lambda.Code } = {};
 
   constructor(outputPath: string) {
     this.outputPath = outputPath;
   }
 
-  codeForEntry(entryName: string): lambda.Code {
-    const entryPath = path.join(this.outputPath, entryName);
+  codeForEntry(entryName?: string): lambda.Code {
+    const mapIndex = entryName || '__UNDEFINED__';
+    if (this.codeByEntryMap[mapIndex]) {
+      return this.codeByEntryMap[mapIndex];
+    }
+    let entryPath;
+    if (entryName) {
+      entryPath = path.join(this.outputPath, entryName);
+    } else {
+      entryPath = this.outputPath;
+    }
     if (!fs.existsSync(entryPath)) {
       throw new Error(`The entry "${entryName}" does not exist`);
     }
-    return lambda.Code.fromAsset(entryPath);
+    const code = lambda.Code.fromAsset(entryPath);
+    this.codeByEntryMap[mapIndex] = code;
+    return code;
   }
 
   static async build(config: WebpackBuild.Config): Promise<WebpackBuild> {

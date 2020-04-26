@@ -1,10 +1,12 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig, GlobalOptionsAccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
+import {
+  AcceleratorConfig,
+  LandingZoneAccountType,
+  LANDING_ZONE_ACCOUNT_TYPES,
+} from '@aws-pbmm/common-lambda/lib/config';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-
-const LandingZoneAccountTypes = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export interface LoadConfigurationInput {
   configSecretSourceId: string;
@@ -16,9 +18,8 @@ export interface LoadConfigurationOutput {
   warnings: string[];
 }
 
-export type LandingZoneAccountType = typeof LandingZoneAccountTypes[number];
-
 export interface ConfigurationAccount {
+  accountId?: string;
   accountKey: string;
   accountName: string;
   emailAddress: string;
@@ -84,11 +85,11 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   // -------------------------------- \\
 
   // First load mandatory accounts configuration
-  const accountsConfig = config['global-options'].accounts;
   const mandatoryAccountConfigs = config['mandatory-account-configs'];
   for (const [accountKey, mandatoryAccountConfig] of Object.entries(mandatoryAccountConfigs)) {
     const accountConfigName = mandatoryAccountConfig['account-name'];
     const accountConfigEmail = mandatoryAccountConfig.email;
+    const landingZoneAccountType = mandatoryAccountConfig['landing-zone-account-type'];
 
     // Find the organizational account used by this
     const organizationalUnitName = mandatoryAccountConfig.ou;
@@ -98,37 +99,28 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       continue;
     }
 
-    const landingZoneAccountType = getLzAccountTypeByAccountKey(accountsConfig, accountKey);
-    if (landingZoneAccountType === 'primary') {
-      // If the account is a primary account, then look for it by its email address
+    const account = accounts.find(a => a.Email === accountConfigEmail);
+    if (account) {
       const accountsInOu = organizationalUnitAccountMap[organizationalUnit.Id!];
-      const account = accountsInOu.find(a => a.Email === accountConfigEmail);
-      if (!account) {
+      const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
+      if (!accountInOu) {
+        errors.push(`The account with name "${accountConfigName}" is not in OU "${organizationalUnitName}".`);
+        continue;
+      }
+      if (landingZoneAccountType !== 'primary' && account.Name !== accountConfigName) {
         errors.push(
-          `Cannot find primary account with email "${accountConfigEmail}" in organizational unit "${organizationalUnitName}"`,
+          `The account name for account with email "${accountConfigEmail}" does not match the name in the Accelerator configuration.\n` +
+            `"${account.Name}" != "${accountConfigName}"`,
         );
         continue;
       }
-    } else {
-      // If the account is a primary account, then look for it by its name
-      const accountsInOu = organizationalUnitAccountMap[organizationalUnit.Id!];
-      const account = accountsInOu.find(a => a.Name === accountConfigName);
-      if (!account) {
-        errors.push(
-          `Cannot find non-primary account with name "${accountConfigName}" in organizational unit "${organizationalUnitName}"`,
-        );
-        continue;
-      }
-      if (account.Email !== accountConfigEmail) {
-        errors.push(
-          `The account email for account with name "${accountConfigName}" does not match the email in the Accelerator configuration.\n` +
-            `"${account.Email}" != "${accountConfigEmail}"`,
-        );
-        continue;
-      }
+    } else if (landingZoneAccountType) {
+      errors.push(`Cannot find Landing Zone account of type ${landingZoneAccountType} in the organization.`);
+      continue;
     }
 
     configurationAccounts.push({
+      accountId: account?.Id,
       accountKey,
       accountName: accountConfigName,
       emailAddress: mandatoryAccountConfig.email,
@@ -184,55 +176,39 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       }
 
       const acceleratorAccount = configurationAccounts.find(a => a.landingZoneAccountType === lzAccountType);
-      if (acceleratorAccount) {
-        // When we find configuration for this account in the Accelerator config, then verify if properties match
-        if (acceleratorAccount.accountName !== lzAccount.name) {
+      if (!acceleratorAccount) {
+        errors.push(`Cannot find Landing Zone account of type ${lzAccountType} in the Accelerator configuration`);
+        continue;
+      }
+
+      // When we find configuration for this account in the Accelerator config, then verify if properties match
+      if (acceleratorAccount.accountName !== lzAccount.name) {
+        errors.push(
+          `The Acceleror account name and Landing Zone account name for account type "${lzAccountType}" do not match.\n` +
+            `"${acceleratorAccount.accountName}" != "${lzAccount.name}"`,
+        );
+      }
+
+      // Only validate email address and OU for non-primary accounts
+      if (lzAccountType !== 'primary') {
+        if (acceleratorAccount.emailAddress !== lzAccount.email) {
           errors.push(
-            `The Acceleror account name and Landing Zone account name for account type "${lzAccountType}" do not match.\n` +
-              `"${acceleratorAccount.accountName}" != "${lzAccount.name}"`,
+            `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
+              `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
           );
         }
-
-        // Only validate email address and OU for non-primary accounts
-        if (lzAccountType !== 'primary') {
-          if (acceleratorAccount.emailAddress !== lzAccount.email) {
-            errors.push(
-              `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
-                `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
-            );
-          }
-          if (acceleratorAccount.organizationalUnit !== lzOrganizationalUnitName) {
-            errors.push(
-              `The Acceleror account OU and Landing Zone OU email for account type "${lzAccountType}" do not match.\n` +
-                `"${acceleratorAccount.organizationalUnit}" != "${lzOrganizationalUnitName}"`,
-            );
-          }
-        }
-      } else {
-        // We found a Landing Zone account that is not defined in the Accelerator config
-        const accountKey = getAccountKeyByLzAccountType(accountsConfig, lzAccountType);
-        if (!accountKey) {
-          errors.push(`Cannot detect account key for Landing Zone account type ${lzAccount}`);
-        }
-        if (!lzAccount.email) {
-          errors.push(`Email address in Landing Zone for account with name "${lzAccount.name}" is not set`);
-        }
-
-        if (accountKey && lzAccount.email) {
-          configurationAccounts.push({
-            accountKey,
-            accountName: lzAccount.name,
-            emailAddress: lzAccount.email,
-            organizationalUnit: lzOrganizationalUnitName,
-            landingZoneAccountType: lzAccountType,
-          });
+        if (acceleratorAccount.organizationalUnit !== lzOrganizationalUnitName) {
+          errors.push(
+            `The Acceleror account OU and Landing Zone OU email for account type "${lzAccountType}" do not match.\n` +
+              `"${acceleratorAccount.organizationalUnit}" != "${lzOrganizationalUnitName}"`,
+          );
         }
       }
     }
   }
 
   // Verify if all Landing Zone accounts are there
-  for (const landingZoneAccountType of LandingZoneAccountTypes) {
+  for (const landingZoneAccountType of LANDING_ZONE_ACCOUNT_TYPES) {
     const lzAccount = configurationAccounts.find(a => a.landingZoneAccountType === landingZoneAccountType);
     if (!lzAccount) {
       errors.push(`Could not find Landing Zone account of type "${landingZoneAccountType}"`);
@@ -265,50 +241,6 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     warnings,
   };
 };
-
-/**
- * Get the type of the account by looking at the Landing Zone account configuration in the Accelerator config.
- *
- * @param accountsConfig The Accelerator config accounts config
- * @param accountKey The key of the account in the Accelerator config
- */
-function getLzAccountTypeByAccountKey(
-  accountsConfig: GlobalOptionsAccountsConfig,
-  accountKey: string,
-): LandingZoneAccountType | undefined {
-  if (accountsConfig['lz-primary-account'] === accountKey) {
-    return 'primary';
-  } else if (accountsConfig['lz-security-account'] === accountKey) {
-    return 'security';
-  } else if (accountsConfig['lz-log-archive-account'] === accountKey) {
-    return 'log-archive';
-  } else if (accountsConfig['lz-shared-services-account'] === accountKey) {
-    return 'shared-services';
-  }
-  return undefined;
-}
-
-/**
- * Get the account key by looking at the Landing Zone account configuration in the Accelerator config.
- *
- * @param accountsConfig The Accelerator config accounts config
- * @param accountKey The type of the account in the Landing Zone config
- */
-function getAccountKeyByLzAccountType(
-  accountsConfig: GlobalOptionsAccountsConfig,
-  lzAccountType: LandingZoneAccountType,
-): string | undefined {
-  if (lzAccountType === 'primary') {
-    return accountsConfig['lz-primary-account'];
-  } else if (lzAccountType === 'security') {
-    return accountsConfig['lz-security-account'];
-  } else if (lzAccountType === 'log-archive') {
-    return accountsConfig['lz-log-archive-account'];
-  } else if (lzAccountType === 'shared-services') {
-    return accountsConfig['lz-shared-services-account'];
-  }
-  return undefined;
-}
 
 function getLandingZoneAccountTypeBySsmParameters(
   ssmParameters: { name: string; value: string }[],
