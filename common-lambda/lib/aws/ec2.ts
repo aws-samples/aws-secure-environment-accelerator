@@ -9,12 +9,16 @@ export class EC2 {
     });
   }
 
-  async createRouteForPcx(routeTableId: string, destinationCir: string, target: string): Promise<ec2.CreateRouteResult> {
+  async createRouteForPcx(
+    routeTableId: string,
+    destinationCir: string,
+    target: string,
+  ): Promise<ec2.CreateRouteResult> {
     const params = {
       DestinationCidrBlock: destinationCir,
       RouteTableId: routeTableId,
-      VpcPeeringConnectionId: target
-    }
+      VpcPeeringConnectionId: target,
+    };
     return await this.client.createRoute(params).promise();
-}
+  }
 }

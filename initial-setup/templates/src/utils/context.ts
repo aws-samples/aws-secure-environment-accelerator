@@ -29,7 +29,7 @@ export function loadContext(): Context {
     {
       functionName: process.env.CFN_ADD_PCX_ROUTE_FUNCTION_NAME!,
       functionArn: process.env.CFN_ADD_PCX_ROUTE_LAMBDA_ARN!,
-    }
+    },
   ];
   return {
     acceleratorName: process.env.ACCELERATOR_NAME!,

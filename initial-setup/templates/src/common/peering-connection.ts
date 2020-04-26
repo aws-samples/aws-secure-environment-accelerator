@@ -128,17 +128,16 @@ export class PeeringConnectionDeployment extends cdk.Construct {
     this.vpcOutput = vpcOutput;
 
     const peerSubnetDefnitions = peerVpcConfig.subnets?.find(x => x.name === pcxConfig['source-subnets'])?.definitions;
-    const subnetDefnitions = vpcConfig.subnets?.find(x => x.name === pcxConfig["local-subnets"])?.definitions;
+    const subnetDefnitions = vpcConfig.subnets?.find(x => x.name === pcxConfig['local-subnets'])?.definitions;
 
     if (!peerSubnetDefnitions) {
       throw new Error(`Can't find Subnet Cidr for Subnet "${pcxConfig['source-subnets']}"`);
     }
 
     if (!subnetDefnitions) {
-      throw new Error(`Can't find Subnet Cidr for Subnet "${pcxConfig["local-subnets"]}"`);
+      throw new Error(`Can't find Subnet Cidr for Subnet "${pcxConfig['local-subnets']}"`);
     }
 
-    
     const subnetConfig = vpcConfig.subnets?.find(x => x.name === pcxConfig['local-subnets']);
     const routeTables = new Set(subnetConfig?.definitions.map(x => x['route-table']));
     for (const routeTableName of routeTables) {
@@ -164,7 +163,7 @@ export class PeeringConnectionDeployment extends cdk.Construct {
     }
 
     // Adding routes to Peer VPC Subnet Route Table
-    const peerSubnetConfig = peerVpcConfig.subnets?.find(x => x.name === pcxConfig["source-subnets"]);
+    const peerSubnetConfig = peerVpcConfig.subnets?.find(x => x.name === pcxConfig['source-subnets']);
     const peerRouteTables = new Set(peerSubnetConfig?.definitions.map(x => x['route-table']));
     for (const routeTableName of peerRouteTables) {
       const routeTable = peerVpcConfig['route-tables']?.find(x => x.name === routeTableName);
@@ -185,8 +184,8 @@ export class PeeringConnectionDeployment extends cdk.Construct {
         const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
           this,
           `CfnAddPcxRoute-${index}`,
-          context.customResourceFunctions.find(
-            x => x.functionName === 'CfnCustomResourceAddPcxRouteLamba')?.functionArn!,
+          context.customResourceFunctions.find(x => x.functionName === 'CfnCustomResourceAddPcxRouteLamba')
+            ?.functionArn!,
         );
 
         // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
@@ -199,7 +198,6 @@ export class PeeringConnectionDeployment extends cdk.Construct {
             DestinationCidrBlock: subnet.cidr?.toCidrString() || subnet.cidr2?.toCidrString(),
           },
         });
-        
       }
     }
   }

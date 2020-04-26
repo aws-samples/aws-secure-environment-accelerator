@@ -137,21 +137,24 @@ async function main() {
     if (!rolesForPeering.includes(roleName)) {
       roleStatus = createIamRole(roleName, pcxConfig.source, accountKey);
       rolesForPeering.push(roleName);
-    }
-    else{
+    } else {
       roleStatus = 'SUCCESS';
     }
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
 
-    const pcxDeployment = new AcceleratorStack(app, `PBMMAccel-C-PcxDeployment${accountKey}${pcxConfig['source-vpc']}Stack`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
+    const pcxDeployment = new AcceleratorStack(
+      app,
+      `PBMMAccel-C-PcxDeployment${accountKey}${pcxConfig['source-vpc']}Stack`,
+      {
+        env: {
+          account: getAccountId(accounts, accountKey),
+          region: cdk.Aws.REGION,
+        },
+        stackName: `PBMMAccel-C-PcxDeployment${accountKey}${vpcConfig.name}Stack`,
+        acceleratorName: context.acceleratorName,
+        acceleratorPrefix: context.acceleratorPrefix,
       },
-      stackName: `PBMMAccel-C-PcxDeployment${accountKey}${vpcConfig.name}Stack`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
+    );
 
     // Get Peer VPC Configuration
     const peerVpcConfig = getVpcConfig(accountConfigs, pcxConfig.source, pcxConfig['source-vpc']);
