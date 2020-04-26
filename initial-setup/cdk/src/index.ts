@@ -127,6 +127,11 @@ export namespace InitialSetup {
         path: props.solutionZipPath,
       });
 
+      const cfnCustomResourceRole = new iam.Role(this, 'CfnCustomResourceRole', {
+        roleName: 'CfnCustomResourceRole',
+        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
+      });
+
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: 'AcceleratorMasterRole',
@@ -135,22 +140,13 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AWSLambdaBasicExecutionRole')],
-      });
-
-      // TODO Restrict role permissions
-      const cfnCustomResourceRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
-        roleName: 'LambdaRoleRoute53Resolver',
-        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
       cfnCustomResourceRole.addToPolicy(
         new iam.PolicyStatement({
           resources: ['*'],
-          actions: [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents"],
+          actions: ['sts:AssumeRole', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         }),
       );
 
@@ -160,17 +156,6 @@ export namespace InitialSetup {
         handler: 'index.getDnsEndpointIps',
         role: cfnCustomResourceRole,
         functionName: 'CfnCustomResourceR53EndpointIPPooler',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-      });
-
-      const addPcxRouteLambda = new lambda.Function(this, 'AddPcxRouteLamba', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.addPcxRouteToRouteTable',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceAddPcxRouteLamba',
         environment: {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
         },
@@ -232,14 +217,6 @@ export namespace InitialSetup {
             CFN_DNS_ENDPOINT_IPS_FUNCTION_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: dnsEndpointIpPollerLambda.functionName,
-            },
-            CFN_ADD_PCX_ROUTE_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: addPcxRouteLambda.functionArn,
-            },
-            CFN_ADD_PCX_ROUTE_FUNCTION_NAME: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: addPcxRouteLambda.functionName,
             },
           },
         },
@@ -491,6 +468,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deployPhase3Task = new sfn.Task(this, 'Deploy Phase 3', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-3.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -498,15 +486,16 @@ export namespace InitialSetup {
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
-          // .next(addRoleToScpTask)
-          // .next(blockS3PublicAccessTask)
-          // .next(enableResourceSharingTask)
-          // .next(deployPhase0Task)
-          // .next(storePhase0Output)
-          // .next(deployPhase1Task)
-          // .next(storePhase1Output)
+          .next(addRoleToScpTask)
+          .next(blockS3PublicAccessTask)
+          .next(enableResourceSharingTask)
+          .next(deployPhase0Task)
+          .next(storePhase0Output)
+          .next(deployPhase1Task)
+          .next(storePhase1Output)
           .next(deployPhase2Task)
           .next(storePhase2Output)
+          .next(deployPhase3Task)
           .next(addTagsToSharedResourcesTask),
       });
     }

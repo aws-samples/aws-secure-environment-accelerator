@@ -9,18 +9,14 @@ import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stac
 import {
   PeeringConnectionConfig,
   VpcConfig,
-  AccountConfig,
-  OrganizationalUnitConfig,
   VpcConfigType,
-  AcceleratorConfig,
 } from '@aws-pbmm/common-lambda/lib/config';
-import { PeeringConnectionDeployment, PeeringConnection } from '../common/peering-connection';
+import { PeeringConnection } from '../common/peering-connection';
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
-
-interface VpcConfigs {
-  [key: string]: AccountConfig | OrganizationalUnitConfig;
-}
+import { getAllAccountVPCConfigs, VpcConfigs } from '../common/get-all-vpcs';
+import { VpcOutput } from './phase-1';
+import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -68,27 +64,6 @@ async function main() {
       }),
     );
     return 'SUCCESS';
-  };
-
-  /**
-   * Returns all VPC Configs in both Mandatory account configs and oranizational units
-   * @param acceleratorConfig Full Configuration Details
-   */
-  const getAllAccountVPCConfigs = (config: AcceleratorConfig): VpcConfigs => {
-    const mandatoryAccountConfig = config['mandatory-account-configs'];
-    const orgaizationalUnitsConfig = config['organizational-units'];
-    const accConfigs: VpcConfigs = {};
-    for (const [key, value] of Object.entries(mandatoryAccountConfig)) {
-      if (value && value?.vpc) {
-        accConfigs[key] = value;
-      }
-    }
-    for (const [key, value] of Object.entries(orgaizationalUnitsConfig)) {
-      if (value && value?.vpc) {
-        accConfigs[key] = value;
-      }
-    }
-    return accConfigs;
   };
 
   // Retrive all Account Configs
@@ -150,7 +125,7 @@ async function main() {
           account: getAccountId(accounts, accountKey),
           region: cdk.Aws.REGION,
         },
-        stackName: `PBMMAccel-C-PcxDeployment${accountKey}${vpcConfig.name}Stack`,
+        stackName: `PBMMAccel-C-PcxDeployments${accountKey}${vpcConfig.name}Stack`,
         acceleratorName: context.acceleratorName,
         acceleratorPrefix: context.acceleratorPrefix,
       },
@@ -161,26 +136,40 @@ async function main() {
     if (!VpcConfigType.is(peerVpcConfig)) {
       throw new Error(`No configuration found for Peer VPC "${pcxConfig['source-vpc']}"`);
     }
-
-    const pcx = new PeeringConnectionDeployment(
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'VpcOutput',
+    });
+    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+    if (!vpcOutput){
+      throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+    }
+    const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      accountKey: pcxConfig.source,
+      outputType: 'VpcOutput',
+    });
+    const peerVpcOutout = peerVpcOutputs.find(x => x.vpcName === pcxConfig["source-vpc"]);
+    if (!peerVpcOutout){
+      throw new Error(`No VPC Found in outputs for VPC name "${pcxConfig["source-vpc"]}"`);
+    }
+    const peerOwnerId = getAccountId(accounts, pcxConfig.source);
+    const pcx = new PeeringConnection.PeeringConnectionDeployment(
       pcxDeployment,
-      `PcxDeployment${pcxConfig.source}${pcxConfig['source-vpc']}`,
+      `${vpcConfig.name}-${pcxConfig['source-vpc']}_pcx`,
       {
-        vpcConfig,
-        peerVpcConfig,
-        accounts,
-        accountKey,
-        context,
-        outputs,
+        vpcId: vpcOutput.vpcId,
+        peerVpcId: peerVpcOutout.vpcId,
         peerRoleArn,
+        peerOwnerId
       },
     );
+    vpcOutput.pcx = pcx.pcxId;
 
     // Store the VPC output so that subsequent phases can access the output
     const jsonop = new JsonOutputValue(pcxDeployment, `VpcOutput`, {
       type: 'VpcOutput',
       // tslint:disable-next-line deprecation
-      value: pcx.vpcOutput,
+      value: vpcOutput,
     });
   }
 }

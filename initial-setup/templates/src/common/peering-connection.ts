@@ -1,19 +1,17 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 
 import {
   VpcConfig,
   PeeringConnectionConfig,
   AccountConfig,
   OrganizationalUnitConfig,
-  AcceleratorConfig,
+  PcxRouteConfig,
+  PcxRouteConfigType
 } from '@aws-pbmm/common-lambda/lib/config';
-import { Account, getAccountId } from '../utils/accounts';
-import { Context } from '../utils/context';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../apps/phase-1';
+import { VpcConfigs, getVpcConfig } from './get-all-vpcs';
 
 export namespace PeeringConnection {
   interface VpcConfigsOutput {
@@ -48,156 +46,123 @@ export namespace PeeringConnection {
       vpcConfig,
     };
   }
-}
-export interface PeeringConnectionProps {
-  /**
-   * Source VPC Config for Peering.
-   */
-  vpcConfig: VpcConfig;
-  /**
-   *
-   * Peer VPC Config for Peering.
-   */
-  peerVpcConfig: VpcConfig;
-  context: Context;
-  /**
-   * The accounts in the organization.
-   */
-  accounts: Account[];
-  /**
-   * Outputs
-   */
-  outputs: StackOutput[];
-  /**
-   * Current VPC Account Name
-   */
-  accountKey: string;
-  /**
-   * Peer Role Arn
-   */
-  peerRoleArn: string;
-}
+  
+  export interface PeeringConnectionProps {
+    /**
+     * Source VPC ID for Peering.
+     */
+    vpcId: string;
+    /**
+     *
+     * Peer VPC ID for Peering.
+     */
+    peerVpcId: string;
+    /**
+     *
+     * Peer VPC Owner ID for Peering.
+     */
+    peerOwnerId: string;
+    /**
+     * Peer Role Arn
+     */
+    peerRoleArn: string;
+  }
 
-/**
- * Auxiliary construct that creates VPCs for organizational units.
- */
-export class PeeringConnectionDeployment extends cdk.Construct {
   /**
-   * We should store the relevant constructs that are created instead of storing outputs.
-   * @deprecated
+   * Auxiliary construct that creates VPCs for organizational units.
    */
-  readonly vpcOutput?: VpcOutput;
+  export class PeeringConnectionDeployment extends cdk.Construct {
+    /**
+     * We should store the relevant constructs that are created instead of storing outputs.
+     * @deprecated
+     */
+    readonly pcxId?: string;
 
-  constructor(scope: cdk.Construct, id: string, props: PeeringConnectionProps) {
-    super(scope, id);
-    const { vpcConfig, peerVpcConfig, accounts, outputs, context, accountKey, peerRoleArn } = props;
-    const pcxConfig = vpcConfig.pcx;
-    if (!PeeringConnectionConfig.is(pcxConfig)) {
-      return;
+    constructor(scope: cdk.Construct, id: string, props: PeeringConnectionProps) {
+      super(scope, id);
+      const { vpcId, peerVpcId, peerOwnerId, peerRoleArn } = props;
+
+      // Create VPC Peering Connection
+      const pcx = new ec2.CfnVPCPeeringConnection(this, id, {
+        vpcId,
+        peerVpcId,
+        peerOwnerId,
+        peerRoleArn,
+      });
+      this.pcxId = pcx.ref;
     }
-    const peerOwnerId = getAccountId(accounts, pcxConfig.source);
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      accountKey,
-      outputType: 'VpcOutput',
-    });
-    const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      accountKey: pcxConfig.source,
-      outputType: 'VpcOutput',
-    });
-    const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcConfig.name);
-    if (!vpcOutput) {
-      throw new Error(`Cannot find VPC with name "${vpcConfig.name}"`);
-    }
-    const peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxConfig['source-vpc']);
-    if (!peerVpcOutput) {
-      throw new Error(`Cannot find VPC with name "${pcxConfig['source-vpc']}"`);
-    }
+  }
+  
+  export interface PeeringConnectionRoutesProps {
+    /**
+     * Source VPC Name .
+     */
+    accountKey: string,
+    /**
+     * Source VPC Name .
+     */
+    vpcName: string;
+    /**
+     *
+     * All VPC Config for Creating routes.
+     */
+    vpcConfigs: VpcConfigs;
+    /**
+     * Outputs
+     */
+    outputs: StackOutput[];
+  }
 
-    const vpcId = vpcOutput.vpcId;
-    const peerVpcId = peerVpcOutput.vpcId;
-
-    // Create VPC Peering Connection
-    const pcx = new ec2.CfnVPCPeeringConnection(this, `${vpcConfig.name}-${pcxConfig['source-vpc']}_pcx`, {
-      vpcId,
-      peerVpcId,
-      peerOwnerId,
-      peerRoleArn,
-    });
-    vpcOutput.pcx = pcx.ref;
-    // tslint:disable-next-line deprecation
-    this.vpcOutput = vpcOutput;
-
-    const peerSubnetDefnitions = peerVpcConfig.subnets?.find(x => x.name === pcxConfig['source-subnets'])?.definitions;
-    const subnetDefnitions = vpcConfig.subnets?.find(x => x.name === pcxConfig['local-subnets'])?.definitions;
-
-    if (!peerSubnetDefnitions) {
-      throw new Error(`Can't find Subnet Cidr for Subnet "${pcxConfig['source-subnets']}"`);
-    }
-
-    if (!subnetDefnitions) {
-      throw new Error(`Can't find Subnet Cidr for Subnet "${pcxConfig['local-subnets']}"`);
-    }
-
-    const subnetConfig = vpcConfig.subnets?.find(x => x.name === pcxConfig['local-subnets']);
-    const routeTables = new Set(subnetConfig?.definitions.map(x => x['route-table']));
-    for (const routeTableName of routeTables) {
-      const routeTable = vpcConfig['route-tables']?.find(x => x.name === routeTableName);
-      const routes = routeTable?.routes?.find(x => x.target === `pcx-${pcxConfig.source}-${pcxConfig['source-vpc']}`);
-      if (routes) {
-        const routeTableId = Object.entries(vpcOutput.routeTables).find(x => x[0] === routeTableName)?.[1];
-        if (!routeTableId) {
-          throw new Error(`Cannot find route table with name "${routeTableName}"`);
+  export class PeeringConnectionRoutes extends cdk.Construct{
+    constructor(scope: cdk.Construct, id: string, props: PeeringConnectionRoutesProps) {
+      super(scope, id);
+      
+      const {
+        accountKey,
+        vpcName,
+        vpcConfigs,
+        outputs
+      } = props;
+      const vpcConfig = getVpcConfig(vpcConfigs, accountKey, vpcName);
+      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+        accountKey,
+        outputType: 'VpcOutput',
+      });
+      const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcName);
+      if (!vpcOutput){
+        throw new Error(`No VPC Created with name "${vpcName}"`)
+      }
+      const routeTable = vpcConfig?.["route-tables"]?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
+      const routes = routeTable?.routes;
+      if (!routes){
+        return;
+      }
+      const routeTableId = Object.entries(vpcOutput.routeTables).find(x => x[0] === routeTable?.name)?.[1];
+      if (!routeTableId) {
+        throw new Error(`Cannot find route table with name "${routeTable?.name}"`);
+      }
+      for ( const route of routes){
+        if (!PcxRouteConfigType.is(route.destination)){
+          continue;
         }
+        const pcxRoute: PcxRouteConfig = route.destination; 
+        const targetVpcConfig = getVpcConfig(vpcConfigs, pcxRoute.account, pcxRoute.vpc);
+        const targetSubnet = targetVpcConfig?.subnets?.find(x => x.name === pcxRoute.subnet);
+        if (!targetSubnet){
+          throw new Error(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
+        }
+        
         // Add Route to RouteTable
-        for (const [index, subnet] of peerSubnetDefnitions.entries()) {
+        for (const [index, subnet] of targetSubnet.definitions.entries()) {
           if (subnet.disabled) {
             continue;
           }
-          new ec2.CfnRoute(this, `${routeTableName}_pcx_${pcxConfig['source-vpc']}_${index}`, {
+          new ec2.CfnRoute(this, `${routeTable?.name}_pcx_${pcxRoute.vpc}_${index}`, {
             routeTableId,
             destinationCidrBlock: subnet.cidr?.toCidrString() || subnet.cidr2?.toCidrString(),
-            vpcPeeringConnectionId: pcx.ref,
+            vpcPeeringConnectionId: vpcOutput.pcx,
           });
         }
-      }
-    }
-
-    // Adding routes to Peer VPC Subnet Route Table
-    const peerSubnetConfig = peerVpcConfig.subnets?.find(x => x.name === pcxConfig['source-subnets']);
-    const peerRouteTables = new Set(peerSubnetConfig?.definitions.map(x => x['route-table']));
-    for (const routeTableName of peerRouteTables) {
-      const routeTable = peerVpcConfig['route-tables']?.find(x => x.name === routeTableName);
-      const routes = routeTable?.routes?.find(x => x.target === `pcx-${accountKey}-${vpcConfig.name}`);
-      if (!routes) {
-        continue;
-      }
-      const routeTableId = Object.entries(peerVpcOutput.routeTables).find(x => x[0] === routeTableName)?.[1];
-      if (!routeTableId) {
-        throw new Error(`Cannot find route table with name "${routeTableName}"`);
-      }
-
-      // Add Route to RouteTable
-      for (const [index, subnet] of subnetDefnitions.entries()) {
-        if (subnet.disabled) {
-          continue;
-        }
-        const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
-          this,
-          `CfnAddPcxRoute-${index}`,
-          context.customResourceFunctions.find(x => x.functionName === 'CfnCustomResourceAddPcxRouteLamba')
-            ?.functionArn!,
-        );
-
-        // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
-        const getDnsEndpointIpsResource = new cfn.CustomResource(this, `PcxRoute-${routeTableName}-${index}`, {
-          provider: cfn.CustomResourceProvider.fromLambda(getDnsEndpointIpsLambda),
-          properties: {
-            RouteTableId: routeTableId,
-            AccountId: peerOwnerId,
-            PeeringConnectionId: pcx.ref,
-            DestinationCidrBlock: subnet.cidr?.toCidrString() || subnet.cidr2?.toCidrString(),
-          },
-        });
       }
     }
   }
