@@ -85,7 +85,7 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
       BypassPolicyLockoutSafetyCheck: true,
     };
     const createKeyResponse = await kms.createKey(createKeyRequest);
-    console.log('createKeyResponse: ',createKeyResponse);
+    console.log('createKeyResponse: ', createKeyResponse);
 
     await kms.createAlias('alias/EBS-Default-Key', createKeyResponse.KeyMetadata!.KeyId);
     console.log('KMS key alias set.');
@@ -94,7 +94,10 @@ export const handler = async (input: S3BlockPublicAccessInput) => {
     const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(false);
     console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
 
-    const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(createKeyResponse.KeyMetadata!.KeyId, false);
+    const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(
+      createKeyResponse.KeyMetadata!.KeyId,
+      false,
+    );
     console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
   };
 
