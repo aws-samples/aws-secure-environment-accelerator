@@ -180,9 +180,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     console.log(`account-key: ${accountKey}; use-central-endpoints: ${vpcConfig['use-central-endpoints']}`);
     if (vpcConfig['use-central-endpoints'] === false) {
-      console.log(
-        `use-central-enpoints is set as false for account with key - ${accountKey}. Moving to next account.`,
-      );
+      console.log(`use-central-enpoints is set as false for account with key - ${accountKey}. Moving to next account.`);
       continue;
     }
 
