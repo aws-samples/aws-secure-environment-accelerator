@@ -578,7 +578,7 @@
                   "vpc": "Central",
                   "subnet": "GCWide"
                 },
-                "target": "pcx-shared-network-Central"
+                "target": "pcx"
               }
             ]
           }
@@ -890,7 +890,7 @@
                   "vpc": "ForSSO",
                   "subnet": "ForSSO"
                 },
-                "target": "pcx-master-ForSSO"
+                "target": "pcx"
               }
             ]
           }

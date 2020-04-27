@@ -30,7 +30,7 @@ async function main() {
   for (const [account, accountConfig] of Object.entries(accountConfigs)) {
     const vpcConfig = accountConfig.vpc!;
     const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
-    const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
+    const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target === 'pcx'));
     if (!currentRouteTable) {
       continue;
     }
