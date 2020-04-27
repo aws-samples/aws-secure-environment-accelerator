@@ -18,6 +18,15 @@
       "enable-pci-dss": true,
       "pci-dss-controls-to-disable": ["PCI.IAM.3","PCIDSS8.3.1"]
     },	
+    "scps": {
+      "ALZ-Core": "/SCPs/aws-landing-zone-core-mandatory-preventive-guardrails-modifiedAccel.json",
+      "ALZ-Non-Core": "/SCPs/aws-landing-zone-core-mandatory-preventive-guardrails-modifiedAccel.json",
+      "Guardrails-Part1": "/SCPs/PBMMAccel-Guardrails-Part1.json",
+      "Guardrails-Part2": "/SCPs/PBMMAccel-Guardrails-Part2.json",
+      "Guardrails-PBMM-Only": "/SCPs/PBMMAccel-Guardrails-PBMM-Only.json",
+      "Guardrails-Unclass-Only": "/SCPs/PBMMAccel-Guardrails-Unclass-Only.json",
+      "Quarantine-Deny-All": "/SCPs/Quarantine-Deny-All.json"
+    },	
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
@@ -643,11 +652,13 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "share-mad-from": ""
+      "share-mad-from": "",
+      "SCPs": ["ALZ-Core"]
     },
     "central": {
       "type": "mandatory",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core","Guardrails-Part1","Guardrails-Part2","Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Central",
@@ -1111,6 +1122,7 @@
     "dev": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core","Guardrails-Part1","Guardrails-Part2","Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Dev",
@@ -1308,6 +1320,7 @@
     "test": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core","Guardrails-Part1","Guardrails-Part2","Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Test",
@@ -1505,6 +1518,7 @@
     "prod": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core","Guardrails-Part1","Guardrails-Part2","Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Prod",
@@ -1702,6 +1716,7 @@
     "unclass": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core","Guardrails-Part1","Guardrails-Part2","Guardrails-Unclass-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "UnClass",
@@ -1899,6 +1914,7 @@
     "sandbox": {
       "type": "workload",
       "share-mad-from": "",
+      "SCPs": ["ALZ-Non-Core","Guardrails-Part1","Guardrails-Part2","Guardrails-Unclass-Only"],
       "vpc": {
         "deploy": "local",
         "name": "Sandbox",
