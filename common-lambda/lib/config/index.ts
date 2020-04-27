@@ -123,6 +123,15 @@ export const DeploymentConfigType = t.interface({
   'route-tables': optional(t.array(NonEmptyString)),
 });
 
+export const PasswordPolicyType = t.interface({
+  history: t.number,
+  'max-age': t.number,
+  'min-age': t.number,
+  'min-len': t.number,
+  complexity: t.boolean,
+  reversible: t.boolean,
+});
+
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 
 export const ADUserConfig = t.interface({
@@ -131,6 +140,7 @@ export const ADUserConfig = t.interface({
 });
 
 export const MadConfigType = t.interface({
+  'dir-id': t.number,
   deploy: t.boolean,
   'vpc-name': t.string,
   region: t.string,
@@ -140,8 +150,16 @@ export const MadConfigType = t.interface({
   'netbios-domain': t.string,
   'central-resolver-rule-account': t.string,
   'central-resolver-rule-vpc': t.string,
-  'share-to-master': t.boolean,
+  'log-group-name': t.string,
+  'share-to-account': optional(t.string),
   restrict_srcips: t.array(cidr),
+  'password-policies': PasswordPolicyType,
+  'ad-groups': t.array(t.string),
+  'adc-group': t.string,
+  'ad-users': t.array(ADUserConfig),
+});
+
+export const AccountConfigType = t.interface({
   // 'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
   'adc-group': t.string,
@@ -214,6 +232,8 @@ export const AcceleratorConfigType = t.interface({
 });
 
 export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
+export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
+export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
 export namespace AcceleratorConfig {
   export function fromBuffer(content: Buffer): AcceleratorConfig {
