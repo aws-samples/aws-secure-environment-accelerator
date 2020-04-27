@@ -108,7 +108,8 @@
         "securityhub:DeleteActionTarget",
         "securityhub:BatchDisableStandards",
         "fms:DisassociateAdminAccount",
-        "access-analyzer:DeleteAnalyzer"
+        "access-analyzer:DeleteAnalyzer",
+		"ec2:CreateDefaultVpc"
       ],
       "Resource":"*",
       "Condition":{
