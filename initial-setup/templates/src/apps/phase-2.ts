@@ -89,7 +89,7 @@ async function main() {
   /**
    * Code to create Peering Connection in all accounts
    */
-  
+
   // Retrive all Account Configs
   const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
   const rolesForPeering: string[] = [];
