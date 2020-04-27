@@ -9,6 +9,7 @@ export { handler as loadConfigurationStep } from './load-configuration-step';
 export { handler as s3BlockPublicAccessStep } from './s3-block-public-access-step';
 export { handler as associateHostedZonesStep } from './associate-hosted-zones-step';
 export { handler as storeStackOutputStep } from './store-stack-output-step';
+export { handler as enableDirectorySharingStep } from './enable-directory-sharing-step';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';
