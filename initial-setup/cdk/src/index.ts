@@ -214,10 +214,6 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: dnsEndpointIpPollerLambda.functionArn,
             },
-            CFN_DNS_ENDPOINT_IPS_FUNCTION_NAME: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: dnsEndpointIpPollerLambda.functionName,
-            },
           },
         },
       });
