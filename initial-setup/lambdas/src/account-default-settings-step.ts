@@ -9,13 +9,13 @@ import { KMS } from '@aws-pbmm/common-lambda/lib/aws/kms';
 import { CreateKeyRequest } from 'aws-sdk/clients/kms';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 
-interface S3BlockPublicAccessInput {
+interface AccountDefaultSettingsInput {
   assumeRoleName: string;
   configSecretSourceId: string;
   accounts: Account[];
 }
 
-export const handler = async (input: S3BlockPublicAccessInput) => {
+export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
