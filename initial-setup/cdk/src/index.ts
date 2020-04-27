@@ -416,16 +416,17 @@ export namespace InitialSetup {
       });
 
       // TODO We could put this task in a map task and apply to all accounts individually
-      const blockS3PublicAccessTask = new CodeTask(this, 'Block S3 Public Access', {
+      const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.s3BlockPublicAccessStep',
+          handler: 'index.accountDefaultSettingsStep',
           role: pipelineRole,
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
+          acceleratorName: props.acceleratorName,
         },
         resultPath: 'DISCARD',
       });
@@ -479,6 +480,21 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.enableDirectorySharingStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.stateMachineExecutionRole,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -487,7 +503,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(blockS3PublicAccessTask)
+          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
@@ -496,7 +512,8 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
-          .next(addTagsToSharedResourcesTask),
+          .next(addTagsToSharedResourcesTask)
+          .next(enableDirectorySharingTask),
       });
     }
   }
