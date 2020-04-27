@@ -451,6 +451,35 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storePhase2Output = new CodeTask(this, 'Store Phase 2 Output', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.enableDirectorySharingStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.stateMachineExecutionRole,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -466,7 +495,9 @@ export namespace InitialSetup {
           .next(deployPhase1Task)
           .next(storePhase1Output)
           .next(deployPhase2Task)
-          .next(addTagsToSharedResourcesTask),
+          .next(storePhase2Output)
+          .next(addTagsToSharedResourcesTask)
+          .next(enableDirectorySharingTask),
       });
     }
   }
