@@ -411,16 +411,17 @@ export namespace InitialSetup {
       });
 
       // TODO We could put this task in a map task and apply to all accounts individually
-      const blockS3PublicAccessTask = new CodeTask(this, 'Block S3 Public Access', {
+      const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.s3BlockPublicAccessStep',
+          handler: 'index.accountDefaultSettingsStep',
           role: pipelineRole,
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
+          acceleratorName: props.acceleratorName,
         },
         resultPath: 'DISCARD',
       });
@@ -486,7 +487,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(blockS3PublicAccessTask)
+          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)

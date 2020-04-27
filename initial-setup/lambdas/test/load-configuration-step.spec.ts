@@ -124,6 +124,42 @@ test('the handler should throw an error when a Landing Zone account is missing',
   }
 });
 
+test('the handler should throw an error when Landing Zone has more organizational units than Accelerator', async () => {
+  // Add an additional OU in Landing Zone config
+  mocks.values.landingZoneConfig.organizational_units.push({
+    name: 'sandbox',
+  });
+
+  expect.assertions(1);
+  try {
+    await handler({
+      configSecretSourceId: 'accelerator/config',
+      configSecretInProgressId: 'accelerator/in-progress-config',
+    });
+  } catch (e) {
+    expect(e.message).toMatch(
+      /There are 1 organizational units in Accelerator configuration while there are only 2 organizational units in the Landing Zone configuration/,
+    );
+  }
+});
+
+test('the handler should throw an error when Accelerator has more organizational units than Landing Zone', async () => {
+  // Add an additional OU in Landing Zone config
+  mocks.values.acceleratorConfig['organizational-units']['sandbox'] = {};
+
+  expect.assertions(1);
+  try {
+    await handler({
+      configSecretSourceId: 'accelerator/config',
+      configSecretInProgressId: 'accelerator/in-progress-config',
+    });
+  } catch (e) {
+    expect(e.message).toMatch(
+      /There are 2 organizational units in Accelerator configuration while there are only 1 organizational units in the Landing Zone configuration/,
+    );
+  }
+});
+
 /**
  * Method that initialized mocked values with valid defaults.
  */
@@ -260,6 +296,9 @@ function reset() {
         'account-name': 'operations',
         email: 'lz+operations@amazon.com',
       },
+    },
+    'organizational-units': {
+      core: {},
     },
   };
 }

@@ -3,6 +3,7 @@ import * as cfn from 'aws-sdk/clients/cloudformation';
 import AdmZip from 'adm-zip';
 import { CloudFormation, objectToCloudFormationParameters } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
+import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
 
 interface CreateStackSetInput {
   stackName: string;
@@ -71,24 +72,7 @@ export const handler = async (input: CreateStackSetInput) => {
  * @param b Parameter list that is compared
  */
 function parametersEqual(a: cfn.Parameters | undefined, b: cfn.Parameters | undefined): boolean {
-  if (a === undefined) {
-    return b === undefined;
-  } else if (b === undefined) {
-    return false;
-  } else if (a.length !== b.length) {
-    return false;
-  }
-
-  for (const pa of a) {
-    const found = b.find(pb => {
-      return pb.ParameterKey === pa.ParameterKey && pb.ParameterValue === pa.ParameterValue;
-    });
-    if (!found) {
-      console.debug(`Parameter ${pa.ParameterKey} with value ${pa.ParameterValue} does not match`);
-      return false;
-    }
-  }
-  return true;
+  return arrayEqual(a, b, (pa, pb) => pb.ParameterKey === pa.ParameterKey && pb.ParameterValue === pa.ParameterValue);
 }
 
 /**
@@ -98,22 +82,7 @@ function parametersEqual(a: cfn.Parameters | undefined, b: cfn.Parameters | unde
  * @param b Capability list that is compared
  */
 function capabilitiesEqual(a: cfn.Capabilities | undefined, b: cfn.Capabilities | undefined) {
-  if (a === undefined) {
-    return b === undefined;
-  } else if (b === undefined) {
-    return false;
-  } else if (a.length !== b.length) {
-    return false;
-  }
-
-  for (const ca of a) {
-    const found = b.includes(ca);
-    if (!found) {
-      console.debug(`Capability ${ca} does not match`);
-      return false;
-    }
-  }
-  return true;
+  return arrayEqual(a, b);
 }
 
 export type StackTemplateLocation = StackTemplateLocationBody | StackTemplateLocationS3 | StackTemplateLocationArtifact;
