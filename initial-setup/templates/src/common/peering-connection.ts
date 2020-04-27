@@ -89,7 +89,6 @@ export namespace PeeringConnection {
         peerRoleArn,
       });
 
-
       this.pcxId = pcx.ref;
     }
   }
@@ -148,7 +147,7 @@ export namespace PeeringConnection {
           throw new Error(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
         }
         let pcxId = vpcOutput.pcx;
-        if (!pcxId){
+        if (!pcxId) {
           const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
             accountKey: pcxRoute.account,
             outputType: 'VpcOutput',
