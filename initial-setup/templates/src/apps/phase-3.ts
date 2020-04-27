@@ -34,7 +34,6 @@ async function main() {
     if (!currentRouteTable) {
       continue;
     }
-    const routeTables = currentRouteTable?.routes?.find(x => x.target.startsWith('pcx-'));
     const pcxRouteDeployment = new AcceleratorStack(
       app,
       `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name}RoutesStack`,
@@ -49,7 +48,7 @@ async function main() {
       },
     );
 
-    const pcxRoute = new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
+    new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
       accountKey,
       vpcName: vpcConfig.name,
       vpcConfigs: accountConfigs,

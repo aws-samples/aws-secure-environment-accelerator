@@ -162,7 +162,7 @@ async function main() {
     vpcOutput.pcx = pcx.pcxId;
 
     // Store the VPC output so that subsequent phases can access the output
-    const jsonop = new JsonOutputValue(pcxDeployment, `VpcOutput`, {
+    new JsonOutputValue(pcxDeployment, `VpcOutput`, {
       type: 'VpcOutput',
       // tslint:disable-next-line deprecation
       value: vpcOutput,
