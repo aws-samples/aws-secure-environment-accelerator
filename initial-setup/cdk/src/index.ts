@@ -323,6 +323,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const loadLimitsTask = new CodeTask(this, 'Load Limits', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadLimitsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configSecretId: configSecretInProgress.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: '$.limits',
+      });
+
       // TODO We might want to load this from the Landing Zone configuration
       const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
 
@@ -347,6 +361,12 @@ export namespace InitialSetup {
         },
         resultPath: 'DISCARD',
       });
+
+      // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
+      // });
+      // preDeployParallelTask.branch(loadLimitsTask);
+      // preDeployParallelTask.branch(addRoleToScpTask);
+      // preDeployParallelTask.branch(enableResourceSharingTask);
 
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
@@ -487,6 +507,7 @@ export namespace InitialSetup {
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
+          .next(loadLimitsTask)
           .next(addRoleToScpTask)
           .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)

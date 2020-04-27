@@ -176,10 +176,11 @@ export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigTyp
 
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
-  'account-name': NonEmptyString,
-  email: NonEmptyString,
-  ou: NonEmptyString,
+  'account-name': t.string,
+  email: t.string,
+  ou: t.string,
   'enable-s3-public-access': fromNullable(t.boolean, false),
+  limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
   deployments: optional(
     t.interface({
@@ -193,7 +194,7 @@ export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
 
 export const MandatoryAccountsConfigType = t.record(t.string, MandatoryAccountConfigType);
 
-export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountsConfigType>;
+export type MandatoryAccountsConfig = t.TypeOf<typeof MandatoryAccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
   vpc: optional(VpcConfigType),
