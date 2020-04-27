@@ -2,20 +2,11 @@ import * as cdk from '@aws-cdk/core';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
-import * as iam from '@aws-cdk/aws-iam';
-import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import {
-  PeeringConnectionConfig,
-  VpcConfig,
-  VpcConfigType,
-  RouteTableConfig,
-} from '@aws-pbmm/common-lambda/lib/config';
 import { PeeringConnection } from '../common/peering-connection';
-import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
-import { getAllAccountVPCConfigs, VpcConfigs } from '../common/get-all-vpcs';
+import { getAllAccountVPCConfigs } from '../common/get-all-vpcs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -58,11 +49,11 @@ async function main() {
   });
 
   /**
-   * Code to create Peering Connection in all accounts
+   * Code to create Peering Connection Routes in all accounts
    */
   for (const [account, accountConfig] of Object.entries(accountConfigs)) {
     const vpcConfig = accountConfig.vpc!;
-    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy;
+    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
     const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
     if (!currentRouteTable) {
       continue;
@@ -82,10 +73,10 @@ async function main() {
       },
     );
 
-    const pcxRoute = new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name!}`, {
-      accountKey: accountKey!,
-      vpcName: vpcConfig.name!,
-      vpcConfigs: accountConfigs!,
+    const pcxRoute = new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
+      accountKey,
+      vpcName: vpcConfig.name,
+      vpcConfigs: accountConfigs,
       outputs,
     });
   }

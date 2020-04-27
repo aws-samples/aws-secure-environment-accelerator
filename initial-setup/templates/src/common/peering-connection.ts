@@ -74,9 +74,8 @@ export namespace PeeringConnection {
   export class PeeringConnectionDeployment extends cdk.Construct {
     /**
      * We should store the relevant constructs that are created instead of storing outputs.
-     * @deprecated
      */
-    readonly pcxId?: string;
+    readonly pcxId: string;
 
     constructor(scope: cdk.Construct, id: string, props: PeeringConnectionProps) {
       super(scope, id);
@@ -89,6 +88,8 @@ export namespace PeeringConnection {
         peerOwnerId,
         peerRoleArn,
       });
+
+
       this.pcxId = pcx.ref;
     }
   }
@@ -146,7 +147,18 @@ export namespace PeeringConnection {
         if (!targetSubnet) {
           throw new Error(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
         }
-
+        let pcxId = vpcOutput.pcx;
+        if (!pcxId){
+          const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+            accountKey: pcxRoute.account,
+            outputType: 'VpcOutput',
+          });
+          const peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
+          if (!vpcOutput) {
+            throw new Error(`No VPC Created with name "${vpcName}"`);
+          }
+          pcxId = peerVpcOutput?.pcx;
+        }
         // Add Route to RouteTable
         for (const [index, subnet] of targetSubnet.definitions.entries()) {
           if (subnet.disabled) {
@@ -155,7 +167,7 @@ export namespace PeeringConnection {
           new ec2.CfnRoute(this, `${routeTable?.name}_pcx_${pcxRoute.vpc}_${index}`, {
             routeTableId,
             destinationCidrBlock: subnet.cidr?.toCidrString() || subnet.cidr2?.toCidrString(),
-            vpcPeeringConnectionId: vpcOutput.pcx,
+            vpcPeeringConnectionId: pcxId,
           });
         }
       }

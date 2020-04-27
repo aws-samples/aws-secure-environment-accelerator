@@ -25,11 +25,7 @@ export function loadContext(): Context {
     {
       functionName: process.env.CFN_DNS_ENDPOINT_IPS_FUNCTION_NAME!,
       functionArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
-    },
-    {
-      functionName: process.env.CFN_ADD_PCX_ROUTE_FUNCTION_NAME!,
-      functionArn: process.env.CFN_ADD_PCX_ROUTE_LAMBDA_ARN!,
-    },
+    }
   ];
   return {
     acceleratorName: process.env.ACCELERATOR_NAME!,
