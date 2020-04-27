@@ -51,6 +51,8 @@ async function main() {
   });
 
   const githubBranch = new cdk.CfnParameter(stack, 'GithubBranch', {
+    // Github release action sets GITHUB_DEFAULT_BRANCH
+    // Otherwise fall back to 'release'
     default: process.env.GITHUB_DEFAULT_BRANCH || 'release',
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
