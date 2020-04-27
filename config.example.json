@@ -25,7 +25,8 @@
       "Guardrails-Part2": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Part2.json",
       "Guardrails-PBMM-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-PBMM-Only.json",
       "Guardrails-Unclass-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Unclass-Only.json",
-      "Quarantine-Deny-All": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Quarantine-Deny-All.json"
+      "Quarantine-Deny-All": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Quarantine-Deny-All.json",
+      "Full-Access": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Full-AWS-Access.json"
     },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
