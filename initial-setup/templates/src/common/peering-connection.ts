@@ -47,52 +47,6 @@ export namespace PeeringConnection {
     };
   }
 
-  export interface PeeringConnectionProps {
-    /**
-     * Source VPC ID for Peering.
-     */
-    vpcId: string;
-    /**
-     *
-     * Peer VPC ID for Peering.
-     */
-    peerVpcId: string;
-    /**
-     *
-     * Peer VPC Owner ID for Peering.
-     */
-    peerOwnerId: string;
-    /**
-     * Peer Role Arn
-     */
-    peerRoleArn: string;
-  }
-
-  /**
-   * Auxiliary construct that creates VPCs for organizational units.
-   */
-  export class PeeringConnectionDeployment extends cdk.Construct {
-    /**
-     * We should store the relevant constructs that are created instead of storing outputs.
-     */
-    readonly pcxId: string;
-
-    constructor(scope: cdk.Construct, id: string, props: PeeringConnectionProps) {
-      super(scope, id);
-      const { vpcId, peerVpcId, peerOwnerId, peerRoleArn } = props;
-
-      // Create VPC Peering Connection
-      const pcx = new ec2.CfnVPCPeeringConnection(this, id, {
-        vpcId,
-        peerVpcId,
-        peerOwnerId,
-        peerRoleArn,
-      });
-
-      this.pcxId = pcx.ref;
-    }
-  }
-
   export interface PeeringConnectionRoutesProps {
     /**
      * Source VPC Name .
@@ -128,11 +82,14 @@ export namespace PeeringConnection {
         throw new Error(`No VPC Created with name "${vpcName}"`);
       }
       const routeTable = vpcConfig?.['route-tables']?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
+      if (!routeTable){
+        return;
+      }
       const routes = routeTable?.routes;
       if (!routes) {
         return;
       }
-      const routeTableId = Object.entries(vpcOutput.routeTables).find(x => x[0] === routeTable?.name)?.[1];
+      const routeTableId = vpcOutput.routeTables[routeTable.name];
       if (!routeTableId) {
         throw new Error(`Cannot find route table with name "${routeTable?.name}"`);
       }

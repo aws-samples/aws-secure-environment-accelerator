@@ -6,13 +6,14 @@ import * as iam from '@aws-cdk/aws-iam';
 import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { PeeringConnectionConfig, VpcConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { PeeringConnection } from '../common/peering-connection';
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
-import { getAllAccountVPCConfigs, VpcConfigs } from '../common/get-all-vpcs';
+import { getAllAccountVPCConfigs, getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput } from './phase-1';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import * as ec2 from '@aws-cdk/aws-ec2';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -26,6 +27,7 @@ async function main() {
   const outputs = await loadStackOutputs();
 
   const app = new cdk.App();
+  const rolesForPeering: string[] = [];
 
   /**
    * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
@@ -33,7 +35,11 @@ async function main() {
    * @param sourceAccount : Source Account Key, Role will be created in this
    * @param accountKey : Target Account Key, Access will be provided to this accout
    */
-  const createIamRole = (roleName: string, sourceAccount: string, targetAccount: string): string => {
+  const createIamRole = (roleName: string, sourceAccount: string, targetAccount: string) => {
+    
+    if (rolesForPeering.includes(roleName)) {
+      return;
+    }
     const iamRolePeering = new AcceleratorStack(app, `PBMMAccel-B-${roleName}Stack`, {
       env: {
         account: getAccountId(accounts, sourceAccount),
@@ -46,11 +52,8 @@ async function main() {
 
     const peeringRole = new iam.Role(iamRolePeering, roleName, {
       roleName,
-      assumedBy: new iam.CompositePrincipal(
-        new iam.ArnPrincipal(
-          `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
-        ), // AccountPrincipal(getAccountId(accounts, accountKey))
-      ),
+      assumedBy: new iam.ArnPrincipal(
+          `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`)
     });
 
     peeringRole.addToPolicy(
@@ -59,7 +62,8 @@ async function main() {
         actions: ['ec2:AcceptVpcPeeringConnection'],
       }),
     );
-    return 'SUCCESS';
+    rolesForPeering.push(roleName);
+    return;
   };
 
   /**
@@ -92,7 +96,6 @@ async function main() {
 
   // Retrive all Account Configs
   const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
-  const rolesForPeering: string[] = [];
   for (const [account, accountConfig] of Object.entries(accountConfigs)) {
     const peeringConfig = PeeringConnection.getVpcConfigForPcx(account, accountConfig);
     if (!peeringConfig) {
@@ -103,19 +106,14 @@ async function main() {
     if (!PeeringConnectionConfig.is(pcxConfig)) {
       continue;
     }
+    const pcxSourceVpc = pcxConfig['source-vpc'];
     const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
-    let roleStatus;
-    if (!rolesForPeering.includes(roleName)) {
-      roleStatus = createIamRole(roleName, pcxConfig.source, accountKey);
-      rolesForPeering.push(roleName);
-    } else {
-      roleStatus = 'SUCCESS';
-    }
+    createIamRole(roleName, pcxConfig.source, accountKey);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
 
     const pcxDeployment = new AcceleratorStack(
       app,
-      `PBMMAccel-C-PcxDeployment${accountKey}${pcxConfig['source-vpc']}Stack`,
+      `PBMMAccel-C-PcxDeployment${accountKey}${pcxSourceVpc}Stack`,
       {
         env: {
           account: getAccountId(accounts, accountKey),
@@ -128,9 +126,9 @@ async function main() {
     );
 
     // Get Peer VPC Configuration
-    const peerVpcConfig = getVpcConfig(accountConfigs, pcxConfig.source, pcxConfig['source-vpc']);
+    const peerVpcConfig = getVpcConfig(accountConfigs, pcxConfig.source, pcxSourceVpc);
     if (!VpcConfigType.is(peerVpcConfig)) {
-      throw new Error(`No configuration found for Peer VPC "${pcxConfig['source-vpc']}"`);
+      throw new Error(`No configuration found for Peer VPC "${pcxSourceVpc}"`);
     }
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey,
@@ -144,22 +142,23 @@ async function main() {
       accountKey: pcxConfig.source,
       outputType: 'VpcOutput',
     });
-    const peerVpcOutout = peerVpcOutputs.find(x => x.vpcName === pcxConfig['source-vpc']);
+    const peerVpcOutout = peerVpcOutputs.find(x => x.vpcName === pcxSourceVpc);
     if (!peerVpcOutout) {
-      throw new Error(`No VPC Found in outputs for VPC name "${pcxConfig['source-vpc']}"`);
+      throw new Error(`No VPC Found in outputs for VPC name "${pcxSourceVpc}"`);
     }
     const peerOwnerId = getAccountId(accounts, pcxConfig.source);
-    const pcx = new PeeringConnection.PeeringConnectionDeployment(
+    
+    const pcx = new ec2.CfnVPCPeeringConnection(
       pcxDeployment,
-      `${vpcConfig.name}-${pcxConfig['source-vpc']}_pcx`,
-      {
+      `${vpcConfig.name}-${pcxSourceVpc}_pcx`,{
         vpcId: vpcOutput.vpcId,
         peerVpcId: peerVpcOutout.vpcId,
         peerRoleArn,
         peerOwnerId,
       },
     );
-    vpcOutput.pcx = pcx.pcxId;
+
+    vpcOutput.pcx = pcx.ref;
 
     // Store the VPC output so that subsequent phases can access the output
     new JsonOutputValue(pcxDeployment, `VpcOutput`, {
@@ -170,13 +169,5 @@ async function main() {
   }
 }
 
-export function getVpcConfig(accountConfigs: VpcConfigs, accountKey: string, vpcName: string): VpcConfig | undefined {
-  const vpcConfig = Object.entries(accountConfigs).find(
-    x =>
-      (x[0] === accountKey && x[1].vpc && x[1].vpc.name === vpcName) ||
-      (x[1].vpc && x[1].vpc.deploy === accountKey && x[1].vpc.name === vpcName),
-  )?.[1].vpc;
-  return vpcConfig;
-}
 // tslint:disable-next-line: no-floating-promises
 main();

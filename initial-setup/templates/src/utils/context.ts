@@ -1,14 +1,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface CfnCustomResourceFunctions {
+  getDnsIpsFunctionArn: string;
+}
+
 export interface Context {
   acceleratorName: string;
   acceleratorPrefix: string;
   acceleratorExecutionRoleName: string;
-  customResourceFunctions: {
-    functionName: string;
-    functionArn: string;
-  }[];
+  cfnCustomResourceFunctions: CfnCustomResourceFunctions;
 }
 
 export function loadContext(): Context {
@@ -21,16 +22,13 @@ export function loadContext(): Context {
     return JSON.parse(contents.toString());
   }
 
-  const customResourceFunctions = [
-    {
-      functionName: process.env.CFN_DNS_ENDPOINT_IPS_FUNCTION_NAME!,
-      functionArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
-    },
-  ];
+  
   return {
     acceleratorName: process.env.ACCELERATOR_NAME!,
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
-    customResourceFunctions,
+    cfnCustomResourceFunctions: {
+      getDnsIpsFunctionArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!
+    }
   };
 }

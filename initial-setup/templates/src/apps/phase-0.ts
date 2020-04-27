@@ -48,10 +48,10 @@ async function main() {
     stackName: 'PBMMAccel-CfnCustomResource-Permissions',
   });
 
-  for (const [index, func] of context.customResourceFunctions.entries()) {
+  for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
     for (const account of accounts) {
-      new lambda.CfnPermission(masterStack, `${func.functionName}${account.key}InvokePermission`, {
-        functionName: func.functionName,
+      new lambda.CfnPermission(masterStack, `${index}${account.key}InvokePermission`, {
+        functionName: funcArn,
         action: 'lambda:InvokeFunction',
         principal: `arn:aws:iam::${getAccountId(accounts, account.key)}:role/${context.acceleratorExecutionRoleName}`,
       });

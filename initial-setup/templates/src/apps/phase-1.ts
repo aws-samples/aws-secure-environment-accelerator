@@ -31,7 +31,7 @@ export interface VpcOutput {
   vpcId: string;
   vpcName: string;
   subnets: VpcSubnetOutput[];
-  routeTables: object;
+  routeTables: {[key:string] : string};
   pcx?: string;
 }
 
@@ -113,7 +113,7 @@ async function main() {
     };
 
     // Store the VPC output so that subsequent phases can access the output
-    const jsonop = new JsonOutputValue(vpc, `VpcOutput`, {
+    new JsonOutputValue(vpc, `VpcOutput`, {
       type: 'VpcOutput',
       value: vpcOutput,
     });

@@ -30,10 +30,10 @@ export const getAllAccountVPCConfigs = (config: AcceleratorConfig): VpcConfigs =
 };
 
 export function getVpcConfig(accountConfigs: VpcConfigs, accountKey: string, vpcName: string): VpcConfig | undefined {
-  const vpcConfig = Object.entries(accountConfigs).find(
-    x =>
-      (x[0] === accountKey && x[1].vpc && x[1].vpc.name === vpcName) ||
-      (x[1].vpc && x[1].vpc.deploy === accountKey && x[1].vpc.name === vpcName),
-  )?.[1].vpc;
-  return vpcConfig;
+  const entry = Object.entries(accountConfigs).find(
+    ([key, config]) =>
+      (key === accountKey && config.vpc && config.vpc.name === vpcName) ||
+      (config.vpc && config.vpc.deploy === accountKey && config.vpc.name === vpcName),
+  );
+  return entry?.[1]?.vpc;
 }
