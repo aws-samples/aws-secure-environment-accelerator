@@ -62,9 +62,6 @@ async function main() {
     return 'SUCCESS';
   };
 
-  // Retrive all Account Configs
-  const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
-
   /**
    * Code to create DNS Resolvers
    */
@@ -92,6 +89,9 @@ async function main() {
   /**
    * Code to create Peering Connection in all accounts
    */
+  
+  // Retrive all Account Configs
+  const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
   const rolesForPeering: string[] = [];
   for (const [account, accountConfig] of Object.entries(accountConfigs)) {
     const peeringConfig = PeeringConnection.getVpcConfigForPcx(account, accountConfig);

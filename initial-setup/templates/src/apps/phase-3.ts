@@ -25,30 +25,6 @@ async function main() {
   const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
 
   /**
-   * Code to create DNS Resolvers
-   */
-  const globalOptionsConfig = acceleratorConfig['global-options'];
-  const zonesConfig = globalOptionsConfig.zones;
-  const zonesAccountKey = zonesConfig.account;
-
-  const deployment = new AcceleratorStack(app, 'PBMMAccel-A-GlobalOptionsDNSResolversStack', {
-    env: {
-      account: getAccountId(accounts, zonesAccountKey),
-      region: cdk.Aws.REGION,
-    },
-    stackName: `PBMMAccel-A-GlobalOptionsDNSResolvers`,
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-  });
-
-  new GlobalOptionsDeployment(deployment, `GlobalOptionsDNSResolvers`, {
-    accounts,
-    outputs,
-    context,
-    acceleratorConfig,
-  });
-
-  /**
    * Code to create Peering Connection Routes in all accounts
    */
   for (const [account, accountConfig] of Object.entries(accountConfigs)) {
