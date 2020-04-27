@@ -82,7 +82,7 @@ export namespace PeeringConnection {
         throw new Error(`No VPC Created with name "${vpcName}"`);
       }
       const routeTable = vpcConfig?.['route-tables']?.find(x => x.routes?.find(y => y.target.startsWith('pcx-')));
-      if (!routeTable){
+      if (!routeTable) {
         return;
       }
       const routes = routeTable?.routes;

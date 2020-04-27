@@ -36,7 +36,6 @@ async function main() {
    * @param accountKey : Target Account Key, Access will be provided to this accout
    */
   const createIamRole = (roleName: string, sourceAccount: string, targetAccount: string) => {
-    
     if (rolesForPeering.includes(roleName)) {
       return;
     }
@@ -53,7 +52,8 @@ async function main() {
     const peeringRole = new iam.Role(iamRolePeering, roleName, {
       roleName,
       assumedBy: new iam.ArnPrincipal(
-          `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`)
+        `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
+      ),
     });
 
     peeringRole.addToPolicy(
@@ -111,19 +111,15 @@ async function main() {
     createIamRole(roleName, pcxConfig.source, accountKey);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
 
-    const pcxDeployment = new AcceleratorStack(
-      app,
-      `PBMMAccel-C-PcxDeployment${accountKey}${pcxSourceVpc}Stack`,
-      {
-        env: {
-          account: getAccountId(accounts, accountKey),
-          region: cdk.Aws.REGION,
-        },
-        stackName: `PBMMAccel-C-PcxDeployments${accountKey}${vpcConfig.name}Stack`,
-        acceleratorName: context.acceleratorName,
-        acceleratorPrefix: context.acceleratorPrefix,
+    const pcxDeployment = new AcceleratorStack(app, `PBMMAccel-C-PcxDeployment${accountKey}${pcxSourceVpc}Stack`, {
+      env: {
+        account: getAccountId(accounts, accountKey),
+        region: cdk.Aws.REGION,
       },
-    );
+      stackName: `PBMMAccel-C-PcxDeployments${accountKey}${vpcConfig.name}Stack`,
+      acceleratorName: context.acceleratorName,
+      acceleratorPrefix: context.acceleratorPrefix,
+    });
 
     // Get Peer VPC Configuration
     const peerVpcConfig = getVpcConfig(accountConfigs, pcxConfig.source, pcxSourceVpc);
@@ -147,16 +143,13 @@ async function main() {
       throw new Error(`No VPC Found in outputs for VPC name "${pcxSourceVpc}"`);
     }
     const peerOwnerId = getAccountId(accounts, pcxConfig.source);
-    
-    const pcx = new ec2.CfnVPCPeeringConnection(
-      pcxDeployment,
-      `${vpcConfig.name}-${pcxSourceVpc}_pcx`,{
-        vpcId: vpcOutput.vpcId,
-        peerVpcId: peerVpcOutout.vpcId,
-        peerRoleArn,
-        peerOwnerId,
-      },
-    );
+
+    const pcx = new ec2.CfnVPCPeeringConnection(pcxDeployment, `${vpcConfig.name}-${pcxSourceVpc}_pcx`, {
+      vpcId: vpcOutput.vpcId,
+      peerVpcId: peerVpcOutout.vpcId,
+      peerRoleArn,
+      peerOwnerId,
+    });
 
     vpcOutput.pcx = pcx.ref;
 

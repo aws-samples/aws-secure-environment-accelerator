@@ -31,7 +31,7 @@ export interface VpcOutput {
   vpcId: string;
   vpcName: string;
   subnets: VpcSubnetOutput[];
-  routeTables: {[key:string] : string};
+  routeTables: { [key: string]: string };
   pcx?: string;
 }
 

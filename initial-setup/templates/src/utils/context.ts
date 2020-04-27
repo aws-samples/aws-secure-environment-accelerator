@@ -22,13 +22,12 @@ export function loadContext(): Context {
     return JSON.parse(contents.toString());
   }
 
-  
   return {
     acceleratorName: process.env.ACCELERATOR_NAME!,
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
     cfnCustomResourceFunctions: {
-      getDnsIpsFunctionArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!
-    }
+      getDnsIpsFunctionArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
+    },
   };
 }
