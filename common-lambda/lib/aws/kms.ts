@@ -28,6 +28,6 @@ export class KMS {
       AliasName: aliasName,
       TargetKeyId: targetKeyId,
     };
-    this.client.createAlias(params).promise();
+    await this.client.createAlias(params).promise();
   }
 }
