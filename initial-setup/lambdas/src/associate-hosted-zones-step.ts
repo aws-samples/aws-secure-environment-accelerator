@@ -169,7 +169,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
         // Domain already added; ignore this error and continue
         console.log('Exception message: ' + e.message);
         console.log('Ignoring exception and continuing...');
-      } else if ((e.code === 'NotAuthorizedException')) {
+      } else if (e.code === 'NotAuthorizedException') {
         // not authorized error; throw exception
         console.log('Exception message: ' + e.message);
         console.log('Stopping further exceution...');
@@ -283,9 +283,9 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   console.log('sharedAccountIdsWithVpcIds: ', sharedAccountIdsWithVpcIds);
   console.log('sharedAccountIdsWithCredentials: ', sharedAccountIdsWithCredentials);
 
-  const sharedAccountIds =[...Object.keys(sharedAccountIdsWithVpcIds)];
-  console.log('sharedAccountIds: '+sharedAccountIds);
-  
+  const sharedAccountIds = [...Object.keys(sharedAccountIdsWithVpcIds)];
+  console.log('sharedAccountIds: ' + sharedAccountIds);
+
   const params: CreateResourceShareRequest = {
     name: 'pbmm-accel-shared-resolver-rules',
     resourceArns: resolverRuleArns,
@@ -294,27 +294,30 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const createResourceShareResponse: CreateResourceShareResponse = await ram.createResourceShare(params);
   console.log('Resource Share Response: ', createResourceShareResponse);
 
-  for(const [eachAccountId, sharedVpcId] of Object.entries(sharedAccountIdsWithVpcIds)) {
+  for (const [eachAccountId, sharedVpcId] of Object.entries(sharedAccountIdsWithVpcIds)) {
     const credentials = sharedAccountIdsWithCredentials[eachAccountId];
     const r53Resolver = new Route53Resolver(credentials);
-    
+
     // resource shared is not available immediately. so adding a check and wait here.
     let waitCondition: boolean = true;
     do {
       console.log('waiting 5 secs for the resolver rules to show up in the shared account...');
       await delay(5000);
       const response = await route53Resolver.listResolverRules(100);
-      for(const resolverRule of response.ResolverRules!) {
+      for (const resolverRule of response.ResolverRules!) {
         if (resolverRuleIds.includes(resolverRule.Id!)) {
           waitCondition = false;
         } else {
           waitCondition = true;
         }
       }
-    } while(waitCondition);
-    
+    } while (waitCondition);
+
     for (const resolverRuleId of resolverRuleIds) {
-      const associateResolverRuleResponse: AssociateResolverRuleResponse = await r53Resolver.associateResolverRule(resolverRuleId, sharedVpcId);
+      const associateResolverRuleResponse: AssociateResolverRuleResponse = await r53Resolver.associateResolverRule(
+        resolverRuleId,
+        sharedVpcId,
+      );
       console.log('associateResolverRuleResponse: ', associateResolverRuleResponse);
     }
   }
