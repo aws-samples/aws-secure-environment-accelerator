@@ -12,23 +12,23 @@ import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 
-const TCP_PROTOCOLS: {[key:string]: number} = {
-  'RDP': 3389,
-  'SSH': 22,
-  'HTTP': 80,
-  'HTTPS': 443,
-  'MSSQL': 1433,
+const TCP_PROTOCOLS: { [key: string]: number } = {
+  RDP: 3389,
+  SSH: 22,
+  HTTP: 80,
+  HTTPS: 443,
+  MSSQL: 1433,
   'MYSQL/AURORA': 3306,
-  'REDSHIFT': 5439,
-  'POSTGRESQL': 5432,
-  'ORACLE-RDS': 1521
-}
+  REDSHIFT: 5439,
+  POSTGRESQL: 5432,
+  'ORACLE-RDS': 1521,
+};
 
 export interface SecurityGroupruleProps {
-  ipProtocol: string,
-  cidrIp: string,
-  toPort?: number,
-  description?: string
+  ipProtocol: string;
+  cidrIp: string;
+  toPort?: number;
+  description?: string;
 }
 
 export interface VpcCommonProps {
@@ -343,22 +343,22 @@ export class Vpc extends cdk.Construct {
 
     const securityGroups = vpcConfig['security-groups'];
     const securityGroupNameMapping: NameToIdMap = {};
-    if (securityGroups){
+    if (securityGroups) {
       console.log(securityGroups, vpcConfig.name);
-      for (const securityGroup of securityGroups){
+      for (const securityGroup of securityGroups) {
         const groupName = `${securityGroup.name}-${vpcConfig.name}-${props.accountKey}-sg`;
         const groupDescription = `${props.accountKey} ${vpcConfig.name} Mgmt Security Group`;
         const securityGroupIngress: SecurityGroupruleProps[] = [];
         const securityGroupEgress: SecurityGroupruleProps[] = [];
-        
-        for (const rule of securityGroup["inbound-rules"]){
-          if (!config.SecurityGroupRuleConfig.is(rule)){
+
+        for (const rule of securityGroup['inbound-rules']) {
+          if (!config.SecurityGroupRuleConfig.is(rule)) {
             continue;
           }
           for (const ruleType of rule.type) {
             let ipProtocol: string;
             let toPort;
-            if (ruleType === 'ALL'){
+            if (ruleType === 'ALL') {
               ipProtocol = ec2.Protocol.ALL;
             } else if (Object.keys(TCP_PROTOCOLS).includes(ruleType)) {
               ipProtocol = ec2.Protocol.TCP;
@@ -366,28 +366,28 @@ export class Vpc extends cdk.Construct {
             } else {
               ipProtocol = ec2.Protocol.TCP;
             }
-            for (const ruleSource of rule.source){
-              if (NonEmptyString.is(ruleSource)){
+            for (const ruleSource of rule.source) {
+              if (NonEmptyString.is(ruleSource)) {
                 const ingressRule: SecurityGroupruleProps = {
                   ipProtocol,
                   cidrIp: ruleSource,
                   toPort,
-                  description: rule.description
-                }
+                  description: rule.description,
+                };
                 securityGroupIngress.push(ingressRule);
               }
             }
           }
         }
 
-        for (const rule of securityGroup["outbound-rules"]){
-          if (!config.SecurityGroupRuleConfig.is(rule)){
+        for (const rule of securityGroup['outbound-rules']) {
+          if (!config.SecurityGroupRuleConfig.is(rule)) {
             continue;
           }
           for (const ruleType of rule.type) {
             let ipProtocol: string;
             let toPort;
-            if (ruleType === 'ALL'){
+            if (ruleType === 'ALL') {
               ipProtocol = ec2.Protocol.ALL;
             } else if (Object.keys(TCP_PROTOCOLS).includes(ruleType)) {
               ipProtocol = ec2.Protocol.TCP;
@@ -396,15 +396,15 @@ export class Vpc extends cdk.Construct {
               ipProtocol = ec2.Protocol.TCP;
               toPort = rule.port!;
             }
-            for (const ruleSource of rule.source){
-              if (NonEmptyString.is(ruleSource)){
+            for (const ruleSource of rule.source) {
+              if (NonEmptyString.is(ruleSource)) {
                 const cidrIp = ruleSource;
                 const egressRule = {
                   ipProtocol,
                   cidrIp,
                   toPort,
-                  description: rule.description
-                }
+                  description: rule.description,
+                };
                 securityGroupEgress.push(egressRule);
               }
             }
@@ -415,9 +415,8 @@ export class Vpc extends cdk.Construct {
           groupDescription,
           groupName,
           securityGroupIngress,
-          securityGroupEgress
+          securityGroupEgress,
         });
-        
       }
     }
 

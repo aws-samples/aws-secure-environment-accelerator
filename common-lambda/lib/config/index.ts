@@ -86,30 +86,34 @@ export const OnPremZoneConfigType = t.interface({
 });
 
 export const SecurityGroupRuleCidrSourceConfig = t.interface({
-  cidr: NonEmptyString
+  cidr: NonEmptyString,
 });
 
 export const SecurityGroupRuleSubnetSourceConfig = t.interface({
   vpc: NonEmptyString,
-  subnet: t.array(NonEmptyString)
+  subnet: t.array(NonEmptyString),
 });
 
 export const SecurityGroupRuleSecurityGroupSourceConfig = t.interface({
-  'security-group': t.array(NonEmptyString)
+  'security-group': t.array(NonEmptyString),
 });
 
-export const SecurityGroupRuleConfig = t.interface ({
+export const SecurityGroupRuleConfig = t.interface({
   type: t.array(NonEmptyString),
   port: optional(t.number),
   description: NonEmptyString,
-  source: t.union([t.array(NonEmptyString), t.array(SecurityGroupRuleSubnetSourceConfig), t.array(SecurityGroupRuleSecurityGroupSourceConfig)])
+  source: t.union([
+    t.array(NonEmptyString),
+    t.array(SecurityGroupRuleSubnetSourceConfig),
+    t.array(SecurityGroupRuleSecurityGroupSourceConfig),
+  ]),
 });
 
 export const SecurityGroupConfig = t.interface({
   name: NonEmptyString,
   'inbound-rules': t.array(SecurityGroupRuleConfig),
   'outbound-rules': t.array(SecurityGroupRuleConfig),
-})
+});
 
 export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
@@ -130,7 +134,7 @@ export const VpcConfigType = t.interface({
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
-  'security-groups': optional(t.array(SecurityGroupConfig))
+  'security-groups': optional(t.array(SecurityGroupConfig)),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;

@@ -137,7 +137,7 @@ async function main() {
       accounts,
       vpcConfig,
       tgwDeployment: accountConfig.deployments?.tgw,
-      accountKey
+      accountKey,
     });
   }
 
@@ -164,7 +164,7 @@ async function main() {
             accounts,
             vpcConfig,
             organizationalUnitName: ouKey,
-            accountKey
+            accountKey,
           });
         }
       }
@@ -177,7 +177,7 @@ async function main() {
         accounts,
         vpcConfig,
         organizationalUnitName: ouKey,
-        accountKey
+        accountKey,
       });
     }
   }
