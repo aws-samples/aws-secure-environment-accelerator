@@ -62,7 +62,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
       this,
       'CfnInBoundEndpointIpPooler',
-      this.props.context.cfnCustomResourceFunctions.getDnsIpsFunctionArn
+      this.props.context.cfnCustomResourceFunctions.getDnsIpsFunctionArn,
     );
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
