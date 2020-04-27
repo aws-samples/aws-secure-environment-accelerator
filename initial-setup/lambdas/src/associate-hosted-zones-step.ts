@@ -12,11 +12,13 @@ import { AcceleratorConfig, VpcConfigType, InterfaceEndpointConfig } from '@aws-
 import { Account } from './load-accounts-step';
 import { getAccountId } from '../../templates/src/utils/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getStackOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { VpcOutput } from '../../templates/src/apps/phase-1';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
 import { RAM } from '@aws-pbmm/common-lambda/lib/aws/ram';
 import * as t from 'io-ts';
+import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 
 interface AssociateHostedZonesInput {
   accounts: Account[];
@@ -50,13 +52,14 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const allHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
   const allPrivateHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
   const allPrivateHostedZonesId: string[] = [];
-  let hostedZonesAccountId: string;
+  let hostedZonesAccountId: string = '';
   let hostedZonesAccountCredentials: aws.Credentials;
 
   // get the private zones from global-options
   const privateZones = globalOptionsConfig.zones.names.private;
   console.log(`private zones from global config - ${privateZones}`);
 
+  console.log('getting all private hosted zones from Route 53');
   // get all hosted zones ID
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
     mandatoryAccountKeys.push(accountKey);
@@ -103,11 +106,14 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     // get all private hosted zones
     for (const eachHostedZone of allHostedZones) {
-      if (
-        eachHostedZone[0].Name.includes('ca-central-1.amazonaws.com') ||
-        privateZones.includes(eachHostedZone[0].Name)
-      ) {
+      if (eachHostedZone[0].Name.includes('ca-central-1.amazonaws.com')) {
         allPrivateHostedZones.push(eachHostedZone);
+      } else {
+        for (const privateZone of privateZones) {
+          if (eachHostedZone[0].Name.includes(privateZone)) {
+            allPrivateHostedZones.push(eachHostedZone);
+          }
+        }
       }
     }
     console.log('All Private Hosted Zones: ', allPrivateHostedZones);
@@ -120,12 +126,12 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     console.log('All Private Hosted Zones ID: ', allPrivateHostedZonesId);
   }
 
-  let sharedAccountIdsWithVpcIds: { [accountId: string]: string } = {};
-  let sharedAccountIdsWithCredentials: { [accountId: string]: aws.Credentials } = {};
+  const sharedAccountIdsWithVpcIds: { [accountId: string]: string } = {};
+  const sharedAccountIdsWithCredentials: { [accountId: string]: aws.Credentials } = {};
 
-  const associateHostedZones = async (
+  const associateHostedZone = async (
     vpcAccountId: string,
-    hostedZonesAccountId: string,
+    hostedZoneAccountId: string,
     privateHostedZoneId: string,
     vpcId: string,
     vpcRegion: string,
@@ -137,12 +143,12 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
     sharedAccountIdsWithCredentials[vpcAccountId] = vpcAccountCredentials;
 
-    hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
-    const hostedZonesRoute53 = new Route53(hostedZonesAccountCredentials);
+    const hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
+    const hostedZoneRoute53 = new Route53(hostedZoneAccountCredentials);
 
-    // authorize association of VPC with Hosted zones
-    if (vpcAccountId !== hostedZonesAccountId!) {
-      const createVPCAssociationAuthorizationResponse: CreateVPCAssociationAuthorizationResponse = await hostedZonesRoute53.createVPCAssociationAuthorization(
+    // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
+    if (vpcAccountId !== hostedZoneAccountId) {
+      const createVPCAssociationAuthorizationResponse: CreateVPCAssociationAuthorizationResponse = await hostedZoneRoute53.createVPCAssociationAuthorization(
         privateHostedZoneId,
         vpcId,
         vpcRegion,
@@ -151,16 +157,29 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     }
 
     // associate VPC with Hosted zones
-    const associateVPCWithHostedZoneResponse: AssociateVPCWithHostedZoneResponse = await vpcRoute53.associateVPCWithHostedZone(
-      privateHostedZoneId,
-      vpcId,
-      vpcRegion,
-    );
-    console.log('associateVPCWithHostedZoneResponse: ', associateVPCWithHostedZoneResponse);
+    try {
+      const associateVPCWithHostedZoneResponse: AssociateVPCWithHostedZoneResponse = await vpcRoute53.associateVPCWithHostedZone(
+        privateHostedZoneId,
+        vpcId,
+        vpcRegion,
+      );
+      console.log('associateVPCWithHostedZoneResponse: ', associateVPCWithHostedZoneResponse);
+    } catch (e) {
+      if (e.code === 'ConflictingDomainExists') {
+        // Domain already added; ignore this error and continue
+        console.log('Exception message: ' + e.message);
+        console.log('Ignoring exception and continuing...');
+      } else if ((e.code === 'NotAuthorizedException')) {
+        // not authorized error; throw exception
+        console.log('Exception message: ' + e.message);
+        console.log('Stopping further exceution...');
+        throw e;
+      }
+    }
 
-    // delete association of VPC with Hosted zones
-    if (vpcAccountId !== hostedZonesAccountId!) {
-      const deleteVPCAssociationAuthorizationResponse: DeleteVPCAssociationAuthorizationResponse = await hostedZonesRoute53.deleteVPCAssociationAuthorization(
+    // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
+    if (vpcAccountId !== hostedZoneAccountId) {
+      const deleteVPCAssociationAuthorizationResponse: DeleteVPCAssociationAuthorizationResponse = await hostedZoneRoute53.deleteVPCAssociationAuthorization(
         privateHostedZoneId,
         vpcId,
         vpcRegion,
@@ -187,11 +206,16 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     const vpcAccountId = getAccountId(accounts, accountKey);
 
     for (const privateHostedZoneId of allPrivateHostedZonesId) {
-      const vpcId = getStackOutput(outputs, accountKey, `Vpc${vpcConfig.name}`);
+      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+        accountKey,
+        outputType: 'VpcOutput',
+      });
+      const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+      const vpcId = vpcOutput!.vpcId;
       const vpcRegion = vpcConfig.region;
 
       // associate the hosted zones with VPC
-      associateHostedZones(vpcAccountId, hostedZonesAccountId!, privateHostedZoneId, vpcId, vpcRegion);
+      await associateHostedZone(vpcAccountId, hostedZonesAccountId, privateHostedZoneId, vpcId, vpcRegion);
     }
   }
   console.log('Completed association of private hosted zones with mandatory accounts VPC...');
@@ -216,7 +240,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     const vpcAccountKey = orgUnit.vpc!.deploy!;
     if (mandatoryAccountKeys.includes(vpcAccountKey)) {
       console.log(
-        `Association of private hosted zones done already for the account with account key - ${vpcAccountKey}. Moving to next org unit.`,
+        `Association of private hosted zones done already for organization unit with key - ${orgKey} and account key - ${vpcAccountKey}. Moving to next org unit.`,
       );
       continue;
     }
@@ -224,21 +248,28 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     const vpcAccountId = getAccountId(accounts, vpcAccountKey);
 
     for (const privateHostedZoneId of allPrivateHostedZonesId) {
-      const vpcId = getStackOutput(outputs, vpcAccountKey, `Vpc${vpcConfig.name}`);
+      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+        accountKey: vpcAccountKey,
+        outputType: 'VpcOutput',
+      });
+      const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+      const vpcId = vpcOutput!.vpcId;
       const vpcRegion = vpcConfig.region;
 
       // associate the hosted zones with VPC
-      associateHostedZones(vpcAccountId, hostedZonesAccountId!, privateHostedZoneId, vpcId, vpcRegion);
+      await associateHostedZone(vpcAccountId, hostedZonesAccountId, privateHostedZoneId, vpcId, vpcRegion);
     }
   }
   console.log('Completed association of private hosted zones with organizational units accounts VPC...');
 
-  const route53Resolver = new Route53Resolver(hostedZonesAccountCredentials!);
-  const listResolverRulesResponse: ListResolverRulesResponse = await route53Resolver.listResolverRules(1);
+  console.log('Starting association of resolver rules with accounts to which VPCs are shared...');
+  hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
+  const route53Resolver = new Route53Resolver(hostedZonesAccountCredentials);
+  const listResolverRulesResponse: ListResolverRulesResponse = await route53Resolver.listResolverRules(100);
   console.log('Route 53 - Resolver Rules: ', listResolverRulesResponse);
 
-  let resolverRuleArns: string[] = [];
-  let resolverRuleIds: string[] = [];
+  const resolverRuleArns: string[] = [];
+  const resolverRuleIds: string[] = [];
   for (const resolverRule of listResolverRulesResponse.ResolverRules!) {
     if (resolverRule.RuleType === 'FORWARD') {
       resolverRuleArns.push(resolverRule.Arn!);
@@ -247,9 +278,14 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   }
   console.log('resolverRuleArns: ', resolverRuleArns);
 
-  const ram = new RAM(hostedZonesAccountCredentials!);
+  const ram = new RAM(hostedZonesAccountCredentials);
 
-  const sharedAccountIds = Array.from(sharedAccountIdsWithVpcIds.keys);
+  console.log('sharedAccountIdsWithVpcIds: ', sharedAccountIdsWithVpcIds);
+  console.log('sharedAccountIdsWithCredentials: ', sharedAccountIdsWithCredentials);
+
+  const sharedAccountIds =[...Object.keys(sharedAccountIdsWithVpcIds)];
+  console.log('sharedAccountIds: '+sharedAccountIds);
+  
   const params: CreateResourceShareRequest = {
     name: 'pbmm-accel-shared-resolver-rules',
     resourceArns: resolverRuleArns,
@@ -258,18 +294,34 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const createResourceShareResponse: CreateResourceShareResponse = await ram.createResourceShare(params);
   console.log('Resource Share Response: ', createResourceShareResponse);
 
-  for (const eachAccountId of sharedAccountIds) {
-    const sharedVpcId = sharedAccountIdsWithVpcIds[eachAccountId];
+  for(const [eachAccountId, sharedVpcId] of Object.entries(sharedAccountIdsWithVpcIds)) {
     const credentials = sharedAccountIdsWithCredentials[eachAccountId];
     const r53Resolver = new Route53Resolver(credentials);
+    
+    // resource shared is not available immediately. so adding a check and wait here.
+    let waitCondition: boolean = true;
+    do {
+      console.log('waiting 5 secs for the resolver rules to show up in the shared account...');
+      await delay(5000);
+      const response = await route53Resolver.listResolverRules(100);
+      for(const resolverRule of response.ResolverRules!) {
+        if (resolverRuleIds.includes(resolverRule.Id!)) {
+          waitCondition = false;
+        } else {
+          waitCondition = true;
+        }
+      }
+    } while(waitCondition);
+    
     for (const resolverRuleId of resolverRuleIds) {
-      const associateResolverRuleResponse = await r53Resolver.associateResolverRule(resolverRuleId, sharedVpcId);
+      const associateResolverRuleResponse: AssociateResolverRuleResponse = await r53Resolver.associateResolverRule(resolverRuleId, sharedVpcId);
       console.log('associateResolverRuleResponse: ', associateResolverRuleResponse);
     }
   }
+  console.log('Completed association of resolver rules with accounts to which VPCs are shared...');
 
   return {
     status: 'SUCCESS',
-    statusReason: 'Associated Hosted Zones with the VPC',
+    statusReason: 'Associated Hosted Zones and resolver rules with the VPC',
   };
 };
