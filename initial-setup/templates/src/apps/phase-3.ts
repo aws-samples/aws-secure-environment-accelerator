@@ -39,7 +39,7 @@ async function main() {
       `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name}RoutesStack`,
       {
         env: {
-          account: getAccountId(accounts, accountKey!),
+          account: getAccountId(accounts, accountKey),
           region: cdk.Aws.REGION,
         },
         stackName: `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name.replace('_', '')}RoutesStack`,
