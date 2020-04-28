@@ -6,8 +6,9 @@ export { handler as enableResourceSharingStep } from './enable-resource-sharing-
 export { handler as getDnsEndpointIps } from './get-dns-endpoint-ips';
 export { handler as loadAccountsStep } from './load-accounts-step';
 export { handler as loadConfigurationStep } from './load-configuration-step';
-export { handler as s3BlockPublicAccessStep } from './s3-block-public-access-step';
+export { handler as accountDefaultSettingsStep } from './account-default-settings-step';
 export { handler as storeStackOutputStep } from './store-stack-output-step';
+export { handler as enableDirectorySharingStep } from './enable-directory-sharing-step';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

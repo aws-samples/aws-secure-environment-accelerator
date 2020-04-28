@@ -1,11 +1,55 @@
 # PBMM Accelerator
 
-## Requirements
-
-- NodeJS 12.x
-- pnpm version 4.x https://github.com/pnpm/pnpm
-
 ## Installation
+
+### Prerequisites
+
+You need an AWS account with Landing Zone deployed.
+
+### Using the Installer
+
+1. Login to the Organization **master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
+2. Set the region to `ca-central-1`.
+3. Grant the `AcceleratorMasterRole` access to use the `AwsLandingZoneKMSKey`.
+
+#### Create a GitHub Personal Access Token.
+
+1. You can find the instructions on how to create a personal access token here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+2. Select the scope `repo: Full control over private repositories`.
+3. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token`.
+    - Via AWS console
+      - Store a new secret, and select `Other type of secrets`, `Plaintext`
+      - Paste your secret with no formatting no leading or trailing spaces
+      - Select `DefaultEncryptionKey`,
+      - Set the secret name to `accelerator/github-token`
+      - Select `Disable rotation`
+    - Via AWS CLI: `aws secretsmanager create-secret --name accelerator/github-token --secret-string <token>`
+
+#### Create an Accelerator Configuration File
+
+1. You can use the [`config.example.json`](./config.example.json) file as base.
+2. Make sure to update the account names and email addresses to match the ones in your account.
+
+   ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING. Expected file content and values will be defined in future***
+
+3. Store the configuration file in Secrets Manager as plain text. Name the secret `accelerator/config`.
+   - Via the AWS console;
+   - Via the AWS CLI `aws secretsmanager create-secret --name accelerator/config --secret-string file://<path>`
+
+#### Deploy the Accelerator Installer Stack
+
+1. You can find the latest release in the repository: https://github.com/aws-samples/aws-pbmm-accelerator/releases
+2. Download the CloudFormation template `AcceleratorInstaller.template.json`
+3. Use the template to deploy a new stack in your AWS account.
+4. Fill out the required parameters.
+5. Apply a tag on the stack, `Accelerator=PBMM` (case sensitive).
+
+You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
+state machine should start automatically and deploy the Accelerator in your account.
+
+After the pipline executes, the state machine will execute (Step functions).
+
+### Using the Command-Line (Not required if followed above process)
 
 Configure the AWS CLI so that CDK can deploy in the AWS account.
 

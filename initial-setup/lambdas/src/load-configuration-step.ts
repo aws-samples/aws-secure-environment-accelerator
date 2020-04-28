@@ -1,12 +1,13 @@
 import * as org from 'aws-sdk/clients/organizations';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import {
   AcceleratorConfig,
   LandingZoneAccountType,
   LANDING_ZONE_ACCOUNT_TYPES,
 } from '@aws-pbmm/common-lambda/lib/config';
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
 
 export interface LoadConfigurationInput {
   configSecretSourceId: string;
@@ -141,6 +142,19 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         `${lzOrganizationalUnits.length} organizational units in the Landing Zone configuration\n` +
         `  Organizational units in organization: ${organizationalUnits.map(ou => ou.Name).join(', ')}\n` +
         `  Organizational units in config:       ${lzOrganizationalUnits.map(ou => ou.name).join(', ')}\n`,
+    );
+  }
+
+  // Verify that Landing Zone and Accelerator config have the same OUs
+  const acceleratorOuConfigs = config['organizational-units'];
+  const acceleratorOus = Object.keys(acceleratorOuConfigs);
+  const lzOus = lzOrganizationalUnits.map(ou => ou.name);
+  if (!arrayEqual(acceleratorOus, lzOus)) {
+    errors.push(
+      `There are ${acceleratorOus.length} organizational units in Accelerator configuration while there are only ` +
+        `${lzOus.length} organizational units in the Landing Zone configuration\n` +
+        `  Organizational units in Accelerator:  ${acceleratorOus.join(', ')}\n` +
+        `  Organizational units in Landing Zone: ${lzOus.join(', ')}\n`,
     );
   }
 
