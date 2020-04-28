@@ -7,15 +7,16 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 
 export interface LoadLimitsInput {
   configSecretId: string;
+  limitsSecretId: string;
   accounts: Account[];
   assumeRoleName: string;
 }
 
-export type LoadLimitsOutput = Limit[];
+export type LoadLimitsOutput = LimitOutput[];
 
-export interface Limit {
+export interface LimitOutput {
   accountKey: string;
-  limitCodeKey: string;
+  limitKey: string;
   serviceCode: string;
   quotaCode: string;
   value: number;
@@ -27,39 +28,48 @@ interface LimitCode {
   enabled: boolean;
 }
 
-const LIMIT_CODES: { [limitKey: string]: LimitCode } = {
-  'Amazon VPC/VPCs per Region': {
+// TODO Move this to common so we can use it from initial-setup/cdk
+enum Limit {
+  VpcPerRegion = 'Amazon VPC/VPCs per Region',
+  VpcInterfaceEndpointsPerVpc = 'Amazon VPC/Interface VPC endpoints per VPC',
+  CloudFormationStackCount = 'AWS CloudFormation/Stack count',
+  CloudFormationStackSetPerAdmin = 'AWS CloudFormation/Stack sets per administrator account',
+  OrganizationsMaximumAccounts = 'AWS Organizations/Maximum accounts',
+}
+
+const LIMITS: { [limitKey: string]: LimitCode } = {
+  [Limit.VpcPerRegion]: {
     serviceCode: 'vpc',
     quotaCode: 'L-F678F1CE',
     enabled: true,
   },
-  'Amazon VPC/Interface VPC endpoints per VPC': {
+  [Limit.VpcInterfaceEndpointsPerVpc]: {
     serviceCode: 'vpc',
     quotaCode: 'L-29B6F2EB',
     enabled: true,
   },
-  'AWS CloudFormation/Stack count': {
+  [Limit.CloudFormationStackCount]: {
     serviceCode: 'cloudformation',
     quotaCode: 'L-0485CB21',
     enabled: true,
   },
-  'AWS CloudFormation/Stack sets per administrator account': {
+  [Limit.CloudFormationStackSetPerAdmin]: {
     serviceCode: 'cloudformation',
     quotaCode: 'L-31709F13',
     enabled: true,
   },
-  'AWS Organizations/Maximum accounts': {
+  [Limit.OrganizationsMaximumAccounts]: {
     serviceCode: 'organizations',
     quotaCode: 'L-29A0C5DF',
     enabled: false,
-  }
+  },
 };
 
 export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsOutput> => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configSecretId, accounts, assumeRoleName } = input;
+  const { configSecretId, limitsSecretId, accounts, assumeRoleName } = input;
 
   const secrets = new SecretsManager();
   const secret = await secrets.getSecret(configSecretId);
@@ -69,7 +79,7 @@ export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsOutput>
   const config = AcceleratorConfig.fromString(configString);
 
   // Capture limit results
-  const limits: Limit[] = [];
+  const limits: LimitOutput[] = [];
 
   const accountConfigs = config['mandatory-account-configs'];
   for (const [accountKey, accountConfig] of Object.entries(accountConfigs)) {
@@ -79,50 +89,66 @@ export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsOutput>
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const quotas = new ServiceQuotas(credentials);
 
+    // First check that all limits in the config exist
     const limitConfig = accountConfig.limits;
-    for (const [limitCodeKey, desiredValue] of Object.entries(limitConfig)) {
-      const code = LIMIT_CODES[limitCodeKey];
+    for (const limitKey of Object.keys(limitConfig)) {
+      const code = LIMITS[limitKey];
       if (!code) {
-        throw new Error(`Cannot find limit code with key "${limitCodeKey}"`);
+        throw new Error(`Cannot find limit code with key "${limitKey}"`);
       }
-      if (!code.enabled) {
-        console.warn(`The limit "${limitCodeKey}" is not enabled`);
+    }
+
+    // The fetch all supported limits and request an increase if necessary
+    for (const [limitKey, limitCode] of Object.entries(LIMITS)) {
+      if (!limitCode.enabled) {
+        console.warn(`The limit "${limitKey}" is not enabled`);
         continue;
       }
 
       const quota = await quotas.getServiceQuotaOrDefault({
-        ServiceCode: code.serviceCode,
-        QuotaCode: code.quotaCode,
+        ServiceCode: limitCode.serviceCode,
+        QuotaCode: limitCode.quotaCode,
       });
       const value = quota.Value!;
 
       // Keep track of limits so we can return them at the end of this function
       limits.push({
         accountKey,
-        limitCodeKey,
-        serviceCode: code.serviceCode,
-        quotaCode: code.quotaCode,
+        limitKey,
+        serviceCode: limitCode.serviceCode,
+        quotaCode: limitCode.quotaCode,
         value,
       });
 
+      const desiredValue = limitConfig[limitKey];
+      if (!desiredValue) {
+        console.debug(`Quota "${limitKey}" has no desired value for account "${accountKey}"`);
+        continue;
+      }
       if (value >= desiredValue) {
-        console.debug(`Quota "${limitCodeKey}" already has a value equal or larger than the desired value`);
+        console.debug(`Quota "${limitKey}" already has a value equal or larger than the desired value`);
         continue;
       }
       if (!quota.Adjustable) {
-        console.warn(`Quota "${limitCodeKey}" is not adjustable`);
+        console.warn(`Quota "${limitKey}" is not adjustable`);
         continue;
       }
 
       // Request the increase or renew if the previous request was more than two days ago
       await quotas.renewServiceQuotaIncrease({
-        ServiceCode: code.serviceCode,
-        QuotaCode: code.quotaCode,
+        ServiceCode: limitCode.serviceCode,
+        QuotaCode: limitCode.quotaCode,
         DesiredValue: desiredValue,
         MinTimeBetweenRequestsMillis: 1000 * 60 * 60 * 24 * 2, // Two days in milliseconds
       });
     }
   }
+
+  // Store the limits in the secrets manager
+  await secrets.putSecretValue({
+    SecretId: limitsSecretId,
+    SecretString: JSON.stringify(limits, null, 2),
+  });
 
   return limits;
 };
