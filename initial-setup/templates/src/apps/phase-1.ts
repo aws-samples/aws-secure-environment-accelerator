@@ -157,7 +157,7 @@ async function main() {
         });
       }
     }
-  }
+  };
 
   // Create all the VPCs for the mandatory accounts
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
@@ -184,7 +184,7 @@ async function main() {
       accounts,
       vpcConfig,
       tgwDeployment: accountConfig.deployments?.tgw,
-    })
+    });
   }
 
   // Create all the VPCs for the organizational units
@@ -216,7 +216,7 @@ async function main() {
           createTGW(vpc, accountKey, {
             accounts,
             vpcConfig,
-          })
+          });
         }
       }
     } else {
@@ -234,7 +234,7 @@ async function main() {
       createTGW(vpc, accountKey, {
         accounts,
         vpcConfig,
-      })
+      });
     }
   }
 
