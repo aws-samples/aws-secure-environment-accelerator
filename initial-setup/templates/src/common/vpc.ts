@@ -12,12 +12,12 @@ import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 
-const TCP_PROTOCOLS: { [key: string]: number } = {
+const TCP_PROTOCOLS_PORT: { [key: string]: number } = {
   RDP: 3389,
   SSH: 22,
   HTTP: 80,
   HTTPS: 443,
-  MSSQL: 1433,
+  'MSSQL': 1433,
   'MYSQL/AURORA': 3306,
   REDSHIFT: 5439,
   POSTGRESQL: 5432,
@@ -26,9 +26,12 @@ const TCP_PROTOCOLS: { [key: string]: number } = {
 
 export interface SecurityGroupruleProps {
   ipProtocol: string;
-  cidrIp: string;
+  cidrIp?: string;
   toPort?: number;
+  fromPort?: number;
   description?: string;
+  sourceSecurityGroupId?: string;
+  groupId: string;
 }
 
 export interface VpcCommonProps {
@@ -110,6 +113,7 @@ export class Vpc extends cdk.Construct {
   readonly azSubnets = new AzSubnets();
 
   readonly routeTableNameToIdMap = new Map<string, string>();
+  readonly securityGroupNameMapping: NameToIdMap = {};
 
   constructor(stack: VpcStack, name: string, props: VpcProps) {
     super(stack, name);
@@ -342,81 +346,51 @@ export class Vpc extends cdk.Construct {
     }
 
     const securityGroups = vpcConfig['security-groups'];
-    const securityGroupNameMapping: NameToIdMap = {};
     if (securityGroups) {
-      console.log(securityGroups, vpcConfig.name);
+      // Create all security groups
       for (const securityGroup of securityGroups) {
         const groupName = `${securityGroup.name}-${vpcConfig.name}-${props.accountKey}-sg`;
         const groupDescription = `${props.accountKey} ${vpcConfig.name} Mgmt Security Group`;
-        const securityGroupIngress: SecurityGroupruleProps[] = [];
-        const securityGroupEgress: SecurityGroupruleProps[] = [];
-
-        for (const rule of securityGroup['inbound-rules']) {
-          if (!config.SecurityGroupRuleConfig.is(rule)) {
-            continue;
-          }
-          for (const ruleType of rule.type) {
-            let ipProtocol: string;
-            let toPort;
-            if (ruleType === 'ALL') {
-              ipProtocol = ec2.Protocol.ALL;
-            } else if (Object.keys(TCP_PROTOCOLS).includes(ruleType)) {
-              ipProtocol = ec2.Protocol.TCP;
-              toPort = TCP_PROTOCOLS[ruleType];
-            } else {
-              ipProtocol = ec2.Protocol.TCP;
-            }
-            for (const ruleSource of rule.source) {
-              if (NonEmptyString.is(ruleSource)) {
-                const ingressRule: SecurityGroupruleProps = {
-                  ipProtocol,
-                  cidrIp: ruleSource,
-                  toPort,
-                  description: rule.description,
-                };
-                securityGroupIngress.push(ingressRule);
-              }
-            }
-          }
-        }
-
-        for (const rule of securityGroup['outbound-rules']) {
-          if (!config.SecurityGroupRuleConfig.is(rule)) {
-            continue;
-          }
-          for (const ruleType of rule.type) {
-            let ipProtocol: string;
-            let toPort;
-            if (ruleType === 'ALL') {
-              ipProtocol = ec2.Protocol.ALL;
-            } else if (Object.keys(TCP_PROTOCOLS).includes(ruleType)) {
-              ipProtocol = ec2.Protocol.TCP;
-              toPort = TCP_PROTOCOLS[ruleType];
-            } else {
-              ipProtocol = ec2.Protocol.TCP;
-              toPort = rule.port!;
-            }
-            for (const ruleSource of rule.source) {
-              if (NonEmptyString.is(ruleSource)) {
-                const cidrIp = ruleSource;
-                const egressRule = {
-                  ipProtocol,
-                  cidrIp,
-                  toPort,
-                  description: rule.description,
-                };
-                securityGroupEgress.push(egressRule);
-              }
-            }
-          }
-        }
         const sg = new ec2.CfnSecurityGroup(this, `${groupName}`, {
           vpcId: this.vpcId,
           groupDescription,
           groupName,
-          securityGroupIngress,
-          securityGroupEgress,
         });
+        this.securityGroupNameMapping[securityGroup.name] = sg.ref;
+      }
+      for (const securityGroup of securityGroups) {
+        const inboundRules = securityGroup['inbound-rules'];
+        const groupName = securityGroup.name;
+        const outboundRules = securityGroup['outbound-rules'];
+        if (inboundRules){
+          for (const [ruleId, rule] of inboundRules.entries()){
+            const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, vpcConfig);
+            if (ruleParams.length === 0){
+              continue;
+            }
+            for (const [index, params] of ruleParams.entries()){
+              new ec2.CfnSecurityGroupIngress(
+                this, `${groupName}-Ingress-${ruleId}-${index}`,
+                params 
+              )
+            }
+          }
+        }
+        if (outboundRules){
+          for (const [ruleId, rule] of outboundRules.entries()){
+            const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, vpcConfig);
+            if (ruleParams.length === 0){
+              continue;
+            }
+            for (const [index, params] of ruleParams.entries()){
+              new ec2.CfnSecurityGroupEgress(
+                this, `${groupName}-Egress-${ruleId}-${index}`,
+                params 
+              )
+            }
+          }
+          
+        }
       }
     }
 
@@ -448,5 +422,81 @@ export class Vpc extends cdk.Construct {
       organizationalUnitName,
       subnets: this.azSubnets,
     });
+  }
+
+  prepareSecurityGroupRuleProps = (groupName: string, rule: config.SecurityGroupRuleConfig, vpcConfig: config.VpcConfig): SecurityGroupruleProps[] => {
+    const ruleProps: SecurityGroupruleProps[] = [];
+    for (const ruleType of rule.type){
+      const ruleSources = rule.source;
+      let ipProtocol;
+      let toPort;
+      let fromPort;
+
+      let params: SecurityGroupruleProps = {
+        ipProtocol: ruleType,
+        groupId: this.securityGroupNameMapping[groupName],
+        description: rule.description
+      };
+
+      // Prepare Protocol and Port for rule params
+      if (ruleType === 'ALL'){
+        ipProtocol = ec2.Protocol.ALL;
+      } else if (Object.keys(TCP_PROTOCOLS_PORT).includes(ruleType)) {
+        ipProtocol = ec2.Protocol.TCP;
+        toPort = TCP_PROTOCOLS_PORT[ruleType];
+        fromPort = TCP_PROTOCOLS_PORT[ruleType];
+      } else {
+        ipProtocol = ruleType;
+        toPort = rule.toPort;
+        fromPort = rule.fromPort;
+      }
+
+      for (const ruleSource of ruleSources){
+        if (NonEmptyString.is(ruleSource)){
+          ruleProps.push({
+            ipProtocol: ipProtocol,
+            groupId: this.securityGroupNameMapping[groupName],
+            description: rule.description,
+            cidrIp: ruleSource,
+            toPort,
+            fromPort,
+          });
+        } 
+        else if (config.SecurityGroupRuleSubnetSourceConfig.is(ruleSource)) { // Check for Subnet CIDR Security Group
+          for (const ruleSubnet of ruleSource.subnet){
+            const vpcConfigSubnets = vpcConfig.subnets?.find(s => s.name === ruleSubnet);
+            if (!vpcConfigSubnets){
+              throw new Error(`Invalid Subnet provided inSecurity Group config "${ruleSubnet}"`);
+            }
+            for (const [index, subnet] of Object.entries(vpcConfigSubnets.definitions)){
+              if (subnet.disabled){
+                continue;
+              }
+              ruleProps.push({
+                ipProtocol: ipProtocol,
+                groupId: this.securityGroupNameMapping[groupName],
+                description: `${params.description} from ${ruleSubnet}-${subnet.az}`,
+                cidrIp: subnet.cidr? subnet.cidr.toCidrString(): subnet.cidr2?.toCidrString(),
+                toPort,
+                fromPort,
+              });
+            } // Looping Through Subnet Definitions
+          } // Looging Through subnets
+        } 
+        else if (config.SecurityGroupRuleSecurityGroupSourceConfig.is(ruleSource)) { // Check for Security Group reference to Security Group
+          for (const ruleSg of ruleSource["security-group"]){
+            ruleProps.push({
+              ipProtocol: ipProtocol,
+              groupId: this.securityGroupNameMapping[groupName],
+              description: `${params.description}`,
+              sourceSecurityGroupId: this.securityGroupNameMapping[ruleSg],
+              toPort,
+              fromPort,
+            });
+          }
+        }
+      }
+    }
+    return ruleProps;
   }
 }

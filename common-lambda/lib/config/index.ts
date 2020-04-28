@@ -98,10 +98,12 @@ export const SecurityGroupRuleSecurityGroupSourceConfig = t.interface({
   'security-group': t.array(NonEmptyString),
 });
 
-export const SecurityGroupRuleConfig = t.interface({
+export const SecurityGroupRuleConfigType = t.interface({
   type: t.array(NonEmptyString),
   port: optional(t.number),
   description: NonEmptyString,
+  toPort: optional(t.number),
+  fromPort: optional(t.number),
   source: t.union([
     t.array(NonEmptyString),
     t.array(SecurityGroupRuleSubnetSourceConfig),
@@ -109,10 +111,12 @@ export const SecurityGroupRuleConfig = t.interface({
   ]),
 });
 
+export type SecurityGroupRuleConfig = t.TypeOf<typeof SecurityGroupRuleConfigType>;
+
 export const SecurityGroupConfig = t.interface({
   name: NonEmptyString,
-  'inbound-rules': t.array(SecurityGroupRuleConfig),
-  'outbound-rules': t.array(SecurityGroupRuleConfig),
+  'inbound-rules': t.array(SecurityGroupRuleConfigType),
+  'outbound-rules': t.array(SecurityGroupRuleConfigType),
 });
 
 export const VpcConfigType = t.interface({
