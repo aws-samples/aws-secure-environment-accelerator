@@ -1,7 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import * as constructs from 'constructs';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
@@ -15,6 +13,8 @@ import {
   OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
   OUTPUT_LOG_ARCHIVE_ACCOUNT_ID,
 } from './phase-0';
+import { TransitGateway } from '../common/transit-gateway';
+import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -64,6 +64,7 @@ async function main() {
   const app = new cdk.App();
 
   const vpcStacks: { [accountKey: string]: VpcStack } = {};
+  const transitGateways = new Map<string, TransitGateway>();
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
@@ -117,7 +118,46 @@ async function main() {
       type: 'VpcOutput',
       value: vpcOutput,
     });
+
+    return vpc;
   };
+
+  const createTGW = (vpc: Vpc, accountKey: string, props: VpcProps) => {
+    const vpcStack = getVpcStack(accountKey);
+    const tgwDeployment = props.tgwDeployment;
+    if (tgwDeployment) {
+      const tgw = new TransitGateway(vpcStack, tgwDeployment.name!, tgwDeployment);
+      transitGateways.set(tgwDeployment.name!, tgw);
+    }
+
+    const tgwAttach = props.vpcConfig['tgw-attach'];
+    if (tgwAttach) {
+      const tgwName = tgwAttach['associate-to-tgw'];
+      const tgw = transitGateways.get(tgwName);
+      if (tgw) {
+        const attachConfig = props.vpcConfig['tgw-attach']!;
+
+        const attachSubnetsConfig = attachConfig['attach-subnets'] || [];
+        const associateConfig = attachConfig['tgw-rt-associate'] || [];
+        const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        new TransitGatewayAttachment(vpcStack, 'TgwAttach', {
+          vpcId: vpc.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+      }
+    }
+  }
 
   // Create all the VPCs for the mandatory accounts
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
@@ -133,11 +173,18 @@ async function main() {
     }
 
     console.debug(`Deploying VPC in account "${accountKey}"`);
-    createVpc(accountKey, {
+    const vpc = createVpc(accountKey, {
       accounts,
       vpcConfig,
       tgwDeployment: accountConfig.deployments?.tgw,
     });
+
+    console.debug(`Deploying TGW in account ${accountKey}`);
+    createTGW(vpc, accountKey, {
+      accounts,
+      vpcConfig,
+      tgwDeployment: accountConfig.deployments?.tgw,
+    })
   }
 
   // Create all the VPCs for the organizational units
@@ -159,11 +206,17 @@ async function main() {
         if (accountConfig.ou === ouKey) {
           console.debug(`Deploying local VPC for organizational unit "${ouKey}" in account "${accountKey}"`);
 
-          createVpc(accountKey, {
+          const vpc = createVpc(accountKey, {
             accounts,
             vpcConfig,
             organizationalUnitName: ouKey,
           });
+
+          console.debug(`Deploying TGW for organizational unit "${ouKey}" in account "${accountKey}"`);
+          createTGW(vpc, accountKey, {
+            accounts,
+            vpcConfig,
+          })
         }
       }
     } else {
@@ -171,11 +224,17 @@ async function main() {
       const accountKey = vpcConfig.deploy;
       console.debug(`Deploying non-local VPC for organizational unit "${ouKey}" in account "${accountKey}"`);
 
-      createVpc(accountKey, {
+      const vpc = createVpc(accountKey, {
         accounts,
         vpcConfig,
         organizationalUnitName: ouKey,
       });
+
+      console.debug(`Deploying TGW for organizational unit "${ouKey}" in account "${accountKey}"`);
+      createTGW(vpc, accountKey, {
+        accounts,
+        vpcConfig,
+      })
     }
   }
 

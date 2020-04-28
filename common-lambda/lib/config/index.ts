@@ -55,7 +55,7 @@ export const RouteTableConfig = t.interface({
 export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all attach options here
 
 export const TransitGatewayAttachConfig = t.interface({
-  'associate-to-tgw': t.union([NonEmptyString, t.boolean]),
+  'associate-to-tgw': t.union([NonEmptyString, t.string]),
   account: optional(t.string),
   'associate-type': optional(t.literal('ATTACH')),
   'tgw-rt-associate': optional(t.array(NonEmptyString)),

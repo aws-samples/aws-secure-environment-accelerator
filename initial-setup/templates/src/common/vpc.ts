@@ -7,8 +7,6 @@ import { Account } from '../utils/accounts';
 import { FlowLog } from './flow-log';
 import { InterfaceEndpoints } from './interface-endpoints';
 import { VpcStack } from './vpc-stack';
-import { TransitGateway } from './transit-gateway';
-import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 
 export interface VpcCommonProps {
@@ -282,35 +280,6 @@ export class Vpc extends cdk.Construct {
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
-    }
-
-    // Creating TGW for Shared-Network Account
-    const tgwDeployment = props.tgwDeployment;
-    if (tgwDeployment) {
-      const twgAttach = vpcConfig['tgw-attach'];
-      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
-      if (twgAttach) {
-        const attachConfig = vpcConfig['tgw-attach']!;
-
-        const attachSubnetsConfig = attachConfig['attach-subnets'] || [];
-        const associateConfig = attachConfig['tgw-rt-associate'] || [];
-        const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-        // Attach VPC To TGW
-        new TransitGatewayAttachment(this, 'TgwAttach', {
-          vpcId: this.vpcId,
-          subnetIds,
-          transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-        });
-      }
     }
 
     // Create interface endpoints
