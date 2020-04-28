@@ -88,9 +88,7 @@ export class Vpc extends cdk.Construct {
 
     const { accounts, vpcConfig, organizationalUnitName } = props;
     const vpcName = props.vpcConfig.name;
-    const useCentralEndpointsConfig: boolean = props.vpcConfig['use-central-endpoints']
-      ? props.vpcConfig['use-central-endpoints']
-      : false;
+    const useCentralEndpointsConfig: boolean = props.vpcConfig['use-central-endpoints'] ?? false;
 
     this.name = props.vpcConfig.name;
     this.region = vpcConfig.region;
