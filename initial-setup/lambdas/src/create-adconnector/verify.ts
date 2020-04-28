@@ -24,7 +24,7 @@ export const handler = async (input: result): Promise<string> => {
   const status: string[] = [];
   const sts = new STS();
 
-  console.log("Create AdConnectors output", input.createOutput.output);
+  console.log('Create AdConnectors output', input.createOutput.output);
 
   for (const adConnector of input.createOutput.output) {
     const credentials = await sts.getCredentialsForAccountAndRole(adConnector.accountId, adConnector.assumeRoleName);

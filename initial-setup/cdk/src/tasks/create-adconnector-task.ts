@@ -65,13 +65,15 @@ export class CreateAdConnectorTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'AdConnector Creation Failed');
 
-    waitTask.next(verifyTask).next(
-      new sfn.Choice(scope, 'AdConnector Creation Done?')
-        .when(sfn.Condition.stringEquals(verifyTaskResultPath, 'SUCCESS'), pass)
-        .when(sfn.Condition.stringEquals(verifyTaskResultPath, 'IN_PROGRESS'), waitTask)
-        .otherwise(fail)
-        .afterwards(),
-    );
+    waitTask
+      .next(verifyTask)
+      .next(
+        new sfn.Choice(scope, 'AdConnector Creation Done?')
+          .when(sfn.Condition.stringEquals(verifyTaskResultPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyTaskResultPath, 'IN_PROGRESS'), waitTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
 
     createTask.next(
       new sfn.Choice(scope, 'AdConnection Creation Started?')
