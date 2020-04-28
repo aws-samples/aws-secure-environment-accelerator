@@ -48,8 +48,9 @@ export class DirectoryService {
    *
    * @param ConnectDirectoryRequest
    */
-  async createAdConnector(input: ds.ConnectDirectoryRequest): Promise<void> {
-    await this.client.connectDirectory(input).promise();
+  async createAdConnector(input: ds.ConnectDirectoryRequest): Promise<string> {
+    const result = await this.client.connectDirectory(input).promise();
+    return result.DirectoryId!;
   }
 
   /**
@@ -76,5 +77,24 @@ export class DirectoryService {
     const sharedDirectoriesResult = result.SharedDirectories;
     const sharedAccounts = sharedDirectoriesResult!.map(o => o.SharedAccountId!);
     return sharedAccounts;
+  }
+
+  /**
+   *
+   * This method will return ADConnectors created in the account
+   *
+   * @param DescribeDirectoriesRequest
+   */
+  async getADConnectors(): Promise<{ directorId: string; status: string; domain: string }[]> {
+    const result = await this.client.describeDirectories().promise();
+    const directoriesResult = result.DirectoryDescriptions;
+    const adConnectors = directoriesResult!
+      .filter(d => d.Type === 'ADConnector')
+      .map(o => ({
+        directorId: o.DirectoryId!,
+        status: o.Stage!,
+        domain: o.Name!,
+      }));
+    return adConnectors;
   }
 }

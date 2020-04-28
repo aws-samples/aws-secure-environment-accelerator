@@ -16,6 +16,7 @@ import * as tempy from 'tempy';
 import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
+import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import * as lambda from '@aws-cdk/aws-lambda';
 
 interface BuildProps {
@@ -450,19 +451,23 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createAdConnectorTask = new CodeTask(this, 'Create AD Connector', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.createADConnectorStep',
+      const createAdConnectorStateMachine = new sfn.StateMachine(scope, 'CreateAdConnecotrStateMachine', {
+        definition: new CreateAdConnectorTask(scope, 'CreateAD', {
+          lambdaCode,
           role: pipelineRole,
-        },
-        functionPayload: {
-          'accounts.$': '$.accounts',
-          assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: configSecretInProgress.secretArn,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-        },
-        resultPath: 'DISCARD',
+        }),
+      });
+
+      const createAdConnectorTask = new sfn.Task(this, 'Create AD Connector', {
+        task: new tasks.StartExecution(createAdConnectorStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            assumeRoleName: props.stateMachineExecutionRole,
+            configSecretSourceId: configSecretInProgress.secretArn,
+            stackOutputSecretId: stackOutputSecret.secretArn,
+          },
+        }),
       });
 
       new sfn.StateMachine(this, 'StateMachine', {

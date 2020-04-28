@@ -1,8 +1,8 @@
 import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-service';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { Account } from './load-accounts-step';
+import { Account } from '../load-accounts-step';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getAccountId } from '../../templates/src/utils/accounts';
+import { getAccountId } from '../../../templates/src/utils/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
@@ -33,6 +33,12 @@ export interface VpcOutput {
   routeTables: object;
 }
 
+interface AdConnectorOutput {
+  accountId: string;
+  directoryId: string;
+  assumeRoleName: string;
+}
+
 export const handler = async (input: AdConnectorInput) => {
   console.log(`Creating AD Connector in account ...`);
   console.log(JSON.stringify(input, null, 2));
@@ -42,6 +48,7 @@ export const handler = async (input: AdConnectorInput) => {
   const secrets = new SecretsManager();
   const configString = await secrets.getSecret(configSecretId);
   const outputsString = await secrets.getSecret(stackOutputSecretId);
+  const output: AdConnectorOutput[] = [];
 
   const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
@@ -89,20 +96,38 @@ export const handler = async (input: AdConnectorInput) => {
     const subnetIds = vpc.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
     const madPassword = await secrets.getSecret(`accelerator/${adcConfig['connect-account-key']}/mad/password`);
     const accountId = getAccountId(accounts, accountKey);
+    console.log('accountId', accountId);
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
     const directoryService = new DirectoryService(credentials);
-    await directoryService.createAdConnector({
-      Name: madConfig['dns-domain'],
-      ShortName: madConfig['netbios-domain'],
-      Password: madPassword.SecretString!,
-      Size: adcConfig.size,
-      ConnectSettings: {
-        VpcId: vpc.vpcId,
-        SubnetIds: subnetIds,
-        CustomerDnsIps: madOuput.dnsIps.split(','),
-        CustomerUserName: 'admin',
-      },
-    });
+
+    const adConnectors = await directoryService.getADConnectors();
+    console.log('Existing adConnectors', adConnectors);
+    const adConenctor = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
+
+    console.log('adConenctor', adConenctor);
+
+    if (!adConenctor) {
+      const directoryId = await directoryService.createAdConnector({
+        Name: madConfig['dns-domain'],
+        ShortName: madConfig['netbios-domain'],
+        Password: madPassword.SecretString!,
+        Size: adcConfig.size,
+        ConnectSettings: {
+          VpcId: vpc.vpcId,
+          SubnetIds: subnetIds,
+          CustomerDnsIps: madOuput.dnsIps.split(','),
+          CustomerUserName: 'admin',
+        },
+      });
+      if (directoryId) {
+        output.push({
+          accountId: accountId,
+          directoryId,
+          assumeRoleName,
+        });
+      }
+    }
   }
+  return { output, outputCount: output.length };
 };
