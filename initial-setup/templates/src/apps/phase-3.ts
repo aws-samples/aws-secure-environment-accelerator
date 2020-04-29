@@ -65,7 +65,7 @@ async function main() {
     const vpcConfig = accountConfig.vpc!;
     const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
 
-    if(vpcConfig['use-central-endpoints']) {      
+    if (vpcConfig['use-central-endpoints']) {
       const accountId = getAccountId(accounts, accountKey);
       sharedAccountIds.push(accountId);
     }
@@ -77,8 +77,8 @@ async function main() {
 
   //   const resolverRuleArns: string[] = [];
   //   if(vpcConfig.resolvers) {
-  //     const accountId = getAccountId(accounts, accountKey);      
-      
+  //     const accountId = getAccountId(accounts, accountKey);
+
   //     const resolvers: ResolversOutput = getStackJsonOutput(outputs, {
   //       accountKey,
   //       outputType: 'GlobalOptionsDNSResolversGlobalOptionsOutput',
@@ -86,10 +86,9 @@ async function main() {
 
   //     resolverRuleArns.push(resolvers.rules?.onPremRules)
   //   }
-  // } 
-  
-    // 'PBMMAccel-'
+  // }
 
+  // 'PBMMAccel-'
 }
 // tslint:disable-next-line: no-floating-promises
 main();
