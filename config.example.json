@@ -35,7 +35,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "nkoppula+lzT-network@amazon.com",
+      "email": "bmycroft+lzT-network@amazon.com",
       "ou": "core",
       "share-mad-from": "operations",
       "iam": {
@@ -201,7 +201,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "nkoppula+lzT-operations@amazon.com",
+      "email": "bmycroft+lzT-operations@amazon.com",
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
@@ -297,7 +297,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "nkoppula+lzT-perimeter@amazon.com",
+      "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
@@ -517,7 +517,7 @@
     },
     "master": {
       "account-name": "primary",
-      "email": "nkoppula+lz-main-us-east@amazon.com",
+      "email": "bmycroft+lzT@amazon.com",
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
@@ -617,21 +617,21 @@
       "account-name": "log-archive",
       "share-mad-from": "",
       "ou": "core",
-      "email": "nkoppula+lz-logs-ca-central@amazon.com",
+      "email": "bmycroft+lzT+logs@amazon.com",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
       "ou": "core",
-      "email": "nkoppula+lz-security-ca-central@amazon.com",
+      "email": "bmycroft+lzT+security@amazon.com",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
       "ou": "core",
-      "email": "nkoppula+lz-network-ca-central@amazon.com",
+      "email": "bmycroft+lzT+services@amazon.com",
       "landing-zone-account-type": "shared-services",
       "enable-s3-public-access": true
     }
