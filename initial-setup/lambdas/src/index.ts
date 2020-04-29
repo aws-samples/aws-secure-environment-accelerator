@@ -17,4 +17,5 @@ import * as codebuild from './codebuild';
 import * as createAccount from './create-account';
 import * as createStack from './create-stack';
 import * as createStackSet from './create-stack-set';
-export { codebuild, createAccount, createStack, createStackSet };
+import * as createAdConnector from './create-adconnector';
+export { codebuild, createAccount, createStack, createStackSet, createAdConnector };

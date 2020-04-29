@@ -207,6 +207,16 @@ export const AccountConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
+export const adcConfigType = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  subnet: t.string,
+  size: t.string,
+  restrict_srcips: t.array(cidr),
+  'connect-account-key': t.string,
+  'connect-dir-id': t.number,
+});
+
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
@@ -226,6 +236,7 @@ export const MandatoryAccountConfigType = t.interface({
     t.interface({
       tgw: optional(DeploymentConfigType),
       mad: optional(MadConfigType),
+      adc: optional(adcConfigType),
     }),
   ),
 });

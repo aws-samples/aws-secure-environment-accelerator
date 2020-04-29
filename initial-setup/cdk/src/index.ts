@@ -16,6 +16,7 @@ import * as tempy from 'tempy';
 import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
+import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import * as lambda from '@aws-cdk/aws-lambda';
 
 interface BuildProps {
@@ -504,6 +505,25 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const createAdConnectorStateMachine = new sfn.StateMachine(scope, 'CreateAdConnectorStateMachine', {
+        definition: new CreateAdConnectorTask(scope, 'CreateAD', {
+          lambdaCode,
+          role: pipelineRole,
+        }),
+      });
+
+      const createAdConnectorTask = new sfn.Task(this, 'Create AD Connector', {
+        task: new tasks.StartExecution(createAdConnectorStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            assumeRoleName: props.stateMachineExecutionRole,
+            configSecretSourceId: configSecretInProgress.secretArn,
+            stackOutputSecretId: stackOutputSecret.secretArn,
+          },
+        }),
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -523,7 +543,8 @@ export namespace InitialSetup {
           .next(addTagsToSharedResourcesPhase2)
           .next(deployPhase3Task)
           .next(addTagsToSharedResourcesTask)
-          .next(enableDirectorySharingTask),
+          .next(enableDirectorySharingTask)
+          .next(createAdConnectorTask),
       });
     }
   }

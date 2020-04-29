@@ -603,7 +603,7 @@
           "deploy": true,
           "vpc-name": "ForSSO",
           "subnet": "ForSSO",
-          "size": "small",
+          "size": "Small",
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
           "connect-dir-id": 1001
