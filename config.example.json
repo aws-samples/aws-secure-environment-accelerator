@@ -10,6 +10,24 @@
         "private": ["dept.cloud-nuage.gc.ca"]
       }
     },
+    "security-hub-frameworks": {
+      "enable-aws-foundational": true,
+      "foundation-controls-to-disable": ["IAM.1"],
+      "enable-cis-foundations": true,
+      "cis-foundations-controls-to-disable": ["CIS1.3", "CIS1.11"],
+      "enable-pci-dss": true,
+      "pci-dss-controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
+    },
+    "scps": {
+      "ALZ-Core": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/aws-landing-zone-core-mandatory-preventive-guardrails-modifiedAccel.json",
+      "ALZ-Non-Core": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/aws-landing-zone-non-core-mandatory-preventive-guardrails-modifiedAccel.json",
+      "Guardrails-Part1": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Part1.json",
+      "Guardrails-Part2": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Part2.json",
+      "Guardrails-PBMM-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-PBMM-Only.json",
+      "Guardrails-Unclass-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Unclass-Only.json",
+      "Quarantine-Deny-All": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Quarantine-Deny-All.json",
+      "Full-Access": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Full-AWS-Access.json"
+    },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
@@ -67,12 +85,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "Endpoint_Shared",
+                "route-table": "EndpointVPC_Common",
                 "cidr": "10.7.0.0/24"
               },
               {
                 "az": "b",
-                "route-table": "Endpoint_Shared",
+                "route-table": "EndpointVPC_Common",
                 "cidr": "10.7.1.0/24"
               }
             ]
@@ -81,7 +99,7 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "Endpoint_Shared"
+            "name": "EndpointVPC_Common"
           }
         ],
         "tgw-attach": {
@@ -235,7 +253,7 @@
           "share-to-account": "master",
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
-          "RDGWInstanceType": "t2.large", 
+          "RDGWInstanceType": "t2.large",
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -257,19 +275,11 @@
             },
             {
               "user": "Brian",
-              "groups": [
-                "Provisioning",
-                "*-View",
-                "*-Admin",
-                "*-PowerUsers",
-                "AWS Delegated Administrators"
-              ]
+              "groups": ["Provisioning", "*-View", "*-Admin", "*-PowerUsers", "AWS Delegated Administrators"]
             },
             {
               "user": "TestUser",
-              "groups": [
-                "*-View"
-              ]
+              "groups": ["*-View"]
             }
           ]
         },
@@ -364,12 +374,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "FWMgmt_az1",
+                "route-table": "FWMgmt_azA",
                 "cidr": "100.96.251.16/28"
               },
               {
                 "az": "b",
-                "route-table": "FWMgmt_az2",
+                "route-table": "FWMgmt_azB",
                 "cidr": "100.96.251.48/28"
               }
             ]
@@ -379,12 +389,12 @@
             "definitions": [
               {
                 "az": "a",
-                "route-table": "Proxy_az1",
+                "route-table": "Proxy_azA",
                 "cidr": "100.96.250.0/25"
               },
               {
                 "az": "b",
-                "route-table": "Proxy_az2",
+                "route-table": "Proxy_azB",
                 "cidr": "100.96.250.128/25"
               }
             ]
@@ -420,7 +430,7 @@
             ]
           },
           {
-            "name": "FWMgmt_az1",
+            "name": "FWMgmt_azA",
             "routes": [
               {
                 "destination": "7.0.0.0/8",
@@ -437,7 +447,7 @@
             ]
           },
           {
-            "name": "FWMgmt_az2",
+            "name": "FWMgmt_azB",
             "routes": [
               {
                 "destination": "7.0.0.0/8",
@@ -454,7 +464,7 @@
             ]
           },
           {
-            "name": "Proxy_az1",
+            "name": "Proxy_azA",
             "routes": [
               {
                 "destination": "0.0.0.0/0",
@@ -463,7 +473,7 @@
             ]
           },
           {
-            "name": "Proxy_az2",
+            "name": "Proxy_azB",
             "routes": [
               {
                 "destination": "0.0.0.0/0",
@@ -574,9 +584,11 @@
             "routes": [
               {
                 "destination": {
-                  "shared-Network-Central-GCWide-CIDR": null
+                  "account": "shared-network",
+                  "vpc": "Central",
+                  "subnet": "GCWide"
                 },
-                "target": "pcx-shared-network-Central"
+                "target": "pcx"
               }
             ]
           }
@@ -635,11 +647,13 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "share-mad-from": ""
+      "share-mad-from": "",
+      "SCPs": ["ALZ-Core"]
     },
     "central": {
       "type": "mandatory",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Central",
@@ -685,7 +699,7 @@
           {
             "name": "Web",
             "share-to-ou-accounts": true,
-            "share-to-specific-accounts": [],
+            "share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -708,7 +722,7 @@
           {
             "name": "App",
             "share-to-ou-accounts": true,
-            "share-to-specific-accounts": [],
+            "share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -804,7 +818,7 @@
           {
             "name": "Mgmt",
             "share-to-ou-accounts": false,
-            "share-to-specific-accounts": [],
+            "share-to-specific-accounts": ["operations"],
             "definitions": [
               {
                 "az": "a",
@@ -884,9 +898,11 @@
               },
               {
                 "destination": {
-                  "master-ForSSO-ForSSO-CIDR": null
+                  "account": "master",
+                  "vpc": "ForSSO",
+                  "subnet": "ForSSO"
                 },
-                "target": "pcx-master-ForSSO"
+                "target": "pcx"
               }
             ]
           }
@@ -1103,6 +1119,7 @@
     "dev": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Dev",
@@ -1300,6 +1317,7 @@
     "test": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Test",
@@ -1497,6 +1515,7 @@
     "prod": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "Prod",
@@ -1694,6 +1713,7 @@
     "unclass": {
       "type": "workload",
       "share-mad-from": "operations",
+      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
       "vpc": {
         "deploy": "shared-network",
         "name": "UnClass",
@@ -1891,6 +1911,7 @@
     "sandbox": {
       "type": "workload",
       "share-mad-from": "",
+      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
       "vpc": {
         "deploy": "local",
         "name": "Sandbox",
@@ -2018,7 +2039,7 @@
             "routes": [
               {
                 "destination": "0.0.0.0/0",
-                "target": "NATGW_Web_az1"
+                "target": "NATGW_Web_azA"
               }
             ]
           }

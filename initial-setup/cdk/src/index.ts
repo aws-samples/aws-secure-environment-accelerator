@@ -127,6 +127,11 @@ export namespace InitialSetup {
         path: props.solutionZipPath,
       });
 
+      const cfnCustomResourceRole = new iam.Role(this, 'CfnCustomResourceRole', {
+        roleName: 'CfnCustomResourceRole',
+        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
+      });
+
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: 'AcceleratorMasterRole',
@@ -138,27 +143,22 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      // TODO Restrict role permissions
-      const dnsEndpointIpPollerRole = new iam.Role(this, 'LambdaRoleRoute53Resolver', {
-        roleName: 'LambdaRoleRoute53Resolver',
-        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
-      });
+      cfnCustomResourceRole.addToPolicy(
+        new iam.PolicyStatement({
+          resources: ['*'],
+          actions: ['sts:AssumeRole', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        }),
+      );
 
       const dnsEndpointIpPollerLambda = new lambda.Function(this, 'DnsEndpointIpPoller', {
         runtime: lambda.Runtime.NODEJS_12_X,
         code: lambdaCode,
         handler: 'index.getDnsEndpointIps',
-        role: dnsEndpointIpPollerRole,
+        role: cfnCustomResourceRole,
+        functionName: 'CfnCustomResourceR53EndpointIPPooler',
         environment: {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
         },
-      });
-
-      // Allow Cloudformation to trigger the handler
-      dnsEndpointIpPollerLambda.addPermission('cfn-dns-endpoint-ip-pooler', {
-        action: 'lambda:InvokeFunction',
-        principal: new iam.AnyPrincipal(),
       });
 
       // Define a build specification to build the initial setup templates
@@ -412,16 +412,17 @@ export namespace InitialSetup {
       });
 
       // TODO We could put this task in a map task and apply to all accounts individually
-      const blockS3PublicAccessTask = new CodeTask(this, 'Block S3 Public Access', {
+      const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.s3BlockPublicAccessStep',
+          handler: 'index.accountDefaultSettingsStep',
           role: pipelineRole,
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
+          acceleratorName: props.acceleratorName,
         },
         resultPath: 'DISCARD',
       });
@@ -479,6 +480,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deployPhase3Task = new sfn.Task(this, 'Deploy Phase 3', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-3.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
           code: lambdaCode,
@@ -502,7 +514,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(blockS3PublicAccessTask)
+          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
@@ -510,6 +522,7 @@ export namespace InitialSetup {
           .next(storePhase1Output)
           .next(deployPhase2Task)
           .next(storePhase2Output)
+          .next(deployPhase3Task)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask),
       });
