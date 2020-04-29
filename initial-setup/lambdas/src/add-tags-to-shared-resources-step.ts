@@ -4,6 +4,8 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
+const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc'];
+
 interface CreateTagsRequestInput {
   assumeRoleName: string;
   stackOutputSecretId: string;
@@ -16,7 +18,7 @@ interface Tag {
 
 interface AddTagToResourceOutput {
   resourceId: string;
-  resourceType: 'subnet' | string;
+  resourceType: string;
   targetAccountIds: string[];
   tags: Tag[];
 }
@@ -55,7 +57,7 @@ export const handler = async (input: CreateTagsRequestInput) => {
         console.log(`Tagging resource "${resourceId}" in account "${targetAccountId}"`);
 
         const credentials = await getAccountCredentials(targetAccountId);
-        if (resourceType === 'subnet') {
+        if (ALLOWED_RESOURCE_TYPES.includes(resourceType)) {
           const tagResources = new TagResources(credentials);
           await tagResources.createTags({
             Resources: [resourceId],
