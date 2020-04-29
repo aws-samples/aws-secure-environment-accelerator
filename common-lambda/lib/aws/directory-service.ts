@@ -83,7 +83,6 @@ export class DirectoryService {
    *
    * This method will return existing AD Connectors in the account
    *
-   * @param DescribeDirectoriesRequest
    */
   async getADConnectors(): Promise<{ directorId: string; status: string; domain: string }[]> {
     const result = await this.client.describeDirectories().promise();
