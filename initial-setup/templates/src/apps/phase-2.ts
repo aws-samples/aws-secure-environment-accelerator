@@ -18,6 +18,8 @@ import { ActiveDirectory } from '../common/active-directory';
 import { PeeringConnectionConfig, VpcConfigType, MandatoryAccountConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
+import { cfnTagToCloudFormation } from '@aws-cdk/core';
+import { AddTagsToResource, AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -275,7 +277,7 @@ async function main() {
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index}`, {
+      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index+1}`, {
         env: {
           account: sharedAccountId,
           region: cdk.Aws.REGION,
@@ -287,10 +289,24 @@ async function main() {
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
       }
-      new SecurityGroup(securityGroupStack, 'SecurityGroups', {
+      const securityGroups = new SecurityGroup(securityGroupStack, 'SecurityGroups', {
         vpcConfig,
         vpcId: vpcOutput.vpcId,
         accountKey,
+      });
+      // Add Tags Output
+      const accountId = getAccountId(accounts, accountKey);
+      new AddTagsToResourcesOutput(
+        securityGroupStack, 
+        `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
+        dependencies: Object.values(securityGroups.securityGroupNameMapping),
+        produceResources: () =>
+          Object.values(securityGroups.securityGroupNameMapping).map(securityGroup => ({
+            resourceId: securityGroup.ref,
+            resourceType: 'security-group',
+            targetAccountIds: [accountId],
+            tags: securityGroup.tags.renderTags()
+        }))
       });
     }
   }

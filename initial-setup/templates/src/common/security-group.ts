@@ -3,14 +3,18 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
-import { NameToIdMap } from './vpc';
+
+
+export interface NameToSecurityGroupMap {
+  [key: string]: ec2.CfnSecurityGroup;
+}
 
 const TCP_PROTOCOLS_PORT: { [key: string]: number } = {
   RDP: 3389,
   SSH: 22,
   HTTP: 80,
   HTTPS: 443,
-  MSSQL: 1433,
+  'MS SQL': 1433,
   'MYSQL/AURORA': 3306,
   REDSHIFT: 5439,
   POSTGRESQL: 5432,
@@ -34,7 +38,7 @@ export interface SecurityGroupProps {
 }
 
 export class SecurityGroup extends cdk.Construct {
-  readonly securityGroupNameMapping: NameToIdMap = {};
+  readonly securityGroupNameMapping: NameToSecurityGroupMap = {};
 
   constructor(parent: cdk.Construct, name: string, props: SecurityGroupProps) {
     super(parent, name);
@@ -42,14 +46,14 @@ export class SecurityGroup extends cdk.Construct {
     const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
     for (const securityGroup of securityGroups || []) {
-      const groupName = `${securityGroup.name}-${vpcConfig.name}-${props.accountKey}-sg`;
-      const groupDescription = `${props.accountKey} ${vpcConfig.name} Mgmt Security Group`;
+      const groupName = `${securityGroup.name}-${vpcConfig.name}-${accountKey}-sg`;
+      const groupDescription = `${accountKey} ${vpcConfig.name} Mgmt Security Group`;
       const sg = new ec2.CfnSecurityGroup(this, `${groupName}`, {
         vpcId: vpcId,
         groupDescription,
         groupName,
       });
-      this.securityGroupNameMapping[securityGroup.name] = sg.ref;
+      this.securityGroupNameMapping[securityGroup.name] = sg;
     }
     for (const securityGroup of securityGroups || []) {
       const inboundRules = securityGroup['inbound-rules'];
@@ -110,7 +114,7 @@ export class SecurityGroup extends cdk.Construct {
         if (NonEmptyString.is(ruleSource)) {
           ruleProps.push({
             ipProtocol,
-            groupId: this.securityGroupNameMapping[groupName],
+            groupId: this.securityGroupNameMapping[groupName].ref,
             description: rule.description,
             cidrIp: ruleSource,
             toPort,
@@ -129,7 +133,7 @@ export class SecurityGroup extends cdk.Construct {
               }
               ruleProps.push({
                 ipProtocol,
-                groupId: this.securityGroupNameMapping[groupName],
+                groupId: this.securityGroupNameMapping[groupName].ref,
                 description: `${ruleDescription} from ${ruleSubnet}-${subnet.az}`,
                 cidrIp: subnet.cidr ? subnet.cidr.toCidrString() : subnet.cidr2?.toCidrString(),
                 toPort,
@@ -142,9 +146,9 @@ export class SecurityGroup extends cdk.Construct {
           for (const ruleSg of ruleSource['security-group']) {
             ruleProps.push({
               ipProtocol,
-              groupId: this.securityGroupNameMapping[groupName],
+              groupId: this.securityGroupNameMapping[groupName].ref,
               description: ruleDescription,
-              sourceSecurityGroupId: this.securityGroupNameMapping[ruleSg],
+              sourceSecurityGroupId: this.securityGroupNameMapping[ruleSg].ref,
               toPort,
               fromPort,
             });
