@@ -492,7 +492,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createAdConnectorStateMachine = new sfn.StateMachine(scope, 'CreateAdConnecotrStateMachine', {
+      const createAdConnectorStateMachine = new sfn.StateMachine(scope, 'CreateAdConnectorStateMachine', {
         definition: new CreateAdConnectorTask(scope, 'CreateAD', {
           lambdaCode,
           role: pipelineRole,
