@@ -20,20 +20,20 @@ interface MadOutput {
   dnsIps: string;
 }
 
-export interface VpcSubnetOutput {
+interface VpcSubnetOutput {
   subnetId: string;
   subnetName: string;
   az: string;
 }
 
-export interface VpcOutput {
+interface VpcOutput {
   vpcId: string;
   vpcName: string;
   subnets: VpcSubnetOutput[];
   routeTables: object;
 }
 
-interface AdConnectorOutput {
+export interface AdConnectorOutput {
   accountId: string;
   directoryId: string;
   assumeRoleName: string;
@@ -48,7 +48,7 @@ export const handler = async (input: AdConnectorInput) => {
   const secrets = new SecretsManager();
   const configString = await secrets.getSecret(configSecretId);
   const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const output: AdConnectorOutput[] = [];
+  const adConnectorOutput: AdConnectorOutput[] = [];
 
   const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
@@ -61,52 +61,56 @@ export const handler = async (input: AdConnectorInput) => {
       continue;
     }
 
+    // Getting the MAD outputs from stacks output
     const madOutputs: MadOutput[] = getStackJsonOutput(outputs, {
       accountKey: adcConfig['connect-account-key'],
       outputType: 'MadOutput',
     });
 
+    // Finding the MAD output based on connect-dir-id
     const madOuput = madOutputs.find(output => output.id === adcConfig['connect-dir-id']);
     if (!madOuput) {
       throw new Error(`Cannot find madOuput with account ${adcConfig['connect-account-key']}`);
     }
 
-    const mandConfig = Object.values(acceleratorConfig['mandatory-account-configs']).find(
+    // Finding the account specific MAD configuration based on dir-id and connect-dir-id
+    const madDeployConfig = Object.values(acceleratorConfig['mandatory-account-configs']).find(
       config => config.deployments?.mad?.['dir-id'] === adcConfig['connect-dir-id'],
     );
-    if (!mandConfig) {
+    if (!madDeployConfig) {
       throw new Error(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
     }
 
-    const madConfig = mandConfig.deployments?.mad;
+    const madConfig = madDeployConfig.deployments?.mad;
     if (!madConfig) {
       throw new Error(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
     }
 
+    // Getting VPC outputs by account name
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      accountKey: accountKey,
+      accountKey,
       outputType: 'VpcOutput',
     });
 
+    // Finding the VPC based on vpc-name from stacks output
     const vpc = vpcOutputs.find(output => output.vpcName === adcConfig['vpc-name']);
     if (!vpc) {
       throw new Error(`Cannot find VPC with name "${adcConfig['vpc-name']}"`);
     }
 
+    // Find subnets based on ADC Config subnet name
     const subnetIds = vpc.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
-    const madPassword = await secrets.getSecret(`accelerator/${adcConfig['connect-account-key']}/mad/password`);
+
     const accountId = getAccountId(accounts, accountKey);
-    console.log('accountId', accountId);
+    // Getting the MAD admin password from secrets manager based on account name
+    const madPassword = await secrets.getSecret(`accelerator/${adcConfig['connect-account-key']}/mad/password`);
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-
     const directoryService = new DirectoryService(credentials);
-
     const adConnectors = await directoryService.getADConnectors();
-    console.log('Existing adConnectors', adConnectors);
     const adConenctor = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
+    console.log('Active AD Conenctor', adConenctor);
 
-    console.log('adConenctor', adConenctor);
-
+    // Creating AD Connector if there are no active AD Connector with the given dns-domain
     if (!adConenctor) {
       const directoryId = await directoryService.createAdConnector({
         Name: madConfig['dns-domain'],
@@ -121,13 +125,13 @@ export const handler = async (input: AdConnectorInput) => {
         },
       });
       if (directoryId) {
-        output.push({
-          accountId: accountId,
+        adConnectorOutput.push({
+          accountId,
           directoryId,
           assumeRoleName,
         });
       }
     }
   }
-  return { output, outputCount: output.length };
+  return { adConnectorOutput, outputCount: adConnectorOutput.length };
 };
