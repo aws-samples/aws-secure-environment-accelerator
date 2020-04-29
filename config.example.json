@@ -584,9 +584,11 @@
             "routes": [
               {
                 "destination": {
-                  "shared-Network-Central-GCWide-CIDR": null
+                  "account": "shared-network",
+                  "vpc": "Central",
+                  "subnet": "GCWide"
                 },
-                "target": "pcx-shared-network-Central"
+                "target": "pcx"
               }
             ]
           }
@@ -896,9 +898,11 @@
               },
               {
                 "destination": {
-                  "master-ForSSO-ForSSO-CIDR": null
+                  "account": "master",
+                  "vpc": "ForSSO",
+                  "subnet": "ForSSO"
                 },
-                "target": "pcx-master-ForSSO"
+                "target": "pcx"
               }
             ]
           }
