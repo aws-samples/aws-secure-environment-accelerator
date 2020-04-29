@@ -488,7 +488,6 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
@@ -497,7 +496,8 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(addTagsToSharedResourcesTask)
-          .next(enableDirectorySharingTask),
+          .next(enableDirectorySharingTask)
+          .next(accountDefaultSettingsTask),
       });
     }
   }
