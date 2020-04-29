@@ -17,6 +17,7 @@ import { SecretsStack } from '../../../../common-cdk/lib/core/secrets-stack';
 import { ActiveDirectory } from '../common/active-directory';
 import { PeeringConnectionConfig, VpcConfigType, MandatoryAccountConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
+import { SecurityGroup } from '../common/security-group';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -266,8 +267,31 @@ async function main() {
     if (sharedToAccounts.length > 0) {
       console.log(`Share VPC "${vpcConfig.name}" from Account "${key}" to Accounts "${shareToAccountIds}"`);
     }
-    for (const sharedAccount of shareToAccountIds) {
+    const accountKey = vpcConfig.deploy === 'local'? key: vpcConfig.deploy!;
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'VpcOutput',
+    });
+    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+    for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
+      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index}`, {
+        env: {
+          account: sharedAccountId,
+          region: cdk.Aws.REGION,
+        },
+        acceleratorName: context.acceleratorName,
+        acceleratorPrefix: context.acceleratorPrefix,
+        stackName: `PBMMAccel-SecurityGroups${vpcConfig.name}-Shared-${index+1}`,
+      });
+      if (!vpcOutput) {
+        throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+      }
+      new SecurityGroup(securityGroupStack, 'SecurityGroups', {
+        vpcConfig,
+        vpcId: vpcOutput.vpcId,
+        accountKey,
+      });
     }
   }
 }
