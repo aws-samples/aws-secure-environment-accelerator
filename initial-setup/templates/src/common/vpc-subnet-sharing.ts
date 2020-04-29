@@ -54,7 +54,7 @@ export class VpcSubnetSharing extends cdk.Construct {
         const shareName = `${pascalCase(vpcConfig.name)}-${pascalCase(subnet.name)}`;
 
         // Share the subnets
-        new ram.CfnResourceShare(this, 'Share', {
+        new ram.CfnResourceShare(this, `Share-${shareName}`, {
           name: shareName,
           allowExternalPrincipals: false,
           principals: shareToAccountIds,

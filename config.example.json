@@ -19,13 +19,14 @@
       "pci-dss-controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
     },
     "scps": {
-      "ALZ-Core": "/SCPs/aws-landing-zone-core-mandatory-preventive-guardrails-modifiedAccel.json",
-      "ALZ-Non-Core": "/SCPs/aws-landing-zone-core-mandatory-preventive-guardrails-modifiedAccel.json",
-      "Guardrails-Part1": "/SCPs/PBMMAccel-Guardrails-Part1.json",
-      "Guardrails-Part2": "/SCPs/PBMMAccel-Guardrails-Part2.json",
-      "Guardrails-PBMM-Only": "/SCPs/PBMMAccel-Guardrails-PBMM-Only.json",
-      "Guardrails-Unclass-Only": "/SCPs/PBMMAccel-Guardrails-Unclass-Only.json",
-      "Quarantine-Deny-All": "/SCPs/Quarantine-Deny-All.json"
+      "ALZ-Core": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/aws-landing-zone-core-mandatory-preventive-guardrails-modifiedAccel.json",
+      "ALZ-Non-Core": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/aws-landing-zone-non-core-mandatory-preventive-guardrails-modifiedAccel.json",
+      "Guardrails-Part1": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Part1.json",
+      "Guardrails-Part2": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Part2.json",
+      "Guardrails-PBMM-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-PBMM-Only.json",
+      "Guardrails-Unclass-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Unclass-Only.json",
+      "Quarantine-Deny-All": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Quarantine-Deny-All.json",
+      "Full-Access": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Full-AWS-Access.json"
     },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
@@ -583,9 +584,11 @@
             "routes": [
               {
                 "destination": {
-                  "shared-Network-Central-GCWide-CIDR": null
+                  "account": "shared-network",
+                  "vpc": "Central",
+                  "subnet": "GCWide"
                 },
-                "target": "pcx-shared-network-Central"
+                "target": "pcx"
               }
             ]
           }
@@ -600,7 +603,7 @@
           "deploy": true,
           "vpc-name": "ForSSO",
           "subnet": "ForSSO",
-          "size": "small",
+          "size": "Small",
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
           "connect-dir-id": 1001
@@ -895,9 +898,11 @@
               },
               {
                 "destination": {
-                  "master-ForSSO-ForSSO-CIDR": null
+                  "account": "master",
+                  "vpc": "ForSSO",
+                  "subnet": "ForSSO"
                 },
-                "target": "pcx-master-ForSSO"
+                "target": "pcx"
               }
             ]
           }

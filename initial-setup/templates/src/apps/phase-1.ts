@@ -32,7 +32,8 @@ export interface VpcOutput {
   vpcId: string;
   vpcName: string;
   subnets: VpcSubnetOutput[];
-  routeTables: object;
+  routeTables: { [key: string]: string };
+  pcx?: string;
 }
 
 /**
@@ -138,7 +139,7 @@ async function main() {
         subnetName: s.subnetName,
         az: s.az,
       })),
-      routeTables: vpc.routeTableNameToIdMap.entries(),
+      routeTables: vpc.routeTableNameToIdMap,
     };
 
     // Store the VPC output so that subsequent phases can access the output

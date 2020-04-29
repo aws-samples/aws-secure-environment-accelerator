@@ -59,11 +59,10 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Inbound Endpoint`,
     });
-
     const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
       this,
       'CfnInBoundEndpointIpPooler',
-      this.props.context.cfnDnsEndpointIpsLambdaArn,
+      this.props.context.cfnCustomResourceFunctions.getDnsIpsFunctionArn,
     );
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
