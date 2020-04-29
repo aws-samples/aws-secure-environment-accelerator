@@ -15,11 +15,7 @@ import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecretsStack } from '../../../../common-cdk/lib/core/secrets-stack';
 import { ActiveDirectory } from '../common/active-directory';
-import { 
-  PeeringConnectionConfig,
-  VpcConfigType,
-  MandatoryAccountConfigType
- } from '@aws-pbmm/common-lambda/lib/config';
+import { PeeringConnectionConfig, VpcConfigType, MandatoryAccountConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 
 process.on('unhandledRejection', (reason, _) => {
@@ -238,24 +234,23 @@ async function main() {
   // Creating Security Groups in shared accounts to respective accounts
   // Retrive all Account Configs
   const allAccountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
-  for ( const [key, accountConfig] of Object.entries(allAccountConfigs)) {
+  for (const [key, accountConfig] of Object.entries(allAccountConfigs)) {
     const vpcConfig = accountConfig.vpc;
-    if (!vpcConfig){
+    if (!vpcConfig) {
       continue;
     }
     const sharedToAccounts: string[] = [];
-    if (MandatoryAccountConfigType.is(accountConfig)){
+    if (MandatoryAccountConfigType.is(accountConfig)) {
       sharedToAccounts.push(...getVpcSharedAccounts(accounts, vpcConfig, accountConfig.ou));
     } else {
       sharedToAccounts.push(...getVpcSharedAccounts(accounts, vpcConfig, key));
     }
     const shareToAccountIds = Array.from(new Set(sharedToAccounts));
-    if (sharedToAccounts.length > 0){
+    if (sharedToAccounts.length > 0) {
       console.log(`Share VPC "${vpcConfig.name}" from Account "${key}" to Accounts "${shareToAccountIds}"`);
     }
     for (const sharedAccount of shareToAccountIds) {
       // Initiating Security Group creation in shared account
-
     }
   }
 }

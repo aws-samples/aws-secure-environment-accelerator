@@ -11,7 +11,12 @@ export interface VpcSubnetSharingProps extends VpcCommonProps {
   subnets: AzSubnets;
 }
 
-export function getSharedAccounts(accounts: Account[], shareToOuAccounts?: boolean, specificAccounts?: string[], organizationalUnitName?: string): string[] {
+export function getSharedAccounts(
+  accounts: Account[],
+  shareToOuAccounts?: boolean,
+  specificAccounts?: string[],
+  organizationalUnitName?: string,
+): string[] {
   // Share to accounts with a specific name
   const shareToAccounts = specificAccounts || [];
   const shareToAccountIds = shareToAccounts.map((accountKey: string) => getAccountId(accounts, accountKey));
@@ -29,7 +34,11 @@ export function getSharedAccounts(accounts: Account[], shareToOuAccounts?: boole
   return shareToAccountIds;
 }
 
-export function getVpcSharedAccounts(accounts: Account[], vpcConfig : config.VpcConfig, organizationalUnitName?:string): string[] {
+export function getVpcSharedAccounts(
+  accounts: Account[],
+  vpcConfig: config.VpcConfig,
+  organizationalUnitName?: string,
+): string[] {
   const shareToAccountsIds: string[] = [];
   const subnets = vpcConfig.subnets;
   for (const subnet of subnets || []) {
