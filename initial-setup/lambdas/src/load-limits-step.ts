@@ -81,8 +81,8 @@ export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsOutput>
   // Capture limit results
   const limits: LimitOutput[] = [];
 
-  const accountConfigs = config['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(accountConfigs)) {
+  const accountConfigs = config.getAccountConfigs();
+  for (const [accountKey, accountConfig] of accountConfigs) {
     const accountId = getAccountId(accounts, accountKey);
 
     const sts = new STS();

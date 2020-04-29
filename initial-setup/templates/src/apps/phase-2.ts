@@ -57,8 +57,8 @@ async function main() {
     stackName: 'PBMMAccel-Secrets',
   });
 
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+  const accountConfigs = acceleratorConfig.getAccountConfigs();
+  for (const [accountKey, accountConfig] of accountConfigs) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;

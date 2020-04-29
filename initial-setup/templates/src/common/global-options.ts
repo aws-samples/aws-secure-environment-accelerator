@@ -34,7 +34,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: GlobalOptionsProps) {
     super(scope, id);
 
-    const { acceleratorConfig, outputs } = props;
+    const { context, acceleratorConfig, outputs } = props;
 
     const vpcInBoundMapping = new Map<string, string>();
     const vpcOutBoundMapping = new Map<string, string>();
@@ -76,7 +76,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         );
       }
 
-      const vpcOutputs: VpcOutput[] = getStackJsonOutput(props.outputs, {
+      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
         accountKey,
         outputType: 'VpcOutput',
       });
@@ -93,7 +93,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
       // Call r53-resolver-endpoint per Account
       const r53ResolverEndpoints = new Route53ResolverEndpoint(this, 'ResolverEndpoints', {
-        context: props.context,
+        context,
         vpcId: vpcOutput.vpcId,
         name: vpcConfig.name,
         subnetIds,
@@ -146,56 +146,17 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       }
     };
 
-    // Create resolvers for all mandatory account config
-    const mandatoryAccountConfig = props.acceleratorConfig['mandatory-account-configs'];
-    for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
-      const vpcConfig = accountConfig?.vpc;
-      if (!vpcConfig) {
-        console.log(`Skipping resolvers creation for account "${accountKey}"`);
-        continue;
-      }
-      if (vpcConfig.deploy !== 'local') {
-        console.warn(`Skipping non-local resolvers deployment for mandatory account "${accountKey}"`);
-        continue;
-      }
+    // Create resolvers for all VPC configs
+    const vpcConfigs = acceleratorConfig.getVpcConfigs();
+    for (const { ouKey, accountKey, vpcConfig } of vpcConfigs) {
+      console.debug(`Deploying resolvers in account "${accountKey}"${ouKey ? ` and organizational unit "${ouKey}"` : ""}`);
 
-      console.debug(`Deploying resolvers in account "${accountKey}"`);
       createResolvers(accountKey, vpcConfig);
     }
 
-    // Create resolvers for all organizational unit config
-    const organizationalUnitsConfig = props.acceleratorConfig['organizational-units'];
-    for (const [ouKey, ouConfig] of Object.entries(organizationalUnitsConfig)) {
-      const vpcConfig = ouConfig?.vpc;
-      if (!vpcConfig) {
-        console.log(`Skipping resolvers creation for organizational unit "${ouKey}"`);
-        continue;
-      }
-      if (!vpcConfig.deploy) {
-        console.warn(`Skipping resolvers creation for organizational unit "${ouKey}" as 'deploy' is not set`);
-        continue;
-      }
-
-      if (vpcConfig.deploy === 'local') {
-        // If the deployment is 'local' then the resolvers should be created in all the accounts in this OU
-        for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
-          if (accountConfig.ou === ouKey) {
-            console.debug(`Deploying local resolvers for organizational unit "${ouKey}" in account "${accountKey}"`);
-
-            createResolvers(ouKey, vpcConfig);
-          }
-        }
-      } else {
-        // If the deployment is not 'local' then the resolvers should be created in the given account
-        const accountKey = vpcConfig.deploy;
-        console.debug(`Deploying non-local resolvers for organizational unit "${ouKey}" in account "${accountKey}"`);
-
-        createResolvers(vpcConfig.deploy, vpcConfig);
-      }
-    }
-
     // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
-    for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+    const accountConfigs = acceleratorConfig.getAccountConfigs();
+    for (const [accountKey, accountConfig] of accountConfigs) {
       const deploymentConfig = accountConfig.deployments;
       if (!deploymentConfig || !deploymentConfig.mad) {
         console.debug(`Skipping MAD deployment for account "${accountKey}"`);
@@ -207,7 +168,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       try {
         // TODO Get correct stack output
         const madIPCsv = getStackOutput(
-          props.outputs,
+          outputs,
           accountKey,
           `MADIPs${madConfig['dns-domain'].replace(/\./gi, '')}`,
         );

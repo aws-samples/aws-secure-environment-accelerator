@@ -35,7 +35,8 @@ export const handler = async (input: ShareDirectoryInput) => {
 
   const sts = new STS();
 
-  for (const [accountKey, mandatoryConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+  const accountConfigs = acceleratorConfig.getAccountConfigs();
+  for (const [accountKey, mandatoryConfig] of accountConfigs) {
     const madConfig = mandatoryConfig.deployments?.mad;
     if (!madConfig || !madConfig.deploy) {
       continue;

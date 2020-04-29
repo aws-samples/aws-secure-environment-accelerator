@@ -105,8 +105,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
   };
 
-  const mandatoryAccountConfigs = config['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
+  for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const account = accounts.find(a => a.key === accountKey);
     if (!account) {
       throw new Error(`Cannot find account with key "${accountKey}"`);
