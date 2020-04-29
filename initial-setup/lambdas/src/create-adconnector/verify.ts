@@ -28,7 +28,7 @@ export const handler = async (input: StepInput): Promise<string> => {
   const statusFailed = status.filter(s => s === 'Failed');
 
   if (statusFailed && statusFailed.length > 0) {
-    return 'Failed';
+    return 'FAILED';
   }
 
   if (statusCreate && statusCreate.length > 0) {
