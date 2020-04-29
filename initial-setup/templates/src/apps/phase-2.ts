@@ -277,7 +277,7 @@ async function main() {
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index+1}`, {
+      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`, {
         env: {
           account: sharedAccountId,
           region: cdk.Aws.REGION,
@@ -296,17 +296,15 @@ async function main() {
       });
       // Add Tags Output
       const accountId = getAccountId(accounts, accountKey);
-      new AddTagsToResourcesOutput(
-        securityGroupStack, 
-        `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
+      new AddTagsToResourcesOutput(securityGroupStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
         dependencies: Object.values(securityGroups.securityGroupNameMapping),
         produceResources: () =>
           Object.values(securityGroups.securityGroupNameMapping).map(securityGroup => ({
             resourceId: securityGroup.ref,
             resourceType: 'security-group',
             targetAccountIds: [accountId],
-            tags: securityGroup.tags.renderTags()
-        }))
+            tags: securityGroup.tags.renderTags(),
+          })),
       });
     }
   }

@@ -4,7 +4,6 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 
-
 export interface NameToSecurityGroupMap {
   [key: string]: ec2.CfnSecurityGroup;
 }
