@@ -12,11 +12,14 @@ import { ActiveDirectory } from '../common/active-directory';
 import { VpcOutput } from '../apps/phase-1';
 import { pascalCase } from 'pascal-case';
 import { JsonOutputValue } from '../common/json-output';
+import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
+
+export const OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION = 'KmsKeyIdForEbsDefaultEncryption';
 
 async function main() {
   const context = loadContext();
@@ -111,6 +114,15 @@ async function main() {
         directoryId: activeDirectory.directoryId,
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
       },
+    });
+
+    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(stack, '', {
+      dummy: '',
+    });
+
+    // store the s3 bucket arn for later reference
+    new cdk.CfnOutput(stack, OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
+      value: accountDefaultSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
     });
   }
 }

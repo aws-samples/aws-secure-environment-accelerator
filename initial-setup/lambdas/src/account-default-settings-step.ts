@@ -5,9 +5,12 @@ import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
 import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { Account } from './load-accounts-step';
-import { KMS } from '@aws-pbmm/common-lambda/lib/aws/kms';
-import { CreateKeyRequest } from 'aws-sdk/clients/kms';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
+import { loadStackOutputs } from '../../templates/src/utils/outputs';
+import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import {
+  OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION
+} from '../../templates/src/apps/phase-2';
 
 interface AccountDefaultSettingsInput {
   assumeRoleName: string;
@@ -21,6 +24,8 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log(JSON.stringify(input, null, 2));
 
   const { assumeRoleName, configSecretSourceId, accounts, acceleratorName } = input;
+
+  const outputs = await loadStackOutputs();
 
   const secrets = new SecretsManager();
   const source = await secrets.getSecret(configSecretSourceId);
@@ -57,49 +62,18 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
   };
 
-  const enableEbsDefaultEncryption = async (accountId: string): Promise<void> => {
+  const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => { 
     const credentials = await getAccountCredentials(accountId);
-    const kms = new KMS(credentials);
-
-    const kmsKeyPolicy: string = `{
-      "Version": "2012-10-17",
-      "Id": "key-consolepolicy-3",
-      "Statement": [
-          {
-              "Sid": "Enable IAM User Permissions",
-              "Effect": "Allow",
-              "Principal": {
-                  "AWS": "arn:aws:iam::${accountId}:root"
-              },
-              "Action": "kms:*",
-              "Resource": "*",
-              "Tags": [{
-               "Accelerator": "${acceleratorName}"
-              }]
-          }
-      ]
-    }`;
-
-    const createKeyRequest: CreateKeyRequest = {
-      Policy: kmsKeyPolicy,
-      Description: 'Default KMS key used for the encryption of EBS',
-      KeyUsage: 'ENCRYPT_DECRYPT', // default value
-      CustomerMasterKeySpec: 'SYMMETRIC_DEFAULT', // default value
-      Origin: 'AWS_KMS', // default value
-      BypassPolicyLockoutSafetyCheck: true,
-    };
-    const createKeyResponse = await kms.createKey(createKeyRequest);
-    console.log('createKeyResponse: ', createKeyResponse);
-
-    await kms.createAlias('alias/EBS-Default-Key', createKeyResponse.KeyMetadata!.KeyId);
-    console.log('KMS key alias set.');
+    
+    const kmsKeyId = getStackOutput(outputs, accountKey, OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
+    console.log('kmsKeyId: ' + kmsKeyId);
 
     const ec2 = new EC2(credentials);
     const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(false);
     console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
 
     const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(
-      createKeyResponse.KeyMetadata!.KeyId,
+      kmsKeyId,
       false,
     );
     console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
@@ -117,7 +91,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     await putPublicAccessBlock(account.id, blockPublicAccess);
     console.log(`Block S3 public access turned ON for account - ${accountKey}`);
 
-    await enableEbsDefaultEncryption(account.id);
+    await enableEbsDefaultEncryption(account.id, account.key);
     console.log(`EBS default encryption turned ON with KMS CMK for account - ${accountKey}`);
   }
 
