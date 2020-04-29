@@ -14,7 +14,7 @@ import { getAllAccountVPCConfigs, getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput } from './phase-1';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { SecretsStack } from '../../../../common-cdk/lib/core/secrets-stack';
+import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { ActiveDirectory } from '../common/active-directory';
 
 process.on('unhandledRejection', (reason, _) => {
