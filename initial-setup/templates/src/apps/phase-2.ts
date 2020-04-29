@@ -267,7 +267,7 @@ async function main() {
     if (sharedToAccounts.length > 0) {
       console.log(`Share VPC "${vpcConfig.name}" from Account "${key}" to Accounts "${shareToAccountIds}"`);
     }
-    const accountKey = vpcConfig.deploy === 'local'? key: vpcConfig.deploy!;
+    const accountKey = vpcConfig.deploy === 'local' ? key : vpcConfig.deploy!;
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey,
       outputType: 'VpcOutput',
@@ -282,7 +282,7 @@ async function main() {
         },
         acceleratorName: context.acceleratorName,
         acceleratorPrefix: context.acceleratorPrefix,
-        stackName: `PBMMAccel-SecurityGroups${vpcConfig.name}-Shared-${index+1}`,
+        stackName: `PBMMAccel-SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
       });
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);

@@ -38,7 +38,7 @@ export class SecurityGroup extends cdk.Construct {
 
   constructor(parent: cdk.Construct, name: string, props: SecurityGroupProps) {
     super(parent, name);
-    const { vpcConfig, accountKey, vpcId} = props;
+    const { vpcConfig, accountKey, vpcId } = props;
     const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
     for (const securityGroup of securityGroups || []) {
