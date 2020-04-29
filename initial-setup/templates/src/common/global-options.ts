@@ -164,7 +164,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     };
 
     // Create resolvers for all mandatory account config
-    const resolverOutput: ResolversOutput[] = [];
+    const resolverOutputs: ResolversOutput[] = [];
     const mandatoryAccountConfig = props.acceleratorConfig['mandatory-account-configs'];
     for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
       const vpcConfig = accountConfig?.vpc;
@@ -180,7 +180,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       console.debug(`Deploying resolvers in account "${accountKey}"`);
       const resolver = createResolvers(accountKey, vpcConfig);
       if (resolver) {
-        resolverOutput.push(resolver);
+        resolverOutputs.push(resolver);
       }
     }
 
@@ -205,7 +205,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
             const resolver = createResolvers(ouKey, vpcConfig);
             if (resolver) {
-              resolverOutput.push(resolver);
+              resolverOutputs.push(resolver);
             }
           }
         }
@@ -216,7 +216,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
         const resolver = createResolvers(vpcConfig.deploy, vpcConfig);
         if (resolver) {
-          resolverOutput.push(resolver);
+          resolverOutputs.push(resolver);
         }
       }
     }
@@ -274,7 +274,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
     new JsonOutputValue(this, `GlobalOptionsOutput`, {
       type: 'GlobalOptionsOutput',
-      value: resolverOutput,
+      value: resolverOutputs,
     });
 
     new JsonOutputValue(this, `MadRulesOutput`, {
