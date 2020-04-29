@@ -441,19 +441,6 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const addTagsToSharedResourcesPhase2 = new CodeTask(this, 'Add Tags to Shared Resources Phase 2', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.addTagsToSharedResourcesStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          assumeRoleName: props.stateMachineExecutionRole,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-        },
-        resultPath: 'DISCARD',
-      });
-
       const deployPhase2Task = new sfn.Task(this, 'Deploy Phase 2', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
@@ -540,7 +527,6 @@ export namespace InitialSetup {
           .next(storePhase1Output)
           .next(deployPhase2Task)
           .next(storePhase2Output)
-          .next(addTagsToSharedResourcesPhase2)
           .next(deployPhase3Task)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
