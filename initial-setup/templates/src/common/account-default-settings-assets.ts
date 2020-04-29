@@ -12,19 +12,21 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: AccountDefaultSettingsAssetsProps) {
     super(scope, id);
     // const { madDeploymentConfig, subnetInfo, password } = props;
-    
+
     // kms key used for default EBS encryption
     const kmsKey = new kms.Key(this, 'EBS-EncryptionKey', {
       alias: 'alias/EBS-Default-key',
       description: 'PBMM - Key used to encrypt/decrypt EBS by default',
       policy: new iam.PolicyDocument({
-        statements: [ new iam.PolicyStatement({
-          sid: 'key-consolepolicy-3',
-          effect: iam.Effect.ALLOW,
-          principals: [new iam.AccountPrincipal(props.env?.account)],
-          actions: ['kms:*'],
-          resources: ['*'],
-        })]
+        statements: [
+          new iam.PolicyStatement({
+            sid: 'key-consolepolicy-3',
+            effect: iam.Effect.ALLOW,
+            principals: [new iam.AccountPrincipal(props.env?.account)],
+            actions: ['kms:*'],
+            resources: ['*'],
+          }),
+        ],
       }),
     });
 

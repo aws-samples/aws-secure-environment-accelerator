@@ -8,9 +8,7 @@ import { Account } from './load-accounts-step';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { loadStackOutputs } from '../../templates/src/utils/outputs';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import {
-  OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION
-} from '../../templates/src/apps/phase-2';
+import { OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION } from '../../templates/src/apps/phase-2';
 
 interface AccountDefaultSettingsInput {
   assumeRoleName: string;
@@ -62,9 +60,9 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
   };
 
-  const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => { 
+  const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await getAccountCredentials(accountId);
-    
+
     const kmsKeyId = getStackOutput(outputs, accountKey, OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
     console.log('kmsKeyId: ' + kmsKeyId);
 
@@ -72,10 +70,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(false);
     console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
 
-    const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(
-      kmsKeyId,
-      false,
-    );
+    const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(kmsKeyId, false);
     console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
   };
 
