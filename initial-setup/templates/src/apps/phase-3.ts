@@ -7,6 +7,8 @@ import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stac
 import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { getAllAccountVPCConfigs } from '../common/get-all-vpcs';
+import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { ResolversOutput } from './phase-2';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -55,6 +57,39 @@ async function main() {
       outputs,
     });
   }
+
+  // to share the resolver rules
+  // get the list of account IDs with which the resolver rules needs to be shared
+  const sharedAccountIds: string[] = [];
+  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
+    const vpcConfig = accountConfig.vpc!;
+    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
+
+    if(vpcConfig['use-central-endpoints']) {      
+      const accountId = getAccountId(accounts, accountKey);
+      sharedAccountIds.push(accountId);
+    }
+  }
+
+  // for (const [account, accountConfig] of Object.entries(accountConfigs)) {
+  //   const vpcConfig = accountConfig.vpc!;
+  //   const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
+
+  //   const resolverRuleArns: string[] = [];
+  //   if(vpcConfig.resolvers) {
+  //     const accountId = getAccountId(accounts, accountKey);      
+      
+  //     const resolvers: ResolversOutput = getStackJsonOutput(outputs, {
+  //       accountKey,
+  //       outputType: 'GlobalOptionsDNSResolversGlobalOptionsOutput',
+  //     });
+
+  //     resolverRuleArns.push(resolvers.rules?.onPremRules)
+  //   }
+  // } 
+  
+    // 'PBMMAccel-'
+
 }
 // tslint:disable-next-line: no-floating-promises
 main();
