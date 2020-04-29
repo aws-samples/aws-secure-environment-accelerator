@@ -129,7 +129,7 @@ async function main() {
     if (tgwAttach) {
       const tgwName = tgwAttach['associate-to-tgw'];
       const tgw = transitGateways.get(tgwName);
-      if (tgw) {
+      if (tgw && tgwName.length > 0) {
         const attachConfig = props.vpcConfig['tgw-attach']!;
 
         const attachSubnetsConfig = attachConfig['attach-subnets'] || [];

@@ -482,6 +482,9 @@
             ]
           }
         ],
+        "tgw-attach": {
+          "associate-to-tgw": ""
+        },
         "interface-endpoints": false
       },
       "deployments": {
@@ -588,6 +591,9 @@
             ]
           }
         ],
+        "tgw-attach": {
+          "associate-to-tgw": ""
+        },
         "interface-endpoints": false
       },
       "deployments": {
@@ -2034,6 +2040,9 @@
             ]
           }
         ],
+        "tgw-attach": {
+          "associate-to-tgw": ""
+        },
         "interface-endpoints": false
       },
       "iam": {
