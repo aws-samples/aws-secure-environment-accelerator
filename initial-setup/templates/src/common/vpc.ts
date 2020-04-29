@@ -10,30 +10,7 @@ import { VpcStack } from './vpc-stack';
 import { TransitGateway } from './transit-gateway';
 import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
-import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { SecurityGroup } from './security-group';
-
-const TCP_PROTOCOLS_PORT: { [key: string]: number } = {
-  RDP: 3389,
-  SSH: 22,
-  HTTP: 80,
-  HTTPS: 443,
-  MSSQL: 1433,
-  'MYSQL/AURORA': 3306,
-  REDSHIFT: 5439,
-  POSTGRESQL: 5432,
-  'ORACLE-RDS': 1521,
-};
-
-export interface SecurityGroupruleProps {
-  ipProtocol: string;
-  cidrIp?: string;
-  toPort?: number;
-  fromPort?: number;
-  description?: string;
-  sourceSecurityGroupId?: string;
-  groupId: string;
-}
 
 export interface VpcCommonProps {
   /**
