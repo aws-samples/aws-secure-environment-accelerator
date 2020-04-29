@@ -11,12 +11,12 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 10
+          node-version: 12
       - name: Cache Node.js modules
         uses: actions/cache@v1
         with:
           path: ~/.pnpm-store
-          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.OS }}-node-
             ${{ runner.OS }}-
@@ -36,7 +36,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 10
+          node-version: 12
       - name: Install Prettier
         run: |
           npm install -g prettier
