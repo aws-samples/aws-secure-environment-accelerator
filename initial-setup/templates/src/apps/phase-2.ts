@@ -232,7 +232,7 @@ async function main() {
       },
     });
 
-    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(stack, '', {
+    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(stack, 'Account Default Settings Assets', {
       dummy: '',
     });
 

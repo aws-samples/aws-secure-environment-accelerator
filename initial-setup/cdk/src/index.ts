@@ -422,7 +422,6 @@ export namespace InitialSetup {
           assumeRoleName: props.stateMachineExecutionRole,
           configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
-          acceleratorName: props.acceleratorName,
         },
         resultPath: 'DISCARD',
       });

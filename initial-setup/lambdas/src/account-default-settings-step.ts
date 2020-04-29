@@ -14,14 +14,13 @@ interface AccountDefaultSettingsInput {
   assumeRoleName: string;
   configSecretSourceId: string;
   accounts: Account[];
-  acceleratorName: string;
 }
 
 export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, configSecretSourceId, accounts, acceleratorName } = input;
+  const { assumeRoleName, configSecretSourceId, accounts } = input;
 
   const outputs = await loadStackOutputs();
 
