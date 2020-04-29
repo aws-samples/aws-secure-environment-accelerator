@@ -9,8 +9,12 @@ import { TransitGateway } from './transit-gateway';
 import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Limiter, Limit } from '../utils/limits';
+import { SecurityGroup } from './security-group';
 
 export interface VpcCommonProps {
+  /**
+   * Current VPC Creation account Key
+   */
   accountKey: string;
   /**
    * List of accounts in the organization.
@@ -37,7 +41,7 @@ export interface AzSubnet {
   az: string;
 }
 
-export interface RouteTables {
+export interface NameToIdMap {
   [key: string]: string;
 }
 
@@ -86,7 +90,8 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
 
-  readonly routeTableNameToIdMap: RouteTables = {};
+  readonly securityGroupNameMapping: NameToIdMap = {};
+  readonly routeTableNameToIdMap: NameToIdMap = {};
 
   constructor(scope: cdk.Construct, name: string, props: VpcProps) {
     super(scope, name);
@@ -314,6 +319,15 @@ export class Vpc extends cdk.Construct {
           tgwRoutePropagates,
         });
       }
+    }
+
+    // Create all security groups
+    if (vpcConfig['security-groups']) {
+      new SecurityGroup(this, 'SecurityGroups', {
+        vpcConfig,
+        vpcId: this.vpcId,
+        accountKey: props.accountKey!,
+      });
     }
 
     // Create interface endpoints
