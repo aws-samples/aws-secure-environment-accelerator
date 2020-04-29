@@ -31,7 +31,8 @@ export interface VpcOutput {
   vpcId: string;
   vpcName: string;
   subnets: VpcSubnetOutput[];
-  routeTables: object;
+  routeTables: { [key: string]: string };
+  pcx?: string;
 }
 
 /**
@@ -100,7 +101,6 @@ async function main() {
   const createVpc = (accountKey: string, props: VpcProps) => {
     const vpcStack = getVpcStack(accountKey);
     const vpc = new Vpc(vpcStack, props.vpcConfig.name, props);
-
     // Prepare the output for next phases
     const vpcOutput: VpcOutput = {
       vpcId: vpc.vpcId,
@@ -110,7 +110,7 @@ async function main() {
         subnetName: s.subnetName,
         az: s.az,
       })),
-      routeTables: vpc.routeTableNameToIdMap.entries(),
+      routeTables: vpc.routeTableNameToIdMap,
     };
 
     // Store the VPC output so that subsequent phases can access the output

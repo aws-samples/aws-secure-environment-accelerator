@@ -23,7 +23,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   console.log(JSON.stringify(event, null, 2));
 
   const resourceId = 'EndpointIps';
-  const requestType = event.ResourceProperties.RequestType;
+  const requestType = event.RequestType;
   if (requestType === 'Delete') {
     console.log('No operation to perform Delete Stack');
     await sendResponsePromise(event, context, SUCCESS, {}, resourceId);

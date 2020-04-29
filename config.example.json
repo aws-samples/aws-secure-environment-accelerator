@@ -584,9 +584,11 @@
             "routes": [
               {
                 "destination": {
-                  "shared-Network-Central-GCWide-CIDR": null
+                  "account": "shared-network",
+                  "vpc": "Central",
+                  "subnet": "GCWide"
                 },
-                "target": "pcx-shared-network-Central"
+                "target": "pcx"
               }
             ]
           }
@@ -601,7 +603,7 @@
           "deploy": true,
           "vpc-name": "ForSSO",
           "subnet": "ForSSO",
-          "size": "small",
+          "size": "Small",
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
           "connect-dir-id": 1001
@@ -896,9 +898,11 @@
               },
               {
                 "destination": {
-                  "master-ForSSO-ForSSO-CIDR": null
+                  "account": "master",
+                  "vpc": "ForSSO",
+                  "subnet": "ForSSO"
                 },
-                "target": "pcx-master-ForSSO"
+                "target": "pcx"
               }
             ]
           }

@@ -42,12 +42,18 @@ export const GATEWAY_ENDPOINT_TYPES = ['s3', 'dynamodb'] as const;
 
 export const GatewayEndpointType = enumType<typeof GATEWAY_ENDPOINT_TYPES[number]>(GATEWAY_ENDPOINT_TYPES);
 
+export const PcxRouteConfigType = t.interface({
+  account: NonEmptyString,
+  vpc: NonEmptyString,
+  subnet: NonEmptyString,
+});
+
 export const RouteConfig = t.interface({
-  destination: t.unknown, // TODO Can be string or destination in another account
+  destination: t.union([t.string, PcxRouteConfigType]), // TODO Can be string or destination in another account
   target: NonEmptyString,
 });
 
-export const RouteTableConfig = t.interface({
+export const RouteTableConfigType = t.interface({
   name: NonEmptyString,
   routes: optional(t.array(RouteConfig)),
 });
@@ -99,7 +105,7 @@ export const VpcConfigType = t.interface({
   natgw: t.union([NatGatewayConfig, t.boolean, t.undefined]),
   subnets: optional(t.array(SubnetConfig)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
-  'route-tables': optional(t.array(RouteTableConfig)),
+  'route-tables': optional(t.array(RouteTableConfigType)),
   'tgw-attach': optional(TransitGatewayAttachConfig),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
@@ -166,6 +172,16 @@ export const AccountConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
+export const adcConfigType = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  subnet: t.string,
+  size: t.string,
+  restrict_srcips: t.array(cidr),
+  'connect-account-key': t.string,
+  'connect-dir-id': t.number,
+});
+
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
@@ -185,6 +201,7 @@ export const MandatoryAccountConfigType = t.interface({
     t.interface({
       tgw: optional(DeploymentConfigType),
       mad: optional(MadConfigType),
+      adc: optional(adcConfigType),
     }),
   ),
 });
@@ -204,6 +221,9 @@ export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigT
 export const OrganizationalUnitsConfigType = t.record(t.string, OrganizationalUnitConfigType);
 
 export type OrganizationalUnitsConfig = t.TypeOf<typeof OrganizationalUnitsConfigType>;
+
+export type RouteTableConfig = t.TypeOf<typeof RouteTableConfigType>;
+export type PcxRouteConfig = t.TypeOf<typeof PcxRouteConfigType>;
 
 export const ZoneNamesConfigType = t.interface({
   public: t.array(t.string),
