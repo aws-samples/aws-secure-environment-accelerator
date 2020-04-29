@@ -178,31 +178,6 @@ async function main() {
       });
     }
   }
-
-  // const accountVpcCount: { [accountKey: string]: number } = {};
-  // for (const vpcStack of Object.values(vpcStacks)) {
-  //   const vpcStackNode = constructs.Node.of(vpcStack);
-  //   const children = vpcStackNode.findAll(constructs.ConstructOrder.PREORDER);
-  //   for (const child of children) {
-  //     if (child instanceof Vpc) {
-  //       let count = accountVpcCount[vpcStack.account];
-  //       if (!count) {
-  //         count = 1;
-  //       } else {
-  //         count++;
-  //       }
-  //       accountVpcCount[vpcStack.account] = count;
-
-  //       if (count > 5) {
-  //         console.log(`Removing VPC "${child.name}" in account "${vpcStack.account}" to avoid going over VPC quota`);
-
-  //         const childNode = constructs.Node.of(child);
-  //         const parentNode = constructs.Node.of(childNode.scope!);
-  //         parentNode.tryRemoveChild(childNode.id);
-  //       }
-  //     }
-  //   }
-  // }
 }
 
 // tslint:disable-next-line: no-floating-promises
