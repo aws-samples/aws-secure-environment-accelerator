@@ -81,7 +81,7 @@ export class DirectoryService {
 
   /**
    *
-   * This method will return ADConnectors created in the account
+   * This method will return existing AD Connectors in the account
    *
    * @param DescribeDirectoriesRequest
    */
