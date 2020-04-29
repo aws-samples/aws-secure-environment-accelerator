@@ -36,6 +36,10 @@ export interface AzSubnet {
   az: string;
 }
 
+export interface RouteTables {
+  [key: string]: string;
+}
+
 /**
  * Auxiliary class that makes management and lookup of subnets easier.
  */
@@ -81,7 +85,7 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
 
-  readonly routeTableNameToIdMap = new Map<string, string>();
+  readonly routeTableNameToIdMap: RouteTables = {};
 
   constructor(stack: VpcStack, name: string, props: VpcProps) {
     super(stack, name);
@@ -154,7 +158,7 @@ export class Vpc extends cdk.Construct {
           vpcId: vpcObj.ref,
         });
 
-        this.routeTableNameToIdMap.set(routeTableName, routeTable.ref);
+        this.routeTableNameToIdMap[routeTableName] = routeTable.ref;
         if (!routeTableProp.routes?.find(r => r.target === 'IGW')) {
           natRouteTables.push(routeTableProp.name);
         }
@@ -230,7 +234,7 @@ export class Vpc extends cdk.Construct {
         }
 
         // Find the route table ID for the route table name
-        const routeTableId = this.routeTableNameToIdMap.get(routeTableName);
+        const routeTableId = this.routeTableNameToIdMap[routeTableName];
         if (!routeTableId) {
           throw new Error(`Cannot find route table with name "${routeTableName}"`);
         }
@@ -272,9 +276,9 @@ export class Vpc extends cdk.Construct {
 
       // Attach NatGw Routes to Non IGW Route Tables
       for (const natRoute of natRouteTables) {
-        const routeTableId = this.routeTableNameToIdMap.get(natRoute);
+        const routeTableId = this.routeTableNameToIdMap[natRoute];
         const routeParams: ec2.CfnRouteProps = {
-          routeTableId: routeTableId!,
+          routeTableId,
           destinationCidrBlock: '0.0.0.0/0',
           natGatewayId: natgw?.ref,
         };
