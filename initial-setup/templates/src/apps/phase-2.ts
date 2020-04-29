@@ -6,7 +6,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { PeeringConnection } from '../common/peering-connection';
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
@@ -16,6 +15,12 @@ import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecretsStack } from '../../../../common-cdk/lib/core/secrets-stack';
 import { ActiveDirectory } from '../common/active-directory';
+import { 
+  PeeringConnectionConfig,
+  VpcConfigType,
+  MandatoryAccountConfigType
+ } from '@aws-pbmm/common-lambda/lib/config';
+import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -228,6 +233,30 @@ async function main() {
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
       },
     });
+  }
+
+  // Creating Security Groups in shared accounts to respective accounts
+  // Retrive all Account Configs
+  const allAccountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
+  for ( const [key, accountConfig] of Object.entries(allAccountConfigs)) {
+    const vpcConfig = accountConfig.vpc;
+    if (!vpcConfig){
+      continue;
+    }
+    const sharedToAccounts: string[] = [];
+    if (MandatoryAccountConfigType.is(accountConfig)){
+      sharedToAccounts.push(...getVpcSharedAccounts(accounts, vpcConfig, accountConfig.ou));
+    } else {
+      sharedToAccounts.push(...getVpcSharedAccounts(accounts, vpcConfig, key));
+    }
+    const shareToAccountIds = Array.from(new Set(sharedToAccounts));
+    if (sharedToAccounts.length > 0){
+      console.log(`Share VPC "${vpcConfig.name}" from Account "${key}" to Accounts "${shareToAccountIds}"`);
+    }
+    for (const sharedAccount of shareToAccountIds) {
+      // Initiating Security Group creation in shared account
+
+    }
   }
 }
 

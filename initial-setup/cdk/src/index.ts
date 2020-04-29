@@ -499,7 +499,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(accountDefaultSettingsTask)
+          // .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
