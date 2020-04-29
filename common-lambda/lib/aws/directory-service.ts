@@ -84,13 +84,13 @@ export class DirectoryService {
    * This method will return existing AD Connectors in the account
    *
    */
-  async getADConnectors(): Promise<{ directorId: string; status: string; domain: string }[]> {
+  async getADConnectors(): Promise<{ directoryId: string; status: string; domain: string }[]> {
     const result = await this.client.describeDirectories().promise();
     const directoriesResult = result.DirectoryDescriptions;
     const adConnectors = directoriesResult!
       .filter(d => d.Type === 'ADConnector')
       .map(o => ({
-        directorId: o.DirectoryId!,
+        directoryId: o.DirectoryId!,
         status: o.Stage!,
         domain: o.Name!,
       }));

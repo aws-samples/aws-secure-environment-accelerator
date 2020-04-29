@@ -37,7 +37,7 @@ export class CreateAdConnectorTask extends sfn.StateMachineFragment {
     );
 
     const createTaskResultPath = '$.createOutput';
-    const createTaskResultlength = `${createTaskResultPath}.outputCount`;
+    const createTaskResultLength = `${createTaskResultPath}.outputCount`;
     const createTask = new CodeTask(scope, `Start AD Connector Creation`, {
       resultPath: createTaskResultPath,
       functionProps: {
@@ -77,8 +77,8 @@ export class CreateAdConnectorTask extends sfn.StateMachineFragment {
 
     createTask.next(
       new sfn.Choice(scope, 'AdConnection Creation Started?')
-        .when(sfn.Condition.numberEquals(createTaskResultlength, 0), pass)
-        .when(sfn.Condition.numberGreaterThan(createTaskResultlength, 0), waitTask)
+        .when(sfn.Condition.numberEquals(createTaskResultLength, 0), pass)
+        .when(sfn.Condition.numberGreaterThan(createTaskResultLength, 0), waitTask)
         .otherwise(fail)
         .afterwards(),
     );

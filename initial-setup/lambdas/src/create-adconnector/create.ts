@@ -48,7 +48,7 @@ export const handler = async (input: AdConnectorInput) => {
   const secrets = new SecretsManager();
   const configString = await secrets.getSecret(configSecretId);
   const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const adConnectorOutput: AdConnectorOutput[] = [];
+  const adConnectorOutputs: AdConnectorOutput[] = [];
 
   const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
@@ -107,11 +107,11 @@ export const handler = async (input: AdConnectorInput) => {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const directoryService = new DirectoryService(credentials);
     const adConnectors = await directoryService.getADConnectors();
-    const adConenctor = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
-    console.log('Active AD Conenctor', adConenctor);
+    const adConnector = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
+    console.log('Active AD Conenctor', adConnector);
 
     // Creating AD Connector if there are no active AD Connector with the given dns-domain
-    if (!adConenctor) {
+    if (!adConnector) {
       const directoryId = await directoryService.createAdConnector({
         Name: madConfig['dns-domain'],
         ShortName: madConfig['netbios-domain'],
@@ -125,7 +125,7 @@ export const handler = async (input: AdConnectorInput) => {
         },
       });
       if (directoryId) {
-        adConnectorOutput.push({
+        adConnectorOutputs.push({
           accountId,
           directoryId,
           assumeRoleName,
@@ -133,5 +133,5 @@ export const handler = async (input: AdConnectorInput) => {
       }
     }
   }
-  return { adConnectorOutput, outputCount: adConnectorOutput.length };
+  return { adConnectorOutputs, outputCount: adConnectorOutputs.length };
 };
