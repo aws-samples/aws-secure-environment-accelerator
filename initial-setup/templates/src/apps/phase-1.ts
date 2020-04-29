@@ -119,11 +119,6 @@ async function main() {
       value: vpcOutput,
     });
 
-    return vpc;
-  };
-
-  const createTGW = (vpc: Vpc, accountKey: string, props: VpcProps) => {
-    const vpcStack = getVpcStack(accountKey);
     const tgwDeployment = props.tgwDeployment;
     if (tgwDeployment) {
       const tgw = new TransitGateway(vpcStack, tgwDeployment.name!, tgwDeployment);
@@ -173,14 +168,7 @@ async function main() {
     }
 
     console.debug(`Deploying VPC in account "${accountKey}"`);
-    const vpc = createVpc(accountKey, {
-      accounts,
-      vpcConfig,
-      tgwDeployment: accountConfig.deployments?.tgw,
-    });
-
-    console.debug(`Deploying TGW in account ${accountKey}`);
-    createTGW(vpc, accountKey, {
+    createVpc(accountKey, {
       accounts,
       vpcConfig,
       tgwDeployment: accountConfig.deployments?.tgw,
@@ -206,16 +194,10 @@ async function main() {
         if (accountConfig.ou === ouKey) {
           console.debug(`Deploying local VPC for organizational unit "${ouKey}" in account "${accountKey}"`);
 
-          const vpc = createVpc(accountKey, {
+          createVpc(accountKey, {
             accounts,
             vpcConfig,
             organizationalUnitName: ouKey,
-          });
-
-          console.debug(`Deploying TGW for organizational unit "${ouKey}" in account "${accountKey}"`);
-          createTGW(vpc, accountKey, {
-            accounts,
-            vpcConfig,
           });
         }
       }
@@ -224,16 +206,10 @@ async function main() {
       const accountKey = vpcConfig.deploy;
       console.debug(`Deploying non-local VPC for organizational unit "${ouKey}" in account "${accountKey}"`);
 
-      const vpc = createVpc(accountKey, {
+      createVpc(accountKey, {
         accounts,
         vpcConfig,
         organizationalUnitName: ouKey,
-      });
-
-      console.debug(`Deploying TGW for organizational unit "${ouKey}" in account "${accountKey}"`);
-      createTGW(vpc, accountKey, {
-        accounts,
-        vpcConfig,
       });
     }
   }
