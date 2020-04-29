@@ -18,8 +18,7 @@ import { ActiveDirectory } from '../common/active-directory';
 import { PeeringConnectionConfig, VpcConfigType, MandatoryAccountConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
-import { cfnTagToCloudFormation } from '@aws-cdk/core';
-import { AddTagsToResource, AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
+import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
