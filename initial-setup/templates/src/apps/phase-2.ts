@@ -65,7 +65,6 @@ async function main() {
       }),
     );
     rolesForPeering.push(roleName);
-    return;
   };
 
   /**
