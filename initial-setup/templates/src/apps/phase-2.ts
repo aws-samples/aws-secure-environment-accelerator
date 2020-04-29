@@ -23,7 +23,7 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 export interface MadRuleOutput {
-  [key:string]: string;
+  [key: string]: string;
 }
 
 export interface ResolverRulesOutput {

@@ -11,7 +11,7 @@ import { JsonOutputValue } from './json-output';
 import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '../apps/phase-2';
 
 interface ResolverOutput {
-  [key:string] : string;
+  [key: string]: string;
 }
 
 export interface GlobalOptionsProps {
@@ -106,7 +106,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       });
       const resolverOutput: ResolversOutput = {
         vpcName: vpcConfig.name,
-      }
+      };
       const resolverRulesOutput: ResolverRulesOutput = {};
 
       if (resolversConfig.inbound) {
@@ -179,7 +179,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
       console.debug(`Deploying resolvers in account "${accountKey}"`);
       const resolver = createResolvers(accountKey, vpcConfig);
-      if (resolver){
+      if (resolver) {
         resolverOutput.push(resolver);
       }
     }
@@ -204,7 +204,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
             console.debug(`Deploying local resolvers for organizational unit "${ouKey}" in account "${accountKey}"`);
 
             const resolver = createResolvers(ouKey, vpcConfig);
-            if (resolver){
+            if (resolver) {
               resolverOutput.push(resolver);
             }
           }
@@ -215,13 +215,13 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         console.debug(`Deploying non-local resolvers for organizational unit "${ouKey}" in account "${accountKey}"`);
 
         const resolver = createResolvers(vpcConfig.deploy, vpcConfig);
-        if (resolver){
+        if (resolver) {
           resolverOutput.push(resolver);
         }
       }
     }
 
-    const madRulesOutput: MadRuleOutput = {}
+    const madRulesOutput: MadRuleOutput = {};
     // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
     for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
       const deploymentConfig = accountConfig.deployments;
