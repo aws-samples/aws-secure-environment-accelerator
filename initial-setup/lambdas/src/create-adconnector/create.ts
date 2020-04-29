@@ -102,7 +102,7 @@ export const handler = async (input: AdConnectorInput) => {
     const subnetIds = vpc.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
 
     const accountId = getAccountId(accounts, accountKey);
-    // Getting the MAD admin password from secrets manager based on account name
+    // TODO Getting admin password, update with user specific password after creating AD Users and Groups
     const madPassword = await secrets.getSecret(`accelerator/${adcConfig['connect-account-key']}/mad/password`);
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const directoryService = new DirectoryService(credentials);
@@ -121,7 +121,7 @@ export const handler = async (input: AdConnectorInput) => {
           VpcId: vpc.vpcId,
           SubnetIds: subnetIds,
           CustomerDnsIps: madOuput.dnsIps.split(','),
-          CustomerUserName: 'admin',
+          CustomerUserName: 'admin', // TODO update username after creating AD Users and Groups
         },
       });
       if (directoryId) {
