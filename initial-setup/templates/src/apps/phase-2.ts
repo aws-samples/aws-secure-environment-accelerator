@@ -23,6 +23,23 @@ process.on('unhandledRejection', (reason, _) => {
   process.exit(1);
 });
 
+export interface MadRuleOutput {
+  [key: string]: string;
+}
+
+export interface ResolverRulesOutput {
+  onPremRules?: string[];
+  inBoundRule?: string;
+  madRules?: MadRuleOutput;
+}
+
+export interface ResolversOutput {
+  vpcName: string;
+  inBound?: string;
+  outBound?: string;
+  rules?: ResolverRulesOutput;
+}
+
 async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
