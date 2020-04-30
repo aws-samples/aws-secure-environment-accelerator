@@ -105,25 +105,32 @@ async function main() {
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
     const accountId = getAccountId(accounts, accountKey);
 
-    const AccountDefaultsStack = new AcceleratorStack(app, `PBMMAccel-AccountDefaultSettingsAssets-${accountKey}Stack`, {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
+    const AccountDefaultsStack = new AcceleratorStack(
+      app,
+      `PBMMAccel-AccountDefaultSettingsAssets-${accountKey}Stack`,
+      {
+        env: {
+          account: accountId,
+          region: cdk.Aws.REGION,
+        },
+        acceleratorName: context.acceleratorName,
+        acceleratorPrefix: context.acceleratorPrefix,
+        stackName: `PBMMAccel-AccountDefaultSettingsAssets-${pascalCase(accountKey)}Stack`,
       },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: `PBMMAccel-AccountDefaultSettingsAssets-${pascalCase(accountKey)}Stack`,
-    });
+    );
 
-    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(AccountDefaultsStack, `Account Default Settings Assets-${pascalCase(accountKey)}`, {
-      accountId,
-    });
+    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(
+      AccountDefaultsStack,
+      `Account Default Settings Assets-${pascalCase(accountKey)}`,
+      {
+        accountId,
+      },
+    );
 
     // save the kms key Id for later reference
     new cdk.CfnOutput(AccountDefaultsStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
       value: accountDefaultSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
     });
-
   }
 }
 

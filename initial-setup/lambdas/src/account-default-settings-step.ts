@@ -62,7 +62,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
     console.log('kmsKeyId: ' + kmsKeyId);
-    
+
     const ec2 = new EC2(credentials);
     const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(false);
     console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
