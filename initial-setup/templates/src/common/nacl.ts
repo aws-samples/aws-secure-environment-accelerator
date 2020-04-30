@@ -22,7 +22,7 @@ export class NaclEntry extends cdk.Construct {
     }
 
     const nacl = new ec2.CfnNetworkAcl(this, `Nacl-${vpcConfig.name}-${subnetConfig.name}`, {
-      vpcId: vpcId,
+      vpcId,
     });
 
     const localSubnetDefinitions = subnetConfig.definitions;

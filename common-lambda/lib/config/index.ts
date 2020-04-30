@@ -40,15 +40,10 @@ export const NaclRuleSubnetSourceConfig = t.interface({
   subnet: t.array(NonEmptyString),
 });
 
-export const PortRangeConfig = t.interface({
-  from: optional(t.number),
-  to: optional(t.number),
-});
-
 export const NaclConfigType = t.interface({
   rule: t.number,
   protocol: t.number,
-  ports: t.number, //t.union([t.number, PortRangeConfig]),
+  ports: t.number,
   'rule-action': NonEmptyString,
   egress: t.boolean,
   'cidr-blocks': t.union([t.array(NonEmptyString), t.array(NaclRuleSubnetSourceConfig)]),
