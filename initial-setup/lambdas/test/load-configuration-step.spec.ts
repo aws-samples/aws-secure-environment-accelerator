@@ -1,6 +1,10 @@
 import * as mocks from './load-configuration-step.mocks'; // IMPORTANT! Load the mocks _before_ the module under test!
 import { handler } from '../src/load-configuration-step';
 
+beforeAll(() => {
+  mocks.install();
+});
+
 beforeEach(() => {
   // Reset the mocks before every test
   reset();
@@ -297,6 +301,7 @@ function reset() {
         email: 'lz+operations@amazon.com',
       },
     },
+    'workload-account-configs': {},
     'organizational-units': {
       core: {},
     },

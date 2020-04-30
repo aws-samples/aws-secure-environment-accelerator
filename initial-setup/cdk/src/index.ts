@@ -116,6 +116,11 @@ export namespace InitialSetup {
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
 
+      const limitsSecret = new secrets.Secret(this, 'Limits', {
+        secretName: 'accelerator/limits',
+        description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
+      });
+
       // TODO Copy the configSecretInProgress to configSecretLive when deployment is complete.
       //  const configSecretLive = new secrets.Secret(this, 'ConfigSecretLive', {
       //    description: 'This is the config that was used to deploy the current accelerator.',
@@ -201,6 +206,10 @@ export namespace InitialSetup {
             STACK_OUTPUT_SECRET_ID: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: stackOutputSecret.secretArn,
+            },
+            LIMITS_SECRET_ID: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: limitsSecret.secretArn,
             },
             ACCELERATOR_EXECUTION_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -323,6 +332,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const loadLimitsTask = new CodeTask(this, 'Load Limits', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadLimitsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configSecretId: configSecretInProgress.secretArn,
+          limitsSecretId: limitsSecret.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+      });
+
       // TODO We might want to load this from the Landing Zone configuration
       const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
 
@@ -347,6 +370,12 @@ export namespace InitialSetup {
         },
         resultPath: 'DISCARD',
       });
+
+      // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
+      // });
+      // preDeployParallelTask.branch(loadLimitsTask);
+      // preDeployParallelTask.branch(addRoleToScpTask);
+      // preDeployParallelTask.branch(enableResourceSharingTask);
 
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
@@ -532,6 +561,7 @@ export namespace InitialSetup {
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
+          .next(loadLimitsTask)
           .next(addRoleToScpTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)

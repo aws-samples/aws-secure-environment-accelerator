@@ -61,7 +61,7 @@ export const RouteTableConfigType = t.interface({
 export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all attach options here
 
 export const TransitGatewayAttachConfig = t.interface({
-  'associate-to-tgw': t.union([NonEmptyString, t.string]),
+  'associate-to-tgw': t.string,
   account: optional(t.string),
   'associate-type': optional(t.literal('ATTACH')),
   'tgw-rt-associate': optional(t.array(NonEmptyString)),
@@ -126,8 +126,8 @@ export const SecurityGroupConfig = t.interface({
 });
 
 export const VpcConfigType = t.interface({
-  deploy: optional(NonEmptyString),
-  name: NonEmptyString,
+  deploy: t.string,
+  name: t.string,
   region,
   cidr,
   cidr2: optional(cidr),
@@ -141,7 +141,7 @@ export const VpcConfigType = t.interface({
   subnets: optional(t.array(SubnetConfig)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfigType)),
-  'tgw-attach': optional(TransitGatewayAttachConfig),
+  'tgw-attach': TransitGatewayAttachConfig,
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
@@ -228,10 +228,11 @@ export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigTyp
 
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
-  'account-name': NonEmptyString,
-  email: NonEmptyString,
-  ou: NonEmptyString,
+  'account-name': t.string,
+  email: t.string,
+  ou: t.string,
   'enable-s3-public-access': fromNullable(t.boolean, false),
+  limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
   deployments: optional(
     t.interface({
@@ -244,11 +245,12 @@ export const MandatoryAccountConfigType = t.interface({
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
 
-export const MandatoryAccountsConfigType = t.record(t.string, MandatoryAccountConfigType);
+export const AccountsConfigType = t.record(t.string, MandatoryAccountConfigType);
 
-export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountsConfigType>;
+export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
+  type: t.string,
   vpc: optional(VpcConfigType),
 });
 
@@ -283,25 +285,139 @@ export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
 
 export const AcceleratorConfigType = t.interface({
   'global-options': GlobalOptionsConfigType,
-  'mandatory-account-configs': MandatoryAccountsConfigType,
-  'organizational-units': t.record(t.string, OrganizationalUnitConfigType),
+  'mandatory-account-configs': AccountsConfigType,
+  'workload-account-configs': AccountsConfigType,
+  'organizational-units': OrganizationalUnitsConfigType,
 });
 
-export type AcceleratorConfig = t.TypeOf<typeof AcceleratorConfigType>;
 export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
+
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
-export namespace AcceleratorConfig {
-  export function fromBuffer(content: Buffer): AcceleratorConfig {
-    return fromString(content.toString());
+export interface ResolvedVpcConfig {
+  /**
+   * The organizational unit to which this VPC belongs.
+   */
+  ouKey?: string;
+  /**
+   * The resolved account key where the VPC should be deployed.
+   */
+  accountKey: string;
+  /**
+   * The VPC config to be deployed.
+   */
+  vpcConfig: VpcConfig;
+}
+
+export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
+  readonly 'global-options': GlobalOptionsConfig;
+  readonly 'mandatory-account-configs': AccountsConfig;
+  readonly 'workload-account-configs': AccountsConfig;
+  readonly 'organizational-units': OrganizationalUnitsConfig;
+
+  constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
+    Object.assign(this, values);
   }
 
-  export function fromString(content: string): AcceleratorConfig {
-    return fromObject(JSON.parse(content));
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
+  getMandatoryAccountConfigs(): [string, AccountConfig][] {
+    return Object.entries(this['mandatory-account-configs']);
   }
 
-  export function fromObject<S>(content: S): AcceleratorConfig {
-    return parse(AcceleratorConfigType, content);
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
+  getWorkloadAccountConfigs(): [string, AccountConfig][] {
+    return Object.entries(this['workload-account-configs']);
+  }
+
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
+  getAccountConfigs(): [string, AccountConfig][] {
+    return [...this.getMandatoryAccountConfigs(), ...this.getWorkloadAccountConfigs()];
+  }
+
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
+  getOrganizationalUnits(): [string, OrganizationalUnitConfig][] {
+    return Object.entries(this['organizational-units']);
+  }
+
+  /**
+   * Find all VPC configurations in mandatory accounts, workload accounts and organizational units. VPC configuration in
+   * organizational units will have the correct `accountKey` based on the `deploy` value of the VPC configuration.
+   */
+  getVpcConfigs(): ResolvedVpcConfig[] {
+    const vpcConfigs: ResolvedVpcConfig[] = [];
+
+    // Add mandatory account VPC configuration first
+    for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
+      if (accountConfig.vpc) {
+        vpcConfigs.push({
+          accountKey,
+          vpcConfig: accountConfig.vpc,
+        });
+      }
+    }
+
+    const prioritizedOus = this.getOrganizationalUnits();
+    // Sort OUs by OU priority
+    // Config for mandatory OUs should be first in the list
+    prioritizedOus.sort(([_, ou1], [__, ou2]) => priorityByOuType(ou1, ou2));
+
+    for (const [ouKey, ouConfig] of prioritizedOus) {
+      if (ouConfig.vpc) {
+        const destinationAccountKey = ouConfig.vpc.deploy;
+        if (destinationAccountKey === 'local') {
+          // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
+          for (const [accountKey, accountConfig] of this.getAccountConfigs()) {
+            if (accountConfig.ou === ouKey && accountConfig.vpc) {
+              vpcConfigs.push({
+                ouKey,
+                accountKey,
+                vpcConfig: accountConfig.vpc,
+              });
+            }
+          }
+        } else {
+          // When deploy is not 'local' then the VPC should only be deployed in the given account
+          vpcConfigs.push({
+            ouKey,
+            accountKey: destinationAccountKey,
+            vpcConfig: ouConfig.vpc,
+          });
+        }
+      }
+    }
+
+    // Add workload accounts as they are lower priority
+    for (const [accountKey, accountConfig] of this.getWorkloadAccountConfigs()) {
+      if (accountConfig.vpc) {
+        vpcConfigs.push({
+          accountKey,
+          vpcConfig: accountConfig.vpc,
+        });
+      }
+    }
+
+    return vpcConfigs;
+  }
+
+  static fromBuffer(content: Buffer): AcceleratorConfig {
+    return this.fromString(content.toString());
+  }
+
+  static fromString(content: string): AcceleratorConfig {
+    return this.fromObject(JSON.parse(content));
+  }
+
+  static fromObject<S>(content: S): AcceleratorConfig {
+    const values = parse(AcceleratorConfigType, content);
+    return new AcceleratorConfig(values);
   }
 }
 
@@ -313,4 +429,12 @@ export function parse<S, T>(type: t.Decoder<S, T>, content: S): T {
     throw new Error(`Could not parse content:\n${errorMessage}`);
   }
   return result.right;
+}
+
+function priorityByOuType(ou1: OrganizationalUnit, ou2: OrganizationalUnit) {
+  // Mandatory has highest priority
+  if (ou1.type === 'mandatory') {
+    return -1;
+  }
+  return 1;
 }
