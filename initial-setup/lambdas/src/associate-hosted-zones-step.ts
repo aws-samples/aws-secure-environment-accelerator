@@ -192,6 +192,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     }
   };
 
+  // TODO Use config.getVpcConfigs
   console.log('Starting association of private hosted zones with mandatory accounts VPC...');
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
     // if VPC section not found, move to next account
@@ -241,7 +242,8 @@ export const handler = async (input: AssociateHostedZonesInput) => {
       continue;
     }
 
-    const vpcAccountKey = orgUnit.vpc!.deploy!;
+    // TODO Support 'local'
+    const vpcAccountKey = orgUnit.vpc!.deploy;
     if (mandatoryAccountKeys.includes(vpcAccountKey)) {
       console.log(
         `Association of private hosted zones done already for organization unit with key - ${orgKey} and account key - ${vpcAccountKey}. Moving to next org unit.`,

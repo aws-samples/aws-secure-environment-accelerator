@@ -6,7 +6,6 @@ import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { PeeringConnection } from '../common/peering-connection';
-import { getAllAccountVPCConfigs } from '../common/get-all-vpcs';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { ResolversOutput } from './phase-2';
 import { pascalCase } from 'pascal-case';
@@ -27,28 +26,24 @@ async function main() {
 
   const app = new cdk.App();
 
-  // Retrive all Account Configs
-  const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
-
   /**
    * Code to create Peering Connection Routes in all accounts
    */
-  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-    const vpcConfig = accountConfig.vpc!;
-    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
+  const vpcConfigs = acceleratorConfig.getVpcConfigs();
+  for (const { ouKey, accountKey, vpcConfig } of vpcConfigs) {
     const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target === 'pcx'));
     if (!currentRouteTable) {
       continue;
     }
     const pcxRouteDeployment = new AcceleratorStack(
       app,
-      `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name}RoutesStack`,
+      `PBMMAccel-PcxRouteDeployment${accountKey}${vpcConfig.name}RoutesStack`,
       {
         env: {
           account: getAccountId(accounts, accountKey),
           region: cdk.Aws.REGION,
         },
-        stackName: `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name.replace('_', '')}RoutesStack`,
+        stackName: `PBMMAccel-PcxRouteDeployment${accountKey}${vpcConfig.name.replace('_', '')}RoutesStack`,
         acceleratorName: context.acceleratorName,
         acceleratorPrefix: context.acceleratorPrefix,
       },
@@ -57,7 +52,7 @@ async function main() {
     new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
       accountKey,
       vpcName: vpcConfig.name,
-      vpcConfigs: accountConfigs,
+      vpcConfigs,
       outputs,
     });
   }
@@ -66,10 +61,7 @@ async function main() {
   // get the list of account IDs with which the resolver rules needs to be shared
   const sharedAccountIds: string[] = [];
   let hostedZonesAccountId: string = '';
-  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-    const vpcConfig = accountConfig.vpc!;
-    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
-
+  for (const { accountKey, vpcConfig } of vpcConfigs) {
     if (InterfaceEndpointConfig.is(vpcConfig['interface-endpoints'])) {
       hostedZonesAccountId = getAccountId(accounts, accountKey);
     }
@@ -82,10 +74,7 @@ async function main() {
     }
   }
 
-  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-    const vpcConfig = accountConfig.vpc!;
-    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
-
+  for (const { accountKey, vpcConfig } of vpcConfigs) {
     const resolverRuleArns: string[] = [];
     if (vpcConfig.resolvers) {
       const accountId = getAccountId(accounts, accountKey);
@@ -138,5 +127,6 @@ async function main() {
     }
   }
 }
+
 // tslint:disable-next-line: no-floating-promises
 main();

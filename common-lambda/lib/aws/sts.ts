@@ -3,6 +3,7 @@ import * as sts from 'aws-sdk/clients/sts';
 
 export class STS {
   private readonly client: aws.STS;
+  private readonly cache: { [roleArn: string]: aws.Credentials } = {};
 
   constructor(credentials?: aws.Credentials) {
     this.client = new aws.STS({
@@ -15,6 +16,14 @@ export class STS {
   }
 
   async getCredentialsForRoleArn(assumeRoleArn: string, durationSeconds: number = 3600): Promise<aws.Credentials> {
+    if (this.cache[assumeRoleArn]) {
+      const cachedCredentials = this.cache[assumeRoleArn];
+      const currentDate = new Date();
+      if (cachedCredentials.expireTime.getTime() < currentDate.getTime()) {
+        return cachedCredentials;
+      }
+    }
+
     const response = await this.client
       .assumeRole({
         RoleArn: assumeRoleArn,
@@ -23,12 +32,14 @@ export class STS {
       })
       .promise();
 
-    const result = response.Credentials!;
-    return new aws.Credentials({
-      accessKeyId: result.AccessKeyId,
-      secretAccessKey: result.SecretAccessKey,
-      sessionToken: result.SessionToken,
+    const stsCredentials = response.Credentials!;
+    const credentials = new aws.Credentials({
+      accessKeyId: stsCredentials.AccessKeyId,
+      secretAccessKey: stsCredentials.SecretAccessKey,
+      sessionToken: stsCredentials.SessionToken,
     });
+    this.cache[assumeRoleArn] = credentials;
+    return credentials;
   }
 
   async getCredentialsForAccountAndRole(

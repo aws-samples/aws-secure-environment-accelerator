@@ -26,6 +26,8 @@ jobs:
           pnpm install
       - name: Fix nasty bug in CDK
         run: |
+          # This fix is needed in order to run initial-setup/templates tests
+          # Without the fix, SynthUtils.toCloudFormation fails
           find node_modules -name runtime-info.js -exec sed -i 's/mod.paths/(mod.paths || [])/g' {} \;
       - name: Build all workspaces
         run: |

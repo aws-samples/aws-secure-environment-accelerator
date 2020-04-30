@@ -4,15 +4,18 @@ import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { pascalCase } from 'pascal-case';
 import { Account } from '../utils/accounts';
-import { FlowLog } from './flow-log';
 import { InterfaceEndpoints } from './interface-endpoints';
-import { VpcStack } from './vpc-stack';
 import { TransitGateway } from './transit-gateway';
 import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
+import { Limiter, Limit } from '../utils/limits';
 import { SecurityGroup } from './security-group';
 
 export interface VpcCommonProps {
+  /**
+   * Current VPC Creation account Key
+   */
+  accountKey: string;
   /**
    * List of accounts in the organization.
    */
@@ -29,10 +32,7 @@ export interface VpcCommonProps {
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */
   organizationalUnitName?: string;
-  /**
-   * Current VPC Creation account Key
-   */
-  accountKey?: string;
+  limiter: Limiter;
 }
 
 export interface AzSubnet {
@@ -93,10 +93,10 @@ export class Vpc extends cdk.Construct {
   readonly securityGroupNameMapping: NameToIdMap = {};
   readonly routeTableNameToIdMap: NameToIdMap = {};
 
-  constructor(stack: VpcStack, name: string, props: VpcProps) {
-    super(stack, name);
+  constructor(scope: cdk.Construct, name: string, props: VpcProps) {
+    super(scope, name);
 
-    const { accounts, vpcConfig, organizationalUnitName } = props;
+    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter } = props;
     const vpcName = props.vpcConfig.name;
     const useCentralEndpointsConfig: boolean = props.vpcConfig['use-central-endpoints'] ?? false;
 
@@ -302,12 +302,10 @@ export class Vpc extends cdk.Construct {
     if (tgwDeployment) {
       const twgAttach = vpcConfig['tgw-attach'];
       const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
-      if (twgAttach) {
-        const attachConfig = vpcConfig['tgw-attach']!;
-
-        const attachSubnetsConfig = attachConfig['attach-subnets'] || [];
-        const associateConfig = attachConfig['tgw-rt-associate'] || [];
-        const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
+      if (config.TransitGatewayAttachConfig.is(twgAttach)) {
+        const attachSubnetsConfig = twgAttach['attach-subnets'] || [];
+        const associateConfig = twgAttach['tgw-rt-associate'] || [];
+        const propagateConfig = twgAttach['tgw-rt-propagate'] || [];
 
         const subnetIds = attachSubnetsConfig.flatMap(
           subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
@@ -331,37 +329,41 @@ export class Vpc extends cdk.Construct {
       new SecurityGroup(this, 'SecurityGroups', {
         vpcConfig,
         vpcId: this.vpcId,
-        accountKey: props.accountKey!,
+        accountKey: props.accountKey,
       });
     }
 
     // Create interface endpoints
     const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
     if (config.InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
+      const endpoints = [];
+      for (const interfaceEndpoint of interfaceEndpointConfig.endpoints) {
+        if (interfaceEndpoint === 'notebook') {
+          console.log(`Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Endpoint not supported`);
+          continue;
+        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcName)) {
+          console.log(
+            `Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Reached maximum interface endpoints per VPC`,
+          );
+          continue;
+        }
+        endpoints.push(interfaceEndpoint);
+      }
       new InterfaceEndpoints(this, 'InterfaceEndpoints', {
         vpc: this,
         subnetName: interfaceEndpointConfig.subnet,
-        interfaceEndpoints: interfaceEndpointConfig.endpoints,
-      });
-    }
-
-    // Create flow logs
-    const flowLogs = vpcConfig['flow-logs'];
-    if (flowLogs) {
-      const flowLogBucket = stack.getOrCreateFlowLogBucket();
-
-      new FlowLog(this, 'FlowLogs', {
-        vpcId: this.vpcId,
-        bucketArn: flowLogBucket.bucketArn,
+        interfaceEndpoints: endpoints,
       });
     }
 
     // Share VPC subnet
     new VpcSubnetSharing(this, 'Sharing', {
+      accountKey,
       accounts,
       vpcConfig,
       organizationalUnitName,
       subnets: this.azSubnets,
+      limiter,
     });
   }
 }
