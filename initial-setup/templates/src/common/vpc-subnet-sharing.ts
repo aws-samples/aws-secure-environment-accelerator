@@ -2,12 +2,55 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ram from '@aws-cdk/aws-ram';
 import { pascalCase } from 'pascal-case';
-import { getAccountId } from '../utils/accounts';
+import { getAccountId, Account } from '../utils/accounts';
 import { VpcCommonProps, AzSubnets } from './vpc';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
+import * as config from '@aws-pbmm/common-lambda/lib/config';
 
 export interface VpcSubnetSharingProps extends VpcCommonProps {
   subnets: AzSubnets;
+}
+
+export function getSharedAccounts(
+  accounts: Account[],
+  shareToOuAccounts?: boolean,
+  specificAccounts?: string[],
+  organizationalUnitName?: string,
+): string[] {
+  // Share to accounts with a specific name
+  const shareToAccounts = specificAccounts || [];
+  const shareToAccountIds = shareToAccounts.map((accountKey: string) => getAccountId(accounts, accountKey));
+
+  // Share to accounts in this OU
+  if (shareToOuAccounts) {
+    if (!organizationalUnitName) {
+      throw new Error(`Cannot share subnet with OU accounts because the subnet is not in a OU`);
+    }
+
+    const ouAccounts = accounts.filter(a => a.ou === organizationalUnitName);
+    const ouAccountIds = ouAccounts.map(a => getAccountId(accounts, a.key));
+    shareToAccountIds.push(...ouAccountIds);
+  }
+  return shareToAccountIds;
+}
+
+export function getVpcSharedAccounts(
+  accounts: Account[],
+  vpcConfig: config.VpcConfig,
+  organizationalUnitName?: string,
+): string[] {
+  const shareToAccountsIds: string[] = [];
+  const subnets = vpcConfig.subnets;
+  for (const subnet of subnets || []) {
+    const subnetShareAccounts = getSharedAccounts(
+      accounts,
+      subnet['share-to-ou-accounts'],
+      subnet['share-to-specific-accounts'] || [],
+      organizationalUnitName,
+    );
+    shareToAccountsIds.push(...subnetShareAccounts);
+  }
+  return shareToAccountsIds;
 }
 
 /**
@@ -35,26 +78,18 @@ export class VpcSubnetSharing extends cdk.Construct {
       }
 
       // Share to accounts with a specific name
-      const shareToAccounts = subnet['share-to-specific-accounts'] || [];
-      const shareToAccountIds = shareToAccounts.map((accountKey: string) => getAccountId(accounts, accountKey));
-
-      // Share to accounts in this OU
-      const shareToOuAccounts = subnet['share-to-ou-accounts'];
-      if (shareToOuAccounts) {
-        if (!organizationalUnitName) {
-          throw new Error(`Cannot share subnet with OU accounts because the subnet is not in a OU`);
-        }
-
-        const ouAccounts = accounts.filter(a => a.ou === organizationalUnitName);
-        const ouAccountIds = ouAccounts.map(a => getAccountId(accounts, a.key));
-        shareToAccountIds.push(...ouAccountIds);
-      }
+      const shareToAccountIds = getSharedAccounts(
+        accounts,
+        subnet['share-to-ou-accounts'],
+        subnet['share-to-specific-accounts'] || [],
+        organizationalUnitName,
+      );
 
       if (shareToAccountIds.length > 0) {
         const shareName = `${pascalCase(vpcConfig.name)}-${pascalCase(subnet.name)}`;
 
         // Share the subnets
-        new ram.CfnResourceShare(this, 'Share', {
+        new ram.CfnResourceShare(this, `Share-${shareName}`, {
           name: shareName,
           allowExternalPrincipals: false,
           principals: shareToAccountIds,

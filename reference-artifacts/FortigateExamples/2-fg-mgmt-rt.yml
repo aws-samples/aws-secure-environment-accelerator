@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Firewall management route tables Internet Connectivity for GC CAP (1.0)"
+
+Parameters:
+  ParentStackName:
+    Description: Firewall Security VPC CloudFormation Parent Stack Name
+    Type: String
+    AllowedPattern: '^[a-zA-Z][-a-zA-Z0-9]*$'
+    Default: FGVPC
+
+Resources:
+  ManagementSubnetARouteInternetviaIGW:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Fn::ImportValue:
+          Fn::Sub: "FGVPC-${ParentStackName}-InternetGateway"        
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "FGVPC-${ParentStackName}-RouteTableManagementSubnetA"
+  ManagementSubnetBRouteInternetviaIGW:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Fn::ImportValue:
+          Fn::Sub: "FGVPC-${ParentStackName}-InternetGateway"        
+      RouteTableId:
+        Fn::ImportValue:
+          Fn::Sub: "FGVPC-${ParentStackName}-RouteTableManagementSubnetB"
+
+
+Outputs:
+  ManagementSubnetARouteInternetviaIGW:
+    Description: "Management Subnet A Route"  
+    Value: !Ref ManagementSubnetARouteInternetviaIGW
+    Export:
+      Name: !Sub "FGVPC-${AWS::StackName}-ManagementSubnetARouteInternetviaIGW" 
+  ManagementSubnetBRouteInternetviaIGW:
+    Description: "Management Subnet B Route"  
+    Value: !Ref ManagementSubnetBRouteInternetviaIGW
+    Export:
+      Name: !Sub "FGVPC-${AWS::StackName}-ManagementSubnetBRouteInternetviaIGW" 
+ 
+ 
