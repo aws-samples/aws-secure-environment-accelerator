@@ -56,7 +56,11 @@ async function main() {
 
   const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
   const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-  const logArchiveS3KmsKeyArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+  const logArchiveS3KmsKeyArn = getStackOutput(
+    outputs,
+    'log-archive',
+    outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
+  );
 
   const app = new cdk.App();
 
