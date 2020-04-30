@@ -5,8 +5,6 @@ import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { PeeringConnection } from '../common/peering-connection';
-import { GlobalOptionsDeployment } from '../common/global-options';
-import { getAllAccountVPCConfigs } from '../common/get-all-vpcs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
