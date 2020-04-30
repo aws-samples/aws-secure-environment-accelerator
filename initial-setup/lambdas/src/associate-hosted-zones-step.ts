@@ -25,6 +25,8 @@ interface AssociateHostedZonesInput {
   stackOutputSecretId: string;
 }
 
+type ResolversOutputs = ResolversOutput[];
+
 export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
@@ -268,20 +270,21 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
 
   const resolverRuleIds: string[] = [];
-  const resolverOutputs: ResolversOutput[] = getStackJsonOutput(outputs, {
+  const resolversOutputs: ResolversOutputs[] = getStackJsonOutput(outputs, {
     accountKey: hostedZonesAccountKey,
     outputType: 'GlobalOptionsOutput',
   });
-  const resolverOutput = resolverOutputs.find(x => x.vpcName === hostedZonesAccountVpcName);
-  if (!resolverOutput) {
-    throw new Error(`No Resolver Rules found in outputs for VPC name "${hostedZonesAccountVpcName}"`);
-  }
 
-  for (const onPremRule of resolverOutput.rules?.onPremRules!) {
-    resolverRuleIds.push(onPremRule);
-  }
+  for(const resolversOutput of resolversOutputs) {
+    const resolverOutput = resolversOutput.find(x => x.vpcName === hostedZonesAccountVpcName);
+    if (!resolverOutput) {
+      throw new Error(`No Resolver Rules found in outputs for VPC name "${hostedZonesAccountVpcName}"`);
+    }
 
-  resolverRuleIds.push(resolverOutput.rules?.inBoundRule!);
+    // example arn: arn:aws:route53resolver:ca-central-1:421338879487:resolver-rule/rslvr-rr-1950974c876a4201b
+    resolverRuleIds.push(resolverOutput.rules?.inBoundRule!);
+    resolverOutput.rules?.onPremRules?.map(x => resolverRuleIds.push(x));
+  }
   console.log('resolverRuleIds: ', resolverRuleIds);
 
   console.log('sharedAccountIdsWithVpcIds: ', sharedAccountIdsWithVpcIds);
