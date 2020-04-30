@@ -301,8 +301,7 @@ function reset() {
         email: 'lz+operations@amazon.com',
       },
     },
-    'workload-account-configs': {
-    },
+    'workload-account-configs': {},
     'organizational-units': {
       core: {},
     },
