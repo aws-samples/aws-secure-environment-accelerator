@@ -91,12 +91,47 @@ export const OnPremZoneConfigType = t.interface({
   'outbound-ips': t.array(NonEmptyString),
 });
 
+export const SecurityGroupRuleCidrSourceConfig = t.interface({
+  cidr: NonEmptyString,
+});
+
+export const SecurityGroupRuleSubnetSourceConfig = t.interface({
+  vpc: NonEmptyString,
+  subnet: t.array(NonEmptyString),
+});
+
+export const SecurityGroupRuleSecurityGroupSourceConfig = t.interface({
+  'security-group': t.array(NonEmptyString),
+});
+
+export const SecurityGroupRuleConfigType = t.interface({
+  type: t.array(NonEmptyString),
+  port: optional(t.number),
+  description: NonEmptyString,
+  toPort: optional(t.number),
+  fromPort: optional(t.number),
+  source: t.union([
+    t.array(NonEmptyString),
+    t.array(SecurityGroupRuleSubnetSourceConfig),
+    t.array(SecurityGroupRuleSecurityGroupSourceConfig),
+  ]),
+});
+
+export type SecurityGroupRuleConfig = t.TypeOf<typeof SecurityGroupRuleConfigType>;
+
+export const SecurityGroupConfig = t.interface({
+  name: NonEmptyString,
+  'inbound-rules': t.array(SecurityGroupRuleConfigType),
+  'outbound-rules': t.array(SecurityGroupRuleConfigType),
+});
+
 export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
   name: NonEmptyString,
   region,
   cidr,
   cidr2: optional(cidr),
+  'use-central-endpoints': fromNullable(t.boolean, false),
   'flow-logs': fromNullable(t.boolean, false),
   'log-retention': optional(t.number),
   igw: t.union([t.boolean, t.undefined]),
@@ -110,6 +145,7 @@ export const VpcConfigType = t.interface({
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
+  'security-groups': optional(t.array(SecurityGroupConfig)),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;

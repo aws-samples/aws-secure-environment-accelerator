@@ -8,6 +8,7 @@ import { FlowLog } from './flow-log';
 import { InterfaceEndpoints } from './interface-endpoints';
 import { VpcStack } from './vpc-stack';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
+import { SecurityGroup } from './security-group';
 
 export interface VpcCommonProps {
   /**
@@ -26,6 +27,10 @@ export interface VpcCommonProps {
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */
   organizationalUnitName?: string;
+  /**
+   * Current VPC Creation account Key
+   */
+  accountKey?: string;
 }
 
 export interface AzSubnet {
@@ -34,7 +39,7 @@ export interface AzSubnet {
   az: string;
 }
 
-export interface RouteTables {
+export interface NameToIdMap {
   [key: string]: string;
 }
 
@@ -83,13 +88,15 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
 
-  readonly routeTableNameToIdMap: RouteTables = {};
+  readonly securityGroupNameMapping: NameToIdMap = {};
+  readonly routeTableNameToIdMap: NameToIdMap = {};
 
   constructor(stack: VpcStack, name: string, props: VpcProps) {
     super(stack, name);
 
     const { accounts, vpcConfig, organizationalUnitName } = props;
     const vpcName = props.vpcConfig.name;
+    const useCentralEndpointsConfig: boolean = props.vpcConfig['use-central-endpoints'] ?? false;
 
     this.name = props.vpcConfig.name;
     this.region = vpcConfig.region;
@@ -97,6 +104,8 @@ export class Vpc extends cdk.Construct {
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
+      enableDnsHostnames: useCentralEndpointsConfig,
+      enableDnsSupport: useCentralEndpointsConfig,
     });
     this.vpcId = vpcObj.ref;
 
