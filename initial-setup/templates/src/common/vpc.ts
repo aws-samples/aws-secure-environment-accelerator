@@ -204,7 +204,7 @@ export class Vpc extends cdk.Construct {
       }
     }
 
-    const subnetsConfig = props.vpcConfig.subnets || []; 
+    const subnetsConfig = props.vpcConfig.subnets || [];
     for (const subnetConfig of subnetsConfig) {
       const subnetName = subnetConfig.name;
       for (const subnetDefinition of subnetConfig.definitions.values()) {

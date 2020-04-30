@@ -51,10 +51,7 @@ export const NaclConfigType = t.interface({
   ports: t.number, //t.union([t.number, PortRangeConfig]),
   'rule-action': NonEmptyString,
   egress: t.boolean,
-  'cidr-blocks': t.union([
-    t.array(NonEmptyString),
-    t.array(NaclRuleSubnetSourceConfig),
-  ]),
+  'cidr-blocks': t.union([t.array(NonEmptyString), t.array(NaclRuleSubnetSourceConfig)]),
 });
 
 export type NaclConfig = t.TypeOf<typeof NaclConfigType>;
@@ -64,7 +61,7 @@ export const SubnetConfigType = t.interface({
   'share-to-ou-accounts': fromNullable(t.boolean, false),
   'share-to-specific-accounts': optional(t.array(t.string)),
   definitions: t.array(SubnetDefinitionConfig),
-  nacls: optional(t.array(NaclConfigType))
+  nacls: optional(t.array(NaclConfigType)),
 });
 
 export type SubnetConfig = t.TypeOf<typeof SubnetConfigType>;

@@ -13,7 +13,6 @@ export interface NaclEntryProps {
 }
 
 export class NaclEntry extends cdk.Construct {
-
   constructor(parent: cdk.Construct, name: string, props: NaclEntryProps) {
     super(parent, name);
     const { vpcConfig, vpcId, subnetConfig, subnets } = props;
@@ -23,26 +22,26 @@ export class NaclEntry extends cdk.Construct {
     }
 
     const nacl = new ec2.CfnNetworkAcl(this, `Nacl-${vpcConfig.name}-${subnetConfig.name}`, {
-      vpcId: vpcId
+      vpcId: vpcId,
     });
 
     const localSubnetDefinitions = subnetConfig.definitions;
-    for (const sd of localSubnetDefinitions){
-      if (sd.disabled){
+    for (const sd of localSubnetDefinitions) {
+      if (sd.disabled) {
         continue;
       }
       new ec2.CfnSubnetNetworkAclAssociation(this, `NACL-Attachment-${subnetConfig.name}-${sd.az}`, {
         networkAclId: nacl.ref,
-        subnetId: subnets.getAzSubnetIdForNameAndAz(subnetConfig.name, sd.az)!
+        subnetId: subnets.getAzSubnetIdForNameAndAz(subnetConfig.name, sd.az)!,
       });
     }
     for (const [index, rules] of naclRules.entries()) {
       let ruleNumber = rules.rule;
       const portRange: ec2.CfnNetworkAclEntry.PortRangeProperty = {
         from: rules.ports,
-        to: rules.ports
+        to: rules.ports,
       };
-      for (const cidr of rules["cidr-blocks"]) {
+      for (const cidr of rules['cidr-blocks']) {
         if (NonEmptyString.is(cidr)) {
           const aclEntryProps: ec2.CfnNetworkAclEntryProps = {
             networkAclId: nacl.ref,
@@ -53,21 +52,18 @@ export class NaclEntry extends cdk.Construct {
             cidrBlock: cidr,
             egress: rules.egress,
           };
-          new ec2.CfnNetworkAclEntry(
-            this, 
-            `Nacl-Rule-Cidr-${vpcConfig.name}-${index +1}`, 
-            aclEntryProps
-          );
+          new ec2.CfnNetworkAclEntry(this, `Nacl-Rule-Cidr-${vpcConfig.name}-${index + 1}`, aclEntryProps);
           ruleNumber = ruleNumber + 200;
-        } 
-        else {
-          for (const [id, subnetName] of cidr.subnet.entries()){
+        } else {
+          for (const [id, subnetName] of cidr.subnet.entries()) {
             const cidrSubnet = vpcConfig.subnets?.find(s => s.name === subnetName);
             if (!cidrSubnet) {
               throw new Error(`Subnet config for "${subnetName}" is not found in Accelerator Config`);
             }
-            for (const subnetDefinition of cidrSubnet.definitions){
-              const cidrBlock = subnetDefinition.cidr? subnetDefinition.cidr.toCidrString(): subnetDefinition.cidr2?.toCidrString();
+            for (const subnetDefinition of cidrSubnet.definitions) {
+              const cidrBlock = subnetDefinition.cidr
+                ? subnetDefinition.cidr.toCidrString()
+                : subnetDefinition.cidr2?.toCidrString();
               const aclEntryProps: ec2.CfnNetworkAclEntryProps = {
                 networkAclId: nacl.ref,
                 protocol: rules.protocol,
@@ -78,9 +74,9 @@ export class NaclEntry extends cdk.Construct {
                 egress: rules.egress,
               };
               new ec2.CfnNetworkAclEntry(
-                this, 
-                `Nacl-Rule-${vpcConfig.name}-${subnetName}-${subnetDefinition.az}-${index +1}`, 
-                aclEntryProps
+                this,
+                `Nacl-Rule-${vpcConfig.name}-${subnetName}-${subnetDefinition.az}-${index + 1}`,
+                aclEntryProps,
               );
               ruleNumber = ruleNumber + 200;
             }
