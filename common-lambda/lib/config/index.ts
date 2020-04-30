@@ -131,6 +131,7 @@ export const VpcConfigType = t.interface({
   region,
   cidr,
   cidr2: optional(cidr),
+  'use-central-endpoints': fromNullable(t.boolean, false),
   'flow-logs': fromNullable(t.boolean, false),
   'log-retention': optional(t.number),
   igw: t.union([t.boolean, t.undefined]),

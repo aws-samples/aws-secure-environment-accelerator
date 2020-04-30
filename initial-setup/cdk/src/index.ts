@@ -428,6 +428,21 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const associateHostedZonesTask = new CodeTask(this, 'Associate Hosted Zones', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.associateHostedZonesStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.stateMachineExecutionRole,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
         functionProps: {
           code: lambdaCode,
@@ -527,6 +542,7 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
+          .next(associateHostedZonesTask)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
           .next(createAdConnectorTask)
