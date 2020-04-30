@@ -7,6 +7,12 @@ import { Route53ResolverEndpoint } from './r53-resolver-endpoint';
 import { Route53ResolverRule } from './r53-resolver-rule';
 import { StackOutput, getStackJsonOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../apps/phase-1';
+import { JsonOutputValue } from './json-output';
+import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '../apps/phase-2';
+
+interface ResolverOutput {
+  [key: string]: string;
+}
 
 export interface GlobalOptionsProps {
   acceleratorConfig: AcceleratorConfig;
@@ -63,7 +69,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     });
 
     // Auxiliary method to create a resolvers in the account with given account key
-    const createResolvers = (accountKey: string, vpcConfig: VpcConfig) => {
+    const createResolvers = (accountKey: string, vpcConfig: VpcConfig): ResolversOutput | undefined => {
       const resolversConfig = vpcConfig.resolvers;
       if (!resolversConfig) {
         console.debug(`Skipping resolver creation for VPC "${vpcConfig.name}" in account "${accountKey}"`);
@@ -98,14 +104,20 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         name: vpcConfig.name,
         subnetIds,
       });
+      const resolverOutput: ResolversOutput = {
+        vpcName: vpcConfig.name,
+      };
+      const resolverRulesOutput: ResolverRulesOutput = {};
 
       if (resolversConfig.inbound) {
         r53ResolverEndpoints.enableInboundEndpoint();
+        resolverOutput.inBound = r53ResolverEndpoints.inboundEndpointRef;
       }
 
       if (resolversConfig.outbound) {
         r53ResolverEndpoints.enableOutboundEndpoint();
-
+        resolverOutput.outBound = r53ResolverEndpoints.outboundEndpointRef;
+        const onPremRules: string[] = [];
         // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
         for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
           const rule = new Route53ResolverRule(this, `${domainToName(onPremRuleConfig.zone)}-on-prem-phz-rule`, {
@@ -117,7 +129,9 @@ export class GlobalOptionsDeployment extends cdk.Construct {
             vpcId: vpcOutput.vpcId,
           });
           rule.node.addDependency(r53ResolverEndpoints);
+          onPremRules.push(rule.ruleId);
         }
+        resolverRulesOutput.onPremRules = onPremRules;
       }
 
       // For each Private hosted Zone created in 1) above, create a Resolver rule which points to the Inbound-Endpoint-IP's
@@ -132,6 +146,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
             vpcId: vpcOutput.vpcId,
           });
           rule.node.addDependency(r53ResolverEndpoints);
+          resolverRulesOutput.inBoundRule = rule.ruleId;
         }
       }
 
@@ -144,9 +159,12 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       if (r53ResolverEndpoints.outboundEndpointRef) {
         vpcOutBoundMapping.set(vpcConfig.name, r53ResolverEndpoints.outboundEndpointRef);
       }
+      resolverOutput.rules = resolverRulesOutput;
+      return resolverOutput;
     };
 
     // Create resolvers for all mandatory account config
+    const resolverOutputs: ResolversOutput[] = [];
     const mandatoryAccountConfig = props.acceleratorConfig['mandatory-account-configs'];
     for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
       const vpcConfig = accountConfig?.vpc;
@@ -160,7 +178,10 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       }
 
       console.debug(`Deploying resolvers in account "${accountKey}"`);
-      createResolvers(accountKey, vpcConfig);
+      const resolver = createResolvers(accountKey, vpcConfig);
+      if (resolver) {
+        resolverOutputs.push(resolver);
+      }
     }
 
     // Create resolvers for all organizational unit config
@@ -182,7 +203,10 @@ export class GlobalOptionsDeployment extends cdk.Construct {
           if (accountConfig.ou === ouKey) {
             console.debug(`Deploying local resolvers for organizational unit "${ouKey}" in account "${accountKey}"`);
 
-            createResolvers(ouKey, vpcConfig);
+            const resolver = createResolvers(ouKey, vpcConfig);
+            if (resolver) {
+              resolverOutputs.push(resolver);
+            }
           }
         }
       } else {
@@ -190,10 +214,14 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         const accountKey = vpcConfig.deploy;
         console.debug(`Deploying non-local resolvers for organizational unit "${ouKey}" in account "${accountKey}"`);
 
-        createResolvers(vpcConfig.deploy, vpcConfig);
+        const resolver = createResolvers(vpcConfig.deploy, vpcConfig);
+        if (resolver) {
+          resolverOutputs.push(resolver);
+        }
       }
     }
 
+    const madRulesOutput: MadRuleOutput = {};
     // Check for MAD deployment, If already deployed then create Resolver Rule for MAD IPs
     for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
       const deploymentConfig = accountConfig.deployments;
@@ -233,7 +261,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         throw new Error(`Cannot find outbound mapping for VPC with name "${centralResolverVpcName}"`);
       }
 
-      new Route53ResolverRule(this, `${domainToName(madConfig['dns-domain'])}-phz-rule`, {
+      const rule = new Route53ResolverRule(this, `${domainToName(madConfig['dns-domain'])}-phz-rule`, {
         domain: madConfig['dns-domain'],
         endpoint: endpointId,
         ipAddresses: madIPs,
@@ -241,7 +269,18 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         name: `${domainToName(madConfig['dns-domain'])}-mad-phz-rule`,
         vpcId: resolverVpc.vpcId,
       });
+      madRulesOutput[centralResolverVpcName] = rule.ruleId;
     }
+
+    new JsonOutputValue(this, `GlobalOptionsOutput`, {
+      type: 'GlobalOptionsOutput',
+      value: resolverOutputs,
+    });
+
+    new JsonOutputValue(this, `MadRulesOutput`, {
+      type: 'MadRulesOutput',
+      value: madRulesOutput,
+    });
   }
 }
 

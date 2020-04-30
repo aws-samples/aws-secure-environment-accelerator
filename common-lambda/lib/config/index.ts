@@ -91,6 +91,40 @@ export const OnPremZoneConfigType = t.interface({
   'outbound-ips': t.array(NonEmptyString),
 });
 
+export const SecurityGroupRuleCidrSourceConfig = t.interface({
+  cidr: NonEmptyString,
+});
+
+export const SecurityGroupRuleSubnetSourceConfig = t.interface({
+  vpc: NonEmptyString,
+  subnet: t.array(NonEmptyString),
+});
+
+export const SecurityGroupRuleSecurityGroupSourceConfig = t.interface({
+  'security-group': t.array(NonEmptyString),
+});
+
+export const SecurityGroupRuleConfigType = t.interface({
+  type: t.array(NonEmptyString),
+  port: optional(t.number),
+  description: NonEmptyString,
+  toPort: optional(t.number),
+  fromPort: optional(t.number),
+  source: t.union([
+    t.array(NonEmptyString),
+    t.array(SecurityGroupRuleSubnetSourceConfig),
+    t.array(SecurityGroupRuleSecurityGroupSourceConfig),
+  ]),
+});
+
+export type SecurityGroupRuleConfig = t.TypeOf<typeof SecurityGroupRuleConfigType>;
+
+export const SecurityGroupConfig = t.interface({
+  name: NonEmptyString,
+  'inbound-rules': t.array(SecurityGroupRuleConfigType),
+  'outbound-rules': t.array(SecurityGroupRuleConfigType),
+});
+
 export const VpcConfigType = t.interface({
   deploy: optional(NonEmptyString),
   name: NonEmptyString,
@@ -110,6 +144,7 @@ export const VpcConfigType = t.interface({
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
+  'security-groups': optional(t.array(SecurityGroupConfig)),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
@@ -172,6 +207,16 @@ export const AccountConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
+export const adcConfigType = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  subnet: t.string,
+  size: t.string,
+  restrict_srcips: t.array(cidr),
+  'connect-account-key': t.string,
+  'connect-dir-id': t.number,
+});
+
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
@@ -191,6 +236,7 @@ export const MandatoryAccountConfigType = t.interface({
     t.interface({
       tgw: optional(DeploymentConfigType),
       mad: optional(MadConfigType),
+      adc: optional(adcConfigType),
     }),
   ),
 });
