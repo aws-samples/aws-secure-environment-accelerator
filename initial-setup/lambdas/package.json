@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
+    "@aws-pbmm/common-outputs": "workspace:^0.0.1",
     "adm-zip": "0.4.14",
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.585.0",

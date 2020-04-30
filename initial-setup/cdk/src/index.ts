@@ -421,9 +421,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
-          acceleratorName: props.acceleratorName,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });
@@ -519,7 +519,6 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
@@ -530,7 +529,8 @@ export namespace InitialSetup {
           .next(deployPhase3Task)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
-          .next(createAdConnectorTask),
+          .next(createAdConnectorTask)
+          .next(accountDefaultSettingsTask),
       });
     }
   }

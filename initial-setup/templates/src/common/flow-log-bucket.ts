@@ -31,7 +31,8 @@ export class FlowLogBucket extends cdk.Construct {
 
     // kms key used for vpc-flow-logs s3 bucket encryption
     const encryptionKey = new kms.Key(this, 'EncryptionKey', {
-      description: 'Key used to encrypt PBMM Accel S3 bucket',
+      alias: 'alias/S3-Default-key',
+      description: 'PBMM - Key used to encrypt/decrypt S3 bucket by default',
     });
 
     let replicationRole: iam.Role | undefined;
