@@ -5,8 +5,7 @@ import {
   CreateVPCAssociationAuthorizationResponse,
   DeleteVPCAssociationAuthorizationResponse,
 } from 'aws-sdk/clients/route53';
-import { ListResolverRulesResponse, AssociateResolverRuleResponse } from 'aws-sdk/clients/route53resolver';
-import { CreateResourceShareRequest, CreateResourceShareResponse } from 'aws-sdk/clients/ram';
+import { AssociateResolverRuleResponse } from 'aws-sdk/clients/route53resolver';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig, VpcConfigType, InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account } from './load-accounts-step';
@@ -14,11 +13,10 @@ import { getAccountId } from '../../templates/src/utils/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../../templates/src/apps/phase-1';
+import { ResolversOutput } from '../../templates/src/apps/phase-2';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
-import { RAM } from '@aws-pbmm/common-lambda/lib/aws/ram';
 import * as t from 'io-ts';
-import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 
 interface AssociateHostedZonesInput {
   accounts: Account[];
@@ -52,8 +50,10 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const allHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
   const allPrivateHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
   const allPrivateHostedZonesId: string[] = [];
+  let hostedZonesAccountKey: string = '';
   let hostedZonesAccountId: string = '';
   let hostedZonesAccountCredentials: aws.Credentials;
+  let hostedZonesAccountVpcName: string = '';
 
   // get the private zones from global-options
   const privateZones = globalOptionsConfig.zones.names.private;
@@ -89,8 +89,10 @@ export const handler = async (input: AssociateHostedZonesInput) => {
       `Hosted Zones are created in the account with account key - ${accountKey}. Finding all private hosted zones.`,
     );
 
+    hostedZonesAccountKey = accountKey;
     hostedZonesAccountId = getAccountId(accounts, accountKey);
     hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
+    hostedZonesAccountVpcName = vpcConfig.name;
     const route53 = new Route53(hostedZonesAccountCredentials);
 
     let listHostedZonesResponse = await route53.listHostedZones('1');
@@ -264,21 +266,23 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
   console.log('Starting association of resolver rules with accounts to which VPCs are shared...');
   hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
-  const route53Resolver = new Route53Resolver(hostedZonesAccountCredentials);
-  const listResolverRulesResponse: ListResolverRulesResponse = await route53Resolver.listResolverRules(100);
-  console.log('Route 53 - Resolver Rules: ', listResolverRulesResponse);
 
-  const resolverRuleArns: string[] = [];
   const resolverRuleIds: string[] = [];
-  for (const resolverRule of listResolverRulesResponse.ResolverRules!) {
-    if (resolverRule.RuleType === 'FORWARD') {
-      resolverRuleArns.push(resolverRule.Arn!);
-      resolverRuleIds.push(resolverRule.Id!);
-    }
+  const resolverOutputs: ResolversOutput[] = getStackJsonOutput(outputs, {
+    accountKey: hostedZonesAccountKey,
+    outputType: 'GlobalOptionsOutput',
+  });
+  const resolverOutput = resolverOutputs.find(x => x.vpcName === hostedZonesAccountVpcName);
+  if (!resolverOutput) {
+    throw new Error(`No Resolver Rules found in outputs for VPC name "${hostedZonesAccountVpcName}"`);
   }
-  console.log('resolverRuleArns: ', resolverRuleArns);
 
-  const ram = new RAM(hostedZonesAccountCredentials);
+  for (const onPremRule of resolverOutput.rules?.onPremRules!) {
+    resolverRuleIds.push(onPremRule);
+  }
+
+  resolverRuleIds.push(resolverOutput.rules?.inBoundRule!);
+  console.log('resolverRuleIds: ', resolverRuleIds);
 
   console.log('sharedAccountIdsWithVpcIds: ', sharedAccountIdsWithVpcIds);
   console.log('sharedAccountIdsWithCredentials: ', sharedAccountIdsWithCredentials);
@@ -286,32 +290,9 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const sharedAccountIds = [...Object.keys(sharedAccountIdsWithVpcIds)];
   console.log('sharedAccountIds: ' + sharedAccountIds);
 
-  const params: CreateResourceShareRequest = {
-    name: 'pbmm-accel-shared-resolver-rules',
-    resourceArns: resolverRuleArns,
-    principals: sharedAccountIds,
-  };
-  const createResourceShareResponse: CreateResourceShareResponse = await ram.createResourceShare(params);
-  console.log('Resource Share Response: ', createResourceShareResponse);
-
   for (const [eachAccountId, sharedVpcId] of Object.entries(sharedAccountIdsWithVpcIds)) {
     const credentials = sharedAccountIdsWithCredentials[eachAccountId];
     const r53Resolver = new Route53Resolver(credentials);
-
-    // resource shared is not available immediately. so adding a check and wait here.
-    let waitCondition: boolean = true;
-    do {
-      console.log('waiting 5 secs for the resolver rules to show up in the shared account...');
-      await delay(5000);
-      const response = await route53Resolver.listResolverRules(100);
-      for (const resolverRule of response.ResolverRules!) {
-        if (resolverRuleIds.includes(resolverRule.Id!)) {
-          waitCondition = false;
-        } else {
-          waitCondition = true;
-        }
-      }
-    } while (waitCondition);
 
     for (const resolverRuleId of resolverRuleIds) {
       const associateResolverRuleResponse: AssociateResolverRuleResponse = await r53Resolver.associateResolverRule(

@@ -9,6 +9,8 @@ import { GlobalOptionsDeployment } from '../common/global-options';
 import { getAllAccountVPCConfigs } from '../common/get-all-vpcs';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { ResolversOutput } from './phase-2';
+import { pascalCase } from 'pascal-case';
+import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -71,24 +73,55 @@ async function main() {
     }
   }
 
-  // for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-  //   const vpcConfig = accountConfig.vpc!;
-  //   const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
+  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
+    const vpcConfig = accountConfig.vpc!;
+    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
 
-  //   const resolverRuleArns: string[] = [];
-  //   if(vpcConfig.resolvers) {
-  //     const accountId = getAccountId(accounts, accountKey);
+    const resolverRuleArns: string[] = [];
+    if (vpcConfig.resolvers) {
+      const accountId = getAccountId(accounts, accountKey);
 
-  //     const resolvers: ResolversOutput = getStackJsonOutput(outputs, {
-  //       accountKey,
-  //       outputType: 'GlobalOptionsDNSResolversGlobalOptionsOutput',
-  //     });
+      const resolverOutputs: ResolversOutput[] = getStackJsonOutput(outputs, {
+        accountKey,
+        outputType: 'GlobalOptionsOutput',
+      });
+      const resolverOutput = resolverOutputs.find(x => x.vpcName === vpcConfig.name);
+      if (!resolverOutput) {
+        throw new Error(`No Resolver Rules found in outputs for VPC name "${vpcConfig.name}"`);
+      }
 
-  //     resolverRuleArns.push(resolvers.rules?.onPremRules)
-  //   }
-  // }
+      for (const onPremRule of resolverOutput.rules?.onPremRules!) {
+        resolverRuleArns.push(onPremRule);
+      }
 
-  // 'PBMMAccel-'
+      resolverRuleArns.push(resolverOutput.rules?.inBoundRule!);
+
+      const r53ResolverRulesSharingStack = new AcceleratorStack(
+        app,
+        `PBMMAccel-Route53ResolverRulesSharing-${accountKey}Stack`,
+        {
+          env: {
+            account: accountId,
+            region: cdk.Aws.REGION,
+          },
+          acceleratorName: context.acceleratorName,
+          acceleratorPrefix: context.acceleratorPrefix,
+          stackName: `PBMMAccel-Route53ResolverRulesSharing-${pascalCase(accountKey)}Stack`,
+        },
+      );
+
+      const route53ResolverRuleSharing = new Route53ResolverRuleSharing(
+        r53ResolverRulesSharingStack,
+        `ShareResolverRulesStack-${pascalCase(accountKey)}`,
+        {
+          name: 'PBMMAccel-Route53ResolverRulesSharing',
+          allowExternalPrincipals: false,
+          principals: sharedAccountIds,
+          resourceArns: resolverRuleArns,
+        },
+      );
+    }
+  }
 }
 // tslint:disable-next-line: no-floating-promises
 main();

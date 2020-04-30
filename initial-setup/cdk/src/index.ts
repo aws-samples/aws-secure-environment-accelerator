@@ -428,7 +428,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const associateHostedZones = new CodeTask(this, 'Associate Hosted Zones', {
+      const associateHostedZonesTask = new CodeTask(this, 'Associate Hosted Zones', {
         functionProps: {
           code: lambdaCode,
           handler: 'index.associateHostedZonesStep',
@@ -534,7 +534,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(addRoleToScpTask)
-          // .next(accountDefaultSettingsTask)
+          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
@@ -543,6 +543,7 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
+          .next(associateHostedZonesTask)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
           .next(createAdConnectorTask),
