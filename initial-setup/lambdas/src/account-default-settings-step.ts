@@ -6,30 +6,28 @@ import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { Account } from './load-accounts-step';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
-import { loadStackOutputs } from '../../templates/src/utils/outputs';
-import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION } from '../../templates/src/apps/phase-2';
+import { StackOutput, getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 
 interface AccountDefaultSettingsInput {
   assumeRoleName: string;
-  configSecretSourceId: string;
   accounts: Account[];
+  configSecretSourceId: string;
+  stackOutputSecretId: string;
 }
 
 export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, configSecretSourceId, accounts } = input;
-
-  const outputs = await loadStackOutputs();
+  const { assumeRoleName, accounts, configSecretSourceId, stackOutputSecretId } = input;
 
   const secrets = new SecretsManager();
-  const source = await secrets.getSecret(configSecretSourceId);
+  const configString = await secrets.getSecret(configSecretSourceId);
+  const outputsString = await secrets.getSecret(stackOutputSecretId);
 
-  // load the configuration from Secrets Manager
-  const configString = source.SecretString!;
-  const config = AcceleratorConfig.fromString(configString);
+  const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
+  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
 
@@ -62,9 +60,9 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await getAccountCredentials(accountId);
 
-    const kmsKeyId = getStackOutput(outputs, accountKey, OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
+    const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
     console.log('kmsKeyId: ' + kmsKeyId);
-
+    
     const ec2 = new EC2(credentials);
     const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(false);
     console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
@@ -73,7 +71,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
   };
 
-  const mandatoryAccountConfigs = config['mandatory-account-configs'];
+  const mandatoryAccountConfigs = acceleratorConfig['mandatory-account-configs'];
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
     const account = accounts.find(a => a.key === accountKey);
     if (!account) {

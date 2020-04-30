@@ -3,7 +3,7 @@ import * as kms from '@aws-cdk/aws-kms';
 import * as iam from '@aws-cdk/aws-iam';
 
 export interface AccountDefaultSettingsAssetsProps extends cdk.StackProps {
-  dummy: string;
+  accountId: string;
 }
 
 export class AccountDefaultSettingsAssets extends cdk.Construct {
@@ -11,10 +11,10 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, props: AccountDefaultSettingsAssetsProps) {
     super(scope, id);
-    // const { madDeploymentConfig, subnetInfo, password } = props;
+    const { accountId } = props;
 
     // kms key used for default EBS encryption
-    const kmsKey = new kms.Key(this, 'EBS-EncryptionKey', {
+    const kmsKey = new kms.Key(this, 'EBS-DefaultEncryption', {
       alias: 'alias/EBS-Default-key',
       description: 'PBMM - Key used to encrypt/decrypt EBS by default',
       policy: new iam.PolicyDocument({
@@ -22,7 +22,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
           new iam.PolicyStatement({
             sid: 'key-consolepolicy-3',
             effect: iam.Effect.ALLOW,
-            principals: [new iam.AccountPrincipal(props.env?.account)],
+            principals: [new iam.AccountPrincipal(accountId)],
             actions: ['kms:*'],
             resources: ['*'],
           }),

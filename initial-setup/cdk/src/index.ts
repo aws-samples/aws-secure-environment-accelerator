@@ -420,8 +420,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });
