@@ -70,13 +70,13 @@ async function main() {
     const vpcConfig = accountConfig.vpc!;
     const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
 
-    if(InterfaceEndpointConfig.is(vpcConfig['interface-endpoints'])) {
+    if (InterfaceEndpointConfig.is(vpcConfig['interface-endpoints'])) {
       hostedZonesAccountId = getAccountId(accounts, accountKey);
     }
 
     if (vpcConfig['use-central-endpoints']) {
       const accountId = getAccountId(accounts, accountKey);
-      if(accountId !== hostedZonesAccountId) {
+      if (accountId !== hostedZonesAccountId) {
         sharedAccountIds.push(accountId);
       }
     }
@@ -89,22 +89,27 @@ async function main() {
     const resolverRuleArns: string[] = [];
     if (vpcConfig.resolvers) {
       const accountId = getAccountId(accounts, accountKey);
-      
-      
+
       const resolversOutputs: ResolversOutputs[] = getStackJsonOutput(outputs, {
         accountKey,
         outputType: 'GlobalOptionsOutput',
       });
 
-      for(const resolversOutput of resolversOutputs) {
+      for (const resolversOutput of resolversOutputs) {
         const resolverOutput = resolversOutput.find(x => x.vpcName === vpcConfig.name);
         if (!resolverOutput) {
-          throw new Error(`No Resolver Rules found in outputs for account key ${accountKey} and VPC name ${vpcConfig.name}`);
+          throw new Error(
+            `No Resolver Rules found in outputs for account key ${accountKey} and VPC name ${vpcConfig.name}`,
+          );
         }
 
         // example arn: arn:aws:route53resolver:ca-central-1:421338879487:resolver-rule/rslvr-rr-1950974c876a4201b
-        resolverRuleArns.push(`arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${resolverOutput.rules?.inBoundRule!}`);
-        resolverOutput.rules?.onPremRules?.map(x => resolverRuleArns.push(`arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${x}`));
+        resolverRuleArns.push(
+          `arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${resolverOutput.rules?.inBoundRule!}`,
+        );
+        resolverOutput.rules?.onPremRules?.map(x =>
+          resolverRuleArns.push(`arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${x}`),
+        );
       }
 
       const r53ResolverRulesSharingStack = new AcceleratorStack(

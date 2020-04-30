@@ -275,7 +275,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     outputType: 'GlobalOptionsOutput',
   });
 
-  for(const resolversOutput of resolversOutputs) {
+  for (const resolversOutput of resolversOutputs) {
     const resolverOutput = resolversOutput.find(x => x.vpcName === hostedZonesAccountVpcName);
     if (!resolverOutput) {
       throw new Error(`No Resolver Rules found in outputs for VPC name "${hostedZonesAccountVpcName}"`);
