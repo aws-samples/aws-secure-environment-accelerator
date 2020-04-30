@@ -21,28 +21,24 @@ async function main() {
 
   const app = new cdk.App();
 
-  // Retrive all Account Configs
-  const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
-
   /**
    * Code to create Peering Connection Routes in all accounts
    */
-  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-    const vpcConfig = accountConfig.vpc!;
-    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
+  const vpcConfigs = acceleratorConfig.getVpcConfigs();
+  for (const { ouKey, accountKey, vpcConfig } of vpcConfigs) {
     const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target === 'pcx'));
     if (!currentRouteTable) {
       continue;
     }
     const pcxRouteDeployment = new AcceleratorStack(
       app,
-      `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name}RoutesStack`,
+      `PBMMAccel-PcxRouteDeployment${accountKey}${vpcConfig.name}RoutesStack`,
       {
         env: {
           account: getAccountId(accounts, accountKey),
           region: cdk.Aws.REGION,
         },
-        stackName: `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name.replace('_', '')}RoutesStack`,
+        stackName: `PBMMAccel-PcxRouteDeployment${accountKey}${vpcConfig.name.replace('_', '')}RoutesStack`,
         acceleratorName: context.acceleratorName,
         acceleratorPrefix: context.acceleratorPrefix,
       },
@@ -51,7 +47,7 @@ async function main() {
     new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
       accountKey,
       vpcName: vpcConfig.name,
-      vpcConfigs: accountConfigs,
+      vpcConfigs,
       outputs,
     });
   }

@@ -1,52 +1,17 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-
 import {
   VpcConfig,
   PeeringConnectionConfig,
-  AccountConfig,
-  OrganizationalUnitConfig,
   PcxRouteConfig,
   PcxRouteConfigType,
+  ResolvedVpcConfig,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../apps/phase-1';
-import { VpcConfigs, getVpcConfig } from './get-all-vpcs';
+import { getVpcConfig } from './get-all-vpcs';
 
 export namespace PeeringConnection {
-  interface VpcConfigsOutput {
-    accountKey: string;
-    vpcConfig: VpcConfig;
-  }
-
-  export function getVpcConfigForPcx(
-    accountKey: string,
-    config: AccountConfig | OrganizationalUnitConfig,
-  ): VpcConfigsOutput | undefined {
-    const vpcConfig = config?.vpc;
-    if (!vpcConfig) {
-      console.log(`Skipping Peering Connection creation for account "${accountKey}"`);
-      return;
-    }
-    if (!vpcConfig.deploy) {
-      console.warn(
-        `Skipping Peering Connection creation for Account/Organization unit "${accountKey}" as 'deploy' is not set`,
-      );
-      return;
-    }
-    accountKey = vpcConfig.deploy === 'local' ? accountKey : vpcConfig.deploy;
-    const pcxConfig = vpcConfig.pcx;
-    if (!PeeringConnectionConfig.is(pcxConfig)) {
-      console.log(`No Peering Connection creation Config Defined for VPC "${vpcConfig.name}"`);
-      return;
-    }
-    console.log(`Peering Connection Config available for VPC "${vpcConfig.name}" in account "${accountKey}"`);
-    return {
-      accountKey,
-      vpcConfig,
-    };
-  }
-
   export interface PeeringConnectionRoutesProps {
     /**
      * Source VPC Name .
@@ -60,7 +25,7 @@ export namespace PeeringConnection {
      *
      * All VPC Config for Creating routes.
      */
-    vpcConfigs: VpcConfigs;
+    vpcConfigs: ResolvedVpcConfig[];
     /**
      * Outputs
      */
