@@ -102,7 +102,7 @@ async function main() {
             `No Resolver Rules found in outputs for account key ${accountKey} and VPC name ${vpcConfig.name}`,
           );
         }
-        
+
         resolverRuleArns.push(
           `arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${resolverOutput.rules?.inBoundRule!}`,
         );
