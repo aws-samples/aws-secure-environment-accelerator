@@ -5,6 +5,8 @@ export function getVpcConfig(
   accountKey: string,
   vpcName: string,
 ): VpcConfig | undefined {
-  const resolvedVpcConfig = vpcConfigs.find(r => r.accountKey === accountKey && r.vpcConfig.vpcName === vpcName);
+  const resolvedVpcConfig = vpcConfigs.find(
+    (r: ResolvedVpcConfig) => r.accountKey === accountKey && r.vpcConfig.name === vpcName,
+  );
   return resolvedVpcConfig?.vpcConfig;
 }
