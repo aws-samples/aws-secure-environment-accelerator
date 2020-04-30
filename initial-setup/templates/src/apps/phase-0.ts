@@ -6,15 +6,14 @@ import { loadContext } from '../utils/context';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { LogArchiveBucket } from '../common/log-archive-bucket';
 import * as lambda from '@aws-cdk/aws-lambda';
+import { pascalCase } from 'pascal-case';
+import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
+import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
-
-export const OUTPUT_LOG_ARCHIVE_ACCOUNT_ID = 'LogArchiveAccountId';
-export const OUTPUT_LOG_ARCHIVE_BUCKET_ARN = 'LogArchiveBucketArn';
-export const OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN = 'LogArchiveEncryptionKey';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -78,17 +77,17 @@ async function main() {
   bucket.grantReplicate(...principals);
 
   // store the s3 bucket - kms key arn for later reference
-  new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
+  new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
     value: logArchiveAccountId,
   });
 
   // store the s3 bucket arn for later reference
-  new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
+  new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
     value: bucket.bucketArn,
   });
 
   // store the s3 bucket - kms key arn for later reference
-  new cdk.CfnOutput(stack, OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
+  new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
     value: bucket.encryptionKeyArn,
   });
 
@@ -100,6 +99,39 @@ async function main() {
   //     encryptionKeyArn: bucket.encryptionKeyArn,
   //   },
   // });
+
+  // creating assets for default account settings
+  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
+  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+    const accountId = getAccountId(accounts, accountKey);
+
+    const AccountDefaultsStack = new AcceleratorStack(
+      app,
+      `PBMMAccel-AccountDefaultSettingsAssets-${accountKey}Stack`,
+      {
+        env: {
+          account: accountId,
+          region: cdk.Aws.REGION,
+        },
+        acceleratorName: context.acceleratorName,
+        acceleratorPrefix: context.acceleratorPrefix,
+        stackName: `PBMMAccel-AccountDefaultSettingsAssets-${pascalCase(accountKey)}Stack`,
+      },
+    );
+
+    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(
+      AccountDefaultsStack,
+      `Account Default Settings Assets-${pascalCase(accountKey)}`,
+      {
+        accountId,
+      },
+    );
+
+    // save the kms key Id for later reference
+    new cdk.CfnOutput(AccountDefaultsStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
+      value: accountDefaultSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
+    });
+  }
 }
 
 // tslint:disable-next-line: no-floating-promises

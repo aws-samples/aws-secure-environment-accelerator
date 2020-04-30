@@ -450,9 +450,24 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
-          acceleratorName: props.acceleratorName,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const associateHostedZonesTask = new CodeTask(this, 'Associate Hosted Zones', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.associateHostedZonesStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.stateMachineExecutionRole,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });
@@ -549,7 +564,6 @@ export namespace InitialSetup {
           .next(installRolesTask)
           .next(loadLimitsTask)
           .next(addRoleToScpTask)
-          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
@@ -558,9 +572,11 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
+          .next(associateHostedZonesTask)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
-          .next(createAdConnectorTask),
+          .next(createAdConnectorTask)
+          .next(accountDefaultSettingsTask),
       });
     }
   }

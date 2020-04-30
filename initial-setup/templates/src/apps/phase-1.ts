@@ -8,14 +8,10 @@ import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogBucketStack } from '../common/flow-log-bucket-stack';
 import { Vpc, VpcProps } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
-import {
-  OUTPUT_LOG_ARCHIVE_BUCKET_ARN,
-  OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
-  OUTPUT_LOG_ARCHIVE_ACCOUNT_ID,
-} from './phase-0';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { FlowLog } from '../common/flow-log';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
+import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -61,9 +57,13 @@ async function main() {
 
   const globalOptions = acceleratorConfig['global-options'];
 
-  const logArchiveAccountId = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
-  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-  const logArchiveS3KmsKeyArn = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+  const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
+  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+  const logArchiveS3KmsKeyArn = getStackOutput(
+    outputs,
+    'log-archive',
+    outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
+  );
 
   const app = new cdk.App();
 
