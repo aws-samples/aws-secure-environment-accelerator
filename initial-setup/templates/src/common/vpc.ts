@@ -11,6 +11,7 @@ import { TransitGateway } from './transit-gateway';
 import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { SecurityGroup } from './security-group';
+import { NaclEntry } from './nacl';
 
 export interface VpcCommonProps {
   /**
@@ -203,7 +204,7 @@ export class Vpc extends cdk.Construct {
       }
     }
 
-    const subnetsConfig = props.vpcConfig.subnets || [];
+    const subnetsConfig = props.vpcConfig.subnets || []; 
     for (const subnetConfig of subnetsConfig) {
       const subnetName = subnetConfig.name;
       for (const subnetDefinition of subnetConfig.definitions.values()) {
@@ -249,6 +250,17 @@ export class Vpc extends cdk.Construct {
         new ec2.CfnSubnetRouteTableAssociation(this, `RouteTable${subnetId}`, {
           routeTableId,
           subnetId: subnet.ref,
+        });
+      }
+
+      // Check for NACL's
+      if (subnetConfig.nacls) {
+        console.log(`NACL's Defined in VPC "${vpcName}" in Subnet "${subnetName}"`);
+        new NaclEntry(this, `NACL-${subnetName}`, {
+          subnetConfig,
+          vpcConfig,
+          vpcId: this.vpcId,
+          subnets: this.azSubnets,
         });
       }
     }
