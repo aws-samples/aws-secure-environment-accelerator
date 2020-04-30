@@ -33,34 +33,34 @@ async function main() {
   /**
    * Code to create Peering Connection Routes in all accounts
    */
-  // for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-  //   const vpcConfig = accountConfig.vpc!;
-  //   const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
-  //   const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target === 'pcx'));
-  //   if (!currentRouteTable) {
-  //     continue;
-  //   }
-  //   const pcxRouteDeployment = new AcceleratorStack(
-  //     app,
-  //     `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name}RoutesStack`,
-  //     {
-  //       env: {
-  //         account: getAccountId(accounts, accountKey),
-  //         region: cdk.Aws.REGION,
-  //       },
-  //       stackName: `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name.replace('_', '')}RoutesStack`,
-  //       acceleratorName: context.acceleratorName,
-  //       acceleratorPrefix: context.acceleratorPrefix,
-  //     },
-  //   );
+  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
+    const vpcConfig = accountConfig.vpc!;
+    const accountKey = vpcConfig.deploy === 'local' ? account : vpcConfig.deploy!;
+    const currentRouteTable = vpcConfig['route-tables']?.find(x => x.routes?.find(y => y.target === 'pcx'));
+    if (!currentRouteTable) {
+      continue;
+    }
+    const pcxRouteDeployment = new AcceleratorStack(
+      app,
+      `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name}RoutesStack`,
+      {
+        env: {
+          account: getAccountId(accounts, accountKey),
+          region: cdk.Aws.REGION,
+        },
+        stackName: `PBMMAccel-PcxRouteDeployment${account}${vpcConfig.name.replace('_', '')}RoutesStack`,
+        acceleratorName: context.acceleratorName,
+        acceleratorPrefix: context.acceleratorPrefix,
+      },
+    );
 
-  //   new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
-  //     accountKey,
-  //     vpcName: vpcConfig.name,
-  //     vpcConfigs: accountConfigs,
-  //     outputs,
-  //   });
-  // }
+    new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
+      accountKey,
+      vpcName: vpcConfig.name,
+      vpcConfigs: accountConfigs,
+      outputs,
+    });
+  }
 
   // to share the resolver rules
   // get the list of account IDs with which the resolver rules needs to be shared
@@ -103,7 +103,6 @@ async function main() {
           );
         }
 
-        // example arn: arn:aws:route53resolver:ca-central-1:421338879487:resolver-rule/rslvr-rr-1950974c876a4201b
         resolverRuleArns.push(
           `arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${resolverOutput.rules?.inBoundRule!}`,
         );
