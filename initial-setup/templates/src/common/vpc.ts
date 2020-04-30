@@ -326,7 +326,7 @@ export class Vpc extends cdk.Construct {
       new SecurityGroup(this, 'SecurityGroups', {
         vpcConfig,
         vpcId: this.vpcId,
-        accountKey: props.accountKey!,
+        accountKey: props.accountKey,
       });
     }
 

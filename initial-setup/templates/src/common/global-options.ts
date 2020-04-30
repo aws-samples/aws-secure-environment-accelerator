@@ -163,12 +163,14 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       return resolverOutput;
     };
 
-  const resolverOutputs: ResolversOutput[] = [];
+    const resolverOutputs: ResolversOutput[] = [];
 
     // Create resolvers for all VPC configs
     const vpcConfigs = acceleratorConfig.getVpcConfigs();
     for (const { ouKey, accountKey, vpcConfig } of vpcConfigs) {
-      console.debug(`Deploying resolvers in account "${accountKey}"${ouKey ? ` and organizational unit "${ouKey}"` : ""}`);
+      console.debug(
+        `Deploying resolvers in account "${accountKey}"${ouKey ? ` and organizational unit "${ouKey}"` : ''}`,
+      );
 
       const resolver = createResolvers(accountKey, vpcConfig);
       if (resolver) {
@@ -190,11 +192,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       let madIPs: string[];
       try {
         // TODO Get correct stack output
-        const madIPCsv = getStackOutput(
-          outputs,
-          accountKey,
-          `MADIPs${madConfig['dns-domain'].replace(/\./gi, '')}`,
-        );
+        const madIPCsv = getStackOutput(outputs, accountKey, `MADIPs${madConfig['dns-domain'].replace(/\./gi, '')}`);
         madIPs = madIPCsv.split(',');
       } catch (error) {
         console.warn(`MAD is not deployed yet in account ${accountKey}`);
