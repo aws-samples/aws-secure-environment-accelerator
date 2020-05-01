@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import { AcceleratorConfig } from '../../lib/config';
-import { LandingZoneStack } from '../../lib/landing-zone'
+import { LandingZoneStack } from '../../lib/landing-zone';
 
 test('config.example.json should be parsed correctly', () => {
   // Working directory is `common-lambda` so the config file is one directory up
@@ -11,8 +11,10 @@ test('config.example.json should be parsed correctly', () => {
 });
 
 test('create landing zone config zip', () => {
-  LandingZoneStack.createLandingZoneConfig('../reference-artifacts/aws-landing-zone-configuration', 
-    '../reference-artifacts/aws-landing-zone-configuration.zip');
+  LandingZoneStack.createLandingZoneConfig(
+    '../reference-artifacts/aws-landing-zone-configuration',
+    '../reference-artifacts/aws-landing-zone-configuration.zip',
+  );
 });
 
 test('aws-landing-zone-configuration.zip load correctly', () => {
