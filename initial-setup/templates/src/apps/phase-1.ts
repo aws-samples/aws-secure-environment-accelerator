@@ -8,6 +8,8 @@ import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogBucketStack } from '../common/flow-log-bucket-stack';
 import { Vpc, VpcProps } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
+import { TransitGateway } from '../common/transit-gateway';
+import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { FlowLog } from '../common/flow-log';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
@@ -67,6 +69,7 @@ async function main() {
 
   const app = new cdk.App();
 
+  const transitGateways = new Map<string, TransitGateway>();
   const flowLogBucketStacks: { [accountKey: string]: FlowLogBucketStack } = {};
 
   // Auxiliary method to create a VPC stack the account with given account key
@@ -147,6 +150,38 @@ async function main() {
       type: 'VpcOutput',
       value: vpcOutput,
     });
+
+    const tgwDeployment = props.tgwDeployment;
+    if (tgwDeployment) {
+      const tgw = new TransitGateway(vpcStack, tgwDeployment.name!, tgwDeployment);
+      transitGateways.set(tgwDeployment.name!, tgw);
+    }
+
+    const tgwAttach = props.vpcConfig['tgw-attach'];
+    if (tgwAttach) {
+      const tgwName = tgwAttach['associate-to-tgw'];
+      const tgw = transitGateways.get(tgwName);
+      if (tgw && tgwName.length > 0) {
+        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        new TransitGatewayAttachment(vpcStack, 'TgwAttach', {
+          vpcId: vpc.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+      }
+    }
   };
 
   // Create all the VPCs for accounts and organizational units

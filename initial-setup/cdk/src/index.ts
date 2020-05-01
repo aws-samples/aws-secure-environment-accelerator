@@ -1,4 +1,3 @@
-import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3assets from '@aws-cdk/aws-s3-assets';

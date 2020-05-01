@@ -483,7 +483,7 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": false
+          "associate-to-tgw": ""
         },
         "interface-endpoints": false
       },
@@ -594,7 +594,7 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": false
+          "associate-to-tgw": ""
         },
         "interface-endpoints": false
       },
@@ -2045,7 +2045,7 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": false
+          "associate-to-tgw": ""
         },
         "interface-endpoints": false
       },
