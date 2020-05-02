@@ -9,6 +9,9 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import { pascalCase } from 'pascal-case';
 import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { Secret } from '@aws-cdk/aws-secretsmanager';
+import { IamUserConfigType, AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -100,6 +103,16 @@ async function main() {
   //   },
   // });
 
+  const secretsStack = new SecretsStack(app, 'Secrets', {
+    env: {
+      account: getAccountId(accounts, 'master'),
+      region: cdk.Aws.REGION,
+    },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    stackName: 'PBMMAccel-Secrets-IAMUserPasswords',
+  });
+
   // creating assets for default account settings
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
@@ -119,11 +132,41 @@ async function main() {
       },
     );
 
+    const userPasswords: { [userId: string]: Secret } = {};
+
+    const iamUsers = (accountConfig as AccountConfig).iam?.users;
+    if (iamUsers && iamUsers?.length >= 1) {
+      for (const iamUser of iamUsers) {
+        if (!IamUserConfigType.is(iamUser)) {
+          console.log(
+            `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
+          );
+        } else {
+          for (const userId of iamUser['user-ids']) {
+            const password = secretsStack.createSecret(`${userId}-UserPassword`, {
+              secretName: `accelerator/${accountKey}/user/password/${userId}`,
+              description: `Password for IAM User - ${userId}.`,
+              generateSecretString: {
+                passwordLength: 16,
+              },
+              principals: [new iam.AccountPrincipal(accountId)],
+            });
+            userPasswords[userId] = password;
+          }
+        }
+      }
+    }
+
     const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(
       AccountDefaultsStack,
       `Account Default Settings Assets-${pascalCase(accountKey)}`,
       {
         accountId,
+        accountKey,
+        accountConfig,
+        acceleratorConfig,
+        accounts,
+        userPasswords,
       },
     );
 
