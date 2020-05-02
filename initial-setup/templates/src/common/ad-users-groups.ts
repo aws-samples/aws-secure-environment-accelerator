@@ -18,11 +18,21 @@ export interface ADUsersAndGroupsProps extends cdk.StackProps {
 }
 
 export class ADUsersAndGroups extends cdk.Construct {
-
   constructor(scope: cdk.Construct, id: string, props: ADUsersAndGroupsProps) {
     super(scope, id);
 
-    const { latestRdgwAmiId, domainMemberSGID, keyPairName, subnetIds, madDeploymentConfig, s3BucketName, s3KeyPrefix, stackId, stackName, adminPassword } = props;
+    const {
+      latestRdgwAmiId,
+      domainMemberSGID,
+      keyPairName,
+      subnetIds,
+      madDeploymentConfig,
+      s3BucketName,
+      s3KeyPrefix,
+      stackId,
+      stackName,
+      adminPassword,
+    } = props;
 
     const RDGWHostRole = new iam.Role(this, 'RDGWHostRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -70,7 +80,7 @@ export class ADUsersAndGroups extends cdk.Construct {
 
     const RDGWHostProfile = new iam.CfnInstanceProfile(this, 'RDGWHostProfile', {
       roles: [RDGWHostRole.roleName],
-      instanceProfileName: "PBMM-RDGWHostProfile",
+      instanceProfileName: 'PBMM-RDGWHostProfile',
     });
 
     const launchConfig = new CfnLaunchConfiguration(this, 'PBMMRDGWLaunchConfiguration', {
@@ -78,7 +88,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       imageId: latestRdgwAmiId,
       securityGroups: [domainMemberSGID],
       iamInstanceProfile: RDGWHostProfile.instanceProfileName,
-      instanceType: madDeploymentConfig["rdgw-instance-type"],
+      instanceType: madDeploymentConfig['rdgw-instance-type'],
       launchConfigurationName: 'PBMMRDGWLaunchConfiguration',
       blockDeviceMappings: [
         {
@@ -98,16 +108,16 @@ export class ADUsersAndGroups extends cdk.Construct {
     const autoscalingGroup = new CfnAutoScalingGroup(this, 'RDGWAutoScalingGroupB', {
       launchConfigurationName: launchConfig.launchConfigurationName,
       vpcZoneIdentifier: subnetIds,
-      minSize: madDeploymentConfig["num-rdgw-hosts"].toString(),
-      maxSize: madDeploymentConfig["num-rdgw-hosts"].toString(),
+      minSize: madDeploymentConfig['num-rdgw-hosts'].toString(),
+      maxSize: madDeploymentConfig['num-rdgw-hosts'].toString(),
       cooldown: '300',
-      desiredCapacity: madDeploymentConfig["num-rdgw-hosts"].toString(),
-      autoScalingGroupName: 'PBMMRDGWAutoScalingGroup'
+      desiredCapacity: madDeploymentConfig['num-rdgw-hosts'].toString(),
+      autoScalingGroupName: 'PBMMRDGWAutoScalingGroup',
     });
 
     autoscalingGroup.cfnOptions.creationPolicy = {
       resourceSignal: {
-        count: madDeploymentConfig["num-rdgw-hosts"],
+        count: madDeploymentConfig['num-rdgw-hosts'],
         timeout: 'PT30M',
       },
     };
@@ -178,7 +188,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       join: {
         commands: {
           'a-join-domain': {
-            command: `powershell.exe -Command "C:\\cfn\\scripts\\Join-Domain.ps1 -DomainName ${madDeploymentConfig["dns-domain"]} -UserName ${madDeploymentConfig["netbios-domain"]}\\admin -Password ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)"`,
+            command: `powershell.exe -Command "C:\\cfn\\scripts\\Join-Domain.ps1 -DomainName ${madDeploymentConfig['dns-domain']} -UserName ${madDeploymentConfig['netbios-domain']}\\admin -Password ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)"`,
             waitAfterCompletion: 'forever',
           },
         },
@@ -186,11 +196,11 @@ export class ADUsersAndGroups extends cdk.Construct {
       installRDS: {
         commands: {
           'a-install-rds': {
-            command: "powershell.exe -Command \"Install-WindowsFeature RDS-Gateway,RSAT-RDS-Gateway,RSAT-AD-Tools\"",
+            command: 'powershell.exe -Command "Install-WindowsFeature RDS-Gateway,RSAT-RDS-Gateway,RSAT-AD-Tools"',
             waitAfterCompletion: '0',
           },
           'b-configure-rdgw': {
-            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Initialize-RDGW.ps1 -ServerFQDN $($env:COMPUTERNAME + '.${madDeploymentConfig["dns-domain"]}') -DomainNetBiosName ${madDeploymentConfig["netbios-domain"]} -GroupName 'domain admins'`,
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Initialize-RDGW.ps1 -ServerFQDN $($env:COMPUTERNAME + '.${madDeploymentConfig['dns-domain']}') -DomainNetBiosName ${madDeploymentConfig['netbios-domain']} -GroupName 'domain admins'`,
             waitAfterCompletion: '0',
           },
         },
@@ -198,7 +208,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       finalize: {
         commands: {
           '1-signal-success': {
-            command: "powershell.exe -Command \"Write-AWSQuickStartStatus\"",
+            command: 'powershell.exe -Command "Write-AWSQuickStartStatus"',
             waitAfterCompletion: '0',
           },
         },

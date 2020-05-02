@@ -12,7 +12,6 @@ import { VpcOutput } from './phase-1';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { ADUsersAndGroups } from '../common/ad-users-groups';
 
-
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
@@ -78,7 +77,6 @@ async function main() {
 
     const vpcId = vpcOutput.vpcId;
     const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madDeploymentConfig.subnet).map(s => s.subnetId);
-
 
     const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
       madDeploymentConfig,
