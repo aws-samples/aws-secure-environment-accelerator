@@ -101,7 +101,9 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:role/${sourceAccountRole}`),
-          managedPolicies: policies.map(x => customerManagedPolicies[x] ?? iam.ManagedPolicy.fromAwsManagedPolicyName(x)),
+          managedPolicies: policies.map(
+            x => customerManagedPolicies[x] ?? iam.ManagedPolicy.fromAwsManagedPolicyName(x),
+          ),
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
         });
       } else {
@@ -109,7 +111,9 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ServicePrincipal(`${type}.amazonaws.com`),
-          managedPolicies: policies.map(x => customerManagedPolicies[x] ?? iam.ManagedPolicy.fromAwsManagedPolicyName(x)),
+          managedPolicies: policies.map(
+            x => customerManagedPolicies[x] ?? iam.ManagedPolicy.fromAwsManagedPolicyName(x),
+          ),
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
         });
       }
