@@ -134,7 +134,7 @@ async function main() {
 
     const userPasswords: { [userId: string]: Secret } = {};
 
-    const iamUsers = (accountConfig as AccountConfig).iam?.users;
+    const iamUsers = accountConfig.iam?.users;
     if (iamUsers && iamUsers?.length >= 1) {
       for (const iamUser of iamUsers) {
         if (!IamUserConfigType.is(iamUser)) {

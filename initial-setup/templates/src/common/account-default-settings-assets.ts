@@ -15,7 +15,7 @@ import { Secret } from '@aws-cdk/aws-secretsmanager';
 export interface AccountDefaultSettingsAssetsProps extends cdk.StackProps {
   accountId: string;
   accountKey: string;
-  accountConfig: AccountConfig | any;
+  accountConfig: AccountConfig;
   acceleratorConfig: AcceleratorConfig;
   accounts: Account[];
   userPasswords: { [userId: string]: Secret };
