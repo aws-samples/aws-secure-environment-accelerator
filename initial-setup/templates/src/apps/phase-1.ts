@@ -115,7 +115,7 @@ async function main() {
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
       vpcProps: props,
-      transitGateways
+      transitGateways,
     });
 
     // Enable flow logging if necessary

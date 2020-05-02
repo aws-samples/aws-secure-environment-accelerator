@@ -76,8 +76,8 @@ export class AzSubnets {
 export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
 
 export interface VpcStackProps extends AcceleratorStackProps {
-  vpcProps: VpcProps,
-  transitGateways: Map<string, TransitGateway>,
+  vpcProps: VpcProps;
+  transitGateways: Map<string, TransitGateway>;
 }
 
 export class VpcStack extends AcceleratorStack {
