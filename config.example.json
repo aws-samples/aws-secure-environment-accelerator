@@ -253,7 +253,7 @@
           "share-to-account": "master",
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
-          "RDGWInstanceType": "t2.large",
+          "rdgw-instance-type": "t2.large",
           "password-policies": {
             "history": 24,
             "max-age": 90,
