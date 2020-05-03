@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as kms from '@aws-cdk/aws-kms';
 import * as iam from '@aws-cdk/aws-iam';
+import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import {
   AccountConfig,
   IamConfigType,
@@ -165,5 +166,15 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
         }
       }
     }
+
+    // create IAM access analyzer in only security account
+    // note: security account delegated as access analyzer administrator in previous step
+    if(accountKey === 'security') {
+      const accessAnalyzer = new accessanalyzer.CfnAnalyzer(this, 'OrgAccessAnalyzer', {
+        analyzerName: 'OrgAccessAnalyzer',
+        type: 'AWS::AccessAnalyzer::Analyzer',
+      });
+    }
+
   }
 }

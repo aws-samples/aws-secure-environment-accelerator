@@ -127,4 +127,20 @@ export class Organizations {
   async updatePolicy(input: org.UpdatePolicyRequest): Promise<org.UpdatePolicyResponse> {
     return this.client.updatePolicy(input).promise();
   }
+
+  async enableAWSServiceAccess(servicePrincipal: string): Promise<void> {
+    const params: org.EnableAWSServiceAccessRequest = {
+      ServicePrincipal: servicePrincipal
+    };
+    await this.client.enableAWSServiceAccess(params).promise();
+  }
+
+  async registerDelegatedAdministrator(accountId: string, servicePrincipal: string): Promise<void> {
+    const params: org.RegisterDelegatedAdministratorRequest = {
+      AccountId: accountId,
+      ServicePrincipal: servicePrincipal
+    }
+    await this.client.registerDelegatedAdministrator(params).promise();
+  }
+
 }

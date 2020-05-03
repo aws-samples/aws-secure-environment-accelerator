@@ -363,11 +363,14 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const enableResourceSharingTask = new CodeTask(this, 'Enable Resource Sharing', {
+      const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.enableResourceSharingStep',
+          handler: 'index.enableTrustedAccessForServicesStep',
           role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
@@ -564,7 +567,7 @@ export namespace InitialSetup {
           .next(installRolesTask)
           .next(loadLimitsTask)
           .next(addRoleToScpTask)
-          .next(enableResourceSharingTask)
+          .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)
