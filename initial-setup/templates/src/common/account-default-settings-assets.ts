@@ -169,12 +169,11 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
 
     // create IAM access analyzer in only security account
     // note: security account delegated as access analyzer administrator in previous step
-    if(accountKey === 'security') {
+    if (accountKey === 'security') {
       const accessAnalyzer = new accessanalyzer.CfnAnalyzer(this, 'OrgAccessAnalyzer', {
         analyzerName: 'OrgAccessAnalyzer',
         type: 'AWS::AccessAnalyzer::Analyzer',
       });
     }
-
   }
 }

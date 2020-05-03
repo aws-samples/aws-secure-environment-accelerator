@@ -130,7 +130,7 @@ export class Organizations {
 
   async enableAWSServiceAccess(servicePrincipal: string): Promise<void> {
     const params: org.EnableAWSServiceAccessRequest = {
-      ServicePrincipal: servicePrincipal
+      ServicePrincipal: servicePrincipal,
     };
     await this.client.enableAWSServiceAccess(params).promise();
   }
@@ -138,9 +138,8 @@ export class Organizations {
   async registerDelegatedAdministrator(accountId: string, servicePrincipal: string): Promise<void> {
     const params: org.RegisterDelegatedAdministratorRequest = {
       AccountId: accountId,
-      ServicePrincipal: servicePrincipal
-    }
+      ServicePrincipal: servicePrincipal,
+    };
     await this.client.registerDelegatedAdministrator(params).promise();
   }
-
 }

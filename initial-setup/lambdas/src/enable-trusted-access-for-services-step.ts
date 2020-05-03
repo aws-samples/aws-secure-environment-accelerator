@@ -10,7 +10,7 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   console.log(JSON.stringify(input, null, 2));
 
   const { accounts } = input;
-  
+
   const org = new Organizations();
   await org.enableAWSServiceAccess('ram.amazonaws.com');
   console.log('Enabled Resource Access Manager service access within the Organization.');
@@ -24,13 +24,13 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
     throw new Error(`Cannot find account with key ${securityAccountKey}`);
   }
   const securityAccountId: string = securityAccount.id;
-  await org.registerDelegatedAdministrator(securityAccountId,'access-analyzer.amazonaws.com');
+  await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');
 
   await org.enableAWSServiceAccess('fms.amazonaws.com');
   console.log('Enabled Firewall Manager service access within the Organization.');
-  
-  await org.registerDelegatedAdministrator(securityAccountId,'access-analyzer.amazonaws.com');
+
+  await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Firewall Manager in the organization.');
 
   return {
