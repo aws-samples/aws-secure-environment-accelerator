@@ -345,6 +345,7 @@ export namespace InitialSetup {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
+        resultPath: '$.limits',
       });
 
       // TODO We might want to load this from the Landing Zone configuration
