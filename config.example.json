@@ -491,6 +491,11 @@
       "deployments": {
         "firewall": {
           "instance-sizes": "c5n.2xl",
+          "image": "https://aws.amazon.com/marketplace/pp/B00PCZSWDA?qid=1588624790695",
+          "version": "6.2.3#",
+          "region": "ca-central-1",
+          "security-group": "Fortigates"
+          "vpc": "Perimeter",		  
           "eni": {
             "count": 4,
             "p1-subnet": "Public",
@@ -518,7 +523,17 @@
             "attach-subnets": [],
             "options": ["DNS-support", "IPv6-support"]
           }
-        }
+        },
+        "firewall-manager": {
+		  "name": "FortigateMgr"
+          "instance-sizes": "c5.l",
+          "image": "https://aws.amazon.com/marketplace/server/procurement?productId=c15e8d8d-1e46-41cf-9543-418a3f652745",
+          "version": "6.2.3",
+          "region": "ca-central-1",
+          "vpc": "Perimeter",		  
+          "subnet": "FWMgmt_azA",
+          "security-group": "FortigateMgr"
+		}
       }
     },
     "master": {
