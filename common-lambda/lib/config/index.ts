@@ -150,7 +150,7 @@ export const VpcConfigType = t.interface({
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
 
-export const DeploymentConfigType = t.interface({
+export const TgwDeploymentConfigType = t.interface({
   name: optional(NonEmptyString),
   asn: optional(t.number),
   features: optional(
@@ -174,7 +174,7 @@ export const PasswordPolicyType = t.interface({
   reversible: t.boolean,
 });
 
-export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
 
 export const ADUserConfig = t.interface({
   user: NonEmptyString,
@@ -226,13 +226,13 @@ export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
 
-export const TgwDeploymentConfigType = t.interface({
-  tgw: optional(DeploymentConfigType),
+export const DeploymentConfigType = t.interface({
+  tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
   adc: optional(AdcConfigType),
 });
 
-export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
+export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
@@ -242,7 +242,7 @@ export const MandatoryAccountConfigType = t.interface({
   'enable-s3-public-access': fromNullable(t.boolean, false),
   limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
-  deployments: optional(TgwDeploymentConfigType),
+  deployments: optional(DeploymentConfigType),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -312,7 +312,7 @@ export interface ResolvedVpcConfig {
   /**
    * Deployment config
    */
-  deployments?: TgwDeploymentConfig;
+  deployments?: DeploymentConfig;
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {

@@ -168,7 +168,7 @@ async function main() {
       limiter,
       accounts,
       vpcConfig,
-      tgwDeployment: deployments,
+      tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
     });
   }

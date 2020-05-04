@@ -90,9 +90,9 @@ export class VpcStack extends AcceleratorStack {
     this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props.vpcProps);
 
     const tgwDeployment = props.vpcProps.tgwDeployment;
-    if (tgwDeployment && tgwDeployment.tgw) {
-      const tgw = new TransitGateway(this, tgwDeployment.tgw.name!, tgwDeployment.tgw);
-      props.transitGateways.set(tgwDeployment.tgw.name!, tgw);
+    if (tgwDeployment) {
+      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
+      props.transitGateways.set(tgwDeployment.name!, tgw);
     }
 
     const tgwAttach = props.vpcProps.vpcConfig['tgw-attach'];
