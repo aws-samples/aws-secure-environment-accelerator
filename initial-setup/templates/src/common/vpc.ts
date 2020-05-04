@@ -27,7 +27,7 @@ export interface VpcCommonProps {
   /**
    * Transit gateway deployment.
    */
-  tgwDeployment?: config.DeploymentConfig;
+  tgwDeployment?: config.TgwDeploymentConfig;
   /**
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */
@@ -90,9 +90,9 @@ export class VpcStack extends AcceleratorStack {
     this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props.vpcProps);
 
     const tgwDeployment = props.vpcProps.tgwDeployment;
-    if (tgwDeployment) {
-      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
-      props.transitGateways.set(tgwDeployment.name!, tgw);
+    if (tgwDeployment && tgwDeployment.tgw) {
+      const tgw = new TransitGateway(this, tgwDeployment.tgw.name!, tgwDeployment.tgw);
+      props.transitGateways.set(tgwDeployment.tgw.name!, tgw);
     }
 
     const tgwAttach = props.vpcProps.vpcConfig['tgw-attach'];

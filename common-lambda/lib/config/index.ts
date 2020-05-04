@@ -208,7 +208,7 @@ export const AccountConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
-export const adcConfigType = t.interface({
+export const AdcConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   subnet: t.string,
@@ -226,6 +226,14 @@ export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
 
+export const TgwDeploymentConfigType = t.interface({
+  tgw: optional(DeploymentConfigType),
+  mad: optional(MadConfigType),
+  adc: optional(AdcConfigType),
+});
+
+export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -234,13 +242,7 @@ export const MandatoryAccountConfigType = t.interface({
   'enable-s3-public-access': fromNullable(t.boolean, false),
   limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
-  deployments: optional(
-    t.interface({
-      tgw: optional(DeploymentConfigType),
-      mad: optional(MadConfigType),
-      adc: optional(adcConfigType),
-    }),
-  ),
+  deployments: optional(TgwDeploymentConfigType),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -307,6 +309,10 @@ export interface ResolvedVpcConfig {
    * The VPC config to be deployed.
    */
   vpcConfig: VpcConfig;
+  /**
+   * Deployment config
+   */
+  deployments?: TgwDeploymentConfig;
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
@@ -360,6 +366,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         vpcConfigs.push({
           accountKey,
           vpcConfig: accountConfig.vpc,
+          deployments: accountConfig.deployments,
         });
       }
     }
@@ -380,6 +387,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
                 ouKey,
                 accountKey,
                 vpcConfig: accountConfig.vpc,
+                deployments: accountConfig.deployments,
               });
             }
           }
@@ -400,6 +408,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         vpcConfigs.push({
           accountKey,
           vpcConfig: accountConfig.vpc,
+          deployments: accountConfig.deployments,
         });
       }
     }

@@ -150,7 +150,7 @@ async function main() {
   };
 
   // Create all the VPCs for accounts and organizational units
-  for (const { ouKey, accountKey, vpcConfig } of acceleratorConfig.getVpcConfigs()) {
+  for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
       console.log(
         `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
@@ -168,6 +168,7 @@ async function main() {
       limiter,
       accounts,
       vpcConfig,
+      tgwDeployment: deployments,
       organizationalUnitName: ouKey,
     });
   }
