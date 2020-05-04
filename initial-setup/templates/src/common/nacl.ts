@@ -12,7 +12,7 @@ export interface NaclEntryProps {
   subnets: AzSubnets;
 }
 
-export class NaclEntry extends cdk.Construct {
+export class Nacl extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: NaclEntryProps) {
     super(parent, name);
     const { vpcConfig, vpcId, subnetConfig, subnets } = props;
