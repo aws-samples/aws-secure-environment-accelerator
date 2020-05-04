@@ -503,9 +503,14 @@
             "max-qty": 2
           },
           "config": "fortigate_AA_20200504.txt",
+          "fw-cgw-name": "Perimeter_fw",
+          "fw-cgw-asn": 63000,
+          "fw-cgw-routing": "Dynamic",
+          "fw-cgw-name": "Perimeter_fw",
           "tgw-attach": {
             "associate-to-tgw": "Main",
             "account": "shared-network",
+			"name": "TGW-to-Perimeter"
             "associate-type": "VPN",
             "rt-associate": ["core"],
             "rt-propogate": ["core", "segregated", "shared", "standalone"],
