@@ -4,7 +4,6 @@ import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { pascalCase } from 'pascal-case';
 import { Account } from '../utils/accounts';
-import { InterfaceEndpoints } from './interface-endpoints';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Limiter, Limit } from '../utils/limits';
 
@@ -292,29 +291,6 @@ export class Vpc extends cdk.Construct {
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
-    }
-
-    // Create interface endpoints
-    const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
-    if (config.InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
-      const endpoints = [];
-      for (const interfaceEndpoint of interfaceEndpointConfig.endpoints) {
-        if (interfaceEndpoint === 'notebook') {
-          console.log(`Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Endpoint not supported`);
-          continue;
-        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcName)) {
-          console.log(
-            `Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Reached maximum interface endpoints per VPC`,
-          );
-          continue;
-        }
-        endpoints.push(interfaceEndpoint);
-      }
-      new InterfaceEndpoints(this, 'InterfaceEndpoints', {
-        vpc: this,
-        subnetName: interfaceEndpointConfig.subnet,
-        interfaceEndpoints: endpoints,
-      });
     }
 
     // Share VPC subnet
