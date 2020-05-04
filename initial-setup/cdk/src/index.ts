@@ -242,7 +242,7 @@ export namespace InitialSetup {
 
       // TODO We might want to load this from the Landing Zone configuration
       const avmProductName = 'AWS-Landing-Zone-Account-Vending-Machine';
-      const avmPortfolioName = 'AWS Landing Zone - Baseline';
+      const avmPortfolioName = 'AWS Landing Zone - Add-On Products';
 
       const addRoleToServiceCatalog = new CodeTask(this, 'Add Execution Role to Service Catalog', {
         functionProps: {
@@ -254,6 +254,7 @@ export namespace InitialSetup {
           roleArn: pipelineRole.roleArn,
           portfolioName: avmPortfolioName,
         },
+        inputPath: '$.configuration',
         resultPath: 'DISCARD',
       });
 
