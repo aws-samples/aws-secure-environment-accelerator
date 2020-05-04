@@ -502,7 +502,7 @@
             "min-qty": 2,
             "max-qty": 2
           },
-          "script": "firewall.yaml",
+          "config": "fortigate_AA_20200504.txt",
           "tgw-attach": {
             "associate-to-tgw": "Main",
             "account": "shared-network",
