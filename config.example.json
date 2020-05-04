@@ -510,7 +510,7 @@
           "tgw-attach": {
             "associate-to-tgw": "Main",
             "account": "shared-network",
-			"name": "TGW-to-Perimeter"
+			"name": "TGW-to-Perimeter",
             "associate-type": "VPN",
             "rt-associate": ["core"],
             "rt-propogate": ["core", "segregated", "shared", "standalone"],
