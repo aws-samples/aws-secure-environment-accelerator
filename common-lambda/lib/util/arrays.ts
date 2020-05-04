@@ -2,6 +2,16 @@ function defaultEquality<T>(a: T, b: T) {
   return a === b;
 }
 
+export function arrayMax<T>(array: T[], compare: (a: T, b: T) => number): T | undefined {
+  let maxValue: T | undefined;
+  for (const value of array) {
+    if (!maxValue || compare(value, maxValue) > 0) {
+      maxValue = value;
+    }
+  }
+  return maxValue;
+}
+
 /**
  * Returns true if both list `a` and `b` contain the same elements.
  *

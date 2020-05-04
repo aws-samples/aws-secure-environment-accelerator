@@ -4,22 +4,16 @@ import * as cdk from '@aws-cdk/core';
 import { parse, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { Vpc } from '../../src/common/vpc';
-import { VpcStack } from '../../src/common/vpc-stack';
+import { Limiter } from '../../src/utils/limits';
 
 test('the VPC creation should create the correct amount of subnets', () => {
-  const app = new cdk.App();
-  const stack = new VpcStack(app, 'Stack', {
-    acceleratorName: 'PBMM',
-    acceleratorPrefix: 'PBMMAccel',
-    flowLogBucket: {
-      expirationInDays: 30,
-    },
-  });
+  const stack = new cdk.Stack();
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
     cidr: '10.2.0.0/16',
     region: 'ca-central-1',
+    deploy: 'local',
     igw: false,
     vgw: false,
     pcx: false,
@@ -95,8 +89,10 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
+    accountKey: 'master',
     accounts: [],
     vpcConfig,
+    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -182,19 +178,13 @@ test('the VPC creation should create the correct amount of subnets', () => {
 });
 
 test('the VPC creation should throw an error when a subnet uses a route table that does not exist', () => {
-  const app = new cdk.App();
-  const stack = new VpcStack(app, 'Stack', {
-    acceleratorName: 'PBMM',
-    acceleratorPrefix: 'PBMMAccel',
-    flowLogBucket: {
-      expirationInDays: 30,
-    },
-  });
+  const stack = new cdk.Stack();
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
     cidr: '10.2.0.0/16',
     region: 'ca-central-1',
+    deploy: 'local',
     igw: false,
     vgw: false,
     pcx: false,
@@ -215,26 +205,22 @@ test('the VPC creation should throw an error when a subnet uses a route table th
   });
   expect(() => {
     new Vpc(stack, 'SharedNetwork', {
+      accountKey: 'master',
       accounts: [],
       vpcConfig,
+      limiter: new Limiter([]),
     });
   }).toThrowError();
 });
 
 test('the VPC creation should create the internet gateway', () => {
-  const app = new cdk.App();
-  const stack = new VpcStack(app, 'Stack', {
-    acceleratorName: 'PBMM',
-    acceleratorPrefix: 'PBMMAccel',
-    flowLogBucket: {
-      expirationInDays: 30,
-    },
-  });
+  const stack = new cdk.Stack();
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
     cidr: '10.2.0.0/16',
     region: 'ca-central-1',
+    deploy: 'local',
     igw: true,
     vgw: false,
     pcx: false,
@@ -242,8 +228,10 @@ test('the VPC creation should create the internet gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
+    accountKey: 'master',
     accounts: [],
     vpcConfig,
+    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -257,19 +245,13 @@ test('the VPC creation should create the internet gateway', () => {
 });
 
 test('the VPC creation should create the VPN gateway', () => {
-  const app = new cdk.App();
-  const stack = new VpcStack(app, 'Stack', {
-    acceleratorName: 'PBMM',
-    acceleratorPrefix: 'PBMMAccel',
-    flowLogBucket: {
-      expirationInDays: 30,
-    },
-  });
+  const stack = new cdk.Stack();
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
     cidr: '10.2.0.0/16',
     region: 'ca-central-1',
+    deploy: 'local',
     igw: false,
     vgw: true,
     pcx: false,
@@ -277,8 +259,10 @@ test('the VPC creation should create the VPN gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
+    accountKey: 'master',
     accounts: [],
     vpcConfig,
+    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -319,19 +303,13 @@ test('the VPC creation should create the VPN gateway', () => {
 });
 
 test('the VPC creation should create the NAT gateway', () => {
-  const app = new cdk.App();
-  const stack = new VpcStack(app, 'Stack', {
-    acceleratorName: 'PBMM',
-    acceleratorPrefix: 'PBMMAccel',
-    flowLogBucket: {
-      expirationInDays: 30,
-    },
-  });
+  const stack = new cdk.Stack();
 
   const vpcConfig = parse(VpcConfigType, {
     name: 'shared-network',
     cidr: '10.2.0.0/16',
     region: 'ca-central-1',
+    deploy: 'local',
     igw: true,
     vgw: false,
     pcx: false,
@@ -395,8 +373,10 @@ test('the VPC creation should create the NAT gateway', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
+    accountKey: 'master',
     accounts: [],
     vpcConfig,
+    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -416,7 +396,7 @@ test('the VPC creation should create the NAT gateway', () => {
 
   const privateRoute = routeTables.find(x => x.LogicalId.startsWith('SharedNetworkPrivate'));
   const routes = resources.filter(r => r.Type === 'AWS::EC2::Route');
-  const natRoute = routes.find(x => x.Properties.NatGatewayId!! != undefined);
+  const natRoute = routes.find(x => x.Properties.NatGatewayId!! !== undefined);
 
   // Check NAT Gateway Route is assigned to Private Route Table which doesn't have IGW assigned
   expect(routes).toEqual(

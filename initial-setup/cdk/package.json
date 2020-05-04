@@ -45,6 +45,7 @@
     "@aws-cdk/core": "1.32.2",
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
+    "@aws-pbmm/common-outputs": "workspace:^0.0.1",
     "archiver": "3.1.1",
     "glob": "7.1.6",
     "tempy": "0.5.0"

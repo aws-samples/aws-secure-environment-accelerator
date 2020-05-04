@@ -107,20 +107,6 @@ export class InterfaceEndpoints extends cdk.Construct {
       throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
     }
 
-    // TODO Support Sagemaker Notebook endpoint
-    if (interfaceEndpoints.includes('notebook')) {
-      const message = 'The "notebook" interface endpoint is currently not supported.';
-      console.error(bgRed(message));
-      throw new Error(message);
-    }
-
-    // TODO Load the quotas from service quotas
-    if (interfaceEndpoints.length > 50) {
-      const message = 'Deploying more than 50 interface endpoints is currently not supported.';
-      console.error(bgRed(message));
-      throw new Error(message);
-    }
-
     // Group the interface endpoints by groups of 30 and create a stack for each group
     let index = 0;
     for (const groupedEndpoints of groupArrayByLength<string>(interfaceEndpoints, 30)) {

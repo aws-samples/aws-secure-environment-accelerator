@@ -10,21 +10,11 @@ process.on('unhandledRejection', (reason, _) => {
 async function main() {
   // Load accelerator parameters
   const app = new cdk.App();
-  const acceleratorName = process.env.ACCELERATOR_NAME;
-  const acceleratorPrefix = process.env.ACCELERATOR_PREFIX;
-  const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID;
-  const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME;
+  const acceleratorName = process.env.ACCELERATOR_NAME || 'PBMM';
+  const acceleratorPrefix = process.env.ACCELERATOR_PREFIX || 'PBMMAccel-';
+  const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID || 'accelerator/config';
+  const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME || 'PBMMAccel-MainStateMachine';
   const stateMachineExecutionRole = process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || 'AcceleratorPipelineRole';
-
-  if (!acceleratorName) {
-    throw new Error(`Please set environment variable "ACCELERATOR_NAME"`);
-  } else if (!acceleratorPrefix) {
-    throw new Error(`Please set environment variable "ACCELERATOR_PREFIX"`);
-  } else if (!configSecretName) {
-    throw new Error(`Please set environment variable "ACCELERATOR_CONFIG_SECRET_ID"`);
-  } else if (!stateMachineName) {
-    throw new Error(`Please set environment variable "ACCELERATOR_PIPELINE_NAME"`);
-  }
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
