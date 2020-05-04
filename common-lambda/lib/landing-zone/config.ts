@@ -20,6 +20,18 @@ export const OrganizationalUnitConfigType = t.interface({
   core_accounts: fromNullable(t.array(AccountConfigType), []),
 });
 
+export const ProductType = t.interface({
+  name: t.string,
+});
+
+export const PortfolioType = t.interface({
+  name: t.string,
+  description: t.string,
+  owner: t.string,
+  principal_role: t.string,
+  products: t.array(ProductType),
+});
+
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export const LandingZoneConfigType = t.interface({
@@ -27,6 +39,7 @@ export const LandingZoneConfigType = t.interface({
   version: t.unknown,
   nested_ou_delimiter: t.string,
   organizational_units: t.array(OrganizationalUnitConfigType),
+  portfolios: t.array(PortfolioType),
 });
 
 export type LandingZoneConfig = t.TypeOf<typeof LandingZoneConfigType>;

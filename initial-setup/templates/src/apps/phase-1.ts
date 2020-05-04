@@ -7,11 +7,10 @@ import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogContainer } from '../common/flow-log-bucket-stack';
-import { Vpc, VpcProps } from '../common/vpc';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { VpcProps, VpcStack } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
-import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
@@ -124,10 +123,12 @@ async function main() {
 
     const accountStack = getAccountStack(accountKey);
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
-    const vpcStack = new NestedStack(accountStack, `Vpc${vpcStackPrettyName}`);
 
-    // Create the VPC
-    const vpc = new Vpc(vpcStack, props.vpcConfig.name, props);
+    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
+      vpcProps: props,
+      transitGateways,
+    });
+    const vpc = vpcStack.vpc;
 
     const endpointConfig = vpcConfig['interface-endpoints'];
     if (InterfaceEndpointConfig.is(endpointConfig)) {
@@ -200,42 +201,10 @@ async function main() {
       type: 'VpcOutput',
       value: vpcOutput,
     });
-
-    const tgwDeployment = props.tgwDeployment;
-    if (tgwDeployment) {
-      const tgw = new TransitGateway(vpcStack, tgwDeployment.name!, tgwDeployment);
-      transitGateways.set(tgwDeployment.name!, tgw);
-    }
-
-    const tgwAttach = props.vpcConfig['tgw-attach'];
-    if (tgwAttach) {
-      const tgwName = tgwAttach['associate-to-tgw'];
-      const tgw = transitGateways.get(tgwName);
-      if (tgw && tgwName.length > 0) {
-        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
-        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
-        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-        // Attach VPC To TGW
-        new TransitGatewayAttachment(vpcStack, 'TgwAttach', {
-          vpcId: vpc.vpcId,
-          subnetIds,
-          transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-        });
-      }
-    }
   };
 
   // Create all the VPCs for accounts and organizational units
-  for (const { ouKey, accountKey, vpcConfig } of acceleratorConfig.getVpcConfigs()) {
+  for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
       console.log(
         `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
@@ -253,6 +222,7 @@ async function main() {
       limiter,
       accounts,
       vpcConfig,
+      tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
     });
   }
