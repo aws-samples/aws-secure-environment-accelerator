@@ -261,7 +261,7 @@
             "min-len": 12,
             "complexity": true,
             "reversible": false,
-            "failed-attaempts": 6,
+            "failed-attempts": 6,
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },

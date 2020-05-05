@@ -46,6 +46,7 @@
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "archiver": "3.1.1",
+    "cdk-ec2-key-pair": "^1.2.0",
     "glob": "7.1.6",
     "tempy": "0.5.0"
   },

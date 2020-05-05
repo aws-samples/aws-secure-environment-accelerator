@@ -136,7 +136,7 @@ export const PasswordPolicyType = t.interface({
   'min-len': t.number,
   complexity: t.boolean,
   reversible: t.boolean,
-  'failed-attaempts': t.number,
+  'failed-attempts': t.number,
   'lockout-duration': t.number,
   'lockout-attempts-reset': t.number,
 });
@@ -166,6 +166,7 @@ export const MadConfigType = t.interface({
   'num-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
+  'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
 });

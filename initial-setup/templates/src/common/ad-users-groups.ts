@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import * as iam from '@aws-cdk/aws-iam';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnAutoScalingGroup, CfnLaunchConfiguration, AutoScalingGroup } from '@aws-cdk/aws-autoscaling';
 import { pascalCase } from 'pascal-case';
@@ -8,13 +9,26 @@ import { pascalCase } from 'pascal-case';
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
   latestRdgwAmiId: string;
-  domainMemberSGID: string;
+  vpcId: string;
   keyPairName: string;
   subnetIds: string[];
   adminPassword: Secret;
   s3BucketName: string;
   s3KeyPrefix: string;
   stackId: string;
+  accountNames: string[];
+  userSecrets: UserSecret[];
+}
+
+export interface UserSecret {
+  user: string;
+  password: Secret;
+}
+
+export interface AdCommand {
+  name: string;
+  command: string;
+  waitAfterCompletion: string;
 }
 
 export class ADUsersAndGroups extends cdk.Construct {
@@ -23,7 +37,7 @@ export class ADUsersAndGroups extends cdk.Construct {
 
     const {
       latestRdgwAmiId,
-      domainMemberSGID,
+      vpcId,
       keyPairName,
       subnetIds,
       madDeploymentConfig,
@@ -32,7 +46,153 @@ export class ADUsersAndGroups extends cdk.Construct {
       stackId,
       stackName,
       adminPassword,
+      accountNames,
+      userSecrets,
     } = props;
+
+    const adGroups: string[] = [];
+    madDeploymentConfig['ad-groups'].map(g => adGroups.push(g));
+    const adPerAccountGroups = madDeploymentConfig['ad-per-account-groups'];
+
+    const adCommandUsers: AdCommand[] = [];
+
+    const adCommands = Object.values(adGroups).map(a => {
+      name: `a-configure-${a}-user`;
+      command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-setup.ps1 -GroupName ${madDeploymentConfig['adc-group']} -UserName aduser -Password Test@12345 -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -PasswordNeverExpires Yes`;
+      waitAfterCompletion: '0';
+    });
+
+    // Create a new security group for RDGW Host
+    const securityGroup = new ec2.CfnSecurityGroup(this, 'RemoteDesktopGatewaySG', {
+      vpcId,
+      groupDescription: `Enable RDP access from the Domain`,
+      securityGroupIngress: [
+        {
+          ipProtocol: ec2.Protocol.UDP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 445,
+          toPort: 445,
+        },
+        {
+          ipProtocol: ec2.Protocol.UDP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 138,
+          toPort: 138,
+        },
+        {
+          ipProtocol: ec2.Protocol.UDP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 464,
+          toPort: 464,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 464,
+          toPort: 464,
+        },
+        {
+          ipProtocol: ec2.Protocol.UDP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 389,
+          toPort: 389,
+        },
+        {
+          ipProtocol: ec2.Protocol.UDP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 53,
+          toPort: 53,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 389,
+          toPort: 389,
+        },
+        {
+          ipProtocol: ec2.Protocol.UDP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 123,
+          toPort: 123,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 3389,
+          toPort: 3389,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIpv6: '0::/0',
+          fromPort: 3389,
+          toPort: 3389,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 445,
+          toPort: 445,
+        },
+        {
+          ipProtocol: ec2.Protocol.ICMP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: -1,
+          toPort: -1,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 3268,
+          toPort: 3269,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 1024,
+          toPort: 65535,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 88,
+          toPort: 88,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 135,
+          toPort: 135,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 636,
+          toPort: 636,
+        },
+        {
+          ipProtocol: ec2.Protocol.TCP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 53,
+          toPort: 53,
+        },
+        {
+          ipProtocol: ec2.Protocol.UDP,
+          cidrIp: '0.0.0.0/0',
+          fromPort: 88,
+          toPort: 88,
+        },
+      ],
+      securityGroupEgress: [
+        {
+          ipProtocol: ec2.Protocol.ALL,
+          cidrIp: '0.0.0.0/0',
+        },
+        {
+          ipProtocol: ec2.Protocol.ALL,
+          cidrIpv6: '0::/0',
+        },
+      ],
+    });
 
     const RDGWHostRole = new iam.Role(this, 'RDGWHostRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -83,13 +243,13 @@ export class ADUsersAndGroups extends cdk.Construct {
       instanceProfileName: 'PBMM-RDGWHostProfile',
     });
 
-    const launchConfig = new CfnLaunchConfiguration(this, 'PBMMRDGWLaunchConfiguration', {
+    const launchConfig = new CfnLaunchConfiguration(this, 'RDGWLaunchConfiguration', {
       associatePublicIpAddress: true, // TODO make it false
       imageId: latestRdgwAmiId,
-      securityGroups: [domainMemberSGID],
+      securityGroups: [securityGroup.ref],
       iamInstanceProfile: RDGWHostProfile.instanceProfileName,
       instanceType: madDeploymentConfig['rdgw-instance-type'],
-      launchConfigurationName: 'PBMMRDGWLaunchConfiguration',
+      launchConfigurationName: 'RDGWLaunchConfiguration',
       blockDeviceMappings: [
         {
           deviceName: '/dev/sda1',
