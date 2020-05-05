@@ -3,12 +3,11 @@ import * as kms from '@aws-cdk/aws-kms';
 import * as iam from '@aws-cdk/aws-iam';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import {
-  AccountConfig,
+  IamConfig,
   IamConfigType,
   IamPolicyConfigType,
   IamUserConfigType,
   IamRoleConfigType,
-  AcceleratorConfig,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '../utils/accounts';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
@@ -16,8 +15,7 @@ import { Secret } from '@aws-cdk/aws-secretsmanager';
 export interface AccountDefaultSettingsAssetsProps extends cdk.StackProps {
   accountId: string;
   accountKey: string;
-  accountConfig: AccountConfig;
-  acceleratorConfig: AcceleratorConfig;
+  iamConfig?: IamConfig;
   accounts: Account[];
   userPasswords: { [userId: string]: Secret };
 }
@@ -27,7 +25,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, props: AccountDefaultSettingsAssetsProps) {
     super(scope, id);
-    const { accountId, accountKey, accountConfig, acceleratorConfig, accounts, userPasswords } = props;
+    const { accountId, accountKey, iamConfig, accounts, userPasswords } = props;
 
     // kms key used for default EBS encryption
     const kmsKey = new kms.Key(this, 'EBS-DefaultEncryption', {
@@ -48,8 +46,6 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
 
     // save the kmsKeyArn for later use
     this.kmsKeyIdForEbsDefaultEncryption = kmsKey.keyId;
-
-    const iamConfig = accountConfig.iam;
 
     const customerManagedPolicies: { [policyName: string]: iam.ManagedPolicy } = {};
     // method to create IAM Policy
@@ -172,7 +168,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
     if (accountKey === 'security') {
       const accessAnalyzer = new accessanalyzer.CfnAnalyzer(this, 'OrgAccessAnalyzer', {
         analyzerName: 'OrgAccessAnalyzer',
-        type: 'AWS::AccessAnalyzer::Analyzer',
+        type: 'ORGANIZATION',
       });
     }
   }
