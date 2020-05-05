@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PcxRouteConfig, PcxRouteConfigType, ResolvedVpcConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/outputs';
 import { VpcOutput } from '../apps/phase-1';
 import { getVpcConfig } from './get-all-vpcs';
 

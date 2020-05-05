@@ -1,8 +1,8 @@
 import { ServiceQuotas } from '@aws-pbmm/common-lambda/lib/aws/service-quotas';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { Account } from './load-accounts-step';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getAccountId } from '../../templates/src/utils/accounts';
+import { getAccountId, Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { LimitOutput, Limit } from '@aws-pbmm/common-outputs/lib/limits';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 
 export interface LoadLimitsInput {
@@ -12,27 +12,10 @@ export interface LoadLimitsInput {
   assumeRoleName: string;
 }
 
-export interface LimitOutput {
-  accountKey: string;
-  limitKey: string;
-  serviceCode: string;
-  quotaCode: string;
-  value: number;
-}
-
 interface LimitCode {
   serviceCode: string;
   quotaCode: string;
   enabled: boolean;
-}
-
-// TODO Move this to common so we can use it from initial-setup/cdk
-enum Limit {
-  VpcPerRegion = 'Amazon VPC/VPCs per Region',
-  VpcInterfaceEndpointsPerVpc = 'Amazon VPC/Interface VPC endpoints per VPC',
-  CloudFormationStackCount = 'AWS CloudFormation/Stack count',
-  CloudFormationStackSetPerAdmin = 'AWS CloudFormation/Stack sets per administrator account',
-  OrganizationsMaximumAccounts = 'AWS Organizations/Maximum accounts',
 }
 
 const LIMITS: { [limitKey: string]: LimitCode } = {

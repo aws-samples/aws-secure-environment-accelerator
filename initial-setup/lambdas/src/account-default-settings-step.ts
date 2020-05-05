@@ -4,9 +4,9 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
 import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { Account } from './load-accounts-step';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
-import { StackOutput, getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { StackOutput, getStackOutput } from '@aws-pbmm/common-outputs/lib/outputs';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 
 interface AccountDefaultSettingsInput {

@@ -1,4 +1,5 @@
 import * as t from 'io-ts';
+import * as accounts from '@aws-pbmm/common-outputs/lib/accounts';
 import { availabilityZone, cidr, optional, region, enumType } from './types';
 import { PathReporter } from './reporter';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
@@ -218,10 +219,8 @@ export const AdcConfigType = t.interface({
   'connect-dir-id': t.number,
 });
 
-export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
-
-export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
-  LANDING_ZONE_ACCOUNT_TYPES,
+export const LandingZoneAccountConfigType = enumType<accounts.LandingZoneAccountType>(
+  Object.values(accounts.LandingZoneAccountType),
 );
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;

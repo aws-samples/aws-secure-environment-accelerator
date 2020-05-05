@@ -3,10 +3,10 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as r53resolver from '@aws-cdk/aws-route53resolver';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { Context } from '../utils/context';
+import { Environment } from '../utils/environment';
 
 export interface Route53ResolverEndpointProps {
-  context: Context;
+  environment: Environment;
   /**
    * The name that will be added to the description of the endpoint resolvers.
    */
@@ -62,7 +62,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
       this,
       'CfnInBoundEndpointIpPooler',
-      this.props.context.cfnCustomResourceFunctions.getDnsIpsFunctionArn,
+      this.props.environment.cfnCustomResourceFunctions.getDnsIpsFunctionArn,
     );
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint

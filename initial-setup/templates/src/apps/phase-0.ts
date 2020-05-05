@@ -1,14 +1,13 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { LogArchiveBucket } from '../common/log-archive-bucket';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { pascalCase } from 'pascal-case';
-import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
+import { pascalCase } from 'pascal-case';
+import { AcceleratorStack } from '../common/accelerator-stack';
+import { LogArchiveBucket } from '../common/log-archive-bucket';
+import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
+import { Context } from '../utils/context';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -24,12 +23,10 @@ process.on('unhandledRejection', (reason, _) => {
  * TODO This phase could be merged into phase 1.
  */
 async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
+  const context = await Context.load();
 
   // TODO Get these values dynamically
-  const globalOptionsConfig = acceleratorConfig['global-options'];
+  const globalOptionsConfig = context.config['global-options'];
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
 
   const app = new cdk.App();
@@ -41,15 +38,12 @@ async function main() {
       return accountStacks[accountKey];
     }
 
+    const account = context.accounts.getAccountByKey(accountKey);
     const accountPrettyName = pascalCase(accountKey);
     const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase0`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
       stackName: `PBMMAccel-${accountPrettyName}-Phase0`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
+      context,
+      account,
     });
     accountStacks[accountKey] = accountStack;
     return accountStack;
@@ -58,18 +52,18 @@ async function main() {
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
   const masterAccountStack = getAccountStack('master');
-  for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
-    for (const account of accounts) {
+  for (const [index, funcArn] of Object.entries(context.environment.cfnCustomResourceFunctions)) {
+    for (const account of context.accounts) {
       new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
         functionName: funcArn,
         action: 'lambda:InvokeFunction',
-        principal: `arn:aws:iam::${account.id}:role/${context.acceleratorExecutionRoleName}`,
+        principal: `arn:aws:iam::${account.id}:role/${context.environment.acceleratorExecutionRoleName}`,
       });
     }
   }
 
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
-  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const logArchiveAccountId = getAccountId(context.accounts, 'log-archive');
   const logArchiveStack = getAccountStack('log-archive');
 
   // Create the log archive bucket
@@ -78,7 +72,7 @@ async function main() {
   });
 
   // Grant all accounts access to the log archive bucket
-  const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
+  const principals = context.accounts.map(account => new iam.AccountPrincipal(account.id));
   bucket.grantReplicate(...principals);
 
   // store the s3 bucket - kms key arn for later reference
@@ -106,7 +100,7 @@ async function main() {
   // });
 
   // creating assets for default account settings
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
+  const mandatoryAccountConfig = context.config['mandatory-account-configs'];
   for (const accountKey of Object.keys(mandatoryAccountConfig)) {
     const accountStack = getAccountStack(accountKey);
     const accountDefaults = new AccountDefaultSettingsAssets(accountStack, 'AccountDefaults');

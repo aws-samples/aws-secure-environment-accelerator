@@ -3,22 +3,22 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { pascalCase } from 'pascal-case';
-import { Account } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
-import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 import { TransitGateway } from './transit-gateway';
+import { Context } from '../utils/context';
 
 export interface VpcCommonProps {
   /**
-   * Current VPC Creation account Key
+   * The context of the deployment.
    */
-  accountKey: string;
+  context: Context;
   /**
-   * List of accounts in the organization.
+   * Current VPC Creation account.
    */
-  accounts: Account[];
+  account: Account;
   /**
    * The VPC configuration for the VPC.
    */
@@ -31,7 +31,6 @@ export interface VpcCommonProps {
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */
   organizationalUnitName?: string;
-  limiter: Limiter;
 }
 
 export interface AzSubnet {
@@ -143,7 +142,8 @@ export class Vpc extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string, props: VpcProps) {
     super(scope, name);
 
-    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter } = props;
+    const { context, account, vpcConfig, organizationalUnitName } = props;
+
     const vpcName = props.vpcConfig.name;
     const useCentralEndpointsConfig: boolean = props.vpcConfig['use-central-endpoints'] ?? false;
 
@@ -346,12 +346,11 @@ export class Vpc extends cdk.Construct {
 
     // Share VPC subnet
     new VpcSubnetSharing(this, 'Sharing', {
-      accountKey,
-      accounts,
+      context,
+      account,
       vpcConfig,
       organizationalUnitName,
       subnets: this.azSubnets,
-      limiter,
     });
   }
 }

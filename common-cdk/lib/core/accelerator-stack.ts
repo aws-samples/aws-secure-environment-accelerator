@@ -6,6 +6,9 @@ export interface AcceleratorStackProps extends cdk.StackProps {
   acceleratorPrefix: string;
 }
 
+/**
+ * @deprecated
+ */
 export class AcceleratorStack extends cdk.Stack {
   readonly acceleratorName: string;
   readonly acceleratorPrefix: string;

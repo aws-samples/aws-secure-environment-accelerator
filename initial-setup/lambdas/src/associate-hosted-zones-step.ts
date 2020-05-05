@@ -8,10 +8,9 @@ import {
 import { AssociateResolverRuleResponse } from 'aws-sdk/clients/route53resolver';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig, VpcConfigType, InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { Account } from './load-accounts-step';
-import { getAccountId } from '../../templates/src/utils/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getAccountId, Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-outputs/lib/outputs';
 import { VpcOutput } from '../../templates/src/apps/phase-1';
 import { ResolversOutput } from '../../templates/src/apps/phase-2';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';

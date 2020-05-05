@@ -1,10 +1,9 @@
 import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-service';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { Account } from '../load-accounts-step';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getAccountId } from '../../../templates/src/utils/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-outputs/lib/outputs';
+import { getAccountId, Account } from '@aws-pbmm/common-outputs/lib/accounts';
 
 interface AdConnectorInput {
   accounts: Account[];

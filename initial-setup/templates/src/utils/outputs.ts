@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/outputs';
 
 export async function loadStackOutputs(): Promise<StackOutput[]> {
   if (process.env.CONFIG_MODE === 'development') {

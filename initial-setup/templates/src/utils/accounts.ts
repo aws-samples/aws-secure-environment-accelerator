@@ -1,29 +1,7 @@
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import * as fs from 'fs';
 import * as path from 'path';
-
-export interface Account {
-  key: string;
-  id: string;
-  arn: string;
-  ou: string;
-}
-
-export function getAccountId(accounts: Account[], accountKey: string): string {
-  const account = accounts.find(a => a.key === accountKey);
-  if (!account) {
-    throw new Error(`Cannot find account with key "${accountKey}"`);
-  }
-  return account.id;
-}
-
-export function getAccountArn(accounts: Account[], accountKey: string): string {
-  const account = accounts.find(a => a.arn === accountKey);
-  if (!account) {
-    throw new Error(`Cannot find account with key "${accountKey}"`);
-  }
-  return account.id;
-}
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 
 export async function loadAccounts(): Promise<Account[]> {
   if (process.env.CONFIG_MODE === 'development') {

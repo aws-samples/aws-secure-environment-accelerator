@@ -1,30 +1,16 @@
 import * as cdk from '@aws-cdk/core';
-import { AcceleratorConfig, VpcConfig, AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { Account } from '../utils/accounts';
-import { Context } from '../utils/context';
+import { VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { getStackJsonOutput, getStackOutput } from '@aws-pbmm/common-outputs/lib/outputs';
 import { Route53Zones } from './r53-zones';
 import { Route53ResolverEndpoint } from './r53-resolver-endpoint';
 import { Route53ResolverRule } from './r53-resolver-rule';
-import { StackOutput, getStackJsonOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../apps/phase-1';
 import { JsonOutputValue } from './json-output';
 import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '../apps/phase-2';
-
-interface ResolverOutput {
-  [key: string]: string;
-}
+import { Context } from '../utils/context';
 
 export interface GlobalOptionsProps {
-  acceleratorConfig: AcceleratorConfig;
   context: Context;
-  /**
-   * The accounts in the organization.
-   */
-  accounts: Account[];
-  /**
-   * Outputs
-   */
-  outputs: StackOutput[];
 }
 
 /**
@@ -40,7 +26,8 @@ export class GlobalOptionsDeployment extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: GlobalOptionsProps) {
     super(scope, id);
 
-    const { context, acceleratorConfig, outputs } = props;
+    const { context } = props;
+    const { config: acceleratorConfig, outputs } = context;
 
     const vpcInBoundMapping = new Map<string, string>();
     const vpcOutBoundMapping = new Map<string, string>();
@@ -99,7 +86,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
       // Call r53-resolver-endpoint per Account
       const r53ResolverEndpoints = new Route53ResolverEndpoint(this, 'ResolverEndpoints', {
-        context,
+        environment: context.environment,
         vpcId: vpcOutput.vpcId,
         name: vpcConfig.name,
         subnetIds,

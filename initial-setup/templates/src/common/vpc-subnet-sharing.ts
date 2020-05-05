@@ -1,11 +1,11 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as ram from '@aws-cdk/aws-ram';
+import * as config from '@aws-pbmm/common-lambda/lib/config';
+import { getAccountId, Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { pascalCase } from 'pascal-case';
-import { getAccountId, Account } from '../utils/accounts';
 import { VpcCommonProps, AzSubnets } from './vpc';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
-import * as config from '@aws-pbmm/common-lambda/lib/config';
 
 export interface VpcSubnetSharingProps extends VpcCommonProps {
   subnets: AzSubnets;
@@ -61,7 +61,8 @@ export class VpcSubnetSharing extends cdk.Construct {
     super(scope, id);
 
     const stack = cdk.Stack.of(this);
-    const { accounts, vpcConfig, subnets: vpcSubnets, organizationalUnitName } = props;
+    const { context, vpcConfig, subnets: vpcSubnets, organizationalUnitName } = props;
+    const { accounts } = context;
 
     // Keep track of what has been shared and put it in the output
     const sharedSubnets: {

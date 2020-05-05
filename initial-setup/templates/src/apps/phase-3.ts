@@ -1,14 +1,15 @@
 import * as cdk from '@aws-cdk/core';
-import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { PeeringConnection } from '../common/peering-connection';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { ResolversOutput } from './phase-2';
 import { pascalCase } from 'pascal-case';
+import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/outputs';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { loadAccounts } from '../utils/accounts';
+import { loadAcceleratorConfig } from '../utils/config';
+import { loadEnvironment } from '../utils/environment';
+import { loadStackOutputs } from '../utils/outputs';
+import { PeeringConnection } from '../common/peering-connection';
+import { ResolversOutput } from './phase-2';
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
 
 process.on('unhandledRejection', (reason, _) => {
@@ -19,7 +20,7 @@ process.on('unhandledRejection', (reason, _) => {
 type ResolversOutputs = ResolversOutput[];
 
 async function main() {
-  const context = loadContext();
+  const environment = loadEnvironment();
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
   const outputs = await loadStackOutputs();
@@ -44,8 +45,8 @@ async function main() {
           region: cdk.Aws.REGION,
         },
         stackName: `PBMMAccel-PcxRouteDeployment${accountKey}${vpcConfig.name.replace('_', '')}RoutesStack`,
-        acceleratorName: context.acceleratorName,
-        acceleratorPrefix: context.acceleratorPrefix,
+        acceleratorName: environment.acceleratorName,
+        acceleratorPrefix: environment.acceleratorPrefix,
       },
     );
 
@@ -108,8 +109,8 @@ async function main() {
             account: accountId,
             region: cdk.Aws.REGION,
           },
-          acceleratorName: context.acceleratorName,
-          acceleratorPrefix: context.acceleratorPrefix,
+          acceleratorName: environment.acceleratorName,
+          acceleratorPrefix: environment.acceleratorPrefix,
           stackName: `PBMMAccel-Route53ResolverRulesSharing-${pascalCase(accountKey)}Stack`,
         },
       );

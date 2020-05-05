@@ -1,23 +1,21 @@
 import * as cdk from '@aws-cdk/core';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
 import * as iam from '@aws-cdk/aws-iam';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import { pascalCase } from 'pascal-case';
-import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/outputs';
+import { LandingZoneAccountType } from '@aws-pbmm/common-outputs/lib/accounts';
+import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorStack } from '../common/accelerator-stack';
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput } from './phase-1';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import * as ec2 from '@aws-cdk/aws-ec2';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { ActiveDirectory } from '../common/active-directory';
-import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
+import { Context } from '../utils/context';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -42,10 +40,7 @@ export interface ResolversOutput {
 }
 
 async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
+  const context = await Context.load();
 
   const app = new cdk.App();
   const rolesForPeering: string[] = [];
@@ -56,24 +51,23 @@ async function main() {
    * @param sourceAccount : Source Account Key, Role will be created in this
    * @param accountKey : Target Account Key, Access will be provided to this accout
    */
-  const createIamRole = (roleName: string, sourceAccount: string, targetAccount: string) => {
+  const createIamRole = (roleName: string, sourceAccountKey: string, targetAccountKey: string) => {
     if (rolesForPeering.includes(roleName)) {
       return;
     }
+    const sourceAccount = context.accounts.getAccountByKey(sourceAccountKey);
+    const targetAccount = context.accounts.getAccountByKey(targetAccountKey);
+
     const iamRolePeering = new AcceleratorStack(app, `PBMMAccel-B-${roleName}Stack`, {
-      env: {
-        account: getAccountId(accounts, sourceAccount),
-        region: cdk.Aws.REGION,
-      },
       stackName: `PBMMAccel-B-${roleName}Stack`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
+      context,
+      account: sourceAccount,
     });
 
     const peeringRole = new iam.Role(iamRolePeering, roleName, {
       roleName,
       assumedBy: new iam.ArnPrincipal(
-        `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
+        `arn:aws:iam::${targetAccount.id}:role/${context.environment.acceleratorExecutionRoleName}`,
       ),
     });
 
@@ -89,50 +83,42 @@ async function main() {
   /**
    * Code to create DNS Resolvers
    */
-  const globalOptionsConfig = acceleratorConfig['global-options'];
+  const globalOptionsConfig = context.config['global-options'];
   const zonesConfig = globalOptionsConfig.zones;
-  const zonesAccountKey = zonesConfig.account;
+  const zonesAccount = context.accounts.getAccountByKey(zonesConfig.account);
 
   const deployment = new AcceleratorStack(app, 'PBMMAccel-A-GlobalOptionsDNSResolversStack', {
-    env: {
-      account: getAccountId(accounts, zonesAccountKey),
-      region: cdk.Aws.REGION,
-    },
     stackName: `PBMMAccel-A-GlobalOptionsDNSResolvers`,
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
+    context,
+    account: zonesAccount,
   });
 
   new GlobalOptionsDeployment(deployment, `GlobalOptionsDNSResolvers`, {
-    accounts,
-    outputs,
     context,
-    acceleratorConfig,
   });
 
   /**
    * Code to create Peering Connection in all accounts
    */
 
-  const vpcConfigs = acceleratorConfig.getVpcConfigs();
+  const vpcConfigs = context.config.getVpcConfigs();
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const pcxConfig = vpcConfig.pcx;
     if (!PeeringConnectionConfig.is(pcxConfig)) {
       continue;
     }
+    const account = context.accounts.getAccountByKey(accountKey);
+    const sourceAccount = context.accounts.getAccountByKey(pcxConfig.source);
+
     const pcxSourceVpc = pcxConfig['source-vpc'];
     const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
     createIamRole(roleName, pcxConfig.source, accountKey);
-    const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
+    const peerRoleArn = `arn:aws:iam::${sourceAccount.id}:role/${roleName}`;
 
     const pcxDeployment = new AcceleratorStack(app, `PBMMAccel-C-PcxDeployment${accountKey}${pcxSourceVpc}Stack`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
       stackName: `PBMMAccel-C-PcxDeployments${accountKey}${vpcConfig.name}Stack`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
+      context,
+      account,
     });
 
     // Get Peer VPC Configuration
@@ -140,7 +126,7 @@ async function main() {
     if (!VpcConfigType.is(peerVpcConfig)) {
       throw new Error(`No configuration found for Peer VPC "${pcxSourceVpc}"`);
     }
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(context.outputs, {
       accountKey,
       outputType: 'VpcOutput',
     });
@@ -148,7 +134,7 @@ async function main() {
     if (!vpcOutput) {
       throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
     }
-    const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(context.outputs, {
       accountKey: pcxConfig.source,
       outputType: 'VpcOutput',
     });
@@ -156,7 +142,7 @@ async function main() {
     if (!peerVpcOutout) {
       throw new Error(`No VPC Found in outputs for VPC name "${pcxSourceVpc}"`);
     }
-    const peerOwnerId = getAccountId(accounts, pcxConfig.source);
+    const peerOwnerId = sourceAccount.id;
 
     const pcx = new ec2.CfnVPCPeeringConnection(pcxDeployment, `${vpcConfig.name}-${pcxSourceVpc}_pcx`, {
       vpcId: vpcOutput.vpcId,
@@ -175,43 +161,40 @@ async function main() {
     });
   }
 
+  const primaryAccount = context.accounts.getAccountByType(LandingZoneAccountType.Primary);
   const secretsStack = new SecretsStack(app, 'Secrets', {
     env: {
-      account: getAccountId(accounts, 'master'),
+      account: primaryAccount.id,
       region: cdk.Aws.REGION,
     },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
+    acceleratorName: context.environment.acceleratorName,
+    acceleratorPrefix: context.environment.acceleratorPrefix,
     stackName: 'PBMMAccel-Secrets',
   });
 
-  const accountConfigs = acceleratorConfig.getAccountConfigs();
+  const accountConfigs = context.config.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
     }
-    const accountId = getAccountId(accounts, accountKey);
+    const account = context.accounts.getAccountByKey(accountKey);
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
       description: 'Password for Managed Active Directory.',
       generateSecretString: {
         passwordLength: 16,
       },
-      principals: [new iam.AccountPrincipal(accountId)],
+      principals: [new iam.AccountPrincipal(account.id)],
     });
 
     const stack = new AcceleratorStack(app, `${accountKey}`, {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
       stackName: `PBMMAccel-${pascalCase(accountKey)}`,
+      context,
+      account,
     });
 
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(context.outputs, {
       outputType: 'VpcOutput',
     });
     const vpcOutput = vpcOutputs.find(output => output.vpcName === madDeploymentConfig['vpc-name']);
@@ -244,26 +227,25 @@ async function main() {
 
   // Creating Security Groups in shared accounts to respective accounts
   for (const { ouKey, accountKey, vpcConfig } of vpcConfigs) {
-    const sharedToAccounts = getVpcSharedAccounts(accounts, vpcConfig, ouKey);
+    const account = context.accounts.getAccountByKey(accountKey);
+
+    const sharedToAccounts = getVpcSharedAccounts(context.accounts, vpcConfig, ouKey);
     const shareToAccountIds = Array.from(new Set(sharedToAccounts));
     if (sharedToAccounts.length > 0) {
       console.log(`Share VPC "${vpcConfig.name}" from Account "${accountKey}" to Accounts "${shareToAccountIds}"`);
     }
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(context.outputs, {
       accountKey,
       outputType: 'VpcOutput',
     });
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
+      const sharedAccount = context.accounts.getAccountById(sharedAccountId);
       const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`, {
-        env: {
-          account: sharedAccountId,
-          region: cdk.Aws.REGION,
-        },
-        acceleratorName: context.acceleratorName,
-        acceleratorPrefix: context.acceleratorPrefix,
         stackName: `PBMMAccel-SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
+        context,
+        account: sharedAccount,
       });
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
@@ -274,7 +256,6 @@ async function main() {
         accountKey,
       });
       // Add Tags Output
-      const accountId = getAccountId(accounts, accountKey);
       const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
       new AddTagsToResourcesOutput(securityGroupStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
         dependencies: securityGroupsResources,
@@ -282,7 +263,7 @@ async function main() {
           securityGroupsResources.map(securityGroup => ({
             resourceId: securityGroup.ref,
             resourceType: 'security-group',
-            targetAccountIds: [accountId],
+            targetAccountIds: [account.id],
             tags: securityGroup.tags.renderTags(),
           })),
       });

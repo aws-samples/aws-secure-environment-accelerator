@@ -1,28 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { tryGetQuotaByAccountAndLimit, LimitOutput, Limit } from '@aws-pbmm/common-outputs/lib/limits';
 
-// TODO Move to common as soon as Mani has added the new common folder
-export interface LimitOutput {
-  accountKey: string;
-  limitKey: string;
-  serviceCode: string;
-  quotaCode: string;
-  value: number;
-}
-
-// TODO Move to common as soon as Mani has added the new common folder
-export enum Limit {
-  VpcPerRegion = 'Amazon VPC/VPCs per Region',
-  VpcInterfaceEndpointsPerVpc = 'Amazon VPC/Interface VPC endpoints per VPC',
-  CloudFormationStackCount = 'AWS CloudFormation/Stack count',
-  CloudFormationStackSetPerAdmin = 'AWS CloudFormation/Stack sets per administrator account',
-  OrganizationsMaximumAccounts = 'AWS Organizations/Maximum accounts',
-}
-
-export type LimitOutputs = LimitOutput[];
-
-export async function loadLimits(): Promise<LimitOutputs> {
+export async function loadLimits(): Promise<LimitOutput[]> {
   if (process.env.CONFIG_MODE === 'development') {
     const limitsPath = path.join(__dirname, '..', '..', 'limits.json');
     if (!fs.existsSync(limitsPath)) {
@@ -44,20 +25,11 @@ export async function loadLimits(): Promise<LimitOutputs> {
   return JSON.parse(secret.SecretString!);
 }
 
-export function tryGetQuotaByAccountAndLimit(
-  limits: LimitOutputs,
-  accountKey: string,
-  limit: Limit,
-): number | undefined {
-  const limitOutput = limits.find(a => a.accountKey === accountKey && a.limitKey === limit);
-  return limitOutput?.value;
-}
-
 export class Limiter {
-  readonly limits: LimitOutputs;
+  readonly limits: LimitOutput[];
   readonly counts: { [index: string]: number } = {};
 
-  constructor(limits: LimitOutputs) {
+  constructor(limits: LimitOutput[]) {
     this.limits = limits;
   }
 

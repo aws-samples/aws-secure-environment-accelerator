@@ -1,30 +1,25 @@
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorNameTagger } from '@aws-pbmm/common-cdk/lib/core/name-tagger';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { Context } from '../utils/context';
-import { getAccountId } from '../utils/accounts';
 
 export interface AcceleratorStackProps extends Omit<cdk.StackProps, 'env'> {
   context: Context;
-  accountKey: string;
+  account: Account;
 }
 
 export class AcceleratorStack extends cdk.Stack {
   readonly context: Context;
-  readonly accountKey: string;
-  readonly accountId: string;
 
   constructor(scope: cdk.Construct, id: string, props: AcceleratorStackProps) {
     super(scope, id, {
       ...props,
       env: {
-        account: getAccountId(props.context.accounts, props.accountKey),
-        region: cdk.Aws.REGION,
+        account: props.account.id,
       },
     });
 
     this.context = props.context;
-    this.accountKey = props.accountKey;
-    this.accountId = getAccountId(props.context.accounts, props.accountKey);
 
     this.node.applyAspect(new cdk.Tag('Accelerator', props.context.environment.acceleratorName));
     this.node.applyAspect(new AcceleratorNameTagger());

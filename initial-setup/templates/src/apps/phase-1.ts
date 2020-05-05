@@ -1,21 +1,18 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackOutput } from '@aws-pbmm/common-outputs/lib/outputs';
+import { Limit } from '@aws-pbmm/common-outputs/lib/limits';
 import { pascalCase } from 'pascal-case';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogContainer } from '../common/flow-log-bucket-stack';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { AcceleratorStack } from '../common/accelerator-stack';
 import { VpcProps, VpcStack } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
-import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
+import { Context } from '../utils/context';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -52,19 +49,18 @@ export interface VpcOutput {
  *   - Flow logs
  */
 async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
-  const limits = await loadLimits();
-  const limiter = new Limiter(limits);
+  const context = await Context.load();
 
-  const globalOptions = acceleratorConfig['global-options'];
+  const globalOptions = context.config['global-options'];
 
-  const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
-  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+  const logArchiveAccountId = getStackOutput(context.outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
+  const logArchiveS3BucketArn = getStackOutput(
+    context.outputs,
+    'log-archive',
+    outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN,
+  );
   const logArchiveS3KmsKeyArn = getStackOutput(
-    outputs,
+    context.outputs,
     'log-archive',
     outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
   );
@@ -83,15 +79,12 @@ async function main() {
       return accountStacks[accountKey];
     }
 
+    const account = context.accounts.getAccountByKey(accountKey);
     const accountPrettyName = pascalCase(accountKey);
     const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase1`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
       stackName: `PBMMAccel-${accountPrettyName}-Phase1`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
+      context,
+      account,
     });
     accountStacks[accountKey] = accountStack;
     return accountStack;
@@ -145,7 +138,7 @@ async function main() {
         if (endpoint === 'notebook') {
           console.log(`Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Endpoint not supported`);
           continue;
-        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
+        } else if (!context.limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
           console.log(
             `Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Reached maximum interface endpoints per VPC`,
           );
@@ -204,8 +197,9 @@ async function main() {
   };
 
   // Create all the VPCs for accounts and organizational units
-  for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
-    if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
+  for (const { ouKey, accountKey, vpcConfig, deployments } of context.config.getVpcConfigs()) {
+    const account = context.accounts.getAccountByKey(accountKey);
+    if (!context.limiter.create(accountKey, Limit.VpcPerRegion)) {
       console.log(
         `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
       );
@@ -218,9 +212,8 @@ async function main() {
       }`,
     );
     createVpc(accountKey, {
-      accountKey,
-      limiter,
-      accounts,
+      context,
+      account,
       vpcConfig,
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,

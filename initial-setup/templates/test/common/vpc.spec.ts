@@ -1,10 +1,11 @@
 // tslint:disable:no-any
 import 'jest';
 import * as cdk from '@aws-cdk/core';
-import { parse, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { parse, VpcConfigType, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { Account, LandingZoneAccountType } from '@aws-pbmm/common-outputs/lib/accounts';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { Vpc } from '../../src/common/vpc';
-import { Limiter } from '../../src/utils/limits';
+import { Context } from '../../src/utils/context';
 
 test('the VPC creation should create the correct amount of subnets', () => {
   const stack = new cdk.Stack();
@@ -89,10 +90,9 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
+    context: createContext(),
+    account: createPrimaryAccount(),
     vpcConfig,
-    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -205,10 +205,9 @@ test('the VPC creation should throw an error when a subnet uses a route table th
   });
   expect(() => {
     new Vpc(stack, 'SharedNetwork', {
-      accountKey: 'master',
-      accounts: [],
+      context: createContext(),
+      account: createPrimaryAccount(),
       vpcConfig,
-      limiter: new Limiter([]),
     });
   }).toThrowError();
 });
@@ -228,10 +227,9 @@ test('the VPC creation should create the internet gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
+    context: createContext(),
+    account: createPrimaryAccount(),
     vpcConfig,
-    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -259,10 +257,9 @@ test('the VPC creation should create the VPN gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
+    context: createContext(),
+    account: createPrimaryAccount(),
     vpcConfig,
-    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -373,10 +370,9 @@ test('the VPC creation should create the NAT gateway', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
+    context: createContext(),
+    account: createPrimaryAccount(),
     vpcConfig,
-    limiter: new Limiter([]),
   });
 
   // Convert the stack to a CloudFormation template
@@ -415,3 +411,38 @@ test('the VPC creation should create the NAT gateway', () => {
     ]),
   );
 });
+
+function createPrimaryAccount(): Account {
+  return {
+    arn: '',
+    email: '',
+    id: '',
+    key: 'primary',
+    name: 'primary',
+    ou: '',
+    type: LandingZoneAccountType.Primary,
+  };
+}
+
+function createContext(): Context {
+  return new Context({
+    accounts: [],
+    outputs: [],
+    config: new AcceleratorConfig({
+      // @ts-ignore
+      'global-options': {},
+      'mandatory-account-configs': {},
+      'organizational-units': {},
+      'workload-account-configs': {},
+    }),
+    environment: {
+      acceleratorExecutionRoleName: '',
+      acceleratorName: '',
+      acceleratorPrefix: '',
+      cfnCustomResourceFunctions: {
+        getDnsIpsFunctionArn: '',
+      },
+    },
+    limits: [],
+  });
+}

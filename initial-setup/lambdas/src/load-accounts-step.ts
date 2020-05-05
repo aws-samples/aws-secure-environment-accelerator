@@ -1,7 +1,7 @@
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { LoadConfigurationOutput } from './load-configuration-step';
-import { LandingZoneAccountType } from '@aws-pbmm/common-lambda/lib/config';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 
 export interface LoadAccountsInput {
   accountsSecretId: string;
@@ -9,16 +9,6 @@ export interface LoadAccountsInput {
 }
 
 export type LoadAccountsOutput = Account[];
-
-export interface Account {
-  key: string;
-  id: string;
-  arn: string;
-  name: string;
-  email: string;
-  ou: string;
-  type?: LandingZoneAccountType;
-}
 
 export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOutput> => {
   console.log(`Loading accounts...`);

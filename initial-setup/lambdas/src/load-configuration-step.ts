@@ -1,13 +1,10 @@
 import * as org from 'aws-sdk/clients/organizations';
-import {
-  AcceleratorConfig,
-  LandingZoneAccountType,
-  LANDING_ZONE_ACCOUNT_TYPES,
-} from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
+import { LandingZoneAccountType } from '@aws-pbmm/common-outputs/lib/accounts';
 
 export interface LoadConfigurationInput {
   configSecretSourceId: string;
@@ -222,7 +219,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   // Verify if all Landing Zone accounts are there
-  for (const landingZoneAccountType of LANDING_ZONE_ACCOUNT_TYPES) {
+  for (const landingZoneAccountType of Object.values(LandingZoneAccountType)) {
     const lzAccount = configurationAccounts.find(a => a.landingZoneAccountType === landingZoneAccountType);
     if (!lzAccount) {
       errors.push(`Could not find Landing Zone account of type "${landingZoneAccountType}"`);
@@ -265,13 +262,13 @@ function getLandingZoneAccountTypeBySsmParameters(
   }
   const name = accountIdParameter.name;
   if (name === '/org/primary/account_id') {
-    return 'primary';
+    return LandingZoneAccountType.Primary;
   } else if (name === '/org/member/security/account_id') {
-    return 'security';
+    return LandingZoneAccountType.Security;
   } else if (name === '/org/member/logging/account_id') {
-    return 'log-archive';
+    return LandingZoneAccountType.LogArchive;
   } else if (name === '/org/member/sharedservices/account_id') {
-    return 'shared-services';
+    return LandingZoneAccountType.SharedServices;
   }
   return undefined;
 }
