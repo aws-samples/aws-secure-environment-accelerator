@@ -391,7 +391,7 @@
              "health-check-protocol": "HTTPS",
              "health-check-path": "/health-check",
              "health-check-port": 7002,
-             "lambda-filename": ""
+             "lambda-filename": "",
              "target-instances": ["{ENI-FW1-azA-p1}"],
              "tg-weight": 1
              },
@@ -403,7 +403,7 @@
              "health-check-protocol": "HTTPS",
              "health-check-path": "/health-check",
              "health-check-port": 7002,
-             "lambda-filename": ""
+             "lambda-filename": "",
              "target-instances": ["{ENI-FW1-azB-p1}"],
              "tg-weight": 1
              }
