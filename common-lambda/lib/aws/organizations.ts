@@ -11,6 +11,7 @@ export class Organizations {
       credentials,
     });
   }
+
   async getOrganizationalUnit(organizationalUnitId: string): Promise<org.OrganizationalUnit | undefined> {
     const response = await this.client
       .describeOrganizationalUnit({
@@ -140,6 +141,14 @@ export class Organizations {
       AccountId: accountId,
       ServicePrincipal: servicePrincipal,
     };
-    await this.client.registerDelegatedAdministrator(params).promise();
+    try {
+      await this.client.registerDelegatedAdministrator(params).promise();
+    } catch (e) {
+      if (e.code === 'AccountAlreadyRegisteredException') {
+        // ignore error
+      } else {
+        throw e;
+      }
+    }
   }
 }
