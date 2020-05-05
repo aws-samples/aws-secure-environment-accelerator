@@ -31,44 +31,49 @@ async function main() {
   // TODO Get these values dynamically
   const globalOptionsConfig = acceleratorConfig['global-options'];
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
-  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
-  const masterAccountId = getAccountId(accounts, 'master');
 
   const app = new cdk.App();
 
-  // Master Stack to update Custom Resource Lambda Functions invoke permissions
-  const masterStack = new AcceleratorStack(app, 'MasterStackForCustomResources', {
-    env: {
-      account: masterAccountId,
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-CfnCustomResource-Permissions',
-  });
+  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
 
+  const getAccountStack = (accountKey: string): AcceleratorStack => {
+    if (accountStacks[accountKey]) {
+      return accountStacks[accountKey];
+    }
+
+    const accountPrettyName = pascalCase(accountKey);
+    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase0`, {
+      env: {
+        account: getAccountId(accounts, accountKey),
+        region: cdk.Aws.REGION,
+      },
+      stackName: `PBMMAccel-${accountPrettyName}-Phase0`,
+      acceleratorName: context.acceleratorName,
+      acceleratorPrefix: context.acceleratorPrefix,
+    });
+    accountStacks[accountKey] = accountStack;
+    return accountStack;
+  };
+
+  // Master Stack to update Custom Resource Lambda Functions invoke permissions
+  // TODO Remove hard-coded 'master' account key and use configuration file somehow
+  const masterAccountStack = getAccountStack('master');
   for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
     for (const account of accounts) {
-      new lambda.CfnPermission(masterStack, `${index}${account.key}InvokePermission`, {
+      new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
         functionName: funcArn,
         action: 'lambda:InvokeFunction',
-        principal: `arn:aws:iam::${getAccountId(accounts, account.key)}:role/${context.acceleratorExecutionRoleName}`,
+        principal: `arn:aws:iam::${account.id}:role/${context.acceleratorExecutionRoleName}`,
       });
     }
   }
 
-  const stack = new AcceleratorStack(app, 'LogArchive', {
-    env: {
-      account: logArchiveAccountId,
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-LogArchive',
-  });
+  // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
+  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const logArchiveStack = getAccountStack('log-archive');
 
   // Create the log archive bucket
-  const bucket = new LogArchiveBucket(stack, 'LogArchive', {
+  const bucket = new LogArchiveBucket(logArchiveStack, 'LogArchive', {
     logRetention: cdk.Duration.days(logRetentionInDays),
   });
 
@@ -77,17 +82,17 @@ async function main() {
   bucket.grantReplicate(...principals);
 
   // store the s3 bucket - kms key arn for later reference
-  new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
+  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
     value: logArchiveAccountId,
   });
 
   // store the s3 bucket arn for later reference
-  new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
+  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
     value: bucket.bucketArn,
   });
 
   // store the s3 bucket - kms key arn for later reference
-  new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
+  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
     value: bucket.encryptionKeyArn,
   });
 
@@ -102,34 +107,13 @@ async function main() {
 
   // creating assets for default account settings
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
-    const accountId = getAccountId(accounts, accountKey);
-
-    const AccountDefaultsStack = new AcceleratorStack(
-      app,
-      `PBMMAccel-AccountDefaultSettingsAssets-${accountKey}Stack`,
-      {
-        env: {
-          account: accountId,
-          region: cdk.Aws.REGION,
-        },
-        acceleratorName: context.acceleratorName,
-        acceleratorPrefix: context.acceleratorPrefix,
-        stackName: `PBMMAccel-AccountDefaultSettingsAssets-${pascalCase(accountKey)}Stack`,
-      },
-    );
-
-    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(
-      AccountDefaultsStack,
-      `Account Default Settings Assets-${pascalCase(accountKey)}`,
-      {
-        accountId,
-      },
-    );
+  for (const accountKey of Object.keys(mandatoryAccountConfig)) {
+    const accountStack = getAccountStack(accountKey);
+    const accountDefaults = new AccountDefaultSettingsAssets(accountStack, 'AccountDefaults');
 
     // save the kms key Id for later reference
-    new cdk.CfnOutput(AccountDefaultsStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
-      value: accountDefaultSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
+    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
+      value: accountDefaults.kmsKeyIdForEbsDefaultEncryption,
     });
   }
 }

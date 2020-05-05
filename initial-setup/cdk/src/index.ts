@@ -254,6 +254,7 @@ export namespace InitialSetup {
           roleArn: pipelineRole.roleArn,
           portfolioName: avmPortfolioName,
         },
+        inputPath: '$.configuration',
         resultPath: 'DISCARD',
       });
 
@@ -344,6 +345,7 @@ export namespace InitialSetup {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
+        resultPath: '$.limits',
       });
 
       // TODO We might want to load this from the Landing Zone configuration

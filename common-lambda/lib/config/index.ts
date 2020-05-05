@@ -173,7 +173,7 @@ export const VpcConfigType = t.interface({
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
 
-export const DeploymentConfigType = t.interface({
+export const TgwDeploymentConfigType = t.interface({
   name: optional(NonEmptyString),
   asn: optional(t.number),
   features: optional(
@@ -197,7 +197,7 @@ export const PasswordPolicyType = t.interface({
   reversible: t.boolean,
 });
 
-export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
 
 export const ADUserConfig = t.interface({
   user: NonEmptyString,
@@ -231,7 +231,7 @@ export const AccountConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
-export const adcConfigType = t.interface({
+export const AdcConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   subnet: t.string,
@@ -249,6 +249,14 @@ export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
 
+export const DeploymentConfigType = t.interface({
+  tgw: optional(TgwDeploymentConfigType),
+  mad: optional(MadConfigType),
+  adc: optional(AdcConfigType),
+});
+
+export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -257,13 +265,7 @@ export const MandatoryAccountConfigType = t.interface({
   'enable-s3-public-access': fromNullable(t.boolean, false),
   limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
-  deployments: optional(
-    t.interface({
-      tgw: optional(DeploymentConfigType),
-      mad: optional(MadConfigType),
-      adc: optional(adcConfigType),
-    }),
-  ),
+  deployments: optional(DeploymentConfigType),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -330,6 +332,10 @@ export interface ResolvedVpcConfig {
    * The VPC config to be deployed.
    */
   vpcConfig: VpcConfig;
+  /**
+   * Deployment config
+   */
+  deployments?: DeploymentConfig;
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
@@ -366,6 +372,13 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
   /**
    * @return [accountKey: string, accountConfig: AccountConfig][]
    */
+  getAccountConfigsForOu(ou: string): [string, AccountConfig][] {
+    return this.getAccountConfigs().filter(([_, accountConfig]) => accountConfig.ou === ou);
+  }
+
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
   getOrganizationalUnits(): [string, OrganizationalUnitConfig][] {
     return Object.entries(this['organizational-units']);
   }
@@ -383,6 +396,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         vpcConfigs.push({
           accountKey,
           vpcConfig: accountConfig.vpc,
+          deployments: accountConfig.deployments,
         });
       }
     }
@@ -397,12 +411,13 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         const destinationAccountKey = ouConfig.vpc.deploy;
         if (destinationAccountKey === 'local') {
           // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
-          for (const [accountKey, accountConfig] of this.getAccountConfigs()) {
-            if (accountConfig.ou === ouKey && accountConfig.vpc) {
+          for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(ouKey)) {
+            if (accountConfig.vpc) {
               vpcConfigs.push({
                 ouKey,
                 accountKey,
                 vpcConfig: accountConfig.vpc,
+                deployments: accountConfig.deployments,
               });
             }
           }
@@ -423,6 +438,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         vpcConfigs.push({
           accountKey,
           vpcConfig: accountConfig.vpc,
+          deployments: accountConfig.deployments,
         });
       }
     }

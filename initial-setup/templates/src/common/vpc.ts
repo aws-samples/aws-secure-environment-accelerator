@@ -1,13 +1,16 @@
 import * as cdk from '@aws-cdk/core';
+import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { pascalCase } from 'pascal-case';
 import { Account } from '../utils/accounts';
-import { InterfaceEndpoints } from './interface-endpoints';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
-import { Limiter, Limit } from '../utils/limits';
+import { Limiter } from '../utils/limits';
+import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
+import { TransitGateway } from './transit-gateway';
+import { SecurityGroup } from './security-group';
 
 export interface VpcCommonProps {
   /**
@@ -25,7 +28,7 @@ export interface VpcCommonProps {
   /**
    * Transit gateway deployment.
    */
-  tgwDeployment?: config.DeploymentConfig;
+  tgwDeployment?: config.TgwDeploymentConfig;
   /**
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */
@@ -72,6 +75,54 @@ export class AzSubnets {
 }
 
 export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
+
+export interface VpcStackProps {
+  vpcProps: VpcProps;
+  transitGateways: Map<string, TransitGateway>;
+}
+
+export class VpcStack extends cfn.NestedStack {
+  readonly vpc: Vpc;
+
+  constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
+    super(scope, name);
+
+    // Create the VPC
+    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props.vpcProps);
+
+    const tgwDeployment = props.vpcProps.tgwDeployment;
+    if (tgwDeployment) {
+      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
+      props.transitGateways.set(tgwDeployment.name!, tgw);
+    }
+
+    const tgwAttach = props.vpcProps.vpcConfig['tgw-attach'];
+    if (tgwAttach) {
+      const tgwName = tgwAttach['associate-to-tgw'];
+      const tgw = props.transitGateways.get(tgwName);
+      if (tgw && tgwName.length > 0) {
+        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        new TransitGatewayAttachment(this, 'TgwAttach', {
+          vpcId: this.vpc.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+      }
+    }
+  }
+}
 
 /**
  * This construct creates a VPC, NAT gateway, internet gateway, virtual private gateway, route tables, subnets,
@@ -265,6 +316,15 @@ export class Vpc extends cdk.Construct {
       }
     }
 
+    // Create all security groups
+    if (vpcConfig['security-groups']) {
+      new SecurityGroup(this, 'SecurityGroups', {
+        vpcConfig,
+        vpcId: this.vpcId,
+        accountKey: props.accountKey!,
+      });
+    }
+
     // Create VPC Gateway End Point
     const gatewayEndpoints = props.vpcConfig['gateway-endpoints'] || [];
     for (const gwEndpointName of gatewayEndpoints) {
@@ -304,29 +364,6 @@ export class Vpc extends cdk.Construct {
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
-    }
-
-    // Create interface endpoints
-    const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
-    if (config.InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
-      const endpoints = [];
-      for (const interfaceEndpoint of interfaceEndpointConfig.endpoints) {
-        if (interfaceEndpoint === 'notebook') {
-          console.log(`Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Endpoint not supported`);
-          continue;
-        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcName)) {
-          console.log(
-            `Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Reached maximum interface endpoints per VPC`,
-          );
-          continue;
-        }
-        endpoints.push(interfaceEndpoint);
-      }
-      new InterfaceEndpoints(this, 'InterfaceEndpoints', {
-        vpc: this,
-        subnetName: interfaceEndpointConfig.subnet,
-        interfaceEndpoints: endpoints,
-      });
     }
 
     // Share VPC subnet
