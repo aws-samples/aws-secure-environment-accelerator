@@ -335,30 +335,30 @@
           "target-alarms-periods-of": "1",
           "access-logs": true,
           "targets": [
-             {
-             "target-name": "FG1-Web_azA",
-             "target-type": "Instance",
-             "protocol": "HTTPS",
-             "port": 7001,
-             "health-check-protocol": "HTTPS",
-             "health-check-path": "/health-check",
-             "health-check-port": 7001,
-             "lambda-filename": "",
-             "target-instances": ["{ENI-FW1-azA-p1}"],
-             "tg-weight": 1
-             },
-             {
-             "target-name": "FG1-Web_azB",
-             "target-type": "Instance",
-             "protocol": "HTTPS",
-             "port": 7001,
-             "health-check-protocol": "HTTPS",
-             "health-check-path": "/health-check",
-             "health-check-port": 7001,
-             "lambda-filename": "",
-             "target-instances": ["{ENI-FW1-azB-p1}"],
-             "tg-weight": 1
-             }
+            {
+              "target-name": "FG1-Web_azA",
+              "target-type": "Instance",
+              "protocol": "HTTPS",
+              "port": 7001,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7001,
+              "lambda-filename": "",
+              "target-instances": ["{ENI-FW1-azA-p1}"],
+              "tg-weight": 1
+            },
+            {
+              "target-name": "FG1-Web_azB",
+              "target-type": "Instance",
+              "protocol": "HTTPS",
+              "port": 7001,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7001,
+              "lambda-filename": "",
+              "target-instances": ["{ENI-FW1-azB-p1}"],
+              "tg-weight": 1
+            }
           ]
         },
         {
@@ -383,30 +383,30 @@
           "target-alarms-periods-of": "1",
           "access-logs": true,
           "targets": [
-             {
-             "target-name": "FG1-Web_azA",
-             "target-type": "Instance",
-             "protocol": "HTTPS",
-             "port": 7002,
-             "health-check-protocol": "HTTPS",
-             "health-check-path": "/health-check",
-             "health-check-port": 7002,
-             "lambda-filename": "",
-             "target-instances": ["{ENI-FW1-azA-p1}"],
-             "tg-weight": 1
-             },
-             {
-             "target-name": "FG1-Web_azB",
-             "target-type": "Instance",
-             "protocol": "HTTPS",
-             "port": 7002,
-             "health-check-protocol": "HTTPS",
-             "health-check-path": "/health-check",
-             "health-check-port": 7002,
-             "lambda-filename": "",
-             "target-instances": ["{ENI-FW1-azB-p1}"],
-             "tg-weight": 1
-             }
+            {
+              "target-name": "FG1-Web_azA",
+              "target-type": "Instance",
+              "protocol": "HTTPS",
+              "port": 7002,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7002,
+              "lambda-filename": "",
+              "target-instances": ["{ENI-FW1-azA-p1}"],
+              "tg-weight": 1
+            },
+            {
+              "target-name": "FG1-Web_azB",
+              "target-type": "Instance",
+              "protocol": "HTTPS",
+              "port": 7002,
+              "health-check-protocol": "HTTPS",
+              "health-check-path": "/health-check",
+              "health-check-port": 7002,
+              "lambda-filename": "",
+              "target-instances": ["{ENI-FW1-azB-p1}"],
+              "tg-weight": 1
+            }
           ]
         }
       ],
@@ -631,7 +631,7 @@
             "inbound-rules": [
               {
                 "description": "Allow Mgmt Traffic Inbound",
-                "tcp-ports": [22,443,514,541,2032,3000,5199,6020,6028,8080,80,22],
+                "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080, 80, 22],
                 "udp-ports": [9443],
                 "source": ["10.0.0.0/8"]
               }
@@ -649,7 +649,7 @@
             "inbound-rules": [
               {
                 "description": "Web Traffic Inbound",
-                "tcp-ports": [22,443,541,3000,8080],
+                "tcp-ports": [22, 443, 541, 3000, 8080],
                 "source": ["0.0.0.0/0"]
               }
             ],
@@ -674,7 +674,7 @@
           "version": "6.2.3#",
           "region": "ca-central-1",
           "security-group": "Fortigates",
-          "vpc": "Perimeter",  
+          "vpc": "Perimeter",
           "eni": {
             "count": 4,
             "p1-subnet": "Public",
@@ -708,7 +708,7 @@
           "image": "https://aws.amazon.com/marketplace/server/procurement?productId=c15e8d8d-1e46-41cf-9543-418a3f652745",
           "version": "6.2.3",
           "region": "ca-central-1",
-          "vpc": "Perimeter",          
+          "vpc": "Perimeter",
           "subnet": "FWMgmt_azA",
           "security-group": "FortigateMgr"
         }
@@ -1371,12 +1371,12 @@
           "tg-stickiness": "",
           "access-logs": true,
           "targets": [
-             {
-             "target-name": "health-check-Lambda",
-             "target-type": "Lambda",
-             "health-check-path": "/health-check",
-             "lambda-filename": "internal-dev-alb-lambda.txt"
-             }
+            {
+              "target-name": "health-check-Lambda",
+              "target-type": "Lambda",
+              "health-check-path": "/health-check",
+              "lambda-filename": "internal-dev-alb-lambda.txt"
+            }
           ]
         }
       ],
@@ -1826,12 +1826,12 @@
           "tg-stickiness": "",
           "access-logs": true,
           "targets": [
-             {
-             "target-name": "health-check-Lambda",
-             "target-type": "Lambda",
-             "health-check-path": "/health-check",
-             "lambda-filename": "internal-test-alb-lambda.txt"
-             }
+            {
+              "target-name": "health-check-Lambda",
+              "target-type": "Lambda",
+              "health-check-path": "/health-check",
+              "lambda-filename": "internal-test-alb-lambda.txt"
+            }
           ]
         }
       ],
@@ -2281,12 +2281,12 @@
           "tg-stickiness": "",
           "access-logs": true,
           "targets": [
-             {
-             "target-name": "health-check-Lambda",
-             "target-type": "Lambda",
-             "health-check-path": "/health-check",
-             "lambda-filename": "intrenal-prod-alb-lambda.txt"
-             }
+            {
+              "target-name": "health-check-Lambda",
+              "target-type": "Lambda",
+              "health-check-path": "/health-check",
+              "lambda-filename": "intrenal-prod-alb-lambda.txt"
+            }
           ]
         }
       ],
