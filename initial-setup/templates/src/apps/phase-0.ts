@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
-import { getAccountId, loadAccounts } from '../utils/accounts';
+import { getAccountId, loadAccounts, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
@@ -11,7 +11,7 @@ import { AccountDefaultSettingsAssets } from '../common/account-default-settings
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
-import { IamUserConfigType, AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -70,16 +70,20 @@ async function main() {
     stackName: 'PBMMAccel-LogArchive',
   });
 
+  const accountIds: string[] = accounts.map(account => account.id);
+
   // Create the log archive bucket
   const bucket = new LogArchiveBucket(stack, 'LogArchive', {
     logRetention: cdk.Duration.days(logRetentionInDays),
+    logArchiveAccountId,
+    accountIds,
   });
 
   // Grant all accounts access to the log archive bucket
   const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
   bucket.grantReplicate(...principals);
 
-  // store the s3 bucket - kms key arn for later reference
+  // store the log archive account Id for later reference
   new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
     value: logArchiveAccountId,
   });
@@ -94,6 +98,11 @@ async function main() {
     value: bucket.encryptionKeyArn,
   });
 
+  // store the s3 bucket - kms key id for later reference
+  new cdk.CfnOutput(stack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID, {
+    value: bucket.encryptionKey.keyId,
+  });
+
   // TODO Replace above outputs with JSON output
   // new JsonOutputValue(stack, 'LogArchiveOutput', {
   //   type: 'LogArchiveOutput',
@@ -103,19 +112,7 @@ async function main() {
   //   },
   // });
 
-  const secretsStack = new SecretsStack(app, 'Secrets', {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Secrets-IAMUserPasswords',
-  });
-
-  // creating assets for default account settings
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+  const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
 
     const AccountDefaultsStack = new AcceleratorStack(
@@ -134,7 +131,7 @@ async function main() {
 
     const userPasswords: { [userId: string]: Secret } = {};
 
-    const iamUsers = accountConfig.iam?.users;
+    const iamUsers = iamConfig?.users;
     if (iamUsers && iamUsers?.length >= 1) {
       for (const iamUser of iamUsers) {
         if (!IamUserConfigType.is(iamUser)) {
@@ -163,8 +160,7 @@ async function main() {
       {
         accountId,
         accountKey,
-        accountConfig,
-        acceleratorConfig,
+        iamConfig,
         accounts,
         userPasswords,
       },
@@ -174,6 +170,44 @@ async function main() {
     new cdk.CfnOutput(AccountDefaultsStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
       value: accountDefaultSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
     });
+  };
+
+  const secretsStack = new SecretsStack(app, 'Secrets', {
+    env: {
+      account: getAccountId(accounts, 'master'),
+      region: cdk.Aws.REGION,
+    },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    stackName: 'PBMMAccel-Secrets-IAMUserPasswords',
+  });
+
+  const getAllAccountsPerOu = async (ouName: string, mandatoryAccKeys: string[]): Promise<Account[]> => {
+    const accountsPerOu: Account[] = [];
+    for (const account of accounts) {
+      if (account.ou === ouName && !mandatoryAccKeys.includes(account.key)) {
+        accountsPerOu.push(account);
+      }
+    }
+    return accountsPerOu;
+  };
+
+  const mandatoryAccountKeys: string[] = [];
+  // creating assets for default account settings
+  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
+  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+    mandatoryAccountKeys.push(accountKey);
+    await createAccountDefaultAssets(accountKey, accountConfig.iam);
+  }
+
+  // creating assets for org unit accounts
+  const orgUnits = acceleratorConfig['organizational-units'];
+  for (const [orgName, orgConfig] of Object.entries(orgUnits)) {
+    const orgAccounts = await getAllAccountsPerOu(orgName, mandatoryAccountKeys);
+    console.log(`org accounts for key - ${orgName}: `, orgAccounts);
+    for (const orgAccount of orgAccounts) {
+      await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
+    }
   }
 }
 
