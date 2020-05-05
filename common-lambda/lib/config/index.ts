@@ -312,6 +312,7 @@ export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigT
 
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
+  'central-bucket': NonEmptyString,
   zones: GlobalOptionsZonesConfigType,
 });
 
