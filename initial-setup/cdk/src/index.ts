@@ -167,7 +167,7 @@ export namespace InitialSetup {
       });
 
       // Define a build specification to build the initial setup templates
-      const project = new codebuild.PipelineProject(this, 'DeployProject', {
+      const project = new codebuild.PipelineProject(this, `${props.acceleratorPrefix}Deploy_pl`, {
         role: pipelineRole,
         buildSpec: codebuild.BuildSpec.fromObject({
           version: '0.2',
@@ -258,7 +258,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createAccountStateMachine = new sfn.StateMachine(scope, 'CreateAccountStateMachine', {
+      const createAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}CreateAccount_sm`, {
         definition: new CreateAccountTask(scope, 'Create', {
           lambdaCode,
           role: pipelineRole,
@@ -304,7 +304,7 @@ export namespace InitialSetup {
       // Make sure the Lambda can read the template
       installRoleTemplate.bucket.grantRead(pipelineRole);
 
-      const installRolesStateMachine = new sfn.StateMachine(this, 'InstallRolesStateMachine', {
+      const installRolesStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallRoles_sm`, {
         definition: new CreateStackSetTask(this, 'Install', {
           lambdaCode,
           role: pipelineRole,
@@ -379,7 +379,7 @@ export namespace InitialSetup {
       // preDeployParallelTask.branch(addRoleToScpTask);
       // preDeployParallelTask.branch(enableResourceSharingTask);
 
-      const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
+      const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
         definition: new BuildTask(this, 'Build', {
           lambdaCode,
           role: pipelineRole,

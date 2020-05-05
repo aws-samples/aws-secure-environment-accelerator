@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
-import { pascalCase } from 'pascal-case';
 import { Account } from '../utils/accounts';
 import { InterfaceEndpoints } from './interface-endpoints';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
@@ -10,6 +9,7 @@ import { Limiter, Limit } from '../utils/limits';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 import { TransitGateway } from './transit-gateway';
+import { Tag } from '@aws-cdk/core';
 
 export interface VpcCommonProps {
   /**
@@ -111,13 +111,15 @@ export class VpcStack extends AcceleratorStack {
         const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
 
         // Attach VPC To TGW
-        new TransitGatewayAttachment(this, 'TgwAttach', {
+        const TgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
           vpcId: this.vpc.vpcId,
           subnetIds,
           transitGatewayId: tgw.tgwId,
           tgwRouteAssociates,
           tgwRoutePropagates,
         });
+        // Add name tag
+        Tag.add(TgwAttachment, 'Name', `${tgwName}_attachment`);
       }
     }
   }
@@ -269,8 +271,8 @@ export class Vpc extends cdk.Construct {
           );
         }
 
-        const subnetId = pascalCase(`${subnetName}-${subnetDefinition.az}`);
-        const subnet = new ec2.CfnSubnet(this, `Subnet${subnetId}`, {
+        const subnetId = `${subnetName}_${vpcName}_az${subnetDefinition.az}`;
+        const subnet = new ec2.CfnSubnet(this, subnetId, {
           cidrBlock: subnetCidr,
           vpcId: vpcObj.ref,
           availabilityZone: `${this.region}${subnetDefinition.az}`,
