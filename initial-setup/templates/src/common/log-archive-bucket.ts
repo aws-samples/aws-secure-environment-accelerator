@@ -30,7 +30,9 @@ export class LogArchiveBucket extends cdk.Construct {
 
     // bucket name format: pbmmaccel-{account #}-{region}
     const stack = cdk.Stack.of(this);
-    const bucketName = `pbmmaccel-${stack.account}-${stack.region}`;
+    const bucketName = undefined;
+    // TODO Re-enable this
+    // const bucketName = `pbmmaccel-${stack.account}-${stack.region}`;
 
     // s3 bucket to collect vpc-flow-logs
     this.bucket = new s3.Bucket(this, 'Bucket', {
