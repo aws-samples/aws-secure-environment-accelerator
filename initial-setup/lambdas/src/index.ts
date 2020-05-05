@@ -11,6 +11,7 @@ export { handler as associateHostedZonesStep } from './associate-hosted-zones-st
 export { handler as accountDefaultSettingsStep } from './account-default-settings-step';
 export { handler as storeStackOutputStep } from './store-stack-output-step';
 export { handler as enableDirectorySharingStep } from './enable-directory-sharing-step';
+export { handler as enableSecurityHub } from './enable-security-hub';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

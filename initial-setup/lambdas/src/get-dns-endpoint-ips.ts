@@ -53,7 +53,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   } catch (error) {
     console.error(error);
 
-    await sendResponsePromise(
+    await sendResponsePromise (
       event,
       context,
       FAILED,

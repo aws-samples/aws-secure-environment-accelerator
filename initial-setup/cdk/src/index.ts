@@ -166,6 +166,18 @@ export namespace InitialSetup {
         },
       });
 
+      const enableSecurityHubLambda = new lambda.Function(this, 'EnableSecurityHub', {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        code: lambdaCode,
+        handler: 'index.enableSecurityHub',
+        role: cfnCustomResourceRole,
+        functionName: 'CfnCustomResourceEnableSecurityHub',
+        environment: {
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
+        },
+        timeout:  cdk.Duration.seconds(900),
+      });
+
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, 'DeployProject', {
         role: pipelineRole,
@@ -222,6 +234,10 @@ export namespace InitialSetup {
             CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: dnsEndpointIpPollerLambda.functionArn,
+            },
+            CFN_ENABLE_SECURITY_HUB_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: enableSecurityHubLambda.functionArn,
             },
           },
         },

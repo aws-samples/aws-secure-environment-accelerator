@@ -3,6 +3,7 @@ import * as path from 'path';
 
 interface CfnCustomResourceFunctions {
   getDnsIpsFunctionArn: string;
+  enableSecurityHubFunctionArn: string;
 }
 
 export interface Context {
@@ -28,6 +29,7 @@ export function loadContext(): Context {
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
     cfnCustomResourceFunctions: {
       getDnsIpsFunctionArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
+      enableSecurityHubFunctionArn: process.env.CFN_ENABLE_SECURITY_HUB_LAMBDA_ARN!
     },
   };
 }
