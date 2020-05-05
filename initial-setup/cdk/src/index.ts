@@ -1,4 +1,3 @@
-import * as autoscaling from '@aws-cdk/aws-autoscaling';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
@@ -117,6 +116,11 @@ export namespace InitialSetup {
         description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
 
+      const limitsSecret = new secrets.Secret(this, 'Limits', {
+        secretName: 'accelerator/limits',
+        description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
+      });
+
       // TODO Copy the configSecretInProgress to configSecretLive when deployment is complete.
       //  const configSecretLive = new secrets.Secret(this, 'ConfigSecretLive', {
       //    description: 'This is the config that was used to deploy the current accelerator.',
@@ -203,6 +207,10 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: stackOutputSecret.secretArn,
             },
+            LIMITS_SECRET_ID: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: limitsSecret.secretArn,
+            },
             ACCELERATOR_EXECUTION_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.stateMachineExecutionRole,
@@ -246,6 +254,7 @@ export namespace InitialSetup {
           roleArn: pipelineRole.roleArn,
           portfolioName: avmPortfolioName,
         },
+        inputPath: '$.configuration',
         resultPath: 'DISCARD',
       });
 
@@ -324,6 +333,21 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const loadLimitsTask = new CodeTask(this, 'Load Limits', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadLimitsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configSecretId: configSecretInProgress.secretArn,
+          limitsSecretId: limitsSecret.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: '$.limits',
+      });
+
       // TODO We might want to load this from the Landing Zone configuration
       const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
 
@@ -348,6 +372,12 @@ export namespace InitialSetup {
         },
         resultPath: 'DISCARD',
       });
+
+      // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
+      // });
+      // preDeployParallelTask.branch(loadLimitsTask);
+      // preDeployParallelTask.branch(addRoleToScpTask);
+      // preDeployParallelTask.branch(enableResourceSharingTask);
 
       const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
         definition: new BuildTask(this, 'Build', {
@@ -421,9 +451,24 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: props.configSecretName,
           'accounts.$': '$.accounts',
-          acceleratorName: props.acceleratorName,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const associateHostedZonesTask = new CodeTask(this, 'Associate Hosted Zones', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.associateHostedZonesStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
+          assumeRoleName: props.stateMachineExecutionRole,
+          configSecretSourceId: configSecretInProgress.secretArn,
+          stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });
@@ -518,8 +563,8 @@ export namespace InitialSetup {
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
+          .next(loadLimitsTask)
           .next(addRoleToScpTask)
-          .next(accountDefaultSettingsTask)
           .next(enableResourceSharingTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
@@ -528,9 +573,11 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
+          .next(associateHostedZonesTask)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
-          .next(createAdConnectorTask),
+          .next(createAdConnectorTask)
+          .next(accountDefaultSettingsTask),
       });
     }
   }

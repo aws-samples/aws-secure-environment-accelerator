@@ -18,15 +18,16 @@
       "enable-pci-dss": true,
       "pci-dss-controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
     },
+    "central-bucket": "pbmmaccel-config-123456789012",
     "scps": {
-      "ALZ-Core": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/aws-landing-zone-core-mandatory-preventive-guardrails-modifiedAccel.json",
-      "ALZ-Non-Core": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/aws-landing-zone-non-core-mandatory-preventive-guardrails-modifiedAccel.json",
-      "Guardrails-Part1": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Part1.json",
-      "Guardrails-Part2": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Part2.json",
-      "Guardrails-PBMM-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-PBMM-Only.json",
-      "Guardrails-Unclass-Only": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/PBMMAccel-Guardrails-Unclass-Only.json",
-      "Quarantine-Deny-All": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Quarantine-Deny-All.json",
-      "Full-Access": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Full-AWS-Access.json"
+      "ALZ-Core": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json",
+      "ALZ-Non-Core": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json",
+      "Guardrails-Part1": "PBMMAccel-Guardrails-Part1.json",
+      "Guardrails-Part2": "PBMMAccel-Guardrails-Part2.json",
+      "Guardrails-PBMM-Only": "PBMMAccel-Guardrails-PBMM-Only.json",
+      "Guardrails-Unclass-Only": "PBMMAccel-Guardrails-Unclass-Only.json",
+      "Quarantine-Deny-All": "Quarantine-Deny-All.json",
+      "Full-Access": "Full-AWS-Access.json"
     },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
@@ -43,7 +44,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -210,7 +211,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -232,7 +233,7 @@
             "Policies": ["AdministratorAccess"],
             "SourceAccount": "security",
             "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "Trust-Policy": "role-trust-policy.txt",
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]
@@ -301,16 +302,26 @@
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
+      "certificates": [
+        {
+          "name": "PerimSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        }
+      ],
       "iam": {
         "users": [],
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           },
           {
             "Policy-Name": "Fortigate-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/Fortigate-policy.txt"
+            "Policy": "Fortigate-policy.txt"
           }
         ],
         "roles": [
@@ -483,13 +494,18 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": false
+          "associate-to-tgw": ""
         },
         "interface-endpoints": false
       },
       "deployments": {
         "firewall": {
           "instance-sizes": "c5n.2xl",
+          "image": "https://aws.amazon.com/marketplace/pp/B00PCZSWDA?qid=1588624790695",
+          "version": "6.2.3#",
+          "region": "ca-central-1",
+          "security-group": "Fortigates",
+          "vpc": "Perimeter",		  
           "eni": {
             "count": 4,
             "p1-subnet": "Public",
@@ -501,10 +517,15 @@
             "min-qty": 2,
             "max-qty": 2
           },
-          "script": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/firewall.yaml",
+          "config": "fortigate_AA_20200504.txt",
+          "fw-cgw-name": "Perimeter_fw",
+          "fw-cgw-asn": 63000,
+          "fw-cgw-routing": "Dynamic",
+          "fw-cgw-name": "Perimeter_fw",
           "tgw-attach": {
             "associate-to-tgw": "Main",
             "account": "shared-network",
+			"name": "TGW-to-Perimeter",
             "associate-type": "VPN",
             "rt-associate": ["core"],
             "rt-propogate": ["core", "segregated", "shared", "standalone"],
@@ -512,7 +533,17 @@
             "attach-subnets": [],
             "options": ["DNS-support", "IPv6-support"]
           }
-        }
+        },
+        "firewall-manager": {
+		  "name": "FortigateMgr",
+          "instance-sizes": "c5.l",
+          "image": "https://aws.amazon.com/marketplace/server/procurement?productId=c15e8d8d-1e46-41cf-9543-418a3f652745",
+          "version": "6.2.3",
+          "region": "ca-central-1",
+          "vpc": "Perimeter",		  
+          "subnet": "FWMgmt_azA",
+          "security-group": "FortigateMgr"
+		}
       }
     },
     "master": {
@@ -543,7 +574,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": []
@@ -594,7 +625,7 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": false
+          "associate-to-tgw": ""
         },
         "interface-endpoints": false
       },
@@ -654,6 +685,24 @@
       "type": "mandatory",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "CentralSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Central",
@@ -1088,7 +1137,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -1110,7 +1159,7 @@
             "Policies": ["AdministratorAccess"],
             "SourceAccount": "security",
             "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "Trust-Policy": "role-trust-policy.txt",
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]
@@ -1120,6 +1169,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "DevSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Dev",
@@ -1286,7 +1353,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -1308,7 +1375,7 @@
             "Policies": ["AdministratorAccess"],
             "SourceAccount": "security",
             "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "Trust-Policy": "role-trust-policy.txt",
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]
@@ -1318,6 +1385,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "TestSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Test",
@@ -1484,7 +1569,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -1506,7 +1591,7 @@
             "Policies": ["AdministratorAccess"],
             "SourceAccount": "security",
             "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "Trust-Policy": "role-trust-policy.txt",
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]
@@ -1516,6 +1601,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "ProdSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Prod",
@@ -1682,7 +1785,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -1704,7 +1807,7 @@
             "Policies": ["AdministratorAccess"],
             "SourceAccount": "security",
             "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "Trust-Policy": "role-trust-policy.txt",
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]
@@ -1714,6 +1817,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "certificates": [
+        {
+          "name": "UnclassSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "UnClass",
@@ -1880,7 +2001,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -1902,7 +2023,7 @@
             "Policies": ["AdministratorAccess"],
             "SourceAccount": "security",
             "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "Trust-Policy": "role-trust-policy.txt",
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]
@@ -2045,7 +2166,7 @@
           }
         ],
         "tgw-attach": {
-          "associate-to-tgw": false
+          "associate-to-tgw": ""
         },
         "interface-endpoints": false
       },
@@ -2054,7 +2175,7 @@
         "policies": [
           {
             "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/boundary-policy.txt"
+            "Policy": "boundary-policy.txt"
           }
         ],
         "roles": [
@@ -2076,7 +2197,7 @@
             "Policies": ["AdministratorAccess"],
             "SourceAccount": "security",
             "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "https://canada-accelerator.s3.ca-central-1.amazonaws.com/v0.1/role-trust-policy.txt",
+            "Trust-Policy": "role-trust-policy.txt",
             "BoundaryPolicy": ["Default-Boundary-Policy"]
           }
         ]

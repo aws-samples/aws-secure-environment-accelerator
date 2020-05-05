@@ -1,11 +1,8 @@
-import * as cloudformation from '@aws-cdk/aws-cloudformation';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
-import { bgRed } from 'colors/safe';
-import { Vpc } from './vpc';
 
-interface InterfaceEndpointProps {
+export interface InterfaceEndpointProps {
   serviceName: string;
   vpcId: string;
   vpcRegion: string;
@@ -16,7 +13,7 @@ interface InterfaceEndpointProps {
  * Auxiliary construct that represents all the resources needed to create a single interface endpoint. It contains a
  * SecurityGroup, VPCEndpoint, HostedZone and RecordSet.
  */
-class InterfaceEndpoint extends cdk.Construct {
+export class InterfaceEndpoint extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: InterfaceEndpointProps) {
     super(scope, id);
 
@@ -87,56 +84,6 @@ class InterfaceEndpoint extends cdk.Construct {
   }
 }
 
-export interface InterfaceEndpointsProps {
-  vpc: Vpc;
-  subnetName: string;
-  interfaceEndpoints: string[];
-}
-
-/**
- * Construct that creates the interface endpoints for the given `vpc` and `accountConfig`.
- */
-export class InterfaceEndpoints extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: InterfaceEndpointsProps) {
-    super(scope, id);
-
-    const { vpc, subnetName, interfaceEndpoints } = props;
-
-    const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
-    if (!subnetIds) {
-      throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
-    }
-
-    // TODO Support Sagemaker Notebook endpoint
-    if (interfaceEndpoints.includes('notebook')) {
-      const message = 'The "notebook" interface endpoint is currently not supported.';
-      console.error(bgRed(message));
-      throw new Error(message);
-    }
-
-    // TODO Load the quotas from service quotas
-    if (interfaceEndpoints.length > 50) {
-      const message = 'Deploying more than 50 interface endpoints is currently not supported.';
-      console.error(bgRed(message));
-      throw new Error(message);
-    }
-
-    // Group the interface endpoints by groups of 30 and create a stack for each group
-    let index = 0;
-    for (const groupedEndpoints of groupArrayByLength<string>(interfaceEndpoints, 30)) {
-      const nested = new cloudformation.NestedStack(this, `InterfaceEndpoints${index++}`);
-      for (const serviceName of groupedEndpoints) {
-        new InterfaceEndpoint(nested, serviceName, {
-          serviceName,
-          vpcId: vpc.vpcId,
-          vpcRegion: vpc.region,
-          subnetIds,
-        });
-      }
-    }
-  }
-}
-
 function interfaceVpcEndpointForRegionAndEndpointName(region: string, name: string): string {
   if (name === 'notebook') {
     return `aws.sagemaker.${region}.${name}`;
@@ -149,22 +96,4 @@ function zoneNameForRegionAndEndpointName(region: string, name: string) {
     return `notebook.${region}.sagemaker.aws.`;
   }
   return `${name}.${region}.amazonaws.com.`;
-}
-
-/**
- * Group the given array in subarrays with a maximum length.
- *
- * @param array The array that should be grouped
- * @param length The maximum length of the result groups
- */
-function groupArrayByLength<T>(array: T[], length: number): T[][] {
-  return array.reduce((result: T[][], value) => {
-    let lastSubArray: T[] | undefined = result[result.length - 1];
-    if (!lastSubArray || lastSubArray.length >= length) {
-      lastSubArray = [];
-      result.push(lastSubArray);
-    }
-    lastSubArray.push(value);
-    return result;
-  }, []);
 }

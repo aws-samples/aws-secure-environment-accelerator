@@ -86,8 +86,8 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   // -------------------------------- \\
 
   // First load mandatory accounts configuration
-  const mandatoryAccountConfigs = config['mandatory-account-configs'];
-  for (const [accountKey, mandatoryAccountConfig] of Object.entries(mandatoryAccountConfigs)) {
+  const mandatoryAccountConfigs = config.getAccountConfigs();
+  for (const [accountKey, mandatoryAccountConfig] of mandatoryAccountConfigs) {
     const accountConfigName = mandatoryAccountConfig['account-name'];
     const accountConfigEmail = mandatoryAccountConfig.email;
     const landingZoneAccountType = mandatoryAccountConfig['landing-zone-account-type'];

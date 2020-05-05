@@ -1,4 +1,3 @@
-import * as fs from 'fs';
 import * as aws from 'aws-sdk';
 import * as cfn from 'aws-sdk/clients/cloudformation';
 import * as s3 from 'aws-sdk/clients/s3';
@@ -80,6 +79,23 @@ export class LandingZoneStack {
   public static readonly VERSION_OUTPUT_KEY = 'LandingZoneSolutionVersion';
   public static readonly BUCKET_OUTPUT_KEY = 'LandingZonePipelineS3Bucket';
 
+  static loadLandingZoneConfig(rawData: Buffer): LandingZoneConfig {
+    // Extract the stack template from the ZIP file
+    const zip = new AdmZip(rawData);
+    const manifest = zip.readAsText('manifest.yaml');
+
+    // Parse the Landing Zone configuration file
+    const config = fromYaml(manifest);
+
+    return config;
+  }
+
+  static createLandingZoneConfig(from: string, to: string) {
+    const zip = new AdmZip();
+    zip.addLocalFolder(from);
+    zip.writeZip(to);
+  }
+
   static async fromStack(props: LandingZoneStackProps): Promise<LandingZoneStack> {
     const version = props.versionOutput.OutputValue!;
     if (version < '2.3.1') {
@@ -104,12 +120,7 @@ export class LandingZoneStack {
       throw e;
     }
 
-    // Extract the stack template from the ZIP file
-    const zip = new AdmZip(artifact as Buffer);
-    const manifest = zip.readAsText('manifest.yaml');
-
-    // Parse the Landing Zone configuration file
-    const config = fromYaml(manifest);
+    const config = this.loadLandingZoneConfig(artifact as Buffer);
 
     return new LandingZoneStack({
       ...props,

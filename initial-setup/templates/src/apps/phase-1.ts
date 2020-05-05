@@ -1,20 +1,21 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import * as constructs from 'constructs';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { VpcStack } from '../common/vpc-stack';
-import { Vpc, VpcProps } from '../common/vpc';
+import { FlowLogContainer } from '../common/flow-log-bucket-stack';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { VpcProps, VpcStack } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
-import {
-  OUTPUT_LOG_ARCHIVE_BUCKET_ARN,
-  OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
-  OUTPUT_LOG_ARCHIVE_ACCOUNT_ID,
-} from './phase-0';
+import { TransitGateway } from '../common/transit-gateway';
+import { loadLimits, Limiter, Limit } from '../utils/limits';
+import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { NestedStack } from '@aws-cdk/aws-cloudformation';
+import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { InterfaceEndpoint } from '../common/interface-endpoints';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -55,51 +56,134 @@ async function main() {
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
   const outputs = await loadStackOutputs();
+  const limits = await loadLimits();
+  const limiter = new Limiter(limits);
 
   const globalOptions = acceleratorConfig['global-options'];
 
-  const logArchiveAccountId = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
-  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-  const logArchiveS3KmsKeyArn = getStackOutput(outputs, 'log-archive', OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+  const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
+  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+  const logArchiveS3KmsKeyArn = getStackOutput(
+    outputs,
+    'log-archive',
+    outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
+  );
 
   const app = new cdk.App();
 
-  const vpcStacks: { [accountKey: string]: VpcStack } = {};
+  const transitGateways = new Map<string, TransitGateway>();
+
+  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
+  const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
-  const getVpcStack = (accountKey: string): VpcStack => {
-    const accountId = getAccountId(accounts, accountKey);
-    if (vpcStacks[accountId]) {
-      return vpcStacks[accountId];
+  const getAccountStack = (accountKey: string): AcceleratorStack => {
+    if (accountStacks[accountKey]) {
+      return accountStacks[accountKey];
     }
 
-    const accountKeyPascalCase = pascalCase(accountKey);
-    const vpcStack = new VpcStack(app, `VpcStack${accountKeyPascalCase}`, {
+    const accountPrettyName = pascalCase(accountKey);
+    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase1`, {
       env: {
-        account: accountId,
+        account: getAccountId(accounts, accountKey),
         region: cdk.Aws.REGION,
       },
-      stackName: `PBMMAccel-Networking${accountKeyPascalCase}`,
+      stackName: `PBMMAccel-${accountPrettyName}-Phase1`,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
-      flowLogBucket: {
-        expirationInDays: globalOptions['central-log-retention'],
-        replication: {
-          accountId: logArchiveAccountId,
-          bucketArn: logArchiveS3BucketArn,
-          kmsKeyArn: logArchiveS3KmsKeyArn,
-        },
+    });
+    accountStacks[accountKey] = accountStack;
+    return accountStack;
+  };
+
+  // Auxiliary method to create a VPC stack the account with given account key
+  // Only one VPC stack per account is created
+  const getFlowLogContainer = (accountKey: string): FlowLogContainer => {
+    if (flowLogContainers[accountKey]) {
+      return flowLogContainers[accountKey];
+    }
+
+    const accountStack = getAccountStack(accountKey);
+    const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
+      expirationInDays: globalOptions['central-log-retention'],
+      replication: {
+        accountId: logArchiveAccountId,
+        bucketArn: logArchiveS3BucketArn,
+        kmsKeyArn: logArchiveS3KmsKeyArn,
       },
     });
-    vpcStacks[accountId] = vpcStack;
-    return vpcStack;
+    flowLogContainers[accountKey] = flowLogContainer;
+    return flowLogContainer;
   };
 
   // Auxiliary method to create a VPC in the account with given account key
   const createVpc = (accountKey: string, props: VpcProps) => {
-    const vpcStack = getVpcStack(accountKey);
-    const vpc = new Vpc(vpcStack, props.vpcConfig.name, props);
+    const { vpcConfig } = props;
+
+    const accountStack = getAccountStack(accountKey);
+    const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
+
+    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
+      vpcProps: props,
+      transitGateways,
+    });
+    const vpc = vpcStack.vpc;
+
+    const endpointConfig = vpcConfig['interface-endpoints'];
+    if (InterfaceEndpointConfig.is(endpointConfig)) {
+      const subnetName = endpointConfig.subnet;
+      const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
+      if (!subnetIds) {
+        throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
+      }
+
+      let endpointCount = 0;
+      let endpointStackIndex = 0;
+      let endpointStack;
+      for (const endpoint of endpointConfig.endpoints) {
+        if (endpoint === 'notebook') {
+          console.log(`Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Endpoint not supported`);
+          continue;
+        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
+          console.log(
+            `Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Reached maximum interface endpoints per VPC`,
+          );
+          continue;
+        }
+
+        if (!endpointStack || endpointCount >= 30) {
+          endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
+          endpointStack.addDependency(vpcStack);
+          endpointCount = 0;
+        }
+        new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
+          serviceName: endpoint,
+          vpcId: vpc.vpcId,
+          vpcRegion: vpc.region,
+          subnetIds,
+        });
+        endpointCount++;
+      }
+    }
+
+    // Enable flow logging if necessary
+    const flowLogs = vpcConfig['flow-logs'];
+    if (flowLogs) {
+      const flowLogContainer = getFlowLogContainer(accountKey);
+      const flowLogBucket = flowLogContainer.getOrCreateFlowLogBucket();
+      const flowLogRole = flowLogContainer.getOrCreateFlowLogRole();
+
+      new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
+        deliverLogsPermissionArn: flowLogRole.roleArn,
+        resourceId: vpc.vpcId,
+        resourceType: 'VPC',
+        trafficType: ec2.FlowLogTrafficType.ALL,
+        logDestination: `${flowLogBucket.bucketArn}/flowlogs`,
+        logDestinationType: ec2.FlowLogDestinationType.S3,
+      });
+    }
+
     // Prepare the output for next phases
     const vpcOutput: VpcOutput = {
       vpcId: vpc.vpcId,
@@ -119,90 +203,29 @@ async function main() {
     });
   };
 
-  // Create all the VPCs for the mandatory accounts
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
-    const vpcConfig = accountConfig.vpc;
-    if (!vpcConfig) {
-      console.log(`Skipping VPC creation for account "${accountKey}"`);
-      continue;
-    }
-    if (vpcConfig.deploy !== 'local') {
-      console.warn(`Skipping non-local VPC deployment for mandatory account "${accountKey}"`);
+  // Create all the VPCs for accounts and organizational units
+  for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
+    if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
+      console.log(
+        `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
+      );
       continue;
     }
 
-    console.debug(`Deploying VPC in account "${accountKey}"`);
+    console.debug(
+      `Deploying VPC "${vpcConfig.name}" in account "${accountKey}"${
+        ouKey ? ` and organizational unit "${ouKey}"` : ''
+      }`,
+    );
     createVpc(accountKey, {
+      accountKey,
+      limiter,
       accounts,
       vpcConfig,
-      tgwDeployment: accountConfig.deployments?.tgw,
+      tgwDeployment: deployments?.tgw,
+      organizationalUnitName: ouKey,
     });
   }
-
-  // Create all the VPCs for the organizational units
-  const organizationalUnits = acceleratorConfig['organizational-units'];
-  for (const [ouKey, ouConfig] of Object.entries(organizationalUnits)) {
-    const vpcConfig = ouConfig?.vpc;
-    if (!vpcConfig) {
-      console.log(`Skipping VPC creation for organizational unit "${ouKey}"`);
-      continue;
-    }
-    if (!vpcConfig.deploy) {
-      console.warn(`Skipping VPC creation for organizational unit "${ouKey}" as 'deploy' is not set`);
-      continue;
-    }
-
-    if (vpcConfig.deploy === 'local') {
-      // If the deployment is 'local' then the VPC should be created in all the accounts in this OU
-      for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
-        if (accountConfig.ou === ouKey) {
-          console.debug(`Deploying local VPC for organizational unit "${ouKey}" in account "${accountKey}"`);
-
-          createVpc(accountKey, {
-            accounts,
-            vpcConfig,
-            organizationalUnitName: ouKey,
-          });
-        }
-      }
-    } else {
-      // If the deployment is not 'local' then the VPC should be created in the given account
-      const accountKey = vpcConfig.deploy;
-      console.debug(`Deploying non-local VPC for organizational unit "${ouKey}" in account "${accountKey}"`);
-
-      createVpc(accountKey, {
-        accounts,
-        vpcConfig,
-        organizationalUnitName: ouKey,
-      });
-    }
-  }
-
-  // const accountVpcCount: { [accountKey: string]: number } = {};
-  // for (const vpcStack of Object.values(vpcStacks)) {
-  //   const vpcStackNode = constructs.Node.of(vpcStack);
-  //   const children = vpcStackNode.findAll(constructs.ConstructOrder.PREORDER);
-  //   for (const child of children) {
-  //     if (child instanceof Vpc) {
-  //       let count = accountVpcCount[vpcStack.account];
-  //       if (!count) {
-  //         count = 1;
-  //       } else {
-  //         count++;
-  //       }
-  //       accountVpcCount[vpcStack.account] = count;
-
-  //       if (count > 5) {
-  //         console.log(`Removing VPC "${child.name}" in account "${vpcStack.account}" to avoid going over VPC quota`);
-
-  //         const childNode = constructs.Node.of(child);
-  //         const parentNode = constructs.Node.of(childNode.scope!);
-  //         parentNode.tryRemoveChild(childNode.id);
-  //       }
-  //     }
-  //   }
-  // }
 }
 
 // tslint:disable-next-line: no-floating-promises

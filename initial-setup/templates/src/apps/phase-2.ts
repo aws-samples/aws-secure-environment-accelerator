@@ -6,16 +6,18 @@ import * as iam from '@aws-cdk/aws-iam';
 import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
-import { PeeringConnection } from '../common/peering-connection';
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
-import { getAllAccountVPCConfigs, getVpcConfig } from '../common/get-all-vpcs';
+import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput } from './phase-1';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { ActiveDirectory } from '../common/active-directory';
+import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
+import { SecurityGroup } from '../common/security-group';
+import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -112,15 +114,8 @@ async function main() {
    * Code to create Peering Connection in all accounts
    */
 
-  // Retrive all Account Configs
-  const accountConfigs = getAllAccountVPCConfigs(acceleratorConfig);
-
-  for (const [account, accountConfig] of Object.entries(accountConfigs)) {
-    const peeringConfig = PeeringConnection.getVpcConfigForPcx(account, accountConfig);
-    if (!peeringConfig) {
-      continue;
-    }
-    const { accountKey, vpcConfig } = peeringConfig;
+  const vpcConfigs = acceleratorConfig.getVpcConfigs();
+  for (const { accountKey, vpcConfig } of vpcConfigs) {
     const pcxConfig = vpcConfig.pcx;
     if (!PeeringConnectionConfig.is(pcxConfig)) {
       continue;
@@ -141,7 +136,7 @@ async function main() {
     });
 
     // Get Peer VPC Configuration
-    const peerVpcConfig = getVpcConfig(accountConfigs, pcxConfig.source, pcxSourceVpc);
+    const peerVpcConfig = getVpcConfig(vpcConfigs, pcxConfig.source, pcxSourceVpc);
     if (!VpcConfigType.is(peerVpcConfig)) {
       throw new Error(`No configuration found for Peer VPC "${pcxSourceVpc}"`);
     }
@@ -190,8 +185,8 @@ async function main() {
     stackName: 'PBMMAccel-Secrets',
   });
 
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+  const accountConfigs = acceleratorConfig.getAccountConfigs();
+  for (const [accountKey, accountConfig] of accountConfigs) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
@@ -245,6 +240,53 @@ async function main() {
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
       },
     });
+  }
+
+  // Creating Security Groups in shared accounts to respective accounts
+  for (const { ouKey, accountKey, vpcConfig } of vpcConfigs) {
+    const sharedToAccounts = getVpcSharedAccounts(accounts, vpcConfig, ouKey);
+    const shareToAccountIds = Array.from(new Set(sharedToAccounts));
+    if (sharedToAccounts.length > 0) {
+      console.log(`Share VPC "${vpcConfig.name}" from Account "${accountKey}" to Accounts "${shareToAccountIds}"`);
+    }
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'VpcOutput',
+    });
+    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+    for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
+      // Initiating Security Group creation in shared account
+      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`, {
+        env: {
+          account: sharedAccountId,
+          region: cdk.Aws.REGION,
+        },
+        acceleratorName: context.acceleratorName,
+        acceleratorPrefix: context.acceleratorPrefix,
+        stackName: `PBMMAccel-SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
+      });
+      if (!vpcOutput) {
+        throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+      }
+      const securityGroups = new SecurityGroup(securityGroupStack, 'SecurityGroups', {
+        vpcConfig,
+        vpcId: vpcOutput.vpcId,
+        accountKey,
+      });
+      // Add Tags Output
+      const accountId = getAccountId(accounts, accountKey);
+      const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
+      new AddTagsToResourcesOutput(securityGroupStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
+        dependencies: securityGroupsResources,
+        produceResources: () =>
+          securityGroupsResources.map(securityGroup => ({
+            resourceId: securityGroup.ref,
+            resourceType: 'security-group',
+            targetAccountIds: [accountId],
+            tags: securityGroup.tags.renderTags(),
+          })),
+      });
+    }
   }
 }
 
