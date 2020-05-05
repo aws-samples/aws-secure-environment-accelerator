@@ -1,63 +1,65 @@
-import * as aws from 'aws-sdk';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 
 interface AddRoleToScpInput {
   roleName: string;
-  policyName: string;
+  policyNames: string[];
 }
 
 export const handler = async (input: AddRoleToScpInput) => {
   console.log(`Adding role to service control policy...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { roleName, policyName } = input;
+  const { roleName, policyNames } = input;
 
-  // Find the core policy
-  const organizations = new Organizations();
-  const response = await organizations.getPolicyByName({
-    Filter: 'SERVICE_CONTROL_POLICY',
-    Name: policyName,
-  });
-  const policy = response?.Policy;
-  const policyId = policy?.PolicySummary?.Id;
-  if (!policy || !policyId) {
-    throw new Error(`Cannot find service control policy with name "${policyName}"`);
+  const status: string[] = [];
+  for (const policyName of policyNames) {
+    // Find the core policy
+    const organizations = new Organizations();
+    const response = await organizations.getPolicyByName({
+      Filter: 'SERVICE_CONTROL_POLICY',
+      Name: policyName,
+    });
+
+    const policy = response?.Policy;
+    const policyId = policy?.PolicySummary?.Id;
+    if (!policy || !policyId) {
+      throw new Error(`Cannot find service control policy with name "${policyName}"`);
+    }
+
+    // Parse the policy and find the statement
+    const content = JSON.parse(policy.Content!);
+    const statement = content.Statement;
+    if (!statement) {
+      throw new Error(`The SCP with ID "${policyName}" does not have a Statement field`);
+    }
+
+    // Add our role to all the statements
+    const role = `arn:aws:iam::*:role/${roleName}`;
+    let hasChanged = false;
+    if (Array.isArray(statement)) {
+      // tslint:disable-next-line: no-any
+      const hasChangedList = statement.map((element: any) => addRoleToStatement(role, element));
+      hasChanged = hasChangedList.some(v => v === true);
+    } else {
+      hasChanged = addRoleToStatement(role, statement);
+    }
+
+    // Only update the policy when we made changes to the statement
+    if (!hasChanged) {
+      status.push(`No changes had to be made to the secure control policy with name ${policyName}`);
+    } else {
+      await organizations.updatePolicy({
+        PolicyId: policyId,
+        Content: JSON.stringify(content),
+      });
+      status.push(`Updated the secure control policy with name - ${policyName}`);
+    }
   }
 
-  // Parse the policy and find the statement
-  const content = JSON.parse(policy.Content!);
-  const statement = content.Statement;
-  if (!statement) {
-    throw new Error(`The SCP with ID "${policyName}" does not have a Statement field`);
-  }
-
-  // Add our role to all the statements
-  const role = `arn:aws:iam::*:role/${roleName}`;
-  let hasChanged = false;
-  if (Array.isArray(statement)) {
-    // tslint:disable-next-line: no-any
-    const hasChangedList = statement.map((element: any) => addRoleToStatement(role, element));
-    hasChanged = hasChangedList.some(v => v === true);
-  } else {
-    hasChanged = addRoleToStatement(role, statement);
-  }
-
-  // Only update the policy when we made changes to the statement
-  if (!hasChanged) {
-    return {
-      status: 'SUCCESS',
-      statusReason: `No changes had to be made to the secure control policy with name ${policyName}`,
-    };
-  }
-
-  await organizations.updatePolicy({
-    PolicyId: policyId,
-    Content: JSON.stringify(content),
-  });
-
+  console.log('status: ', status);
   return {
     status: 'SUCCESS',
-    statusReason: `Updating the secure control policy with name ${policyName}`,
+    statusReason: status,
   };
 };
 
