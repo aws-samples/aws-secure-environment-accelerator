@@ -87,7 +87,7 @@ async function main() {
     inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
-    standards: globalOptions["security-hub-frameworks"],
+    standards: globalOptions['security-hub-frameworks'],
     stackName: `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`,
     subAccountIds: subAccountIds,
   });
@@ -107,12 +107,11 @@ async function main() {
       inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
-      standards: globalOptions["security-hub-frameworks"],
+      standards: globalOptions['security-hub-frameworks'],
       stackName: `PBMMAccel-SecurityHub-B-${account.key}-Stack`,
       masterAccountId: securityMasterAccount?.id,
     });
   }
-
 
   const transitGateways = new Map<string, TransitGateway>();
   const flowLogBucketStacks: { [accountKey: string]: FlowLogBucketStack } = {};
