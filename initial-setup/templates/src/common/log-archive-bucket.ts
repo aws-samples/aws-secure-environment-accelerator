@@ -5,6 +5,8 @@ import * as kms from '@aws-cdk/aws-kms';
 
 export interface LogArchiveBucketProps {
   logRetention: cdk.Duration;
+  logArchiveAccountId: string;
+  accountIds: string[];
 }
 
 /**
@@ -15,11 +17,15 @@ export class LogArchiveBucket extends cdk.Construct {
   readonly encryptionKey: kms.Key;
   readonly bucket: s3.Bucket;
   readonly principals: iam.IPrincipal[] = [];
+  readonly logArchiveAccountId: string;
+  readonly accountIds: string[] = [];
 
   constructor(scope: cdk.Construct, id: string, props: LogArchiveBucketProps) {
     super(scope, id);
 
-    const { logRetention } = props;
+    const { logRetention, logArchiveAccountId, accountIds } = props;
+    this.logArchiveAccountId = logArchiveAccountId;
+    this.accountIds = accountIds;
 
     this.encryptionKey = new kms.Key(this, 'EncryptionKey', {
       description: 'PBMM Accel - KMS Key used by s3',
@@ -27,6 +33,47 @@ export class LogArchiveBucket extends cdk.Construct {
       enabled: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
+
+    // add policy required for cloud trail to use the KMS key
+    this.encryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: 'Allow CloudTrail access',
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
+        actions: ['kms:DescribeKey'],
+        resources: ['*'],
+      }),
+    );
+
+    this.encryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: 'Enable CloudTrail Encrypt Permissions',
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
+        actions: ['kms:GenerateDataKey'],
+        resources: ['*'],
+        conditions: {
+          StringLike: {
+            'kms:EncryptionContext:aws:cloudtrail:arn': this.accountIds.map(x => `arn:aws:cloudtrail:*:${x}:trail/*`),
+          },
+        },
+      }),
+    );
+
+    this.encryptionKey.addToResourcePolicy(
+      new iam.PolicyStatement({
+        sid: 'Enable CloudTrail log decrypt permissions',
+        effect: iam.Effect.ALLOW,
+        principals: [new iam.AccountPrincipal(this.logArchiveAccountId)],
+        actions: ['kms:Decrypt'],
+        resources: ['*'],
+        conditions: {
+          Null: {
+            'kms:EncryptionContext:aws:cloudtrail:arn': false,
+          },
+        },
+      }),
+    );
 
     // bucket name format: pbmmaccel-{account #}-{region}
     const stack = cdk.Stack.of(this);
