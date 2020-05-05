@@ -5,9 +5,9 @@ import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { Account } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Limiter } from '../utils/limits';
-import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 import { TransitGateway } from './transit-gateway';
+import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
 
 export interface VpcCommonProps {
   /**
@@ -73,12 +73,12 @@ export class AzSubnets {
 
 export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
 
-export interface VpcStackProps extends AcceleratorStackProps {
+export interface VpcStackProps extends NestedStackProps {
   vpcProps: VpcProps;
   transitGateways: Map<string, TransitGateway>;
 }
 
-export class VpcStack extends AcceleratorStack {
+export class VpcStack extends NestedStack {
   readonly vpc: Vpc;
 
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
