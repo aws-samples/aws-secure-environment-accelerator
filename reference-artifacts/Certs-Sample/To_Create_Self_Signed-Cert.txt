@@ -1,0 +1,7 @@
+
+
+Run the following:
+
+openssl req -newkey rsa:2048 -nodes -keyout domain1.key -out domain1.csr -subj "/C=CA/ST=Ontario/L=Ottawa/O=TestOrg/CN=*.Test.local"
+openssl x509 -signkey domain1.key -in domain1.csr -req -days 1095 -out domain1.crt
+

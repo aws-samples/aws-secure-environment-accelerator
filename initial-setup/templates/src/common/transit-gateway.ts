@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 
-import { DeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { TgwDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 
 function enableDisableProperty(feature: boolean | undefined): string {
   return feature ? 'enable' : 'disable';
@@ -11,7 +11,7 @@ export class TransitGateway extends cdk.Construct {
   private readonly tgw: ec2.CfnTransitGateway;
   private readonly tgwRouteTableNameToIdMap: { [routeTableName: string]: ec2.CfnTransitGatewayRouteTable } = {};
 
-  constructor(parent: cdk.Construct, name: string, props: DeploymentConfig) {
+  constructor(parent: cdk.Construct, name: string, props: TgwDeploymentConfig) {
     super(parent, name);
 
     const { features } = props;

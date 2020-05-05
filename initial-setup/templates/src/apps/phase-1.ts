@@ -1,19 +1,21 @@
 import * as cdk from '@aws-cdk/core';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { FlowLogBucketStack } from '../common/flow-log-bucket-stack';
-import { Vpc, VpcProps } from '../common/vpc';
+import { FlowLogContainer } from '../common/flow-log-bucket-stack';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { VpcProps, VpcStack } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
-import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { FlowLog } from '../common/flow-log';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { NestedStack } from '@aws-cdk/aws-cloudformation';
+import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { InterfaceEndpoint } from '../common/interface-endpoints';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -70,66 +72,115 @@ async function main() {
   const app = new cdk.App();
 
   const transitGateways = new Map<string, TransitGateway>();
-  const flowLogBucketStacks: { [accountKey: string]: FlowLogBucketStack } = {};
+
+  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
+  const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
-  const getFlowLogsStack = (accountKey: string): FlowLogBucketStack => {
-    const accountId = getAccountId(accounts, accountKey);
-    if (flowLogBucketStacks[accountId]) {
-      return flowLogBucketStacks[accountId];
+  const getAccountStack = (accountKey: string): AcceleratorStack => {
+    if (accountStacks[accountKey]) {
+      return accountStacks[accountKey];
     }
 
     const accountPrettyName = pascalCase(accountKey);
-    const vpcStack = new FlowLogBucketStack(app, `FlowLogsStack${accountPrettyName}`, {
+    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase1`, {
       env: {
-        account: accountId,
+        account: getAccountId(accounts, accountKey),
         region: cdk.Aws.REGION,
       },
-      stackName: `PBMMAccel-${accountPrettyName}FlowLogs`,
+      stackName: `PBMMAccel-${accountPrettyName}-Phase1`,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
-      flowLogBucket: {
-        expirationInDays: globalOptions['central-log-retention'],
-        replication: {
-          accountId: logArchiveAccountId,
-          bucketArn: logArchiveS3BucketArn,
-          kmsKeyArn: logArchiveS3KmsKeyArn,
-        },
+    });
+    accountStacks[accountKey] = accountStack;
+    return accountStack;
+  };
+
+  // Auxiliary method to create a VPC stack the account with given account key
+  // Only one VPC stack per account is created
+  const getFlowLogContainer = (accountKey: string): FlowLogContainer => {
+    if (flowLogContainers[accountKey]) {
+      return flowLogContainers[accountKey];
+    }
+
+    const accountStack = getAccountStack(accountKey);
+    const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
+      expirationInDays: globalOptions['central-log-retention'],
+      replication: {
+        accountId: logArchiveAccountId,
+        bucketArn: logArchiveS3BucketArn,
+        kmsKeyArn: logArchiveS3KmsKeyArn,
       },
     });
-    flowLogBucketStacks[accountId] = vpcStack;
-    return vpcStack;
+    flowLogContainers[accountKey] = flowLogContainer;
+    return flowLogContainer;
   };
 
   // Auxiliary method to create a VPC in the account with given account key
   const createVpc = (accountKey: string, props: VpcProps) => {
     const { vpcConfig } = props;
 
-    const accountPrettyName = pascalCase(accountKey);
+    const accountStack = getAccountStack(accountKey);
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
-    const vpcStack = new AcceleratorStack(app, `VpcStack${vpcStackPrettyName}`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-${accountPrettyName}Vpc${vpcStackPrettyName}`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
 
-    // Create the VPC
-    const vpc = new Vpc(vpcStack, props.vpcConfig.name, props);
+    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
+      vpcProps: props,
+      transitGateways,
+    });
+    const vpc = vpcStack.vpc;
+
+    const endpointConfig = vpcConfig['interface-endpoints'];
+    if (InterfaceEndpointConfig.is(endpointConfig)) {
+      const subnetName = endpointConfig.subnet;
+      const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
+      if (!subnetIds) {
+        throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
+      }
+
+      let endpointCount = 0;
+      let endpointStackIndex = 0;
+      let endpointStack;
+      for (const endpoint of endpointConfig.endpoints) {
+        if (endpoint === 'notebook') {
+          console.log(`Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Endpoint not supported`);
+          continue;
+        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
+          console.log(
+            `Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Reached maximum interface endpoints per VPC`,
+          );
+          continue;
+        }
+
+        if (!endpointStack || endpointCount >= 30) {
+          endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
+          endpointStack.addDependency(vpcStack);
+          endpointCount = 0;
+        }
+        new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
+          serviceName: endpoint,
+          vpcId: vpc.vpcId,
+          vpcRegion: vpc.region,
+          subnetIds,
+        });
+        endpointCount++;
+      }
+    }
 
     // Enable flow logging if necessary
     const flowLogs = vpcConfig['flow-logs'];
     if (flowLogs) {
-      const flowLogsStack = getFlowLogsStack(accountKey);
-      const flowLogBucket = flowLogsStack.getOrCreateFlowLogBucket();
+      const flowLogContainer = getFlowLogContainer(accountKey);
+      const flowLogBucket = flowLogContainer.getOrCreateFlowLogBucket();
+      const flowLogRole = flowLogContainer.getOrCreateFlowLogRole();
 
-      new FlowLog(vpcStack, 'FlowLogs', {
-        vpcId: vpc.vpcId,
-        bucketArn: flowLogBucket.bucketArn,
+      new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
+        deliverLogsPermissionArn: flowLogRole.roleArn,
+        resourceId: vpc.vpcId,
+        resourceType: 'VPC',
+        trafficType: ec2.FlowLogTrafficType.ALL,
+        logDestination: `${flowLogBucket.bucketArn}/flowlogs`,
+        logDestinationType: ec2.FlowLogDestinationType.S3,
       });
     }
 
@@ -150,42 +201,10 @@ async function main() {
       type: 'VpcOutput',
       value: vpcOutput,
     });
-
-    const tgwDeployment = props.tgwDeployment;
-    if (tgwDeployment) {
-      const tgw = new TransitGateway(vpcStack, tgwDeployment.name!, tgwDeployment);
-      transitGateways.set(tgwDeployment.name!, tgw);
-    }
-
-    const tgwAttach = props.vpcConfig['tgw-attach'];
-    if (tgwAttach) {
-      const tgwName = tgwAttach['associate-to-tgw'];
-      const tgw = transitGateways.get(tgwName);
-      if (tgw && tgwName.length > 0) {
-        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
-        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
-        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-        // Attach VPC To TGW
-        new TransitGatewayAttachment(vpcStack, 'TgwAttach', {
-          vpcId: vpc.vpcId,
-          subnetIds,
-          transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-        });
-      }
-    }
   };
 
   // Create all the VPCs for accounts and organizational units
-  for (const { ouKey, accountKey, vpcConfig } of acceleratorConfig.getVpcConfigs()) {
+  for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
       console.log(
         `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
@@ -203,6 +222,7 @@ async function main() {
       limiter,
       accounts,
       vpcConfig,
+      tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
     });
   }

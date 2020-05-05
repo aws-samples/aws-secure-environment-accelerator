@@ -254,6 +254,7 @@ export namespace InitialSetup {
           roleArn: pipelineRole.roleArn,
           portfolioName: avmPortfolioName,
         },
+        inputPath: '$.configuration',
         resultPath: 'DISCARD',
       });
 

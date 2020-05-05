@@ -302,6 +302,16 @@
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
+      "certificates": [
+        {
+          "name": "PerimSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        }
+      ],
       "iam": {
         "users": [],
         "policies": [
@@ -491,6 +501,11 @@
       "deployments": {
         "firewall": {
           "instance-sizes": "c5n.2xl",
+          "image": "https://aws.amazon.com/marketplace/pp/B00PCZSWDA?qid=1588624790695",
+          "version": "6.2.3#",
+          "region": "ca-central-1",
+          "security-group": "Fortigates",
+          "vpc": "Perimeter",		  
           "eni": {
             "count": 4,
             "p1-subnet": "Public",
@@ -502,10 +517,15 @@
             "min-qty": 2,
             "max-qty": 2
           },
-          "script": "firewall.yaml",
+          "config": "fortigate_AA_20200504.txt",
+          "fw-cgw-name": "Perimeter_fw",
+          "fw-cgw-asn": 63000,
+          "fw-cgw-routing": "Dynamic",
+          "fw-cgw-name": "Perimeter_fw",
           "tgw-attach": {
             "associate-to-tgw": "Main",
             "account": "shared-network",
+			"name": "TGW-to-Perimeter",
             "associate-type": "VPN",
             "rt-associate": ["core"],
             "rt-propogate": ["core", "segregated", "shared", "standalone"],
@@ -513,7 +533,17 @@
             "attach-subnets": [],
             "options": ["DNS-support", "IPv6-support"]
           }
-        }
+        },
+        "firewall-manager": {
+		  "name": "FortigateMgr",
+          "instance-sizes": "c5.l",
+          "image": "https://aws.amazon.com/marketplace/server/procurement?productId=c15e8d8d-1e46-41cf-9543-418a3f652745",
+          "version": "6.2.3",
+          "region": "ca-central-1",
+          "vpc": "Perimeter",		  
+          "subnet": "FWMgmt_azA",
+          "security-group": "FortigateMgr"
+		}
       }
     },
     "master": {
@@ -655,6 +685,24 @@
       "type": "mandatory",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "CentralSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Central",
@@ -1121,6 +1169,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "DevSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Dev",
@@ -1319,6 +1385,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "TestSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Test",
@@ -1517,6 +1601,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "certificates": [
+        {
+          "name": "ProdSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "Prod",
@@ -1715,6 +1817,24 @@
       "type": "workload",
       "share-mad-from": "operations",
       "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "certificates": [
+        {
+          "name": "UnclassSelf-SignedCert",
+          "type": "import",
+          "priv-key": "domain1.key",
+          "cert": "domain1.crt",
+          "chain": "",
+          "arn": ""
+        },
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "SAN": "*.example1.com",
+          "arn": ""
+        }
+      ],
       "vpc": {
         "deploy": "shared-network",
         "name": "UnClass",

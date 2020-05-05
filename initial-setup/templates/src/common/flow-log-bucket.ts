@@ -27,7 +27,9 @@ export class FlowLogBucket extends cdk.Construct {
 
     // bucket name format: pbmmaccel-{account #}-{region}
     const stack = cdk.Stack.of(this);
-    const bucketName = `pbmmaccel-${stack.account}-${stack.region}`;
+    const bucketName = undefined;
+    // TODO Re-enable this
+    // const bucketName = `pbmmaccel-${stack.account}-${stack.region}`;
 
     // kms key used for vpc-flow-logs s3 bucket encryption
     const encryptionKey = new kms.Key(this, 'EncryptionKey', {
