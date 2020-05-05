@@ -12,6 +12,11 @@ import { TransitGateway } from '../common/transit-gateway';
 import { FlowLog } from '../common/flow-log';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import * as cfn from '@aws-cdk/aws-cloudformation';
+import * as lambda from '@aws-cdk/aws-lambda';
+import { CfnHub } from '@aws-cdk/aws-securityhub';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { SecurityHubStack } from '../common/security-hub';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -66,6 +71,48 @@ async function main() {
   );
 
   const app = new cdk.App();
+
+  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const subAccountIds = accounts.map(account => account.id);
+
+  // Create Security Hub stack for Master Account
+  const securityHubMaster = new SecurityHubStack(app, `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`, {
+    env: {
+      account: securityMasterAccount?.id,
+      region: cdk.Aws.REGION,
+    },
+    account: securityMasterAccount!,
+    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    standards: globalOptions["security-hub-frameworks"],
+    stackName: `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`,
+    subAccountIds: subAccountIds,
+  });
+
+  for (const account of accounts) {
+    if (account.id === securityMasterAccount?.id) {
+      continue;
+    }
+    const securityHubMember = new SecurityHubStack(app, `PBMMAccel-SecurityHub-B-${account.key}-Stack`, {
+      env: {
+        account: account.id,
+        region: cdk.Aws.REGION,
+      },
+      account: account,
+      acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+      enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+      inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+      acceleratorName: context.acceleratorName,
+      acceleratorPrefix: context.acceleratorPrefix,
+      standards: globalOptions["security-hub-frameworks"],
+      stackName: `PBMMAccel-SecurityHub-B-${account.key}-Stack`,
+      masterAccountId: securityMasterAccount?.id,
+    });
+  }
+
 
   const transitGateways = new Map<string, TransitGateway>();
   const flowLogBucketStacks: { [accountKey: string]: FlowLogBucketStack } = {};

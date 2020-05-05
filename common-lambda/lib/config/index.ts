@@ -278,7 +278,7 @@ export const GlobalOptionsZonesConfigType = t.interface({
 
 export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigType>;
 
-export const SecurityHubFrameworksConfig = t.interface({
+export const SecurityHubFrameworksConfigType = t.interface({
   standards: t.array(
     t.interface({
       name: t.string,
@@ -289,9 +289,10 @@ export const SecurityHubFrameworksConfig = t.interface({
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   zones: GlobalOptionsZonesConfigType,
-  'security-hub-frameworks': SecurityHubFrameworksConfig,
+  'security-hub-frameworks': SecurityHubFrameworksConfigType,
 });
 
+export type SecurityHubFrameworksConfig = t.TypeOf<typeof SecurityHubFrameworksConfigType>;
 export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
 
 export const AcceleratorConfigType = t.interface({

@@ -7,6 +7,7 @@ import {
   ListInvitationsResponse,
   AcceptInvitationResponse,
   EnableSecurityHubResponse,
+  InviteMembersResponse
 } from 'aws-sdk/clients/securityhub';
 
 export class SecurityHub {
@@ -64,6 +65,12 @@ export class SecurityHub {
 
   public listInvitations(): Promise<ListInvitationsResponse> {
     return this.client.listInvitations().promise();
+  }
+
+  public inviteMembers(accountIds: string[]): Promise<InviteMembersResponse> {
+    return this.client.inviteMembers({
+      AccountIds: accountIds
+    }).promise();
   }
 
   public acceptInvitation(invitationId: string, masterId: string): Promise<AcceptInvitationResponse> {

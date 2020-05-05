@@ -5,9 +5,9 @@ import { sendResponse } from './utils';
 import { SUCCESS, FAILED } from 'cfn-response';
 
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
-  console.log(`Accept Invite from Master Security Hub Account ...`);
+  console.log(`Send Invites to Sub Accounts from Security Hub Master ...`);
   const requestType = event.RequestType;
-  const resourceId = 'Accept-Security-Hub-Invitation';
+  const resourceId = 'Send-Security-Hub-Invitation';
   if (requestType === 'Delete') {
     // ToDo
     return await sendResponse(event, context, SUCCESS, {}, resourceId);
@@ -16,24 +16,17 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME;
 
     const accountId = event.ResourceProperties.AccountID;
-    const masterAccountId = event.ResourceProperties.MasterAccountID;
+    const memberAccounts = event.ResourceProperties.MemberAccounts;
 
     const sts = new STS();
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, executionRoleName!);
 
     const hub = new SecurityHub(credentials);
 
-    // Check for pending invitaions from Master
-    const invitations = await hub.listInvitations();
-    if (!invitations.Invitations) {
-      console.log(`No invitations found in ${accountId}`);
-    } else {
-      console.log(invitations);
-      const ownerInvitation = invitations.Invitations.find(x => x.AccountId === masterAccountId);
-      //   const invitationId = ownerInvitation?.InvitationId!;
-      //   const acceptResponse = await hub.acceptInvitation(invitationId, ownerAccountId);
-      //   console.log(acceptResponse);
-    }
+    // Sending Invites to subaccounts
+    console.log(`Sending invites to Sub accounts ${memberAccounts}`);
+    const inviteResponse = await hub.inviteMembers(memberAccounts);
+    console.log(inviteResponse);
     await sendResponse(event, context, SUCCESS, {}, resourceId);
   } catch (error) {
     console.error(error);
