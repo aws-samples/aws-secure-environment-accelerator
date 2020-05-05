@@ -8,7 +8,6 @@ import { Limiter } from '../utils/limits';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 import { TransitGateway } from './transit-gateway';
-import { Tag } from '@aws-cdk/core';
 
 export interface VpcCommonProps {
   /**
@@ -118,7 +117,7 @@ export class VpcStack extends AcceleratorStack {
           tgwRoutePropagates,
         });
         // Add name tag
-        Tag.add(TgwAttachment, 'Name', `${this.vpc.name}_${tgwName}_att`);
+        cdk.Tag.add(TgwAttachment, 'Name', `${this.vpc.name}_${tgwName}_att`);
       }
     }
   }
