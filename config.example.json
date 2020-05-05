@@ -625,6 +625,41 @@
                 "source": ["0.0.0.0/0"]
               }
             ]
+          },
+          {
+            "name": "FortigateMgr",
+            "inbound-rules": [
+              {
+                "description": "Allow Mgmt Traffic Inbound",
+                "tcp-ports": [22,443,514,541,2032,3000,5199,6020,6028,8080,80,22],
+                "udp-ports": [9443],
+                "source": ["10.0.0.0/8"]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0"]
+              }
+            ]
+          },
+          {
+            "name": "Fortigates",
+            "inbound-rules": [
+              {
+                "description": "Web Traffic Inbound",
+                "tcp-ports": [22,443,541,3000,8080],
+                "source": ["0.0.0.0/0"]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0"]
+              }
+            ]
           }
         ],
         "tgw-attach": {
