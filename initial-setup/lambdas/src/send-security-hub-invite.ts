@@ -28,7 +28,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     const hub = new SecurityHub(credentials);
 
     const params = {
-      AccountDetails: memberAccounts
+      AccountDetails: memberAccounts,
     };
     // Creating Members
     console.log(`Creating Members for "${params}"`);

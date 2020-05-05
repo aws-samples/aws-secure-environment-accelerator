@@ -293,11 +293,11 @@ async function main() {
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
   const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
-  const subAccountIds = accounts.map(account => { 
-    return ({
+  const subAccountIds = accounts.map(account => {
+    return {
       AccountId: account.id,
       Email: account.email,
-    })
+    };
   });
   console.log(subAccountIds);
   // Create Security Hub stack for Master Account

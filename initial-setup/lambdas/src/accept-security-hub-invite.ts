@@ -30,7 +30,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     } else {
       console.log(invitations);
       const ownerInvitation = invitations.Invitations.find(x => x.AccountId === masterAccountId);
-      if ( ownerInvitation ) {
+      if (ownerInvitation) {
         const invitationId = ownerInvitation?.InvitationId!;
         await hub.acceptInvitation(invitationId, masterAccountId);
       }
