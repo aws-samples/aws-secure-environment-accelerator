@@ -5,6 +5,7 @@ import { parse, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { Vpc } from '../../src/common/vpc';
 import { Limiter } from '../../src/utils/limits';
+import { TransitGateway } from '../../src/common/transit-gateway';
 
 test('the VPC creation should create the correct amount of subnets', () => {
   const stack = new cdk.Stack();
@@ -89,10 +90,15 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
-    vpcConfig,
-    limiter: new Limiter([]),
+    vpcProps: {
+      accountKey: 'master',
+      accounts: [],
+      vpcConfig,
+      limiter: new Limiter([]),
+    },
+    transitGateways: new Map<string, TransitGateway>(),
+    acceleratorPrefix: '',
+    acceleratorName: '',
   });
 
   // Convert the stack to a CloudFormation template
@@ -205,10 +211,15 @@ test('the VPC creation should throw an error when a subnet uses a route table th
   });
   expect(() => {
     new Vpc(stack, 'SharedNetwork', {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
+      vpcProps: {
+        accountKey: 'master',
+        accounts: [],
+        vpcConfig,
+        limiter: new Limiter([]),
+      },
+      transitGateways: new Map<string, TransitGateway>(),
+      acceleratorPrefix: '',
+      acceleratorName: '',
     });
   }).toThrowError();
 });
@@ -228,10 +239,15 @@ test('the VPC creation should create the internet gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
-    vpcConfig,
-    limiter: new Limiter([]),
+    vpcProps: {
+      accountKey: 'master',
+      accounts: [],
+      vpcConfig,
+      limiter: new Limiter([]),
+    },
+    transitGateways: new Map<string, TransitGateway>(),
+    acceleratorPrefix: '',
+    acceleratorName: '',
   });
 
   // Convert the stack to a CloudFormation template
@@ -259,10 +275,15 @@ test('the VPC creation should create the VPN gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
-    vpcConfig,
-    limiter: new Limiter([]),
+    vpcProps: {
+      accountKey: 'master',
+      accounts: [],
+      vpcConfig,
+      limiter: new Limiter([]),
+    },
+    transitGateways: new Map<string, TransitGateway>(),
+    acceleratorPrefix: '',
+    acceleratorName: '',
   });
 
   // Convert the stack to a CloudFormation template
@@ -373,10 +394,15 @@ test('the VPC creation should create the NAT gateway', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    accountKey: 'master',
-    accounts: [],
-    vpcConfig,
-    limiter: new Limiter([]),
+    vpcProps: {
+      accountKey: 'master',
+      accounts: [],
+      vpcConfig,
+      limiter: new Limiter([]),
+    },
+    transitGateways: new Map<string, TransitGateway>(),
+    acceleratorPrefix: '',
+    acceleratorName: '',
   });
 
   // Convert the stack to a CloudFormation template
