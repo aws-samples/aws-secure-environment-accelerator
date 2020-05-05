@@ -209,15 +209,27 @@ export class ADUsersAndGroups extends cdk.Construct {
       createADConnectorUser: {
         commands: {
           'a-configure-ad-connector-user': {
-            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-setup.ps1 -GroupName ${madDeploymentConfig["adc-group"]} -UserName aduser -Password Test@12345 -DomainAdminUser ${madDeploymentConfig["netbios-domain"]}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -PasswordNeverExpires Yes`,
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-setup.ps1 -GroupName ${madDeploymentConfig['adc-group']} -UserName aduser -Password Test@12345 -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -PasswordNeverExpires Yes`,
             waitAfterCompletion: '0',
-          }
-        }
+          },
+        },
       },
       configurePasswordPolicy: {
         commands: {
           'a-set-password-policy': {
-            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Configure-password-policy.ps1 -DomainAdminUser admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -ComplexityEnabled:$${pascalCase(String(madDeploymentConfig["password-policies"].complexity))} -LockoutDuration 00:${madDeploymentConfig["password-policies"]["lockout-duration"]}:00 -MaxPasswordAge:${madDeploymentConfig["password-policies"]["max-age"]}.00:00:00 -MinPasswordAge:${madDeploymentConfig["password-policies"]["min-age"]}.00:00:00 -MinPasswordLength:${madDeploymentConfig["password-policies"]["min-len"]} -PasswordHistoryCount:${madDeploymentConfig["password-policies"].history} -ReversibleEncryptionEnabled:$${madDeploymentConfig["password-policies"].reversible}`,
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Configure-password-policy.ps1 -DomainAdminUser admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${
+              adminPassword.secretArn
+            }).SecretString) -ComplexityEnabled:$${pascalCase(
+              String(madDeploymentConfig['password-policies'].complexity),
+            )} -LockoutDuration 00:${madDeploymentConfig['password-policies']['lockout-duration']}:00 -MaxPasswordAge:${
+              madDeploymentConfig['password-policies']['max-age']
+            }.00:00:00 -MinPasswordAge:${
+              madDeploymentConfig['password-policies']['min-age']
+            }.00:00:00 -MinPasswordLength:${
+              madDeploymentConfig['password-policies']['min-len']
+            } -PasswordHistoryCount:${madDeploymentConfig['password-policies'].history} -ReversibleEncryptionEnabled:$${
+              madDeploymentConfig['password-policies'].reversible
+            }`,
             waitAfterCompletion: '0',
           },
         },
