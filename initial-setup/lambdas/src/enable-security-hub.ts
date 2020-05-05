@@ -30,7 +30,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     for (const standard of standards) {
       const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
       const enableResonse = await hub.batchEnableStandards([standardArn!]);
-      await delay(1000);
+      await delay(3000);
       for (const responseStandard of enableResonse.StandardsSubscriptions || []) {
         const standardControls = await hub.describeStandardControls(responseStandard.StandardsSubscriptionArn);
         for (const disableConrtol of standard['controls-to-disable']) {

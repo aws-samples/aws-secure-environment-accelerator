@@ -30,9 +30,10 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     } else {
       console.log(invitations);
       const ownerInvitation = invitations.Invitations.find(x => x.AccountId === masterAccountId);
-      //   const invitationId = ownerInvitation?.InvitationId!;
-      //   const acceptResponse = await hub.acceptInvitation(invitationId, ownerAccountId);
-      //   console.log(acceptResponse);
+      if ( ownerInvitation ) {
+        const invitationId = ownerInvitation?.InvitationId!;
+        await hub.acceptInvitation(invitationId, masterAccountId);
+      }
     }
     await sendResponse(event, context, SUCCESS, {}, resourceId);
   } catch (error) {

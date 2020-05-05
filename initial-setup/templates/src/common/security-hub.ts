@@ -6,13 +6,17 @@ import { CfnHub } from '@aws-cdk/aws-securityhub';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 
+export interface SubAccount {
+  AccountId: string;
+  Email: string;
+}
 export interface SecurityHubStackProps extends AcceleratorStackProps {
   account: Account;
   enableStandardsFuncArn: string;
   inviteMembersFuncArn: string;
   acceptInvitationFuncArn: string;
   standards: config.SecurityHubFrameworksConfig;
-  subAccountIds?: string[];
+  subAccountIds?: SubAccount[];
   masterAccountId?: string;
 }
 
@@ -61,7 +65,7 @@ export class SecurityHubStack extends AcceleratorStack {
           provider: cfn.CustomResourceProvider.fromLambda(sendInvitesLambda),
           properties: {
             AccountID: cdk.Aws.ACCOUNT_ID,
-            MemberAccounts: subAccountIds?.filter(x => x != account.id),
+            MemberAccounts: subAccountIds?.filter(x => x.AccountId != account.id),
           },
         },
       );

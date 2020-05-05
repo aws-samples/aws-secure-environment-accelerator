@@ -8,6 +8,8 @@ import {
   AcceptInvitationResponse,
   EnableSecurityHubResponse,
   InviteMembersResponse,
+  CreateMembersResponse,
+  CreateMembersRequest
 } from 'aws-sdk/clients/securityhub';
 
 export class SecurityHub {
@@ -72,6 +74,12 @@ export class SecurityHub {
       .inviteMembers({
         AccountIds: accountIds,
       })
+      .promise();
+  }
+
+  public createMembers(members: CreateMembersRequest): Promise<InviteMembersResponse> {
+    return this.client
+      .createMembers(members)
       .promise();
   }
 
