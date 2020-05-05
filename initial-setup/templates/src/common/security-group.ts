@@ -89,6 +89,10 @@ export class SecurityGroup extends cdk.Construct {
     vpcConfig: config.VpcConfig,
   ): SecurityGroupruleProps[] => {
     const ruleProps: SecurityGroupruleProps[] = [];
+    // TODO Support type, udp-ports or tcp-ports here
+    if (!rule.type) {
+      return [];
+    }
     for (const ruleType of rule.type) {
       const ruleSources = rule.source;
       let ipProtocol;

@@ -105,7 +105,9 @@ export const SecurityGroupRuleSecurityGroupSourceConfig = t.interface({
 });
 
 export const SecurityGroupRuleConfigType = t.interface({
-  type: t.array(NonEmptyString),
+  type: optional(t.array(NonEmptyString)),
+  'tcp-ports': optional(t.array(t.number)),
+  'udp-ports': optional(t.array(t.number)),
   port: optional(t.number),
   description: NonEmptyString,
   toPort: optional(t.number),
