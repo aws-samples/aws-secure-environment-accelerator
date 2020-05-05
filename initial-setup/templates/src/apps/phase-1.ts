@@ -2,12 +2,11 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
-import { getAccountId, loadAccounts } from '../utils/accounts';
+import { loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogContainer } from '../common/flow-log-bucket-stack';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { VpcProps, VpcStack } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
@@ -73,60 +72,17 @@ async function main() {
 
   const transitGateways = new Map<string, TransitGateway>();
 
-  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
-  const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
-
-  // Auxiliary method to create a VPC stack the account with given account key
-  // Only one VPC stack per account is created
-  const getAccountStack = (accountKey: string): AcceleratorStack => {
-    if (accountStacks[accountKey]) {
-      return accountStacks[accountKey];
-    }
-
-    const accountPrettyName = pascalCase(accountKey);
-    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase1`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-${accountPrettyName}-Phase1`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
-    accountStacks[accountKey] = accountStack;
-    return accountStack;
-  };
-
-  // Auxiliary method to create a VPC stack the account with given account key
-  // Only one VPC stack per account is created
-  const getFlowLogContainer = (accountKey: string): FlowLogContainer => {
-    if (flowLogContainers[accountKey]) {
-      return flowLogContainers[accountKey];
-    }
-
-    const accountStack = getAccountStack(accountKey);
-    const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
-      expirationInDays: globalOptions['central-log-retention'],
-      replication: {
-        accountId: logArchiveAccountId,
-        bucketArn: logArchiveS3BucketArn,
-        kmsKeyArn: logArchiveS3KmsKeyArn,
-      },
-    });
-    flowLogContainers[accountKey] = flowLogContainer;
-    return flowLogContainer;
-  };
-
   // Auxiliary method to create a VPC in the account with given account key
   const createVpc = (accountKey: string, props: VpcProps) => {
     const { vpcConfig } = props;
 
-    const accountStack = getAccountStack(accountKey);
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
-    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
+    const vpcStack = new VpcStack(app, `VpcStack${vpcStackPrettyName}`, {
       vpcProps: props,
       transitGateways,
+      acceleratorName: context.acceleratorName,
+      acceleratorPrefix: context.acceleratorPrefix,
     });
     const vpc = vpcStack.vpc;
 
@@ -153,8 +109,7 @@ async function main() {
         }
 
         if (!endpointStack || endpointCount >= 30) {
-          endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
-          endpointStack.addDependency(vpcStack);
+          endpointStack = new NestedStack(vpcStack, `Endpoint${endpointStackIndex++}`);
           endpointCount = 0;
         }
         new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
@@ -170,9 +125,16 @@ async function main() {
     // Enable flow logging if necessary
     const flowLogs = vpcConfig['flow-logs'];
     if (flowLogs) {
-      const flowLogContainer = getFlowLogContainer(accountKey);
-      const flowLogBucket = flowLogContainer.getOrCreateFlowLogBucket();
-      const flowLogRole = flowLogContainer.getOrCreateFlowLogRole();
+      const flowLogContainer = new FlowLogContainer(vpcStack, `FlowLogContainer`, {
+        expirationInDays: globalOptions['central-log-retention'],
+        replication: {
+          accountId: logArchiveAccountId,
+          bucketArn: logArchiveS3BucketArn,
+          kmsKeyArn: logArchiveS3KmsKeyArn,
+        },
+      });
+      const flowLogBucket = flowLogContainer.bucket;
+      const flowLogRole = flowLogContainer.role;
 
       new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
         deliverLogsPermissionArn: flowLogRole.roleArn,
