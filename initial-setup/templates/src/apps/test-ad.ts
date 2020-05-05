@@ -25,8 +25,8 @@ async function main() {
 
   const DomainMemberSGID = 'sg-0e03e46dc71d924a5';
   const KeyPairName = 'test';
-  const S3BucketName = 'solutions-reference';
-  const S3KeyPrefix = 'aws-landing-zone/v2.3.1/scripts/';
+  const S3BucketName = 'rdgw-reference-artifacts';
+  const S3KeyPrefix = 'scripts/';
   const LatestRdgwAmiId = 'ami-02c212eea0b630bbf';
 
   const app = new cdk.App();

@@ -136,6 +136,9 @@ export const PasswordPolicyType = t.interface({
   'min-len': t.number,
   complexity: t.boolean,
   reversible: t.boolean,
+  'failed-attaempts': t.number,
+  'lockout-duration': t.number,
+  'lockout-attempts-reset': t.number,
 });
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;

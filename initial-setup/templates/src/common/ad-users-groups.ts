@@ -3,7 +3,7 @@ import { Secret } from '@aws-cdk/aws-secretsmanager';
 import * as iam from '@aws-cdk/aws-iam';
 import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnAutoScalingGroup, CfnLaunchConfiguration, AutoScalingGroup } from '@aws-cdk/aws-autoscaling';
-import { stringToCloudFormation } from '@aws-cdk/core';
+import { pascalCase } from 'pascal-case';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -100,9 +100,6 @@ export class ADUsersAndGroups extends cdk.Construct {
         },
       ],
       keyName: keyPairName,
-      // userData: cdk.Fn.base64(
-      //   `<script>\ncfn-init.exe -v -c config -s ${stackId} -r PBMMRDGWLaunchConfiguration --region ${cdk.Aws.REGION} \n # Signal the status from cfn-init\n cfn-signal -e $?          --stack ${props.stackName}         --resource PBMMRDGWAutoScalingGroup          --region ${cdk.Aws.REGION}\n </script>\n`,
-      // ),
     });
 
     const autoscalingGroup = new CfnAutoScalingGroup(this, 'RDGWAutoScalingGroupB', {
@@ -138,7 +135,7 @@ export class ADUsersAndGroups extends cdk.Construct {
 
     launchConfig.addOverride('Metadata.AWS::CloudFormation::Init', {
       configSets: {
-        config: ['setup', 'join', 'installRDS', 'finalize'],
+        config: ['setup', 'join', 'installRDS', 'createADConnectorUser', 'configurePasswordPolicy', 'finalize'],
       },
       setup: {
         files: {
@@ -146,22 +143,26 @@ export class ADUsersAndGroups extends cdk.Construct {
             content: `[main]\n stack=${stackName}\n region=${cdk.Aws.REGION}\n`,
           },
           'c:\\cfn\\hooks.d\\cfn-auto-reloader.conf': {
-            content: `[cfn-auto-reloader-hook]\n triggers=post.update\n path=Resources.PBMMRDGWLaunchConfiguration.Metadata.AWS::CloudFormation::Init\n action=cfn-init.exe -v -c config -s ${stackId} -r ${launchConfig.logicalId} --region ${cdk.Aws.REGION}\n`,
+            content: `[cfn-auto-reloader-hook]\n triggers=post.update\n path=Resources.${launchConfig.logicalId}.Metadata.AWS::CloudFormation::Init\n action=cfn-init.exe -v -c config -s ${stackId} -r ${launchConfig.logicalId} --region ${cdk.Aws.REGION}\n`,
           },
           'C:\\Windows\\system32\\WindowsPowerShell\\v1.0\\Modules\\AWSQuickStart\\AWSQuickStart.psm1': {
-            source: `https://${s3BucketName}.s3.amazonaws.com/${s3KeyPrefix}AWSQuickStart.psm1`,
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AWSQuickStart.psm1`,
             authentication: 'S3AccessCreds',
           },
           'C:\\cfn\\scripts\\Join-Domain.ps1': {
-            source: `https://${s3BucketName}.s3.amazonaws.com/${s3KeyPrefix}Join-Domain.ps1`,
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}Join-Domain.ps1`,
             authentication: 'S3AccessCreds',
           },
           'c:\\cfn\\scripts\\Initialize-RDGW.ps1': {
-            source: `https://${s3BucketName}.s3.amazonaws.com/${s3KeyPrefix}Initialize-RDGW.ps1`,
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}Initialize-RDGW.ps1`,
             authentication: 'S3AccessCreds',
           },
           'c:\\cfn\\scripts\\AD-connector-setup.ps1': {
-            source: `https://${s3BucketName}.s3.amazonaws.com/${s3KeyPrefix}AD-connector-setup.ps1`,
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AD-connector-setup.ps1`,
+            authentication: 'S3AccessCreds',
+          },
+          'c:\\cfn\\scripts\\Configure-password-policy.ps1': {
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}Configure-password-policy.ps1`,
             authentication: 'S3AccessCreds',
           },
         },
@@ -201,6 +202,22 @@ export class ADUsersAndGroups extends cdk.Construct {
           },
           'b-configure-rdgw': {
             command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Initialize-RDGW.ps1 -ServerFQDN $($env:COMPUTERNAME + '.${madDeploymentConfig['dns-domain']}') -DomainNetBiosName ${madDeploymentConfig['netbios-domain']} -GroupName 'domain admins'`,
+            waitAfterCompletion: '0',
+          },
+        },
+      },
+      createADConnectorUser: {
+        commands: {
+          'a-configure-ad-connector-user': {
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-setup.ps1 -GroupName ${madDeploymentConfig["adc-group"]} -UserName aduser -Password Test@12345 -DomainAdminUser ${madDeploymentConfig["netbios-domain"]}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -PasswordNeverExpires Yes`,
+            waitAfterCompletion: '0',
+          }
+        }
+      },
+      configurePasswordPolicy: {
+        commands: {
+          'a-set-password-policy': {
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Configure-password-policy.ps1 -DomainAdminUser admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -ComplexityEnabled:$${pascalCase(String(madDeploymentConfig["password-policies"].complexity))} -LockoutDuration 00:${madDeploymentConfig["password-policies"]["lockout-duration"]}:00 -MaxPasswordAge:${madDeploymentConfig["password-policies"]["max-age"]}.00:00:00 -MinPasswordAge:${madDeploymentConfig["password-policies"]["min-age"]}.00:00:00 -MinPasswordLength:${madDeploymentConfig["password-policies"]["min-len"]} -PasswordHistoryCount:${madDeploymentConfig["password-policies"].history} -ReversibleEncryptionEnabled:$${madDeploymentConfig["password-policies"].reversible}`,
             waitAfterCompletion: '0',
           },
         },
