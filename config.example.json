@@ -324,7 +324,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security_group": "Public-Prod-ALB_sg",
+          "security-group": "Public-Prod-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -372,7 +372,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security_group": "Public-DevTest-ALB_sg",
+          "security-group": "Public-DevTest-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -593,7 +593,7 @@
         ],
         "security-groups": [
           {
-            "name": "Perimeter-Prod-ALB_sg",
+            "name": "Perimeter-Prod-ALB",
             "inbound-rules": [
               {
                 "description": "TLS Traffic Inbound",
@@ -610,7 +610,7 @@
             ]
           },
           {
-            "name": "Perimeter-DevTest-ALB_sg",
+            "name": "Perimeter-DevTest-ALB",
             "inbound-rules": [
               {
                 "description": "TLS Traffic Inbound",
@@ -1332,7 +1332,7 @@
           "cert-name": "DevSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security_group": "Web",
+          "security-group": "Web",
           "tg-stickiness": "",
           "access-logs": true,
           "targets": [
@@ -1787,7 +1787,7 @@
           "cert-name": "TestSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security_group": "Web",
+          "security-group": "Web",
           "tg-stickiness": "",
           "access-logs": true,
           "targets": [
@@ -2242,7 +2242,7 @@
           "cert-name": "ProdSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security_group": "Web",
+          "security-group": "Web",
           "tg-stickiness": "",
           "access-logs": true,
           "targets": [
