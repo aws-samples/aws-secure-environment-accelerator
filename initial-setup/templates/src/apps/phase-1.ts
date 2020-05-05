@@ -6,9 +6,9 @@ import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogBucketStack } from '../common/flow-log-bucket-stack';
-import { Vpc, VpcProps } from '../common/vpc';
+import { VpcProps, VpcStack } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { TransitGateway } from '../common/transit-gateway';
 import { FlowLog } from '../common/flow-log';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
@@ -67,6 +67,7 @@ async function main() {
 
   const app = new cdk.App();
 
+  const transitGateways = new Map<string, TransitGateway>();
   const flowLogBucketStacks: { [accountKey: string]: FlowLogBucketStack } = {};
 
   // Auxiliary method to create a VPC stack the account with given account key
@@ -105,7 +106,7 @@ async function main() {
 
     const accountPrettyName = pascalCase(accountKey);
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
-    const vpcStack = new AcceleratorStack(app, `VpcStack${vpcStackPrettyName}`, {
+    const vpcStack = new VpcStack(app, `VpcStack${vpcStackPrettyName}`, {
       env: {
         account: getAccountId(accounts, accountKey),
         region: cdk.Aws.REGION,
@@ -113,10 +114,9 @@ async function main() {
       stackName: `PBMMAccel-${accountPrettyName}Vpc${vpcStackPrettyName}`,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
+      vpcProps: props,
+      transitGateways,
     });
-
-    // Create the VPC
-    const vpc = new Vpc(vpcStack, props.vpcConfig.name, props);
 
     // Enable flow logging if necessary
     const flowLogs = vpcConfig['flow-logs'];
@@ -125,32 +125,32 @@ async function main() {
       const flowLogBucket = flowLogsStack.getOrCreateFlowLogBucket();
 
       new FlowLog(vpcStack, 'FlowLogs', {
-        vpcId: vpc.vpcId,
+        vpcId: vpcStack.vpc.vpcId,
         bucketArn: flowLogBucket.bucketArn,
       });
     }
 
     // Prepare the output for next phases
     const vpcOutput: VpcOutput = {
-      vpcId: vpc.vpcId,
+      vpcId: vpcStack.vpc.vpcId,
       vpcName: props.vpcConfig.name,
-      subnets: vpc.azSubnets.subnets.map(s => ({
+      subnets: vpcStack.vpc.azSubnets.subnets.map(s => ({
         subnetId: s.subnet.ref,
         subnetName: s.subnetName,
         az: s.az,
       })),
-      routeTables: vpc.routeTableNameToIdMap,
+      routeTables: vpcStack.vpc.routeTableNameToIdMap,
     };
 
     // Store the VPC output so that subsequent phases can access the output
-    new JsonOutputValue(vpc, `VpcOutput`, {
+    new JsonOutputValue(vpcStack.vpc, `VpcOutput`, {
       type: 'VpcOutput',
       value: vpcOutput,
     });
   };
 
   // Create all the VPCs for accounts and organizational units
-  for (const { ouKey, accountKey, vpcConfig } of acceleratorConfig.getVpcConfigs()) {
+  for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
       console.log(
         `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
@@ -168,6 +168,7 @@ async function main() {
       limiter,
       accounts,
       vpcConfig,
+      tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
     });
   }

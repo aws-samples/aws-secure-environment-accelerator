@@ -65,7 +65,7 @@ const LIMITS: { [limitKey: string]: LimitCode } = {
   },
 };
 
-export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsOutput> => {
+export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsInput> => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
@@ -150,5 +150,5 @@ export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsOutput>
     SecretString: JSON.stringify(limits, null, 2),
   });
 
-  return limits;
+  return input;
 };

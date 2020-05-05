@@ -5,11 +5,11 @@ import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { pascalCase } from 'pascal-case';
 import { Account } from '../utils/accounts';
 import { InterfaceEndpoints } from './interface-endpoints';
-import { TransitGateway } from './transit-gateway';
-import { TransitGatewayAttachment } from './transit-gateway-attachment';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Limiter, Limit } from '../utils/limits';
-import { SecurityGroup } from './security-group';
+import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
+import { TransitGateway } from './transit-gateway';
 
 export interface VpcCommonProps {
   /**
@@ -27,7 +27,7 @@ export interface VpcCommonProps {
   /**
    * Transit gateway deployment.
    */
-  tgwDeployment?: config.DeploymentConfig;
+  tgwDeployment?: config.TgwDeploymentConfig;
   /**
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */
@@ -74,6 +74,54 @@ export class AzSubnets {
 }
 
 export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
+
+export interface VpcStackProps extends AcceleratorStackProps {
+  vpcProps: VpcProps;
+  transitGateways: Map<string, TransitGateway>;
+}
+
+export class VpcStack extends AcceleratorStack {
+  readonly vpc: Vpc;
+
+  constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
+    super(scope, name, props);
+
+    // Create the VPC
+    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props.vpcProps);
+
+    const tgwDeployment = props.vpcProps.tgwDeployment;
+    if (tgwDeployment) {
+      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
+      props.transitGateways.set(tgwDeployment.name!, tgw);
+    }
+
+    const tgwAttach = props.vpcProps.vpcConfig['tgw-attach'];
+    if (tgwAttach) {
+      const tgwName = tgwAttach['associate-to-tgw'];
+      const tgw = props.transitGateways.get(tgwName);
+      if (tgw && tgwName.length > 0) {
+        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        new TransitGatewayAttachment(this, 'TgwAttach', {
+          vpcId: this.vpc.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+      }
+    }
+  }
+}
 
 /**
  * This construct creates a VPC, NAT gateway, internet gateway, virtual private gateway, route tables, subnets,
@@ -295,42 +343,6 @@ export class Vpc extends cdk.Construct {
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
-    }
-
-    // Creating TGW for Shared-Network Account
-    const tgwDeployment = props.tgwDeployment;
-    if (tgwDeployment) {
-      const twgAttach = vpcConfig['tgw-attach'];
-      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
-      if (config.TransitGatewayAttachConfig.is(twgAttach)) {
-        const attachSubnetsConfig = twgAttach['attach-subnets'] || [];
-        const associateConfig = twgAttach['tgw-rt-associate'] || [];
-        const propagateConfig = twgAttach['tgw-rt-propagate'] || [];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-        // Attach VPC To TGW
-        new TransitGatewayAttachment(this, 'TgwAttach', {
-          vpcId: this.vpcId,
-          subnetIds,
-          transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-        });
-      }
-    }
-
-    // Create all security groups
-    if (vpcConfig['security-groups']) {
-      new SecurityGroup(this, 'SecurityGroups', {
-        vpcConfig,
-        vpcId: this.vpcId,
-        accountKey: props.accountKey,
-      });
     }
 
     // Create interface endpoints

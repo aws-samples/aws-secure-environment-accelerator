@@ -1,7 +1,7 @@
 // tslint:disable:no-any
 import 'jest';
 import * as cdk from '@aws-cdk/core';
-import { parse, DeploymentConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { parse, TgwDeploymentConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { TransitGateway } from '../../src/common/transit-gateway';
 
@@ -11,7 +11,7 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
   new TransitGateway(
     stack,
     'SharedNetwork',
-    parse(DeploymentConfigType, {
+    parse(TgwDeploymentConfigType, {
       name: 'Main',
       asn: 64512,
       features: {

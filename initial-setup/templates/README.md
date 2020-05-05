@@ -74,6 +74,40 @@ look something like this.
         "cfnDnsEndpointIpsLambdaArn": "arn:aws:lambda:ca-central-1:687384172140:function:PBMMAccel-InitialSetup-PipelineDnsEndpointIpPoller-R89LHX7APRJU"
     }
 
+Create a `limits.json` file that contains the AWS limits for all the resources defined in CDK. you can find this value
+from secrets manager in your master account.
+
+    [
+        {
+            "accountKey": "shared-network",
+            "limitKey": "Amazon VPC/VPCs per Region",
+            "serviceCode": "vpc",
+            "quotaCode": "L-F678F1CE",
+            "value": 5
+        },
+        {
+            "accountKey": "shared-network",
+            "limitKey": "Amazon VPC/Interface VPC endpoints per VPC",
+            "serviceCode": "vpc",
+            "quotaCode": "L-29B6F2EB",
+            "value": 50
+        },
+        {
+            "accountKey": "shared-network",
+            "limitKey": "AWS CloudFormation/Stack count",
+            "serviceCode": "cloudformation",
+            "quotaCode": "L-0485CB21",
+            "value": 200
+        },
+        {
+            "accountKey": "shared-network",
+            "limitKey": "AWS CloudFormation/Stack sets per administrator account",
+            "serviceCode": "cloudformation",
+            "quotaCode": "L-31709F13",
+            "value": 100
+        },
+    ]
+
 
 Now that we have created all the files, we can start testing the deployment.
 

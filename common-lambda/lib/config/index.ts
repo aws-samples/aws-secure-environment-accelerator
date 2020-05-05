@@ -61,7 +61,7 @@ export const RouteTableConfigType = t.interface({
 export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all attach options here
 
 export const TransitGatewayAttachConfig = t.interface({
-  'associate-to-tgw': t.union([NonEmptyString, t.boolean]),
+  'associate-to-tgw': t.string,
   account: optional(t.string),
   'associate-type': optional(t.literal('ATTACH')),
   'tgw-rt-associate': optional(t.array(NonEmptyString)),
@@ -141,7 +141,7 @@ export const VpcConfigType = t.interface({
   subnets: optional(t.array(SubnetConfig)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfigType)),
-  'tgw-attach': t.union([TransitGatewayAttachConfig, t.boolean, t.undefined]),
+  'tgw-attach': optional(TransitGatewayAttachConfig),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
@@ -180,7 +180,7 @@ export const IamConfigType = t.interface({
 
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
-export const DeploymentConfigType = t.interface({
+export const TgwDeploymentConfigType = t.interface({
   name: optional(NonEmptyString),
   asn: optional(t.number),
   features: optional(
@@ -204,7 +204,7 @@ export const PasswordPolicyType = t.interface({
   reversible: t.boolean,
 });
 
-export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
 
 export const ADUserConfig = t.interface({
   user: NonEmptyString,
@@ -238,7 +238,7 @@ export const AccountConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
-export const adcConfigType = t.interface({
+export const AdcConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   subnet: t.string,
@@ -256,6 +256,14 @@ export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
 
+export const DeploymentConfigType = t.interface({
+  tgw: optional(TgwDeploymentConfigType),
+  mad: optional(MadConfigType),
+  adc: optional(AdcConfigType),
+});
+
+export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -265,13 +273,7 @@ export const MandatoryAccountConfigType = t.interface({
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
-  deployments: optional(
-    t.interface({
-      tgw: optional(DeploymentConfigType),
-      mad: optional(MadConfigType),
-      adc: optional(adcConfigType),
-    }),
-  ),
+  deployments: optional(DeploymentConfigType),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -339,6 +341,10 @@ export interface ResolvedVpcConfig {
    * The VPC config to be deployed.
    */
   vpcConfig: VpcConfig;
+  /**
+   * Deployment config
+   */
+  deployments?: DeploymentConfig;
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
@@ -392,6 +398,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         vpcConfigs.push({
           accountKey,
           vpcConfig: accountConfig.vpc,
+          deployments: accountConfig.deployments,
         });
       }
     }
@@ -412,6 +419,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
                 ouKey,
                 accountKey,
                 vpcConfig: accountConfig.vpc,
+                deployments: accountConfig.deployments,
               });
             }
           }
@@ -432,6 +440,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         vpcConfigs.push({
           accountKey,
           vpcConfig: accountConfig.vpc,
+          deployments: accountConfig.deployments,
         });
       }
     }
