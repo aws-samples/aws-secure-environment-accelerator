@@ -1,12 +1,11 @@
 import * as cdk from '@aws-cdk/core';
+import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { Account } from '../utils/accounts';
-import { InterfaceEndpoints } from './interface-endpoints';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
-import { Limiter, Limit } from '../utils/limits';
-import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 import { TransitGateway } from './transit-gateway';
 import { Tag } from '@aws-cdk/core';
@@ -75,16 +74,16 @@ export class AzSubnets {
 
 export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
 
-export interface VpcStackProps extends AcceleratorStackProps {
+export interface VpcStackProps {
   vpcProps: VpcProps;
   transitGateways: Map<string, TransitGateway>;
 }
 
-export class VpcStack extends AcceleratorStack {
+export class VpcStack extends cfn.NestedStack {
   readonly vpc: Vpc;
 
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
-    super(scope, name, props);
+    super(scope, name);
 
     // Create the VPC
     this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props.vpcProps);
@@ -345,29 +344,6 @@ export class Vpc extends cdk.Construct {
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
-    }
-
-    // Create interface endpoints
-    const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
-    if (config.InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
-      const endpoints = [];
-      for (const interfaceEndpoint of interfaceEndpointConfig.endpoints) {
-        if (interfaceEndpoint === 'notebook') {
-          console.log(`Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Endpoint not supported`);
-          continue;
-        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcName)) {
-          console.log(
-            `Skipping endpoint "${interfaceEndpoint}" creation in VPC "${vpcName}". Reached maximum interface endpoints per VPC`,
-          );
-          continue;
-        }
-        endpoints.push(interfaceEndpoint);
-      }
-      new InterfaceEndpoints(this, 'InterfaceEndpoints', {
-        vpc: this,
-        subnetName: interfaceEndpointConfig.subnet,
-        interfaceEndpoints: endpoints,
-      });
     }
 
     // Share VPC subnet
