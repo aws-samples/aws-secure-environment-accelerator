@@ -175,7 +175,7 @@ export namespace InitialSetup {
         environment: {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
         },
-        timeout:  cdk.Duration.seconds(900),
+        timeout: cdk.Duration.seconds(900),
       });
 
       // Define a build specification to build the initial setup templates

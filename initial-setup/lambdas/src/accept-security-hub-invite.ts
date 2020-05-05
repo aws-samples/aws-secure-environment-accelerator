@@ -5,16 +5,15 @@ import { sendResponse } from './utils';
 import { SUCCESS, FAILED } from 'cfn-response';
 import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 
-
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
   console.log(`Enable Secutiry Hub Standards ...`);
   const requestType = event.RequestType;
   const resourceId = 'Accept-Security-Hub-Invitation';
-  if ( requestType === 'Delete') {
+  if (requestType === 'Delete') {
     // ToDo
-    return await sendResponse(event, context, SUCCESS, {}, resourceId)
+    return await sendResponse(event, context, SUCCESS, {}, resourceId);
   }
-  try{
+  try {
     const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME;
 
     const accountId = event.ResourceProperties.AccountID;
@@ -26,7 +25,6 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     const hub = new SecurityHub(credentials);
     console.log(`Enabling Security Hub in ${accountId}`);
     const standardsResponse = await hub.describeStandards();
-    
 
     // Check for pending invitaions from Master
     const invitations = await hub.listInvitations();
@@ -35,9 +33,9 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     } else {
       console.log(invitations);
       const ownerInvitation = invitations.Invitations.find(x => x.AccountId === ownerAccountId);
-    //   const invitationId = ownerInvitation?.InvitationId!;
-    //   const acceptResponse = await hub.acceptInvitation(invitationId, ownerAccountId);
-    //   console.log(acceptResponse);
+      //   const invitationId = ownerInvitation?.InvitationId!;
+      //   const acceptResponse = await hub.acceptInvitation(invitationId, ownerAccountId);
+      //   console.log(acceptResponse);
     }
     await sendResponse(event, context, SUCCESS, {}, resourceId);
   } catch (error) {

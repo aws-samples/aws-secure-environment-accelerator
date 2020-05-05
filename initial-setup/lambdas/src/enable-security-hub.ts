@@ -5,16 +5,15 @@ import { sendResponse } from './utils';
 import { SUCCESS, FAILED } from 'cfn-response';
 import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 
-
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
   console.log(`Enable Secutiry Hub Standards ...`);
   const requestType = event.RequestType;
   const resourceId = 'Enable-Security-Hub';
-  if ( requestType === 'Delete') {
+  if (requestType === 'Delete') {
     // ToDo
-    return await sendResponse(event, context, SUCCESS, {}, resourceId)
+    return await sendResponse(event, context, SUCCESS, {}, resourceId);
   }
-  try{
+  try {
     const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME;
     const standards = event.ResourceProperties.Standards;
 
@@ -26,7 +25,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     const hub = new SecurityHub(credentials);
     console.log(`Enabling Security Hub in ${accountId}`);
     const standardsResponse = await hub.describeStandards();
-    
+
     // Enable standards and Disabling unnecessary Controls for eash standard
     for (const standard of standards) {
       const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
@@ -34,11 +33,11 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
       await delay(1000);
       for (const responseStandard of enableResonse.StandardsSubscriptions || []) {
         const standardControls = await hub.describeStandardControls(responseStandard.StandardsSubscriptionArn);
-        for ( const disableConrtol of standard["controls-to-disable"]) {
+        for (const disableConrtol of standard['controls-to-disable']) {
           const standardControl = standardControls.Controls?.find(x => x.ControlId == disableConrtol);
           if (standardControl) {
             console.log(`Disabling Control "${disableConrtol}" for Standard "${standard.name}"`);
-            await hub.updateStandardControls(standardControl.StandardsControlArn!)
+            await hub.updateStandardControls(standardControl.StandardsControlArn!);
           } else {
             console.log(`Control "${disableConrtol}" not found for Standard "${standard.name}"`);
           }

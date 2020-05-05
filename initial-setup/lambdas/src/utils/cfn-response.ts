@@ -7,11 +7,11 @@ export const sendResponsePromise = (
   responseStatus: ResponseStatus,
   responseData?: object,
   physicalResourceId?: string,
-): Promise<unknown>  => {
+): Promise<unknown> => {
   return new Promise(resolve => {
     // tslint:disable-next-line:deprecation
     context.done = resolve;
     // tslint:disable-next-line
     sendResponse(event, context, responseStatus, responseData, physicalResourceId);
   });
-}
+};
