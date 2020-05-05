@@ -597,7 +597,7 @@
             "inbound-rules": [
               {
                 "description": "TLS Traffic Inbound",
-                "type": [""HTTPS"],
+                "type": ["HTTPS"],
                 "source": ["0.0.0.0/0"]
               }
             ],
@@ -655,7 +655,6 @@
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
           "fw-cgw-routing": "Dynamic",
-          "fw-cgw-name": "Perimeter_fw",
           "tgw-attach": {
             "associate-to-tgw": "Main",
             "account": "shared-network",
