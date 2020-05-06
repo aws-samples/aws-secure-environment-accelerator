@@ -978,48 +978,42 @@
             "nacls": [
               {
                 "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "deny",
                 "egress": true,
                 "cidr-blocks": [
                   {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
-                  }
-                ]
-              },
-              {
-                "rule": 32000,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "allow",
-                "egress": true,
-                "cidr-blocks": ["0.0.0.0/0"]
-              },
-              {
-                "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "deny",
-                "egress": false,
-                "cidr-blocks": [
-                  {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
                   }
                 ]
               },
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
+                "rule-action": "allow",
+                "egress": true,
+                "cidr-blocks": ["0.0.0.0/0"]
+              },
+              {
+                "rule": 100,
+                "protocol": -1,
+                "ports": -1,
+                "rule-action": "deny",
+                "egress": false,
+                "cidr-blocks": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
@@ -1479,48 +1473,42 @@
             "nacls": [
               {
                 "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "deny",
                 "egress": true,
                 "cidr-blocks": [
                   {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
-                  }
-                ]
-              },
-              {
-                "rule": 32000,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "allow",
-                "egress": true,
-                "cidr-blocks": ["0.0.0.0/0"]
-              },
-              {
-                "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "deny",
-                "egress": false,
-                "cidr-blocks": [
-                  {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
+                    "vpc": "Central",
+                    "subnet": ["Data", "Web"]
                   }
                 ]
               },
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
+                "rule-action": "allow",
+                "egress": true,
+                "cidr-blocks": ["0.0.0.0/0"]
+              },
+              {
+                "rule": 100,
+                "protocol": -1,
+                "ports": -1,
+                "rule-action": "deny",
+                "egress": false,
+                "cidr-blocks": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Data", "Web"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
@@ -1934,48 +1922,42 @@
             "nacls": [
               {
                 "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "deny",
                 "egress": true,
                 "cidr-blocks": [
                   {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
-                  }
-                ]
-              },
-              {
-                "rule": 32000,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "allow",
-                "egress": true,
-                "cidr-blocks": ["0.0.0.0/0"]
-              },
-              {
-                "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "deny",
-                "egress": false,
-                "cidr-blocks": [
-                  {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
                   }
                 ]
               },
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
+                "rule-action": "allow",
+                "egress": true,
+                "cidr-blocks": ["0.0.0.0/0"]
+              },
+              {
+                "rule": 100,
+                "protocol": -1,
+                "ports": -1,
+                "rule-action": "deny",
+                "egress": false,
+                "cidr-blocks": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
@@ -2387,48 +2369,42 @@
             "nacls": [
               {
                 "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "deny",
                 "egress": true,
                 "cidr-blocks": [
                   {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
-                  }
-                ]
-              },
-              {
-                "rule": 32000,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "allow",
-                "egress": true,
-                "cidr-blocks": ["0.0.0.0/0"]
-              },
-              {
-                "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "deny",
-                "egress": false,
-                "cidr-blocks": [
-                  {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
                   }
                 ]
               },
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
+                "rule-action": "allow",
+                "egress": true,
+                "cidr-blocks": ["0.0.0.0/0"]
+              },
+              {
+                "rule": 100,
+                "protocol": -1,
+                "ports": -1,
+                "rule-action": "deny",
+                "egress": false,
+                "cidr-blocks": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
@@ -2815,48 +2791,42 @@
             "nacls": [
               {
                 "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "deny",
                 "egress": true,
                 "cidr-blocks": [
                   {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
-                  }
-                ]
-              },
-              {
-                "rule": 32000,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "allow",
-                "egress": true,
-                "cidr-blocks": ["0.0.0.0/0"]
-              },
-              {
-                "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "deny",
-                "egress": false,
-                "cidr-blocks": [
-                  {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
                   }
                 ]
               },
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
+                "rule-action": "allow",
+                "egress": true,
+                "cidr-blocks": ["0.0.0.0/0"]
+              },
+              {
+                "rule": 100,
+                "protocol": -1,
+                "ports": -1,
+                "rule-action": "deny",
+                "egress": false,
+                "cidr-blocks": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
@@ -3207,48 +3177,42 @@
             "nacls": [
               {
                 "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "deny",
                 "egress": true,
                 "cidr-blocks": [
                   {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
-                  }
-                ]
-              },
-              {
-                "rule": 32000,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "allow",
-                "egress": true,
-                "cidr-blocks": ["0.0.0.0/0"]
-              },
-              {
-                "rule": 100,
-                "protocol": "-1",
-                "ports": "-1",
-                "rule-action": "deny",
-                "egress": false,
-                "cidr-blocks": [
-                  {
-                    "subnet": "Web"
-                  },
-                  {
-                    "vpc": "central",
-                    "subnet": ["Data"]
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
                   }
                 ]
               },
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
+                "rule-action": "allow",
+                "egress": true,
+                "cidr-blocks": ["0.0.0.0/0"]
+              },
+              {
+                "rule": 100,
+                "protocol": -1,
+                "ports": -1,
+                "rule-action": "deny",
+                "egress": false,
+                "cidr-blocks": [
+                  {
+                    "vpc": "Central",
+                    "subnet": ["Web", "Data"]
+                  }
+                ]
+              },
+              {
+                "rule": 32000,
+                "protocol": -1,
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
