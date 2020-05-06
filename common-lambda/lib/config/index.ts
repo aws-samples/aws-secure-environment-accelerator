@@ -273,12 +273,21 @@ export const AdcConfigType = t.interface({
   'connect-dir-id': t.number,
 });
 
+export const FirewallPortConfigType = t.interface({
+  subnet: t.string,
+  eip: t.boolean,
+  'internal-ip-addresses': t.record(availabilityZone, cidr),
+});
+
 export const FirewallConfigType = t.interface({
   'instance-sizes': t.string,
   version: t.string,
   region: t.string,
   vpc: t.string,
   'security-group': t.string,
+  eni: t.interface({
+    ports: t.array(FirewallPortConfigType)
+  })
 });
 
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;

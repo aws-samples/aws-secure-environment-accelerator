@@ -1,99 +1,88 @@
 import * as fs from 'fs';
 import * as tempy from 'tempy';
 import { IPv4CidrRange } from 'ip-num';
-import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
 import { KeyPair } from 'cdk-ec2-key-pair';
-import { Vpc } from '../vpc/vpc';
-
-/**
- * Interface that represents a network interface in a FortiGate instance.
- */
-export interface FortiGateInstanceNetworkInterface {
-  /**
-   * The subnet ID to use for the network interface.
-   */
-  subnetId: string;
-  /**
-   * Internal IP for the public interface of the instance.
-   */
-  privateIpAddress: string;
-  /**
-   * EIP allocation ID if any.
-   */
-  eipAllocationId?: string;
-}
+import { Subnet, SecurityGroup } from '../vpc/vpc';
 
 export interface FortiGateInstanceProps {
-  config: FortiGateConfig;
+  vpcCidr: string;
+  hostname: string;
   /**
    * Image ID of FortiGate.
    */
   imageId: string;
   instanceType: string;
   iamInstanceProfileArn: string;
-  keyPairArn: string;
-  /**
-   * Network interfaces to create for this instance.
-   */
-  networkInterfaces: FortiGateInstanceNetworkInterface[];
-  /**
-   * Security group of the instance.
-   */
-  securityGroupId: string;
+  keyPairName: string;
 }
 
 export class FortiGateInstance extends cdk.Construct {
-  readonly resource: ec2.CfnInstance;
-  readonly networkInterfaces: ec2.CfnNetworkInterface[] = [];
+  private readonly props: FortiGateInstanceProps;
+  private readonly configParameters: FortiGateConfigParameters;
+  private readonly networkInterfaces: ec2.CfnNetworkInterface[] = [];
 
   constructor(scope: cdk.Construct, id: string, props: FortiGateInstanceProps) {
     super(scope, id);
 
-    const {
-      config,
-      imageId,
-      instanceType,
-      iamInstanceProfileArn,
-      keyPairArn: keypairArn,
-      networkInterfaces,
-      securityGroupId,
-    } = props;
+    this.props = props;
+    this.configParameters = {
+      Hostname: props.hostname,
+      VPCCIDR: props.vpcCidr,
+    };
+  }
 
-    // Create a network interface for the given subnets
-    for (const networkInterface of networkInterfaces) {
-      const eni = new ec2.CfnNetworkInterface(this, `Eni${this.networkInterfaces.length}`, {
-        groupSet: [securityGroupId],
-        subnetId: networkInterface.subnetId,
-        sourceDestCheck: false,
-        privateIpAddresses: [
-          {
-            privateIpAddress: networkInterface.privateIpAddress,
-            primary: true,
-          },
-        ],
+  addPort(props: { securityGroup: SecurityGroup; subnet: Subnet; ipCidr: string; attachEip: boolean }) {
+    const { securityGroup, subnet, ipCidr, attachEip } = props;
+    const index = this.networkInterfaces.length;
+
+    // Get IP address IP CIDR
+    const ipAddress = cdk.Fn.select(0, cdk.Fn.split('/', ipCidr));
+
+    // Create network interface
+    const networkInterface = new ec2.CfnNetworkInterface(this, `Eni${index}`, {
+      groupSet: [securityGroup.id],
+      subnetId: subnet.id,
+      sourceDestCheck: false,
+      privateIpAddresses: [
+        {
+          privateIpAddress: ipAddress,
+          primary: true,
+        },
+      ],
+    });
+    this.networkInterfaces.push(networkInterface);
+
+    // Create EIP if needed
+    if (attachEip) {
+      const eip = new ec2.CfnEIP(this, `Eip${index}`, {
+        domain: 'vpc',
       });
-
-      // Associate to the given EIP allocation
-      if (networkInterface.eipAllocationId) {
-        new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${this.networkInterfaces.length}`, {
-          allocationId: networkInterface.eipAllocationId,
-          privateIpAddress: networkInterface.privateIpAddress,
-        });
-      }
-
-      this.networkInterfaces.push(eni);
+      new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${index}`, {
+        networkInterfaceId: networkInterface.ref,
+        allocationId: eip.attrAllocationId,
+        privateIpAddress: ipAddress,
+      });
     }
 
-    // Create the EC2 instance that will run FortiGate
-    this.resource = new ec2.CfnInstance(this, 'Resource', {
-      imageId,
-      instanceType,
-      iamInstanceProfile: iamInstanceProfileArn,
-      keyName: keypairArn,
+    // Store the IP and router IP in parameters
+    this.configParameters[`Port${index + 1}IP`] = ipCidr;
+    this.configParameters[`Port${index + 1}RouterIP`] = getFirstIp(subnet.cidrBlock);
+  }
+
+  protected onPrepare() {
+    const config = new FortiGateConfig(this, 'Config', {
+      parameters: this.configParameters,
+    });
+
+    new ec2.CfnInstance(this, 'Resource', {
+      imageId: this.props.imageId,
+      instanceType: this.props.instanceType,
+      iamInstanceProfile: this.props.iamInstanceProfileArn,
+      keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfaces.map((eni, index) => ({
         deviceIndex: `${index}`,
         networkInterfaceId: eni.ref,
@@ -123,28 +112,28 @@ export enum FortiGateImageType {
 }
 
 export interface FortiGateClusterProps {
-  vpc: Vpc;
+  vpcCidrBlock: string;
   imageId: string;
   instanceType: string;
-  securityGroupName: string;
-  ports: FortiGateClusterPort[];
 }
 
 export class FortiGateCluster extends cdk.Construct {
+  private readonly props: FortiGateClusterProps;
   private readonly instances: FortiGateInstance[] = [];
+  private readonly instanceRole: iam.Role;
+  private readonly instanceProfile: iam.CfnInstanceProfile;
+  private readonly keyPairName: string;
+  private readonly keyPair: KeyPair;
 
   constructor(scope: cdk.Construct, id: string, props: FortiGateClusterProps) {
     super(scope, id);
 
-    const { vpc, imageId, instanceType, securityGroupName, ports } = props;
+    this.props = props;
 
-    // Find the security group in the VPC
-    const securityGroup = vpc.findSecurityGroupByName(securityGroupName);
-
-    const instanceRole = new iam.Role(this, 'InstanceRole', {
+    this.instanceRole = new iam.Role(this, 'InstanceRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
     });
-    instanceRole.addToPolicy(
+    this.instanceRole.addToPolicy(
       new iam.PolicyStatement({
         actions: [
           'ec2:Describe*',
@@ -154,68 +143,35 @@ export class FortiGateCluster extends cdk.Construct {
           'ec2:ReplaceRoute',
           's3:GetObject',
         ],
+        resources: ['*'],
       }),
     );
-    const instanceProfile = new iam.CfnInstanceProfile(this, 'InstanceProfile', {
+    this.instanceProfile = new iam.CfnInstanceProfile(this, 'InstanceProfile', {
       path: '/',
-      roles: [instanceRole.roleArn],
+      roles: [this.instanceRole.roleName],
     });
 
-    const keyPair = new KeyPair(this, 'KeyPair', {
-      name: 'FortiGate',
+    this.keyPairName = 'FortiGate';
+    this.keyPair = new KeyPair(this, 'KeyPair', {
+      name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs',
     });
+  }
 
-    // Find all AZs and create an instance per AZ
-    const availabilityZones = vpc.subnets.map(s => s.az);
-    for (const az of new Set(availabilityZones)) {
-      const parameters: FortiGateConfigParameters = {
-        Hostname: `Fgt${this.instances.length}`,
-        VPCCIDR: vpc.cidrBlock,
-      };
+  createInstance(hostname: string): FortiGateInstance {
+    const index = this.instances.length;
 
-      const networkInterfaces: FortiGateInstanceNetworkInterface[] = [];
-      for (const [portIndex, port] of Object.entries(ports)) {
-        const subnet = vpc.findSubnetByNameAndAvailabilityZone(port.subnetName, az);
-        const ip = port.ipAddresses[az];
-
-        // Create EIP if needed
-        let eip;
-        if (port.eip) {
-          eip = new ec2.CfnEIP(this, `Eip${pascalCase(az)}${portIndex}`, {
-            domain: 'vpc',
-          });
-        }
-
-        // Add to network interfaces that will be create in the FortiGate instance
-        networkInterfaces.push({
-          subnetId: subnet.id,
-          privateIpAddress: cdk.Fn.select(0, cdk.Fn.split('/', ip)),
-          eipAllocationId: eip?.attrAllocationId,
-        });
-
-        // Store the IP and router IP in parameters
-        parameters[`Port${portIndex}IP`] = ip;
-        parameters[`Port${portIndex}RouterIP`] = getFirstIp(subnet.cidrBlock);
-      }
-
-      const index = this.instances.length;
-      const config = new FortiGateConfig(this, `Config${index}`, {
-        parameters,
-      });
-
-      // Create a FortiGate instance in this
-      const instance = new FortiGateInstance(this, `Instance${index}`, {
-        config,
-        imageId,
-        instanceType,
-        keyPairArn: keyPair.arn,
-        iamInstanceProfileArn: instanceProfile.attrArn,
-        securityGroupId: securityGroup.id,
-        networkInterfaces,
-      });
-      this.instances.push(instance);
-    }
+    // Create a FortiGate instance in this
+    const instance = new FortiGateInstance(this, `Instance${index}`, {
+      hostname,
+      vpcCidr: this.props.vpcCidrBlock,
+      imageId: this.props.imageId,
+      instanceType: this.props.instanceType,
+      keyPairName: this.keyPairName,
+      iamInstanceProfileArn: this.instanceProfile.attrArn,
+    });
+    this.instances.push(instance);
+    return instance;
   }
 }
 

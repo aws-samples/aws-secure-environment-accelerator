@@ -4,11 +4,14 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import { FortiGateImageType } from './fortigate';
 
 export interface FortiGateImageFinderProps {
-  fortiGateImageType: FortiGateImageType;
-  fortiGateImageVersion: string;
-  fortiGateImageFinderFunctionArn: string;
+  functionArn: string;
+  type: FortiGateImageType;
+  version: string;
 }
 
+/**
+ * Custom resource that has an image ID attribute for the image with the given type and given version.
+ */
 export class FortiGateImageFinder extends cdk.Construct {
   private readonly resource: cfn.CustomResource;
 
@@ -18,15 +21,15 @@ export class FortiGateImageFinder extends cdk.Construct {
     const finderFunc = lambda.Function.fromFunctionArn(
       this,
       'CfnFortiGateImageFinder',
-      props.fortiGateImageFinderFunctionArn,
+      props.functionArn,
     );
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
     this.resource = new cfn.CustomResource(this, 'Resource', {
       provider: cfn.CustomResourceProvider.fromLambda(finderFunc),
       properties: {
-        ImageName: 'FortiGate-VM64-AWSONDEMAND', // TODO From version
-        ImageVersion: props.fortiGateImageVersion,
+        ImageName: 'FortiGate-VM64-AWSONDEMAND', // TODO From type
+        ImageVersion: props.version,
       },
     });
   }
