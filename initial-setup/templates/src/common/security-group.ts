@@ -127,8 +127,10 @@ export class SecurityGroup extends cdk.Construct {
           // Check for Subnet CIDR Security Group
           for (const ruleSubnet of ruleSource.subnet) {
             const vpcConfigSubnets = vpcConfig.subnets?.find(s => s.name === ruleSubnet);
+            console.log(vpcConfig.name);
             if (!vpcConfigSubnets) {
-              throw new Error(`Invalid Subnet provided inSecurity Group config "${ruleSubnet}"`);
+              console.log(`Invalid Subnet provided in Security Group config "${ruleSubnet}"`);
+              continue;
             }
             for (const [index, subnet] of Object.entries(vpcConfigSubnets.definitions)) {
               if (subnet.disabled) {
