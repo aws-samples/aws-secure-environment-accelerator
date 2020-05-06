@@ -131,7 +131,7 @@ async function main() {
           );
         } else {
           for (const userId of iamUser['user-ids']) {
-            const secretsStack = new SecretsStack(accountStack, `Secrets-${userId}-UserPassword`);
+            const secretsStack = new SecretsStack(masterAccountStack, `Secrets-${userId}-UserPassword`);
             const password = secretsStack.createSecret(`${userId}-UserPassword`, {
               secretName: `accelerator/${accountKey}/user/password/${userId}`,
               description: `Password for IAM User - ${userId}.`,
