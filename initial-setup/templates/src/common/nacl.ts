@@ -10,7 +10,7 @@ export interface NaclProps {
   vpcId: string;
   subnetConfig: config.SubnetConfig;
   subnets: AzSubnets;
-  accountVpcConfigs: config.ResolvedVpcConfig[],
+  accountVpcConfigs: config.ResolvedVpcConfig[];
 }
 
 export class Nacl extends cdk.Construct {
