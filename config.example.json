@@ -264,11 +264,11 @@
           },
           "ad-groups": ["Provisioning"],
           "ad-per-account-groups": ["-Admins", "-PowerUser", "-View"],
-          "adc-group": "ADConnector",
+          "adc-group": "ADConnector-grp",
           "ad-users": [
             {
-              "user": "adconnector",
-              "groups": ["ADConnector"]
+              "user": "adconnector-usr",
+              "groups": ["ADConnector-grp"]
             },
             {
               "user": "Brian",
