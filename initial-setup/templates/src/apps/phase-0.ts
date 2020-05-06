@@ -112,6 +112,16 @@ async function main() {
   //   },
   // });
 
+  const secretsStack = new SecretsStack(app, 'Secrets', {
+    env: {
+      account: getAccountId(accounts, 'master'),
+      region: cdk.Aws.REGION,
+    },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    stackName: 'PBMMAccel-Secrets-IAMUserPasswords',
+  });
+
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
 
@@ -172,17 +182,7 @@ async function main() {
     });
   };
 
-  const secretsStack = new SecretsStack(app, 'Secrets', {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Secrets-IAMUserPasswords',
-  });
-
-  const getAllAccountsPerOu = async (ouName: string, mandatoryAccKeys: string[]): Promise<Account[]> => {
+  const getAllAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
     const accountsPerOu: Account[] = [];
     for (const account of accounts) {
       if (account.ou === ouName && !mandatoryAccKeys.includes(account.key)) {
@@ -203,7 +203,7 @@ async function main() {
   // creating assets for org unit accounts
   const orgUnits = acceleratorConfig['organizational-units'];
   for (const [orgName, orgConfig] of Object.entries(orgUnits)) {
-    const orgAccounts = await getAllAccountsPerOu(orgName, mandatoryAccountKeys);
+    const orgAccounts = getAllAccountsPerOu(orgName, mandatoryAccountKeys);
     console.log(`org accounts for key - ${orgName}: `, orgAccounts);
     for (const orgAccount of orgAccounts) {
       await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);

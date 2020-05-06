@@ -351,10 +351,8 @@ export namespace InitialSetup {
       // TODO We might want to load this from the Landing Zone configuration
       const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
       const nonCoreMandatoryScpName = 'aws-landing-zone-non-core-mandatory-preventive-guardrails';
-      const lzScpNames: string[] = [];
-      lzScpNames.push(coreMandatoryScpName);
-      lzScpNames.push(nonCoreMandatoryScpName);
-
+      const lzScpNames: string[] = [coreMandatoryScpName, nonCoreMandatoryScpName];
+      
       const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
         functionProps: {
           code: lambdaCode,
