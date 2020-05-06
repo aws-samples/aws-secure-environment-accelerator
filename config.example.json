@@ -1965,7 +1965,7 @@
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
@@ -2838,7 +2838,7 @@
               {
                 "rule": 32000,
                 "protocol": -1,
-                "ports": "-1",
+                "ports": -1,
                 "rule-action": "allow",
                 "egress": false,
                 "cidr-blocks": ["0.0.0.0/0"]
