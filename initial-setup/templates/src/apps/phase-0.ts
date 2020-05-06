@@ -117,33 +117,9 @@ async function main() {
   //   },
   // });
 
-  const secretsStack = new SecretsStack(app, 'Secrets', {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Secrets-IAMUserPasswords',
-  });
-
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
-
-    const AccountDefaultsStack = new AcceleratorStack(
-      app,
-      `PBMMAccel-AccountDefaultSettingsAssets-${accountKey}Stack`,
-      {
-        env: {
-          account: accountId,
-          region: cdk.Aws.REGION,
-        },
-        acceleratorName: context.acceleratorName,
-        acceleratorPrefix: context.acceleratorPrefix,
-        stackName: `PBMMAccel-AccountDefaultSettingsAssets-${pascalCase(accountKey)}Stack`,
-      },
-    );
-
+    const accountStack = getAccountStack(accountKey);
     const userPasswords: { [userId: string]: Secret } = {};
 
     const iamUsers = iamConfig?.users;
@@ -155,6 +131,7 @@ async function main() {
           );
         } else {
           for (const userId of iamUser['user-ids']) {
+            const secretsStack = new SecretsStack(accountStack, `Secrets-${userId}-UserPassword`);
             const password = secretsStack.createSecret(`${userId}-UserPassword`, {
               secretName: `accelerator/${accountKey}/user/password/${userId}`,
               description: `Password for IAM User - ${userId}.`,
@@ -169,8 +146,8 @@ async function main() {
       }
     }
 
-    const accountDefaultSettingsAssets = new AccountDefaultSettingsAssets(
-      AccountDefaultsStack,
+    const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
+      accountStack,
       `Account Default Settings Assets-${pascalCase(accountKey)}`,
       {
         accountId,
@@ -183,11 +160,11 @@ async function main() {
 
     // save the kms key Id for later reference
     new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
-      value: accountDefaults.kmsKeyIdForEbsDefaultEncryption,
+      value: accountDefaultsSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
     });
   };
 
-  const getAllAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
+  const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
     const accountsPerOu: Account[] = [];
     for (const account of accounts) {
       if (account.ou === ouName && !mandatoryAccKeys.includes(account.key)) {
@@ -199,16 +176,17 @@ async function main() {
 
   const mandatoryAccountKeys: string[] = [];
   // creating assets for default account settings
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
+  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+    console.log('181:accountKey: '+accountKey);
     mandatoryAccountKeys.push(accountKey);
     await createAccountDefaultAssets(accountKey, accountConfig.iam);
   }
 
   // creating assets for org unit accounts
-  const orgUnits = acceleratorConfig['organizational-units'];
-  for (const [orgName, orgConfig] of Object.entries(orgUnits)) {
-    const orgAccounts = getAllAccountsPerOu(orgName, mandatoryAccountKeys);
+  const orgUnits = acceleratorConfig.getOrganizationalUnits();
+  for (const [orgName, orgConfig] of orgUnits) {
+    const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
     console.log(`org accounts for key - ${orgName}: `, orgAccounts);
     for (const orgAccount of orgAccounts) {
       await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
