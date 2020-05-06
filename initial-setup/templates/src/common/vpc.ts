@@ -34,6 +34,10 @@ export interface VpcCommonProps {
    */
   organizationalUnitName?: string;
   limiter: Limiter;
+  /**
+   * All VPC Configs to read Subnet Cidrs for Security Group and NACLs creation
+   */
+  accountVpcConfigs?: config.ResolvedVpcConfig[];
 }
 
 export interface AzSubnet {
@@ -312,17 +316,9 @@ export class Vpc extends cdk.Construct {
           vpcConfig,
           vpcId: this.vpcId,
           subnets: this.azSubnets,
+          accountVpcConfigs: props.accountVpcConfigs!,
         });
       }
-    }
-
-    // Create all security groups
-    if (vpcConfig['security-groups']) {
-      new SecurityGroup(this, 'SecurityGroups', {
-        vpcConfig,
-        vpcId: this.vpcId,
-        accountKey: props.accountKey,
-      });
     }
 
     // Create VPC Gateway End Point
@@ -364,6 +360,16 @@ export class Vpc extends cdk.Construct {
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
+    }
+
+    // Create all security groups
+    if (vpcConfig['security-groups']) {
+      new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
+        vpcConfig,
+        vpcId: this.vpcId,
+        accountKey: props.accountKey,
+        accountVpcConfigs: props.accountVpcConfigs!,
+      });
     }
 
     // Share VPC subnet

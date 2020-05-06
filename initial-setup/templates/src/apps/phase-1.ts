@@ -14,7 +14,7 @@ import { TransitGateway } from '../common/transit-gateway';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
-import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { InterfaceEndpointConfig, ResolvedVpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 
 process.on('unhandledRejection', (reason, _) => {
@@ -217,6 +217,12 @@ async function main() {
         ouKey ? ` and organizational unit "${ouKey}"` : ''
       }`,
     );
+    const accountVpcConfigs: ResolvedVpcConfig[] = [];
+    for (const accountVpcConfig of acceleratorConfig.getVpcConfigs()) {
+      if (accountVpcConfig.accountKey === accountKey) {
+        accountVpcConfigs.push(accountVpcConfig);
+      }
+    }
     createVpc(accountKey, {
       accountKey,
       limiter,
@@ -224,6 +230,7 @@ async function main() {
       vpcConfig,
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
+      accountVpcConfigs,
     });
   }
 }
