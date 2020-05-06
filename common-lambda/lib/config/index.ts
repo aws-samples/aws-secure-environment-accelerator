@@ -31,12 +31,35 @@ export const SubnetDefinitionConfig = t.interface({
   disabled: fromNullable(t.boolean, false),
 });
 
-export const SubnetConfig = t.interface({
+export const NaclRuleCidrSourceConfig = t.interface({
+  cidr: NonEmptyString,
+});
+
+export const NaclRuleSubnetSourceConfig = t.interface({
+  vpc: NonEmptyString,
+  subnet: t.array(NonEmptyString),
+});
+
+export const NaclConfigType = t.interface({
+  rule: t.number,
+  protocol: t.number,
+  ports: t.number,
+  'rule-action': NonEmptyString,
+  egress: t.boolean,
+  'cidr-blocks': t.union([t.array(NonEmptyString), t.array(NaclRuleSubnetSourceConfig)]),
+});
+
+export type NaclConfig = t.TypeOf<typeof NaclConfigType>;
+
+export const SubnetConfigType = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
   'share-to-specific-accounts': optional(t.array(t.string)),
   definitions: t.array(SubnetDefinitionConfig),
+  nacls: optional(t.array(NaclConfigType)),
 });
+
+export type SubnetConfig = t.TypeOf<typeof SubnetConfigType>;
 
 export const GATEWAY_ENDPOINT_TYPES = ['s3', 'dynamodb'] as const;
 
@@ -105,7 +128,9 @@ export const SecurityGroupRuleSecurityGroupSourceConfig = t.interface({
 });
 
 export const SecurityGroupRuleConfigType = t.interface({
-  type: t.array(NonEmptyString),
+  type: optional(t.array(NonEmptyString)),
+  'tcp-ports': optional(t.array(t.number)),
+  'udp-ports': optional(t.array(t.number)),
   port: optional(t.number),
   description: NonEmptyString,
   toPort: optional(t.number),
@@ -138,7 +163,7 @@ export const VpcConfigType = t.interface({
   vgw: t.union([VirtualPrivateGatewayConfig, t.boolean, t.undefined]),
   pcx: t.union([PeeringConnectionConfig, t.boolean, t.undefined]),
   natgw: t.union([NatGatewayConfig, t.boolean, t.undefined]),
-  subnets: optional(t.array(SubnetConfig)),
+  subnets: optional(t.array(SubnetConfigType)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfigType)),
   'tgw-attach': optional(TransitGatewayAttachConfig),
