@@ -128,7 +128,8 @@ export class SecurityGroup extends cdk.Construct {
           for (const ruleSubnet of ruleSource.subnet) {
             const vpcConfigSubnets = vpcConfig.subnets?.find(s => s.name === ruleSubnet);
             if (!vpcConfigSubnets) {
-              throw new Error(`Invalid Subnet provided inSecurity Group config "${ruleSubnet}"`);
+              console.log(`Invalid Subnet provided in Security Group config "${ruleSubnet}"`);
+              continue;
             }
             for (const [index, subnet] of Object.entries(vpcConfigSubnets.definitions)) {
               if (subnet.disabled) {
