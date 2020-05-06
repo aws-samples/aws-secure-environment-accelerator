@@ -176,16 +176,6 @@ async function main() {
     });
   }
 
-  const secretsStack = new SecretsStack(app, 'Secrets', {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Secrets',
-  });
-
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
@@ -193,14 +183,6 @@ async function main() {
       continue;
     }
     const accountId = getAccountId(accounts, accountKey);
-    const madPassword = secretsStack.createSecret('MadPassword', {
-      secretName: `accelerator/${accountKey}/mad/password`,
-      description: 'Password for Managed Active Directory.',
-      generateSecretString: {
-        passwordLength: 16,
-      },
-      principals: [new iam.AccountPrincipal(accountId)],
-    });
 
     const stack = new AcceleratorStack(app, `${accountKey}`, {
       env: {
@@ -210,6 +192,16 @@ async function main() {
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
       stackName: `PBMMAccel-${pascalCase(accountKey)}`,
+    });
+
+    const secretsStack = new SecretsStack(stack, 'Secrets');
+    const madPassword = secretsStack.createSecret('MadPassword', {
+      secretName: `accelerator/${accountKey}/mad/password`,
+      description: 'Password for Managed Active Directory.',
+      generateSecretString: {
+        passwordLength: 16,
+      },
+      principals: [new iam.AccountPrincipal(accountId)],
     });
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {

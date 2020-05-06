@@ -203,7 +203,7 @@ export namespace InitialSetup {
       });
 
       // Define a build specification to build the initial setup templates
-      const project = new codebuild.PipelineProject(this, 'DeployProject', {
+      const project = new codebuild.PipelineProject(this, `${props.acceleratorPrefix}Deploy_pl`, {
         role: pipelineRole,
         buildSpec: codebuild.BuildSpec.fromObject({
           version: '0.2',
@@ -306,7 +306,7 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createAccountStateMachine = new sfn.StateMachine(scope, 'CreateAccountStateMachine', {
+      const createAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}CreateAccount_sm`, {
         definition: new CreateAccountTask(scope, 'Create', {
           lambdaCode,
           role: pipelineRole,
@@ -352,7 +352,7 @@ export namespace InitialSetup {
       // Make sure the Lambda can read the template
       installRoleTemplate.bucket.grantRead(pipelineRole);
 
-      const installRolesStateMachine = new sfn.StateMachine(this, 'InstallRolesStateMachine', {
+      const installRolesStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallRoles_sm`, {
         definition: new CreateStackSetTask(this, 'Install', {
           lambdaCode,
           role: pipelineRole,
@@ -398,6 +398,8 @@ export namespace InitialSetup {
 
       // TODO We might want to load this from the Landing Zone configuration
       const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
+      const nonCoreMandatoryScpName = 'aws-landing-zone-non-core-mandatory-preventive-guardrails';
+      const lzScpNames: string[] = [coreMandatoryScpName, nonCoreMandatoryScpName];
 
       const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
         functionProps: {
@@ -407,16 +409,19 @@ export namespace InitialSetup {
         },
         functionPayload: {
           roleName: props.stateMachineExecutionRole,
-          policyName: coreMandatoryScpName,
+          policyNames: lzScpNames,
         },
         resultPath: 'DISCARD',
       });
 
-      const enableResourceSharingTask = new CodeTask(this, 'Enable Resource Sharing', {
+      const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.enableResourceSharingStep',
+          handler: 'index.enableTrustedAccessForServicesStep',
           role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
@@ -427,7 +432,7 @@ export namespace InitialSetup {
       // preDeployParallelTask.branch(addRoleToScpTask);
       // preDeployParallelTask.branch(enableResourceSharingTask);
 
-      const deployStateMachine = new sfn.StateMachine(this, 'DeployStateMachine', {
+      const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
         definition: new BuildTask(this, 'Build', {
           lambdaCode,
           role: pipelineRole,
@@ -613,7 +618,7 @@ export namespace InitialSetup {
           .next(installRolesTask)
           .next(loadLimitsTask)
           .next(addRoleToScpTask)
-          .next(enableResourceSharingTask)
+          .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)
