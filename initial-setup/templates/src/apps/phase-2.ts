@@ -9,7 +9,7 @@ import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stac
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutput } from './phase-1';
+import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';

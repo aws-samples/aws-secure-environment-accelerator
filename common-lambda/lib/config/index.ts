@@ -273,6 +273,16 @@ export const AdcConfigType = t.interface({
   'connect-dir-id': t.number,
 });
 
+export const FirewallConfigType = t.interface({
+  'instance-sizes': t.string,
+  version: t.string,
+  region: t.string,
+  vpc: t.string,
+  'security-group': t.string,
+});
+
+export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
+
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
@@ -285,6 +295,7 @@ export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
   adc: optional(AdcConfigType),
+  firewall: optional(FirewallConfigType),
 });
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;

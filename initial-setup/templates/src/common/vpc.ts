@@ -39,6 +39,7 @@ export interface AzSubnet {
   subnet: ec2.CfnSubnet;
   subnetName: string;
   az: string;
+  cidrBlock: string;
 }
 
 export interface NameToIdMap {
@@ -140,7 +141,7 @@ export class Vpc extends cdk.Construct {
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
 
-  readonly securityGroupNameMapping: NameToIdMap = {};
+  readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
 
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
@@ -290,6 +291,7 @@ export class Vpc extends cdk.Construct {
           subnet,
           subnetName,
           az: subnetDefinition.az,
+          cidrBlock: subnetCidr,
         });
 
         // Attach Subnet to Route-Table
@@ -325,7 +327,7 @@ export class Vpc extends cdk.Construct {
 
     // Create all security groups
     if (vpcConfig['security-groups']) {
-      new SecurityGroup(this, 'SecurityGroups', {
+      this.securityGroup = new SecurityGroup(this, 'SecurityGroups', {
         vpcConfig,
         vpcId: this.vpcId,
         accountKey: props.vpcProps.accountKey,

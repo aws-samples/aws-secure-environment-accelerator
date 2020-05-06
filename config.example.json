@@ -672,20 +672,45 @@
         "firewall": {
           "instance-sizes": "c5n.2xl",
           "image": "https://aws.amazon.com/marketplace/pp/B00PCZSWDA?qid=1588624790695",
-          "version": "6.2.3#",
+          "version": "6.2.3",
           "region": "ca-central-1",
           "security-group": "Fortigates",
           "vpc": "Perimeter",
           "eni": {
-            "count": 4,
-            "p1-subnet": "Public",
-            "p2-subnet": "OnPremise",
-            "p3-subnet": "FWMgmt",
-            "p4-subnet": "Proxy"
-          },
-          "auto-scale": {
-            "min-qty": 2,
-            "max-qty": 2
+            "ports": [
+              {
+                "subnet": "Public",
+                "eip": true,
+                "internal-ip-addresses": {
+                  "a": "100.97.1.10/26",
+                  "b": "100.97.1.74/26"
+                }
+              },
+              {
+                "subnet": "OnPremise",
+                "eip": false,
+                "internal-ip-addresses": {
+                  "a": "100.97.1.170/28",
+                  "b": "100.97.1.186/28"
+                }
+              },
+              {
+                "subnet": "FWMgmt",
+                "eip": true,
+                "internal-ip-addresses": {
+                  "a": "100.97.1.138/28",
+                  "b": "100.97.1.154/28"
+                }
+              },
+              {
+                "subnet": "Proxy",
+                "eip": false,
+                "internal-ip-addresses": {
+                  "a": "100.97.0.10/28",
+                  "b": "100.97.0.138/28"
+                }
+              }
+            ]
           },
           "config": "fortigate_AA_20200504.txt",
           "fw-cgw-name": "Perimeter_fw",
@@ -1768,7 +1793,7 @@
             "boundary-policy": "Default-Boundary-Policy",
             "source-account": "security",
             "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"            
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }

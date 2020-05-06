@@ -16,25 +16,12 @@ import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
+import { VpcOutput } from '../deployments/vpc';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
-
-export interface VpcSubnetOutput {
-  subnetId: string;
-  subnetName: string;
-  az: string;
-}
-
-export interface VpcOutput {
-  vpcId: string;
-  vpcName: string;
-  subnets: VpcSubnetOutput[];
-  routeTables: { [key: string]: string };
-  pcx?: string;
-}
 
 /**
  * This is the main entry point to deploy phase 1.
@@ -187,12 +174,20 @@ async function main() {
     const vpcOutput: VpcOutput = {
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
+      cidrBlock: props.vpcConfig.cidr.toCidrString(),
       subnets: vpc.azSubnets.subnets.map(s => ({
         subnetId: s.subnet.ref,
         subnetName: s.subnetName,
         az: s.az,
+        cidrBlock: s.cidrBlock,
       })),
       routeTables: vpc.routeTableNameToIdMap,
+      securityGroups: Object.entries(vpc.securityGroup?.securityGroupNameMapping || {}).map(
+        ([name, securityGroup]) => ({
+          securityGroupId: securityGroup.ref,
+          securityGroupName: name,
+        }),
+      ),
     };
 
     // Store the VPC output so that subsequent phases can access the output
