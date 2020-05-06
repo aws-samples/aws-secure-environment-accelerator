@@ -65,7 +65,7 @@ export class SecurityHubStack extends AcceleratorStack {
           provider: cfn.CustomResourceProvider.fromLambda(sendInvitesLambda),
           properties: {
             AccountID: cdk.Aws.ACCOUNT_ID,
-            MemberAccounts: subAccountIds?.filter(x => x.AccountId != account.id),
+            MemberAccounts: subAccountIds?.filter(x => x.AccountId !== account.id),
           },
         },
       );

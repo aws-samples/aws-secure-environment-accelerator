@@ -11,7 +11,8 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   const resourceId = 'Enable-Security-Hub';
   if (requestType === 'Delete') {
     // ToDo
-    return await sendResponse(event, context, SUCCESS, {}, resourceId);
+    await sendResponse(event, context, SUCCESS, {}, resourceId);
+    return;
   }
   try {
     const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME;
@@ -34,7 +35,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
       for (const responseStandard of enableResonse.StandardsSubscriptions || []) {
         const standardControls = await hub.describeStandardControls(responseStandard.StandardsSubscriptionArn);
         for (const disableConrtol of standard['controls-to-disable']) {
-          const standardControl = standardControls.Controls?.find(x => x.ControlId == disableConrtol);
+          const standardControl = standardControls.Controls?.find(x => x.ControlId === disableConrtol);
           if (standardControl) {
             console.log(`Disabling Control "${disableConrtol}" for Standard "${standard.name}"`);
             await hub.updateStandardControls(standardControl.StandardsControlArn!);

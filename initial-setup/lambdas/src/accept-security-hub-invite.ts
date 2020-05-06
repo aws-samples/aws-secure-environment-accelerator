@@ -10,7 +10,8 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   const resourceId = 'Accept-Security-Hub-Invitation';
   if (requestType === 'Delete') {
     // ToDo
-    return await sendResponse(event, context, SUCCESS, {}, resourceId);
+    await sendResponse(event, context, SUCCESS, {}, resourceId);
+    return;
   }
   try {
     const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME;

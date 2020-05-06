@@ -314,7 +314,7 @@ async function main() {
     acceleratorPrefix: context.acceleratorPrefix,
     standards: globalOptions['security-hub-frameworks'],
     stackName: `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`,
-    subAccountIds: subAccountIds,
+    subAccountIds,
   });
 
   for (const account of accounts) {
@@ -326,7 +326,7 @@ async function main() {
         account: account.id,
         region: cdk.Aws.REGION,
       },
-      account: account,
+      account,
       acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
       enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
       inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
