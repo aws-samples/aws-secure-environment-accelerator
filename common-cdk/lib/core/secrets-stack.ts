@@ -2,9 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
-import { AcceleratorStack, AcceleratorStackProps } from './accelerator-stack';
-
-export type SecretsStackProps = AcceleratorStackProps;
 
 export interface SecretProps extends Omit<secrets.SecretProps, 'encryptionKey'> {
   /**
@@ -30,12 +27,12 @@ export interface SecretProps extends Omit<secrets.SecretProps, 'encryptionKey'> 
  * Secrets can be created using the `createSecret` function. This function create a secret in this stack and grants
  * the given principals decrypt access on the KMS key and access to retrieve the secret value.
  */
-export class SecretsStack extends AcceleratorStack {
+export class SecretsStack extends cdk.Construct {
   readonly encryptionKey: kms.Key;
   readonly principals: iam.IPrincipal[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: SecretsStackProps) {
-    super(scope, id, props);
+  constructor(scope: cdk.Construct, name: string) {
+    super(scope, name);
 
     this.encryptionKey = new kms.Key(this, 'EncryptionKey');
     this.encryptionKey.addToResourcePolicy(

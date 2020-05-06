@@ -4,10 +4,12 @@ import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
 import { Account } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
+import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
 import { TransitGateway } from './transit-gateway';
 import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
+import { SecurityGroup } from './security-group';
 
 export interface VpcCommonProps {
   /**
@@ -308,6 +310,26 @@ export class Vpc extends cdk.Construct {
           subnetId: subnet.ref,
         });
       }
+
+      // Check for NACL's
+      if (subnetConfig.nacls) {
+        console.log(`NACL's Defined in VPC "${vpcName}" in Subnet "${subnetName}"`);
+        new Nacl(this, `NACL-${subnetName}`, {
+          subnetConfig,
+          vpcConfig,
+          vpcId: this.vpcId,
+          subnets: this.azSubnets,
+        });
+      }
+    }
+
+    // Create all security groups
+    if (vpcConfig['security-groups']) {
+      new SecurityGroup(this, 'SecurityGroups', {
+        vpcConfig,
+        vpcId: this.vpcId,
+        accountKey: props.vpcProps.accountKey,
+      });
     }
 
     // Create VPC Gateway End Point
