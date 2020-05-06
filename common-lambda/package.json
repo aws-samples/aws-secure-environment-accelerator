@@ -31,7 +31,7 @@
   "dependencies": {
     "adm-zip": "0.4.14",
     "archiver": "3.1.1",
-    "aws-sdk": "2.585.0",
+    "aws-sdk": "2.668.0",
     "fp-ts": "2.5.3",
     "generate-password": "1.5.1",
     "io-ts": "2.1.2",

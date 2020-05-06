@@ -175,6 +175,36 @@ export const VpcConfigType = t.interface({
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
 
+export const IamUserConfigType = t.interface({
+  'user-ids': t.array(NonEmptyString),
+  group: t.string,
+  policies: t.array(NonEmptyString),
+  'boundary-policy': t.string,
+});
+
+export const IamPolicyConfigType = t.interface({
+  'policy-name': t.string,
+  policy: t.string,
+});
+
+export const IamRoleConfigType = t.interface({
+  role: t.string,
+  type: t.string,
+  policies: t.array(NonEmptyString),
+  'boundary-policy': t.string,
+  'source-account': optional(t.string),
+  'source-account-role': optional(t.string),
+  'trust-policy': optional(t.string),
+});
+
+export const IamConfigType = t.interface({
+  users: optional(t.array(IamUserConfigType)),
+  policies: optional(t.array(IamPolicyConfigType)),
+  roles: optional(t.array(IamRoleConfigType)),
+});
+
+export type IamConfig = t.TypeOf<typeof IamConfigType>;
+
 export const TgwDeploymentConfigType = t.interface({
   name: optional(NonEmptyString),
   asn: optional(t.number),
@@ -265,6 +295,7 @@ export const MandatoryAccountConfigType = t.interface({
   email: t.string,
   ou: t.string,
   'enable-s3-public-access': fromNullable(t.boolean, false),
+  iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
   deployments: optional(DeploymentConfigType),
@@ -278,6 +309,7 @@ export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
+  iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
 });
 
@@ -305,6 +337,7 @@ export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigT
 
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
+  'central-bucket': NonEmptyString,
   zones: GlobalOptionsZonesConfigType,
 });
 

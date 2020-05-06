@@ -350,6 +350,8 @@ export namespace InitialSetup {
 
       // TODO We might want to load this from the Landing Zone configuration
       const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
+      const nonCoreMandatoryScpName = 'aws-landing-zone-non-core-mandatory-preventive-guardrails';
+      const lzScpNames: string[] = [coreMandatoryScpName, nonCoreMandatoryScpName];
 
       const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
         functionProps: {
@@ -359,16 +361,19 @@ export namespace InitialSetup {
         },
         functionPayload: {
           roleName: props.stateMachineExecutionRole,
-          policyName: coreMandatoryScpName,
+          policyNames: lzScpNames,
         },
         resultPath: 'DISCARD',
       });
 
-      const enableResourceSharingTask = new CodeTask(this, 'Enable Resource Sharing', {
+      const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.enableResourceSharingStep',
+          handler: 'index.enableTrustedAccessForServicesStep',
           role: pipelineRole,
+        },
+        functionPayload: {
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
@@ -565,7 +570,7 @@ export namespace InitialSetup {
           .next(installRolesTask)
           .next(loadLimitsTask)
           .next(addRoleToScpTask)
-          .next(enableResourceSharingTask)
+          .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)

@@ -22,4 +22,22 @@ export class S3 {
   async putObject(input: s3.PutObjectRequest): Promise<s3.PutObjectOutput> {
     return this.client.putObject(input).promise();
   }
+
+  async putBucketKmsEncryption(bucket: string, kmsMasterKeyId: string): Promise<void> {
+    const params: s3.PutBucketEncryptionRequest = {
+      Bucket: bucket,
+      ServerSideEncryptionConfiguration: {
+        Rules: [
+          {
+            ApplyServerSideEncryptionByDefault: {
+              SSEAlgorithm: 'aws:kms',
+              KMSMasterKeyID: kmsMasterKeyId,
+            },
+          },
+        ],
+      },
+    };
+
+    await this.client.putBucketEncryption(params).promise();
+  }
 }
