@@ -12,7 +12,7 @@ import {
 import { Account, getAccountId } from '../utils/accounts';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 
-export interface AccountDefaultSettingsAssetsProps extends cdk.StackProps {
+export interface AccountDefaultSettingsAssetsProps {
   accountId: string;
   accountKey: string;
   iamConfig?: IamConfig;
@@ -29,14 +29,15 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
 
     // kms key used for default EBS encryption
     const kmsKey = new kms.Key(this, 'EBS-DefaultEncryption', {
-      alias: 'alias/EBS-Default-key',
+      // TODO Re-enable alias
+      // alias: 'alias/EBS-Default-key',
       description: 'PBMM - Key used to encrypt/decrypt EBS by default',
       policy: new iam.PolicyDocument({
         statements: [
           new iam.PolicyStatement({
             sid: 'key-consolepolicy-3',
             effect: iam.Effect.ALLOW,
-            principals: [new iam.AccountPrincipal(accountId)],
+            principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
             actions: ['kms:*'],
             resources: ['*'],
           }),

@@ -12,8 +12,6 @@ export interface LoadLimitsInput {
   assumeRoleName: string;
 }
 
-export type LoadLimitsOutput = LimitOutput[];
-
 export interface LimitOutput {
   accountKey: string;
   limitKey: string;
@@ -65,7 +63,7 @@ const LIMITS: { [limitKey: string]: LimitCode } = {
   },
 };
 
-export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsInput> => {
+export const handler = async (input: LoadLimitsInput) => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
@@ -149,6 +147,4 @@ export const handler = async (input: LoadLimitsInput): Promise<LoadLimitsInput> 
     SecretId: limitsSecretId,
     SecretString: JSON.stringify(limits, null, 2),
   });
-
-  return input;
 };

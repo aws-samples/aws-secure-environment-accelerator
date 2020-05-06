@@ -105,7 +105,9 @@ export const SecurityGroupRuleSecurityGroupSourceConfig = t.interface({
 });
 
 export const SecurityGroupRuleConfigType = t.interface({
-  type: t.array(NonEmptyString),
+  type: optional(t.array(NonEmptyString)),
+  'tcp-ports': optional(t.array(t.number)),
+  'udp-ports': optional(t.array(t.number)),
   port: optional(t.number),
   description: NonEmptyString,
   toPort: optional(t.number),
@@ -382,6 +384,13 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
   /**
    * @return [accountKey: string, accountConfig: AccountConfig][]
    */
+  getAccountConfigsForOu(ou: string): [string, AccountConfig][] {
+    return this.getAccountConfigs().filter(([_, accountConfig]) => accountConfig.ou === ou);
+  }
+
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
   getOrganizationalUnits(): [string, OrganizationalUnitConfig][] {
     return Object.entries(this['organizational-units']);
   }
@@ -414,8 +423,8 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
         const destinationAccountKey = ouConfig.vpc.deploy;
         if (destinationAccountKey === 'local') {
           // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
-          for (const [accountKey, accountConfig] of this.getAccountConfigs()) {
-            if (accountConfig.ou === ouKey && accountConfig.vpc) {
+          for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(ouKey)) {
+            if (accountConfig.vpc) {
               vpcConfigs.push({
                 ouKey,
                 accountKey,
