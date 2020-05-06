@@ -202,7 +202,7 @@ async function main() {
       },
       principals: [new iam.AccountPrincipal(accountId)],
     });
-    
+
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       outputType: 'VpcOutput',
     });

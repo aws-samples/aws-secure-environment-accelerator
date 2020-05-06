@@ -178,7 +178,7 @@ async function main() {
   // creating assets for default account settings
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    console.log('181:accountKey: '+accountKey);
+    console.log('181:accountKey: ' + accountKey);
     mandatoryAccountKeys.push(accountKey);
     await createAccountDefaultAssets(accountKey, accountConfig.iam);
   }
