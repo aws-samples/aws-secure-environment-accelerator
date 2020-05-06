@@ -61,7 +61,7 @@
         ]
       },
       "limits": {
-        "Amazon VPC/Interface VPC endpoints per VPC": 200,
+        "Amazon VPC/Interface VPC endpoints per VPC": 90,
         "Amazon VPC/VPCs per Region": 15,
         "AWS CloudFormation/Stack count": 400,
         "AWS CloudFormation/Stack sets per administrator account": 400
@@ -442,7 +442,7 @@
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
         "region": "ca-central-1",
-        "use-central-endpoints": true,
+        "use-central-endpoints": false,
         "flow-logs": true,
         "log-retention": 90,
         "igw": true,
@@ -659,7 +659,14 @@
         "tgw-attach": {
           "associate-to-tgw": ""
         },
-        "interface-endpoints": false
+        "interface-endpoints": {
+          "subnet": "Proxy",
+          "endpoints": [
+            "ssm",
+            "ssmmessages",
+            "ec2messages"
+          ]
+        }
       },
       "deployments": {
         "firewall": {
