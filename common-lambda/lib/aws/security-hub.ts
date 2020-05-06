@@ -17,7 +17,6 @@ export class SecurityHub {
   public constructor(credentials?: aws.Credentials) {
     this.client = new aws.SecurityHub({
       credentials,
-      region: 'ca-central-1',
     });
   }
 
