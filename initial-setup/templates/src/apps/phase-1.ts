@@ -154,7 +154,6 @@ async function main() {
 
         if (!endpointStack || endpointCount >= 30) {
           endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
-          endpointStack.addDependency(vpcStack);
           endpointCount = 0;
         }
         new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
@@ -171,8 +170,8 @@ async function main() {
     const flowLogs = vpcConfig['flow-logs'];
     if (flowLogs) {
       const flowLogContainer = getFlowLogContainer(accountKey);
-      const flowLogBucket = flowLogContainer.getOrCreateFlowLogBucket();
-      const flowLogRole = flowLogContainer.getOrCreateFlowLogRole();
+      const flowLogBucket = flowLogContainer.bucket;
+      const flowLogRole = flowLogContainer.role;
 
       new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
         deliverLogsPermissionArn: flowLogRole.roleArn,
