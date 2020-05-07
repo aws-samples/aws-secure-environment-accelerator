@@ -12,7 +12,6 @@ import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
-import * as customResources from '../deployments/custom-resources/step-1';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -41,13 +40,6 @@ async function main() {
   const accountStacks = new AccountStacks(app, {
     phase: 0,
     accounts,
-    context,
-  });
-
-  await customResources.create({
-    accountStacks,
-    accounts,
-    config: acceleratorConfig,
     context,
   });
 

@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
-import * as constructs from '@aws-pbmm/constructs/lib/vpc/vpc';
+import * as constructs from '@aws-pbmm/constructs/lib/vpc';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 
 export interface NameToSecurityGroupMap {

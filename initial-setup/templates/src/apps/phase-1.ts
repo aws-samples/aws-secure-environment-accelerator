@@ -16,7 +16,7 @@ import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
-import { Vpc } from '@aws-pbmm/constructs/lib/vpc/vpc';
+import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/step-1';
 
@@ -217,7 +217,6 @@ async function main() {
   await firewall.create({
     accountStacks,
     config: acceleratorConfig,
-    outputs,
     vpcs,
   });
 

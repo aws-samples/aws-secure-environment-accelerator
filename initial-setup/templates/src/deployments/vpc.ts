@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { Vpc, SecurityGroup, Subnet } from '@aws-pbmm/constructs/lib/vpc/vpc';
+import { Vpc, SecurityGroup, Subnet } from '@aws-pbmm/constructs/lib/vpc';
 
 export interface VpcSubnetOutput {
   subnetId: string;

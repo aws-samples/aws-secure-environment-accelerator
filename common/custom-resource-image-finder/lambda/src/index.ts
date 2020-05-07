@@ -1,6 +1,8 @@
-import * as sdk from 'aws-sdk';
+import * as AWS from 'aws-sdk';
 import { Context, CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { send, SUCCESS, FAILED } from 'cfn-response-async';
+
+const ec2 = new AWS.EC2();
 
 export const handler = async (event: CloudFormationCustomResourceEvent, context: Context): Promise<unknown> => {
   console.log(`Finding image ID...`);
@@ -14,8 +16,6 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   }
 
   try {
-    const ec2 = new sdk.EC2();
-
     // Find images that match the given owner, name and version
     const describeImages = await ec2
       .describeImages(
@@ -34,7 +34,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
     }
 
     // Reverse sort by creation date
-    images.sort((a: sdk.EC2.Image, b: sdk.EC2.Image) => b.CreationDate!.localeCompare(a.CreationDate!));
+    images.sort((a: AWS.EC2.Image, b: AWS.EC2.Image) => b.CreationDate!.localeCompare(a.CreationDate!));
 
     // Build the resource output
     const image = images[0];
@@ -67,7 +67,7 @@ function buildRequest(props: {
   name?: string;
   version?: string;
   productCode: string;
-}): sdk.EC2.DescribeImagesRequest {
+}): AWS.EC2.DescribeImagesRequest {
   const { owner, name, version, productCode } = props;
 
   const owners = [];

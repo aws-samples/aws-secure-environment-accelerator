@@ -1,18 +1,15 @@
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { Vpc } from '@aws-pbmm/constructs/lib/vpc/vpc';
+import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AvailabilityZone } from '@aws-pbmm/common-lambda/lib/config/types';
-import { FortiGateCluster } from '@aws-pbmm/constructs/lib/fortinet/fortigate';
-import { ImageFinder } from '@aws-pbmm/constructs/lib/fortinet/image-finder';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { Output as CustomResourcesOutput } from '../custom-resources/step-1';
+import { FirewallCluster } from '@aws-pbmm/constructs/lib/firewall';
+import { ImageFinder } from '@aws-pbmm/custom-resource-image-finder';
 import { AccountStacks } from '../../common/account-stacks';
 
 export interface Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
-  outputs: StackOutput[];
   vpcs: Vpc[];
 }
 
@@ -20,10 +17,7 @@ export interface Props {
  * Creates the firewall clusters for the accounts that define a firewall deployment.
  */
 export async function create(props: Props) {
-  const { accountStacks, config, outputs, vpcs } = props;
-
-  // We need the image finder custom resource
-  const customResourcesOutput = CustomResourcesOutput.findInStackOutputs(outputs);
+  const { accountStacks, config, vpcs } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const firewallConfig = accountConfig.deployments?.firewall;
@@ -38,11 +32,10 @@ export async function create(props: Props) {
     }
 
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    await createFortiGateCluster({
+    await createFirewallCluster({
       scope: accountStack,
       vpc,
       firewallConfig,
-      imageFinderFuncArn: customResourcesOutput.imageFinderFuncArn,
     });
   }
 }
@@ -50,28 +43,21 @@ export async function create(props: Props) {
 /**
  * Create firewall for the given VPC and config in the given scope.
  */
-async function createFortiGateCluster(props: {
-  scope: cdk.Construct;
-  vpc: Vpc;
-  firewallConfig: c.FirewallConfig;
-  imageFinderFuncArn: string;
-}) {
-  const { scope, vpc, firewallConfig, imageFinderFuncArn } = props;
-
-  const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
-
-  // If Bring-Your-Own-License, then use the AWS build, otherwise the AWSONDEMAND build
-  const imageOwner = '679593333241'; // FortiGate owner
-  const imageName = firewallConfig.image === 'BYOL' ? 'FortiGate-VM64-AWS build*' : 'FortiGate-VM64-AWSONDEMAND build*';
+async function createFirewallCluster(props: { scope: cdk.Construct; vpc: Vpc; firewallConfig: c.FirewallConfig }) {
+  const { scope, vpc, firewallConfig } = props;
 
   const imageFinder = new ImageFinder(scope, 'ImageFinder', {
-    functionArn: imageFinderFuncArn,
-    imageOwner,
-    imageName,
+    // FortiGate owner ID
+    imageOwner: '679593333241',
+    // If Bring-Your-Own-License, then use the AWS build, otherwise the AWSONDEMAND build
+    imageName: firewallConfig.image === 'BYOL' ? 'FortiGate-VM64-AWS build*' : 'FortiGate-VM64-AWSONDEMAND build*',
+    // Version is always wrapped in round brackets
     imageVersion: `*(${firewallConfig.version})*`,
   });
 
-  const cluster = new FortiGateCluster(scope, 'FortiGate', {
+  const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
+
+  const cluster = new FirewallCluster(scope, 'Firewall', {
     vpcCidrBlock: vpc.cidrBlock,
     imageId: imageFinder.imageId,
     instanceType: firewallConfig['instance-sizes'],
