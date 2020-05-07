@@ -55,7 +55,7 @@ export class SecurityGroup extends cdk.Construct {
     const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
     for (const securityGroup of securityGroups || []) {
-      const groupName = `${securityGroup.name}-${vpcConfig.name}-${accountKey}-sg`;
+      const groupName = securityGroup.name;
       const groupDescription = `${accountKey} ${vpcConfig.name} Mgmt Security Group`;
       const sg = new ec2.CfnSecurityGroup(this, `${groupName}`, {
         vpcId,

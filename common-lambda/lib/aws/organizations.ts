@@ -11,6 +11,7 @@ export class Organizations {
       credentials,
     });
   }
+
   async getOrganizationalUnit(organizationalUnitId: string): Promise<org.OrganizationalUnit | undefined> {
     const response = await this.client
       .describeOrganizationalUnit({
@@ -126,5 +127,28 @@ export class Organizations {
 
   async updatePolicy(input: org.UpdatePolicyRequest): Promise<org.UpdatePolicyResponse> {
     return this.client.updatePolicy(input).promise();
+  }
+
+  async enableAWSServiceAccess(servicePrincipal: string): Promise<void> {
+    const params: org.EnableAWSServiceAccessRequest = {
+      ServicePrincipal: servicePrincipal,
+    };
+    await this.client.enableAWSServiceAccess(params).promise();
+  }
+
+  async registerDelegatedAdministrator(accountId: string, servicePrincipal: string): Promise<void> {
+    const params: org.RegisterDelegatedAdministratorRequest = {
+      AccountId: accountId,
+      ServicePrincipal: servicePrincipal,
+    };
+    try {
+      await this.client.registerDelegatedAdministrator(params).promise();
+    } catch (e) {
+      if (e.code === 'AccountAlreadyRegisteredException') {
+        // ignore error
+      } else {
+        throw e;
+      }
+    }
   }
 }

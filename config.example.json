@@ -11,12 +11,20 @@
       }
     },
     "security-hub-frameworks": {
-      "enable-aws-foundational": true,
-      "foundation-controls-to-disable": ["IAM.1"],
-      "enable-cis-foundations": true,
-      "cis-foundations-controls-to-disable": ["CIS1.3", "CIS1.11"],
-      "enable-pci-dss": true,
-      "pci-dss-controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
+      "standards": [
+        {
+          "name": "AWS Foundational Security Best Practices v1.0.0",
+          "controls-to-disable": ["IAM.1"]
+        },
+        {
+          "name": "PCI DSS v3.2.1",
+          "controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
+        },
+        {
+          "name": "CIS AWS Foundations Benchmark v1.2.0",
+          "controls-to-disable": ["CIS.1.3", "CIS1.11"]
+        }
+      ]
     },
     "central-bucket": "pbmmaccel-config-123456789012",
     "scps": {
@@ -43,27 +51,25 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
       "limits": {
-        "Amazon VPC/Interface VPC endpoints per VPC": 200,
+        "Amazon VPC/Interface VPC endpoints per VPC": 90,
         "Amazon VPC/VPCs per Region": 15,
         "AWS CloudFormation/Stack count": 400,
         "AWS CloudFormation/Stack sets per administrator account": 400
@@ -210,31 +216,29 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Test-Role",
-            "Type": "Account",
-            "Policies": ["AdministratorAccess"],
-            "SourceAccount": "security",
-            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "role-trust-policy.txt",
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       },
@@ -268,11 +272,11 @@
           },
           "ad-groups": ["Provisioning"],
           "ad-per-account-groups": ["-Admins", "-PowerUser", "-View"],
-          "adc-group": "ADConnector",
+          "adc-group": "ADConnector-grp",
           "ad-users": [
             {
-              "user": "adconnector",
-              "groups": ["ADConnector"]
+              "user": "adconnector-usr",
+              "groups": ["ADConnector-grp"]
             },
             {
               "user": "Brian",
@@ -414,32 +418,30 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           },
           {
-            "Policy-Name": "Fortigate-Policy",
-            "Policy": "Fortigate-policy.txt"
+            "policy-name": "Fortigate-Policy",
+            "policy": "fortigate-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Forigate-Role",
-            "Type": "EC2",
-            "Policies": ["Fortigate-Policy"],
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Forigate-Role",
+            "type": "ec2",
+            "policies": ["Fortigate-Policy"],
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
@@ -448,7 +450,7 @@
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
         "region": "ca-central-1",
-        "use-central-endpoints": true,
+        "use-central-endpoints": false,
         "flow-logs": true,
         "log-retention": 90,
         "igw": true,
@@ -665,7 +667,14 @@
         "tgw-attach": {
           "associate-to-tgw": ""
         },
-        "interface-endpoints": false
+        "interface-endpoints": {
+          "subnet": "Proxy",
+          "endpoints": [
+            "ssm",
+            "ssmmessages",
+            "ec2messages"
+          ]
+        }
       },
       "deployments": {
         "firewall": {
@@ -729,20 +738,20 @@
           {
             "user-ids": ["bgUser1", "bgUser2"],
             "group": "BreakGlassAdmins",
-            "Policies": ["Administrators"],
-            "BoundaryPolicy": "Default-Boundary-Policy"
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
             "user-ids": ["OpsUser1", "OpsUser2"],
             "group": "OpsAdmins",
-            "Policies": ["Administrators"],
-            "BoundaryPolicy": "Default-Boundary-Policy"
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": []
@@ -1298,31 +1307,29 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Test-Role",
-            "Type": "Account",
-            "Policies": ["AdministratorAccess"],
-            "SourceAccount": "security",
-            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "role-trust-policy.txt",
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -1747,31 +1754,29 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Test-Role",
-            "Type": "Account",
-            "Policies": ["AdministratorAccess"],
-            "SourceAccount": "security",
-            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "role-trust-policy.txt",
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"            
           }
         ]
       }
@@ -2196,31 +2201,29 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Test-Role",
-            "Type": "Account",
-            "Policies": ["AdministratorAccess"],
-            "SourceAccount": "security",
-            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "role-trust-policy.txt",
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -2645,31 +2648,29 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Test-Role",
-            "Type": "Account",
-            "Policies": ["AdministratorAccess"],
-            "SourceAccount": "security",
-            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "role-trust-policy.txt",
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -3069,31 +3070,29 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Test-Role",
-            "Type": "Account",
-            "Policies": ["AdministratorAccess"],
-            "SourceAccount": "security",
-            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "role-trust-policy.txt",
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -3451,31 +3450,29 @@
         "users": [],
         "policies": [
           {
-            "Policy-Name": "Default-Boundary-Policy",
-            "Policy": "boundary-policy.txt"
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
           }
         ],
         "roles": [
           {
-            "Role": "EC2-Default-SSM-AD",
-            "Type": "EC2",
-            "Policies": [
+            "role": "EC2-Default-SSM-AD",
+            "type": "ec2",
+            "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "BoundaryPolicy": ["Default-Boundary-Policy"],
-            "SourceAccount": "",
-            "SourceAccount-role": ""
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "Role": "Test-Role",
-            "Type": "Account",
-            "Policies": ["AdministratorAccess"],
-            "SourceAccount": "security",
-            "SourceRole": "AWSLandingZoneSecurityAdministratorRole",
-            "Trust-Policy": "role-trust-policy.txt",
-            "BoundaryPolicy": ["Default-Boundary-Policy"]
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
