@@ -28,14 +28,14 @@
     },
     "central-bucket": "pbmmaccel-config-123456789012",
     "scps": {
-      "ALZ-Core": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json",
-      "ALZ-Non-Core": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json",
-      "Guardrails-Part1": "PBMMAccel-Guardrails-Part1.json",
-      "Guardrails-Part2": "PBMMAccel-Guardrails-Part2.json",
-      "Guardrails-PBMM-Only": "PBMMAccel-Guardrails-PBMM-Only.json",
-      "Guardrails-Unclass-Only": "PBMMAccel-Guardrails-Unclass-Only.json",
-      "Quarantine-Deny-All": "Quarantine-Deny-All.json",
-      "Full-Access": "Full-AWS-Access.json"
+      "alz-core": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json",
+      "alz-non-core": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json",
+      "guardrails-part1": "PBMMAccel-Guardrails-Part1.json",
+      "guardrails-part2": "PBMMAccel-Guardrails-Part2.json",
+      "guardrails-pbmm-only": "PBMMAccel-Guardrails-PBMM-Only.json",
+      "guardrails-unclass-only": "PBMMAccel-Guardrails-Unclass-Only.json",
+      "quarantine-deny-all": "Quarantine-Deny-All.json",
+      "full-access": "Full-AWS-Access.json"
     },
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]

@@ -343,11 +343,24 @@ export const SecurityHubFrameworksConfigType = t.interface({
     }),
   ),
 });
+
+export const ScpsConfigType = t.interface({
+  'alz-core': NonEmptyString,
+  'alz-non-core': NonEmptyString,
+  'guardrails-part1': NonEmptyString,
+  'guardrails-part2': NonEmptyString,
+  'guardrails-pbmm-only': NonEmptyString,
+  'guardrails-unclass-only': NonEmptyString,
+  'quarantine-deny-all': NonEmptyString,
+  'full-access': NonEmptyString
+});
+
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   'central-bucket': NonEmptyString,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
+  scps: ScpsConfigType,
 });
 
 export type SecurityHubFrameworksConfig = t.TypeOf<typeof SecurityHubFrameworksConfigType>;
