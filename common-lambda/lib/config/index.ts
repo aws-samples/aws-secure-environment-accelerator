@@ -352,7 +352,7 @@ export const ScpsConfigType = t.interface({
   'guardrails-pbmm-only': NonEmptyString,
   'guardrails-unclass-only': NonEmptyString,
   'quarantine-deny-all': NonEmptyString,
-  'full-access': NonEmptyString
+  'full-access': NonEmptyString,
 });
 
 export const GlobalOptionsConfigType = t.interface({
