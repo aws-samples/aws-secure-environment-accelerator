@@ -157,7 +157,9 @@ async function main() {
     }
 
     const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
-    const s3BucketNameForCur = costAndUsageReportConfig["s3-bucket"].replace('xxaccountIdxx',accountId).replace('xxregionxx',costAndUsageReportConfig["s3-region"])
+    const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
+      .replace('xxaccountIdxx', accountId)
+      .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
 
     const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
       accountStack,
