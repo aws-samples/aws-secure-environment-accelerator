@@ -13,7 +13,7 @@ export class CUR {
 
   /**
    * to creates a new cost and usage report using the description that you provide
-   * @param params 
+   * @param params
    */
   async putReportDefinition(params: cur.PutReportDefinitionRequest): Promise<cur.PutReportDefinitionResponse> {
     return this.client.putReportDefinition(params).promise();
