@@ -25,12 +25,6 @@ export interface UserSecret {
   password: Secret;
 }
 
-export interface AdCommand {
-  name: string;
-  command: string;
-  waitAfterCompletion: string;
-}
-
 export class ADUsersAndGroups extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: ADUsersAndGroupsProps) {
     super(scope, id);
@@ -50,138 +44,50 @@ export class ADUsersAndGroups extends cdk.Construct {
       userSecrets,
     } = props;
 
-    const adGroups: string[] = [];
-    madDeploymentConfig['ad-groups'].map(g => adGroups.push(g));
-    const adPerAccountGroups = madDeploymentConfig['ad-per-account-groups'];
+    // Creating AD Users command
+    const adUsers: string[] = madDeploymentConfig['ad-users'].map(a => a.user);
+    const adUsersCommand: string[] = adUsers.map(
+      user =>
+        `C:\\cfn\\scripts\\AD-user-setup.ps1 -UserName ${user} -Password ((Get-SECSecretValue -SecretId ${
+          userSecrets.find(x => x.user === user)?.password.secretArn
+        }).SecretString) -DomainAdminUser ${
+          madDeploymentConfig['netbios-domain']
+        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${
+          adminPassword.secretArn
+        }).SecretString) -PasswordNeverExpires Yes`,
+    );
 
-    const adCommandUsers: AdCommand[] = [];
+    // Creating AD Groups command
+    const configGroups = madDeploymentConfig['ad-groups']
+      .concat(madDeploymentConfig['ad-per-account-groups'])
+      .concat(madDeploymentConfig['adc-group']);
+    // console.log("configGroups", configGroups);
+    const adGroups = prepareGroups(configGroups, accountNames);
+    // console.log("All groups", adGroups);
 
-    const adCommands = Object.values(adGroups).map(a => {
-      name: `a-configure-${a}-user`;
-      command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-setup.ps1 -GroupName ${madDeploymentConfig['adc-group']} -UserName aduser -Password Test@12345 -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -PasswordNeverExpires Yes`;
-      waitAfterCompletion: '0';
+    // Mapping Users to Groups command
+    const adUserGroups: { user: string; groups: string[] }[] = [];
+    madDeploymentConfig['ad-users'].map(a => {
+      const groups = prepareGroups(a.groups, accountNames);
+      adUserGroups.push({ user: a.user, groups });
     });
+    // console.log("adUserGroups", adUserGroups);
+
+    const adUserGroupsCommand: string[] = [];
+    adUserGroups.map(userGroup =>
+      adUserGroupsCommand.push(
+        `C:\\cfn\\scripts\\AD-user-group-setup.ps1 -GroupNames \'${userGroup.groups.join(',')}\' -UserName ${
+          userGroup.user
+        } -DomainAdminUser ${
+          madDeploymentConfig['netbios-domain']
+        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)`,
+      ),
+    );
 
     // Create a new security group for RDGW Host
     const securityGroup = new ec2.CfnSecurityGroup(this, 'RemoteDesktopGatewaySG', {
       vpcId,
       groupDescription: `Enable RDP access from the Domain`,
-      securityGroupIngress: [
-        {
-          ipProtocol: ec2.Protocol.UDP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 445,
-          toPort: 445,
-        },
-        {
-          ipProtocol: ec2.Protocol.UDP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 138,
-          toPort: 138,
-        },
-        {
-          ipProtocol: ec2.Protocol.UDP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 464,
-          toPort: 464,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 464,
-          toPort: 464,
-        },
-        {
-          ipProtocol: ec2.Protocol.UDP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 389,
-          toPort: 389,
-        },
-        {
-          ipProtocol: ec2.Protocol.UDP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 53,
-          toPort: 53,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 389,
-          toPort: 389,
-        },
-        {
-          ipProtocol: ec2.Protocol.UDP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 123,
-          toPort: 123,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 3389,
-          toPort: 3389,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIpv6: '0::/0',
-          fromPort: 3389,
-          toPort: 3389,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 445,
-          toPort: 445,
-        },
-        {
-          ipProtocol: ec2.Protocol.ICMP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: -1,
-          toPort: -1,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 3268,
-          toPort: 3269,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 1024,
-          toPort: 65535,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 88,
-          toPort: 88,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 135,
-          toPort: 135,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 636,
-          toPort: 636,
-        },
-        {
-          ipProtocol: ec2.Protocol.TCP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 53,
-          toPort: 53,
-        },
-        {
-          ipProtocol: ec2.Protocol.UDP,
-          cidrIp: '0.0.0.0/0',
-          fromPort: 88,
-          toPort: 88,
-        },
-      ],
       securityGroupEgress: [
         {
           ipProtocol: ec2.Protocol.ALL,
@@ -193,6 +99,47 @@ export class ADUsersAndGroups extends cdk.Construct {
         },
       ],
     });
+
+    const tcpPorts = [464, 389, 3389, 445, 88, 135, 636, 53];
+    const udpPorts = [445, 138, 464, 53, 389, 123, 88];
+
+    const tcpRules = tcpPorts.map(tcp => ({
+      ipProtocol: ec2.Protocol.TCP,
+      cidrIp: '0.0.0.0/0',
+      fromPort: tcp,
+      toPort: tcp,
+    }));
+
+    const udpRules = udpPorts.map(udp => ({
+      ipProtocol: ec2.Protocol.UDP,
+      cidrIp: '0.0.0.0/0',
+      fromPort: udp,
+      toPort: udp,
+    }));
+
+    const customPorts = [
+      {
+        ipProtocol: ec2.Protocol.ICMP,
+        cidrIp: '0.0.0.0/0',
+        fromPort: -1,
+        toPort: -1,
+      },
+      {
+        ipProtocol: ec2.Protocol.TCP,
+        cidrIp: '0.0.0.0/0',
+        fromPort: 3268,
+        toPort: 3269,
+      },
+      {
+        ipProtocol: ec2.Protocol.TCP,
+        cidrIp: '0.0.0.0/0',
+        fromPort: 1024,
+        toPort: 65535,
+      },
+    ];
+    const ports = tcpRules.concat(udpRules).concat(customPorts);
+
+    securityGroup.securityGroupIngress = ports;
 
     const RDGWHostRole = new iam.Role(this, 'RDGWHostRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -290,7 +237,7 @@ export class ADUsersAndGroups extends cdk.Construct {
     });
 
     launchConfig.userData = cdk.Fn.base64(
-      `<script>\ncfn-init.exe -v -c config -s ${stackId} -r ${launchConfig.logicalId} --region ${cdk.Aws.REGION} \n # Signal the status from cfn-init\n cfn-signal -e $? --stack ${props.stackName} --resource ${autoscalingGroup.logicalId} --region ${cdk.Aws.REGION}\n </script>\n`,
+      `<script>\n cfn-init.exe -v -c config -s ${stackId} -r ${launchConfig.logicalId} --region ${cdk.Aws.REGION} \n # Signal the status from cfn-init\n cfn-signal -e $? --stack ${props.stackName} --resource ${autoscalingGroup.logicalId} --region ${cdk.Aws.REGION}\n </script>\n`,
     );
 
     launchConfig.addOverride('Metadata.AWS::CloudFormation::Init', {
@@ -317,8 +264,24 @@ export class ADUsersAndGroups extends cdk.Construct {
             source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}Initialize-RDGW.ps1`,
             authentication: 'S3AccessCreds',
           },
-          'c:\\cfn\\scripts\\AD-connector-setup.ps1': {
-            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AD-connector-setup.ps1`,
+          'c:\\cfn\\scripts\\AD-user-setup.ps1': {
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AD-user-setup.ps1`,
+            authentication: 'S3AccessCreds',
+          },
+          'c:\\cfn\\scripts\\AD-group-setup.ps1': {
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AD-group-setup.ps1`,
+            authentication: 'S3AccessCreds',
+          },
+          'c:\\cfn\\scripts\\AD-user-group-setup.ps1': {
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AD-user-group-setup.ps1`,
+            authentication: 'S3AccessCreds',
+          },
+          'c:\\cfn\\scripts\\AD-group-grant-permissions-setup.ps1': {
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AD-group-grant-permissions-setup.ps1`,
+            authentication: 'S3AccessCreds',
+          },
+          'c:\\cfn\\scripts\\AD-connector-permissions-setup.ps1': {
+            source: `https://${s3BucketName}.s3.${cdk.Aws.REGION}.amazonaws.com/${s3KeyPrefix}AD-connector-permissions-setup.ps1`,
             authentication: 'S3AccessCreds',
           },
           'c:\\cfn\\scripts\\Configure-password-policy.ps1': {
@@ -368,8 +331,24 @@ export class ADUsersAndGroups extends cdk.Construct {
       },
       createADConnectorUser: {
         commands: {
-          'a-configure-ad-connector-user': {
-            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-setup.ps1 -GroupName ${madDeploymentConfig['adc-group']} -UserName aduser -Password Test@12345 -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString) -PasswordNeverExpires Yes`,
+          'a-create-ad-users': {
+            command: `powershell.exe -ExecutionPolicy RemoteSigned ${adUsersCommand.join('; ')}`,
+            waitAfterCompletion: '0',
+          },
+          'b-create-ad-groups': {
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-group-setup.ps1 -GroupNames \'${adGroups.join(
+              ',',
+            )}\' -DomainAdminUser ${
+              madDeploymentConfig['netbios-domain']
+            }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)`,
+            waitAfterCompletion: '0',
+          },
+          'c-configure-ad-users-groups': {
+            command: `powershell.exe -ExecutionPolicy RemoteSigned ${adUserGroupsCommand.join('; ')}`,
+            waitAfterCompletion: '0',
+          },
+          'd-configure-ad-group-permissions': {
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-permissions-setup.ps1 -GroupName ${madDeploymentConfig['adc-group']} -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)`,
             waitAfterCompletion: '0',
           },
         },
@@ -381,7 +360,11 @@ export class ADUsersAndGroups extends cdk.Construct {
               adminPassword.secretArn
             }).SecretString) -ComplexityEnabled:$${pascalCase(
               String(madDeploymentConfig['password-policies'].complexity),
-            )} -LockoutDuration 00:${madDeploymentConfig['password-policies']['lockout-duration']}:00 -MaxPasswordAge:${
+            )} -LockoutDuration 00:${
+              madDeploymentConfig['password-policies']['lockout-duration']
+            }:00 -LockoutObservationWindow 00:${
+              madDeploymentConfig['password-policies']['lockout-attempts-reset']
+            }:00 -LockoutThreshold ${madDeploymentConfig['password-policies']['failed-attempts']} -MaxPasswordAge:${
               madDeploymentConfig['password-policies']['max-age']
             }.00:00:00 -MinPasswordAge:${
               madDeploymentConfig['password-policies']['min-age']
@@ -404,4 +387,16 @@ export class ADUsersAndGroups extends cdk.Construct {
       },
     });
   }
+}
+
+function prepareGroups(configGroups: string[], accounts: string[]): string[] {
+  const groups: string[] = [];
+  configGroups.map(a => {
+    if (a.startsWith('*')) {
+      Object.values(accounts).map(b => groups.push(`aws-${b}${a.substring(1)}`));
+    } else {
+      groups.push(a);
+    }
+  });
+  return groups;
 }

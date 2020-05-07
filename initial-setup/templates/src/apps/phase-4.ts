@@ -11,25 +11,27 @@ import { VpcOutput } from './phase-1';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import * as ssm from '@aws-cdk/aws-ssm';
-import { KeyPair } from 'cdk-ec2-key-pair';
+import { KeyPairStack } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
 
+export interface RdgwArtifactsOutput {
+  bucketArn: string;
+  bucketName: string;
+  keyPrefix: string;
+}
+
 async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
   const outputs = await loadStackOutputs();
-  const accountNames = accounts.map(a => a.key);
-
-  const S3BucketName = 'rdgw-reference-artifacts';
-  const S3KeyPrefix = 'scripts/';
+  const accountNames = Object.values(acceleratorConfig['mandatory-account-configs']).map(a => a['account-name']);
 
   const app = new cdk.App();
-
   const secretsStack = new SecretsStack(app, 'Secrets', {
     env: {
       account: getAccountId(accounts, 'master'),
@@ -41,7 +43,6 @@ async function main() {
   });
 
   type UserSecrets = UserSecret[];
-
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
   for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
@@ -49,7 +50,7 @@ async function main() {
       continue;
     }
     const accountId = getAccountId(accounts, accountKey);
-    const madPassword = secretsStack.createSecret('MadPassword', {
+    const madAdminPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
       description: 'Password for Managed Active Directory.',
       generateSecretString: {
@@ -58,9 +59,32 @@ async function main() {
       principals: [new iam.AccountPrincipal(accountId)],
     });
 
+    const ec2KeyPairName = 'rdgw-key-pair';
+    const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
+
+    const keyPairStack = new KeyPairStack(app, 'Ec2KeyPair', {
+      env: {
+        account: accountId,
+        region: cdk.Aws.REGION,
+      },
+      acceleratorName: context.acceleratorName,
+      acceleratorPrefix: context.acceleratorPrefix,
+      stackName: 'PBMMAccel-Ec2KeyPair',
+    });
+
+    keyPairStack.createKeyPair(
+      'RDGWEc2KeyPair',
+      {
+        name: ec2KeyPairName,
+        description: 'This is a Key Pair',
+        secretPrefix: ec2KeyPairPrefix,
+      },
+      new iam.AccountPrincipal(accountId),
+    );
+
     const userSecrets: UserSecrets = [];
     for (const adUser of madDeploymentConfig['ad-users']) {
-      const madPassword = secretsStack.createSecret('MadPassword', {
+      const madUserPassword = secretsStack.createSecret(`MadPassword${adUser.user}`, {
         secretName: `accelerator/${accountKey}/mad/${adUser.user}/password`,
         description: 'Password for Managed Active Directory.',
         generateSecretString: {
@@ -68,7 +92,7 @@ async function main() {
         },
         principals: [new iam.AccountPrincipal(accountId)],
       });
-      userSecrets.push({ user: adUser.user, password: madPassword });
+      userSecrets.push({ user: adUser.user, password: madUserPassword });
     }
 
     const stack = new AcceleratorStack(app, `TestADUsersAndGroups`, {
@@ -81,17 +105,26 @@ async function main() {
       stackName: `PBMMAccel-${pascalCase('adUsersAndGroups')}`,
     });
 
-    const key = new KeyPair(stack, 'A-Key-Pair', {
-      name: 'rdgw-key-pair',
-      description: 'This is a Key Pair',
-      secretPrefix: `accelerator/${accountKey}/mad/`,
-    });
+    stack.addDependency(keyPairStack);
 
     const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
       stack,
       '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base',
       ssm.ParameterType.AWS_EC2_IMAGE_ID,
     );
+
+    const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
+      accountKey: 'master',
+      outputType: 'RdgwArtifactsOutput',
+    });
+
+    if (rdgwScriptsOutput.length === 0) {
+      throw new Error(`Cannot find output with RDGW reference artifacts`);
+    }
+
+    const s3BucketName = rdgwScriptsOutput[0].bucketName;
+    const S3KeyPrefix = rdgwScriptsOutput[0].keyPrefix + '/';
+    console.log('RDGW reference scripts s3 bucket name with key ', s3BucketName, S3KeyPrefix);
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       outputType: 'VpcOutput',
@@ -108,10 +141,10 @@ async function main() {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,
-      keyPairName: KeyPairName, // TODO create key pair
+      keyPairName: ec2KeyPairName, // TODO create key pair
       subnetIds,
-      adminPassword: madPassword,
-      s3BucketName: S3BucketName,
+      adminPassword: madAdminPassword,
+      s3BucketName,
       s3KeyPrefix: S3KeyPrefix,
       stackId: stack.stackId,
       stackName: stack.stackName,
