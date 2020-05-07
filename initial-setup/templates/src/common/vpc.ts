@@ -242,7 +242,12 @@ export class Vpc extends cdk.Construct {
           } else if (route.target === 'TGW' && tgwAttach) {
             const tgwName = tgwAttach['associate-to-tgw'];
             const tgw = props.transitGateways.get(tgwName);
-            gatewayId = tgw?.tgwId;
+            dependsOn = tgw?.tgw;
+            new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
+              routeTableId: routeTable.ref,
+              destinationCidrBlock: route.destination as string,
+              transitGatewayId: tgw?.tgwId,
+            });
             continue;
           } else {
             // Need to add for different Routes

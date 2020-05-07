@@ -6,7 +6,7 @@ const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const config: webpack.Configuration = {
   mode: 'production',
   target: 'node',
-  externals: ['aws-sdk', 'aws-lambda'],
+  externals: ['aws-lambda'],
   entry: './src/index.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
