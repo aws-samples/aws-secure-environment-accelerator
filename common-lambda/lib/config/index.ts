@@ -335,8 +335,8 @@ export const GlobalOptionsZonesConfigType = t.interface({
 
 export const CostAndUsageReportConfigType = t.interface({
   'additional-schema-elements': t.array(t.string),
-  'compression': NonEmptyString,
-  'format': NonEmptyString,
+  compression: NonEmptyString,
+  format: NonEmptyString,
   'report-name': NonEmptyString,
   's3-bucket': NonEmptyString,
   's3-prefix': NonEmptyString,
