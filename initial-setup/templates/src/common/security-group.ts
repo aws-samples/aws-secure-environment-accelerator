@@ -13,7 +13,7 @@ const TCP_PROTOCOLS_PORT: { [key: string]: number } = {
   SSH: 22,
   HTTP: 80,
   HTTPS: 443,
-  'MSSQL': 1433,
+  MSSQL: 1433,
   'MYSQL/AURORA': 3306,
   REDSHIFT: 5439,
   POSTGRESQL: 5432,
