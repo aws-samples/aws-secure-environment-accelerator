@@ -216,12 +216,7 @@ async function main() {
         ouKey ? ` and organizational unit "${ouKey}"` : ''
       }`,
     );
-    const accountVpcConfigs: ResolvedVpcConfig[] = [];
-    for (const accountVpcConfig of acceleratorConfig.getVpcConfigs()) {
-      if (accountVpcConfig.accountKey === accountKey) {
-        accountVpcConfigs.push(accountVpcConfig);
-      }
-    }
+    const accountVpcConfigs = acceleratorConfig.getVpcConfigs().filter(x => x.accountKey === accountKey)
     createVpc(accountKey, {
       accountKey,
       limiter,
