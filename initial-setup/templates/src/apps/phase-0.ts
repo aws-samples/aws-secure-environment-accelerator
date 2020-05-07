@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
-import { getAccountId, loadAccounts } from '../utils/accounts';
+import { getAccountId, loadAccounts, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
@@ -9,10 +9,14 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import { pascalCase } from 'pascal-case';
 import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { Secret } from '@aws-cdk/aws-secretsmanager';
+import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
+
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -76,16 +80,20 @@ async function main() {
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
   const logArchiveStack = getAccountStack('log-archive');
 
+  const accountIds: string[] = accounts.map(account => account.id);
+
   // Create the log archive bucket
   const bucket = new LogArchiveBucket(logArchiveStack, 'LogArchive', {
     logRetention: cdk.Duration.days(logRetentionInDays),
+    logArchiveAccountId,
+    accountIds,
   });
 
   // Grant all accounts access to the log archive bucket
   const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
   bucket.grantReplicate(...principals);
 
-  // store the s3 bucket - kms key arn for later reference
+  // store the log archive account Id for later reference
   new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
     value: logArchiveAccountId,
   });
@@ -100,6 +108,11 @@ async function main() {
     value: bucket.encryptionKeyArn,
   });
 
+  // store the s3 bucket - kms key id for later reference
+  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID, {
+    value: bucket.encryptionKey.keyId,
+  });
+
   // TODO Replace above outputs with JSON output
   // new JsonOutputValue(stack, 'LogArchiveOutput', {
   //   type: 'LogArchiveOutput',
@@ -109,16 +122,80 @@ async function main() {
   //   },
   // });
 
-  // creating assets for default account settings
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const accountKey of Object.keys(mandatoryAccountConfig)) {
+  const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
+    const accountId = getAccountId(accounts, accountKey);
     const accountStack = getAccountStack(accountKey);
-    const accountDefaults = new AccountDefaultSettingsAssets(accountStack, 'AccountDefaults');
+    const userPasswords: { [userId: string]: Secret } = {};
+
+    const iamUsers = iamConfig?.users;
+    if (iamUsers && iamUsers?.length >= 1) {
+      for (const iamUser of iamUsers) {
+        if (!IamUserConfigType.is(iamUser)) {
+          console.log(
+            `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
+          );
+        } else {
+          for (const userId of iamUser['user-ids']) {
+            const secretsStack = new SecretsStack(masterAccountStack, `Secrets-${userId}-UserPassword`);
+            const password = secretsStack.createSecret(`${userId}-UserPassword`, {
+              secretName: `accelerator/${accountKey}/user/password/${userId}`,
+              description: `Password for IAM User - ${userId}.`,
+              generateSecretString: {
+                passwordLength: 16,
+              },
+              principals: [new iam.AccountPrincipal(accountId)],
+            });
+            userPasswords[userId] = password;
+          }
+        }
+      }
+    }
+
+    const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
+      accountStack,
+      `Account Default Settings Assets-${pascalCase(accountKey)}`,
+      {
+        accountId,
+        accountKey,
+        iamConfig,
+        accounts,
+        userPasswords,
+      },
+    );
 
     // save the kms key Id for later reference
     new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
-      value: accountDefaults.kmsKeyIdForEbsDefaultEncryption,
+      value: accountDefaultsSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
     });
+  };
+
+  const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
+    const accountsPerOu: Account[] = [];
+    for (const account of accounts) {
+      if (account.ou === ouName && !mandatoryAccKeys.includes(account.key)) {
+        accountsPerOu.push(account);
+      }
+    }
+    return accountsPerOu;
+  };
+
+  const mandatoryAccountKeys: string[] = [];
+  // creating assets for default account settings
+  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
+  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+    console.log('181:accountKey: ' + accountKey);
+    mandatoryAccountKeys.push(accountKey);
+    await createAccountDefaultAssets(accountKey, accountConfig.iam);
+  }
+
+  // creating assets for org unit accounts
+  const orgUnits = acceleratorConfig.getOrganizationalUnits();
+  for (const [orgName, orgConfig] of orgUnits) {
+    const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
+    console.log(`org accounts for key - ${orgName}: `, orgAccounts);
+    for (const orgAccount of orgAccounts) {
+      await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
+    }
   }
 
   // creating a bucket to store RDGW Host power shell scripts

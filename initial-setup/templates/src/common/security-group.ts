@@ -45,7 +45,7 @@ export class SecurityGroup extends cdk.Construct {
     const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
     for (const securityGroup of securityGroups || []) {
-      const groupName = `${securityGroup.name}-${vpcConfig.name}-${accountKey}-sg`;
+      const groupName = securityGroup.name;
       const groupDescription = `${accountKey} ${vpcConfig.name} Mgmt Security Group`;
       const sg = new ec2.CfnSecurityGroup(this, `${groupName}`, {
         vpcId,
@@ -89,6 +89,10 @@ export class SecurityGroup extends cdk.Construct {
     vpcConfig: config.VpcConfig,
   ): SecurityGroupruleProps[] => {
     const ruleProps: SecurityGroupruleProps[] = [];
+    // TODO Support type, udp-ports or tcp-ports here
+    if (!rule.type) {
+      return [];
+    }
     for (const ruleType of rule.type) {
       const ruleSources = rule.source;
       let ipProtocol;
@@ -124,7 +128,8 @@ export class SecurityGroup extends cdk.Construct {
           for (const ruleSubnet of ruleSource.subnet) {
             const vpcConfigSubnets = vpcConfig.subnets?.find(s => s.name === ruleSubnet);
             if (!vpcConfigSubnets) {
-              throw new Error(`Invalid Subnet provided inSecurity Group config "${ruleSubnet}"`);
+              console.log(`Invalid Subnet provided in Security Group config "${ruleSubnet}"`);
+              continue;
             }
             for (const [index, subnet] of Object.entries(vpcConfigSubnets.definitions)) {
               if (subnet.disabled) {

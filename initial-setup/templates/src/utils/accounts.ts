@@ -7,6 +7,8 @@ export interface Account {
   id: string;
   arn: string;
   ou: string;
+  email: string;
+  type?: string;
 }
 
 export function getAccountId(accounts: Account[], accountKey: string): string {

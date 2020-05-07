@@ -18,6 +18,7 @@ import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
+import { SecurityHubStack } from '../common/security-hub';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -175,16 +176,6 @@ async function main() {
     });
   }
 
-  const secretsStack = new SecretsStack(app, 'Secrets', {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Secrets',
-  });
-
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
@@ -192,14 +183,6 @@ async function main() {
       continue;
     }
     const accountId = getAccountId(accounts, accountKey);
-    const madPassword = secretsStack.createSecret('MadPassword', {
-      secretName: `accelerator/${accountKey}/mad/password`,
-      description: 'Password for Managed Active Directory.',
-      generateSecretString: {
-        passwordLength: 16,
-      },
-      principals: [new iam.AccountPrincipal(accountId)],
-    });
 
     const stack = new AcceleratorStack(app, `${accountKey}`, {
       env: {
@@ -209,6 +192,16 @@ async function main() {
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
       stackName: `PBMMAccel-${pascalCase(accountKey)}`,
+    });
+
+    const secretsStack = new SecretsStack(stack, 'Secrets');
+    const madPassword = secretsStack.createSecret('MadPassword', {
+      secretName: `accelerator/${accountKey}/mad/password`,
+      description: 'Password for Managed Active Directory.',
+      generateSecretString: {
+        passwordLength: 16,
+      },
+      principals: [new iam.AccountPrincipal(accountId)],
     });
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
@@ -287,6 +280,54 @@ async function main() {
           })),
       });
     }
+  }
+
+  // Deploy Security Hub
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const subAccountIds = accounts.map(account => {
+    return {
+      AccountId: account.id,
+      Email: account.email,
+    };
+  });
+  console.log(subAccountIds);
+  // Create Security Hub stack for Master Account
+  const securityHubMaster = new SecurityHubStack(app, `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`, {
+    env: {
+      account: securityMasterAccount?.id,
+      region: cdk.Aws.REGION,
+    },
+    account: securityMasterAccount!,
+    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    standards: globalOptions['security-hub-frameworks'],
+    stackName: `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`,
+    subAccountIds,
+  });
+
+  for (const account of accounts) {
+    if (account.id === securityMasterAccount?.id) {
+      continue;
+    }
+    const securityHubMember = new SecurityHubStack(app, `PBMMAccel-SecurityHub-B-${account.key}-Stack`, {
+      env: {
+        account: account.id,
+        region: cdk.Aws.REGION,
+      },
+      account,
+      acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+      enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+      inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+      acceleratorName: context.acceleratorName,
+      acceleratorPrefix: context.acceleratorPrefix,
+      standards: globalOptions['security-hub-frameworks'],
+      stackName: `PBMMAccel-SecurityHub-B-${account.key}-Stack`,
+      masterAccountId: securityMasterAccount?.id,
+    });
   }
 }
 

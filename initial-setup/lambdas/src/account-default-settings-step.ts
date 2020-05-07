@@ -1,4 +1,5 @@
 import * as aws from 'aws-sdk';
+import * as kms from 'aws-sdk/clients/kms';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
@@ -8,6 +9,9 @@ import { Account } from './load-accounts-step';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { StackOutput, getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
+import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
+import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 
 interface AccountDefaultSettingsInput {
   assumeRoleName: string;
@@ -42,7 +46,11 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     return credentials;
   };
 
-  const putPublicAccessBlock = async (accountId: string, blockPublicAccess: boolean): Promise<void> => {
+  const putPublicAccessBlock = async (
+    accountId: string,
+    accountKey: string,
+    blockPublicAccess: boolean,
+  ): Promise<void> => {
     const credentials = await getAccountCredentials(accountId);
     const s3control = new S3Control(credentials);
     const putPublicAccessBlockRequest: PutPublicAccessBlockRequest = {
@@ -55,6 +63,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       },
     };
     await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
+    console.log(`Block S3 public access turned ON for account - ${accountKey}`);
   };
 
   const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => {
@@ -69,6 +78,92 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(kmsKeyId, false);
     console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
+    console.log(`EBS default encryption turned ON with KMS CMK for account - ${accountKey}`);
+  };
+
+  const updateCloudTrailSettings = async (accountId: string, accountKey: string): Promise<void> => {
+    const credentials = await getAccountCredentials(accountId);
+
+    const cloudTrailName = outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
+    console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
+
+    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    if (!logArchiveAccount) {
+      throw new Error('Cannot find account with type log-archive');
+    }
+    const logArchiveAccountKey = logArchiveAccount.key;
+    const s3KmsKeyArn = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+    console.log('AWS LZ CloudTrail S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
+
+    const cloudtrail = new CloudTrail(credentials);
+
+    const putInsightSelectorsResponse = await cloudtrail.putInsightSelectors(cloudTrailName);
+    console.log('putInsightSelectorsResponse: ', putInsightSelectorsResponse);
+    console.log(`Cloud Trail - Insights enabled for AWS LZ CloudTrail in account - ${accountKey}`);
+
+    const trailNameList: string[] = [];
+    trailNameList.push(cloudTrailName);
+    const describeTrailsResponse = await cloudtrail.describeTrails(false, trailNameList);
+    console.log('describeTrailsResponse: ', describeTrailsResponse);
+
+    if (!describeTrailsResponse.trailList) {
+      throw new Error(`CloudTrail not found with name "${cloudTrailName}"`);
+    }
+    let cloudTrailDetails;
+    for (const trailList of describeTrailsResponse.trailList) {
+      cloudTrailDetails = trailList;
+    }
+
+    const putEventSelectorsRequest: PutEventSelectorsRequest = {
+      EventSelectors: [
+        {
+          DataResources: [
+            {
+              Type: 'AWS::S3::Object',
+              Values: [`arn:aws:s3:::${cloudTrailDetails?.S3BucketName}/`],
+            },
+          ],
+          ExcludeManagementEventSources: [],
+          IncludeManagementEvents: true,
+          ReadWriteType: 'All',
+        },
+      ],
+      TrailName: outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
+    };
+    const putEventSelectorsResponse = await cloudtrail.putEventSelectors(putEventSelectorsRequest);
+    console.log('putEventSelectorsResponse: ', putEventSelectorsResponse);
+    console.log(`Cloud Trail - S3 Object Level Logging enabled for AWS LZ CloudTrail in account - ${accountKey}`);
+
+    const updateTrailRequest: UpdateTrailRequest = {
+      Name: cloudTrailName,
+      CloudWatchLogsLogGroupArn: cloudTrailDetails?.CloudWatchLogsLogGroupArn,
+      CloudWatchLogsRoleArn: cloudTrailDetails?.CloudWatchLogsRoleArn,
+      EnableLogFileValidation: cloudTrailDetails?.LogFileValidationEnabled,
+      IncludeGlobalServiceEvents: cloudTrailDetails?.IncludeGlobalServiceEvents,
+      IsMultiRegionTrail: cloudTrailDetails?.IsMultiRegionTrail,
+      IsOrganizationTrail: cloudTrailDetails?.IsOrganizationTrail,
+      KmsKeyId: s3KmsKeyArn,
+      S3BucketName: cloudTrailDetails?.S3BucketName,
+      S3KeyPrefix: cloudTrailDetails?.S3KeyPrefix,
+      SnsTopicName: cloudTrailDetails?.SnsTopicName,
+    };
+    const updateTrailResponse = await cloudtrail.updateTrail(updateTrailRequest);
+    console.log(`Cloud Trail - settings updated (encryption...) for AWS LZ CloudTrail in account - ${accountKey}`);
+  };
+
+  const alterCloudTrailS3BucketEncryptionKey = async (accountId: string, accountKey: string): Promise<void> => {
+    const credentials = await getAccountCredentials(accountId);
+
+    let bucket = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+    bucket = bucket.replace('arn:aws:s3:::', '');
+    bucket.trimLeft;
+    console.log('bucket: ' + bucket);
+
+    const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID);
+    console.log('kmsKeyId: ' + kmsKeyId);
+
+    const s3 = new S3(credentials);
+    await s3.putBucketKmsEncryption(bucket, kmsKeyId);
   };
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
@@ -80,11 +175,19 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     // if flag is undefined or false, turn ON s3 block public access
     const blockPublicAccess = !accountConfig['enable-s3-public-access'];
-    await putPublicAccessBlock(account.id, blockPublicAccess);
-    console.log(`Block S3 public access turned ON for account - ${accountKey}`);
+    await putPublicAccessBlock(account.id, account.key, blockPublicAccess);
 
+    // enable default encryption for EBS
     await enableEbsDefaultEncryption(account.id, account.key);
-    console.log(`EBS default encryption turned ON with KMS CMK for account - ${accountKey}`);
+
+    // update AWS LZ cloud trail settings
+    await updateCloudTrailSettings(account.id, account.key);
+
+    if (account.type === 'log-archive') {
+      // alter the encryption key used cloud trail s3 bucket
+      await alterCloudTrailS3BucketEncryptionKey(account.id, account.key);
+      console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
+    }
   }
 
   return {
