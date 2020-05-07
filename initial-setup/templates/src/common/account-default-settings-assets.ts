@@ -12,7 +12,6 @@ import {
 } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '../utils/accounts';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
-import { Bucket } from '@aws-cdk/aws-s3';
 
 export interface FlowLogBucketReplication {
   accountId: string;
