@@ -141,7 +141,7 @@ async function main() {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,
-      keyPairName: ec2KeyPairName, // TODO create key pair
+      keyPairName: ec2KeyPairName,
       subnetIds,
       adminPassword: madAdminPassword,
       s3BucketName,
