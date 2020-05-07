@@ -129,20 +129,20 @@ export class Organizations {
     return this.client.updatePolicy(input).promise();
   }
 
-  enableAWSServiceAccess(servicePrincipal: string) {
+  async enableAWSServiceAccess(servicePrincipal: string): Promise<void> {
     const params: org.EnableAWSServiceAccessRequest = {
       ServicePrincipal: servicePrincipal,
     };
-    this.client.enableAWSServiceAccess(params);
+    await this.client.enableAWSServiceAccess(params).promise();
   }
 
-  registerDelegatedAdministrator(accountId: string, servicePrincipal: string) {
+  async registerDelegatedAdministrator(accountId: string, servicePrincipal: string): Promise<void> {
     const params: org.RegisterDelegatedAdministratorRequest = {
       AccountId: accountId,
       ServicePrincipal: servicePrincipal,
     };
     try {
-      this.client.registerDelegatedAdministrator(params);
+      await this.client.registerDelegatedAdministrator(params).promise();
     } catch (e) {
       if (e.code === 'AccountAlreadyRegisteredException') {
         // ignore error

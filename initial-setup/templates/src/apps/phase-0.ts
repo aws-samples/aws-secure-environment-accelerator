@@ -117,7 +117,7 @@ async function main() {
   //   },
   // });
 
-  const createAccountDefaultAssets = (accountKey: string, iamConfig?: IamConfig) => {
+  const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
     const accountStack = getAccountStack(accountKey);
     const userPasswords: { [userId: string]: Secret } = {};
@@ -180,7 +180,7 @@ async function main() {
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     console.log('181:accountKey: ' + accountKey);
     mandatoryAccountKeys.push(accountKey);
-    createAccountDefaultAssets(accountKey, accountConfig.iam);
+    await createAccountDefaultAssets(accountKey, accountConfig.iam);
   }
 
   // creating assets for org unit accounts
@@ -189,7 +189,7 @@ async function main() {
     const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
     console.log(`org accounts for key - ${orgName}: `, orgAccounts);
     for (const orgAccount of orgAccounts) {
-      createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
+      await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
     }
   }
 }
