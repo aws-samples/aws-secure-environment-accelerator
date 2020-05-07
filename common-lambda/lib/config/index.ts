@@ -294,6 +294,7 @@ export const MandatoryAccountConfigType = t.interface({
   'account-name': t.string,
   email: t.string,
   ou: t.string,
+  'share-mad-from': optional(t.string),
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
@@ -309,6 +310,7 @@ export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
+  'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
 });
