@@ -243,7 +243,6 @@ export class Vpc extends cdk.Construct {
             const tgwName = tgwAttach['associate-to-tgw'];
             const tgw = props.transitGateways.get(tgwName);
             gatewayId = tgw?.tgwId;
-            continue;
           } else {
             // Need to add for different Routes
             continue;

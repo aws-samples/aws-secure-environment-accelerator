@@ -19,20 +19,20 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   const securityAccountId: string = securityAccount.id;
 
   const org = new Organizations();
-  await org.enableAWSServiceAccess('ram.amazonaws.com');
+  org.enableAWSServiceAccess('ram.amazonaws.com');
   console.log('Enabled Resource Access Manager service access within the Organization.');
 
-  await org.enableAWSServiceAccess('fms.amazonaws.com');
+  org.enableAWSServiceAccess('fms.amazonaws.com');
   console.log('Enabled Firewall Manager service access within the Organization.');
 
   const fms = new FMS();
   await fms.associateAdminAccount(securityAccountId);
   console.log('Security account registered as admin account for Firewall Manager in the organization.');
 
-  await org.enableAWSServiceAccess('access-analyzer.amazonaws.com');
+  org.enableAWSServiceAccess('access-analyzer.amazonaws.com');
   console.log('Enabled Access Analyzer service access within the Organization.');
 
-  await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
+  org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');
 
   return {
