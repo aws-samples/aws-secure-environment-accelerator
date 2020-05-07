@@ -281,6 +281,7 @@ export const FirewallPortConfigType = t.interface({
 
 export const FirewallConfigType = t.interface({
   'instance-sizes': t.string,
+  image: t.string, // TODO Enum of BYOL, PAYG
   version: t.string,
   region: t.string,
   vpc: t.string,

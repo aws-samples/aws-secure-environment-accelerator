@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-
 import * as config from '@aws-pbmm/common-lambda/lib/config';
+import * as constructs from '@aws-pbmm/constructs/lib/vpc/vpc';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 
 export interface NameToSecurityGroupMap {
@@ -38,6 +38,7 @@ export interface SecurityGroupProps {
 
 export class SecurityGroup extends cdk.Construct {
   readonly securityGroupNameMapping: NameToSecurityGroupMap = {};
+  readonly securityGroups: constructs.SecurityGroup[] = [];
 
   constructor(parent: cdk.Construct, name: string, props: SecurityGroupProps) {
     super(parent, name);
@@ -53,6 +54,10 @@ export class SecurityGroup extends cdk.Construct {
         groupName,
       });
       this.securityGroupNameMapping[securityGroup.name] = sg;
+      this.securityGroups.push({
+        id: sg.ref,
+        name: groupName,
+      });
     }
     for (const securityGroup of securityGroups || []) {
       const inboundRules = securityGroup['inbound-rules'];

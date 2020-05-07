@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
+import * as constructs from '@aws-pbmm/constructs/lib/vpc/vpc';
 import { Account } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
@@ -35,7 +36,7 @@ export interface VpcCommonProps {
   limiter: Limiter;
 }
 
-export interface AzSubnet {
+export interface AzSubnet extends constructs.Subnet {
   subnet: ec2.CfnSubnet;
   subnetName: string;
   az: string;
@@ -134,12 +135,15 @@ export class VpcStack extends NestedStack {
  *
  * TODO: Decouple this class from the configuration file.
  */
-export class Vpc extends cdk.Construct {
+export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly name: string;
   readonly region: Region;
 
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
+
+  readonly cidrBlock: string;
+  readonly additionalCidrBlocks: string[] = [];
 
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
@@ -153,6 +157,7 @@ export class Vpc extends cdk.Construct {
 
     this.name = props.vpcProps.vpcConfig.name;
     this.region = vpcConfig.region;
+    this.cidrBlock = vpcConfig.cidr.toCidrString();
 
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
@@ -168,6 +173,7 @@ export class Vpc extends cdk.Construct {
         cidrBlock: props.vpcProps.vpcConfig.cidr2.toCidrString(),
         vpcId: vpcObj.ref,
       });
+      this.additionalCidrBlocks.push(props.vpcProps.vpcConfig.cidr2.toCidrString());
     }
 
     let igw;
@@ -290,6 +296,8 @@ export class Vpc extends cdk.Construct {
         this.azSubnets.push({
           subnet,
           subnetName,
+          id: subnet.ref,
+          name: subnetName,
           az: subnetDefinition.az,
           cidrBlock: subnetCidr,
         });
@@ -384,5 +392,41 @@ export class Vpc extends cdk.Construct {
       subnets: this.azSubnets,
       limiter,
     });
+  }
+
+  get id(): string {
+    return this.vpcId;
+  }
+
+  get subnets(): constructs.Subnet[] {
+    return this.azSubnets.subnets;
+  }
+
+  get securityGroups(): constructs.SecurityGroup[] {
+    return this.securityGroup?.securityGroups || [];
+  }
+
+  findSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet {
+    const subnet = this.tryFindSubnetByNameAndAvailabilityZone(name, az);
+    if (!subnet) {
+      throw new Error(`Cannot find subnet with name "${name}" in availability zone "${az}"`);
+    }
+    return subnet;
+  }
+
+  tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet | undefined {
+    return this.subnets.find(s => s.name === name && s.az === az);
+  }
+
+  findSecurityGroupByName(name: string): constructs.SecurityGroup {
+    const securityGroup = this.tryFindSecurityGroupByName(name);
+    if (!securityGroup) {
+      throw new Error(`Cannot find security group with name "${name}"`);
+    }
+    return securityGroup;
+  }
+
+  tryFindSecurityGroupByName(name: string): constructs.SecurityGroup | undefined {
+    return this.securityGroups.find(sg => sg.name === name);
   }
 }

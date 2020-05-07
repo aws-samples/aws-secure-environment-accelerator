@@ -2,12 +2,11 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
-import { getAccountId, loadAccounts } from '../utils/accounts';
+import { loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogContainer } from '../common/flow-log-bucket-stack';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { VpcProps, VpcStack } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
@@ -17,6 +16,9 @@ import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
+import { Vpc } from '@aws-pbmm/constructs/lib/vpc/vpc';
+import { AccountStacks } from '../common/account-stacks';
+import * as firewall from '../deployments/firewall/step-1';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -60,29 +62,13 @@ async function main() {
 
   const transitGateways = new Map<string, TransitGateway>();
 
-  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
   const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
 
-  // Auxiliary method to create a VPC stack the account with given account key
-  // Only one VPC stack per account is created
-  const getAccountStack = (accountKey: string): AcceleratorStack => {
-    if (accountStacks[accountKey]) {
-      return accountStacks[accountKey];
-    }
-
-    const accountPrettyName = pascalCase(accountKey);
-    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase1`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-${accountPrettyName}-Phase1`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
-    accountStacks[accountKey] = accountStack;
-    return accountStack;
-  };
+  const accountStacks = new AccountStacks(app, {
+    phase: 1,
+    accounts,
+    context,
+  });
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
@@ -91,7 +77,7 @@ async function main() {
       return flowLogContainers[accountKey];
     }
 
-    const accountStack = getAccountStack(accountKey);
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
       expirationInDays: globalOptions['central-log-retention'],
       replication: {
@@ -105,10 +91,10 @@ async function main() {
   };
 
   // Auxiliary method to create a VPC in the account with given account key
-  const createVpc = (accountKey: string, props: VpcProps) => {
+  const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
     const { vpcConfig } = props;
 
-    const accountStack = getAccountStack(accountKey);
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
@@ -195,9 +181,12 @@ async function main() {
       type: 'VpcOutput',
       value: vpcOutput,
     });
+
+    return vpcStack.vpc;
   };
 
   // Create all the VPCs for accounts and organizational units
+  const vpcs = [];
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
       console.log(
@@ -211,7 +200,7 @@ async function main() {
         ouKey ? ` and organizational unit "${ouKey}"` : ''
       }`,
     );
-    createVpc(accountKey, {
+    const vpc = createVpc(accountKey, {
       accountKey,
       limiter,
       accounts,
@@ -219,7 +208,19 @@ async function main() {
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
     });
+    if (vpc) {
+      vpcs.push(vpc);
+    }
   }
+
+  // Create the firewall
+  await firewall.create({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    vpcs,
+  });
+
 }
 
 // tslint:disable-next-line: no-floating-promises

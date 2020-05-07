@@ -3,7 +3,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import { getAccountId, loadAccounts, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { LogArchiveBucket } from '../common/log-archive-bucket';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { pascalCase } from 'pascal-case';
@@ -12,6 +11,8 @@ import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AccountStacks } from '../common/account-stacks';
+import * as customResources from '../deployments/custom-resources/step-1';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -37,30 +38,22 @@ async function main() {
 
   const app = new cdk.App();
 
-  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
+  const accountStacks = new AccountStacks(app, {
+    phase: 0,
+    accounts,
+    context,
+  });
 
-  const getAccountStack = (accountKey: string): AcceleratorStack => {
-    if (accountStacks[accountKey]) {
-      return accountStacks[accountKey];
-    }
-
-    const accountPrettyName = pascalCase(accountKey);
-    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase0`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-${accountPrettyName}-Phase0`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
-    accountStacks[accountKey] = accountStack;
-    return accountStack;
-  };
+  await customResources.create({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    context,
+  });
 
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = getAccountStack('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
   for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
     for (const account of accounts) {
       new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
@@ -73,7 +66,7 @@ async function main() {
 
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
-  const logArchiveStack = getAccountStack('log-archive');
+  const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
 
   const accountIds: string[] = accounts.map(account => account.id);
 
@@ -119,7 +112,7 @@ async function main() {
 
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
-    const accountStack = getAccountStack(accountKey);
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const userPasswords: { [userId: string]: Secret } = {};
 
     const iamUsers = iamConfig?.users;
