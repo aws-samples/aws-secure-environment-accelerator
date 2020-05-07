@@ -32,7 +32,7 @@ async function main() {
   const accountNames = Object.values(acceleratorConfig['mandatory-account-configs']).map(a => a['account-name']);
 
   const app = new cdk.App();
-  
+
   const masterStack = new AcceleratorStack(app, 'MasterStack', {
     env: {
       account: getAccountId(accounts, 'master'),
