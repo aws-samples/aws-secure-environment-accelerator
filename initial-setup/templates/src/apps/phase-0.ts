@@ -17,7 +17,6 @@ import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
 
-
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
