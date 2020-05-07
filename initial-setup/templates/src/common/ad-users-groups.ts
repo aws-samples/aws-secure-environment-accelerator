@@ -191,7 +191,7 @@ export class ADUsersAndGroups extends cdk.Construct {
     });
 
     const launchConfig = new CfnLaunchConfiguration(this, 'RDGWLaunchConfiguration', {
-      associatePublicIpAddress: true, // TODO make it false
+      associatePublicIpAddress: false,
       imageId: latestRdgwAmiId,
       securityGroups: [securityGroup.ref],
       iamInstanceProfile: RDGWHostProfile.instanceProfileName,
