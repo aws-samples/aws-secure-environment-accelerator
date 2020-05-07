@@ -4,9 +4,9 @@ import * as cur from 'aws-sdk/clients/cur';
 export class CUR {
   private readonly client: aws.CUR;
 
-  public constructor(region: string, credentials?: aws.Credentials) {
+  public constructor(credentials?: aws.Credentials) {
     this.client = new aws.CUR({
-      region,
+      region: 'us-east-1',
       credentials,
     });
   }

@@ -10,7 +10,7 @@
         "report-name": "cost-and-usage-report",
         "s3-bucket": "pbmmaccel-xxaccountIdxx-xxregionxx",
         "s3-prefix": "/CUR-xxaccountIdxx",
-        "s3-region": "us-east-1",
+        "s3-region": "ca-central-1",
         "time-unit": "HOURLY",
         "additional-artifacts": ["ATHENA"],
         "refresh-closed-reports": true,
