@@ -32,7 +32,8 @@ async function main() {
   const accountNames = Object.values(acceleratorConfig['mandatory-account-configs']).map(a => a['account-name']);
 
   const app = new cdk.App();
-  const secretsStack = new SecretsStack(app, 'Secrets', {
+  
+  const masterStack = new AcceleratorStack(app, 'MasterStack', {
     env: {
       account: getAccountId(accounts, 'master'),
       region: cdk.Aws.REGION,
@@ -41,6 +42,7 @@ async function main() {
     acceleratorPrefix: context.acceleratorPrefix,
     stackName: 'PBMMAccel-Secrets',
   });
+  const secretsStack = new SecretsStack(masterStack, 'Secrets');
 
   type UserSecrets = UserSecret[];
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
@@ -76,7 +78,7 @@ async function main() {
       'RDGWEc2KeyPair',
       {
         name: ec2KeyPairName,
-        description: 'This is a Key Pair',
+        description: 'This is a Key Pair for RDGW host instance',
         secretPrefix: ec2KeyPairPrefix,
       },
       new iam.AccountPrincipal(accountId),
