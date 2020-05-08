@@ -80,12 +80,14 @@ export class FirewallInstance extends cdk.Construct {
         deviceIndex: `${index}`,
         networkInterfaceId: eni.ref,
       })),
-      userData: toBase64(JSON.stringify({
-        bucket: config.bucketArn,
-        region: config.bucketRegion,
-        config: config.configPath,
-        license: config.licensePath,
-      })),
+      userData: toBase64(
+        JSON.stringify({
+          bucket: config.bucketArn,
+          region: config.bucketRegion,
+          config: config.configPath,
+          license: config.licensePath,
+        }),
+      ),
     });
   }
 }

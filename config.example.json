@@ -2,6 +2,21 @@
   "global-options": {
     "alz-minimum-version": "v2.3.1",
     "central-log-retention": 730,
+    "reports": {
+      "cost-and-usage-report": {
+        "additional-schema-elements": ["RESOURCES"],
+        "compression": "Parquet",
+        "format": "Parquet",
+        "report-name": "cost-and-usage-report",
+        "s3-bucket": "pbmmaccel-xxaccountIdxx-xxregionxx",
+        "s3-prefix": "/CUR-xxaccountIdxx",
+        "s3-region": "ca-central-1",
+        "time-unit": "HOURLY",
+        "additional-artifacts": ["ATHENA"],
+        "refresh-closed-reports": true,
+         "report-versioning": "OVERWRITE_REPORT"
+      }
+    },
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -11,12 +26,20 @@
       }
     },
     "security-hub-frameworks": {
-      "enable-aws-foundational": true,
-      "foundation-controls-to-disable": ["IAM.1"],
-      "enable-cis-foundations": true,
-      "cis-foundations-controls-to-disable": ["CIS1.3", "CIS1.11"],
-      "enable-pci-dss": true,
-      "pci-dss-controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
+      "standards": [
+        {
+          "name": "AWS Foundational Security Best Practices v1.0.0",
+          "controls-to-disable": ["IAM.1"]
+        },
+        {
+          "name": "PCI DSS v3.2.1",
+          "controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
+        },
+        {
+          "name": "CIS AWS Foundations Benchmark v1.2.0",
+          "controls-to-disable": ["CIS.1.3", "CIS1.11"]
+        }
+      ]
     },
     "central-bucket": "pbmmaccel-config-123456789012",
     "scps": {
