@@ -42,6 +42,7 @@
     "@aws-cdk/aws-stepfunctions-tasks": "1.32.2",
     "@aws-cdk/core": "1.32.2",
     "@types/js-yaml": "3.12.3",
+    "cdk-ec2-key-pair": "^1.2.0",
     "js-yaml": "3.13.1",
     "tempy": "0.5.0"
   },

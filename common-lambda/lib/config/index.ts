@@ -227,6 +227,9 @@ export const PasswordPolicyType = t.interface({
   'min-len': t.number,
   complexity: t.boolean,
   reversible: t.boolean,
+  'failed-attempts': t.number,
+  'lockout-duration': t.number,
+  'lockout-attempts-reset': t.number,
 });
 
 export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
@@ -250,8 +253,11 @@ export const MadConfigType = t.interface({
   'log-group-name': t.string,
   'share-to-account': optional(t.string),
   restrict_srcips: t.array(cidr),
+  'rdgw-instance-type': t.string,
+  'num-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
+  'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
 });
@@ -333,6 +339,24 @@ export const GlobalOptionsZonesConfigType = t.interface({
   names: ZoneNamesConfigType,
 });
 
+export const CostAndUsageReportConfigType = t.interface({
+  'additional-schema-elements': t.array(t.string),
+  compression: NonEmptyString,
+  format: NonEmptyString,
+  'report-name': NonEmptyString,
+  's3-bucket': NonEmptyString,
+  's3-prefix': NonEmptyString,
+  's3-region': NonEmptyString,
+  'time-unit': NonEmptyString,
+  'additional-artifacts': t.array(t.string),
+  'refresh-closed-reports': t.boolean,
+  'report-versioning': NonEmptyString,
+});
+
+export const ReportsConfigType = t.interface({
+  'cost-and-usage-report': CostAndUsageReportConfigType,
+});
+
 export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigType>;
 
 export const SecurityHubFrameworksConfigType = t.interface({
@@ -346,6 +370,7 @@ export const SecurityHubFrameworksConfigType = t.interface({
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   'central-bucket': NonEmptyString,
+  reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
 });
