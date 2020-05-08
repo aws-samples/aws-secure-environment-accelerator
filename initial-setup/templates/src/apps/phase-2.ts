@@ -176,6 +176,20 @@ async function main() {
     });
   }
 
+  // Auxiliary method to create a Secret stack the account with given account key
+  // Only one secret stack per account is created
+  const accountStacks: { [accountKey: string]: SecretsStack } = {};
+  const getSecretStack = (accountKey: string): SecretsStack => {
+    if (accountStacks[accountKey]) {
+      return accountStacks[accountKey];
+    }
+
+    const accountPrettyName = pascalCase(accountKey);
+    const accountStack = new SecretsStack(app, `${context.acceleratorPrefix}${accountPrettyName}_Secrets`);
+    accountStacks[accountKey] = accountStack;
+    return accountStack;
+  };
+
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
@@ -194,7 +208,7 @@ async function main() {
       stackName: `PBMMAccel-${pascalCase(accountKey)}`,
     });
 
-    const secretsStack = new SecretsStack(stack, 'Secrets');
+    const secretsStack = getSecretStack(accountKey);
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
       description: 'Password for Managed Active Directory.',
