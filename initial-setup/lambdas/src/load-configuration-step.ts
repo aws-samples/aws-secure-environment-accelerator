@@ -17,6 +17,7 @@ export interface LoadConfigurationInput {
 export interface LoadConfigurationOutput {
   accounts: ConfigurationAccount[];
   warnings: string[];
+  orgUnits: org.OrganizationalUnit[];
 }
 
 export interface ConfigurationAccount {
@@ -253,6 +254,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   return {
     accounts: configurationAccounts,
     warnings,
+    orgUnits: organizationalUnits,
   };
 };
 
