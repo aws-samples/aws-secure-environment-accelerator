@@ -386,7 +386,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
     // Create all security groups
     if (vpcConfig['security-groups']) {
-      new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
+      this.securityGroup = new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
         vpcConfig,
         vpcId: this.vpcId,
         accountKey,
