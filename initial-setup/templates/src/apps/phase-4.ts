@@ -97,7 +97,7 @@ async function main() {
       userSecrets.push({ user: adUser.user, password: madUserPassword });
     }
 
-    const stack = new AcceleratorStack(app, `TestADUsersAndGroups`, {
+    const stack = new AcceleratorStack(app, 'ADUsersAndGroups', {
       env: {
         account: accountId,
         region: cdk.Aws.REGION,

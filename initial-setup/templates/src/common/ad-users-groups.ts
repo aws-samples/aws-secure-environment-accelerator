@@ -119,12 +119,6 @@ export class ADUsersAndGroups extends cdk.Construct {
 
     const customPorts = [
       {
-        ipProtocol: ec2.Protocol.ICMP,
-        cidrIp: '0.0.0.0/0',
-        fromPort: -1,
-        toPort: -1,
-      },
-      {
         ipProtocol: ec2.Protocol.TCP,
         cidrIp: '0.0.0.0/0',
         fromPort: 3268,
