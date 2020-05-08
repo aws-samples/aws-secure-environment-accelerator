@@ -158,6 +158,23 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     );
   }
 
+  // Verify that AWS Orgs is not missing an Accel_config or an ALZ_config ou
+  const awsOrganizationUnits = organizationalUnits.map(ou => ou.Name);
+  if (acceleratorOus.some(ou => !awsOrganizationUnits.includes(ou))) {
+    errors.push(
+      `There are missing OUs found in Accelerator configuration but not in AWS Organization\n` +
+      ` Organizational units in Accelerator: ${acceleratorOus.join(', ')}\n` +
+      ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
+    );
+  }
+  if (lzOus.some(ou => !awsOrganizationUnits.includes(ou))) {
+    errors.push(
+      `There are missing OUs found in Landing Zone configuration but not in AWS Organization\n` +
+      ` Organizational units in Landing Zone: ${lzOus.join(', ')}\n` +
+      ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
+    );
+  }
+
   // Next we verify if the Landing Zone account configuration matches the Accelerator account configuration
   for (const lzOrganizationalUnit of lzOrganizationalUnits) {
     const lzOrganizationalUnitName = lzOrganizationalUnit.name;
