@@ -236,6 +236,7 @@ async function main() {
     'reference-artifacts',
     'Task_3_0_3b_RDGW_AD',
   );
+
   new s3deployment.BucketDeployment(masterAccountStack, 'RdgwArtifactsDeployment', {
     sources: [s3deployment.Source.asset(artifactsFolderPath)],
     destinationBucket: rdgwBucket,
@@ -250,6 +251,7 @@ async function main() {
       keyPrefix: 'scripts',
     },
   });
+
 }
 
 // tslint:disable-next-line: no-floating-promises
