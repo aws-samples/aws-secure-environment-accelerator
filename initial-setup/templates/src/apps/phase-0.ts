@@ -3,11 +3,13 @@ import * as iam from '@aws-cdk/aws-iam';
 import { getAccountId, loadAccounts, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
+import { loadStackOutputs } from '../utils/outputs';
 import { LogArchiveBucket } from '../common/log-archive-bucket';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { pascalCase } from 'pascal-case';
 import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -30,10 +32,19 @@ async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
+  const outputs = await loadStackOutputs();
 
   // TODO Get these values dynamically
   const globalOptionsConfig = acceleratorConfig['global-options'];
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
+  // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
+  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+  const logArchiveS3KmsKeyArn = getStackOutput(
+    outputs,
+    'log-archive',
+    outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
+  );
 
   const app = new cdk.App();
 
@@ -57,7 +68,6 @@ async function main() {
   }
 
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
-  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
   const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
 
   const accountIds: string[] = accounts.map(account => account.id);
@@ -131,6 +141,11 @@ async function main() {
       }
     }
 
+    const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
+    const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
+      .replace('xxaccountIdxx', accountId)
+      .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
+
     const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
       accountStack,
       `Account Default Settings Assets-${pascalCase(accountKey)}`,
@@ -140,6 +155,13 @@ async function main() {
         iamConfig,
         accounts,
         userPasswords,
+        s3BucketNameForCur,
+        expirationInDays: globalOptionsConfig['central-log-retention'],
+        replication: {
+          accountId: logArchiveAccountId,
+          bucketArn: logArchiveS3BucketArn,
+          kmsKeyArn: logArchiveS3KmsKeyArn,
+        },
       },
     );
 
@@ -163,18 +185,18 @@ async function main() {
   // creating assets for default account settings
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    console.log('181:accountKey: ' + accountKey);
     mandatoryAccountKeys.push(accountKey);
     await createAccountDefaultAssets(accountKey, accountConfig.iam);
+    console.log(`Default assets created for account - ${accountKey}`);
   }
 
   // creating assets for org unit accounts
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   for (const [orgName, orgConfig] of orgUnits) {
     const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
-    console.log(`org accounts for key - ${orgName}: `, orgAccounts);
     for (const orgAccount of orgAccounts) {
       await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
+      console.log(`Default assets created for account - ${orgAccount.key}`);
     }
   }
 }

@@ -66,7 +66,7 @@ export class SecurityGroup extends cdk.Construct {
       this.securityGroupNameMapping[securityGroup.name] = sg;
       this.securityGroups.push({
         id: sg.ref,
-        name: groupName,
+        name: securityGroup.name,
       });
     }
     for (const securityGroup of securityGroups || []) {
