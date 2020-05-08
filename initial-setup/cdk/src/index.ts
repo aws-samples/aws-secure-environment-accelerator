@@ -401,10 +401,10 @@ export namespace InitialSetup {
       const nonCoreMandatoryScpName = 'aws-landing-zone-non-core-mandatory-preventive-guardrails';
       const lzScpNames: string[] = [coreMandatoryScpName, nonCoreMandatoryScpName];
 
-      const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
+      const addScpTask = new CodeTask(this, 'Add SCP to Org', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.addRoleToScpStep',
+          handler: 'index.addScpStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -429,7 +429,7 @@ export namespace InitialSetup {
       // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
       // });
       // preDeployParallelTask.branch(loadLimitsTask);
-      // preDeployParallelTask.branch(addRoleToScpTask);
+      // preDeployParallelTask.branch(addScpTask);
       // preDeployParallelTask.branch(enableResourceSharingTask);
 
       const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
@@ -617,7 +617,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(loadLimitsTask)
-          .next(addRoleToScpTask)
+          .next(addScpTask)
           .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
