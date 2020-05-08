@@ -206,7 +206,7 @@ export const IamConfigType = t.interface({
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
 export const TgwDeploymentConfigType = t.interface({
-  name: optional(NonEmptyString),
+  name: t.string,
   asn: optional(t.number),
   features: optional(
     t.interface({
@@ -287,8 +287,16 @@ export const FirewallConfigType = t.interface({
   vpc: t.string,
   'security-group': t.string,
   eni: t.interface({
-    ports: t.array(FirewallPortConfigType)
-  })
+    ports: t.array(FirewallPortConfigType),
+  }),
+  'fw-cgw-name': t.string,
+  'fw-cgw-asn': t.number,
+  'fw-cgw-routing': t.string,
+  'tgw-attach': t.interface({
+    name: t.string,
+    account: t.string,
+    'associate-to-tgw': t.string,
+  }),
 });
 
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;

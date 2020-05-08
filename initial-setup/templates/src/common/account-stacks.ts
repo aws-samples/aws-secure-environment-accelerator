@@ -10,6 +10,10 @@ export interface AccountStacksProps {
   context: Context;
 }
 
+/**
+ * Auxiliary class that keeps track of the phase stacks for every account. Every account can only have one stack per
+ * phase and this class helps managing the stacks.
+ */
 export class AccountStacks {
   readonly app: cdk.App;
   readonly props: AccountStacksProps;
@@ -20,6 +24,9 @@ export class AccountStacks {
     this.props = props;
   }
 
+  /**
+   * Get the existing stack for the given account or create a new stack if no such stack exists yet.
+   */
   getOrCreateAccountStack(accountKey: string): AcceleratorStack {
     if (this.stacks[accountKey]) {
       return this.stacks[accountKey];

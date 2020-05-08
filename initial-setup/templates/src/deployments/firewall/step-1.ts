@@ -1,23 +1,39 @@
 import { pascalCase } from 'pascal-case';
+import * as t from 'io-ts';
 import * as cdk from '@aws-cdk/core';
+import * as cfn from '@aws-cdk/aws-cloudformation';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
-import { AvailabilityZone } from '@aws-pbmm/common-lambda/lib/config/types';
-import { FirewallCluster } from '@aws-pbmm/constructs/lib/firewall';
-import { ImageFinder } from '@aws-pbmm/custom-resource-image-finder';
+import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 import { AccountStacks } from '../../common/account-stacks';
+import { StructuredOutput } from '../../common/structured-output';
 
-export interface Props {
+export interface FirewallStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
-  vpcs: Vpc[];
 }
 
+export const FirewallPortType = t.interface({
+  subnetName: t.string,
+  az: t.string,
+  internalIpCidr: t.string,
+  eipIpAddress: optional(t.string),
+  eipAllocationId: optional(t.string),
+});
+
+export const FirewallPortOutputType = t.array(FirewallPortType, 'FirewallPortOutput');
+
+export type FirewallPort = t.TypeOf<typeof FirewallPortType>;
+export type FirewallPortOutput = t.TypeOf<typeof FirewallPortOutputType>;
+
 /**
- * Creates the firewall clusters for the accounts that define a firewall deployment.
+ * Creates the EIPs for the firewall instances.
+ *
+ * This step outputs the following:
+ *   - Firewall ports with EIPs for all accounts with a firewall deployment
  */
-export async function create(props: Props) {
-  const { accountStacks, config, vpcs } = props;
+export async function step1(props: FirewallStep1Props) {
+  const { accountStacks, config } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const firewallConfig = accountConfig.deployments?.firewall;
@@ -25,16 +41,18 @@ export async function create(props: Props) {
       continue;
     }
 
-    const vpc = vpcs.find(v => v.name === firewallConfig.vpc);
-    if (!vpc) {
+    const vpcConfigs = config.getVpcConfigs();
+    const vpcConfig = vpcConfigs.map(obj => obj.vpcConfig).find(v => v.name === firewallConfig.vpc);
+    if (!vpcConfig) {
       console.log(`Skipping firewall deployment because of missing VPC "${firewallConfig.vpc}"`);
       continue;
     }
 
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    await createFirewallCluster({
+    // TODO We could create a nested stack here
+    await createFirewallEips({
       scope: accountStack,
-      vpc,
+      vpcConfig,
       firewallConfig,
     });
   }
@@ -43,45 +61,46 @@ export async function create(props: Props) {
 /**
  * Create firewall for the given VPC and config in the given scope.
  */
-async function createFirewallCluster(props: { scope: cdk.Construct; vpc: Vpc; firewallConfig: c.FirewallConfig }) {
-  const { scope, vpc, firewallConfig } = props;
+async function createFirewallEips(props: {
+  scope: cdk.Construct;
+  vpcConfig: c.VpcConfig;
+  firewallConfig: c.FirewallConfig;
+}) {
+  const { scope, vpcConfig, firewallConfig } = props;
 
-  const imageFinder = new ImageFinder(scope, 'ImageFinder', {
-    // FortiGate owner ID
-    imageOwner: '679593333241',
-    // If Bring-Your-Own-License, then use the AWS build, otherwise the AWSONDEMAND build
-    imageName: firewallConfig.image === 'BYOL' ? 'FortiGate-VM64-AWS build*' : 'FortiGate-VM64-AWSONDEMAND build*',
-    // Version is always wrapped in round brackets
-    imageVersion: `*(${firewallConfig.version})*`,
-  });
+  // Keep track of the created ports and EIPs so we can use them in the next steps
+  const ports: FirewallPort[] = [];
 
-  const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
-
-  const cluster = new FirewallCluster(scope, 'Firewall', {
-    vpcCidrBlock: vpc.cidrBlock,
-    imageId: imageFinder.imageId,
-    instanceType: firewallConfig['instance-sizes'],
-  });
-
-  const azs = vpc.subnets.map(s => s.az);
+  // Create a firewall EIP in every availability zone
+  const subnetDefinitions = vpcConfig.subnets?.flatMap(s => s.definitions) || [];
+  const azs = subnetDefinitions.map(def => def.az);
   for (const az of new Set(azs)) {
-    // Create one firewall instance in every availability zone
-    const instance = cluster.createInstance(`Fgt${pascalCase(az)}`);
-
-    for (const port of firewallConfig.eni.ports) {
-      const subnet = vpc.findSubnetByNameAndAvailabilityZone(port.subnet, az);
-      const ipCidr = port['internal-ip-addresses'][az as AvailabilityZone];
+    for (const [index, port] of Object.entries(firewallConfig.eni.ports)) {
+      const ipCidr = port['internal-ip-addresses'][az];
       if (!ipCidr) {
         throw new Error(`Cannot find IP CIDR for firewall port for subnet "${port.subnet}"`);
       }
 
-      instance.addPort({
-        subnet,
-        securityGroup,
-        ipCidr: ipCidr.toCidrString(),
-        attachEip: port.eip,
+      let eip;
+      if (port.eip) {
+        // TODO Name Perimeter_fw1_azA_eip
+        eip = new ec2.CfnEIP(scope, `Eip${pascalCase(az)}${index}`, {
+          domain: 'vpc',
+        });
+      }
+
+      ports.push({
+        subnetName: port.subnet,
+        az,
+        internalIpCidr: ipCidr.toCidrString(),
+        eipIpAddress: eip?.ref,
+        eipAllocationId: eip?.attrAllocationId,
       });
     }
   }
-  return cluster;
+
+  new StructuredOutput<FirewallPortOutput>(scope, 'FirewallPortOutput', {
+    type: FirewallPortOutputType,
+    value: ports,
+  });
 }

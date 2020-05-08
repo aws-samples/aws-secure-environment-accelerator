@@ -31,8 +31,8 @@ export class FirewallInstance extends cdk.Construct {
     };
   }
 
-  addPort(props: { securityGroup: SecurityGroup; subnet: Subnet; ipCidr: string; attachEip: boolean }) {
-    const { securityGroup, subnet, ipCidr, attachEip } = props;
+  addPort(props: { securityGroup: SecurityGroup; subnet: Subnet; ipCidr: string; eipAllocationId?: string }) {
+    const { securityGroup, subnet, ipCidr, eipAllocationId } = props;
     const index = this.networkInterfaces.length;
 
     // Get IP address IP CIDR
@@ -53,13 +53,10 @@ export class FirewallInstance extends cdk.Construct {
     this.networkInterfaces.push(networkInterface);
 
     // Create EIP if needed
-    if (attachEip) {
-      const eip = new ec2.CfnEIP(this, `Eip${index}`, {
-        domain: 'vpc',
-      });
+    if (eipAllocationId) {
       new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${index}`, {
         networkInterfaceId: networkInterface.ref,
-        allocationId: eip.attrAllocationId,
+        allocationId: eipAllocationId,
         privateIpAddress: ipAddress,
       });
     }

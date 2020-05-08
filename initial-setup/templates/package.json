@@ -46,6 +46,8 @@
     "@aws-pbmm/common-outputs": "workspace:^0.0.1",
     "@aws-pbmm/constructs": "workspace:^0.0.1",
     "@aws-pbmm/custom-resource-image-finder": "workspace:^0.0.1",
+    "@aws-pbmm/custom-resource-vpn-connection-tunnel": "workspace:^0.0.1",
+    "@aws-pbmm/custom-resource-vpn-tunnel-options": "workspace:^0.0.1",
     "@types/cfn-response": "^1.0.3",
     "cdk-ec2-key-pair": "^1.2.0",
     "colors": "1.4.0",

@@ -9,7 +9,7 @@ import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stac
 import { JsonOutputValue } from '../common/json-output';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutput } from '../deployments/vpc';
+import { VpcOutput, ImportedVpc } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
@@ -18,6 +18,8 @@ import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
+import * as firewall from '../deployments/firewall';
+import { AccountStacks } from '../common/account-stacks';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -49,6 +51,12 @@ async function main() {
 
   const app = new cdk.App();
   const rolesForPeering: string[] = [];
+
+  const accountStacks = new AccountStacks(app, {
+    phase: 2,
+    accounts,
+    context,
+  });
 
   /**
    * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
@@ -280,6 +288,20 @@ async function main() {
       });
     }
   }
+
+  // TODO Find a better way to get VPCs
+  // Import all VPCs from all outputs
+  const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    outputType: 'VpcOutput',
+  });
+  const vpcs = vpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
+
+  await firewall.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    vpcs,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises

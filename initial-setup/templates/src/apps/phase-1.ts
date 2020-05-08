@@ -18,7 +18,7 @@ import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../common/account-stacks';
-import * as firewall from '../deployments/firewall/step-1';
+import * as firewall from '../deployments/firewall';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -214,12 +214,12 @@ async function main() {
   }
 
   // Create the firewall
-  await firewall.create({
+  await firewall.step2({
     accountStacks,
     config: acceleratorConfig,
-    vpcs,
+    outputs,
+    transitGateways,
   });
-
 }
 
 // tslint:disable-next-line: no-floating-promises

@@ -12,6 +12,7 @@ import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
+import * as firewall from '../deployments/firewall';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -177,6 +178,12 @@ async function main() {
       await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
     }
   }
+
+  // Firewall creation step 1
+  await firewall.step1({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises

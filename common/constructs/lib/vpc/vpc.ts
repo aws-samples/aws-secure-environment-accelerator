@@ -1,4 +1,3 @@
-// tslint:disable-next-line: interface-name
 export interface Subnet {
   id: string;
   name: string;
@@ -6,13 +5,11 @@ export interface Subnet {
   cidrBlock: string;
 }
 
-// tslint:disable-next-line: interface-name
 export interface SecurityGroup {
   id: string;
   name: string;
 }
 
-// tslint:disable-next-line: interface-name
 export interface Vpc {
   id: string;
   name: string;
