@@ -14,6 +14,10 @@ import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import * as path from 'path';
+import { JsonOutputValue } from '../common/json-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -214,6 +218,38 @@ async function main() {
       console.log(`Default assets created for account - ${orgAccount.key}`);
     }
   }
+
+  // creating a bucket to store RDGW Host power shell scripts
+  const rdgwBucket = new s3.Bucket(masterAccountStack, 'RdgwArtifactsBucket', {
+    versioned: true,
+  });
+
+  // Granting read access to all the accounts
+  principals.map(principal => rdgwBucket.grantRead(principal));
+
+  const artifactsFolderPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    'reference-artifacts',
+    'Task_3_0_3b_RDGW_AD',
+  );
+  new s3deployment.BucketDeployment(masterAccountStack, 'RdgwArtifactsDeployment', {
+    sources: [s3deployment.Source.asset(artifactsFolderPath)],
+    destinationBucket: rdgwBucket,
+  });
+
+  // outputs to store RDGW reference artifacts scripts s3 bucket information
+  new JsonOutputValue(masterAccountStack, 'RdgwArtifactsOutput', {
+    type: 'RdgwArtifactsOutput',
+    value: {
+      bucketArn: rdgwBucket.bucketArn,
+      bucketName: rdgwBucket.bucketName,
+      keyPrefix: 'scripts',
+    },
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises

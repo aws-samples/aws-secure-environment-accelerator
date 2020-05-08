@@ -609,6 +609,17 @@ export namespace InitialSetup {
         }),
       });
 
+      const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-4.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -629,6 +640,7 @@ export namespace InitialSetup {
           .next(associateHostedZonesTask)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
+          .next(deployPhase4Task)
           .next(createAdConnectorTask)
           .next(accountDefaultSettingsTask),
       });
