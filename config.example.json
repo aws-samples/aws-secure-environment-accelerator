@@ -2,6 +2,7 @@
   "global-options": {
     "alz-minimum-version": "v2.3.1",
     "central-log-retention": 730,
+	"default-log-retention": 90,
     "reports": {
       "cost-and-usage-report": {
         "additional-schema-elements": ["RESOURCES"],
@@ -96,7 +97,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -467,7 +467,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": true,
         "vgw": {
           "asn": 65534
@@ -744,6 +743,7 @@
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
+	  "log-retention": 180,
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
         "AWS CloudFormation/Stack count": 400
@@ -778,7 +778,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": false,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -903,7 +902,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": {
@@ -1403,7 +1401,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -1850,7 +1847,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -2297,7 +2293,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -2719,7 +2714,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -3123,7 +3117,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": true,
         "vgw": false,
         "pcx": false,
