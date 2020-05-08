@@ -119,76 +119,81 @@ export class Organizations {
 
   /**
    * to get information about a policy
-   * @param policyId 
+   * @param policyId
    */
   async describePolicy(policyId: string): Promise<org.DescribePolicyResponse> {
     const params: org.DescribePolicyRequest = {
-      PolicyId: policyId
+      PolicyId: policyId,
     };
     return this.client.describePolicy(params).promise();
   }
 
   /**
    * to create a policy
-   * @param content 
-   * @param description 
-   * @param name 
-   * @param type 
+   * @param content
+   * @param description
+   * @param name
+   * @param type
    */
-  async createPolicy(content: string, description: string, name: string, type: string): Promise<org.CreatePolicyResponse> {
+  async createPolicy(
+    content: string,
+    description: string,
+    name: string,
+    type: string,
+  ): Promise<org.CreatePolicyResponse> {
     const params: org.CreatePolicyRequest = {
       Content: content,
       Description: description,
       Name: name,
-      Type: type
+      Type: type,
     };
     return this.client.createPolicy(params).promise();
   }
 
   /**
    * to update the details of a policy
-   * @param description 
-   * @param name 
-   * @param policyId 
+   * @param description
+   * @param name
+   * @param policyId
    */
   async updatePolicy(description: string, name: string, policyId: string): Promise<org.UpdatePolicyResponse> {
     const params: org.UpdatePolicyRequest = {
       Description: description,
       Name: name,
-      PolicyId: policyId
+      PolicyId: policyId,
     };
     return this.client.updatePolicy(params).promise();
   }
 
   /**
    * to attach policy to an OU or account
-   * @param policyId 
-   * @param targetId 
+   * @param policyId
+   * @param targetId
    */
   async attachPolicy(policyId: string, targetId: string): Promise<void> {
     const params: org.AttachPolicyRequest = {
       PolicyId: policyId,
-      TargetId: targetId
+      TargetId: targetId,
     };
     await this.client.attachPolicy(params).promise();
   }
 
   /**
    * to detach policy from an OU or account
-   * @param policyId 
-   * @param targetId 
+   * @param policyId
+   * @param targetId
    */
   async detachPolicy(policyId: string, targetId: string): Promise<void> {
     const params: org.DetachPolicyRequest = {
       PolicyId: policyId,
-      TargetId: targetId
+      TargetId: targetId,
     };
     await this.client.detachPolicy(params).promise();
   }
 
   /**
    * to enable trusted access for a service
-   * @param servicePrincipal 
+   * @param servicePrincipal
    */
   async enableAWSServiceAccess(servicePrincipal: string): Promise<void> {
     const params: org.EnableAWSServiceAccessRequest = {
@@ -199,8 +204,8 @@ export class Organizations {
 
   /**
    * to register delegated administrator for a service
-   * @param accountId 
-   * @param servicePrincipal 
+   * @param accountId
+   * @param servicePrincipal
    */
   async registerDelegatedAdministrator(accountId: string, servicePrincipal: string): Promise<void> {
     const params: org.RegisterDelegatedAdministratorRequest = {
@@ -217,5 +222,4 @@ export class Organizations {
       }
     }
   }
-
 }
