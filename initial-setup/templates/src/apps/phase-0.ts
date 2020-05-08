@@ -200,18 +200,18 @@ async function main() {
   // creating assets for default account settings
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    console.log('accountKey: ' + accountKey);
     mandatoryAccountKeys.push(accountKey);
     await createAccountDefaultAssets(accountKey, accountConfig.iam);
+    console.log(`Default assets created for account - ${accountKey}`);
   }
 
   // creating assets for org unit accounts
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   for (const [orgName, orgConfig] of orgUnits) {
     const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
-    console.log(`org accounts for key - ${orgName}: `, orgAccounts);
     for (const orgAccount of orgAccounts) {
       await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
+      console.log(`Default assets created for account - ${orgAccount.key}`);
     }
   }
 }

@@ -192,11 +192,13 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
       });
     }
 
+    // TODO Below code and flowLogBucket code are almost similar. We need to reuse the code.
     // cost and usage report
     if (accountKey === 'master') {
       // kms key used for s3 bucket encryption
       const encryptionKey = new kms.Key(this, 'EncryptionKey', {
-        alias: 'alias/S3-Default-key',
+        // TODO Re-enable alias
+        // alias: 'alias/S3-Default-key',
         description: 'PBMM - Key used to encrypt/decrypt S3 bucket by default',
       });
 
