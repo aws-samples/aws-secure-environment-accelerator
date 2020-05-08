@@ -227,6 +227,9 @@ export const PasswordPolicyType = t.interface({
   'min-len': t.number,
   complexity: t.boolean,
   reversible: t.boolean,
+  'failed-attempts': t.number,
+  'lockout-duration': t.number,
+  'lockout-attempts-reset': t.number,
 });
 
 export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
@@ -250,8 +253,11 @@ export const MadConfigType = t.interface({
   'log-group-name': t.string,
   'share-to-account': optional(t.string),
   restrict_srcips: t.array(cidr),
+  'rdgw-instance-type': t.string,
+  'num-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
+  'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
 });

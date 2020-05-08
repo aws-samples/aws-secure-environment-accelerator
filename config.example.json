@@ -273,7 +273,7 @@
           "share-to-account": "master",
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
-          "RDGWInstanceType": "t2.large",
+          "rdgw-instance-type": "t2.large",
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -281,12 +281,12 @@
             "min-len": 12,
             "complexity": true,
             "reversible": false,
-            "failed-attaempts": 6,
+            "failed-attempts": 6,
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
           "ad-groups": ["Provisioning"],
-          "ad-per-account-groups": ["-Admins", "-PowerUser", "-View"],
+          "ad-per-account-groups": ["*-Admin", "*-PowerUser", "*-View"],
           "adc-group": "ADConnector-grp",
           "ad-users": [
             {
@@ -295,7 +295,7 @@
             },
             {
               "user": "Brian",
-              "groups": ["Provisioning", "*-View", "*-Admin", "*-PowerUsers", "AWS Delegated Administrators"]
+              "groups": ["Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
             },
             {
               "user": "TestUser",
