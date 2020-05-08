@@ -13,8 +13,8 @@ async function main() {
   const acceleratorName = process.env.ACCELERATOR_NAME || 'PBMM';
   const acceleratorPrefix = process.env.ACCELERATOR_PREFIX || 'PBMMAccel-';
   const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID || 'accelerator/config';
-  const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME || 'PBMMAccel-MainStateMachine';
-  const stateMachineExecutionRole = process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || 'AcceleratorPipelineRole';
+  const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine`;
+  const stateMachineExecutionRole = process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);

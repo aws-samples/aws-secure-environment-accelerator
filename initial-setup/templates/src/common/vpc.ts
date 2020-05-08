@@ -359,7 +359,7 @@ export class Vpc extends cdk.Construct {
 
       const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
 
-      const natgw = new ec2.CfnNatGateway(this, `ntgw_${vpcName}`, {
+      const natgw = new ec2.CfnNatGateway(this, `${vpcName}_ngw`, {
         allocationId: eip.attrAllocationId,
         subnetId,
       });
