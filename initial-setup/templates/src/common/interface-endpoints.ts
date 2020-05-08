@@ -20,9 +20,10 @@ export class InterfaceEndpoint extends cdk.Construct {
     const { serviceName, vpcId, vpcRegion, subnetIds } = props;
 
     // Create a new security groupo per endpoint
-    const securityGroup = new ec2.CfnSecurityGroup(this, serviceName, {
+    const securityGroup = new ec2.CfnSecurityGroup(this, `ep_${serviceName}`, {
       vpcId,
       groupDescription: `AWS Private Endpoint Zone - ${serviceName}`,
+      groupName: `ep_${serviceName}_sg`,
       securityGroupIngress: [
         {
           ipProtocol: ec2.Protocol.ALL,
@@ -65,7 +66,7 @@ export class InterfaceEndpoint extends cdk.Construct {
         },
       ],
       hostedZoneConfig: {
-        comment: `AWS Private Endpoint Zone - ${serviceName}`,
+        comment: `Custom-${serviceName}`,
       },
     });
     hostedZone.addDependsOn(endpoint);
