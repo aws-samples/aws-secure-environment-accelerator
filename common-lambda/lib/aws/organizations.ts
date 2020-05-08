@@ -34,9 +34,7 @@ export class Organizations {
     );
     for await (const summary of summaries) {
       if (summary.Name === name) {
-        return this.describePolicy({
-          PolicyId: summary.Id!,
-        });
+        return this.describePolicy(summary.Id!);
       }
     }
     return undefined;
