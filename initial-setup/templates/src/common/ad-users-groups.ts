@@ -100,6 +100,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       ],
     });
 
+    // TODO need to modify the rules to avoid hard coding
     const tcpPorts = [464, 389, 3389, 445, 88, 135, 636, 53];
     const udpPorts = [445, 138, 464, 53, 389, 123, 88];
 
