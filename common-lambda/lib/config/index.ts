@@ -287,8 +287,8 @@ export const FirewallConfigType = t.interface({
   vpc: t.string,
   'security-group': t.string,
   eni: t.interface({
-    ports: t.array(FirewallPortConfigType)
-  })
+    ports: t.array(FirewallPortConfigType),
+  }),
 });
 
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;

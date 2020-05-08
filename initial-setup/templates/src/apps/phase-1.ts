@@ -221,7 +221,6 @@ async function main() {
     config: acceleratorConfig,
     vpcs,
   });
-
 }
 
 // tslint:disable-next-line: no-floating-promises
