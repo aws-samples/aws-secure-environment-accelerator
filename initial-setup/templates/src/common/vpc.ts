@@ -33,6 +33,10 @@ export interface VpcCommonProps {
    */
   organizationalUnitName?: string;
   limiter: Limiter;
+  /**
+   * All VPC Configs to read Subnet Cidrs for Security Group and NACLs creation
+   */
+  accountVpcConfigs?: config.ResolvedVpcConfig[];
 }
 
 export interface AzSubnet {
@@ -146,7 +150,7 @@ export class Vpc extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name);
 
-    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter } = props.vpcProps;
+    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, accountVpcConfigs } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
     const useCentralEndpointsConfig: boolean = props.vpcProps.vpcConfig['use-central-endpoints'] ?? false;
 
@@ -242,7 +246,12 @@ export class Vpc extends cdk.Construct {
           } else if (route.target === 'TGW' && tgwAttach) {
             const tgwName = tgwAttach['associate-to-tgw'];
             const tgw = props.transitGateways.get(tgwName);
-            gatewayId = tgw?.tgwId;
+            dependsOn = tgw?.tgw;
+            new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
+              routeTableId: routeTable.ref,
+              destinationCidrBlock: route.destination as string,
+              transitGatewayId: tgw?.tgwId,
+            });
             continue;
           } else {
             // Need to add for different Routes
@@ -319,17 +328,9 @@ export class Vpc extends cdk.Construct {
           vpcConfig,
           vpcId: this.vpcId,
           subnets: this.azSubnets,
+          accountVpcConfigs: accountVpcConfigs!,
         });
       }
-    }
-
-    // Create all security groups
-    if (vpcConfig['security-groups']) {
-      new SecurityGroup(this, 'SecurityGroups', {
-        vpcConfig,
-        vpcId: this.vpcId,
-        accountKey: props.vpcProps.accountKey,
-      });
     }
 
     // Create VPC Gateway End Point
@@ -371,6 +372,16 @@ export class Vpc extends cdk.Construct {
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
+    }
+
+    // Create all security groups
+    if (vpcConfig['security-groups']) {
+      new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
+        vpcConfig,
+        vpcId: this.vpcId,
+        accountKey,
+        accountVpcConfigs: accountVpcConfigs!,
+      });
     }
 
     // Share VPC subnet
