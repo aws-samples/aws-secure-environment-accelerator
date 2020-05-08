@@ -8,8 +8,8 @@ function enableDisableProperty(feature: boolean | undefined): string {
 }
 
 export class TransitGateway extends cdk.Construct {
-  private readonly tgw: ec2.CfnTransitGateway;
-  private readonly tgwRouteTableNameToIdMap: { [routeTableName: string]: ec2.CfnTransitGatewayRouteTable } = {};
+  readonly tgw: ec2.CfnTransitGateway;
+  readonly tgwRouteTableNameToIdMap: { [routeTableName: string]: ec2.CfnTransitGatewayRouteTable } = {};
 
   constructor(parent: cdk.Construct, name: string, props: TgwDeploymentConfig) {
     super(parent, name);

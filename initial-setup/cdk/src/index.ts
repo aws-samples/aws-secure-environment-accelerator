@@ -166,6 +166,42 @@ export namespace InitialSetup {
         },
       });
 
+      const enableSecurityHubLambda = new lambda.Function(this, 'EnableSecurityHub', {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        code: lambdaCode,
+        handler: 'index.enableSecurityHub',
+        role: cfnCustomResourceRole,
+        functionName: 'CfnCustomResourceEnableSecurityHub',
+        environment: {
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
+        },
+        timeout: cdk.Duration.seconds(900),
+      });
+
+      const inviteMembersSecurityHub = new lambda.Function(this, 'InviteMembersSecurityHub', {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        code: lambdaCode,
+        handler: 'index.inviteMembersSecurityHub',
+        role: cfnCustomResourceRole,
+        functionName: 'CfnCustomResourceInviteMembersSecurityHub',
+        environment: {
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
+        },
+        timeout: cdk.Duration.seconds(900),
+      });
+
+      const acceptInviteSecurityHub = new lambda.Function(this, 'AcceptInviteSecurityHub', {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        code: lambdaCode,
+        handler: 'index.acceptInviteSecurityHub',
+        role: cfnCustomResourceRole,
+        functionName: 'CfnCustomResourceAcceptInviteSecurityHub',
+        environment: {
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
+        },
+        timeout: cdk.Duration.seconds(900),
+      });
+
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, `${props.acceleratorPrefix}Deploy_pl`, {
         role: pipelineRole,
@@ -222,6 +258,18 @@ export namespace InitialSetup {
             CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: dnsEndpointIpPollerLambda.functionArn,
+            },
+            CFN_ENABLE_SECURITY_HUB_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: enableSecurityHubLambda.functionArn,
+            },
+            CFN_INVITE_MEMBERS_SECURITY_HUB_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: inviteMembersSecurityHub.functionArn,
+            },
+            CFN_ACCEPT_INVITE_SECURITY_HUB_LAMBDA_ARN: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: acceptInviteSecurityHub.functionArn,
             },
           },
         },
