@@ -17,4 +17,3 @@ export const handler = async (input: AddScpInput) => {
     statusReason: status,
   };
 };
-
