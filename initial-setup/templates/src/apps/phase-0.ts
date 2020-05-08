@@ -219,39 +219,51 @@ async function main() {
     }
   }
 
-  // creating a bucket to store RDGW Host power shell scripts
-  const rdgwBucket = new s3.Bucket(masterAccountStack, 'RdgwArtifactsBucket', {
-    versioned: true,
-  });
+  const uploadArtifacts = (
+    artifactName: string,
+    artifactFolderName: string,
+    artifactKeyPrefix: string,
+    destinationPrefix?: string,
+  ): void => {
+    // creating a bucket to store artifacts
+    const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket`, {
+      versioned: true,
+    });
 
-  // Granting read access to all the accounts
-  principals.map(principal => rdgwBucket.grantRead(principal));
+    // Granting read access to all the accounts
+    principals.map(principal => artifactBucket.grantRead(principal));
 
-  const artifactsFolderPath = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    '..',
-    'reference-artifacts',
-    'Task_3_0_3b_RDGW_AD',
-  );
+    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
 
-  new s3deployment.BucketDeployment(masterAccountStack, 'RdgwArtifactsDeployment', {
-    sources: [s3deployment.Source.asset(artifactsFolderPath)],
-    destinationBucket: rdgwBucket,
-  });
+    if (destinationPrefix) {
+      new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment`, {
+        sources: [s3deployment.Source.asset(artifactsFolderPath)],
+        destinationBucket: artifactBucket,
+        destinationPrefix,
+      });
+    } else {
+      new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment`, {
+        sources: [s3deployment.Source.asset(artifactsFolderPath)],
+        destinationBucket: artifactBucket,
+      });
+    }
 
-  // outputs to store RDGW reference artifacts scripts s3 bucket information
-  new JsonOutputValue(masterAccountStack, 'RdgwArtifactsOutput', {
-    type: 'RdgwArtifactsOutput',
-    value: {
-      bucketArn: rdgwBucket.bucketArn,
-      bucketName: rdgwBucket.bucketName,
-      keyPrefix: 'scripts',
-    },
-  });
+    // outputs to store reference artifacts s3 bucket information
+    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput`, {
+      type: `${artifactName}ArtifactsOutput`,
+      value: {
+        bucketArn: artifactBucket.bucketArn,
+        bucketName: artifactBucket.bucketName,
+        keyPrefix: artifactKeyPrefix,
+      },
+    });
+  };
 
+  // upload RDGW Artifacts
+  uploadArtifacts('Rdgw', 'Task_3_0_3b_RDGW_AD', 'scripts');
+
+  // upload IAM-Policies Artifacts
+  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', '/iam-policy');
 }
 
 // tslint:disable-next-line: no-floating-promises
