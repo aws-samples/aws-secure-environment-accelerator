@@ -381,6 +381,7 @@ export class Vpc extends cdk.Construct {
       organizationalUnitName,
       subnets: this.azSubnets,
       limiter,
+      vpc: vpcObj,
     });
   }
 }
