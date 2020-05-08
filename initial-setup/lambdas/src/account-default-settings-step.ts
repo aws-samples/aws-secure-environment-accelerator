@@ -12,6 +12,8 @@ import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
+import { CUR } from '@aws-pbmm/common-lambda/lib/aws/cur';
+import { PutReportDefinitionRequest } from 'aws-sdk/clients/cur';
 
 interface AccountDefaultSettingsInput {
   assumeRoleName: string;
@@ -164,6 +166,37 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     const s3 = new S3(credentials);
     await s3.putBucketKmsEncryption(bucket, kmsKeyId);
+    console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
+  };
+
+  const enableCostAndUsageReport = async (accountId: string, accountKey: string): Promise<void> => {
+    const credentials = await getAccountCredentials(accountId);
+
+    const globalOptionsConfig = acceleratorConfig['global-options'];
+    const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
+
+    const cur = new CUR(credentials);
+
+    const params: PutReportDefinitionRequest = {
+      ReportDefinition: {
+        AdditionalSchemaElements: costAndUsageReportConfig['additional-schema-elements'],
+        Compression: costAndUsageReportConfig.compression,
+        Format: costAndUsageReportConfig.format,
+        ReportName: costAndUsageReportConfig['report-name'],
+        S3Bucket: costAndUsageReportConfig['s3-bucket']
+          .replace('xxaccountIdxx', accountId)
+          .replace('xxregionxx', costAndUsageReportConfig['s3-region']),
+        S3Prefix: costAndUsageReportConfig['s3-prefix'].replace('xxaccountIdxx', accountId),
+        S3Region: costAndUsageReportConfig['s3-region'],
+        TimeUnit: costAndUsageReportConfig['time-unit'],
+        AdditionalArtifacts: costAndUsageReportConfig['additional-artifacts'],
+        RefreshClosedReports: costAndUsageReportConfig['refresh-closed-reports'],
+        ReportVersioning: costAndUsageReportConfig['report-versioning'],
+      },
+    };
+    const PutReportDefinitionResponse = await cur.putReportDefinition(params);
+    console.log('PutReportDefinitionResponse: ', PutReportDefinitionResponse);
+    console.log(`Cost and Usage Report - enabled for account - ${accountKey}`);
   };
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
@@ -187,6 +220,10 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       // alter the encryption key used cloud trail s3 bucket
       await alterCloudTrailS3BucketEncryptionKey(account.id, account.key);
       console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
+    }
+
+    if (account.type === 'primary') {
+      await enableCostAndUsageReport(account.id, account.key);
     }
   }
 

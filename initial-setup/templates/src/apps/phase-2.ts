@@ -265,6 +265,7 @@ async function main() {
         vpcConfig,
         vpcId: vpcOutput.vpcId,
         accountKey,
+        accountVpcConfigs: vpcConfigs,
       });
       // Add Tags Output
       const accountId = getAccountId(accounts, accountKey);

@@ -333,6 +333,24 @@ export const GlobalOptionsZonesConfigType = t.interface({
   names: ZoneNamesConfigType,
 });
 
+export const CostAndUsageReportConfigType = t.interface({
+  'additional-schema-elements': t.array(t.string),
+  compression: NonEmptyString,
+  format: NonEmptyString,
+  'report-name': NonEmptyString,
+  's3-bucket': NonEmptyString,
+  's3-prefix': NonEmptyString,
+  's3-region': NonEmptyString,
+  'time-unit': NonEmptyString,
+  'additional-artifacts': t.array(t.string),
+  'refresh-closed-reports': t.boolean,
+  'report-versioning': NonEmptyString,
+});
+
+export const ReportsConfigType = t.interface({
+  'cost-and-usage-report': CostAndUsageReportConfigType,
+});
+
 export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigType>;
 
 export const SecurityHubFrameworksConfigType = t.interface({
@@ -358,6 +376,7 @@ export const ScpsConfigType = t.interface({
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   'central-bucket': NonEmptyString,
+  reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
   scps: ScpsConfigType,

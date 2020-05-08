@@ -2,6 +2,21 @@
   "global-options": {
     "alz-minimum-version": "v2.3.1",
     "central-log-retention": 730,
+    "reports": {
+      "cost-and-usage-report": {
+        "additional-schema-elements": ["RESOURCES"],
+        "compression": "Parquet",
+        "format": "Parquet",
+        "report-name": "cost-and-usage-report",
+        "s3-bucket": "pbmmaccel-xxaccountIdxx-xxregionxx",
+        "s3-prefix": "/CUR-xxaccountIdxx",
+        "s3-region": "ca-central-1",
+        "time-unit": "HOURLY",
+        "additional-artifacts": ["ATHENA"],
+        "refresh-closed-reports": true,
+         "report-versioning": "OVERWRITE_REPORT"
+      }
+    },
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
