@@ -163,15 +163,15 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   if (acceleratorOus.some(ou => !awsOrganizationUnits.includes(ou))) {
     errors.push(
       `There are missing OUs found in Accelerator configuration but not in AWS Organization\n` +
-      ` Organizational units in Accelerator: ${acceleratorOus.join(', ')}\n` +
-      ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
+        ` Organizational units in Accelerator: ${acceleratorOus.join(', ')}\n` +
+        ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
     );
   }
   if (lzOus.some(ou => !awsOrganizationUnits.includes(ou))) {
     errors.push(
       `There are missing OUs found in Landing Zone configuration but not in AWS Organization\n` +
-      ` Organizational units in Landing Zone: ${lzOus.join(', ')}\n` +
-      ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
+        ` Organizational units in Landing Zone: ${lzOus.join(', ')}\n` +
+        ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
     );
   }
 
