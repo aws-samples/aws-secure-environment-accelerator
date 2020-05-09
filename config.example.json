@@ -3,6 +3,18 @@
     "alz-minimum-version": "v2.3.1",
     "central-log-retention": 730,
 	"default-log-retention": 90,
+	"central-security-services": {
+	   "account": "security",
+	   "security-hub": true,
+	   "guard-duty": true,
+	   "cwl": true,
+	   "access-analyzer": true
+	},
+	"central-operations-services": {
+	   "account": "operations",
+	   "cwl": true,
+	   "cwl-access-level": "full"
+	},
     "reports": {
       "cost-and-usage-report": {
         "additional-schema-elements": ["RESOURCES"],
