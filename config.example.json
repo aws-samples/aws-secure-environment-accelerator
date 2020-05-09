@@ -303,6 +303,40 @@
             }
           ]
         },
+        "security-groups": [
+          {
+            "name": "RemoteDesktopGatewaySG",
+            "inbound-rules": [
+              {
+                "description": "Allow Inbound Domain Traffic",
+                "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
+                "udp-ports": [445, 138, 464, 53, 389, 123, 88],
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound RDSH",
+                "type": ["TCP"],
+                "toPort": 3269,
+                "fromPort": 3268,
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound High Ports",
+                "type": ["TCP"],
+                "toPort": 1024,
+                "fromPort": 65535,
+                "source": ["0.0.0.0/0"]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0", "0::/0"]
+              }
+            ]
+          }
+        ],
         "ops-dashboard": {
           "deploy": true
         },
