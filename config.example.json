@@ -19,6 +19,7 @@
 	},
 	"central-log-services": {
 	   "account": "log-archive",
+	   "region": "ca-central-1",
 	   "cwl-glbl-exclusions": ["/xxx/yyy/*","abc/*"],
 	   "cwl-exclusions": {
 	      "account": "fun-acct",
