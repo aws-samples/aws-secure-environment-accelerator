@@ -23,7 +23,9 @@
 	   "cwl-exclusions": {
 	      "account": "fun-acct",
 		  "exclusions": ["def/*"]
-	   }
+	   },
+	   "ssm-to-s3": true,
+	   "ssm-to-cwl": true
 	},
     "reports": {
       "cost-and-usage-report": {
