@@ -17,6 +17,9 @@
 	   "cwl": true,
 	   "cwl-access-level": "full"
 	},
+	"central-log-services": {
+	   "account": "log-archive"
+	},
     "reports": {
       "cost-and-usage-report": {
         "additional-schema-elements": ["RESOURCES"],
@@ -32,6 +35,14 @@
          "report-versioning": "OVERWRITE_REPORT"
       }
     },
+	"conformance-packs": {
+	   "gc-pack": {
+          "install": true,
+          "auto-remediation": true,
+          "monitoring": true,
+          "frequency": 24
+	   }
+	},
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
