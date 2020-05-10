@@ -18,7 +18,7 @@ import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../common/account-stacks';
-import * as firewall from '../deployments/firewall';
+import * as firewall from '../deployments/firewall/cluster';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);

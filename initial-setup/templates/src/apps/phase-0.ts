@@ -14,7 +14,7 @@ import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
-import * as firewall from '../deployments/firewall';
+import * as firewall from '../deployments/firewall/cluster';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);

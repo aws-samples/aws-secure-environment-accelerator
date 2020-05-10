@@ -4,8 +4,8 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
-import { AccountStacks } from '../../common/account-stacks';
-import { StructuredOutput } from '../../common/structured-output';
+import { AccountStacks } from '../../../common/account-stacks';
+import { StructuredOutput } from '../../../common/structured-output';
 
 export interface FirewallStep1Props {
   accountStacks: AccountStacks;

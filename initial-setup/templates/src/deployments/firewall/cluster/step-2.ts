@@ -5,9 +5,9 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpnTunnelOptions, Attribute } from '@custom-resources/vpn-tunnel-options';
-import { AccountStacks } from '../../common/account-stacks';
-import { StructuredOutput } from '../../common/structured-output';
-import { TransitGateway } from '../../common/transit-gateway';
+import { AccountStacks } from '../../../common/account-stacks';
+import { StructuredOutput } from '../../../common/structured-output';
+import { TransitGateway } from '../../../common/transit-gateway';
 import { FirewallPortOutputType, FirewallPortType, FirewallPort } from './step-1';
 
 export interface FirewallStep2Props {

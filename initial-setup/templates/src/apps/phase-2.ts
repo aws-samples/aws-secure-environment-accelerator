@@ -18,7 +18,8 @@ import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
-import * as firewall from '../deployments/firewall';
+import * as firewallCluster from '../deployments/firewall/cluster';
+import * as firewallManagement from '../deployments/firewall/manager';
 import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 
@@ -298,10 +299,16 @@ async function main() {
   });
   const vpcs = vpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
 
-  await firewall.step3({
+  await firewallCluster.step3({
     accountStacks,
     config: acceleratorConfig,
     outputs,
+    vpcs,
+  });
+
+  await firewallManagement.step1({
+    accountStacks,
+    config: acceleratorConfig,
     vpcs,
   });
 

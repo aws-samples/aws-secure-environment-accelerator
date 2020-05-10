@@ -301,6 +301,21 @@ export const FirewallConfigType = t.interface({
 
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
 
+export const FirewallManagerConfigType = t.interface({
+  'instance-sizes': t.string,
+  image: t.string, // TODO Enum of BYOL, PAYG
+  version: t.string,
+  region: t.string,
+  vpc: t.string,
+  'security-group': t.string,
+  'subnet': t.interface({
+    name: t.string,
+    az: t.string,
+  }),
+});
+
+export type FirewallManagerConfig = t.TypeOf<typeof FirewallManagerConfigType>;
+
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
@@ -314,6 +329,7 @@ export const DeploymentConfigType = t.interface({
   mad: optional(MadConfigType),
   adc: optional(AdcConfigType),
   firewall: optional(FirewallConfigType),
+  'firewall-manager': optional(FirewallManagerConfigType),
 });
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
