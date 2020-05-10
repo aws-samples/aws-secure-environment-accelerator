@@ -392,7 +392,7 @@
 		 "period": "Monthly",
 		 "amount": 2000,
 		 "include": ["Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -408,7 +408,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       },
       "certificates": [
         {
@@ -965,7 +965,7 @@
 		 "period": "Monthly",
 		 "amount": 1000,
 		 "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -981,7 +981,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       }
     },
     "central": {
@@ -993,7 +993,7 @@
 		 "period": "Monthly",
 		 "amount": 100,
 		 "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -1009,7 +1009,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       },
       "certificates": [
         {
@@ -1491,7 +1491,7 @@
 		 "period": "Monthly",
 		 "amount": 2000,
 		 "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -1507,7 +1507,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       },
       "certificates": [
         {
@@ -1960,7 +1960,7 @@
 		 "period": "Monthly",
 		 "amount": 200,
 		 "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -1976,7 +1976,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       },
       "certificates": [
         {
@@ -2429,7 +2429,7 @@
 		 "period": "Monthly",
 		 "amount": 1000,
 		 "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -2445,7 +2445,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       },
       "certificates": [
         {
@@ -2898,7 +2898,7 @@
 		 "period": "Monthly",
 		 "amount": 1000,
 		 "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -2914,7 +2914,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       },
       "certificates": [
         {
@@ -3342,7 +3342,7 @@
 		 "period": "Monthly",
 		 "amount": 200,
 		 "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
-		 "alerts": {
+		 "alerts": [{
 		    "type": "Actual",
 		    "threshold-percent": 50,
 		    "emails": ["bmycroft@amazon.com"]
@@ -3358,7 +3358,7 @@
 		    "type": "Actual",
 		    "threshold-percent": 100,
 		    "emails": ["bmycroft@amazon.com"]
-		 }
+		 }]
       },
       "vpc": {
         "deploy": "local",
