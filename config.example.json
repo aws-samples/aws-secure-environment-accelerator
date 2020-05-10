@@ -18,7 +18,12 @@
 	   "cwl-access-level": "full"
 	},
 	"central-log-services": {
-	   "account": "log-archive"
+	   "account": "log-archive",
+	   "cwl-glbl-exclusions": ["/xxx/yyy/*","abc/*"],
+	   "cwl-exclusions": {
+	      "account": "fun-acct",
+		  "exclusions": ["def/*"]
+	   }
 	},
     "reports": {
       "cost-and-usage-report": {
