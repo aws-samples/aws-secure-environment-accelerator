@@ -1,12 +1,12 @@
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
-import { ImageFinder } from '@aws-pbmm/custom-resource-image-finder';
+import { ImageFinder } from '@custom-resources/image-finder';
 import { AccountStacks } from '../../common/account-stacks';
 import { StructuredOutput } from '../../common/structured-output';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { FirewallVpnConnectionOutputType, FirewallVpnConnection } from './step-2';
 
 export interface FirewallStep3Props {

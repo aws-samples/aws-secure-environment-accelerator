@@ -1,10 +1,8 @@
 {
-  "name": "@aws-pbmm/custom-resource-image-finder",
+  "name": "@custom-resources/image-finder",
   "version": "0.0.1",
   "private": true,
-  "scripts": {
-    "build": "webpack-cli --config webpack.config.ts"
-  },
+  "main": "lib/index.ts",
   "devDependencies": {
     "@babel/core": "7.9.0",
     "@babel/plugin-proposal-class-properties": "7.8.3",
@@ -13,13 +11,17 @@
     "@babel/preset-typescript": "7.9.0",
     "@types/adm-zip": "0.4.32",
     "@types/aws-lambda": "8.10.46",
+    "@types/cfn-response": "1.0.3",
+    "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
     "@types/webpack": "4.41.8",
-    "@types/xml2js": "^0.4.5",
+    "babel-jest": "25.2.0",
     "babel-loader": "8.1.0",
     "fork-ts-checker-webpack-plugin": "4.1.1",
+    "glob": "7.1.6",
     "jest": "25.2.4",
     "prettier": "1.19.1",
+    "ts-jest": "25.3.0",
     "ts-node": "6.2.0",
     "tslint": "6.1.0",
     "tslint-config-prettier": "1.18.0",
@@ -29,10 +31,17 @@
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "aws-lambda": "1.0.5",
-    "aws-sdk": "2.668.0",
-    "cfn-response-async": "^1.0.0",
-    "xml2js": "^0.4.23"
+    "@aws-cdk/aws-cloudformation": "1.32.2",
+    "@aws-cdk/aws-iam": "1.32.2",
+    "@aws-cdk/aws-lambda": "1.32.2",
+    "@aws-cdk/core": "1.32.2",
+    "@custom-resources/image-finder-lambda": "workspace:^0.0.1"
+  },
+  "peerDependencies": {
+    "@aws-cdk/aws-cloudformation": "^1.32.2",
+    "@aws-cdk/aws-iam": "^1.32.2",
+    "@aws-cdk/aws-lambda": "^1.32.2",
+    "@aws-cdk/core": "^1.32.2"
   },
   "jest": {
     "preset": "ts-jest",

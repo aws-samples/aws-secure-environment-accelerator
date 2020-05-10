@@ -1,7 +1,6 @@
 import { pascalCase } from 'pascal-case';
 import * as t from 'io-ts';
 import * as cdk from '@aws-cdk/core';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { optional } from '@aws-pbmm/common-lambda/lib/config/types';

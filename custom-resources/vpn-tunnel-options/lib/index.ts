@@ -78,14 +78,21 @@ export class VpnTunnelOptions extends cdk.Construct {
       }),
     );
 
+    // Resolve the path of the Lambda function
+    const lambdaPath = require.resolve('@custom-resources/vpn-tunnel-options-lambda');
+    const lambdaDir = path.dirname(lambdaPath);
+
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/dist')),
+      code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: imageFinderRole,
     });
   }
 
+  /**
+   * Returns the given CloudFormation attribute.
+   */
   getAttribute(attribute: Attribute) {
     return this.resource.getAttString(attribute);
   }
