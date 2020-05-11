@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as org from 'aws-sdk/clients/organizations';
+import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 
 export class Organizations {
@@ -225,10 +226,13 @@ export class Organizations {
    * @param servicePrincipal
    */
   async enableAWSServiceAccess(servicePrincipal: string): Promise<void> {
-    const params: org.EnableAWSServiceAccessRequest = {
-      ServicePrincipal: servicePrincipal,
-    };
-    await this.client.enableAWSServiceAccess(params).promise();
+    await throttlingBackOff(() =>
+      this.client
+        .enableAWSServiceAccess({
+          ServicePrincipal: servicePrincipal,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -237,12 +241,15 @@ export class Organizations {
    * @param servicePrincipal
    */
   async registerDelegatedAdministrator(accountId: string, servicePrincipal: string): Promise<void> {
-    const params: org.RegisterDelegatedAdministratorRequest = {
-      AccountId: accountId,
-      ServicePrincipal: servicePrincipal,
-    };
     try {
-      await this.client.registerDelegatedAdministrator(params).promise();
+      await throttlingBackOff(() =>
+        this.client
+          .registerDelegatedAdministrator({
+            AccountId: accountId,
+            ServicePrincipal: servicePrincipal,
+          })
+          .promise(),
+      );
     } catch (e) {
       if (e.code === 'AccountAlreadyRegisteredException') {
         // ignore error

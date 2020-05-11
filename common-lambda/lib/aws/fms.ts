@@ -1,5 +1,5 @@
 import * as aws from 'aws-sdk';
-import * as fms from 'aws-sdk/clients/fms';
+import { throttlingBackOff } from './backoff';
 
 export class FMS {
   private readonly client: aws.FMS;
@@ -12,9 +12,12 @@ export class FMS {
   }
 
   async associateAdminAccount(adminAccountId: string): Promise<void> {
-    const params: fms.AssociateAdminAccountRequest = {
-      AdminAccount: adminAccountId,
-    };
-    await this.client.associateAdminAccount(params).promise();
+    await throttlingBackOff(() =>
+      this.client
+        .associateAdminAccount({
+          AdminAccount: adminAccountId,
+        })
+        .promise(),
+    );
   }
 }
