@@ -270,7 +270,6 @@ async function main() {
     standards: globalOptions['security-hub-frameworks'],
     subAccountIds,
   });
-
 }
 
 // tslint:disable-next-line: no-floating-promises

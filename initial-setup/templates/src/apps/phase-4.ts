@@ -160,7 +160,6 @@ async function main() {
     });
   }
 
-
   // to share the resolver rules
   // get the list of account IDs with which the resolver rules needs to be shared
   const vpcConfigs = acceleratorConfig.getVpcConfigs();

@@ -200,7 +200,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       }
       madIPs = madOutput[0].dnsIps.split(',');
       console.log(madIPs);
-      
+
       const centralResolverAccount = madConfig['central-resolver-rule-account'];
       const centralResolverVpcName = madConfig['central-resolver-rule-vpc'];
 

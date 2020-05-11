@@ -73,7 +73,7 @@ async function main() {
   /**
    * Code to create Peering Connection in all accounts
    */
-  
+
   const vpcConfigs = acceleratorConfig.getVpcConfigs();
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const pcxConfig = vpcConfig.pcx;
@@ -202,7 +202,7 @@ async function main() {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
       }
       const securityGroups = new SecurityGroup(accountStack, 'SecurityGroups', {
-        securityGroups: vpcConfig["security-groups"]!,
+        securityGroups: vpcConfig['security-groups']!,
         vpcName: vpcConfig.name,
         vpcId: vpcOutput.vpcId,
         accountKey,
@@ -227,7 +227,7 @@ async function main() {
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
   const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
-  
+
   for (const account of accounts) {
     if (account.id === securityMasterAccount?.id) {
       continue;

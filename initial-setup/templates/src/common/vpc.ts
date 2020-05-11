@@ -101,7 +101,7 @@ export class VpcStack extends NestedStack {
     // Create the VPC
     this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
     if (tgw) {
-      this.vpc.node.addDependency(tgw)
+      this.vpc.node.addDependency(tgw);
     }
   }
 }
@@ -294,7 +294,7 @@ export class Vpc extends cdk.Construct {
     }
 
     // Add Routes to Route Tables
-    if(routeTablesProps) {
+    if (routeTablesProps) {
       for (const routeTableProp of routeTablesProps) {
         if (routeTableProp.name === 'default') {
           continue;
@@ -394,7 +394,7 @@ export class Vpc extends cdk.Construct {
     // Create all security groups
     if (vpcConfig['security-groups']) {
       new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
-        securityGroups: vpcConfig["security-groups"],
+        securityGroups: vpcConfig['security-groups'],
         vpcName: vpcConfig.name,
         vpcId: this.vpcId,
         accountKey,

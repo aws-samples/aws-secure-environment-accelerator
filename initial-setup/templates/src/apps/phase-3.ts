@@ -51,7 +51,6 @@ async function main() {
     });
   }
 
-
   /**
    * Code to create DNS Resolvers
    */

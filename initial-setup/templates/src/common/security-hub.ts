@@ -22,7 +22,7 @@ export interface SecurityHubProps {
 
 export class SecurityHubStack extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string, props: SecurityHubProps) {
-    super(scope, name, );
+    super(scope, name);
     const {
       account,
       enableStandardsFuncArn,

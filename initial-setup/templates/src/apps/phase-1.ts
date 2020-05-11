@@ -14,7 +14,11 @@ import { TransitGateway } from '../common/transit-gateway';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
-import { InterfaceEndpointConfig, ResolvedVpcConfig, PeeringConnectionConfig } from '@aws-pbmm/common-lambda/lib/config';
+import {
+  InterfaceEndpointConfig,
+  ResolvedVpcConfig,
+  PeeringConnectionConfig,
+} from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import * as iam from '@aws-cdk/aws-iam';
 
