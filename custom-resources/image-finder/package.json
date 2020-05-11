@@ -31,10 +31,10 @@
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "1.32.2",
-    "@aws-cdk/aws-iam": "1.32.2",
-    "@aws-cdk/aws-lambda": "1.32.2",
-    "@aws-cdk/core": "1.32.2",
+    "@aws-cdk/aws-cloudformation": "1.38.0",
+    "@aws-cdk/aws-iam": "1.38.0",
+    "@aws-cdk/aws-lambda": "1.38.0",
+    "@aws-cdk/core": "1.38.0",
     "@custom-resources/image-finder-lambda": "workspace:^0.0.1"
   },
   "peerDependencies": {
