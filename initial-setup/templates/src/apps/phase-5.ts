@@ -6,13 +6,14 @@ import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import * as iam from '@aws-cdk/aws-iam';
 import { pascalCase } from 'pascal-case';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import * as ssm from '@aws-cdk/aws-ssm';
 import { KeyPairStack } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { ResolversOutput } from './phase-2';
+import { AccountStacks } from '../common/account-stacks';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -44,16 +45,21 @@ async function main() {
 
   const app = new cdk.App();
 
-  const masterUserPasswordStack = new AcceleratorStack(app, 'MasterUserPasswordStack', {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Ad-Users-Secrets',
+  const accountStacks = new AccountStacks(app, {
+    phase: 5,
+    accounts,
+    context,
   });
-  const secretsStack = new SecretsStack(masterUserPasswordStack, 'Secrets');
+
+  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
+  if (!masterAccount) {
+    throw new Error(`Cannot find primary account`);
+  }
+
+  const [masterAccountKey, _] = masterAccount;
+  const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+
+  const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
   type UserSecrets = UserSecret[];
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
@@ -100,17 +106,10 @@ async function main() {
       userSecrets.push({ user: adUser.user, password: madUserPassword });
     }
 
-    const stack = new AcceleratorStack(app, 'ADUsersAndGroups', {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: `PBMMAccel-${pascalCase('adUsersAndGroups')}`,
-    });
-
-    stack.addDependency(keyPairStack);
+    const stack = accountStacks.getOrCreateAccountStack(accountKey);
+    if (stack !== keyPairStack) {
+      stack.addDependency(keyPairStack);
+    }
 
     const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
       stack,

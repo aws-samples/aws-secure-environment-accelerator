@@ -3,7 +3,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 
-export interface SecretProps extends Omit<secrets.SecretProps, 'encryptionKey'> {
+export interface SecretsContainerProps extends Omit<secrets.SecretProps, 'encryptionKey'> {
   /**
    * The name of the secret. It is mandatory to enable cross-account secret sharing.
    */
@@ -21,13 +21,13 @@ export interface SecretProps extends Omit<secrets.SecretProps, 'encryptionKey'> 
 }
 
 /**
- * This is a utility class that creates a stack to manage secrets. It creates a KMS key that is used to encrypt secrets
+ * This is a utility class that manages cross-account secrets. It creates a KMS key that is used to encrypt secrets
  * and grants access to the secrets manager service.
  *
  * Secrets can be created using the `createSecret` function. This function create a secret in this stack and grants
  * the given principals decrypt access on the KMS key and access to retrieve the secret value.
  */
-export class SecretsStack extends cdk.Construct {
+export class SecretsContainer extends cdk.Construct {
   readonly encryptionKey: kms.Key;
   readonly principals: iam.IPrincipal[] = [];
 
@@ -65,7 +65,7 @@ export class SecretsStack extends cdk.Construct {
   /**
    * Create a secret in the stack with the given ID and the given props.
    */
-  createSecret(id: string, props: SecretProps) {
+  createSecret(id: string, props: SecretsContainerProps) {
     const secret = new secrets.Secret(this, id, {
       ...props,
       // The secret needs a physical name to enable cross account sharing

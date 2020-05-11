@@ -1,17 +1,17 @@
 import * as cdk from '@aws-cdk/core';
+import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import * as iam from '@aws-cdk/aws-iam';
 import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput, ImportedVpc } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { ActiveDirectory } from '../common/active-directory';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
@@ -112,16 +112,14 @@ async function main() {
     });
   }
 
-  const masterStack = new AcceleratorStack(app, `master`, {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: `PBMMAccel-${pascalCase('master')}`,
-  });
-  const secretsStack = new SecretsStack(masterStack, 'Secrets');
+  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
+  if (!masterAccount) {
+    throw new Error(`Cannot find primary account`);
+  }
+
+  const [masterAccountKey, _] = masterAccount;
+  const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+  const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
@@ -131,18 +129,7 @@ async function main() {
     }
     const accountId = getAccountId(accounts, accountKey);
 
-    const stack =
-      accountKey === 'master'
-        ? masterStack
-        : new AcceleratorStack(app, `${accountKey}`, {
-            env: {
-              account: accountId,
-              region: cdk.Aws.REGION,
-            },
-            acceleratorName: context.acceleratorName,
-            acceleratorPrefix: context.acceleratorPrefix,
-            stackName: `PBMMAccel-${pascalCase(accountKey)}`,
-          });
+    const stack = accountStacks.getOrCreateAccountStack(accountKey);
 
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
@@ -199,16 +186,8 @@ async function main() {
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      // const accountStack = getAccountStack(accountKey);
-      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`, {
-        env: {
-          account: sharedAccountId,
-          region: cdk.Aws.REGION,
-        },
-        acceleratorName: context.acceleratorName,
-        acceleratorPrefix: context.acceleratorPrefix,
-        stackName: `PBMMAccel-SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
-      });
+      const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+      const securityGroupStack = new cfn.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`);
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
       }

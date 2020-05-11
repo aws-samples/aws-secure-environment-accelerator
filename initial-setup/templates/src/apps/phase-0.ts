@@ -10,7 +10,7 @@ import { pascalCase } from 'pascal-case';
 import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
@@ -118,6 +118,10 @@ async function main() {
   //   },
   // });
 
+  // Create a secrets container in the master account
+  // Only the master account can contain secrets
+  const secretsContainer = new SecretsContainer(masterAccountStack, 'Secrets');
+
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const defaultAssetAccountId = getAccountId(accounts, accountKey);
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
@@ -132,8 +136,7 @@ async function main() {
           );
         } else {
           for (const userId of iamUser['user-ids']) {
-            const secretsStack = new SecretsStack(masterAccountStack, `Secrets-${userId}-UserPassword`);
-            const password = secretsStack.createSecret(`${userId}-UserPassword`, {
+            const password = secretsContainer.createSecret(`${userId}-UserPassword`, {
               secretName: `accelerator/${accountKey}/user/password/${userId}`,
               description: `Password for IAM User - ${userId}.`,
               generateSecretString: {

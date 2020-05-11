@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export CONFIG_MODE="development"
-export CDK_PLUGIN_ASSUME_ROLE_NAME="AcceleratorPipelineRole"
+export CDK_PLUGIN_ASSUME_ROLE_NAME="AccePBMMAccel-PipelineRoleleratorPipelineRole"
 
 APP_PATH=$1
 

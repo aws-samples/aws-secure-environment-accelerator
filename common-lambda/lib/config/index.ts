@@ -478,6 +478,17 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
   /**
    * @return [accountKey: string, accountConfig: AccountConfig][]
    */
+  getAccountByLandingZoneAccountType(
+    type: typeof LANDING_ZONE_ACCOUNT_TYPES[number],
+  ): [string, AccountConfig] | undefined {
+    return this.getMandatoryAccountConfigs().find(
+      ([_, accountConfig]) => accountConfig['landing-zone-account-type'] === type,
+    );
+  }
+
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
   getMandatoryAccountConfigs(): [string, AccountConfig][] {
     return Object.entries(this['mandatory-account-configs']);
   }
