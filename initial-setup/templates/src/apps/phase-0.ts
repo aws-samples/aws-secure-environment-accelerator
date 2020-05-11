@@ -209,7 +209,7 @@ async function main() {
     }
   }
 
-  for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+  for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;

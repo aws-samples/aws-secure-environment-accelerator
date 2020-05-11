@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
+import { AcceleratorNameGenerator } from './accelerator-name-generator';
 
 export interface SecretsContainerProps extends Omit<secrets.SecretProps, 'encryptionKey'> {
   /**
@@ -34,9 +35,9 @@ export class SecretsContainer extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string) {
     super(scope, name);
 
-    this.encryptionKey = new kms.Key(this, 'EncryptionKey', {
-      alias: `${name}`,
-    });
+    this.encryptionKey = new kms.Key(this, 'EncryptionKey');
+    this.encryptionKey.addAlias('alias/' + AcceleratorNameGenerator.generate('EncryptionKey'));
+
     this.encryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({
         sid:
