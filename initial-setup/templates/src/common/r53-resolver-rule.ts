@@ -18,7 +18,6 @@ export class Route53ResolverRule extends cdk.Construct {
 
   constructor(parent: cdk.Construct, id: string, props: Route53ResolverRuleProps) {
     super(parent, id);
-
     const targetIps = props.ipAddresses.map(ip => ({
       ip,
       port: '53',
