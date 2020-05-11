@@ -197,11 +197,20 @@ async function main() {
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const accountStack = getAccountStack(accountKey);
+      // const accountStack = getAccountStack(accountKey);
+      const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`, {
+        env: {
+          account: sharedAccountId,
+          region: cdk.Aws.REGION,
+        },
+        acceleratorName: context.acceleratorName,
+        acceleratorPrefix: context.acceleratorPrefix,
+        stackName: `PBMMAccel-SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
+      });
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
       }
-      const securityGroups = new SecurityGroup(accountStack, 'SecurityGroups', {
+      const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${index + 1}`, {
         securityGroups: vpcConfig['security-groups']!,
         vpcName: vpcConfig.name,
         vpcId: vpcOutput.vpcId,
@@ -211,7 +220,7 @@ async function main() {
       // Add Tags Output
       const accountId = getAccountId(accounts, accountKey);
       const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
-      new AddTagsToResourcesOutput(accountStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
+      new AddTagsToResourcesOutput(securityGroupStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
         dependencies: securityGroupsResources,
         produceResources: () =>
           securityGroupsResources.map(securityGroup => ({
