@@ -231,7 +231,7 @@ async function main() {
     // creating a bucket to store artifacts
     const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
       versioned: true,
-      bucketName
+      bucketName,
     });
 
     // Granting read access to all the accounts
@@ -244,7 +244,7 @@ async function main() {
       destinationBucket: artifactBucket,
       destinationKeyPrefix,
     });
-  
+
     // outputs to store reference artifacts s3 bucket information
     new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
       type: `${artifactName}ArtifactsOutput`,
