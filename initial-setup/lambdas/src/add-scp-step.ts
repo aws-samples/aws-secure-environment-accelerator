@@ -109,7 +109,8 @@ export const handler = async (input: AddScpInput) => {
   // add pbmm-full-access policy to root.
   // add pbmm-full-access policy to all OUs.
   // add pbmm-full-access policy to all accounts.
-  const rootIds = await (await organizations.listRoots()).map(r => r.Id);
+  const roots = await organizations.listRoots();
+  const rootIds = roots.map(r => r.Id);
   const orgUnitIds = orgUnits.map(o => o.Id);
   const accountIds = accounts.map(a => a.id);
   const targetIds = [...rootIds, ...orgUnitIds, ...accountIds];
