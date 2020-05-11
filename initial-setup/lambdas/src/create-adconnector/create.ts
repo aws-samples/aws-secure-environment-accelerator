@@ -110,7 +110,9 @@ export const handler = async (input: AdConnectorInput) => {
 
     const accountId = getAccountId(accounts, accountKey);
     // TODO Getting admin password, update with user specific password after creating AD Users and Groups
-    const madPassword = await secrets.getSecret(`accelerator/${adcConfig['connect-account-key']}/mad/${adConnectorUser.user}/password`);
+    const madPassword = await secrets.getSecret(
+      `accelerator/${adcConfig['connect-account-key']}/mad/${adConnectorUser.user}/password`,
+    );
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const directoryService = new DirectoryService(credentials);
     const adConnectors = await directoryService.getADConnectors();
