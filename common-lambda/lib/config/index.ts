@@ -315,7 +315,7 @@ export const FirewallManagerConfigType = t.interface({
   region: t.string,
   vpc: t.string,
   'security-group': t.string,
-  'subnet': t.interface({
+  subnet: t.interface({
     name: t.string,
     az: t.string,
   }),

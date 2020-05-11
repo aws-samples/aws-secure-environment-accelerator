@@ -44,12 +44,12 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
       const cgw = tunnel.customer_gateway?.[0];
       const vpn = tunnel.vpn_gateway?.[0];
 
-      output[`CgwOutsideIpAddress${index }`] = cgw.tunnel_outside_address?.[0]?.ip_address?.[0];
+      output[`CgwOutsideIpAddress${index}`] = cgw.tunnel_outside_address?.[0]?.ip_address?.[0];
       output[`CgwInsideIpAddress${index}`] = cgw.tunnel_inside_address?.[0]?.ip_address?.[0];
       output[`CgwInsideNetworkMask${index}`] = cgw.tunnel_inside_address?.[0]?.network_mask?.[0];
       output[`CgwInsideNetworkCidr${index}`] = cgw.tunnel_inside_address?.[0]?.network_cidr?.[0];
       output[`CgwBgpAsn${index}`] = cgw.bgp?.[0]?.asn?.[0];
-      output[`VpnOutsideIpAddress${index }`] = vpn.tunnel_outside_address?.[0]?.ip_address?.[0];
+      output[`VpnOutsideIpAddress${index}`] = vpn.tunnel_outside_address?.[0]?.ip_address?.[0];
       output[`VpnInsideIpAddress${index}`] = vpn.tunnel_inside_address?.[0]?.ip_address?.[0];
       output[`VpnInsideNetworkMask${index}`] = vpn.tunnel_inside_address?.[0]?.network_mask?.[0];
       output[`VpnInsideNetworkCidr${index}`] = vpn.tunnel_inside_address?.[0]?.network_cidr?.[0];
