@@ -237,22 +237,22 @@ async function main() {
 
   // TODO Find a better way to get VPCs
   // Import all VPCs from all outputs
-  const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
     outputType: 'VpcOutput',
   });
-  const vpcs = vpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
+  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
 
   await firewallCluster.step3({
     accountStacks,
     config: acceleratorConfig,
     outputs,
-    vpcs,
+    vpcs: allVpcs,
   });
 
   await firewallManagement.step1({
     accountStacks,
     config: acceleratorConfig,
-    vpcs,
+    vpcs: allVpcs,
   });
 
   // Deploy Security Hub

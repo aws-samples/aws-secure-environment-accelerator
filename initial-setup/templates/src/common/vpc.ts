@@ -96,8 +96,8 @@ export class VpcStack extends NestedStack {
     let tgw;
     const tgwDeployment = props.vpcProps.tgwDeployment;
     if (tgwDeployment) {
-      tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
-      props.transitGateways.set(tgwDeployment.name!, tgw);
+      tgw = new TransitGateway(this, tgwDeployment.name, tgwDeployment);
+      props.transitGateways.set(tgwDeployment.name, tgw);
     }
 
     // Create the VPC
