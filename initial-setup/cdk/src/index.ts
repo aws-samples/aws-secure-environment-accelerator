@@ -17,8 +17,6 @@ import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 
 interface BuildProps {
   lambdaCode: lambda.Code;
@@ -400,34 +398,20 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
-      const artifactName = 'Scp';
-      const artifactFolderName = 'SCPs';
-      const destinationKeyPrefix = 'scp';
-      // creating a bucket to store artifacts
-      const artifactBucket = new s3.Bucket(stack, `${artifactName}ArtifactsBucket`, {
-        versioned: true,
-      });
+      // TODO We might want to load this from the Landing Zone configuration
+      const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
+      const nonCoreMandatoryScpName = 'aws-landing-zone-non-core-mandatory-preventive-guardrails';
+      const lzScpNames: string[] = [coreMandatoryScpName, nonCoreMandatoryScpName];
 
-      const artifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', artifactFolderName);
-
-      new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
-        sources: [s3deployment.Source.asset(artifactsFolderPath)],
-        destinationBucket: artifactBucket,
-        destinationKeyPrefix,
-      });
-
-      const addScpTask = new CodeTask(this, 'Add SCP to Org', {
+      const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.addScpStep',
+          handler: 'index.addRoleToScpStep',
           role: pipelineRole,
         },
         functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          configSecretId: configSecretInProgress.secretArn,
-          scpBucketName: artifactBucket.bucketName,
-          scpBucketPrefix: destinationKeyPrefix,
-          'accounts.$': '$.accounts',
+          roleName: props.stateMachineExecutionRole,
+          policyNames: lzScpNames,
         },
         resultPath: 'DISCARD',
       });
@@ -447,7 +431,7 @@ export namespace InitialSetup {
       // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
       // });
       // preDeployParallelTask.branch(loadLimitsTask);
-      // preDeployParallelTask.branch(addScpTask);
+      // preDeployParallelTask.branch(addRoleToScpTask);
       // preDeployParallelTask.branch(enableResourceSharingTask);
 
       const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
@@ -687,7 +671,7 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(loadLimitsTask)
-          .next(addScpTask)
+          .next(addRoleToScpTask)
           .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)

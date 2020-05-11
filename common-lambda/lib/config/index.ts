@@ -178,21 +178,21 @@ export type SecurityGroupConfig = t.TypeOf<typeof SecurityGroupConfigType>;
 
 export const IamUserConfigType = t.interface({
   'user-ids': t.array(NonEmptyString),
-  group: NonEmptyString,
+  group: t.string,
   policies: t.array(NonEmptyString),
-  'boundary-policy': NonEmptyString,
+  'boundary-policy': t.string,
 });
 
 export const IamPolicyConfigType = t.interface({
-  'policy-name': NonEmptyString,
-  policy: NonEmptyString,
+  'policy-name': t.string,
+  policy: t.string,
 });
 
 export const IamRoleConfigType = t.interface({
-  role: NonEmptyString,
-  type: NonEmptyString,
+  role: t.string,
+  type: t.string,
   policies: t.array(NonEmptyString),
-  'boundary-policy': NonEmptyString,
+  'boundary-policy': t.string,
   'source-account': optional(t.string),
   'source-account-role': optional(t.string),
   'trust-policy': optional(t.string),
@@ -362,7 +362,6 @@ export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
-  scps: t.array(t.string),
   'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
@@ -416,20 +415,12 @@ export const SecurityHubFrameworksConfigType = t.interface({
     }),
   ),
 });
-
-export const ScpsConfigType = t.interface({
-  name: NonEmptyString,
-  description: NonEmptyString,
-  policy: NonEmptyString,
-});
-
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   'central-bucket': NonEmptyString,
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
-  scps: t.array(ScpsConfigType),
 });
 
 export type SecurityHubFrameworksConfig = t.TypeOf<typeof SecurityHubFrameworksConfigType>;
