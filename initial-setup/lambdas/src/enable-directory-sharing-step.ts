@@ -35,6 +35,36 @@ export const handler = async (input: ShareDirectoryInput) => {
 
   const sts = new STS();
 
+  const shareDirectory = async (
+    ownerAccountId: string,
+    directoryId: string,
+    shareToAccountId?: string,
+  ): Promise<void> => {
+    const credentials = await sts.getCredentialsForAccountAndRole(ownerAccountId, assumeRoleName);
+    const directoryService = new DirectoryService(credentials);
+    const sharedAccounts = await directoryService.findSharedAccounts({ OwnerDirectoryId: directoryId });
+
+    if (shareToAccountId && !sharedAccounts.includes(shareToAccountId)) {
+      const sharedDirectoryId = await directoryService.shareDirectory({
+        DirectoryId: directoryId,
+        ShareMethod: 'HANDSHAKE',
+        ShareTarget: {
+          Id: shareToAccountId,
+          Type: 'ACCOUNT',
+        },
+      });
+
+      if (sharedDirectoryId) {
+        console.log('Accepting the request from shared account');
+        const sharedAccountCredentials = await sts.getCredentialsForAccountAndRole(shareToAccountId, assumeRoleName);
+        const sharedAccountDirectoryService = new DirectoryService(sharedAccountCredentials);
+        await sharedAccountDirectoryService.acceptDirectory({
+          SharedDirectoryId: sharedDirectoryId,
+        });
+      }
+    }
+  };
+
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, mandatoryConfig] of accountConfigs) {
     const madConfig = mandatoryConfig.deployments?.mad;
@@ -47,12 +77,12 @@ export const handler = async (input: ShareDirectoryInput) => {
       outputType: 'MadOutput',
     });
 
-    const madOuput = madOutputs.find(output => output.id === madConfig['dir-id']);
-    if (!madOuput || !madOuput.directoryId) {
-      throw new Error(`Cannot find madOuput with vpc name ${madConfig['vpc-name']}`);
+    const madOutput = madOutputs.find(output => output.id === madConfig['dir-id']);
+    if (!madOutput || !madOutput.directoryId) {
+      throw new Error(`Cannot find madOutput with vpc name ${madConfig['vpc-name']}`);
     }
 
-    const directoryId = madOuput.directoryId;
+    const directoryId = madOutput.directoryId;
 
     const accountId = getAccountId(accounts, accountKey);
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
@@ -67,28 +97,8 @@ export const handler = async (input: ShareDirectoryInput) => {
     }
 
     if (madConfig['share-to-account']) {
-      const sharedAccountId = getAccountId(accounts, madConfig['share-to-account']);
-      const sharedAccounts = await directoryService.findSharedAccounts({ OwnerDirectoryId: directoryId });
-
-      if (!sharedAccounts.includes(sharedAccountId)) {
-        const sharedDirectoryId = await directoryService.shareDirectory({
-          DirectoryId: directoryId,
-          ShareMethod: 'HANDSHAKE', // Sharing outside of an organization use ORGANIZATIONS
-          ShareTarget: {
-            Id: sharedAccountId,
-            Type: 'ACCOUNT',
-          },
-        });
-
-        if (sharedDirectoryId) {
-          console.log('Accepting the request from shared account');
-          const sharedAccountCredentials = await sts.getCredentialsForAccountAndRole(sharedAccountId, assumeRoleName);
-          const sharedAccountDirectoryService = new DirectoryService(sharedAccountCredentials);
-          await sharedAccountDirectoryService.acceptDirectory({
-            SharedDirectoryId: sharedDirectoryId,
-          });
-        }
-      }
+      const shareToAccountId = getAccountId(accounts, madConfig['share-to-account']);
+      await shareDirectory(accountId, directoryId, shareToAccountId);
     }
   }
 
@@ -105,16 +115,19 @@ export const handler = async (input: ShareDirectoryInput) => {
 
   // Below code will find accounts that are shared to OUs
   const oUs = acceleratorConfig.getOrganizationalUnits();
-  for (const [ouKey, ou] of oUs) {
+  for (const [ouKey, ou] of Object.values(oUs)) {
+    console.log('ouKey', ouKey);
     const sharedMadOu = ou['share-mad-from'];
     if (!sharedMadOu) {
       continue;
     }
     const ouAccountConfigs = acceleratorConfig.getAccountConfigsForOu(ouKey);
-    for (const accountKey of Object.keys(ouAccountConfigs)) {
+    for (const [accountKey] of Object.values(ouAccountConfigs)) {
       shareMadToAccounts.push({ accountKey, ownerAccountKey: sharedMadOu });
     }
   }
+
+  console.log('shareMadToAccounts', shareMadToAccounts);
 
   // sharing MAD based on account settings
   for (const shareMadToAccount of Object.values(shareMadToAccounts)) {
@@ -136,36 +149,20 @@ export const handler = async (input: ShareDirectoryInput) => {
       outputType: 'MadOutput',
     });
 
-    const madOuput = madOutputs.find(output => output.id === madDirId);
-    if (!madOuput || !madOuput.directoryId) {
-      throw new Error(`Cannot find madOuput with dir-id ${madDirId}`);
+    const madOutput = madOutputs.find(output => output.id === madDirId);
+    if (!madOutput || !madOutput.directoryId) {
+      throw new Error(`Cannot find madOutput with dir-id ${madDirId}`);
     }
 
-    const directoryId = madOuput.directoryId;
+    const directoryId = madOutput.directoryId;
+    let sharedAccountId;
     const ownerAccountId = getAccountId(accounts, ownerAccountKey);
-    const sharedAccountId = getAccountId(accounts, accountKey);
-    const credentials = await sts.getCredentialsForAccountAndRole(ownerAccountId, assumeRoleName);
-    const directoryService = new DirectoryService(credentials);
-
-    const sharedAccounts = await directoryService.findSharedAccounts({ OwnerDirectoryId: directoryId });
-
-    if (!sharedAccounts.includes(sharedAccountId)) {
-      const sharedDirectoryId = await directoryService.shareDirectory({
-        DirectoryId: directoryId,
-        ShareMethod: 'HANDSHAKE', // Sharing outside of an organization use ORGANIZATIONS
-        ShareTarget: {
-          Id: sharedAccountId,
-          Type: 'ACCOUNT',
-        },
-      });
-
-      if (sharedDirectoryId) {
-        const sharedAccountCredentials = await sts.getCredentialsForAccountAndRole(sharedAccountId, assumeRoleName);
-        const sharedAccountDirectoryService = new DirectoryService(sharedAccountCredentials);
-        await sharedAccountDirectoryService.acceptDirectory({
-          SharedDirectoryId: sharedDirectoryId,
-        });
-      }
+    try {
+      sharedAccountId = getAccountId(accounts, accountKey);
+    } catch (e) {
+      console.warn(`Cannot find account with key ${accountKey}`);
     }
+
+    await shareDirectory(ownerAccountId, directoryId, sharedAccountId);
   }
 };
