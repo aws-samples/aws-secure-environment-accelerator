@@ -9,6 +9,7 @@ import * as config from '@aws-pbmm/common-lambda/lib/config';
 
 export interface VpcSubnetSharingProps extends VpcCommonProps {
   subnets: AzSubnets;
+  vpc: ec2.CfnVPC;
 }
 
 export function getSharedAccounts(
@@ -61,7 +62,7 @@ export class VpcSubnetSharing extends cdk.Construct {
     super(scope, id);
 
     const stack = cdk.Stack.of(this);
-    const { accounts, vpcConfig, subnets: vpcSubnets, organizationalUnitName } = props;
+    const { accounts, vpcConfig, subnets: vpcSubnets, organizationalUnitName, vpc } = props;
 
     // Keep track of what has been shared and put it in the output
     const sharedSubnets: {
@@ -110,7 +111,7 @@ export class VpcSubnetSharing extends cdk.Construct {
     // Output the shared resources and their tags so that the `add-tags-to-shared-resources-step` step in the state
     // machine will add the tags to the shared resources.
     if (sharedSubnets.length > 0) {
-      new AddTagsToResourcesOutput(this, 'OutputSharedResources', {
+      new AddTagsToResourcesOutput(this, 'OutputSharedResourcesSubnets', {
         dependencies: sharedSubnets.map(o => o.subnet),
         produceResources: () =>
           sharedSubnets.map(o => ({
@@ -119,6 +120,18 @@ export class VpcSubnetSharing extends cdk.Construct {
             sourceAccountId: o.sourceAccountId,
             targetAccountIds: o.targetAccountIds,
             tags: o.subnet.tags.renderTags(),
+          })),
+      });
+
+      new AddTagsToResourcesOutput(this, 'OutputSharedResourcesVPC', {
+        dependencies: [vpc],
+        produceResources: () =>
+          sharedSubnets.map(o => ({
+            resourceId: vpc.ref,
+            resourceType: 'vpc',
+            sourceAccountId: o.sourceAccountId,
+            targetAccountIds: o.targetAccountIds,
+            tags: vpc.tags.renderTags(),
           })),
       });
     }

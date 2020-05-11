@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@aws-cdk/aws-accessanalyzer": "1.32.2",
+    "@aws-cdk/aws-autoscaling": "1.32.2",
     "@aws-cdk/aws-cloudformation": "1.32.2",
     "@aws-cdk/aws-config": "1.32.2",
     "@aws-cdk/aws-directoryservice": "1.32.2",
@@ -38,8 +39,10 @@
     "@aws-cdk/aws-route53-targets": "1.32.2",
     "@aws-cdk/aws-route53resolver": "1.32.2",
     "@aws-cdk/aws-s3": "1.32.2",
+    "@aws-cdk/aws-s3-deployment": "1.32.2",
     "@aws-cdk/aws-secretsmanager": "1.32.2",
     "@aws-cdk/aws-sns": "1.32.2",
+    "@aws-cdk/aws-ssm": "1.32.2",
     "@aws-cdk/core": "1.32.2",
     "@aws-cdk/aws-securityhub": "1.32.2",
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",

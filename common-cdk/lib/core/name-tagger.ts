@@ -51,7 +51,7 @@ export class AcceleratorNameTagger implements cdk.IAspect {
     addNameTagAsIdWithSuffix(ec2.CfnDHCPOptions, '_dhcp'),
     addNameTagAsIdWithSuffix(ec2.CfnVolume, '_ebs'),
     addNameTagAsIdWithSuffix(ec2.CfnInternetGateway, '_igw'),
-    addNameTagAsIdWithSuffix(ec2.CfnNatGateway, '_ngw'),
+    addNameTagAsIdWithSuffix(ec2.CfnNatGateway, ''),
     addNameTagAsIdWithSuffix(ec2.CfnVPNGateway, '_vpg'),
     addNameTagAsIdWithSuffix(ec2.CfnCustomerGateway, '_cgw'),
     addNameTagAsIdWithSuffix(ec2.VpnConnection, '_vpn', 200),

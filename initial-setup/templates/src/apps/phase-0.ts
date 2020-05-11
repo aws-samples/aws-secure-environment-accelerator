@@ -15,6 +15,11 @@ import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import * as path from 'path';
+import { JsonOutputValue } from '../common/json-output';
+import { SecurityHubStack } from '../common/security-hub';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -200,6 +205,57 @@ async function main() {
       console.log(`Default assets created for account - ${orgAccount.key}`);
     }
   }
+
+  // creating a bucket to store RDGW Host power shell scripts
+  const rdgwBucket = new s3.Bucket(masterAccountStack, 'RdgwArtifactsBucket', {
+    versioned: true,
+  });
+
+  // Granting read access to all the accounts
+  principals.map(principal => rdgwBucket.grantRead(principal));
+
+  const artifactsFolderPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    'reference-artifacts',
+    'Task_3_0_3b_RDGW_AD',
+  );
+  new s3deployment.BucketDeployment(masterAccountStack, 'RdgwArtifactsDeployment', {
+    sources: [s3deployment.Source.asset(artifactsFolderPath)],
+    destinationBucket: rdgwBucket,
+  });
+
+  // outputs to store RDGW reference artifacts scripts s3 bucket information
+  new JsonOutputValue(masterAccountStack, 'RdgwArtifactsOutput', {
+    type: 'RdgwArtifactsOutput',
+    value: {
+      bucketArn: rdgwBucket.bucketArn,
+      bucketName: rdgwBucket.bucketName,
+      keyPrefix: 'scripts',
+    },
+  });
+
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const subAccountIds = accounts.map(account => {
+    return {
+      AccountId: account.id,
+      Email: account.email,
+    };
+  });
+  const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
+  // Create Security Hub stack for Master Account in Security Account
+  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+    account: securityMasterAccount!,
+    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+    standards: globalOptions['security-hub-frameworks'],
+    subAccountIds,
+  });
 
   // Firewall creation step 1
   await firewall.step1({

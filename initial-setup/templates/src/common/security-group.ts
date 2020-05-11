@@ -32,9 +32,9 @@ export interface SecurityGroupruleProps {
 
 export interface SecurityGroupProps {
   /**
-   * The VPC configuration for the VPC.
+   * Security Group configuration for the VPC.
    */
-  vpcConfig: config.VpcConfig;
+  securityGroups: config.SecurityGroupConfig[];
   /**
    * Current VPC Creation account Key
    */
@@ -43,6 +43,11 @@ export interface SecurityGroupProps {
    * VpcId which is created
    */
   vpcId: string;
+  /**
+   * Vpc Name for which These Security Groups to be created
+   */
+  vpcName: string;
+
   accountVpcConfigs: config.ResolvedVpcConfig[];
 }
 
@@ -52,12 +57,12 @@ export class SecurityGroup extends cdk.Construct {
 
   constructor(parent: cdk.Construct, name: string, props: SecurityGroupProps) {
     super(parent, name);
-    const { vpcConfig, accountKey, vpcId, accountVpcConfigs } = props;
-    const securityGroups = vpcConfig['security-groups'];
+    const { securityGroups, accountKey, vpcId, accountVpcConfigs, vpcName } = props;
+    // const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
     for (const securityGroup of securityGroups || []) {
       const groupName = `${securityGroup.name}_sg`;
-      const groupDescription = `${accountKey} ${vpcConfig.name} Mgmt Security Group`;
+      const groupDescription = `${accountKey} ${vpcName} Mgmt Security Group`;
       const sg = new ec2.CfnSecurityGroup(this, securityGroup.name, {
         vpcId,
         groupDescription,
@@ -75,7 +80,7 @@ export class SecurityGroup extends cdk.Construct {
       const outboundRules = securityGroup['outbound-rules'];
       if (inboundRules) {
         for (const [ruleId, rule] of inboundRules.entries()) {
-          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, vpcConfig, accountVpcConfigs);
+          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, accountVpcConfigs);
           if (ruleParams.length === 0) {
             continue;
           }
@@ -86,7 +91,7 @@ export class SecurityGroup extends cdk.Construct {
       }
       if (outboundRules) {
         for (const [ruleId, rule] of outboundRules.entries()) {
-          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, vpcConfig, accountVpcConfigs);
+          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, accountVpcConfigs);
           if (ruleParams.length === 0) {
             continue;
           }
@@ -164,7 +169,6 @@ export class SecurityGroup extends cdk.Construct {
   prepareSecurityGroupRuleProps = (
     groupName: string,
     rule: config.SecurityGroupRuleConfig,
-    vpcConfig: config.VpcConfig,
     accountVpcConfigs: config.ResolvedVpcConfig[],
   ): SecurityGroupruleProps[] => {
     let ruleProps: SecurityGroupruleProps[] = [];

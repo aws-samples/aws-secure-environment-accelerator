@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
-import { loadAccounts } from '../utils/accounts';
+import { loadAccounts, getAccountId } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
@@ -13,12 +13,13 @@ import { TransitGateway } from '../common/transit-gateway';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
-import { InterfaceEndpointConfig, ResolvedVpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { InterfaceEndpointConfig, PeeringConnectionConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
+import * as iam from '@aws-cdk/aws-iam';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -69,6 +70,33 @@ async function main() {
     accounts,
     context,
   });
+
+  /**
+   * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
+   * @param roleName : Role Name forpeering connection from source to target
+   * @param sourceAccount : Source Account Key, Role will be created in this
+   * @param accountKey : Target Account Key, Access will be provided to this accout
+   */
+  const createIamRoleForPCXAcceptence = (roleName: string, sourceAccount: string, targetAccount: string) => {
+    const accountStack = accountStacks.getOrCreateAccountStack(sourceAccount);
+    const existing = accountStack.node.tryFindChild(roleName);
+    if (existing) {
+      return;
+    }
+    const peeringRole = new iam.Role(accountStack, roleName, {
+      roleName,
+      assumedBy: new iam.ArnPrincipal(
+        `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
+      ),
+    });
+
+    peeringRole.addToPolicy(
+      new iam.PolicyStatement({
+        resources: ['*'],
+        actions: ['ec2:AcceptVpcPeeringConnection'],
+      }),
+    );
+  };
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
@@ -209,6 +237,13 @@ async function main() {
       organizationalUnitName: ouKey,
       accountVpcConfigs,
     });
+
+    const pcxConfig = vpcConfig.pcx;
+    if (PeeringConnectionConfig.is(pcxConfig)) {
+      // Create Accepter Role for Peering Connection
+      const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+      createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
+    }
   }
 
   // Create the firewall

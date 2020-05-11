@@ -133,13 +133,13 @@ export namespace InitialSetup {
       });
 
       const cfnCustomResourceRole = new iam.Role(this, 'CfnCustomResourceRole', {
-        roleName: 'CfnCustomResourceRole',
+        roleName: `${props.acceleratorPrefix}CustomResourceRole`,
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
       });
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
-        roleName: 'AcceleratorMasterRole',
+        roleName: `${props.acceleratorPrefix}AcceleratorMasterRole`,
         assumedBy: new iam.CompositePrincipal(
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
@@ -307,6 +307,7 @@ export namespace InitialSetup {
       });
 
       const createAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}CreateAccount_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}CreateAccount_sm`,
         definition: new CreateAccountTask(scope, 'Create', {
           lambdaCode,
           role: pipelineRole,
@@ -353,6 +354,7 @@ export namespace InitialSetup {
       installRoleTemplate.bucket.grantRead(pipelineRole);
 
       const installRolesStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallRoles_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}InstallRoles_sm`,
         definition: new CreateStackSetTask(this, 'Install', {
           lambdaCode,
           role: pipelineRole,
@@ -433,6 +435,7 @@ export namespace InitialSetup {
       // preDeployParallelTask.branch(enableResourceSharingTask);
 
       const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}Deploy_sm`,
         definition: new BuildTask(this, 'Build', {
           lambdaCode,
           role: pipelineRole,
@@ -575,6 +578,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storePhase3Output = new CodeTask(this, 'Store Phase 3 Output', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
           code: lambdaCode,
@@ -591,6 +608,7 @@ export namespace InitialSetup {
       });
 
       const createAdConnectorStateMachine = new sfn.StateMachine(scope, 'CreateAdConnectorStateMachine', {
+        stateMachineName: `${props.acceleratorPrefix}+CreateAdConnector`,
         definition: new CreateAdConnectorTask(scope, 'CreateAD', {
           lambdaCode,
           role: pipelineRole,
@@ -607,6 +625,42 @@ export namespace InitialSetup {
             stackOutputSecretId: stackOutputSecret.secretArn,
           },
         }),
+      });
+
+      const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-4.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const storePhase4Output = new CodeTask(this, 'Store Phase 4 Output', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const deployPhase5Task = new sfn.Task(this, 'Deploy Phase 5', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-5.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
@@ -626,9 +680,13 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
+          .next(storePhase3Output)
+          .next(deployPhase4Task)
+          .next(storePhase4Output)
           .next(associateHostedZonesTask)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
+          .next(deployPhase5Task)
           .next(createAdConnectorTask)
           .next(accountDefaultSettingsTask),
       });

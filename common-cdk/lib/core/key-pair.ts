@@ -1,42 +1,26 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
-import * as secrets from '@aws-cdk/aws-secretsmanager';
+import { AcceleratorStack, AcceleratorStackProps } from './accelerator-stack';
+import { KeyPair, KeyPairProps } from 'cdk-ec2-key-pair';
 
-export interface SecretProps extends Omit<secrets.SecretProps, 'encryptionKey'> {
-  /**
-   * The name of the secret. It is mandatory to enable cross-account secret sharing.
-   */
-  secretName: string;
-  /**
-   * The actions to grant to the given principals.
-   *
-   * @default ['secretsmanager:GetSecretValue']
-   */
-  actions?: string[];
-  /**
-   * Principals to read access.
-   */
-  principals: iam.IPrincipal[];
-}
+export type KeyPairStackProps = AcceleratorStackProps;
 
 /**
- * This is a utility class that creates a stack to manage secrets. It creates a KMS key that is used to encrypt secrets
+ * This is a utility class that creates a stack to manage ec2 key pair. It creates a KMS key that is used to encrypt key pair
  * and grants access to the secrets manager service.
  *
- * Secrets can be created using the `createSecret` function. This function create a secret in this stack and grants
+ * Key pair can be created using the `createKeyPair` function. This function will create a key pair in this stack and grants
  * the given principals decrypt access on the KMS key and access to retrieve the secret value.
  */
-export class SecretsStack extends cdk.Construct {
+export class KeyPairStack extends AcceleratorStack {
   readonly encryptionKey: kms.Key;
   readonly principals: iam.IPrincipal[] = [];
 
-  constructor(scope: cdk.Construct, name: string) {
-    super(scope, name);
+  constructor(scope: cdk.Construct, id: string, props: KeyPairStackProps) {
+    super(scope, id, props);
 
-    this.encryptionKey = new kms.Key(this, 'EncryptionKey', {
-      alias: `${name}`,
-    });
+    this.encryptionKey = new kms.Key(this, 'KeyPairEncryptionKey');
     this.encryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({
         sid:
@@ -65,22 +49,20 @@ export class SecretsStack extends cdk.Construct {
   /**
    * Create a secret in the stack with the given ID and the given props.
    */
-  createSecret(id: string, props: SecretProps) {
-    const secret = new secrets.Secret(this, id, {
+  createKeyPair(id: string, props: KeyPairProps, principal: iam.IPrincipal) {
+    const keyPair = new KeyPair(this, 'RDGW-Key-Pair', {
       ...props,
-      // The secret needs a physical name to enable cross account sharing
-      encryptionKey: this.encryptionKey,
+      kms: this.encryptionKey,
     });
-    secret.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: props.actions ?? ['secretsmanager:GetSecretValue'],
-        resources: ['*'],
-        principals: props.principals,
-      }),
-    );
-    // Keep track of the principals that need access so we can add them later to the key policy
-    this.principals.push(...props.principals);
-    return secret;
+
+    const keyPairRole = new iam.Role(this, 'Key-pair-Role', {
+      assumedBy: principal,
+    });
+
+    keyPair.grantRead(keyPairRole);
+
+    this.principals.push(principal);
+    // return keyPair;
   }
 
   protected onPrepare(): void {
