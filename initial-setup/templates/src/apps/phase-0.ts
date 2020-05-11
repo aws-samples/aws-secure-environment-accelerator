@@ -246,7 +246,14 @@ async function main() {
   const masterAccountId = getAccountId(accounts, 'master');
   const iamPoliciesBucketName = `pbmmaccel-${masterAccountId}-${cdk.Aws.REGION}`;
   // upload IAM-Policies Artifacts
-  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', 'master', iamPoliciesBucketName, 'iam-policy');
+  uploadArtifacts(
+    'IamPolicy',
+    'Task_5_0_5_IAM_Policy_Docs',
+    'iam-policy',
+    'master',
+    iamPoliciesBucketName,
+    'iam-policy',
+  );
 
   for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
