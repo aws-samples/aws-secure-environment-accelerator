@@ -119,7 +119,7 @@ async function main() {
   // });
 
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
-    const defaultAssetAccountId = getAccountId(accounts, accountKey);
+    const accountId = getAccountId(accounts, accountKey);
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const userPasswords: { [userId: string]: Secret } = {};
 
@@ -139,7 +139,7 @@ async function main() {
               generateSecretString: {
                 passwordLength: 16,
               },
-              principals: [new iam.AccountPrincipal(defaultAssetAccountId)],
+              principals: [new iam.AccountPrincipal(accountId)],
             });
             userPasswords[userId] = password;
           }
@@ -149,14 +149,14 @@ async function main() {
 
     const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
     const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
-      .replace('xxaccountIdxx', defaultAssetAccountId)
+      .replace('xxaccountIdxx', accountId)
       .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
 
     const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
       accountStack,
       `Account Default Settings Assets-${pascalCase(accountKey)}`,
       {
-        accountId: defaultAssetAccountId,
+        accountId,
         accountKey,
         iamConfig,
         accounts,
@@ -206,65 +206,41 @@ async function main() {
     }
   }
 
-  const uploadArtifacts = (
-    artifactName: string,
-    artifactFolderName: string,
-    artifactKeyPrefix: string,
-    accountKey: string,
-    artifactBucketName: string,
-    destinationKeyPrefix?: string,
-  ): void => {
-    // creating a bucket to store artifacts
-    const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
-      versioned: true,
-      bucketName: artifactBucketName,
-    });
-
-    // Granting read access to all the accounts
-    principals.map(principal => artifactBucket.grantRead(principal));
-
-    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
-
-    new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
-      sources: [s3deployment.Source.asset(artifactsFolderPath)],
-      destinationBucket: artifactBucket,
-      destinationKeyPrefix,
-    });
-
-    // outputs to store reference artifacts s3 bucket information
-    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
-      type: `${artifactName}ArtifactsOutput`,
-      value: {
-        accountKey,
-        bucketArn: artifactBucket.bucketArn,
-        bucketName: artifactBucket.bucketName,
-        keyPrefix: artifactKeyPrefix,
-      },
-    });
-  };
-
-  const masterAccountId = getAccountId(accounts, 'master');
-  const iamPoliciesBucketName = `pbmmaccel-${masterAccountId}-${cdk.Aws.REGION}`;
-  // upload IAM-Policies Artifacts
-  uploadArtifacts(
-    'IamPolicy',
-    'Task_5_0_5_IAM_Policy_Docs',
-    'iam-policy',
-    'master',
-    iamPoliciesBucketName,
-    'iam-policy',
-  );
-
   for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
     }
-    const mandatoryAccountId = getAccountId(accounts, accountKey);
-    const rdgwBucketName = `pbmmaccel-${mandatoryAccountId}-${cdk.Aws.REGION}`;
+    const accountId = getAccountId(accounts, accountKey);
+    const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
 
-    // upload RDGW Artifacts
-    uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, rdgwBucketName, 'config/scripts');
+    // creating a bucket to store RDGW Host power shell scripts
+    const rdgwBucket = new s3.Bucket(masterAccountStack, `RdgwArtifactsBucket${accountKey}`, {
+      versioned: true,
+      bucketName,
+    });
+
+    // Granting read access to all the accounts
+    principals.map(principal => rdgwBucket.grantRead(principal));
+
+    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', 'scripts');
+
+    new s3deployment.BucketDeployment(masterAccountStack, `RdgwArtifactsDeployment${accountKey}`, {
+      sources: [s3deployment.Source.asset(artifactsFolderPath)],
+      destinationBucket: rdgwBucket,
+      destinationKeyPrefix: 'config/scripts/',
+    });
+
+    // outputs to store RDGW reference artifacts scripts s3 bucket information
+    new JsonOutputValue(masterAccountStack, `RdgwArtifactsOutput${accountKey}`, {
+      type: 'RdgwArtifactsOutput',
+      value: {
+        accountKey,
+        bucketArn: rdgwBucket.bucketArn,
+        bucketName: rdgwBucket.bucketName,
+        keyPrefix: 'config/scripts/',
+      },
+    });
   }
 
   const globalOptions = acceleratorConfig['global-options'];

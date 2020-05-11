@@ -34,7 +34,9 @@ export class Organizations {
     );
     for await (const summary of summaries) {
       if (summary.Name === name) {
-        return this.describePolicy(summary.Id!);
+        return this.describePolicy({
+          PolicyId: summary.Id!,
+        });
       }
     }
     return undefined;
@@ -115,115 +117,18 @@ export class Organizations {
     );
   }
 
-  /**
-   * to list policies for a target
-   * @param input
-   */
-  async listPoliciesForTarget(input: org.ListPoliciesForTargetRequest): Promise<org.PolicySummary[]> {
-    return listWithNextToken<org.ListPoliciesForTargetRequest, org.ListPoliciesForTargetResponse, org.PolicySummary>(
-      this.client.listPoliciesForTarget.bind(this.client),
-      r => r.Policies!,
-      input,
-    );
+  async describePolicy(input: org.DescribePolicyRequest): Promise<org.DescribePolicyResponse> {
+    return this.client.describePolicy(input).promise();
   }
 
-  /**
-   * to list targets for a policy
-   * @param input
-   */
-  async listTargetsForPolicy(input: org.ListTargetsForPolicyRequest): Promise<org.PolicyTargetSummary[]> {
-    return listWithNextToken<
-      org.ListTargetsForPolicyRequest,
-      org.ListTargetsForPolicyResponse,
-      org.PolicyTargetSummary
-    >(this.client.listTargetsForPolicy.bind(this.client), r => r.Targets!, input);
+  async createPolicy(input: org.CreatePolicyRequest): Promise<org.CreatePolicyResponse> {
+    return this.client.createPolicy(input).promise();
   }
 
-  /**
-   * to get information about a policy
-   * @param policyId
-   */
-  async describePolicy(policyId: string): Promise<org.DescribePolicyResponse> {
-    const params: org.DescribePolicyRequest = {
-      PolicyId: policyId,
-    };
-    return this.client.describePolicy(params).promise();
+  async updatePolicy(input: org.UpdatePolicyRequest): Promise<org.UpdatePolicyResponse> {
+    return this.client.updatePolicy(input).promise();
   }
 
-  /**
-   * to create a policy
-   * @param content
-   * @param description
-   * @param name
-   * @param type
-   */
-  async createPolicy(
-    content: string,
-    description: string,
-    name: string,
-    type: string,
-  ): Promise<org.CreatePolicyResponse> {
-    const params: org.CreatePolicyRequest = {
-      Content: content,
-      Description: description,
-      Name: name,
-      Type: type,
-    };
-    return this.client.createPolicy(params).promise();
-  }
-
-  /**
-   * to update the details of a policy
-   * @param content
-   * @param description
-   * @param name
-   * @param policyId
-   */
-  async updatePolicy(
-    content: string,
-    description: string,
-    name: string,
-    policyId: string,
-  ): Promise<org.UpdatePolicyResponse> {
-    const params: org.UpdatePolicyRequest = {
-      Content: content,
-      Description: description,
-      Name: name,
-      PolicyId: policyId,
-    };
-    return this.client.updatePolicy(params).promise();
-  }
-
-  /**
-   * to attach policy to an OU or account
-   * @param policyId
-   * @param targetId
-   */
-  async attachPolicy(policyId: string, targetId: string): Promise<void> {
-    const params: org.AttachPolicyRequest = {
-      PolicyId: policyId,
-      TargetId: targetId,
-    };
-    await this.client.attachPolicy(params).promise();
-  }
-
-  /**
-   * to detach policy from an OU or account
-   * @param policyId
-   * @param targetId
-   */
-  async detachPolicy(policyId: string, targetId: string): Promise<void> {
-    const params: org.DetachPolicyRequest = {
-      PolicyId: policyId,
-      TargetId: targetId,
-    };
-    await this.client.detachPolicy(params).promise();
-  }
-
-  /**
-   * to enable trusted access for a service
-   * @param servicePrincipal
-   */
   async enableAWSServiceAccess(servicePrincipal: string): Promise<void> {
     const params: org.EnableAWSServiceAccessRequest = {
       ServicePrincipal: servicePrincipal,
@@ -231,11 +136,6 @@ export class Organizations {
     await this.client.enableAWSServiceAccess(params).promise();
   }
 
-  /**
-   * to register delegated administrator for a service
-   * @param accountId
-   * @param servicePrincipal
-   */
   async registerDelegatedAdministrator(accountId: string, servicePrincipal: string): Promise<void> {
     const params: org.RegisterDelegatedAdministratorRequest = {
       AccountId: accountId,
