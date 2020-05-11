@@ -144,7 +144,7 @@ export const SecurityGroupRuleConfigType = t.interface({
 
 export type SecurityGroupRuleConfig = t.TypeOf<typeof SecurityGroupRuleConfigType>;
 
-export const SecurityGroupConfig = t.interface({
+export const SecurityGroupConfigType = t.interface({
   name: NonEmptyString,
   'inbound-rules': t.array(SecurityGroupRuleConfigType),
   'outbound-rules': t.array(SecurityGroupRuleConfigType),
@@ -170,10 +170,11 @@ export const VpcConfigType = t.interface({
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
-  'security-groups': optional(t.array(SecurityGroupConfig)),
+  'security-groups': optional(t.array(SecurityGroupConfigType)),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
+export type SecurityGroupConfig = t.TypeOf<typeof SecurityGroupConfigType>;
 
 export const IamUserConfigType = t.interface({
   'user-ids': t.array(NonEmptyString),
@@ -300,6 +301,7 @@ export const MandatoryAccountConfigType = t.interface({
   'account-name': t.string,
   email: t.string,
   ou: t.string,
+  'share-mad-from': optional(t.string),
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
@@ -316,6 +318,7 @@ export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
   scps: t.array(t.string),
+  'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
 });

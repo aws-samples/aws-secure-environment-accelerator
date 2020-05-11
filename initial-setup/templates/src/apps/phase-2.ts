@@ -7,7 +7,6 @@ import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { JsonOutputValue } from '../common/json-output';
-import { GlobalOptionsDeployment } from '../common/global-options';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput } from './phase-1';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
@@ -49,67 +48,27 @@ async function main() {
   const outputs = await loadStackOutputs();
 
   const app = new cdk.App();
-  const rolesForPeering: string[] = [];
 
-  /**
-   * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
-   * @param roleName : Role Name forpeering connection from source to target
-   * @param sourceAccount : Source Account Key, Role will be created in this
-   * @param accountKey : Target Account Key, Access will be provided to this accout
-   */
-  const createIamRole = (roleName: string, sourceAccount: string, targetAccount: string) => {
-    if (rolesForPeering.includes(roleName)) {
-      return;
+  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
+
+  const getAccountStack = (accountKey: string): AcceleratorStack => {
+    if (accountStacks[accountKey]) {
+      return accountStacks[accountKey];
     }
-    const iamRolePeering = new AcceleratorStack(app, `PBMMAccel-B-${roleName}Stack`, {
+
+    const accountPrettyName = pascalCase(accountKey);
+    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase2`, {
       env: {
-        account: getAccountId(accounts, sourceAccount),
+        account: getAccountId(accounts, accountKey),
         region: cdk.Aws.REGION,
       },
-      stackName: `PBMMAccel-B-${roleName}Stack`,
+      stackName: `PBMMAccel-${accountPrettyName}-Phase2`,
       acceleratorName: context.acceleratorName,
       acceleratorPrefix: context.acceleratorPrefix,
     });
-
-    const peeringRole = new iam.Role(iamRolePeering, roleName, {
-      roleName,
-      assumedBy: new iam.ArnPrincipal(
-        `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
-      ),
-    });
-
-    peeringRole.addToPolicy(
-      new iam.PolicyStatement({
-        resources: ['*'],
-        actions: ['ec2:AcceptVpcPeeringConnection'],
-      }),
-    );
-    rolesForPeering.push(roleName);
+    accountStacks[accountKey] = accountStack;
+    return accountStack;
   };
-
-  /**
-   * Code to create DNS Resolvers
-   */
-  const globalOptionsConfig = acceleratorConfig['global-options'];
-  const zonesConfig = globalOptionsConfig.zones;
-  const zonesAccountKey = zonesConfig.account;
-
-  const deployment = new AcceleratorStack(app, 'PBMMAccel-A-GlobalOptionsDNSResolversStack', {
-    env: {
-      account: getAccountId(accounts, zonesAccountKey),
-      region: cdk.Aws.REGION,
-    },
-    stackName: `PBMMAccel-A-GlobalOptionsDNSResolvers`,
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-  });
-
-  new GlobalOptionsDeployment(deployment, `GlobalOptionsDNSResolvers`, {
-    accounts,
-    outputs,
-    context,
-    acceleratorConfig,
-  });
 
   /**
    * Code to create Peering Connection in all accounts
@@ -123,19 +82,8 @@ async function main() {
     }
     const pcxSourceVpc = pcxConfig['source-vpc'];
     const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
-    createIamRole(roleName, pcxConfig.source, accountKey);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
-
-    const pcxDeployment = new AcceleratorStack(app, `PBMMAccel-C-PcxDeployment${accountKey}${pcxSourceVpc}Stack`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-C-PcxDeployments${accountKey}${vpcConfig.name}Stack`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
-
+    const accountStack = getAccountStack(accountKey);
     // Get Peer VPC Configuration
     const peerVpcConfig = getVpcConfig(vpcConfigs, pcxConfig.source, pcxSourceVpc);
     if (!VpcConfigType.is(peerVpcConfig)) {
@@ -159,7 +107,7 @@ async function main() {
     }
     const peerOwnerId = getAccountId(accounts, pcxConfig.source);
 
-    const pcx = new ec2.CfnVPCPeeringConnection(pcxDeployment, `${vpcConfig.name}-${pcxSourceVpc}_pcx`, {
+    const pcx = new ec2.CfnVPCPeeringConnection(accountStack, `${vpcConfig.name}-${pcxSourceVpc}_pcx`, {
       vpcId: vpcOutput.vpcId,
       peerVpcId: peerVpcOutout.vpcId,
       peerRoleArn,
@@ -169,12 +117,23 @@ async function main() {
     vpcOutput.pcx = pcx.ref;
 
     // Store the VPC output so that subsequent phases can access the output
-    new JsonOutputValue(pcxDeployment, `VpcOutput`, {
+    new JsonOutputValue(accountStack, `VpcOutput`, {
       type: 'VpcOutput',
       // tslint:disable-next-line deprecation
       value: vpcOutput,
     });
   }
+
+  const masterStack = new AcceleratorStack(app, `master`, {
+    env: {
+      account: getAccountId(accounts, 'master'),
+      region: cdk.Aws.REGION,
+    },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    stackName: `PBMMAccel-${pascalCase('master')}`,
+  });
+  const secretsStack = new SecretsStack(masterStack, 'Secrets');
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
@@ -184,17 +143,19 @@ async function main() {
     }
     const accountId = getAccountId(accounts, accountKey);
 
-    const stack = new AcceleratorStack(app, `${accountKey}`, {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: `PBMMAccel-${pascalCase(accountKey)}`,
-    });
+    const stack =
+      accountKey === 'master'
+        ? masterStack
+        : new AcceleratorStack(app, `${accountKey}`, {
+            env: {
+              account: accountId,
+              region: cdk.Aws.REGION,
+            },
+            acceleratorName: context.acceleratorName,
+            acceleratorPrefix: context.acceleratorPrefix,
+            stackName: `PBMMAccel-${pascalCase(accountKey)}`,
+          });
 
-    const secretsStack = new SecretsStack(stack, 'Secrets');
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
       description: 'Password for Managed Active Directory.',
@@ -231,6 +192,7 @@ async function main() {
         vpcName: madDeploymentConfig['vpc-name'],
         directoryId: activeDirectory.directoryId,
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
+        passwordArn: madPassword.secretArn,
       },
     });
   }
@@ -249,6 +211,7 @@ async function main() {
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
+      // const accountStack = getAccountStack(accountKey);
       const securityGroupStack = new AcceleratorStack(app, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`, {
         env: {
           account: sharedAccountId,
@@ -261,8 +224,9 @@ async function main() {
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
       }
-      const securityGroups = new SecurityGroup(securityGroupStack, 'SecurityGroups', {
-        vpcConfig,
+      const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${index + 1}`, {
+        securityGroups: vpcConfig['security-groups']!,
+        vpcName: vpcConfig.name,
         vpcId: vpcOutput.vpcId,
         accountKey,
         accountVpcConfigs: vpcConfigs,
@@ -286,47 +250,18 @@ async function main() {
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
   const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
-  const subAccountIds = accounts.map(account => {
-    return {
-      AccountId: account.id,
-      Email: account.email,
-    };
-  });
-  console.log(subAccountIds);
-  // Create Security Hub stack for Master Account
-  const securityHubMaster = new SecurityHubStack(app, `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`, {
-    env: {
-      account: securityMasterAccount?.id,
-      region: cdk.Aws.REGION,
-    },
-    account: securityMasterAccount!,
-    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    standards: globalOptions['security-hub-frameworks'],
-    stackName: `PBMMAccel-SecurityHub-A-${securityMasterAccount?.key}-Stack`,
-    subAccountIds,
-  });
 
   for (const account of accounts) {
     if (account.id === securityMasterAccount?.id) {
       continue;
     }
-    const securityHubMember = new SecurityHubStack(app, `PBMMAccel-SecurityHub-B-${account.key}-Stack`, {
-      env: {
-        account: account.id,
-        region: cdk.Aws.REGION,
-      },
+    const memberAccountStack = getAccountStack(account.key);
+    const securityHubMember = new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
       account,
       acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
       enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
       inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
       standards: globalOptions['security-hub-frameworks'],
-      stackName: `PBMMAccel-SecurityHub-B-${account.key}-Stack`,
       masterAccountId: securityMasterAccount?.id,
     });
   }

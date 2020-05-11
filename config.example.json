@@ -1,7 +1,33 @@
 {
   "global-options": {
     "alz-minimum-version": "v2.3.1",
+	"alz-baseline": true,
+	"ct-baseline": false,
     "central-log-retention": 730,
+	"default-log-retention": 90,
+	"central-security-services": {
+	   "account": "security",
+	   "security-hub": true,
+	   "guard-duty": true,
+	   "cwl": true,
+	   "access-analyzer": true
+	},
+	"central-operations-services": {
+	   "account": "operations",
+	   "cwl": true,
+	   "cwl-access-level": "full"
+	},
+	"central-log-services": {
+	   "account": "log-archive",
+	   "region": "ca-central-1",
+	   "cwl-glbl-exclusions": ["/xxx/yyy/*","abc/*"],
+	   "cwl-exclusions": {
+	      "account": "fun-acct",
+		  "exclusions": ["def/*"]
+	   },
+	   "ssm-to-s3": true,
+	   "ssm-to-cwl": true
+	},
     "reports": {
       "cost-and-usage-report": {
         "additional-schema-elements": ["RESOURCES"],
@@ -17,6 +43,14 @@
          "report-versioning": "OVERWRITE_REPORT"
       }
     },
+	"conformance-packs": {
+	   "gc-pack": {
+          "install": true,
+          "auto-remediation": true,
+          "monitoring": true,
+          "frequency": 24
+	   }
+	},
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -96,7 +130,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -301,6 +334,40 @@
               "user": "TestUser",
               "groups": ["*-View"]
             }
+          ],
+          "security-groups": [
+            {
+              "name": "RemoteDesktopGatewaySG",
+              "inbound-rules": [
+                {
+                  "description": "Allow Inbound Domain Traffic",
+                  "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
+                  "udp-ports": [445, 138, 464, 53, 389, 123, 88],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Allow Inbound RDSH",
+                  "type": ["TCP"],
+                  "toPort": 3269,
+                  "fromPort": 3268,
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Allow Inbound High Ports",
+                  "type": ["TCP"],
+                  "toPort": 1024,
+                  "fromPort": 65535,
+                  "source": ["0.0.0.0/0"]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0", "0::/0"]
+                }
+              ]
+            }
           ]
         },
         "ops-dashboard": {
@@ -467,7 +534,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": true,
         "vgw": {
           "asn": 65534
@@ -744,6 +810,7 @@
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
+	  "log-retention": 180,
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
         "AWS CloudFormation/Stack count": 400
@@ -778,7 +845,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": false,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -903,7 +969,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": {
@@ -1403,7 +1468,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -1850,7 +1914,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -2297,7 +2360,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -2719,7 +2781,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": true,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": false,
         "vgw": false,
         "pcx": false,
@@ -3123,7 +3184,6 @@
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
-        "log-retention": 90,
         "igw": true,
         "vgw": false,
         "pcx": false,

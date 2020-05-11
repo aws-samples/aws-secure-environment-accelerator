@@ -18,6 +18,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
+import { SecurityHubStack } from '../common/security-hub';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -223,11 +224,14 @@ async function main() {
     artifactName: string,
     artifactFolderName: string,
     artifactKeyPrefix: string,
+    accountKey: string,
+    bucketName: string,
     destinationKeyPrefix?: string,
   ): void => {
     // creating a bucket to store artifacts
-    const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket`, {
+    const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
       versioned: true,
+      bucketName
     });
 
     // Granting read access to all the accounts
@@ -235,23 +239,17 @@ async function main() {
 
     const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
 
-    if (destinationKeyPrefix) {
-      new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment`, {
-        sources: [s3deployment.Source.asset(artifactsFolderPath)],
-        destinationBucket: artifactBucket,
-        destinationKeyPrefix,
-      });
-    } else {
-      new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment`, {
-        sources: [s3deployment.Source.asset(artifactsFolderPath)],
-        destinationBucket: artifactBucket,
-      });
-    }
-
+    new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
+      sources: [s3deployment.Source.asset(artifactsFolderPath)],
+      destinationBucket: artifactBucket,
+      destinationKeyPrefix,
+    });
+  
     // outputs to store reference artifacts s3 bucket information
-    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput`, {
+    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
       type: `${artifactName}ArtifactsOutput`,
       value: {
+        accountKey,
         bucketArn: artifactBucket.bucketArn,
         bucketName: artifactBucket.bucketName,
         keyPrefix: artifactKeyPrefix,
@@ -259,11 +257,41 @@ async function main() {
     });
   };
 
-  // upload RDGW Artifacts
-  uploadArtifacts('Rdgw', 'Task_3_0_3b_RDGW_AD', 'scripts');
-
+  const accountId = getAccountId(accounts, 'master');
+  const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
   // upload IAM-Policies Artifacts
-  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', 'iam-policy');
+  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', 'master', bucketName, 'iam-policy');
+
+  for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+    const madDeploymentConfig = accountConfig.deployments?.mad;
+    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+      continue;
+    }
+    const accountId = getAccountId(accounts, accountKey);
+    const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
+
+    // upload RDGW Artifacts
+    uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, bucketName, 'config/scripts');
+  }
+
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const subAccountIds = accounts.map(account => {
+    return {
+      AccountId: account.id,
+      Email: account.email,
+    };
+  });
+  const securityMasterAccountStack = getAccountStack(securityMasterAccount?.key!);
+  // Create Security Hub stack for Master Account in Security Account
+  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+    account: securityMasterAccount!,
+    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+    standards: globalOptions['security-hub-frameworks'],
+    subAccountIds,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises
