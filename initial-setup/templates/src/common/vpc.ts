@@ -90,41 +90,18 @@ export class VpcStack extends NestedStack {
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name, props);
 
-    // Create the VPC
-    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
-
+    // Create TGW Before Creating VPC
+    let tgw;
     const tgwDeployment = props.vpcProps.tgwDeployment;
     if (tgwDeployment) {
-      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
+      tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
       props.transitGateways.set(tgwDeployment.name!, tgw);
     }
 
-    const tgwAttach = props.vpcProps.vpcConfig['tgw-attach'];
-    if (tgwAttach) {
-      const tgwName = tgwAttach['associate-to-tgw'];
-      const tgw = props.transitGateways.get(tgwName);
-      if (tgw && tgwName.length > 0) {
-        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
-        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
-        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => this.vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-        // Attach VPC To TGW
-        const TgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
-          vpcId: this.vpc.vpcId,
-          subnetIds,
-          transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-        });
-        // Add name tag
-        cdk.Tag.add(TgwAttachment, 'Name', `${this.vpc.name}_${tgwName}_att`);
-      }
+    // Create the VPC
+    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
+    if (tgw) {
+      this.vpc.node.addDependency(tgw);
     }
   }
 }
@@ -223,51 +200,6 @@ export class Vpc extends cdk.Construct {
         });
 
         this.routeTableNameToIdMap[routeTableName] = routeTable.ref;
-        if (!routeTableProp.routes?.find(r => r.target === 'IGW')) {
-          natRouteTables.push(routeTableProp.name);
-        }
-
-        // Add Routes to RouteTable
-        for (const route of routeTableProp.routes ? routeTableProp.routes : []) {
-          let dependsOn: cdk.CfnResource | undefined;
-          let gatewayId: string | undefined;
-          if (route.target === 'IGW') {
-            gatewayId = igw?.ref;
-            dependsOn = igwAttach;
-          } else if (route.target === 'VGW') {
-            gatewayId = vgw?.ref;
-            dependsOn = vgwAttach;
-          } else if (route.target.toLowerCase() === 's3') {
-            s3Routes.push(routeTable.ref);
-            continue;
-          } else if (route.target.toLowerCase() === 'dynamodb') {
-            dynamoRoutes.push(routeTable.ref);
-            continue;
-          } else if (route.target === 'TGW' && tgwAttach) {
-            const tgwName = tgwAttach['associate-to-tgw'];
-            const tgw = props.transitGateways.get(tgwName);
-            dependsOn = tgw?.tgw;
-            new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
-              routeTableId: routeTable.ref,
-              destinationCidrBlock: route.destination as string,
-              transitGatewayId: tgw?.tgwId,
-            });
-            continue;
-          } else {
-            // Need to add for different Routes
-            continue;
-          }
-
-          const params: ec2.CfnRouteProps = {
-            routeTableId: routeTable.ref,
-            destinationCidrBlock: route.destination as string,
-            gatewayId,
-          };
-          const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
-          if (dependsOn) {
-            cfnRoute.addDependsOn(dependsOn);
-          }
-        }
       }
     }
 
@@ -333,6 +265,91 @@ export class Vpc extends cdk.Construct {
       }
     }
 
+    let tgwAttachment;
+    if (tgwAttach) {
+      const tgwName = tgwAttach['associate-to-tgw'];
+      const tgw = props.transitGateways.get(tgwName);
+      if (tgw && tgwName.length > 0) {
+        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
+          vpcId: this.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+        // Add name tag
+        cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
+      }
+    }
+
+    // Add Routes to Route Tables
+    if (routeTablesProps) {
+      for (const routeTableProp of routeTablesProps) {
+        if (routeTableProp.name === 'default') {
+          continue;
+        }
+        const routeTableName = routeTableProp.name;
+        const routeTableObj = this.routeTableNameToIdMap[routeTableName];
+        if (!routeTableProp.routes?.find(r => r.target === 'IGW')) {
+          natRouteTables.push(routeTableProp.name);
+        }
+
+        // Add Routes to RouteTable
+        for (const route of routeTableProp.routes ? routeTableProp.routes : []) {
+          let dependsOn: cdk.CfnResource | undefined;
+          let gatewayId: string | undefined;
+          if (route.target === 'IGW') {
+            gatewayId = igw?.ref;
+            dependsOn = igwAttach;
+          } else if (route.target === 'VGW') {
+            gatewayId = vgw?.ref;
+            dependsOn = vgwAttach;
+          } else if (route.target.toLowerCase() === 's3') {
+            s3Routes.push(routeTableObj);
+            continue;
+          } else if (route.target.toLowerCase() === 'dynamodb') {
+            dynamoRoutes.push(routeTableObj);
+            continue;
+          } else if (route.target === 'TGW' && tgwAttach && tgwAttachment) {
+            const tgwName = tgwAttach['associate-to-tgw'];
+            const tgw = props.transitGateways.get(tgwName);
+            dependsOn = tgw?.tgw;
+            const tgwRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
+              routeTableId: routeTableObj,
+              destinationCidrBlock: route.destination as string,
+              transitGatewayId: tgw?.tgwId,
+            });
+            tgwRoute.addDependsOn(tgwAttachment.tgwAttach);
+            continue;
+          } else {
+            // Need to add for different Routes
+            continue;
+          }
+
+          const params: ec2.CfnRouteProps = {
+            routeTableId: routeTableObj,
+            destinationCidrBlock: route.destination as string,
+            gatewayId,
+          };
+          const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
+          if (dependsOn) {
+            cfnRoute.addDependsOn(dependsOn);
+          }
+        }
+      }
+    }
+
     // Create VPC Gateway End Point
     const gatewayEndpoints = props.vpcProps.vpcConfig['gateway-endpoints'] || [];
     for (const gwEndpointName of gatewayEndpoints) {
@@ -377,7 +394,8 @@ export class Vpc extends cdk.Construct {
     // Create all security groups
     if (vpcConfig['security-groups']) {
       new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
-        vpcConfig,
+        securityGroups: vpcConfig['security-groups'],
+        vpcName: vpcConfig.name,
         vpcId: this.vpcId,
         accountKey,
         accountVpcConfigs: accountVpcConfigs!,
