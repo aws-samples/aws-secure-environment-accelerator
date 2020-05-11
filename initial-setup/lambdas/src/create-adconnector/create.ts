@@ -68,9 +68,9 @@ export const handler = async (input: AdConnectorInput) => {
     });
 
     // Finding the MAD output based on connect-dir-id
-    const madOutput = madOutputs.find(output => output.id === adcConfig['connect-dir-id']);
-    if (!madOutput) {
-      throw new Error(`Cannot find madOutput with account ${adcConfig['connect-account-key']}`);
+    const madOuput = madOutputs.find(output => output.id === adcConfig['connect-dir-id']);
+    if (!madOuput) {
+      throw new Error(`Cannot find madOuput with account ${adcConfig['connect-account-key']}`);
     }
 
     // Finding the account specific MAD configuration based on dir-id and connect-dir-id
@@ -84,12 +84,6 @@ export const handler = async (input: AdConnectorInput) => {
     const madConfig = madDeployConfig.deployments?.mad;
     if (!madConfig) {
       throw new Error(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
-    }
-
-    const adConnectorGroup = madConfig['adc-group'];
-    const adConnectorUser = madConfig['ad-users'].find(u => u.groups.includes(adConnectorGroup));
-    if (!adConnectorUser) {
-      throw new Error(`Cannot find AD Connector user in account ${adcConfig['connect-account-key']}`);
     }
 
     // Getting VPC outputs by account name
@@ -109,14 +103,12 @@ export const handler = async (input: AdConnectorInput) => {
 
     const accountId = getAccountId(accounts, accountKey);
     // TODO Getting admin password, update with user specific password after creating AD Users and Groups
-    const madPassword = await secrets.getSecret(
-      `accelerator/${adcConfig['connect-account-key']}/mad/${adConnectorUser.user}/password`,
-    );
+    const madPassword = await secrets.getSecret(`accelerator/${adcConfig['connect-account-key']}/mad/password`);
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const directoryService = new DirectoryService(credentials);
     const adConnectors = await directoryService.getADConnectors();
     const adConnector = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
-    console.log('Active AD Connector', adConnector);
+    console.log('Active AD Conenctor', adConnector);
 
     // Creating AD Connector if there are no active AD Connector with the given dns-domain
     if (!adConnector) {
@@ -128,8 +120,8 @@ export const handler = async (input: AdConnectorInput) => {
         ConnectSettings: {
           VpcId: vpc.vpcId,
           SubnetIds: subnetIds,
-          CustomerDnsIps: madOutput.dnsIps.split(','),
-          CustomerUserName: adConnectorUser.user,
+          CustomerDnsIps: madOuput.dnsIps.split(','),
+          CustomerUserName: 'admin', // TODO update username after creating AD Users and Groups
         },
       });
       if (directoryId) {
