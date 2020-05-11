@@ -195,15 +195,18 @@ async function main() {
     }
     const accountId = getAccountId(accounts, accountKey);
 
-    const stack = accountKey==='master' ? masterStack : new AcceleratorStack(app, `${accountKey}`, {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: `PBMMAccel-${pascalCase(accountKey)}`,
-    });
+    const stack =
+      accountKey === 'master'
+        ? masterStack
+        : new AcceleratorStack(app, `${accountKey}`, {
+            env: {
+              account: accountId,
+              region: cdk.Aws.REGION,
+            },
+            acceleratorName: context.acceleratorName,
+            acceleratorPrefix: context.acceleratorPrefix,
+            stackName: `PBMMAccel-${pascalCase(accountKey)}`,
+          });
 
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
