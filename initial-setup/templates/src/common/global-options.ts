@@ -191,7 +191,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       const madConfig = deploymentConfig.mad;
       let madIPs: string[];
       const madOutput = getStackJsonOutput(outputs, {
-        accountKey: accountKey,
+        accountKey,
         outputType: 'MadOutput',
       });
       if (madOutput.length === 0) {
