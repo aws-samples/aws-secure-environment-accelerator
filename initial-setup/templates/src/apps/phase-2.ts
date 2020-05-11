@@ -124,6 +124,17 @@ async function main() {
     });
   }
 
+  const masterStack = new AcceleratorStack(app, `master`, {
+    env: {
+      account: getAccountId(accounts, 'master'),
+      region: cdk.Aws.REGION,
+    },
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    stackName: `PBMMAccel-${pascalCase('master')}`,
+  });
+  const secretsStack = new SecretsStack(masterStack, 'Secrets');
+
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
@@ -132,17 +143,19 @@ async function main() {
     }
     const accountId = getAccountId(accounts, accountKey);
 
-    const stack = new AcceleratorStack(app, `${accountKey}`, {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: `PBMMAccel-${pascalCase(accountKey)}`,
-    });
+    const stack =
+      accountKey === 'master'
+        ? masterStack
+        : new AcceleratorStack(app, `${accountKey}`, {
+            env: {
+              account: accountId,
+              region: cdk.Aws.REGION,
+            },
+            acceleratorName: context.acceleratorName,
+            acceleratorPrefix: context.acceleratorPrefix,
+            stackName: `PBMMAccel-${pascalCase(accountKey)}`,
+          });
 
-    const secretsStack = new SecretsStack(stack, 'Secrets');
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
       description: 'Password for Managed Active Directory.',
