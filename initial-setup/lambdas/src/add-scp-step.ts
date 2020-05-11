@@ -7,7 +7,7 @@ import { Account } from './load-accounts-step';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 
 interface AddScpInput {
-  acceleratorPrefix: string,
+  acceleratorPrefix: string;
   configSecretId: string;
   scpBucketName: string;
   scpBucketPrefix: string;

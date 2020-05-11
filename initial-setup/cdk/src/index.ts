@@ -409,7 +409,7 @@ export namespace InitialSetup {
       });
 
       const artifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', artifactFolderName);
-    
+
       new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
         sources: [s3deployment.Source.asset(artifactsFolderPath)],
         destinationBucket: artifactBucket,
