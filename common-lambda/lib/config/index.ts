@@ -299,6 +299,7 @@ export const MandatoryAccountConfigType = t.interface({
   limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
   deployments: optional(DeploymentConfigType),
+  'log-retention': optional(t.number),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -345,6 +346,7 @@ export const SecurityHubFrameworksConfigType = t.interface({
 });
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
+  'default-log-retention': t.number,
   'central-bucket': NonEmptyString,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,

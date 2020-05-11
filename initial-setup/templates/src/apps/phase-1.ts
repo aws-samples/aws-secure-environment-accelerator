@@ -60,6 +60,7 @@ async function main() {
   const limiter = new Limiter(limits);
 
   const globalOptions = acceleratorConfig['global-options'];
+  const accountConfigs = acceleratorConfig['mandatory-account-configs'];
 
   const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
   const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
@@ -105,8 +106,9 @@ async function main() {
     }
 
     const accountStack = getAccountStack(accountKey);
+    const logRetention = accountConfigs[accountKey]['log-retention'];
     const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
-      expirationInDays: globalOptions['central-log-retention'],
+      expirationInDays: logRetention ? logRetention : globalOptions['default-log-retention'],
       replication: {
         accountId: logArchiveAccountId,
         bucketArn: logArchiveS3BucketArn,
