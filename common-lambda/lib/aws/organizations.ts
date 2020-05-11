@@ -116,6 +116,30 @@ export class Organizations {
   }
 
   /**
+   * to list policies for a target
+   * @param input 
+   */
+  async listPoliciesForTarget(input: org.ListPoliciesForTargetRequest): Promise<org.PolicySummary[]> {
+    return listWithNextToken<org.ListPoliciesForTargetRequest, org.ListPoliciesForTargetResponse, org.PolicySummary>(
+      this.client.listPoliciesForTarget.bind(this.client),
+      r => r.Policies!,
+      input,
+    );
+  }
+
+  /**
+   * to list targets for a policy
+   * @param input 
+   */
+  async listTargetsForPolicy(input: org.ListTargetsForPolicyRequest): Promise<org.PolicyTargetSummary[]> {
+    return listWithNextToken<org.ListTargetsForPolicyRequest, org.ListTargetsForPolicyResponse, org.PolicyTargetSummary>(
+      this.client.listTargetsForPolicy.bind(this.client),
+      r => r.Targets!,
+      input,
+    );
+  }
+
+  /**
    * to get information about a policy
    * @param policyId
    */
@@ -150,12 +174,19 @@ export class Organizations {
 
   /**
    * to update the details of a policy
+   * @param content
    * @param description
    * @param name
    * @param policyId
    */
-  async updatePolicy(description: string, name: string, policyId: string): Promise<org.UpdatePolicyResponse> {
+  async updatePolicy(
+    content: string,
+    description: string,
+    name: string,
+    policyId: string,
+  ): Promise<org.UpdatePolicyResponse> {
     const params: org.UpdatePolicyRequest = {
+      Content: content,
       Description: description,
       Name: name,
       PolicyId: policyId,

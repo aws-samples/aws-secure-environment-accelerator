@@ -17,6 +17,8 @@ import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 
 interface BuildProps {
   lambdaCode: lambda.Code;
@@ -396,10 +398,28 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
-      // TODO We might want to load this from the Landing Zone configuration
-      const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
-      const nonCoreMandatoryScpName = 'aws-landing-zone-non-core-mandatory-preventive-guardrails';
-      const lzScpNames: string[] = [coreMandatoryScpName, nonCoreMandatoryScpName];
+      const artifactName = 'Scp';
+      const artifactFolderName = 'SCPs';
+      const destinationKeyPrefix = 'scp';
+      // creating a bucket to store artifacts
+      const artifactBucket = new s3.Bucket(stack, `${artifactName}ArtifactsBucket`, {
+        versioned: true,
+      });
+
+      const artifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', artifactFolderName);
+
+      if (destinationKeyPrefix) {
+        new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
+          sources: [s3deployment.Source.asset(artifactsFolderPath)],
+          destinationBucket: artifactBucket,
+          destinationKeyPrefix,
+        });
+      } else {
+        new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
+          sources: [s3deployment.Source.asset(artifactsFolderPath)],
+          destinationBucket: artifactBucket,
+        });
+      }
 
       const addScpTask = new CodeTask(this, 'Add SCP to Org', {
         functionProps: {
@@ -408,8 +428,10 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          roleName: props.stateMachineExecutionRole,
-          policyNames: lzScpNames,
+          configSecretId: configSecretInProgress.secretArn,
+          scpBucketName: artifactBucket.bucketName,
+          scpBucketPrefix: destinationKeyPrefix,
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });

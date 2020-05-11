@@ -223,7 +223,7 @@ async function main() {
     artifactName: string,
     artifactFolderName: string,
     artifactKeyPrefix: string,
-    destinationPrefix?: string,
+    destinationKeyPrefix?: string,
   ): void => {
     // creating a bucket to store artifacts
     const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket`, {
@@ -235,11 +235,11 @@ async function main() {
 
     const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
 
-    if (destinationPrefix) {
+    if (destinationKeyPrefix) {
       new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment`, {
         sources: [s3deployment.Source.asset(artifactsFolderPath)],
         destinationBucket: artifactBucket,
-        destinationPrefix,
+        destinationKeyPrefix,
       });
     } else {
       new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment`, {
@@ -263,7 +263,7 @@ async function main() {
   uploadArtifacts('Rdgw', 'Task_3_0_3b_RDGW_AD', 'scripts');
 
   // upload IAM-Policies Artifacts
-  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', '/iam-policy');
+  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', 'iam-policy');
 }
 
 // tslint:disable-next-line: no-floating-promises
