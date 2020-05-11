@@ -76,16 +76,48 @@
       ]
     },
     "central-bucket": "pbmmaccel-config-123456789012",
-    "scps": {
-      "alz-core": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json",
-      "alz-non-core": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json",
-      "guardrails-part1": "PBMMAccel-Guardrails-Part1.json",
-      "guardrails-part2": "PBMMAccel-Guardrails-Part2.json",
-      "guardrails-pbmm-only": "PBMMAccel-Guardrails-PBMM-Only.json",
-      "guardrails-unclass-only": "PBMMAccel-Guardrails-Unclass-Only.json",
-      "quarantine-deny-all": "Quarantine-Deny-All.json",
-      "full-access": "Full-AWS-Access.json"
+    "scps": [
+      {
+        "name": "alz-core",
+        "description": "Preventive Guardrail for core OU",
+        "policy": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json"
     },
+    {
+      "name": "alz-non-core",
+      "description": "Preventive Guardrail for non core OU",
+      "policy": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json"
+    },
+    {
+      "name": "guardrails-part1",
+      "description": "Guardrails part 1",
+      "policy": "PBMMAccel-Guardrails-Part1.json"
+    },
+    {
+      "name": "guardrails-part2",
+      "description": "Guardrails part 2",
+      "policy": "PBMMAccel-Guardrails-Part2.json"
+    },
+    {
+      "name": "guardrails-pbmm-only",
+      "description": "Guardrails PBMM Only",
+      "policy": "PBMMAccel-Guardrails-PBMM-Only.json"
+    },
+    {
+      "name": "guardrails-unclass-only",
+      "description": "Guardrails unclass Only",
+      "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
+    },
+    {
+      "name": "quarantine-deny-all",
+      "description": "Quarantine Deny All",
+      "policy": "Quarantine-Deny-All.json"
+    },
+    {
+      "name": "full-access",
+      "description": "Full Access",
+      "policy": "Full-AWS-Access.json"
+    }
+  ],
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
@@ -965,12 +997,12 @@
     "core": {
       "type": "ignore",
       "share-mad-from": "",
-      "SCPs": ["ALZ-Core"]
+      "scps": ["alz-core"]
     },
     "central": {
       "type": "mandatory",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "certificates": [
         {
           "name": "CentralSelf-SignedCert",
@@ -1445,7 +1477,7 @@
     "dev": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "certificates": [
         {
           "name": "DevSelf-SignedCert",
@@ -1891,7 +1923,7 @@
     "test": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "certificates": [
         {
           "name": "TestSelf-SignedCert",
@@ -2337,7 +2369,7 @@
     "prod": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "certificates": [
         {
           "name": "ProdSelf-SignedCert",
@@ -2783,7 +2815,7 @@
     "unclass": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-unclass-only"],
       "certificates": [
         {
           "name": "UnclassSelf-SignedCert",
@@ -3204,7 +3236,7 @@
     "sandbox": {
       "type": "workload",
       "share-mad-from": "",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-unclass-only"],
       "vpc": {
         "deploy": "local",
         "name": "Sandbox",
