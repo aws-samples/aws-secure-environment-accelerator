@@ -19,6 +19,7 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 export interface RdgwArtifactsOutput {
+  accountKey: string;
   bucketArn: string;
   bucketName: string;
   keyPrefix: string;
@@ -33,16 +34,16 @@ async function main() {
 
   const app = new cdk.App();
 
-  const masterStack = new AcceleratorStack(app, 'MasterStack', {
+  const madPasswordStack = new AcceleratorStack(app, 'MadPasswordStack', {
     env: {
-      account: getAccountId(accounts, 'master'),
+      account: getAccountId(accounts, 'master'), // need to remove hard coded account name
       region: cdk.Aws.REGION,
     },
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Secrets',
+    stackName: 'PBMMAccel-MadPassword',
   });
-  const secretsStack = new SecretsStack(masterStack, 'Secrets');
+  const secretsStack = new SecretsStack(madPasswordStack, 'Secrets');
 
   type UserSecrets = UserSecret[];
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
@@ -115,17 +116,19 @@ async function main() {
       ssm.ParameterType.AWS_EC2_IMAGE_ID,
     );
 
-    const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
+    const rdgwScriptsOutputs: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
       accountKey: 'master',
       outputType: 'RdgwArtifactsOutput',
     });
 
-    if (rdgwScriptsOutput.length === 0) {
-      throw new Error(`Cannot find output with RDGW reference artifacts`);
+    console.log('rdgwScriptsOutputs', rdgwScriptsOutputs);
+    const rdgwScriptsOutput = rdgwScriptsOutputs.find(output => output.accountKey === accountKey);
+    if (!rdgwScriptsOutput) {
+      throw new Error(`Cannot find scripts folder with output type RdgwArtifactsOutput for account name ${accountKey}`);
     }
 
-    const s3BucketName = rdgwScriptsOutput[0].bucketName;
-    const S3KeyPrefix = rdgwScriptsOutput[0].keyPrefix + '/';
+    const s3BucketName = rdgwScriptsOutput.bucketName;
+    const S3KeyPrefix = rdgwScriptsOutput.keyPrefix;
     console.log('RDGW reference scripts s3 bucket name with key ', s3BucketName, S3KeyPrefix);
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
@@ -139,7 +142,7 @@ async function main() {
     const vpcId = vpcOutput.vpcId;
     const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madDeploymentConfig.subnet).map(s => s.subnetId);
 
-    new ADUsersAndGroups(stack, 'RDGWHost', {
+    new ADUsersAndGroups(stack, `RDGWHost${accountKey}`, {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,

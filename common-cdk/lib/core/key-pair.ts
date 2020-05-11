@@ -54,15 +54,8 @@ export class KeyPairStack extends AcceleratorStack {
       ...props,
       kms: this.encryptionKey,
     });
-
-    const keyPairRole = new iam.Role(this, 'Key-pair-Role', {
-      assumedBy: principal,
-    });
-
-    keyPair.grantRead(keyPairRole);
-
     this.principals.push(principal);
-    // return keyPair;
+    return keyPair;
   }
 
   protected onPrepare(): void {

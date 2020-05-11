@@ -219,37 +219,42 @@ async function main() {
     }
   }
 
-  // creating a bucket to store RDGW Host power shell scripts
-  const rdgwBucket = new s3.Bucket(masterAccountStack, 'RdgwArtifactsBucket', {
-    versioned: true,
-  });
+  for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+    const madDeploymentConfig = accountConfig.deployments?.mad;
+    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+      continue;
+    }
+    const accountId = getAccountId(accounts, accountKey);
+    const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
 
-  // Granting read access to all the accounts
-  principals.map(principal => rdgwBucket.grantRead(principal));
+    // creating a bucket to store RDGW Host power shell scripts
+    const rdgwBucket = new s3.Bucket(masterAccountStack, `RdgwArtifactsBucket${accountKey}`, {
+      versioned: true,
+      bucketName,
+    });
 
-  const artifactsFolderPath = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    '..',
-    'reference-artifacts',
-    'Task_3_0_3b_RDGW_AD',
-  );
-  new s3deployment.BucketDeployment(masterAccountStack, 'RdgwArtifactsDeployment', {
-    sources: [s3deployment.Source.asset(artifactsFolderPath)],
-    destinationBucket: rdgwBucket,
-  });
+    // Granting read access to all the accounts
+    principals.map(principal => rdgwBucket.grantRead(principal));
 
-  // outputs to store RDGW reference artifacts scripts s3 bucket information
-  new JsonOutputValue(masterAccountStack, 'RdgwArtifactsOutput', {
-    type: 'RdgwArtifactsOutput',
-    value: {
-      bucketArn: rdgwBucket.bucketArn,
-      bucketName: rdgwBucket.bucketName,
-      keyPrefix: 'scripts',
-    },
-  });
+    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', 'scripts');
+
+    new s3deployment.BucketDeployment(masterAccountStack, `RdgwArtifactsDeployment${accountKey}`, {
+      sources: [s3deployment.Source.asset(artifactsFolderPath)],
+      destinationBucket: rdgwBucket,
+      destinationKeyPrefix: 'config/scripts/',
+    });
+
+    // outputs to store RDGW reference artifacts scripts s3 bucket information
+    new JsonOutputValue(masterAccountStack, `RdgwArtifactsOutput${accountKey}`, {
+      type: 'RdgwArtifactsOutput',
+      value: {
+        accountKey,
+        bucketArn: rdgwBucket.bucketArn,
+        bucketName: rdgwBucket.bucketName,
+        keyPrefix: 'config/scripts/',
+      },
+    });
+  }
 }
 
 // tslint:disable-next-line: no-floating-promises
