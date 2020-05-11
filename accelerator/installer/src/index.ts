@@ -57,6 +57,11 @@ async function main() {
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
 
+  const email = new cdk.CfnParameter(stack, 'Email', {
+    default: '',
+    description: 'The notification email that will get Code Release notifications.',
+  });
+
   const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine`;
 
   // The state machine name has to match the name of the state machine in initial setup
@@ -196,6 +201,15 @@ async function main() {
             branch: githubBranch.valueAsString,
             oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
             output: sourceArtifact,
+          }),
+        ],
+      },
+      {
+        stageName: 'ManualApproval',
+        actions: [
+          new actions.ManualApprovalAction({
+            actionName: 'Approval',
+            notifyEmails: [email.valueAsString],
           }),
         ],
       },

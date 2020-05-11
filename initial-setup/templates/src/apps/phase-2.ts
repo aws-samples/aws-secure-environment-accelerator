@@ -124,16 +124,16 @@ async function main() {
     });
   }
 
-  const madPasswordStack = new AcceleratorStack(app, 'MadPasswordStack', {
+  const masterStack = new AcceleratorStack(app, `master`, {
     env: {
-      account: getAccountId(accounts, 'master'), // need to remove hard coded account name
+      account: getAccountId(accounts, 'master'),
       region: cdk.Aws.REGION,
     },
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-MadPassword',
+    stackName: `PBMMAccel-${pascalCase('master')}`,
   });
-  const secretsStack = new SecretsStack(madPasswordStack, 'Secrets');
+  const secretsStack = new SecretsStack(masterStack, 'Secrets');
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
@@ -143,15 +143,18 @@ async function main() {
     }
     const accountId = getAccountId(accounts, accountKey);
 
-    const stack = new AcceleratorStack(app, `${accountKey}`, {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: `PBMMAccel-${pascalCase(accountKey)}`,
-    });
+    const stack =
+      accountKey === 'master'
+        ? masterStack
+        : new AcceleratorStack(app, `${accountKey}`, {
+            env: {
+              account: accountId,
+              region: cdk.Aws.REGION,
+            },
+            acceleratorName: context.acceleratorName,
+            acceleratorPrefix: context.acceleratorPrefix,
+            stackName: `PBMMAccel-${pascalCase(accountKey)}`,
+          });
 
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
