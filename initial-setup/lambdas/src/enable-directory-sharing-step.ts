@@ -18,6 +18,7 @@ interface MadOutput {
   vpcName: string;
   directoryId: string;
   dnsIps: string;
+  passwordArn: string;
 }
 
 export const handler = async (input: ShareDirectoryInput) => {

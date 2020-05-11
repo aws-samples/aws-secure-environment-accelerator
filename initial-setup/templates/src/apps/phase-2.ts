@@ -192,6 +192,7 @@ async function main() {
         vpcName: madDeploymentConfig['vpc-name'],
         directoryId: activeDirectory.directoryId,
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
+        passwordArn: madPassword.secretArn,
       },
     });
   }
