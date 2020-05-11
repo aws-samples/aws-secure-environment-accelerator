@@ -409,19 +409,12 @@ export namespace InitialSetup {
       });
 
       const artifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', artifactFolderName);
-
-      if (destinationKeyPrefix) {
-        new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
-          sources: [s3deployment.Source.asset(artifactsFolderPath)],
-          destinationBucket: artifactBucket,
-          destinationKeyPrefix,
-        });
-      } else {
-        new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
-          sources: [s3deployment.Source.asset(artifactsFolderPath)],
-          destinationBucket: artifactBucket,
-        });
-      }
+    
+      new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
+        sources: [s3deployment.Source.asset(artifactsFolderPath)],
+        destinationBucket: artifactBucket,
+        destinationKeyPrefix,
+      });
 
       const addScpTask = new CodeTask(this, 'Add SCP to Org', {
         functionProps: {
@@ -430,6 +423,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           configSecretId: configSecretInProgress.secretArn,
           scpBucketName: artifactBucket.bucketName,
           scpBucketPrefix: destinationKeyPrefix,

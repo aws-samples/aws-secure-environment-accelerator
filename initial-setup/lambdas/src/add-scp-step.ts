@@ -7,6 +7,7 @@ import { Account } from './load-accounts-step';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 
 interface AddScpInput {
+  acceleratorPrefix: string,
   configSecretId: string;
   scpBucketName: string;
   scpBucketPrefix: string;
@@ -17,7 +18,7 @@ export const handler = async (input: AddScpInput) => {
   console.log(`Adding service control policy to Organization...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configSecretId, scpBucketName, scpBucketPrefix, accounts } = input;
+  const { acceleratorPrefix, configSecretId, scpBucketName, scpBucketPrefix, accounts } = input;
 
   const secrets = new SecretsManager();
   const source = await secrets.getSecret(configSecretId);
@@ -38,7 +39,7 @@ export const handler = async (input: AddScpInput) => {
   const pbmmPolicyNames: string[] = [];
 
   for (const policy of policiesList) {
-    if (policy.Name?.startsWith('PBMMAccel-')) {
+    if (policy.Name?.startsWith(acceleratorPrefix)) {
       pbmmPolicyNames.push(policy.Name);
     } else {
       lzPolicyNames.push(policy.Name!);
@@ -62,7 +63,7 @@ export const handler = async (input: AddScpInput) => {
       throw e;
     }
 
-    const pbmmPolicyName = scp.name.startsWith('PBPBMMAccel-') ? scp.name : `PBMMAccel-${scp.name}`;
+    const pbmmPolicyName = scp.name.startsWith(acceleratorPrefix) ? scp.name : `${acceleratorPrefix}${scp.name}`;
     if (pbmmPolicyNames.includes(pbmmPolicyName)) {
       const existingPolicy = policiesList.find(x => x.Name === pbmmPolicyName);
       const existingPolicyId = existingPolicy?.Id;
@@ -180,7 +181,7 @@ export const handler = async (input: AddScpInput) => {
     const listPoliciesForTargetResponse = await organizations.listPoliciesForTarget(listPoliciesForTargetRequest);
 
     for (const orgScp of orgScpList) {
-      const pbmmScpName = `PBMMAccel-${orgScp}`;
+      const pbmmScpName = `${acceleratorPrefix}${orgScp}`;
       const target = listPoliciesForTargetResponse.find(x => x.Name === pbmmScpName);
       const policy = policiesList.find(x => x.Name === pbmmScpName);
       if (!target) {
