@@ -18,6 +18,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
+import { SecurityHubStack } from '../common/security-hub';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -233,6 +234,7 @@ async function main() {
       bucketName,
     });
 
+
     // Granting read access to all the accounts
     principals.map(principal => rdgwBucket.grantRead(principal));
 
@@ -255,6 +257,25 @@ async function main() {
       },
     });
   }
+
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const subAccountIds = accounts.map(account => {
+    return {
+      AccountId: account.id,
+      Email: account.email,
+    };
+  });
+  const securityMasterAccountStack = getAccountStack(securityMasterAccount?.key!);
+  // Create Security Hub stack for Master Account in Security Account
+  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+    account: securityMasterAccount!,
+    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+    standards: globalOptions['security-hub-frameworks'],
+    subAccountIds,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises
