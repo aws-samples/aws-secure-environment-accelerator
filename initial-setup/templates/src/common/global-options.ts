@@ -6,7 +6,7 @@ import { Route53Zones } from './r53-zones';
 import { Route53ResolverEndpoint } from './r53-resolver-endpoint';
 import { Route53ResolverRule } from './r53-resolver-rule';
 import { StackOutput, getStackJsonOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { VpcOutput } from '../apps/phase-1';
+import { VpcOutput } from '../deployments/vpc';
 import { JsonOutputValue } from './json-output';
 import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '../apps/phase-2';
 

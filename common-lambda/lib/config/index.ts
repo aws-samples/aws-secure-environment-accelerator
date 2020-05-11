@@ -207,7 +207,7 @@ export const IamConfigType = t.interface({
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
 export const TgwDeploymentConfigType = t.interface({
-  name: optional(NonEmptyString),
+  name: t.string,
   asn: optional(t.number),
   features: optional(
     t.interface({
@@ -280,6 +280,49 @@ export const AdcConfigType = t.interface({
   'connect-dir-id': t.number,
 });
 
+export const FirewallPortConfigType = t.interface({
+  subnet: t.string,
+  eip: t.boolean,
+  'internal-ip-addresses': t.record(availabilityZone, cidr),
+});
+
+export const FirewallConfigType = t.interface({
+  'instance-sizes': t.string,
+  image: t.string, // TODO Enum of BYOL, PAYG
+  version: t.string,
+  region: t.string,
+  vpc: t.string,
+  'security-group': t.string,
+  eni: t.interface({
+    ports: t.array(FirewallPortConfigType),
+  }),
+  'fw-cgw-name': t.string,
+  'fw-cgw-asn': t.number,
+  'fw-cgw-routing': t.string,
+  'tgw-attach': t.interface({
+    name: t.string,
+    account: t.string,
+    'associate-to-tgw': t.string,
+  }),
+});
+
+export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
+
+export const FirewallManagerConfigType = t.interface({
+  'instance-sizes': t.string,
+  image: t.string, // TODO Enum of BYOL, PAYG
+  version: t.string,
+  region: t.string,
+  vpc: t.string,
+  'security-group': t.string,
+  subnet: t.interface({
+    name: t.string,
+    az: t.string,
+  }),
+});
+
+export type FirewallManagerConfig = t.TypeOf<typeof FirewallManagerConfigType>;
+
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
@@ -292,6 +335,8 @@ export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
   adc: optional(AdcConfigType),
+  firewall: optional(FirewallConfigType),
+  'firewall-manager': optional(FirewallManagerConfigType),
 });
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
