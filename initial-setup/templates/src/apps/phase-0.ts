@@ -234,7 +234,6 @@ async function main() {
       bucketName,
     });
 
-
     // Granting read access to all the accounts
     principals.map(principal => rdgwBucket.grantRead(principal));
 
