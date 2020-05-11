@@ -186,7 +186,6 @@ async function main() {
   };
 
   // Create all the VPCs for accounts and organizational units
-  const vpcs = [];
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
       console.log(
@@ -210,9 +209,6 @@ async function main() {
       organizationalUnitName: ouKey,
       accountVpcConfigs,
     });
-    if (vpc) {
-      vpcs.push(vpc);
-    }
   }
 
   // Create the firewall
