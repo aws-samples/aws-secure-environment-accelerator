@@ -117,7 +117,7 @@ export class Organizations {
 
   /**
    * to list policies for a target
-   * @param input 
+   * @param input
    */
   async listPoliciesForTarget(input: org.ListPoliciesForTargetRequest): Promise<org.PolicySummary[]> {
     return listWithNextToken<org.ListPoliciesForTargetRequest, org.ListPoliciesForTargetResponse, org.PolicySummary>(
@@ -129,14 +129,14 @@ export class Organizations {
 
   /**
    * to list targets for a policy
-   * @param input 
+   * @param input
    */
   async listTargetsForPolicy(input: org.ListTargetsForPolicyRequest): Promise<org.PolicyTargetSummary[]> {
-    return listWithNextToken<org.ListTargetsForPolicyRequest, org.ListTargetsForPolicyResponse, org.PolicyTargetSummary>(
-      this.client.listTargetsForPolicy.bind(this.client),
-      r => r.Targets!,
-      input,
-    );
+    return listWithNextToken<
+      org.ListTargetsForPolicyRequest,
+      org.ListTargetsForPolicyResponse,
+      org.PolicyTargetSummary
+    >(this.client.listTargetsForPolicy.bind(this.client), r => r.Targets!, input);
   }
 
   /**

@@ -372,7 +372,7 @@ export const SecurityHubFrameworksConfigType = t.interface({
 export const ScpsConfigType = t.interface({
   name: NonEmptyString,
   description: NonEmptyString,
-  policy: NonEmptyString
+  policy: NonEmptyString,
 });
 
 export const GlobalOptionsConfigType = t.interface({
