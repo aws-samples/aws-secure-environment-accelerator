@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
+import * as constructs from '@aws-pbmm/constructs/lib/vpc';
 import { Account } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
@@ -39,10 +40,11 @@ export interface VpcCommonProps {
   accountVpcConfigs?: config.ResolvedVpcConfig[];
 }
 
-export interface AzSubnet {
+export interface AzSubnet extends constructs.Subnet {
   subnet: ec2.CfnSubnet;
   subnetName: string;
   az: string;
+  cidrBlock: string;
 }
 
 export interface NameToIdMap {
@@ -94,8 +96,8 @@ export class VpcStack extends NestedStack {
     let tgw;
     const tgwDeployment = props.vpcProps.tgwDeployment;
     if (tgwDeployment) {
-      tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
-      props.transitGateways.set(tgwDeployment.name!, tgw);
+      tgw = new TransitGateway(this, tgwDeployment.name, tgwDeployment);
+      props.transitGateways.set(tgwDeployment.name, tgw);
     }
 
     // Create the VPC
@@ -114,14 +116,17 @@ export class VpcStack extends NestedStack {
  *
  * TODO: Decouple this class from the configuration file.
  */
-export class Vpc extends cdk.Construct {
+export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly name: string;
   readonly region: Region;
 
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
 
-  readonly securityGroupNameMapping: NameToIdMap = {};
+  readonly cidrBlock: string;
+  readonly additionalCidrBlocks: string[] = [];
+
+  readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
 
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
@@ -133,6 +138,7 @@ export class Vpc extends cdk.Construct {
 
     this.name = props.vpcProps.vpcConfig.name;
     this.region = vpcConfig.region;
+    this.cidrBlock = vpcConfig.cidr.toCidrString();
 
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
@@ -148,6 +154,7 @@ export class Vpc extends cdk.Construct {
         cidrBlock: props.vpcProps.vpcConfig.cidr2.toCidrString(),
         vpcId: vpcObj.ref,
       });
+      this.additionalCidrBlocks.push(props.vpcProps.vpcConfig.cidr2.toCidrString());
     }
 
     let igw;
@@ -230,7 +237,10 @@ export class Vpc extends cdk.Construct {
         this.azSubnets.push({
           subnet,
           subnetName,
+          id: subnet.ref,
+          name: subnetName,
           az: subnetDefinition.az,
+          cidrBlock: subnetCidr,
         });
 
         // Attach Subnet to Route-Table
@@ -393,7 +403,7 @@ export class Vpc extends cdk.Construct {
 
     // Create all security groups
     if (vpcConfig['security-groups']) {
-      new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
+      this.securityGroup = new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
         securityGroups: vpcConfig['security-groups'],
         vpcName: vpcConfig.name,
         vpcId: this.vpcId,
@@ -412,5 +422,41 @@ export class Vpc extends cdk.Construct {
       limiter,
       vpc: vpcObj,
     });
+  }
+
+  get id(): string {
+    return this.vpcId;
+  }
+
+  get subnets(): constructs.Subnet[] {
+    return this.azSubnets.subnets;
+  }
+
+  get securityGroups(): constructs.SecurityGroup[] {
+    return this.securityGroup?.securityGroups || [];
+  }
+
+  findSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet {
+    const subnet = this.tryFindSubnetByNameAndAvailabilityZone(name, az);
+    if (!subnet) {
+      throw new Error(`Cannot find subnet with name "${name}" in availability zone "${az}"`);
+    }
+    return subnet;
+  }
+
+  tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet | undefined {
+    return this.subnets.find(s => s.name === name && s.az === az);
+  }
+
+  findSecurityGroupByName(name: string): constructs.SecurityGroup {
+    const securityGroup = this.tryFindSecurityGroupByName(name);
+    if (!securityGroup) {
+      throw new Error(`Cannot find security group with name "${name}"`);
+    }
+    return securityGroup;
+  }
+
+  tryFindSecurityGroupByName(name: string): constructs.SecurityGroup | undefined {
+    return this.securityGroups.find(sg => sg.name === name);
   }
 }

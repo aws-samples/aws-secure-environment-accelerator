@@ -4,7 +4,6 @@ import { getAccountId, loadAccounts, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { LogArchiveBucket } from '../common/log-archive-bucket';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { pascalCase } from 'pascal-case';
@@ -14,6 +13,8 @@ import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AccountStacks } from '../common/account-stacks';
+import * as firewall from '../deployments/firewall/cluster';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
@@ -53,30 +54,15 @@ async function main() {
 
   const app = new cdk.App();
 
-  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
-
-  const getAccountStack = (accountKey: string): AcceleratorStack => {
-    if (accountStacks[accountKey]) {
-      return accountStacks[accountKey];
-    }
-
-    const accountPrettyName = pascalCase(accountKey);
-    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase0`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-${accountPrettyName}-Phase0`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
-    accountStacks[accountKey] = accountStack;
-    return accountStack;
-  };
+  const accountStacks = new AccountStacks(app, {
+    phase: 0,
+    accounts,
+    context,
+  });
 
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = getAccountStack('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
   for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
     for (const account of accounts) {
       new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
@@ -88,7 +74,7 @@ async function main() {
   }
 
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
-  const logArchiveStack = getAccountStack('log-archive');
+  const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
 
   const accountIds: string[] = accounts.map(account => account.id);
 
@@ -134,7 +120,7 @@ async function main() {
 
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
-    const accountStack = getAccountStack(accountKey);
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const userPasswords: { [userId: string]: Secret } = {};
 
     const iamUsers = iamConfig?.users;
@@ -265,7 +251,7 @@ async function main() {
       Email: account.email,
     };
   });
-  const securityMasterAccountStack = getAccountStack(securityMasterAccount?.key!);
+  const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
   // Create Security Hub stack for Master Account in Security Account
   const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
     account: securityMasterAccount!,
@@ -274,6 +260,12 @@ async function main() {
     inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
     standards: globalOptions['security-hub-frameworks'],
     subAccountIds,
+  });
+
+  // Firewall creation step 1
+  await firewall.step1({
+    accountStacks,
+    config: acceleratorConfig,
   });
 }
 

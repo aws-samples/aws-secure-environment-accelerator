@@ -759,22 +759,47 @@
       },
       "deployments": {
         "firewall": {
-          "instance-sizes": "c5n.2xl",
-          "image": "https://aws.amazon.com/marketplace/pp/B00PCZSWDA?qid=1588624790695",
-          "version": "6.2.3#",
+          "instance-sizes": "c5n.2xlarge",
+          "image": "BYOL",
+          "version": "6.2.3",
           "region": "ca-central-1",
           "security-group": "Fortigates",
           "vpc": "Perimeter",
           "eni": {
-            "count": 4,
-            "p1-subnet": "Public",
-            "p2-subnet": "OnPremise",
-            "p3-subnet": "FWMgmt",
-            "p4-subnet": "Proxy"
-          },
-          "auto-scale": {
-            "min-qty": 2,
-            "max-qty": 2
+            "ports": [
+              {
+                "subnet": "Public",
+                "eip": true,
+                "internal-ip-addresses": {
+                  "a": "100.96.251.69/26",
+                  "b": "100.96.251.133/26"
+                }
+              },
+              {
+                "subnet": "OnPremise",
+                "eip": false,
+                "internal-ip-addresses": {
+                  "a": "100.96.251.5/28",
+                  "b": "100.96.251.37/28"
+                }
+              },
+              {
+                "subnet": "FWMgmt",
+                "eip": true,
+                "internal-ip-addresses": {
+                  "a": "100.96.251.21/28",
+                  "b": "100.96.251.53/28"
+                }
+              },
+              {
+                "subnet": "Proxy",
+                "eip": false,
+                "internal-ip-addresses": {
+                  "a": "100.96.250.5/25",
+                  "b": "100.96.250.133/25"
+                }
+              }
+            ]
           },
           "config": "fortigate_AA_20200504.txt",
           "fw-cgw-name": "Perimeter_fw",
@@ -794,13 +819,16 @@
         },
         "firewall-manager": {
           "name": "FortigateMgr",
-          "instance-sizes": "c5.l",
+          "instance-sizes": "c5.large",
           "image": "https://aws.amazon.com/marketplace/server/procurement?productId=c15e8d8d-1e46-41cf-9543-418a3f652745",
           "version": "6.2.3",
           "region": "ca-central-1",
           "vpc": "Perimeter",
-          "subnet": "FWMgmt_azA",
-          "security-group": "FortigateMgr"
+          "security-group": "FortigateMgr",
+          "subnet": {
+            "name": "FWMgmt",
+            "az": "a"
+          }
         }
       }
     },
@@ -1855,7 +1883,7 @@
             "boundary-policy": "Default-Boundary-Policy",
             "source-account": "security",
             "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"            
+            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }

@@ -7,7 +7,7 @@ import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stac
 import * as iam from '@aws-cdk/aws-iam';
 import { pascalCase } from 'pascal-case';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
-import { VpcOutput } from './phase-1';
+import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import * as ssm from '@aws-cdk/aws-ssm';

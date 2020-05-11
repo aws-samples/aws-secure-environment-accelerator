@@ -2,6 +2,7 @@ packages:
   - common-cdk
   - common-lambda
   - common/*
+  - custom-resources/**
   - plugins/*
   - accelerator/*
   - initial-setup/*

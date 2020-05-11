@@ -8,7 +8,7 @@ import { loadStackOutputs } from '../utils/outputs';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutput } from './phase-1';
+import { VpcOutput, ImportedVpc } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
@@ -17,6 +17,9 @@ import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/
 import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
+import * as firewallCluster from '../deployments/firewall/cluster';
+import * as firewallManagement from '../deployments/firewall/manager';
+import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 
 process.on('unhandledRejection', (reason, _) => {
@@ -49,26 +52,11 @@ async function main() {
 
   const app = new cdk.App();
 
-  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
-
-  const getAccountStack = (accountKey: string): AcceleratorStack => {
-    if (accountStacks[accountKey]) {
-      return accountStacks[accountKey];
-    }
-
-    const accountPrettyName = pascalCase(accountKey);
-    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase2`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-${accountPrettyName}-Phase2`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
-    accountStacks[accountKey] = accountStack;
-    return accountStack;
-  };
+  const accountStacks = new AccountStacks(app, {
+    phase: 2,
+    accounts,
+    context,
+  });
 
   /**
    * Code to create Peering Connection in all accounts
@@ -83,7 +71,7 @@ async function main() {
     const pcxSourceVpc = pcxConfig['source-vpc'];
     const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
-    const accountStack = getAccountStack(accountKey);
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     // Get Peer VPC Configuration
     const peerVpcConfig = getVpcConfig(vpcConfigs, pcxConfig.source, pcxSourceVpc);
     if (!VpcConfigType.is(peerVpcConfig)) {
@@ -247,6 +235,26 @@ async function main() {
     }
   }
 
+  // TODO Find a better way to get VPCs
+  // Import all VPCs from all outputs
+  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    outputType: 'VpcOutput',
+  });
+  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
+
+  await firewallCluster.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    vpcs: allVpcs,
+  });
+
+  await firewallManagement.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    vpcs: allVpcs,
+  });
+
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
   const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
@@ -255,7 +263,7 @@ async function main() {
     if (account.id === securityMasterAccount?.id) {
       continue;
     }
-    const memberAccountStack = getAccountStack(account.key);
+    const memberAccountStack = accountStacks.getOrCreateAccountStack(account.key);
     const securityHubMember = new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
       account,
       acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
