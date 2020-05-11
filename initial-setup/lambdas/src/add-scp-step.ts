@@ -138,7 +138,7 @@ export const handler = async (input: AddScpInput) => {
 
     const target = pbmmFullAccessPolicyTargets.find(x => x.TargetId === accountId);
     if (!target) {
-      await organizations.attachPolicy(pbmmFullAccessPolicyId!, accountId!);
+      await organizations.attachPolicy(pbmmFullAccessPolicyId!, accountId);
       console.log(`SCP - ${pbmmFullAccessPolicyName} attached to account - ${account.name}`);
     } else {
       console.log(`SCP - ${pbmmFullAccessPolicyName} already attached to account - ${account.name}`);

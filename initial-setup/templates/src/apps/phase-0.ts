@@ -119,7 +119,7 @@ async function main() {
   // });
 
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
-    const accountId = getAccountId(accounts, accountKey);
+    const defaultAssetAccountId = getAccountId(accounts, accountKey);
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const userPasswords: { [userId: string]: Secret } = {};
 
@@ -139,7 +139,7 @@ async function main() {
               generateSecretString: {
                 passwordLength: 16,
               },
-              principals: [new iam.AccountPrincipal(accountId)],
+              principals: [new iam.AccountPrincipal(defaultAssetAccountId)],
             });
             userPasswords[userId] = password;
           }
@@ -149,14 +149,14 @@ async function main() {
 
     const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
     const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
-      .replace('xxaccountIdxx', accountId)
+      .replace('xxaccountIdxx', defaultAssetAccountId)
       .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
 
     const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
       accountStack,
       `Account Default Settings Assets-${pascalCase(accountKey)}`,
       {
-        accountId,
+        accountId: defaultAssetAccountId,
         accountKey,
         iamConfig,
         accounts,
@@ -211,13 +211,13 @@ async function main() {
     artifactFolderName: string,
     artifactKeyPrefix: string,
     accountKey: string,
-    bucketName: string,
+    artifactBucketName: string,
     destinationKeyPrefix?: string,
   ): void => {
     // creating a bucket to store artifacts
     const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
       versioned: true,
-      bucketName,
+      bucketName: artifactBucketName,
     });
 
     // Granting read access to all the accounts
@@ -243,21 +243,21 @@ async function main() {
     });
   };
 
-  const accountId = getAccountId(accounts, 'master');
-  const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
+  const masterAccountId = getAccountId(accounts, 'master');
+  const iamPoliciesBucketName = `pbmmaccel-${masterAccountId}-${cdk.Aws.REGION}`;
   // upload IAM-Policies Artifacts
-  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', 'master', bucketName, 'iam-policy');
+  uploadArtifacts('IamPolicy', 'Task_5_0_5_IAM_Policy_Docs', 'iam-policy', 'master', iamPoliciesBucketName, 'iam-policy');
 
   for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
     }
-    const accountId = getAccountId(accounts, accountKey);
-    const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
+    const mandatoryAccountId = getAccountId(accounts, accountKey);
+    const rdgwBucketName = `pbmmaccel-${mandatoryAccountId}-${cdk.Aws.REGION}`;
 
     // upload RDGW Artifacts
-    uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, bucketName, 'config/scripts');
+    uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, rdgwBucketName, 'config/scripts');
   }
 
   const globalOptions = acceleratorConfig['global-options'];
