@@ -1,5 +1,5 @@
 export { handler as addRoleToKmsKeyStep } from './add-role-to-kms-key-step';
-export { handler as addScpStep } from './add-scp-step';
+export { handler as addRoleToScpStep } from './add-role-to-scp-step';
 export { handler as addRoleToServiceCatalogStep } from './add-role-to-service-catalog-step';
 export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-resources-step';
 export { handler as enableTrustedAccessForServicesStep } from './enable-trusted-access-for-services-step';
