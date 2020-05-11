@@ -107,42 +107,20 @@ export const handler = async (input: AddScpInput) => {
   const pbmmFullAccessPolicyTargets = await organizations.listTargetsForPolicy(pbmmFullAccessPolicyTargetsRequest);
 
   // add pbmm-full-access policy to root.
-  const rootsList = await organizations.listRoots();
-  for (const root of rootsList) {
-    const rootId = root.Id;
-
-    const target = pbmmFullAccessPolicyTargets.find(x => x.TargetId === rootId);
-    if (!target) {
-      await organizations.attachPolicy(pbmmFullAccessPolicyId!, rootId!);
-      console.log(`SCP - ${pbmmFullAccessPolicyName} attached to root - ${root.Name}`);
-    } else {
-      console.log(`SCP - ${pbmmFullAccessPolicyName} already attached to root - ${root.Name}`);
-    }
-  }
-
   // add pbmm-full-access policy to all OUs.
-  for (const orgUnit of orgUnits) {
-    const orgUnitId = orgUnit.Id;
-
-    const target = pbmmFullAccessPolicyTargets.find(x => x.TargetId === orgUnitId);
-    if (!target) {
-      await organizations.attachPolicy(pbmmFullAccessPolicyId!, orgUnitId!);
-      console.log(`SCP - ${pbmmFullAccessPolicyName} attached to OU - ${orgUnit.Name}`);
-    } else {
-      console.log(`SCP - ${pbmmFullAccessPolicyName} already attached to OU - ${orgUnit.Name}`);
-    }
-  }
-
   // add pbmm-full-access policy to all accounts.
-  for (const account of accounts) {
-    const accountId = account.id;
+  const rootIds = await (await organizations.listRoots()).map(r => r.Id);
+  const orgUnitIds = orgUnits.map(o => o.Id);
+  const accountIds = accounts.map(a => a.id);
+  const targetIds = [...rootIds, ...orgUnitIds, ...accountIds];
 
-    const target = pbmmFullAccessPolicyTargets.find(x => x.TargetId === accountId);
+  for (const targetId of targetIds) {
+    const target = pbmmFullAccessPolicyTargets.find(x => x.TargetId === targetId);
     if (!target) {
-      await organizations.attachPolicy(pbmmFullAccessPolicyId!, accountId);
-      console.log(`SCP - ${pbmmFullAccessPolicyName} attached to account - ${account.name}`);
+      await organizations.attachPolicy(pbmmFullAccessPolicyId!, targetId!);
+      console.log(`SCP - ${pbmmFullAccessPolicyName} attached to target - ${targetId}`);
     } else {
-      console.log(`SCP - ${pbmmFullAccessPolicyName} already attached to account - ${account.name}`);
+      console.log(`SCP - ${pbmmFullAccessPolicyName} already attached to target - ${target.Name}`);
     }
   }
 
