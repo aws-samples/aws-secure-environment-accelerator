@@ -12,7 +12,7 @@ export interface ADUsersAndGroupsProps extends cdk.StackProps {
   vpcId: string;
   keyPairName: string;
   subnetIds: string[];
-  adminPassword: Secret;
+  adminPasswordArn: string;
   s3BucketName: string;
   s3KeyPrefix: string;
   stackId: string;
@@ -39,7 +39,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       s3KeyPrefix,
       stackId,
       stackName,
-      adminPassword,
+      adminPasswordArn,
       accountNames,
       userSecrets,
     } = props;
@@ -52,9 +52,7 @@ export class ADUsersAndGroups extends cdk.Construct {
           userSecrets.find(x => x.user === user)?.password.secretArn
         }).SecretString) -DomainAdminUser ${
           madDeploymentConfig['netbios-domain']
-        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${
-          adminPassword.secretArn
-        }).SecretString) -PasswordNeverExpires Yes`,
+        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString) -PasswordNeverExpires Yes`,
     );
 
     // Creating AD Groups command
@@ -80,7 +78,7 @@ export class ADUsersAndGroups extends cdk.Construct {
           userGroup.user
         } -DomainAdminUser ${
           madDeploymentConfig['netbios-domain']
-        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)`,
+        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString)`,
       ),
     );
 
@@ -307,7 +305,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       join: {
         commands: {
           'a-join-domain': {
-            command: `powershell.exe -Command "C:\\cfn\\scripts\\Join-Domain.ps1 -DomainName ${madDeploymentConfig['dns-domain']} -UserName ${madDeploymentConfig['netbios-domain']}\\admin -Password ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)"`,
+            command: `powershell.exe -Command "C:\\cfn\\scripts\\Join-Domain.ps1 -DomainName ${madDeploymentConfig['dns-domain']} -UserName ${madDeploymentConfig['netbios-domain']}\\admin -Password ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString)"`,
             waitAfterCompletion: 'forever',
           },
         },
@@ -335,7 +333,7 @@ export class ADUsersAndGroups extends cdk.Construct {
               ',',
             )}\' -DomainAdminUser ${
               madDeploymentConfig['netbios-domain']
-            }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)`,
+            }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString)`,
             waitAfterCompletion: '0',
           },
           'c-configure-ad-users-groups': {
@@ -343,7 +341,7 @@ export class ADUsersAndGroups extends cdk.Construct {
             waitAfterCompletion: '0',
           },
           'd-configure-ad-group-permissions': {
-            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-permissions-setup.ps1 -GroupName ${madDeploymentConfig['adc-group']} -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPassword.secretArn}).SecretString)`,
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\AD-connector-permissions-setup.ps1 -GroupName ${madDeploymentConfig['adc-group']} -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString)`,
             waitAfterCompletion: '0',
           },
         },
@@ -351,9 +349,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       configurePasswordPolicy: {
         commands: {
           'a-set-password-policy': {
-            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Configure-password-policy.ps1 -DomainAdminUser admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${
-              adminPassword.secretArn
-            }).SecretString) -ComplexityEnabled:$${pascalCase(
+            command: `powershell.exe -ExecutionPolicy RemoteSigned C:\\cfn\\scripts\\Configure-password-policy.ps1 -DomainAdminUser admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString) -ComplexityEnabled:$${pascalCase(
               String(madDeploymentConfig['password-policies'].complexity),
             )} -LockoutDuration 00:${
               madDeploymentConfig['password-policies']['lockout-duration']

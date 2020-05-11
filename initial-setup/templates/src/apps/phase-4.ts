@@ -18,6 +18,7 @@ process.on('unhandledRejection', (reason, _) => {
 type ResolversOutputs = ResolversOutput[];
 
 export interface RdgwArtifactsOutput {
+  accountKey: string;
   bucketArn: string;
   bucketName: string;
   keyPrefix: string;

@@ -27,6 +27,14 @@ export interface RdgwArtifactsOutput {
   keyPrefix: string;
 }
 
+interface MadOutput {
+  id: number;
+  vpcName: string;
+  directoryId: string;
+  dnsIps: string;
+  passwordArn: string;
+}
+
 async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
@@ -36,16 +44,16 @@ async function main() {
 
   const app = new cdk.App();
 
-  const masterStack = new AcceleratorStack(app, 'MasterStack', {
+  const masterUserPasswordStack = new AcceleratorStack(app, 'MasterUserPasswordStack', {
     env: {
       account: getAccountId(accounts, 'master'),
       region: cdk.Aws.REGION,
     },
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Secrets',
+    stackName: 'PBMMAccel-Ad-Users-Secrets',
   });
-  const secretsStack = new SecretsStack(masterStack, 'Secrets');
+  const secretsStack = new SecretsStack(masterUserPasswordStack, 'Secrets');
 
   type UserSecrets = UserSecret[];
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
@@ -55,14 +63,6 @@ async function main() {
       continue;
     }
     const accountId = getAccountId(accounts, accountKey);
-    const madAdminPassword = secretsStack.createSecret('MadPassword', {
-      secretName: `accelerator/${accountKey}/mad/password`,
-      description: 'Password for Managed Active Directory.',
-      generateSecretString: {
-        passwordLength: 16,
-      },
-      principals: [new iam.AccountPrincipal(accountId)],
-    });
 
     const ec2KeyPairName = 'rdgw-key-pair';
     const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
@@ -142,13 +142,23 @@ async function main() {
     const vpcId = vpcOutput.vpcId;
     const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madDeploymentConfig.subnet).map(s => s.subnetId);
 
+    const madOutputs: MadOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'MadOutput',
+    });
+
+    const madOuput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
+    if (!madOuput || !madOuput.directoryId) {
+      throw new Error(`Cannot find madOuput with vpc name ${madDeploymentConfig['vpc-name']}`);
+    }
+
     new ADUsersAndGroups(stack, 'RDGWHost', {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,
       keyPairName: ec2KeyPairName,
       subnetIds,
-      adminPassword: madAdminPassword,
+      adminPasswordArn: madOuput.passwordArn,
       s3BucketName,
       s3KeyPrefix: S3KeyPrefix,
       stackId: stack.stackId,
