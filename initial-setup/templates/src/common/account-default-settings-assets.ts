@@ -192,6 +192,16 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
       });
     }
 
+    if(accountKey === 'master') {
+      // create access analyzer role
+      const iamRole = new iam.Role(this, `IAM-Role-ServiceRoleForAccessAnalyzer-Master`, {
+        roleName: 'PBMMAccel-ServiceRoleForAccessAnalyzer',
+        description: `PBMMAccel - ServiceRoleForAccessAnalyzer`,
+        assumedBy: new iam.ServicePrincipal('access-analyzer.amazonaws.com'),
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AccessAnalyzerServiceRolePolicy')],
+      });
+    }
+
     // TODO Below code and flowLogBucket code are almost similar. We need to reuse the code.
     // cost and usage report
     if (accountKey === 'master') {
