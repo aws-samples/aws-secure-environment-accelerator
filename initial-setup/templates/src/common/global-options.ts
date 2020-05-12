@@ -6,7 +6,7 @@ import { Route53Zones } from './r53-zones';
 import { Route53ResolverEndpoint } from './r53-resolver-endpoint';
 import { Route53ResolverRule } from './r53-resolver-rule';
 import { StackOutput, getStackJsonOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { VpcOutput } from '../apps/phase-1';
+import { VpcOutput } from '../deployments/vpc';
 import { JsonOutputValue } from './json-output';
 import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '../apps/phase-2';
 
@@ -190,14 +190,16 @@ export class GlobalOptionsDeployment extends cdk.Construct {
 
       const madConfig = deploymentConfig.mad;
       let madIPs: string[];
-      try {
-        // TODO Get correct stack output
-        const madIPCsv = getStackOutput(outputs, accountKey, `MADIPs${madConfig['dns-domain'].replace(/\./gi, '')}`);
-        madIPs = madIPCsv.split(',');
-      } catch (error) {
+      const madOutput = getStackJsonOutput(outputs, {
+        accountKey,
+        outputType: 'MadOutput',
+      });
+      if (madOutput.length === 0) {
         console.warn(`MAD is not deployed yet in account ${accountKey}`);
         continue;
       }
+      madIPs = madOutput[0].dnsIps.split(',');
+      console.log(madIPs);
 
       const centralResolverAccount = madConfig['central-resolver-rule-account'];
       const centralResolverVpcName = madConfig['central-resolver-rule-vpc'];
@@ -210,7 +212,8 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       if (!centralResolverVpc) {
         throw new Error(`Cannot find resolved VPC with name "${centralResolverVpcName}"`);
       }
-      const endpointId = vpcOutBoundMapping.get(centralResolverVpc.vpcId);
+      console.log(vpcOutBoundMapping);
+      const endpointId = vpcOutBoundMapping.get(centralResolverVpcName);
       if (!endpointId) {
         throw new Error(`Cannot find outbound mapping for VPC with name "${centralResolverVpcName}"`);
       }

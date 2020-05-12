@@ -19,7 +19,7 @@ export class STS {
     if (this.cache[assumeRoleArn]) {
       const cachedCredentials = this.cache[assumeRoleArn];
       const currentDate = new Date();
-      if (cachedCredentials.expireTime.getTime() < currentDate.getTime()) {
+      if (cachedCredentials.expireTime && cachedCredentials.expireTime.getTime() < currentDate.getTime()) {
         return cachedCredentials;
       }
     }

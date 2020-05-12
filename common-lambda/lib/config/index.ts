@@ -144,7 +144,7 @@ export const SecurityGroupRuleConfigType = t.interface({
 
 export type SecurityGroupRuleConfig = t.TypeOf<typeof SecurityGroupRuleConfigType>;
 
-export const SecurityGroupConfig = t.interface({
+export const SecurityGroupConfigType = t.interface({
   name: NonEmptyString,
   'inbound-rules': t.array(SecurityGroupRuleConfigType),
   'outbound-rules': t.array(SecurityGroupRuleConfigType),
@@ -170,10 +170,11 @@ export const VpcConfigType = t.interface({
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
-  'security-groups': optional(t.array(SecurityGroupConfig)),
+  'security-groups': optional(t.array(SecurityGroupConfigType)),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
+export type SecurityGroupConfig = t.TypeOf<typeof SecurityGroupConfigType>;
 
 export const IamUserConfigType = t.interface({
   'user-ids': t.array(NonEmptyString),
@@ -206,7 +207,7 @@ export const IamConfigType = t.interface({
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
 export const TgwDeploymentConfigType = t.interface({
-  name: optional(NonEmptyString),
+  name: t.string,
   asn: optional(t.number),
   features: optional(
     t.interface({
@@ -227,6 +228,9 @@ export const PasswordPolicyType = t.interface({
   'min-len': t.number,
   complexity: t.boolean,
   reversible: t.boolean,
+  'failed-attempts': t.number,
+  'lockout-duration': t.number,
+  'lockout-attempts-reset': t.number,
 });
 
 export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
@@ -250,8 +254,11 @@ export const MadConfigType = t.interface({
   'log-group-name': t.string,
   'share-to-account': optional(t.string),
   restrict_srcips: t.array(cidr),
+  'rdgw-instance-type': t.string,
+  'num-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
+  'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
 });
@@ -273,6 +280,49 @@ export const AdcConfigType = t.interface({
   'connect-dir-id': t.number,
 });
 
+export const FirewallPortConfigType = t.interface({
+  subnet: t.string,
+  eip: t.boolean,
+  'internal-ip-addresses': t.record(availabilityZone, cidr),
+});
+
+export const FirewallConfigType = t.interface({
+  'instance-sizes': t.string,
+  image: t.string, // TODO Enum of BYOL, PAYG
+  version: t.string,
+  region: t.string,
+  vpc: t.string,
+  'security-group': t.string,
+  eni: t.interface({
+    ports: t.array(FirewallPortConfigType),
+  }),
+  'fw-cgw-name': t.string,
+  'fw-cgw-asn': t.number,
+  'fw-cgw-routing': t.string,
+  'tgw-attach': t.interface({
+    name: t.string,
+    account: t.string,
+    'associate-to-tgw': t.string,
+  }),
+});
+
+export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
+
+export const FirewallManagerConfigType = t.interface({
+  'instance-sizes': t.string,
+  image: t.string, // TODO Enum of BYOL, PAYG
+  version: t.string,
+  region: t.string,
+  vpc: t.string,
+  'security-group': t.string,
+  subnet: t.interface({
+    name: t.string,
+    az: t.string,
+  }),
+});
+
+export type FirewallManagerConfig = t.TypeOf<typeof FirewallManagerConfigType>;
+
 export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive', 'shared-services'] as const;
 
 export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT_TYPES[number]>(
@@ -285,6 +335,8 @@ export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
   adc: optional(AdcConfigType),
+  firewall: optional(FirewallConfigType),
+  'firewall-manager': optional(FirewallManagerConfigType),
 });
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
@@ -294,6 +346,7 @@ export const MandatoryAccountConfigType = t.interface({
   'account-name': t.string,
   email: t.string,
   ou: t.string,
+  'share-mad-from': optional(t.string),
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
@@ -310,6 +363,7 @@ export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
+  'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
 });
@@ -334,6 +388,24 @@ export const GlobalOptionsZonesConfigType = t.interface({
   names: ZoneNamesConfigType,
 });
 
+export const CostAndUsageReportConfigType = t.interface({
+  'additional-schema-elements': t.array(t.string),
+  compression: NonEmptyString,
+  format: NonEmptyString,
+  'report-name': NonEmptyString,
+  's3-bucket': NonEmptyString,
+  's3-prefix': NonEmptyString,
+  's3-region': NonEmptyString,
+  'time-unit': NonEmptyString,
+  'additional-artifacts': t.array(t.string),
+  'refresh-closed-reports': t.boolean,
+  'report-versioning': NonEmptyString,
+});
+
+export const ReportsConfigType = t.interface({
+  'cost-and-usage-report': CostAndUsageReportConfigType,
+});
+
 export type GlobalOptionsZonesConfig = t.TypeOf<typeof GlobalOptionsZonesConfigType>;
 
 export const SecurityHubFrameworksConfigType = t.interface({
@@ -348,6 +420,7 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   'default-log-retention': t.number,
   'central-bucket': NonEmptyString,
+  reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
 });

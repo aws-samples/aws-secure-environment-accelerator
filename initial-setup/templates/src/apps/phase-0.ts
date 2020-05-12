@@ -3,15 +3,23 @@ import * as iam from '@aws-cdk/aws-iam';
 import { getAccountId, loadAccounts, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { loadStackOutputs } from '../utils/outputs';
 import { LogArchiveBucket } from '../common/log-archive-bucket';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { pascalCase } from 'pascal-case';
 import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AccountStacks } from '../common/account-stacks';
+import * as firewall from '../deployments/firewall/cluster';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import * as path from 'path';
+import { JsonOutputValue } from '../common/json-output';
+import { SecurityHubStack } from '../common/security-hub';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -30,37 +38,31 @@ async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
+  const outputs = await loadStackOutputs();
 
   // TODO Get these values dynamically
   const globalOptionsConfig = acceleratorConfig['global-options'];
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
+  // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
+  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+  const logArchiveS3KmsKeyArn = getStackOutput(
+    outputs,
+    'log-archive',
+    outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
+  );
 
   const app = new cdk.App();
 
-  const accountStacks: { [accountKey: string]: AcceleratorStack } = {};
-
-  const getAccountStack = (accountKey: string): AcceleratorStack => {
-    if (accountStacks[accountKey]) {
-      return accountStacks[accountKey];
-    }
-
-    const accountPrettyName = pascalCase(accountKey);
-    const accountStack = new AcceleratorStack(app, `${accountPrettyName}Phase0`, {
-      env: {
-        account: getAccountId(accounts, accountKey),
-        region: cdk.Aws.REGION,
-      },
-      stackName: `PBMMAccel-${accountPrettyName}-Phase0`,
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-    });
-    accountStacks[accountKey] = accountStack;
-    return accountStack;
-  };
+  const accountStacks = new AccountStacks(app, {
+    phase: 0,
+    accounts,
+    context,
+  });
 
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = getAccountStack('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
   for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
     for (const account of accounts) {
       new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
@@ -72,8 +74,7 @@ async function main() {
   }
 
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
-  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
-  const logArchiveStack = getAccountStack('log-archive');
+  const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
 
   const accountIds: string[] = accounts.map(account => account.id);
 
@@ -119,7 +120,7 @@ async function main() {
 
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
-    const accountStack = getAccountStack(accountKey);
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const userPasswords: { [userId: string]: Secret } = {};
 
     const iamUsers = iamConfig?.users;
@@ -146,6 +147,11 @@ async function main() {
       }
     }
 
+    const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
+    const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
+      .replace('xxaccountIdxx', accountId)
+      .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
+
     const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
       accountStack,
       `Account Default Settings Assets-${pascalCase(accountKey)}`,
@@ -155,6 +161,13 @@ async function main() {
         iamConfig,
         accounts,
         userPasswords,
+        s3BucketNameForCur,
+        expirationInDays: globalOptionsConfig['central-log-retention'],
+        replication: {
+          accountId: logArchiveAccountId,
+          bucketArn: logArchiveS3BucketArn,
+          kmsKeyArn: logArchiveS3KmsKeyArn,
+        },
       },
     );
 
@@ -178,20 +191,82 @@ async function main() {
   // creating assets for default account settings
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    console.log('181:accountKey: ' + accountKey);
     mandatoryAccountKeys.push(accountKey);
     await createAccountDefaultAssets(accountKey, accountConfig.iam);
+    console.log(`Default assets created for account - ${accountKey}`);
   }
 
   // creating assets for org unit accounts
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   for (const [orgName, orgConfig] of orgUnits) {
     const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
-    console.log(`org accounts for key - ${orgName}: `, orgAccounts);
     for (const orgAccount of orgAccounts) {
       await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
+      console.log(`Default assets created for account - ${orgAccount.key}`);
     }
   }
+
+  for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+    const madDeploymentConfig = accountConfig.deployments?.mad;
+    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+      continue;
+    }
+    const accountId = getAccountId(accounts, accountKey);
+    const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
+
+    // creating a bucket to store RDGW Host power shell scripts
+    const rdgwBucket = new s3.Bucket(masterAccountStack, `RdgwArtifactsBucket${accountKey}`, {
+      versioned: true,
+      bucketName,
+    });
+
+    // Granting read access to all the accounts
+    principals.map(principal => rdgwBucket.grantRead(principal));
+
+    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', 'scripts');
+
+    new s3deployment.BucketDeployment(masterAccountStack, `RdgwArtifactsDeployment${accountKey}`, {
+      sources: [s3deployment.Source.asset(artifactsFolderPath)],
+      destinationBucket: rdgwBucket,
+      destinationKeyPrefix: 'config/scripts/',
+    });
+
+    // outputs to store RDGW reference artifacts scripts s3 bucket information
+    new JsonOutputValue(masterAccountStack, `RdgwArtifactsOutput${accountKey}`, {
+      type: 'RdgwArtifactsOutput',
+      value: {
+        accountKey,
+        bucketArn: rdgwBucket.bucketArn,
+        bucketName: rdgwBucket.bucketName,
+        keyPrefix: 'config/scripts/',
+      },
+    });
+  }
+
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const subAccountIds = accounts.map(account => {
+    return {
+      AccountId: account.id,
+      Email: account.email,
+    };
+  });
+  const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
+  // Create Security Hub stack for Master Account in Security Account
+  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+    account: securityMasterAccount!,
+    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+    standards: globalOptions['security-hub-frameworks'],
+    subAccountIds,
+  });
+
+  // Firewall creation step 1
+  await firewall.step1({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises

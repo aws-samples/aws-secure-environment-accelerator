@@ -579,6 +579,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storePhase3Output = new CodeTask(this, 'Store Phase 3 Output', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
           code: lambdaCode,
@@ -614,6 +628,42 @@ export namespace InitialSetup {
         }),
       });
 
+      const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-4.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const storePhase4Output = new CodeTask(this, 'Store Phase 4 Output', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeStackOutputStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const deployPhase5Task = new sfn.Task(this, 'Deploy Phase 5', {
+        task: new tasks.StartExecution(deployStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            ...deployTaskCommonInput,
+            appPath: 'apps/phase-5.ts',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: `${props.stateMachineName}_sm`,
         definition: sfn.Chain.start(loadConfigurationTask)
@@ -631,9 +681,13 @@ export namespace InitialSetup {
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
+          .next(storePhase3Output)
+          .next(deployPhase4Task)
+          .next(storePhase4Output)
           .next(associateHostedZonesTask)
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
+          .next(deployPhase5Task)
           .next(createAdConnectorTask)
           .next(accountDefaultSettingsTask),
       });

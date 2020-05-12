@@ -10,7 +10,7 @@ export interface SubAccount {
   AccountId: string;
   Email: string;
 }
-export interface SecurityHubStackProps extends AcceleratorStackProps {
+export interface SecurityHubProps {
   account: Account;
   enableStandardsFuncArn: string;
   inviteMembersFuncArn: string;
@@ -20,9 +20,9 @@ export interface SecurityHubStackProps extends AcceleratorStackProps {
   masterAccountId?: string;
 }
 
-export class SecurityHubStack extends AcceleratorStack {
-  constructor(scope: cdk.Construct, name: string, props: SecurityHubStackProps) {
-    super(scope, name, props);
+export class SecurityHubStack extends cdk.Construct {
+  constructor(scope: cdk.Construct, name: string, props: SecurityHubProps) {
+    super(scope, name);
     const {
       account,
       enableStandardsFuncArn,

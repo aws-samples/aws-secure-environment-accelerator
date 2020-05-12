@@ -8,6 +8,7 @@ function enableDisableProperty(feature: boolean | undefined): string {
 }
 
 export class TransitGateway extends cdk.Construct {
+  readonly name: string;
   readonly tgw: ec2.CfnTransitGateway;
   readonly tgwRouteTableNameToIdMap: { [routeTableName: string]: ec2.CfnTransitGatewayRouteTable } = {};
 
@@ -15,6 +16,8 @@ export class TransitGateway extends cdk.Construct {
     super(parent, name);
 
     const { features } = props;
+
+    this.name = props.name;
 
     this.tgw = new ec2.CfnTransitGateway(this, name, {
       dnsSupport: enableDisableProperty(features?.['DNS-support']),

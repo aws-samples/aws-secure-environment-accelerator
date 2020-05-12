@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-lambda/lib/config/types';
+import * as constructs from '@aws-pbmm/constructs/lib/vpc';
 import { Account } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
@@ -33,12 +34,17 @@ export interface VpcCommonProps {
    */
   organizationalUnitName?: string;
   limiter: Limiter;
+  /**
+   * All VPC Configs to read Subnet Cidrs for Security Group and NACLs creation
+   */
+  accountVpcConfigs?: config.ResolvedVpcConfig[];
 }
 
-export interface AzSubnet {
+export interface AzSubnet extends constructs.Subnet {
   subnet: ec2.CfnSubnet;
   subnetName: string;
   az: string;
+  cidrBlock: string;
 }
 
 export interface NameToIdMap {
@@ -86,41 +92,18 @@ export class VpcStack extends NestedStack {
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name, props);
 
-    // Create the VPC
-    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
-
+    // Create TGW Before Creating VPC
+    let tgw;
     const tgwDeployment = props.vpcProps.tgwDeployment;
     if (tgwDeployment) {
-      const tgw = new TransitGateway(this, tgwDeployment.name!, tgwDeployment);
-      props.transitGateways.set(tgwDeployment.name!, tgw);
+      tgw = new TransitGateway(this, tgwDeployment.name, tgwDeployment);
+      props.transitGateways.set(tgwDeployment.name, tgw);
     }
 
-    const tgwAttach = props.vpcProps.vpcConfig['tgw-attach'];
-    if (tgwAttach) {
-      const tgwName = tgwAttach['associate-to-tgw'];
-      const tgw = props.transitGateways.get(tgwName);
-      if (tgw && tgwName.length > 0) {
-        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
-        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
-        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => this.vpc.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-        // Attach VPC To TGW
-        const TgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
-          vpcId: this.vpc.vpcId,
-          subnetIds,
-          transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-        });
-        // Add name tag
-        cdk.Tag.add(TgwAttachment, 'Name', `${this.vpc.name}_${tgwName}_att`);
-      }
+    // Create the VPC
+    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
+    if (tgw) {
+      this.vpc.node.addDependency(tgw);
     }
   }
 }
@@ -133,25 +116,29 @@ export class VpcStack extends NestedStack {
  *
  * TODO: Decouple this class from the configuration file.
  */
-export class Vpc extends cdk.Construct {
+export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly name: string;
   readonly region: Region;
 
   readonly vpcId: string;
   readonly azSubnets = new AzSubnets();
 
-  readonly securityGroupNameMapping: NameToIdMap = {};
+  readonly cidrBlock: string;
+  readonly additionalCidrBlocks: string[] = [];
+
+  readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
 
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name);
 
-    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter } = props.vpcProps;
+    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, accountVpcConfigs } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
     const useCentralEndpointsConfig: boolean = props.vpcProps.vpcConfig['use-central-endpoints'] ?? false;
 
     this.name = props.vpcProps.vpcConfig.name;
     this.region = vpcConfig.region;
+    this.cidrBlock = vpcConfig.cidr.toCidrString();
 
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
@@ -167,6 +154,7 @@ export class Vpc extends cdk.Construct {
         cidrBlock: props.vpcProps.vpcConfig.cidr2.toCidrString(),
         vpcId: vpcObj.ref,
       });
+      this.additionalCidrBlocks.push(props.vpcProps.vpcConfig.cidr2.toCidrString());
     }
 
     let igw;
@@ -219,51 +207,6 @@ export class Vpc extends cdk.Construct {
         });
 
         this.routeTableNameToIdMap[routeTableName] = routeTable.ref;
-        if (!routeTableProp.routes?.find(r => r.target === 'IGW')) {
-          natRouteTables.push(routeTableProp.name);
-        }
-
-        // Add Routes to RouteTable
-        for (const route of routeTableProp.routes ? routeTableProp.routes : []) {
-          let dependsOn: cdk.CfnResource | undefined;
-          let gatewayId: string | undefined;
-          if (route.target === 'IGW') {
-            gatewayId = igw?.ref;
-            dependsOn = igwAttach;
-          } else if (route.target === 'VGW') {
-            gatewayId = vgw?.ref;
-            dependsOn = vgwAttach;
-          } else if (route.target.toLowerCase() === 's3') {
-            s3Routes.push(routeTable.ref);
-            continue;
-          } else if (route.target.toLowerCase() === 'dynamodb') {
-            dynamoRoutes.push(routeTable.ref);
-            continue;
-          } else if (route.target === 'TGW' && tgwAttach) {
-            const tgwName = tgwAttach['associate-to-tgw'];
-            const tgw = props.transitGateways.get(tgwName);
-            dependsOn = tgw?.tgw;
-            new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
-              routeTableId: routeTable.ref,
-              destinationCidrBlock: route.destination as string,
-              transitGatewayId: tgw?.tgwId,
-            });
-            continue;
-          } else {
-            // Need to add for different Routes
-            continue;
-          }
-
-          const params: ec2.CfnRouteProps = {
-            routeTableId: routeTable.ref,
-            destinationCidrBlock: route.destination as string,
-            gatewayId,
-          };
-          const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
-          if (dependsOn) {
-            cfnRoute.addDependsOn(dependsOn);
-          }
-        }
       }
     }
 
@@ -294,7 +237,10 @@ export class Vpc extends cdk.Construct {
         this.azSubnets.push({
           subnet,
           subnetName,
+          id: subnet.ref,
+          name: subnetName,
           az: subnetDefinition.az,
+          cidrBlock: subnetCidr,
         });
 
         // Attach Subnet to Route-Table
@@ -324,17 +270,94 @@ export class Vpc extends cdk.Construct {
           vpcConfig,
           vpcId: this.vpcId,
           subnets: this.azSubnets,
+          accountVpcConfigs: accountVpcConfigs!,
         });
       }
     }
 
-    // Create all security groups
-    if (vpcConfig['security-groups']) {
-      new SecurityGroup(this, 'SecurityGroups', {
-        vpcConfig,
-        vpcId: this.vpcId,
-        accountKey: props.vpcProps.accountKey,
-      });
+    let tgwAttachment;
+    if (tgwAttach) {
+      const tgwName = tgwAttach['associate-to-tgw'];
+      const tgw = props.transitGateways.get(tgwName);
+      if (tgw && tgwName.length > 0) {
+        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
+          vpcId: this.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+        // Add name tag
+        cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
+      }
+    }
+
+    // Add Routes to Route Tables
+    if (routeTablesProps) {
+      for (const routeTableProp of routeTablesProps) {
+        if (routeTableProp.name === 'default') {
+          continue;
+        }
+        const routeTableName = routeTableProp.name;
+        const routeTableObj = this.routeTableNameToIdMap[routeTableName];
+        if (!routeTableProp.routes?.find(r => r.target === 'IGW')) {
+          natRouteTables.push(routeTableProp.name);
+        }
+
+        // Add Routes to RouteTable
+        for (const route of routeTableProp.routes ? routeTableProp.routes : []) {
+          let dependsOn: cdk.CfnResource | undefined;
+          let gatewayId: string | undefined;
+          if (route.target === 'IGW') {
+            gatewayId = igw?.ref;
+            dependsOn = igwAttach;
+          } else if (route.target === 'VGW') {
+            gatewayId = vgw?.ref;
+            dependsOn = vgwAttach;
+          } else if (route.target.toLowerCase() === 's3') {
+            s3Routes.push(routeTableObj);
+            continue;
+          } else if (route.target.toLowerCase() === 'dynamodb') {
+            dynamoRoutes.push(routeTableObj);
+            continue;
+          } else if (route.target === 'TGW' && tgwAttach && tgwAttachment) {
+            const tgwName = tgwAttach['associate-to-tgw'];
+            const tgw = props.transitGateways.get(tgwName);
+            dependsOn = tgw?.tgw;
+            const tgwRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
+              routeTableId: routeTableObj,
+              destinationCidrBlock: route.destination as string,
+              transitGatewayId: tgw?.tgwId,
+            });
+            tgwRoute.addDependsOn(tgwAttachment.tgwAttach);
+            continue;
+          } else {
+            // Need to add for different Routes
+            continue;
+          }
+
+          const params: ec2.CfnRouteProps = {
+            routeTableId: routeTableObj,
+            destinationCidrBlock: route.destination as string,
+            gatewayId,
+          };
+          const cfnRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, params);
+          if (dependsOn) {
+            cfnRoute.addDependsOn(dependsOn);
+          }
+        }
+      }
     }
 
     // Create VPC Gateway End Point
@@ -378,6 +401,17 @@ export class Vpc extends cdk.Construct {
       console.log(`Skipping NAT gateway creation`);
     }
 
+    // Create all security groups
+    if (vpcConfig['security-groups']) {
+      this.securityGroup = new SecurityGroup(this, `SecurityGroups-${vpcConfig.name}`, {
+        securityGroups: vpcConfig['security-groups'],
+        vpcName: vpcConfig.name,
+        vpcId: this.vpcId,
+        accountKey,
+        accountVpcConfigs: accountVpcConfigs!,
+      });
+    }
+
     // Share VPC subnet
     new VpcSubnetSharing(this, 'Sharing', {
       accountKey,
@@ -386,6 +420,43 @@ export class Vpc extends cdk.Construct {
       organizationalUnitName,
       subnets: this.azSubnets,
       limiter,
+      vpc: vpcObj,
     });
+  }
+
+  get id(): string {
+    return this.vpcId;
+  }
+
+  get subnets(): constructs.Subnet[] {
+    return this.azSubnets.subnets;
+  }
+
+  get securityGroups(): constructs.SecurityGroup[] {
+    return this.securityGroup?.securityGroups || [];
+  }
+
+  findSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet {
+    const subnet = this.tryFindSubnetByNameAndAvailabilityZone(name, az);
+    if (!subnet) {
+      throw new Error(`Cannot find subnet with name "${name}" in availability zone "${az}"`);
+    }
+    return subnet;
+  }
+
+  tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet | undefined {
+    return this.subnets.find(s => s.name === name && s.az === az);
+  }
+
+  findSecurityGroupByName(name: string): constructs.SecurityGroup {
+    const securityGroup = this.tryFindSecurityGroupByName(name);
+    if (!securityGroup) {
+      throw new Error(`Cannot find security group with name "${name}"`);
+    }
+    return securityGroup;
+  }
+
+  tryFindSecurityGroupByName(name: string): constructs.SecurityGroup | undefined {
+    return this.securityGroups.find(sg => sg.name === name);
   }
 }
