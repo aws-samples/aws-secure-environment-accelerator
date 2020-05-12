@@ -67,6 +67,8 @@ async function createFirewallEips(props: {
 }) {
   const { scope, vpcConfig, firewallConfig } = props;
 
+  const firewallCgwName = firewallConfig['fw-cgw-name'];
+
   // Keep track of the created ports and EIPs so we can use them in the next steps
   const ports: FirewallPort[] = [];
 
@@ -83,7 +85,7 @@ async function createFirewallEips(props: {
       let eip;
       if (port.eip) {
         // TODO Name Perimeter_fw1_azA_eip
-        eip = new ec2.CfnEIP(scope, `Eip${pascalCase(az)}${index}`, {
+        eip = new ec2.CfnEIP(scope, `${firewallCgwName}_az${pascalCase(az)}_${index}_eip`, {
           domain: 'vpc',
         });
       }

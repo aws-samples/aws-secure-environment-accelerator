@@ -1,4 +1,5 @@
 import * as t from 'io-ts';
+import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
@@ -103,19 +104,23 @@ async function createCustomerGateways(props: {
   // Keep track of the created VPN connection so we can use them in the next steps
   const vpnConnections: FirewallVpnConnection[] = [];
 
+  const firewallCgwName = firewallConfig['fw-cgw-name'];
+  const firewallCgwAsn = firewallConfig['fw-cgw-asn'];
+
   for (const [index, port] of Object.entries(firewallPorts)) {
     let customerGateway;
     let vpnConnection;
     let vpnTunnelOptions;
     if (port.eipIpAddress) {
-      // TODO Name Perimeter_fw1_azA_cgw
-      customerGateway = new ec2.CfnCustomerGateway(scope, `Cgw${index}`, {
+      const prefix = `${firewallCgwName}_az${pascalCase(port.az)}_${index}`;
+
+      customerGateway = new ec2.CfnCustomerGateway(scope, `${prefix}_cgw`, {
         type: 'ipsec.1',
         ipAddress: port.eipIpAddress,
-        bgpAsn: firewallConfig['fw-cgw-asn'],
+        bgpAsn: firewallCgwAsn,
       });
 
-      vpnConnection = new ec2.CfnVPNConnection(scope, `VpnConnection${index}`, {
+      vpnConnection = new ec2.CfnVPNConnection(scope, `${prefix}_vpn`, {
         type: 'ipsec.1',
         transitGatewayId,
         customerGatewayId: customerGateway.ref,
