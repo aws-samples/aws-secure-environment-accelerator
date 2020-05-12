@@ -105,7 +105,7 @@ async function createFirewallCluster(props: {
       instancePerAz[az] = instance;
     }
 
-    instance.addPort({
+    instance.addNetworkInterface({
       subnet,
       securityGroup,
       ipCidr: vpnConnection.internalIpCidr,

@@ -18,6 +18,7 @@ export const FirewallPortType = t.interface({
   internalIpCidr: t.string,
   eipIpAddress: optional(t.string),
   eipAllocationId: optional(t.string),
+  createCustomerGateway: t.boolean,
 });
 
 export const FirewallPortOutputType = t.array(FirewallPortType, 'FirewallPortOutput');
@@ -83,8 +84,7 @@ async function createFirewallEips(props: {
       }
 
       let eip;
-      if (port.eip) {
-        // TODO Name Perimeter_fw1_azA_eip
+      if (port['create-eip']) {
         eip = new ec2.CfnEIP(scope, `${firewallCgwName}_az${pascalCase(az)}_${index}_eip`, {
           domain: 'vpc',
         });
@@ -96,6 +96,7 @@ async function createFirewallEips(props: {
         internalIpCidr: ipCidr.toCidrString(),
         eipIpAddress: eip?.ref,
         eipAllocationId: eip?.attrAllocationId,
+        createCustomerGateway: port['create-cgw'],
       });
     }
   }

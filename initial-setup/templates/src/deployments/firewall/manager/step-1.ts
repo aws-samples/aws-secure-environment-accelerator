@@ -1,4 +1,5 @@
 import * as cdk from '@aws-cdk/core';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import { ImageFinder } from '@custom-resources/image-finder';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
@@ -64,10 +65,21 @@ async function createFirewallManager(props: {
   const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
   const securityGroup = vpc.findSecurityGroupByName(config['security-group']);
 
-  new FirewallManager(scope, 'FirewallManager', {
+  let eip;
+  if (config['create-eip']) {
+    eip = new ec2.CfnEIP(scope, `${config.name}_eip`, {
+      domain: 'vpc',
+    });
+  }
+
+  const manager = new FirewallManager(scope, 'FirewallManager', {
     imageId: imageFinder.imageId,
     instanceType: config['instance-sizes'],
-    securityGroupIds: [securityGroup.id],
-    subnetId: subnet.id,
+  });
+
+  manager.addNetworkInterface({
+    securityGroup,
+    subnet,
+    eipAllocationId: eip?.attrAllocationId,
   });
 }
