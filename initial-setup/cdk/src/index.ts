@@ -204,6 +204,7 @@ export namespace InitialSetup {
 
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, `${props.acceleratorPrefix}Deploy_pl`, {
+        projectName: `${props.acceleratorPrefix}Deploy_pl`,
         role: pipelineRole,
         buildSpec: codebuild.BuildSpec.fromObject({
           version: '0.2',
@@ -608,7 +609,7 @@ export namespace InitialSetup {
       });
 
       const createAdConnectorStateMachine = new sfn.StateMachine(scope, 'CreateAdConnectorStateMachine', {
-        stateMachineName: `${props.acceleratorPrefix}+CreateAdConnector`,
+        stateMachineName: `${props.acceleratorPrefix}CreateAdConnector_sm`,
         definition: new CreateAdConnectorTask(scope, 'CreateAD', {
           lambdaCode,
           role: pipelineRole,
@@ -664,7 +665,7 @@ export namespace InitialSetup {
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
-        stateMachineName: props.stateMachineName,
+        stateMachineName: `${props.stateMachineName}_sm`,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
