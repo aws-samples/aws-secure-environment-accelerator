@@ -17,7 +17,7 @@ async function main() {
   const app = new cdk.App();
 
   const stack = new cdk.Stack(app, 'InstallerStack', {
-    stackName: 'AcceleratorInstaller',
+    stackName: 'PBMMAccel-AcceleratorInstaller',
   });
 
   const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
@@ -106,7 +106,7 @@ async function main() {
 
   // Define a build specification to build the initial setup templates
   const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
-    projectName: `${acceleratorPrefix.valueAsString}InstallerProject`,
+    projectName: `${acceleratorPrefix.valueAsString}InstallerProject_pl`,
     role: installerProjectRole,
     buildSpec: codebuild.BuildSpec.fromObject({
       version: '0.2',
