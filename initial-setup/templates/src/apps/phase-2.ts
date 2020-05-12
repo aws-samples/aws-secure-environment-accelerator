@@ -14,7 +14,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { ActiveDirectory } from '../common/active-directory';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
-import { getVpcSharedAccounts } from '../common/vpc-subnet-sharing';
+import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
 import * as firewallCluster from '../deployments/firewall/cluster';
@@ -176,9 +176,9 @@ async function main() {
 
   // Creating Security Groups in shared accounts to respective accounts
   for (const { ouKey, accountKey, vpcConfig } of vpcConfigs) {
-    const sharedToAccounts = getVpcSharedAccounts(accounts, vpcConfig, ouKey);
-    const shareToAccountIds = Array.from(new Set(sharedToAccounts));
-    if (sharedToAccounts.length > 0) {
+    const sharedToAccountKeys = getVpcSharedAccountKeys(accounts, vpcConfig, ouKey);
+    const shareToAccountIds = Array.from(new Set(sharedToAccountKeys));
+    if (sharedToAccountKeys.length > 0) {
       console.log(`Share VPC "${vpcConfig.name}" from Account "${accountKey}" to Accounts "${shareToAccountIds}"`);
     }
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
@@ -186,9 +186,9 @@ async function main() {
       outputType: 'VpcOutput',
     });
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
-    for (const [index, sharedAccountId] of shareToAccountIds.entries()) {
+    for (const [index, sharedAccountKey] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+      const accountStack = accountStacks.getOrCreateAccountStack(sharedAccountKey);
       const securityGroupStack = new cfn.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`);
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);

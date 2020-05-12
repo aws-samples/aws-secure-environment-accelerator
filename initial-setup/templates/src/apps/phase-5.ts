@@ -3,24 +3,19 @@ import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import * as iam from '@aws-cdk/aws-iam';
-import { pascalCase } from 'pascal-case';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import * as ssm from '@aws-cdk/aws-ssm';
-import { KeyPairStack } from '@aws-pbmm/common-cdk/lib/core/key-pair';
-import { ResolversOutput } from './phase-2';
+import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { AccountStacks } from '../common/account-stacks';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
-
-type ResolversOutputs = ResolversOutput[];
 
 export interface RdgwArtifactsOutput {
   bucketArn: string;
@@ -73,25 +68,16 @@ async function main() {
     const ec2KeyPairName = 'rdgw-key-pair';
     const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
 
-    const keyPairStack = new KeyPairStack(app, 'Ec2KeyPair', {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: 'PBMMAccel-Ec2KeyPair',
-    });
+    const stack = accountStacks.getOrCreateAccountStack(accountKey);
 
-    keyPairStack.createKeyPair(
-      'RDGWEc2KeyPair',
-      {
-        name: ec2KeyPairName,
-        description: 'This is a Key Pair for RDGW host instance',
-        secretPrefix: ec2KeyPairPrefix,
-      },
-      new iam.AccountPrincipal(accountId),
-    );
+    const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
+
+    const keyPair = keyPairContainer.createKeyPair('RDGWEc2KeyPair', {
+      name: ec2KeyPairName,
+      description: 'This is a Key Pair for RDGW host instance',
+      secretPrefix: ec2KeyPairPrefix,
+      principal: new iam.AccountPrincipal(accountId),
+    });
 
     const userSecrets: UserSecrets = [];
     for (const adUser of madDeploymentConfig['ad-users']) {
@@ -104,11 +90,6 @@ async function main() {
         principals: [new iam.AccountPrincipal(accountId)],
       });
       userSecrets.push({ user: adUser.user, password: madUserPassword });
-    }
-
-    const stack = accountStacks.getOrCreateAccountStack(accountKey);
-    if (stack !== keyPairStack) {
-      stack.addDependency(keyPairStack);
     }
 
     const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
@@ -151,7 +132,7 @@ async function main() {
       throw new Error(`Cannot find madOuput with vpc name ${madDeploymentConfig['vpc-name']}`);
     }
 
-    new ADUsersAndGroups(stack, 'RDGWHost', {
+    const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,
@@ -165,6 +146,7 @@ async function main() {
       accountNames,
       userSecrets,
     });
+    adUsersAndGroups.node.addDependency(keyPair);
   }
 }
 
