@@ -60,9 +60,12 @@ export class ImageFinder extends cdk.Construct {
       }),
     );
 
+    const lambdaPath = require.resolve('@custom-resources/image-finder-lambda');
+    const lambdaDir = path.dirname(lambdaPath);
+
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, '../lambda/dist')),
+      code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role: imageFinderRole,
     });

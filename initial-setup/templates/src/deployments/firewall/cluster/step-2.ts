@@ -121,7 +121,6 @@ async function createCustomerGateways(props: {
         customerGatewayId: customerGateway.ref,
       });
 
-      // TODO Custom resource to get the tunnel info
       vpnTunnelOptions = new VpnTunnelOptions(scope, `VpnTunnelOptions${index}`, {
         vpnConnectionId: vpnConnection.ref,
       });

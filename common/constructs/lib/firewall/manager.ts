@@ -16,7 +16,7 @@ export class FirewallManager extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: FirewallManagerProps) {
     super(scope, id);
 
-    const keyPairName = 'FirewallManagementKey';
+    const keyPairName = 'FirewallManagement';
     new KeyPair(this, 'KeyPair', {
       name: keyPairName,
       secretPrefix: 'accelerator/keypairs/',

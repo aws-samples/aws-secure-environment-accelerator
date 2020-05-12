@@ -13,12 +13,15 @@ interface ShareDirectoryInput {
   configSecretSourceId: string;
 }
 
+// TODO Move to common outputs
 interface MadOutput {
   id: number;
   vpcName: string;
   directoryId: string;
   dnsIps: string;
   passwordArn: string;
+  logGroupArn: string;
+  logGroupName: string;
 }
 
 export const handler = async (input: ShareDirectoryInput) => {
@@ -93,7 +96,7 @@ export const handler = async (input: ShareDirectoryInput) => {
     if (!hasLogGroup) {
       await directoryService.enableCloudWatchLogs({
         DirectoryId: directoryId,
-        LogGroupName: `/aws/directoryservice/${madConfig['log-group-name']}`,
+        LogGroupName: madOutput.logGroupName,
       });
     }
 
