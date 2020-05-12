@@ -59,7 +59,7 @@ export class SecurityHubStack extends cdk.Construct {
         inviteMembersFuncArn,
       );
 
-    // tslint:disable-next-line: deprecation
+      // tslint:disable-next-line: deprecation
       const sendInviteSecurityHubResource = new cfn.CustomResource(
         this,
         `InviteMembersSecurityHubStandards-${account.key}`,
@@ -80,7 +80,7 @@ export class SecurityHubStack extends cdk.Construct {
         acceptInvitationFuncArn,
       );
 
-    // tslint:disable-next-line: deprecation
+      // tslint:disable-next-line: deprecation
       const acceptInviteSecurityHubResource = new cfn.CustomResource(
         this,
         `AcceptInviteSecurityHubStandards-${account.key}`,

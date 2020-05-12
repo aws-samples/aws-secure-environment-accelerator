@@ -187,7 +187,10 @@ async function main() {
     for (const [index, sharedAccountKey] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
       const accountStack = accountStacks.getOrCreateAccountStack(sharedAccountKey);
-      const securityGroupStack = new cfn.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`);
+      const securityGroupStack = new cfn.NestedStack(
+        accountStack,
+        `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
+      );
       if (!vpcOutput) {
         throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
       }
