@@ -4,7 +4,7 @@ import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import * as logs from '@aws-cdk/aws-logs';
 import * as iam from '@aws-cdk/aws-iam';
-import { AcceleratorNameGenerator } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface ActiveDirectoryProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -27,7 +27,7 @@ export class ActiveDirectory extends cdk.Construct {
     const logGroupName = madDeploymentConfig['log-group-name'];
 
     const logGroup = new logs.LogGroup(this, 'MadLogGroup', {
-      logGroupName: '/aws/directoryservice/' + AcceleratorNameGenerator.generate(logGroupName, { lowercase: true }),
+      logGroupName: '/aws/directoryservice/' + createName(logGroupName),
     });
 
     const servicePrincipal = new iam.ServicePrincipal('ds.amazonaws.com');

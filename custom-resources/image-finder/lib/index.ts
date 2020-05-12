@@ -15,12 +15,14 @@ export interface ImageFinderProps {
  * Custom resource that has an image ID attribute for the image with the given properties.
  */
 export class ImageFinder extends cdk.Construct {
+  // tslint:disable-next-line: deprecation
   private readonly resource: cfn.CustomResource;
 
   constructor(scope: cdk.Construct, id: string, props: ImageFinderProps) {
     super(scope, id);
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
+    // tslint:disable-next-line: deprecation
     this.resource = new cfn.CustomResource(this, 'Resource', {
       provider: cfn.CustomResourceProvider.fromLambda(this.ensureLambda()),
       properties: {

@@ -20,7 +20,7 @@ import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
-import { AcceleratorNameGenerator } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -218,7 +218,7 @@ async function main() {
 
     // creating a bucket to store RDGW Host power shell scripts
     const rdgwBucket = new s3.Bucket(masterAccountStack, `RdgwArtifactsBucket${accountKey}`, {
-      bucketName: AcceleratorNameGenerator.generate('rdgw', { lowercase: true }),
+      bucketName: createName('rdgw', { lowercase: true }),
       versioned: true,
     });
 

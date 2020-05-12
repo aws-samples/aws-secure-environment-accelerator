@@ -12,7 +12,7 @@ import {
 } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '../utils/accounts';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
-import { AcceleratorNameGenerator } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface FlowLogBucketReplication {
   accountId: string;
@@ -49,7 +49,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
 
     // kms key used for default EBS encryption
     const kmsKey = new kms.Key(this, 'EBS-DefaultEncryption', {
-      alias: 'alias/' + AcceleratorNameGenerator.generate('EBSDefaultKey'),
+      alias: 'alias/' + createName('EBSDefaultKey'),
       description: 'PBMM - Key used to encrypt/decrypt EBS by default',
       policy: new iam.PolicyDocument({
         statements: [
@@ -197,7 +197,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
     if (accountKey === 'master') {
       // kms key used for s3 bucket encryption
       const encryptionKey = new kms.Key(this, 'EncryptionKey', {
-        alias: 'alias/' + AcceleratorNameGenerator.generate('S3DefaultKey'),
+        alias: 'alias/' + createName('S3DefaultKey'),
         description: 'PBMM - Key used to encrypt/decrypt S3 bucket by default',
       });
 
