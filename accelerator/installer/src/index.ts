@@ -17,7 +17,7 @@ async function main() {
   const app = new cdk.App();
 
   const stack = new cdk.Stack(app, 'InstallerStack', {
-    stackName: 'PBMMAccel-AcceleratorInstaller',
+    stackName: 'AcceleratorInstaller',
   });
 
   const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {

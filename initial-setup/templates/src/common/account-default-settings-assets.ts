@@ -49,7 +49,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
     // kms key used for default EBS encryption
     const kmsKey = new kms.Key(this, 'EBS-DefaultEncryption', {
       // TODO Re-enable alias
-      alias: 'alias/EBS-Default-key',
+      // alias: 'alias/EBS-Default-key',
       description: 'PBMM - Key used to encrypt/decrypt EBS by default',
       policy: new iam.PolicyDocument({
         statements: [

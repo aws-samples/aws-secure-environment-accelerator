@@ -28,7 +28,7 @@ export class LogArchiveBucket extends cdk.Construct {
     this.accountIds = accountIds;
 
     this.encryptionKey = new kms.Key(this, 'EncryptionKey', {
-      alias: 'alias/log-archive-Default-key',
+      // alias: 'alias/S3-Default-key',
       description: 'PBMM Accel - KMS Key used by s3',
       enableKeyRotation: false,
       enabled: true,
