@@ -30,7 +30,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -49,7 +49,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -75,7 +75,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -87,14 +87,14 @@
         "iam:*"
       ],
       "Resource":[
-        "arn:aws:iam::*:role/AcceleratorPipelineRole",
+        "arn:aws:iam::*:role/PBMMAccel-PipelineRole",
         "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole"
       ],
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -112,7 +112,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -133,7 +133,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -157,7 +157,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -192,7 +192,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
@@ -225,7 +225,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }

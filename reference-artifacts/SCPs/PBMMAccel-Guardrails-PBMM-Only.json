@@ -43,7 +43,7 @@
         "StringNotLike": {
           "aws:PrincipalArn": [
               "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-              "arn:aws:iam::*:role/AcceleratorPipelineRole",
+              "arn:aws:iam::*:role/PBMMAccel-PipelineRole",
               "arn:aws:iam::*:role/OpsRole-NotUsed-39241986786*"
           ]
         }
@@ -96,7 +96,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
           ]
         }
       }
