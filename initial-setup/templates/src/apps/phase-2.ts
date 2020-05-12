@@ -168,8 +168,6 @@ async function main() {
         directoryId: activeDirectory.directoryId,
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
         passwordArn: madPassword.secretArn,
-        logGroupArn: activeDirectory.logGroupArn,
-        logGroupName: activeDirectory.logGroupName,
       },
     });
   }

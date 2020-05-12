@@ -19,8 +19,6 @@ export interface ActiveDirectoryProps extends cdk.StackProps {
 export class ActiveDirectory extends cdk.Construct {
   readonly directoryId: string;
   readonly dnsIps: string[];
-  readonly logGroupArn: string;
-  readonly logGroupName: string;
 
   constructor(scope: cdk.Construct, id: string, props: ActiveDirectoryProps) {
     super(scope, id);
@@ -55,8 +53,12 @@ export class ActiveDirectory extends cdk.Construct {
     });
     this.directoryId = microsoftAD.ref;
     this.dnsIps = microsoftAD.attrDnsIpAddresses;
-    this.logGroupArn = logGroup.logGroupArn;
-    this.logGroupName = logGroup.logGroupName;
+
+    // Subscribe directory service to log group
+    new DirectoryServiceLogSubscription(this, 'MadLogSubscription', {
+      directory: microsoftAD,
+      logGroup,
+    });
   }
 }
 
@@ -117,5 +119,80 @@ export class LogResourcePolicy extends cdk.Construct {
 
   addStatements(...statements: iam.PolicyStatement[]) {
     this.policyDocument.addStatements(...statements);
+  }
+}
+
+export interface DirectoryServiceLogSubscriptionProps {
+  directory: string | CfnMicrosoftAD;
+  logGroup: string | logs.LogGroup;
+}
+
+/**
+ * Custom resource implementation that creates log subscription for directory service.
+ */
+// TODO Move to custom resource
+export class DirectoryServiceLogSubscription extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props: DirectoryServiceLogSubscriptionProps) {
+    super(scope, id);
+
+    const { directory, logGroup } = props;
+
+    let logGroupName: string;
+    if (logGroup instanceof logs.LogGroup) {
+      logGroupName = logGroup.logGroupName;
+    } else {
+      logGroupName = logGroup;
+    }
+
+    let directoryId: string;
+    if (directory instanceof CfnMicrosoftAD) {
+      directoryId = directory.ref;
+    } else {
+      directoryId = directory;
+    }
+
+    const physicalResourceId = custom.PhysicalResourceId.of(`LogSubscription${directoryId}`);
+
+    const awsCustomResource = new custom.AwsCustomResource(this, 'Resource', {
+      resourceType: 'Custom::DirectoryServiceLogSubscription',
+      onCreate: {
+        service: 'DirectoryService',
+        action: 'createLogSubscription',
+        physicalResourceId,
+        parameters: {
+          DirectoryId: directoryId,
+          LogGroupName: logGroupName,
+        },
+      },
+      onDelete: {
+        service: 'DirectoryService',
+        action: 'deleteLogSubscription',
+        physicalResourceId,
+        parameters: {
+          DirectoryId: directoryId,
+        },
+      },
+      policy: custom.AwsCustomResourcePolicy.fromStatements([
+        new iam.PolicyStatement({
+          actions: ['ds:CreateLogSubscription', 'ds:DeleteLogSubscription'],
+          resources: ['*'],
+        }),
+      ]),
+    });
+
+    // Workaround to find the CfnResource that are backing this construct
+    // Add the log group and the directory as dependencies
+    const children = awsCustomResource.node.findAll();
+    const resources = children.filter((c): c is cdk.CfnResource => c instanceof cdk.CfnResource);
+    for (const resource of resources) {
+      if (logGroup instanceof logs.LogGroup) {
+        const logGroupChildren = logGroup.node.findAll();
+        const logGroupResource = logGroupChildren.find(c => c instanceof cdk.CfnResource) as cdk.CfnResource;
+        resource.addDependsOn(logGroupResource);
+      }
+      if (directory instanceof CfnMicrosoftAD) {
+        resource.addDependsOn(directory);
+      }
+    }
   }
 }

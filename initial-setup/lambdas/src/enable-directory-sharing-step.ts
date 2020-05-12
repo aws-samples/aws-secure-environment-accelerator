@@ -20,8 +20,6 @@ interface MadOutput {
   directoryId: string;
   dnsIps: string;
   passwordArn: string;
-  logGroupArn: string;
-  logGroupName: string;
 }
 
 export const handler = async (input: ShareDirectoryInput) => {
@@ -89,16 +87,6 @@ export const handler = async (input: ShareDirectoryInput) => {
     const directoryId = madOutput.directoryId;
 
     const accountId = getAccountId(accounts, accountKey);
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    const directoryService = new DirectoryService(credentials);
-    const hasLogGroup = await directoryService.hasLogGroup({ DirectoryId: directoryId });
-
-    if (!hasLogGroup) {
-      await directoryService.enableCloudWatchLogs({
-        DirectoryId: directoryId,
-        LogGroupName: madOutput.logGroupName,
-      });
-    }
 
     if (madConfig['share-to-account']) {
       const shareToAccountId = getAccountId(accounts, madConfig['share-to-account']);
