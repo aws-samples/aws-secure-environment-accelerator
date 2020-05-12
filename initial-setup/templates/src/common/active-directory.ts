@@ -25,8 +25,8 @@ export class ActiveDirectory extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: ActiveDirectoryProps) {
     super(scope, id);
     const { madDeploymentConfig, subnetInfo, password } = props;
-    const logGroupName = madDeploymentConfig['log-group-name'];
 
+    const logGroupName = madDeploymentConfig['log-group-name'];
     const logGroup = new logs.LogGroup(this, 'MadLogGroup', {
       logGroupName: '/aws/directoryservice/' + createName(logGroupName),
     });
