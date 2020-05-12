@@ -400,20 +400,17 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
-      const artifactName = 'Scp';
-      const artifactFolderName = 'SCPs';
-      const destinationKeyPrefix = 'scp';
-      // creating a bucket to store artifacts
-      const artifactBucket = new s3.Bucket(stack, `${artifactName}ArtifactsBucket`, {
+      // creating a bucket to store SCP artifacts
+      const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
         versioned: true,
       });
 
-      const artifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', artifactFolderName);
+      const scpArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'SCPs');
 
-      new s3deployment.BucketDeployment(stack, `${artifactName}ArtifactsDeployment`, {
-        sources: [s3deployment.Source.asset(artifactsFolderPath)],
-        destinationBucket: artifactBucket,
-        destinationKeyPrefix,
+      new s3deployment.BucketDeployment(stack, 'ScpArtifactsDeployment', {
+        sources: [s3deployment.Source.asset(scpArtifactsFolderPath)],
+        destinationBucket: scpArtifactBucket,
+        destinationKeyPrefix: 'scp',
       });
 
       const addScpTask = new CodeTask(this, 'Add SCP to Org', {
@@ -425,8 +422,8 @@ export namespace InitialSetup {
         functionPayload: {
           acceleratorPrefix: props.acceleratorPrefix,
           configSecretId: configSecretInProgress.secretArn,
-          scpBucketName: artifactBucket.bucketName,
-          scpBucketPrefix: destinationKeyPrefix,
+          scpBucketName: scpArtifactBucket.bucketName,
+          scpBucketPrefix: 'scp',
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -463,6 +460,27 @@ export namespace InitialSetup {
         sourceBucketName: solutionZip.s3BucketName,
         sourceBucketKey: solutionZip.s3ObjectKey,
       };
+
+      // creating a bucket to store IAM Policy artifacts
+      const iamPolicyArtifactBucket = new s3.Bucket(stack, 'IamPolicyArtifactsBucket', {
+        versioned: true,
+        bucketName: 'pbmmaccel-iam-policy-config',
+      });
+
+      const iamPolicyArtifactsFolderPath = path.join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        'reference-artifacts',
+        'iam-policies',
+      );
+
+      new s3deployment.BucketDeployment(stack, 'IamPolicyArtifactsDeployment', {
+        sources: [s3deployment.Source.asset(iamPolicyArtifactsFolderPath)],
+        destinationBucket: iamPolicyArtifactBucket,
+        destinationKeyPrefix: 'iam-policy',
+      });
 
       const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
         task: new tasks.StartExecution(deployStateMachine, {

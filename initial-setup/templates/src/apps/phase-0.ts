@@ -12,7 +12,7 @@ import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
-import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { IamUserConfigType, IamConfig, IamConfigType, IamPolicyConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
 import * as s3 from '@aws-cdk/aws-s3';
@@ -20,6 +20,8 @@ import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
+import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -42,6 +44,8 @@ async function main() {
 
   // TODO Get these values dynamically
   const globalOptionsConfig = acceleratorConfig['global-options'];
+  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
+  const orgUnits = acceleratorConfig.getOrganizationalUnits();
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
@@ -118,6 +122,72 @@ async function main() {
   //   },
   // });
 
+  const uploadArtifacts = (
+    artifactName: string,
+    artifactFolderName: string,
+    artifactKeyPrefix: string,
+    accountKey: string,
+    artifactBucketName: string,
+    destinationKeyPrefix?: string,
+  ): void => {
+    // creating a bucket to store artifacts
+    const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
+      versioned: true,
+      bucketName: artifactBucketName,
+    });
+
+    // Granting read access to all the accounts
+    principals.map(principal => artifactBucket.grantRead(principal));
+
+    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
+
+    new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
+      sources: [s3deployment.Source.asset(artifactsFolderPath)],
+      destinationBucket: artifactBucket,
+      destinationKeyPrefix,
+    });
+
+    // outputs to store reference artifacts s3 bucket information
+    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
+      type: `${artifactName}ArtifactsOutput`,
+      value: {
+        accountKey,
+        bucketArn: artifactBucket.bucketArn,
+        bucketName: artifactBucket.bucketName,
+        keyPrefix: artifactKeyPrefix,
+      },
+    });
+  };
+
+  const masterAccountId = getAccountId(accounts, 'master');
+  const sts = new STS();
+  const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
+    masterAccountId,
+    context.acceleratorExecutionRoleName,
+  );
+  const iamPolicyS3 = new S3(masterAcctCredentials);
+
+  const iamPoliciesDefinition: { [policyName: string]: string } = {};
+  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+    const iamConfig = accountConfig.iam;
+    if (IamConfigType.is(iamConfig)) {
+      const iamPolicies = iamConfig?.policies;
+      if (iamPolicies && iamPolicies?.length > 1) {
+        for (const iamPolicy of iamPolicies) {
+          if (IamPolicyConfigType.is(iamPolicy)) {
+            const iamPolicyName = iamPolicy['policy-name'];
+            const iamPolicyFileName = iamPolicy.policy;
+            const policyContent = await iamPolicyS3.getObjectBodyAsString({
+              Bucket: 'pbmmaccel-iam-policy-config',
+              Key: `iam-policy/${iamPolicyFileName}`,
+            });
+            iamPoliciesDefinition[iamPolicyName] = policyContent;
+          }
+        }
+      }
+    }
+  }
+
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const defaultAssetAccountId = getAccountId(accounts, accountKey);
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
@@ -159,6 +229,7 @@ async function main() {
         accountId: defaultAssetAccountId,
         accountKey,
         iamConfig,
+        iamPoliciesDefinition,
         accounts,
         userPasswords,
         s3BucketNameForCur,
@@ -189,7 +260,6 @@ async function main() {
 
   const mandatoryAccountKeys: string[] = [];
   // creating assets for default account settings
-  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     mandatoryAccountKeys.push(accountKey);
     await createAccountDefaultAssets(accountKey, accountConfig.iam);
@@ -197,7 +267,6 @@ async function main() {
   }
 
   // creating assets for org unit accounts
-  const orgUnits = acceleratorConfig.getOrganizationalUnits();
   for (const [orgName, orgConfig] of orgUnits) {
     const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
     for (const orgAccount of orgAccounts) {
@@ -205,55 +274,6 @@ async function main() {
       console.log(`Default assets created for account - ${orgAccount.key}`);
     }
   }
-
-  const uploadArtifacts = (
-    artifactName: string,
-    artifactFolderName: string,
-    artifactKeyPrefix: string,
-    accountKey: string,
-    artifactBucketName: string,
-    destinationKeyPrefix?: string,
-  ): void => {
-    // creating a bucket to store artifacts
-    const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
-      versioned: true,
-      bucketName: artifactBucketName,
-    });
-
-    // Granting read access to all the accounts
-    principals.map(principal => artifactBucket.grantRead(principal));
-
-    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
-
-    new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
-      sources: [s3deployment.Source.asset(artifactsFolderPath)],
-      destinationBucket: artifactBucket,
-      destinationKeyPrefix,
-    });
-
-    // outputs to store reference artifacts s3 bucket information
-    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
-      type: `${artifactName}ArtifactsOutput`,
-      value: {
-        accountKey,
-        bucketArn: artifactBucket.bucketArn,
-        bucketName: artifactBucket.bucketName,
-        keyPrefix: artifactKeyPrefix,
-      },
-    });
-  };
-
-  const masterAccountId = getAccountId(accounts, 'master');
-  const iamPoliciesBucketName = `pbmmaccel-${masterAccountId}-${cdk.Aws.REGION}`;
-  // upload IAM-Policies Artifacts
-  uploadArtifacts(
-    'IamPolicy',
-    'Task_5_0_5_IAM_Policy_Docs',
-    'iam-policy',
-    'master',
-    iamPoliciesBucketName,
-    'iam-policy',
-  );
 
   for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
@@ -275,22 +295,22 @@ async function main() {
       Email: account.email,
     };
   });
-  const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
-  // Create Security Hub stack for Master Account in Security Account
-  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
-    account: securityMasterAccount!,
-    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-    standards: globalOptions['security-hub-frameworks'],
-    subAccountIds,
-  });
+  // const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
+  // // Create Security Hub stack for Master Account in Security Account
+  // const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+  //   account: securityMasterAccount!,
+  //   acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+  //   enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+  //   inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+  //   standards: globalOptions['security-hub-frameworks'],
+  //   subAccountIds,
+  // });
 
-  // Firewall creation step 1
-  await firewall.step1({
-    accountStacks,
-    config: acceleratorConfig,
-  });
+  // // Firewall creation step 1
+  // await firewall.step1({
+  //   accountStacks,
+  //   config: acceleratorConfig,
+  // });
 }
 
 // tslint:disable-next-line: no-floating-promises

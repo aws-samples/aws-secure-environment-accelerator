@@ -23,6 +23,7 @@ export interface AccountDefaultSettingsAssetsProps {
   accountId: string;
   accountKey: string;
   iamConfig?: IamConfig;
+  iamPoliciesDefinition: { [policyName: string]: string };
   accounts: Account[];
   userPasswords: { [userId: string]: Secret };
   s3BucketNameForCur: string;
@@ -39,6 +40,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
       accountId,
       accountKey,
       iamConfig,
+      iamPoliciesDefinition,
       accounts,
       userPasswords,
       s3BucketNameForCur,
@@ -70,17 +72,24 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
     const customerManagedPolicies: { [policyName: string]: iam.ManagedPolicy } = {};
     // method to create IAM Policy
     const createIamPolicy = (policyName: string, policy: string): void => {
+      const iamPolicyDef = iamPoliciesDefinition[policyName];
+      const iamPolicyJson = JSON.parse(iamPolicyDef);
+      const statementArray = iamPolicyJson.Statement;
+
       const iamPolicy = new iam.ManagedPolicy(this, `IAM-Policy-${policyName}-${accountKey}`, {
         managedPolicyName: policyName,
         description: `PBMM - ${policyName}`,
-        statements: [
-          new iam.PolicyStatement({
-            effect: iam.Effect.ALLOW,
-            actions: ['*'],
-            resources: ['*'],
-          }),
-        ],
       });
+
+      for (const statement of statementArray) {
+        iamPolicy.addStatements(
+          new iam.PolicyStatement({
+            effect: statement.Effect === 'Allow' ? iam.Effect.ALLOW : iam.Effect.DENY,
+            actions: statement.Action,
+            resources: statement.Resource,
+          }),
+        );
+      }
       customerManagedPolicies[policyName] = iamPolicy;
     };
 
