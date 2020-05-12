@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import { KeyPair, KeyPairProps } from 'cdk-ec2-key-pair';
-import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createName } from './accelerator-name-generator';
 
 /**
  * This is a utility class that creates a stack to manage ec2 key pair. It creates a KMS key that is used to encrypt key pair
