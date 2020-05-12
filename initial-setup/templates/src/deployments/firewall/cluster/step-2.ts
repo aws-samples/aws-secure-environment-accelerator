@@ -30,6 +30,16 @@ export const FirewallVpnConnectionType = t.intersection([
     transitGatewayId: t.string,
     customerGatewayId: optional(t.string),
     vpnConnectionId: optional(t.string),
+    vpnTunnelOptions: optional(
+      t.interface({
+        cgwTunnelInsideAddress: t.string,
+        cgwBgpAsn: t.string,
+        vpnTunnelInsideAddress: t.string,
+        vpnTunnelOutsideAddress: t.string,
+        vpnBgpAsn: t.string,
+        preSharedSecret: t.string,
+      }),
+    ),
   }),
 ]);
 
@@ -126,9 +136,18 @@ async function createCustomerGateways(props: {
         customerGatewayId: customerGateway.ref,
       });
 
-      vpnTunnelOptions = new VpnTunnelOptions(scope, `VpnTunnelOptions${index}`, {
+      const options = new VpnTunnelOptions(scope, `VpnTunnelOptions${index}`, {
         vpnConnectionId: vpnConnection.ref,
       });
+
+      vpnTunnelOptions = {
+        cgwTunnelInsideAddress: options?.getAttString('CgwInsideIpAddress1'),
+        cgwBgpAsn: options?.getAttString('CgwBgpAsn1'),
+        vpnTunnelInsideAddress: options?.getAttString('VpnInsideIpAddress1'),
+        vpnTunnelOutsideAddress: options?.getAttString('VpnOutsideIpAddress1'),
+        vpnBgpAsn: options?.getAttString('VpnBgpAsn1'),
+        preSharedSecret: options?.getAttString('PreSharedKey1'),
+      };
     }
 
     vpnConnections.push({
@@ -137,6 +156,7 @@ async function createCustomerGateways(props: {
       transitGatewayId,
       customerGatewayId: customerGateway?.ref,
       vpnConnectionId: vpnConnection?.ref,
+      vpnTunnelOptions,
     });
   }
 
