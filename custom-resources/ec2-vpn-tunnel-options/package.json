@@ -32,15 +32,11 @@
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "1.38.0",
     "@aws-cdk/aws-iam": "1.38.0",
-    "@aws-cdk/aws-lambda": "1.38.0",
     "@aws-cdk/core": "1.38.0"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-cloudformation": "^1.38.0",
     "@aws-cdk/aws-iam": "^1.38.0",
-    "@aws-cdk/aws-lambda": "^1.38.0",
     "@aws-cdk/core": "^1.38.0"
   },
   "jest": {

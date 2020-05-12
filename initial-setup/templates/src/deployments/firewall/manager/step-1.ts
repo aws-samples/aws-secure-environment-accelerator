@@ -52,7 +52,7 @@ async function createFirewallManager(props: {
 }) {
   const { scope, vpc, firewallManagerConfig: config } = props;
 
-  const imageFinder = new ImageFinder(scope, 'FirewallManagerImageFinder', {
+  const imageFinder = new ImageFinder(scope, 'FirewallManagerImage', {
     // FortiGate owner ID
     imageOwner: '679593333241',
     // If Bring-Your-Own-License, then use the AWS build, otherwise the AWSONDEMAND build

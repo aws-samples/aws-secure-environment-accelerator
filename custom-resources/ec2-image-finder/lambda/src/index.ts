@@ -1,63 +1,56 @@
 import * as AWS from 'aws-sdk';
-import { Context, CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { send, SUCCESS, FAILED } from 'cfn-response-async';
+import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 
 const ec2 = new AWS.EC2();
 
-export const handler = async (event: CloudFormationCustomResourceEvent, context: Context): Promise<unknown> => {
-  console.log(`Finding image ID...`);
+export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+  console.log(`Finding tunnel options...`);
   console.log(JSON.stringify(event, null, 2));
 
-  const resourceId = 'ImageIdFinder';
-  const requestType = event.RequestType;
-  if (requestType === 'Delete') {
-    console.log('Nothing to perform to delete this resource');
-    return send(event, context, SUCCESS, {}, resourceId);
-  }
-
-  try {
-    // Find images that match the given owner, name and version
-    const describeImages = await ec2
-      .describeImages(
-        buildRequest({
-          owner: event.ResourceProperties.ImageOwner,
-          name: event.ResourceProperties.ImageName,
-          version: event.ResourceProperties.ImageVersion,
-          productCode: event.ResourceProperties.ImageProductCode,
-        }),
-      )
-      .promise();
-
-    const images = describeImages.Images;
-    if (!images || images.length === 0) {
-      throw new Error(`Unable to find image`);
-    }
-
-    // Reverse sort by creation date
-    images.sort((a: AWS.EC2.Image, b: AWS.EC2.Image) => b.CreationDate!.localeCompare(a.CreationDate!));
-
-    // Build the resource output
-    const image = images[0];
-    const output = {
-      ImageID: image.ImageId,
-    };
-
-    return send(event, context, SUCCESS, output, resourceId);
-  } catch (error) {
-    console.error(error);
-
-    return send(
-      event,
-      context,
-      FAILED,
-      {
-        status: 'FAILED',
-        statusReason: JSON.stringify(error),
-      },
-      resourceId,
-    );
+  // tslint:disable-next-line: switch-default
+  switch (event.RequestType) {
+    case 'Create':
+      return onCreate(event);
+    case 'Update':
+      return onUpdate(event);
+    case 'Delete':
+      return onDelete(event);
   }
 };
+
+async function onCreate(event: CloudFormationCustomResourceEvent) {
+  // Find images that match the given owner, name and version
+  const describeImages = await ec2
+    .describeImages(
+      buildRequest({
+        owner: event.ResourceProperties.ImageOwner,
+        name: event.ResourceProperties.ImageName,
+        version: event.ResourceProperties.ImageVersion,
+        productCode: event.ResourceProperties.ImageProductCode,
+      }),
+    )
+    .promise();
+
+  const images = describeImages.Images;
+  const image = images?.[0];
+  if (!image) {
+    throw new Error(`Unable to find image`);
+  }
+
+  return {
+    Data: {
+      ImageID: image.ImageId,
+    },
+  };
+}
+
+async function onUpdate(event: CloudFormationCustomResourceEvent) {
+  return onCreate(event);
+}
+
+async function onDelete(_: CloudFormationCustomResourceEvent) {
+  console.log(`Nothing to do for delete...`);
+}
 
 /**
  * Auxiliary method to build a DescribeImagesRequest from the given parameters.

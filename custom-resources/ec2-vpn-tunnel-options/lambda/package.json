@@ -32,7 +32,6 @@
   "dependencies": {
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.668.0",
-    "cfn-response-async": "^1.0.0",
     "xml2js": "^0.4.23"
   },
   "jest": {

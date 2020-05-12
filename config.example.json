@@ -539,12 +539,7 @@
           "asn": 65534
         },
         "pcx": false,
-        "natgw": {
-          "subnet": {
-            "name": "Public",
-            "az": "a"
-          }
-        },
+        "natgw": false,
         "subnets": [
           {
             "name": "Public",

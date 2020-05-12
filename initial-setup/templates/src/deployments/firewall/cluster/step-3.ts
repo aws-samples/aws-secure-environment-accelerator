@@ -74,7 +74,7 @@ async function createFirewallCluster(props: {
 }) {
   const { scope, vpc, firewallConfig, firewallVpnConnections } = props;
 
-  const imageFinder = new ImageFinder(scope, 'ImageFinder', {
+  const imageFinder = new ImageFinder(scope, 'FirewallImage', {
     // FortiGate owner ID
     imageOwner: '679593333241',
     // If Bring-Your-Own-License, then use the AWS build, otherwise the AWSONDEMAND build
