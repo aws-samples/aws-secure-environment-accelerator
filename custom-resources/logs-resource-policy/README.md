@@ -18,3 +18,10 @@ This is a custom resource to creating a log resource policy using the CloudWatch
         }),
       ],
     });
+
+## To-do
+
+Some improvements can still be made to this resource.
+
+- We will end up without log resource policy when we create two `LogResourcePolicy` with the same name and then
+delete one of both.

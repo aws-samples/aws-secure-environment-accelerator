@@ -38,10 +38,10 @@
     "@aws-cdk/core": "1.38.0"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-cloudformation": "^1.32.2",
-    "@aws-cdk/aws-iam": "^1.32.2",
-    "@aws-cdk/aws-lambda": "^1.32.2",
-    "@aws-cdk/core": "^1.32.2"
+    "@aws-cdk/aws-cloudformation": "^1.38.0",
+    "@aws-cdk/aws-iam": "^1.38.0",
+    "@aws-cdk/aws-lambda": "^1.38.0",
+    "@aws-cdk/core": "^1.38.0"
   },
   "jest": {
     "preset": "ts-jest",
