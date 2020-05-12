@@ -769,7 +769,8 @@
             "ports": [
               {
                 "subnet": "Public",
-                "eip": true,
+                "create-eip": true,
+                "create-cgw": true,
                 "internal-ip-addresses": {
                   "a": "100.96.251.69/26",
                   "b": "100.96.251.133/26"
@@ -777,7 +778,8 @@
               },
               {
                 "subnet": "OnPremise",
-                "eip": false,
+                "create-eip": false,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.251.5/28",
                   "b": "100.96.251.37/28"
@@ -785,7 +787,8 @@
               },
               {
                 "subnet": "FWMgmt",
-                "eip": true,
+                "create-eip": true,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.251.21/28",
                   "b": "100.96.251.53/28"
@@ -793,7 +796,8 @@
               },
               {
                 "subnet": "Proxy",
-                "eip": false,
+                "create-eip": false,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.250.5/25",
                   "b": "100.96.250.133/25"
@@ -828,7 +832,8 @@
           "subnet": {
             "name": "FWMgmt",
             "az": "a"
-          }
+          },
+          "create-eip": true
         }
       }
     },
