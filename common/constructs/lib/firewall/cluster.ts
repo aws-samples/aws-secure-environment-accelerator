@@ -60,6 +60,8 @@ export class FirewallCluster extends cdk.Construct {
       keyPairName: this.keyPairName,
       iamInstanceProfileName: this.instanceProfile.instanceProfileName!,
     });
+    instance.node.addDependency(this.keyPair);
+
     this.instances.push(instance);
     return instance;
   }

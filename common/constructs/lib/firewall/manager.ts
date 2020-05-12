@@ -50,7 +50,7 @@ export class FirewallManager extends cdk.Construct {
   }
 
   protected onPrepare() {
-    new ec2.CfnInstance(this, 'Resource', {
+    const instance = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
       keyName: this.keyPairName,
@@ -59,5 +59,6 @@ export class FirewallManager extends cdk.Construct {
         networkInterfaceId: eni.ref,
       })),
     });
+    instance.node.addDependency(this.keyPair);
   }
 }
