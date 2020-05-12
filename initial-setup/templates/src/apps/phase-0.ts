@@ -295,22 +295,22 @@ async function main() {
       Email: account.email,
     };
   });
-  // const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
-  // // Create Security Hub stack for Master Account in Security Account
-  // const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
-  //   account: securityMasterAccount!,
-  //   acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-  //   enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-  //   inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-  //   standards: globalOptions['security-hub-frameworks'],
-  //   subAccountIds,
-  // });
+  const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
+  // Create Security Hub stack for Master Account in Security Account
+  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+    account: securityMasterAccount!,
+    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+    standards: globalOptions['security-hub-frameworks'],
+    subAccountIds,
+  });
 
-  // // Firewall creation step 1
-  // await firewall.step1({
-  //   accountStacks,
-  //   config: acceleratorConfig,
-  // });
+  // Firewall creation step 1
+  await firewall.step1({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises
