@@ -4,7 +4,7 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
-import { ImageFinder } from '@custom-resources/image-finder';
+import { ImageFinder } from '@custom-resources/ec2-image-finder';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { FirewallVpnConnectionOutputType, FirewallVpnConnection } from './step-2';

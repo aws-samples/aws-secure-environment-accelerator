@@ -1,29 +1,25 @@
 {
-  "name": "@custom-resources/vpn-tunnel-options",
+  "name": "@custom-resources/ec2-image-finder-lambda",
   "version": "0.0.1",
   "private": true,
-  "main": "lib/index.ts",
+  "scripts": {
+    "prepare": "webpack-cli --config webpack.config.ts"
+  },
+  "main": "dist/index.js",
   "devDependencies": {
     "@babel/core": "7.9.0",
     "@babel/plugin-proposal-class-properties": "7.8.3",
     "@babel/plugin-transform-typescript": "7.9.4",
     "@babel/preset-env": "7.9.0",
     "@babel/preset-typescript": "7.9.0",
-
-    "@custom-resources/vpn-tunnel-options-lambda": "workspace:^0.0.1",
     "@types/adm-zip": "0.4.32",
     "@types/aws-lambda": "8.10.46",
-    "@types/cfn-response": "1.0.3",
-    "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
     "@types/webpack": "4.41.8",
-    "babel-jest": "25.2.0",
     "babel-loader": "8.1.0",
     "fork-ts-checker-webpack-plugin": "4.1.1",
-    "glob": "7.1.6",
     "jest": "25.2.4",
     "prettier": "1.19.1",
-    "ts-jest": "25.3.0",
     "ts-node": "6.2.0",
     "tslint": "6.1.0",
     "tslint-config-prettier": "1.18.0",
@@ -33,16 +29,9 @@
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "1.38.0",
-    "@aws-cdk/aws-iam": "1.38.0",
-    "@aws-cdk/aws-lambda": "1.38.0",
-    "@aws-cdk/core": "1.38.0"
-  },
-  "peerDependencies": {
-    "@aws-cdk/aws-cloudformation": "^1.32.2",
-    "@aws-cdk/aws-iam": "^1.32.2",
-    "@aws-cdk/aws-lambda": "^1.32.2",
-    "@aws-cdk/core": "^1.32.2"
+    "aws-lambda": "1.0.5",
+    "aws-sdk": "2.668.0",
+    "cfn-response-async": "^1.0.0"
   },
   "jest": {
     "preset": "ts-jest",

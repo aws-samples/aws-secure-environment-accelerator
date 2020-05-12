@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { ImageFinder } from '@custom-resources/image-finder';
+import { ImageFinder } from '@custom-resources/ec2-image-finder';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallManager } from '@aws-pbmm/constructs/lib/firewall';

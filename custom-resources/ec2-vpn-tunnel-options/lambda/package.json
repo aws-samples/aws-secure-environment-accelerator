@@ -1,5 +1,5 @@
 {
-  "name": "@custom-resources/image-finder-lambda",
+  "name": "@custom-resources/ec2-vpn-tunnel-options-lambda",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -16,6 +16,7 @@
     "@types/aws-lambda": "8.10.46",
     "@types/node": "12.12.6",
     "@types/webpack": "4.41.8",
+    "@types/xml2js": "^0.4.5",
     "babel-loader": "8.1.0",
     "fork-ts-checker-webpack-plugin": "4.1.1",
     "jest": "25.2.4",
@@ -31,7 +32,8 @@
   "dependencies": {
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.668.0",
-    "cfn-response-async": "^1.0.0"
+    "cfn-response-async": "^1.0.0",
+    "xml2js": "^0.4.23"
   },
   "jest": {
     "preset": "ts-jest",
