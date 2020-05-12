@@ -192,7 +192,7 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
       });
     }
 
-    if(accountKey === 'master') {
+    if (accountKey === 'master') {
       // create access analyzer role
       const iamRole = new iam.Role(this, `IAM-Role-ServiceRoleForAccessAnalyzer-Master`, {
         roleName: 'PBMMAccel-ServiceRoleForAccessAnalyzer',
