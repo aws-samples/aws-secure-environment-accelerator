@@ -227,10 +227,12 @@ async function main() {
 
     const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', 'scripts');
 
+    const artifactsDestination = 'config/scripts';
+
     new s3deployment.BucketDeployment(masterAccountStack, `RdgwArtifactsDeployment${accountKey}`, {
       sources: [s3deployment.Source.asset(artifactsFolderPath)],
       destinationBucket: rdgwBucket,
-      destinationKeyPrefix: 'config/scripts/',
+      destinationKeyPrefix: `${artifactsDestination}/`,
     });
 
     // outputs to store RDGW reference artifacts scripts s3 bucket information
@@ -240,7 +242,7 @@ async function main() {
         accountKey,
         bucketArn: rdgwBucket.bucketArn,
         bucketName: rdgwBucket.bucketName,
-        keyPrefix: 'config/scripts/',
+        keyPrefix: artifactsDestination,
       },
     });
   }
