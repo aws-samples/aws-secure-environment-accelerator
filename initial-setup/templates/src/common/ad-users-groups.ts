@@ -1,15 +1,16 @@
 import * as cdk from '@aws-cdk/core';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import * as iam from '@aws-cdk/aws-iam';
-import * as ec2 from '@aws-cdk/aws-ec2';
 import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnAutoScalingGroup, CfnLaunchConfiguration, AutoScalingGroup } from '@aws-cdk/aws-autoscaling';
 import { pascalCase } from 'pascal-case';
+import { SecurityGroup } from './security-group';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
   latestRdgwAmiId: string;
   vpcId: string;
+  vpcName: string;
   keyPairName: string;
   subnetIds: string[];
   adminPasswordArn: string;
@@ -18,6 +19,7 @@ export interface ADUsersAndGroupsProps extends cdk.StackProps {
   stackId: string;
   accountNames: string[];
   userSecrets: UserSecret[];
+  accountKey: string;
 }
 
 export interface UserSecret {
@@ -32,6 +34,7 @@ export class ADUsersAndGroups extends cdk.Construct {
     const {
       latestRdgwAmiId,
       vpcId,
+      vpcName,
       keyPairName,
       subnetIds,
       madDeploymentConfig,
@@ -42,6 +45,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       adminPasswordArn,
       accountNames,
       userSecrets,
+      accountKey,
     } = props;
 
     // Creating AD Users command
@@ -82,57 +86,13 @@ export class ADUsersAndGroups extends cdk.Construct {
       ),
     );
 
-    // Create a new security group for RDGW Host
-    const securityGroup = new ec2.CfnSecurityGroup(this, 'RemoteDesktopGatewaySG', {
+    // creating security group for the instance
+    const securityGroup = new SecurityGroup(this, 'RdgwSecurityGroup', {
+      securityGroups: madDeploymentConfig['security-groups'],
+      accountKey,
       vpcId,
-      groupDescription: `Enable RDP access from the Domain`,
-      securityGroupEgress: [
-        {
-          ipProtocol: ec2.Protocol.ALL,
-          cidrIp: '0.0.0.0/0',
-        },
-        {
-          ipProtocol: ec2.Protocol.ALL,
-          cidrIpv6: '0::/0',
-        },
-      ],
+      vpcName,
     });
-
-    // TODO need to modify the rules to avoid hard coding
-    const tcpPorts = [464, 389, 3389, 445, 88, 135, 636, 53];
-    const udpPorts = [445, 138, 464, 53, 389, 123, 88];
-
-    const tcpRules = tcpPorts.map(tcp => ({
-      ipProtocol: ec2.Protocol.TCP,
-      cidrIp: '0.0.0.0/0',
-      fromPort: tcp,
-      toPort: tcp,
-    }));
-
-    const udpRules = udpPorts.map(udp => ({
-      ipProtocol: ec2.Protocol.UDP,
-      cidrIp: '0.0.0.0/0',
-      fromPort: udp,
-      toPort: udp,
-    }));
-
-    const customPorts = [
-      {
-        ipProtocol: ec2.Protocol.TCP,
-        cidrIp: '0.0.0.0/0',
-        fromPort: 3268,
-        toPort: 3269,
-      },
-      {
-        ipProtocol: ec2.Protocol.TCP,
-        cidrIp: '0.0.0.0/0',
-        fromPort: 1024,
-        toPort: 65535,
-      },
-    ];
-    const ports = tcpRules.concat(udpRules).concat(customPorts);
-
-    securityGroup.securityGroupIngress = ports;
 
     const RDGWHostRole = new iam.Role(this, 'RDGWHostRole', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
@@ -186,7 +146,7 @@ export class ADUsersAndGroups extends cdk.Construct {
     const launchConfig = new CfnLaunchConfiguration(this, 'RDGWLaunchConfiguration', {
       associatePublicIpAddress: false,
       imageId: latestRdgwAmiId,
-      securityGroups: [securityGroup.ref],
+      securityGroups: [securityGroup.securityGroups[0].id],
       iamInstanceProfile: RDGWHostProfile.instanceProfileName,
       instanceType: madDeploymentConfig['rdgw-instance-type'],
       launchConfigurationName: 'RDGWLaunchConfiguration',
