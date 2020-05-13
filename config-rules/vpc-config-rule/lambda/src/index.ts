@@ -37,6 +37,7 @@ export const handler = async (event: ConfigRuleEvent) => {
   }
 
   const ruleParameters = JSON.parse(event.ruleParameters);
+  // TODO Change this to expectedVpcFlowLogDestinations
   if (!ruleParameters.expectedVpcFlowLogBucket) {
     throw new Error(`The 'expectedVpcFlowLogBucket' in InputParameters should be set!`);
   }

@@ -3,13 +3,13 @@ import * as cdk from '@aws-cdk/core';
 import * as cnf from '@aws-cdk/aws-config';
 import { ConfigRule } from '@config-rules/vpc-config-rule';
 
-export type ConformancePackProps = Omit<cnf.CfnConformancePackProps, 'templateBody' | 'templateS3Uri'>;
+export type OrganizationConformancePackProps = Omit<cnf.CfnOrganizationConformancePackProps, 'templateBody' | 'templateS3Uri'>;
 
-export class ConformancePack extends cdk.Construct {
-  private readonly props: ConformancePackProps;
+export class OrganizationConformancePack extends cdk.Construct {
+  private readonly props: OrganizationConformancePackProps;
   private readonly rules: ConfigRule[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: ConformancePackProps) {
+  constructor(scope: cdk.Construct, id: string, props: OrganizationConformancePackProps) {
     super(scope, id);
     this.props = props;
   }
@@ -38,7 +38,7 @@ export class ConformancePack extends cdk.Construct {
     console.debug('ConformancePack.onPrepare');
     console.debug(templateYaml);
 
-    new cnf.CfnConformancePack(this, 'Resource', {
+    new cnf.CfnOrganizationConformancePack(this, 'Resource', {
       ...this.props,
       templateBody: templateYaml,
     });

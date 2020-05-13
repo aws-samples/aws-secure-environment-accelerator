@@ -241,7 +241,9 @@ async function main() {
   await conformancePackage.step1({
     accountStacks,
     config: acceleratorConfig,
+    accounts,
     outputs,
+    executionRoleName: context.acceleratorExecutionRoleName,
   });
 
   // Deploy Security Hub

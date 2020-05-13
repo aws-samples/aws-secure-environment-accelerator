@@ -11,8 +11,15 @@ export interface ConfigRule {
   renderToCloudFormation(): any;
 }
 
+export interface VpcConfigRuleExpectedFlowLogDestination {
+  accountId: string,
+  executionRoleName: string,
+  vpcId: string,
+  flowLogDestination: string,
+}
+
 export interface VpcConfigRuleProps {
-  expectedVpcFlowLogBucket: string;
+  expectedVpcFlowLogDestinations: VpcConfigRuleExpectedFlowLogDestination[];
   // maximumExecutionFrequency?: MaximumExecutionFrequency;
 }
 
@@ -59,9 +66,9 @@ export class VpcConfigRule extends cdk.Construct implements ConfigRule {
             },
           ],
         },
-        InputParameters: JSON.stringify({
-          expectedVpcFlowLogBucket: this.props.expectedVpcFlowLogBucket,
-        }),
+        // InputParameters: JSON.stringify({
+        //   expectedVpcFlowLogBucket: this.props.expectedVpcFlowLogBucket,
+        // }),
       },
     };
   }

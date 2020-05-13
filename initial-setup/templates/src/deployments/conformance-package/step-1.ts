@@ -1,107 +1,116 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
-import { VpcConfigRule } from '@config-rules/vpc-config-rule';
+import { VpcConfigRule, VpcConfigRuleExpectedFlowLogDestination } from '@config-rules/vpc-config-rule';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { VpcOutput } from '../vpc';
-import { ConformancePack } from './conformance-pack';
+import { OrganizationConformancePack } from './conformance-pack';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { getAccountId, Account } from '../../utils/accounts';
 
 interface ConformancePackStep1Props {
   accountStacks: AccountStacks;
+  accounts: Account[];
   config: AcceleratorConfig;
   outputs: StackOutput[];
+  executionRoleName: string;
 }
 
-type AccountPacks = { [accountKey: string]: ConformancePack };
-
 export async function step1(props: ConformancePackStep1Props) {
-  const accountPacks = createConformancePack(props);
+  const { accountStacks, config } = props;
+
+  const primaryAccount = config.getAccountByLandingZoneAccountType('primary');
+  if (!primaryAccount) {
+    throw new Error(`Cannot find the primary account`);
+  }
+
+  const [primaryAccountKey, _] = primaryAccount;
+  const primaryAccountStack = accountStacks.getOrCreateAccountStack(primaryAccountKey);
+
+  const conformancePack = createConformancePack({
+    primaryAccountStack,
+  });
+
+  // Create the VPC config rule
   createVpcConfigRule({
     ...props,
-    accountPacks,
+    primaryAccountStack,
+    conformancePack,
   });
 }
 
-function createConformancePack(props: ConformancePackStep1Props): AccountPacks {
-  const { accountStacks, config } = props;
-  const accountPacks: AccountPacks = {};
+function createConformancePack(props: { primaryAccountStack: AcceleratorStack }): OrganizationConformancePack | undefined {
+  const { primaryAccountStack } = props;
 
-  for (const [accountKey, _] of config.getMandatoryAccountConfigs()) {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+  const bucket = new s3.Bucket(primaryAccountStack, 'ConformancePackBucket', {
+    bucketName: 'awsconfigconforms-pbmmaccel',
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
+  });
 
-    const bucket = new s3.Bucket(accountStack, 'ConformancePackBucket', {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
-    });
+  bucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:*'],
+      principals: [new iam.ServicePrincipal('config.amazonaws.com')],
+      resources: [bucket.bucketArn],
+    }),
+  );
 
-    bucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: ['s3:GetObject', 's3:PutObject'],
-        principals: [
-          new iam.ArnPrincipal(
-            `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/aws-service-role/config-conforms.amazonaws.com/*`,
-          ),
-        ],
-        resources: [bucket.arnForObjects('*')],
-      }),
-    );
+  bucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:*'],
+      principals: [new iam.ServicePrincipal('config.amazonaws.com')],
+      resources: [bucket.arnForObjects('*')],
+      conditions: {
+        StringEquals: {
+          's3:x-amz-acl': 'bucket-owner-full-control',
+        },
+      },
+    }),
+  );
 
-    bucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: ['s3:GetBucketAcl'],
-        principals: [
-          new iam.ArnPrincipal(
-            `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/aws-service-role/config-conforms.amazonaws.com/*`,
-          ),
-        ],
-        resources: [bucket.bucketArn],
-      }),
-    );
-
-    const pack = new ConformancePack(accountStack, 'ConformancePack', {
-      deliveryS3Bucket: bucket.bucketName,
-      conformancePackName: 'ConformancePack',
-      // TODO Pass template parameter
-      conformancePackInputParameters: [],
-    });
-    accountPacks[accountKey] = pack;
-  }
-  return accountPacks;
+  return new OrganizationConformancePack(primaryAccountStack, 'ConformancePack', {
+    deliveryS3Bucket: bucket.bucketName,
+    organizationConformancePackName: 'ConformancePack',
+    // TODO Pass template parameter
+    conformancePackInputParameters: [],
+  });
 }
 
-function createVpcConfigRule(props: ConformancePackStep1Props & { accountPacks: AccountPacks }) {
-  const { accountStacks, accountPacks, config, outputs } = props;
+function createVpcConfigRule(
+  props: ConformancePackStep1Props & {
+    primaryAccountStack: AcceleratorStack;
+    conformancePack?: OrganizationConformancePack;
+  },
+) {
+  const { primaryAccountStack, conformancePack, config, accounts, outputs, executionRoleName } = props;
+  const expectedVpcFlowLogBuckets: VpcConfigRuleExpectedFlowLogDestination[] = [];
   for (const { ouKey, accountKey, vpcConfig } of config.getVpcConfigs()) {
     if (ouKey === 'core') {
       continue;
     }
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      accountKey,
       outputType: 'VpcOutput',
     });
-    const vpcName = vpcConfig.name;
-    const vpcOutput = vpcOutputs.find(o => o.vpcName === vpcName);
-    if (!vpcOutput) {
-      console.warn(`Skipping VPC config rule for VPC "${vpcName}": no VPC found in outputs`);
-      continue;
-    } else if (!vpcOutput.flowLogsDestination) {
-      console.debug(`Skipping VPC config rule for VPC "${vpcName}": no flow logs destination`);
-      continue;
-    }
+    for (const vpcOutput of vpcOutputs) {
+      if (!vpcOutput.flowLogsDestination) {
+        continue;
+      }
 
-    // Deploy the config rule in the account stack that has the VPC
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    const accountPack = accountPacks[accountKey];
-    if (!accountPack) {
-      continue;
+      expectedVpcFlowLogBuckets.push({
+        accountId: getAccountId(accounts, accountKey),
+        executionRoleName,
+        vpcId: vpcOutput.vpcId,
+        flowLogDestination: vpcOutput.flowLogsDestination,
+      });
     }
-
-    // Create the rule and add it to the account conformance pack
-    const rule = new VpcConfigRule(accountStack, `VpcConfigRule${vpcName}`, {
-      expectedVpcFlowLogBucket: vpcOutput.flowLogsDestination,
-    });
-    accountPack.addConfigRule(rule);
   }
+
+  // Create the rule and add it to the account conformance pack
+  const rule = new VpcConfigRule(primaryAccountStack, `VpcConfigRule`, {
+    expectedVpcFlowLogDestinations: expectedVpcFlowLogBuckets,
+  });
+  conformancePack!.addConfigRule(rule);
 }

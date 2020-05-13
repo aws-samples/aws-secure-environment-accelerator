@@ -32,6 +32,9 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.enableAWSServiceAccess('access-analyzer.amazonaws.com');
   console.log('Enabled Access Analyzer service access within the Organization.');
 
+  await org.enableAWSServiceAccess('config-multiaccountsetup.amazonaws.com');
+  console.log('Enabled Config service access within the Organization.');
+
   await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');
 
