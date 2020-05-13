@@ -36,12 +36,14 @@ export type Attribute =
  * Custom resource that has an VPN tunnel options attribute for the VPN connection with the given ID.
  */
 export class VpnTunnelOptions extends cdk.Construct {
+  // tslint:disable-next-line: deprecation
   private readonly resource: cfn.CustomResource;
 
   constructor(scope: cdk.Construct, id: string, props: VpnTunnelOptionsProps) {
     super(scope, id);
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
+    // tslint:disable-next-line: deprecation
     this.resource = new cfn.CustomResource(this, 'Resource', {
       provider: cfn.CustomResourceProvider.fromLambda(this.ensureLambda()),
       properties: {
@@ -79,7 +81,7 @@ export class VpnTunnelOptions extends cdk.Construct {
     );
 
     // Resolve the path of the Lambda function
-    const lambdaPath = require.resolve('@custom-resources/vpn-tunnel-options-lambda');
+    const lambdaPath = require.resolve('@custom-resources/ec2-vpn-tunnel-options-lambda');
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {

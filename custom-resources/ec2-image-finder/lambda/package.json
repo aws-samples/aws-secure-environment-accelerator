@@ -1,10 +1,11 @@
 {
-  "name": "@custom-resources/image-finder-lambda",
+  "name": "@custom-resources/ec2-image-finder-lambda",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "webpack-cli --config webpack.config.ts"
+    "prepare": "webpack-cli --config webpack.config.ts"
   },
+  "main": "dist/index.js",
   "devDependencies": {
     "@babel/core": "7.9.0",
     "@babel/plugin-proposal-class-properties": "7.8.3",
@@ -29,8 +30,7 @@
   },
   "dependencies": {
     "aws-lambda": "1.0.5",
-    "aws-sdk": "2.668.0",
-    "cfn-response-async": "^1.0.0"
+    "aws-sdk": "2.668.0"
   },
   "jest": {
     "preset": "ts-jest",

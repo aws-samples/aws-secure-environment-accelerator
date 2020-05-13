@@ -261,6 +261,7 @@ export const MadConfigType = t.interface({
   'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
+  'security-groups': t.array(SecurityGroupConfigType),
 });
 
 export const AlbTargetConfigType = t.interface({
@@ -319,7 +320,8 @@ export const AdcConfigType = t.interface({
 
 export const FirewallPortConfigType = t.interface({
   subnet: t.string,
-  eip: t.boolean,
+  'create-eip': t.boolean,
+  'create-cgw': t.boolean,
   'internal-ip-addresses': t.record(availabilityZone, cidr),
 });
 
@@ -346,6 +348,7 @@ export const FirewallConfigType = t.interface({
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
 
 export const FirewallManagerConfigType = t.interface({
+  name: t.string,
   'instance-sizes': t.string,
   image: t.string, // TODO Enum of BYOL, PAYG
   version: t.string,
@@ -356,6 +359,7 @@ export const FirewallManagerConfigType = t.interface({
     name: t.string,
     az: t.string,
   }),
+  'create-eip': t.boolean,
 });
 
 export type FirewallManagerConfig = t.TypeOf<typeof FirewallManagerConfigType>;
@@ -390,6 +394,7 @@ export const MandatoryAccountConfigType = t.interface({
   vpc: optional(VpcConfigType),
   deployments: optional(DeploymentConfigType),
   alb: optional(t.array(AlbConfigType)),
+  'log-retention': optional(t.number),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -456,6 +461,7 @@ export const SecurityHubFrameworksConfigType = t.interface({
 });
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
+  'default-log-retention': t.number,
   'central-bucket': NonEmptyString,
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
@@ -505,6 +511,17 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
   constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
     Object.assign(this, values);
+  }
+
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
+  getAccountByLandingZoneAccountType(
+    type: typeof LANDING_ZONE_ACCOUNT_TYPES[number],
+  ): [string, AccountConfig] | undefined {
+    return this.getMandatoryAccountConfigs().find(
+      ([_, accountConfig]) => accountConfig['landing-zone-account-type'] === type,
+    );
   }
 
   /**

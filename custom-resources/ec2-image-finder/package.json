@@ -1,5 +1,5 @@
 {
-  "name": "@custom-resources/vpn-tunnel-options",
+  "name": "@custom-resources/ec2-image-finder",
   "version": "0.0.1",
   "private": true,
   "main": "lib/index.ts",
@@ -9,6 +9,7 @@
     "@babel/plugin-transform-typescript": "7.9.4",
     "@babel/preset-env": "7.9.0",
     "@babel/preset-typescript": "7.9.0",
+    "@custom-resources/ec2-image-finder-lambda": "workspace:^0.0.1",
     "@types/adm-zip": "0.4.32",
     "@types/aws-lambda": "8.10.46",
     "@types/cfn-response": "1.0.3",
@@ -31,17 +32,12 @@
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "1.32.2",
-    "@aws-cdk/aws-iam": "1.32.2",
-    "@aws-cdk/aws-lambda": "1.32.2",
-    "@aws-cdk/core": "1.32.2",
-    "@custom-resources/vpn-tunnel-options-lambda": "workspace:^0.0.1"
+    "@aws-cdk/aws-iam": "1.38.0",
+    "@aws-cdk/core": "1.38.0"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-cloudformation": "^1.32.2",
-    "@aws-cdk/aws-iam": "^1.32.2",
-    "@aws-cdk/aws-lambda": "^1.32.2",
-    "@aws-cdk/core": "^1.32.2"
+    "@aws-cdk/aws-iam": "^1.38.0",
+    "@aws-cdk/core": "^1.38.0"
   },
   "jest": {
     "preset": "ts-jest",
