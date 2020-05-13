@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { KeyPair } from 'cdk-ec2-key-pair';
+import { SecurityGroup, Subnet } from '../vpc';
 
 export interface FirewallManagerProps {
   /**
@@ -8,26 +9,56 @@ export interface FirewallManagerProps {
    */
   imageId: string;
   instanceType: string;
-  securityGroupIds: string[];
-  subnetId: string;
 }
 
 export class FirewallManager extends cdk.Construct {
+  private readonly props: FirewallManagerProps;
+  private readonly keyPair: KeyPair;
+  private readonly keyPairName: string;
+  private readonly networkInterfaces: ec2.CfnNetworkInterface[] = [];
+
   constructor(scope: cdk.Construct, id: string, props: FirewallManagerProps) {
     super(scope, id);
 
-    const keyPairName = 'FirewallManagementKey';
-    new KeyPair(this, 'KeyPair', {
-      name: keyPairName,
+    this.props = props;
+
+    this.keyPairName = 'FirewallManagement';
+    this.keyPair = new KeyPair(this, 'KeyPair', {
+      name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs/',
     });
+  }
 
-    new ec2.CfnInstance(this, 'Resource', {
-      imageId: props.imageId,
-      instanceType: props.instanceType,
-      securityGroupIds: props.securityGroupIds,
-      subnetId: props.subnetId,
-      keyName: keyPairName,
+  addNetworkInterface(props: { securityGroup: SecurityGroup; subnet: Subnet; eipAllocationId?: string }) {
+    const { securityGroup, subnet, eipAllocationId } = props;
+    const index = this.networkInterfaces.length;
+
+    // Create network interface
+    const networkInterface = new ec2.CfnNetworkInterface(this, `Eni${index}`, {
+      groupSet: [securityGroup.id],
+      subnetId: subnet.id,
     });
+    this.networkInterfaces.push(networkInterface);
+
+    // Create EIP if needed
+    if (eipAllocationId) {
+      new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${index}`, {
+        networkInterfaceId: networkInterface.ref,
+        allocationId: eipAllocationId,
+      });
+    }
+  }
+
+  protected onPrepare() {
+    const instance = new ec2.CfnInstance(this, 'Resource', {
+      imageId: this.props.imageId,
+      instanceType: this.props.instanceType,
+      keyName: this.keyPairName,
+      networkInterfaces: this.networkInterfaces.map((eni, index) => ({
+        deviceIndex: `${index}`,
+        networkInterfaceId: eni.ref,
+      })),
+    });
+    instance.node.addDependency(this.keyPair);
   }
 }

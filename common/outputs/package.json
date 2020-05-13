@@ -12,7 +12,7 @@
     "lib"
   ],
   "devDependencies": {
-    "@aws-cdk/assert": "1.32.2",
+    "@aws-cdk/assert": "1.38.0",
     "@types/jest": "25.2.1",
     "@types/node": "12.12.6",
     "babel-jest": "25.2.0",

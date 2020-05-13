@@ -29,6 +29,7 @@ interface LimitCode {
 
 // TODO Move this to common so we can use it from initial-setup/cdk
 enum Limit {
+  Ec2Eips = 'Amazon EC2/Number of EIPs',
   VpcPerRegion = 'Amazon VPC/VPCs per Region',
   VpcInterfaceEndpointsPerVpc = 'Amazon VPC/Interface VPC endpoints per VPC',
   CloudFormationStackCount = 'AWS CloudFormation/Stack count',
@@ -37,6 +38,11 @@ enum Limit {
 }
 
 const LIMITS: { [limitKey: string]: LimitCode } = {
+  [Limit.Ec2Eips]: {
+    serviceCode: 'ec2',
+    quotaCode: 'L-D0B7243C',
+    enabled: true,
+  },
   [Limit.VpcPerRegion]: {
     serviceCode: 'vpc',
     quotaCode: 'L-F678F1CE',

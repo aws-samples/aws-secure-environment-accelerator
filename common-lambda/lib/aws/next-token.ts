@@ -1,6 +1,7 @@
 import { AWSError, Request } from 'aws-sdk';
 import { collectAsync } from '../util/generator';
 import { delay } from '../util/delay';
+import { throttlingBackOff } from './backoff';
 
 export type WithNextToken = { NextToken?: string };
 
@@ -26,10 +27,12 @@ export async function* listWithNextTokenGenerator<Input extends WithNextToken, R
       await delay(1000);
     }
 
-    const response: Response = await requester({
-      ...input,
-      NextToken: token,
-    }).promise();
+    const response: Response = await throttlingBackOff(() =>
+      requester({
+        ...input,
+        NextToken: token,
+      }).promise(),
+    );
     token = response.NextToken;
     yield* values(response);
   } while (token !== undefined);
