@@ -207,7 +207,9 @@ export class AccountDefaultSettingsAssets extends cdk.Construct {
         roleName: 'PBMMAccel-ServiceRoleForAccessAnalyzer',
         description: `PBMMAccel - ServiceRoleForAccessAnalyzer`,
         assumedBy: new iam.ServicePrincipal('access-analyzer.amazonaws.com'),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('aws-service-role/AccessAnalyzerServiceRolePolicy')],
+        managedPolicies: [
+          iam.ManagedPolicy.fromAwsManagedPolicyName('aws-service-role/AccessAnalyzerServiceRolePolicy'),
+        ],
       });
     }
 
