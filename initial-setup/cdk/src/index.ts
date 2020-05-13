@@ -462,27 +462,6 @@ export namespace InitialSetup {
         sourceBucketKey: solutionZip.s3ObjectKey,
       };
 
-      // creating a bucket to store IAM Policy artifacts
-      const iamPolicyArtifactBucket = new s3.Bucket(stack, 'IamPolicyArtifactsBucket', {
-        versioned: true,
-        bucketName: 'pbmmaccel-iam-policy-config',
-      });
-
-      const iamPolicyArtifactsFolderPath = path.join(
-        __dirname,
-        '..',
-        '..',
-        '..',
-        'reference-artifacts',
-        'iam-policies',
-      );
-
-      new s3deployment.BucketDeployment(stack, 'IamPolicyArtifactsDeployment', {
-        sources: [s3deployment.Source.asset(iamPolicyArtifactsFolderPath)],
-        destinationBucket: iamPolicyArtifactBucket,
-        destinationKeyPrefix: 'iam-policy',
-      });
-
       const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
