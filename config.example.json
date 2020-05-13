@@ -386,7 +386,9 @@
       "account-name": "Perimeter",
       "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
-      "limits": {},
+      "limits": {
+        "Amazon EC2/Number of EIPs": 10
+      },
       "share-mad-from": "",
       "certificates": [
         {
