@@ -7,7 +7,7 @@ import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
 import { FlowLogContainer } from '../common/flow-log-bucket-stack';
-import { VpcProps, VpcStack } from '../common/vpc';
+import { VpcProps, VpcStack, Vpc } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
@@ -16,7 +16,6 @@ import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { InterfaceEndpointConfig, PeeringConnectionConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
-import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
 import * as iam from '@aws-cdk/aws-iam';
@@ -50,6 +49,7 @@ async function main() {
   const limiter = new Limiter(limits);
 
   const globalOptions = acceleratorConfig['global-options'];
+  const accountConfigs = acceleratorConfig['mandatory-account-configs'];
 
   const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
   const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
@@ -106,8 +106,9 @@ async function main() {
     }
 
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const logRetention = accountConfigs[accountKey]['log-retention'];
     const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
-      expirationInDays: globalOptions['central-log-retention'],
+      expirationInDays: logRetention ? logRetention : globalOptions['default-log-retention'],
       replication: {
         accountId: logArchiveAccountId,
         bucketArn: logArchiveS3BucketArn,
