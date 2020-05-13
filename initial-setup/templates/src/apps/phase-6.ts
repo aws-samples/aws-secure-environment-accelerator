@@ -56,7 +56,11 @@ async function main() {
 
       // TODO get it from outputs
       const s3FlowLogsBucketArn = 'arn:aws:s3:::pbmmaccel-perimeter-phas-flowlogcontainerflowlogb-uiqjxa0030wf';
-      const flowLogsBucket = s3.Bucket.fromBucketArn(stack, `AlbFlowLogsBucket${accountKey}${alb.name}`, s3FlowLogsBucketArn);
+      const flowLogsBucket = s3.Bucket.fromBucketArn(
+        stack,
+        `AlbFlowLogsBucket${accountKey}${alb.name}`,
+        s3FlowLogsBucketArn,
+      );
 
       console.log('flow logs bucket name', flowLogsBucket.bucketName);
 

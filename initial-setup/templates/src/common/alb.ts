@@ -51,7 +51,7 @@ export class Alb extends cdk.Construct {
       albConfig.listeners,
       'forward',
       targetGroups,
-      albConfig["security-policy"],
+      albConfig['security-policy'],
       'arn:aws:acm:ca-central-1:275283254872:certificate/ab542357-1187-46d9-a7a1-259e08a174e0',
     );
   }
@@ -73,9 +73,7 @@ export class Alb extends cdk.Construct {
       protocol,
       defaultActions: [],
       sslPolicy,
-      certificates: [
-        { certificateArn },
-      ],
+      certificates: [{ certificateArn }],
     });
 
     if (hasTargetLambda) {
@@ -87,15 +85,15 @@ export class Alb extends cdk.Construct {
               {
                 targetGroupArn: targetGroupArn[0],
                 weight: 1,
-              }
+              },
             ],
             targetGroupStickinessConfig: {
               enabled: true,
               durationSeconds: 3600,
             },
           },
-        }
-      ]
+        },
+      ];
     } else {
       albListener.defaultActions = [
         {
@@ -116,10 +114,9 @@ export class Alb extends cdk.Construct {
               durationSeconds: 3600,
             },
           },
-        }
-      ]
+        },
+      ];
     }
-
   }
 
   createTargetGroup(
