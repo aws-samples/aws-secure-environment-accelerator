@@ -88,10 +88,10 @@ export class ADUsersAndGroups extends cdk.Construct {
 
     // creating security group for the instance
     const securityGroup = new SecurityGroup(this, 'RdgwSecurityGroup', {
-      securityGroups: madDeploymentConfig["security-groups"],
+      securityGroups: madDeploymentConfig['security-groups'],
       accountKey,
       vpcId,
-      vpcName: vpcName,
+      vpcName,
     });
 
     const RDGWHostRole = new iam.Role(this, 'RDGWHostRole', {

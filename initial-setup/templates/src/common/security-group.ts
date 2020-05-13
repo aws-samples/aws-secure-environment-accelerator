@@ -126,7 +126,7 @@ export class SecurityGroup extends cdk.Construct {
             cidrIpv6: ruleSource,
             toPort,
             fromPort,
-          }
+          };
         } else {
           ruleProp = {
             ipProtocol,
@@ -135,7 +135,7 @@ export class SecurityGroup extends cdk.Construct {
             cidrIp: ruleSource,
             toPort,
             fromPort,
-          }
+          };
         }
         ruleProps.push(ruleProp);
       } else if (config.SecurityGroupRuleSubnetSourceConfig.is(ruleSource)) {
