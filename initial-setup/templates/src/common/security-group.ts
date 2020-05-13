@@ -23,6 +23,7 @@ const TCP_PROTOCOLS_PORT: { [key: string]: number } = {
 export interface SecurityGroupruleProps {
   ipProtocol: string;
   cidrIp?: string;
+  cidrIpv6?: string;
   toPort?: number;
   fromPort?: number;
   description?: string;
@@ -48,7 +49,7 @@ export interface SecurityGroupProps {
    */
   vpcName: string;
 
-  accountVpcConfigs: config.ResolvedVpcConfig[];
+  accountVpcConfigs?: config.ResolvedVpcConfig[];
 }
 
 export class SecurityGroup extends cdk.Construct {
@@ -80,7 +81,7 @@ export class SecurityGroup extends cdk.Construct {
       const outboundRules = securityGroup['outbound-rules'];
       if (inboundRules) {
         for (const [ruleId, rule] of inboundRules.entries()) {
-          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, accountVpcConfigs);
+          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, accountVpcConfigs!);
           if (ruleParams.length === 0) {
             continue;
           }
@@ -91,7 +92,7 @@ export class SecurityGroup extends cdk.Construct {
       }
       if (outboundRules) {
         for (const [ruleId, rule] of outboundRules.entries()) {
-          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, accountVpcConfigs);
+          const ruleParams = this.prepareSecurityGroupRuleProps(groupName, rule, accountVpcConfigs!);
           if (ruleParams.length === 0) {
             continue;
           }
@@ -106,8 +107,8 @@ export class SecurityGroup extends cdk.Construct {
   getRules = (
     groupName: string,
     ipProtocol: string,
-    accountVpcConfigs: config.ResolvedVpcConfig[],
     rule: config.SecurityGroupRuleConfig,
+    accountVpcConfigs?: config.ResolvedVpcConfig[],
     fromPort?: number,
     toPort?: number,
   ): SecurityGroupruleProps[] => {
@@ -116,16 +117,29 @@ export class SecurityGroup extends cdk.Construct {
     const ruleDescription = rule.description;
     for (const ruleSource of ruleSources) {
       if (NonEmptyString.is(ruleSource)) {
-        ruleProps.push({
-          ipProtocol,
-          groupId: this.securityGroupNameMapping[groupName].ref,
-          description: rule.description,
-          cidrIp: ruleSource,
-          toPort,
-          fromPort,
-        });
+        let ruleProp;
+        if (ruleSource.includes('::')) {
+          ruleProp = {
+            ipProtocol,
+            groupId: this.securityGroupNameMapping[groupName].ref,
+            description: rule.description,
+            cidrIpv6: ruleSource,
+            toPort,
+            fromPort,
+          }
+        } else {
+          ruleProp = {
+            ipProtocol,
+            groupId: this.securityGroupNameMapping[groupName].ref,
+            description: rule.description,
+            cidrIp: ruleSource,
+            toPort,
+            fromPort,
+          }
+        }
+        ruleProps.push(ruleProp);
       } else if (config.SecurityGroupRuleSubnetSourceConfig.is(ruleSource)) {
-        const ruleVpcConfig = accountVpcConfigs.find(x => x.vpcConfig.name === ruleSource.vpc)?.vpcConfig;
+        const ruleVpcConfig = accountVpcConfigs?.find(x => x.vpcConfig.name === ruleSource.vpc)?.vpcConfig;
         if (!ruleVpcConfig) {
           throw new Error(`VPC Not Found in Config "${ruleSource.vpc}"`);
         }
@@ -169,7 +183,7 @@ export class SecurityGroup extends cdk.Construct {
   prepareSecurityGroupRuleProps = (
     groupName: string,
     rule: config.SecurityGroupRuleConfig,
-    accountVpcConfigs: config.ResolvedVpcConfig[],
+    accountVpcConfigs?: config.ResolvedVpcConfig[],
   ): SecurityGroupruleProps[] => {
     let ruleProps: SecurityGroupruleProps[] = [];
     if (!rule.type) {
@@ -180,13 +194,13 @@ export class SecurityGroup extends cdk.Construct {
         const ipProtocol = ec2.Protocol.TCP;
         const toPort = port;
         const fromPort = port;
-        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, accountVpcConfigs, rule, toPort, fromPort));
+        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, rule, accountVpcConfigs, fromPort, toPort));
       }
       for (const port of udpPorts || []) {
         const ipProtocol = ec2.Protocol.TCP;
         const toPort = port;
         const fromPort = port;
-        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, accountVpcConfigs, rule, toPort, fromPort));
+        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, rule, accountVpcConfigs, fromPort, toPort));
       }
       return ruleProps;
     }
@@ -200,17 +214,17 @@ export class SecurityGroup extends cdk.Construct {
       // Prepare Protocol and Port for rule params
       if (ruleType === 'ALL') {
         ipProtocol = ec2.Protocol.ALL;
-        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, accountVpcConfigs, rule));
+        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, rule, accountVpcConfigs));
       } else if (Object.keys(TCP_PROTOCOLS_PORT).includes(ruleType)) {
         ipProtocol = ec2.Protocol.TCP;
         toPort = TCP_PROTOCOLS_PORT[ruleType];
         fromPort = TCP_PROTOCOLS_PORT[ruleType];
-        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, accountVpcConfigs, rule, toPort, fromPort));
+        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, rule, accountVpcConfigs, fromPort, toPort));
       } else {
         ipProtocol = ruleType;
         toPort = rule.toPort!;
         fromPort = rule.fromPort!;
-        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, accountVpcConfigs, rule, toPort, fromPort));
+        ruleProps = ruleProps.concat(this.getRules(groupName, ipProtocol, rule, accountVpcConfigs, fromPort, toPort));
       }
     }
     return ruleProps;

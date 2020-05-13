@@ -140,6 +140,7 @@ async function main() {
     }
 
     const vpcId = vpcOutput.vpcId;
+    const vpcName = vpcOutput.vpcName;
     const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madDeploymentConfig.subnet).map(s => s.subnetId);
 
     const madOutputs: MadOutput[] = getStackJsonOutput(outputs, {
@@ -156,6 +157,7 @@ async function main() {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,
+      vpcName,
       keyPairName: ec2KeyPairName,
       subnetIds,
       adminPasswordArn: madOuput.passwordArn,
@@ -165,6 +167,7 @@ async function main() {
       stackName: stack.stackName,
       accountNames,
       userSecrets,
+      accountKey,
     });
   }
 }

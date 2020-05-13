@@ -261,6 +261,7 @@ export const MadConfigType = t.interface({
   'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
+  'security-groups': t.array(SecurityGroupConfigType),
 });
 
 export const AccountConfigType = t.interface({
