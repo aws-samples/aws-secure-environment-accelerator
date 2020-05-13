@@ -148,9 +148,9 @@ async function main() {
       outputType: 'MadOutput',
     });
 
-    const madOuput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
-    if (!madOuput || !madOuput.directoryId) {
-      throw new Error(`Cannot find madOuput with vpc name ${madDeploymentConfig['vpc-name']}`);
+    const madOutput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
+    if (!madOutput || !madOutput.directoryId) {
+      throw new Error(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
     }
 
     new ADUsersAndGroups(stack, 'RDGWHost', {
@@ -160,7 +160,7 @@ async function main() {
       vpcName,
       keyPairName: ec2KeyPairName,
       subnetIds,
-      adminPasswordArn: madOuput.passwordArn,
+      adminPasswordArn: madOutput.passwordArn,
       s3BucketName,
       s3KeyPrefix: S3KeyPrefix,
       stackId: stack.stackId,
