@@ -45,14 +45,7 @@ export const handler = async (input: AdConnectorInput) => {
   console.log(`Creating AD Connector in account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { 
-    accounts, 
-    assumeRoleName, 
-    stackOutputSecretId, 
-    configRepositoryName,
-    configFilePath, 
-    configCommitId 
-  } = input;
+  const { accounts, assumeRoleName, stackOutputSecretId, configRepositoryName, configFilePath, configCommitId } = input;
 
   const secrets = new SecretsManager();
   // Retrive Configuration from Code Commit with specific commitId

@@ -33,10 +33,10 @@ export namespace InitialSetup {
     /**
      * Paramaters for configuration file
      */
-    configFilePath: string,
-    configRepositoryName: string,
-    configS3Bucket: string,
-    configS3FileName: string,
+    configFilePath: string;
+    configRepositoryName: string;
+    configS3Bucket: string;
+    configS3FileName: string;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -313,12 +313,11 @@ export namespace InitialSetup {
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
-          'configCommitId.$': '$.configuration.configCommitId'
+          'configCommitId.$': '$.configuration.configCommitId',
         },
         // inputPath: '$',
         resultPath: '$.configuration',
       });
-      
 
       // TODO We might want to load this from the Landing Zone configuration
       const avmProductName = 'AWS-Landing-Zone-Account-Vending-Machine';

@@ -1,11 +1,11 @@
 import * as aws from 'aws-sdk';
-import { 
+import {
   GetFileOutput,
   PutFileOutput,
   PutFileInput,
   GetBranchOutput,
   CreateRepositoryOutput,
-  BatchGetRepositoriesOutput
+  BatchGetRepositoriesOutput,
 } from 'aws-sdk/clients/codecommit';
 export class CodeCommit {
   private readonly client: aws.CodeCommit;
@@ -36,9 +36,7 @@ export class CodeCommit {
    * @param putFileInput
    */
   async putFile(putFileInput: PutFileInput): Promise<PutFileOutput> {
-    return this.client
-      .putFile(putFileInput)
-      .promise();
+    return this.client.putFile(putFileInput).promise();
   }
 
   /**
@@ -48,7 +46,7 @@ export class CodeCommit {
   async batchGetRepositories(repositoryNames: string[]): Promise<BatchGetRepositoriesOutput> {
     return this.client
       .batchGetRepositories({
-        repositoryNames
+        repositoryNames,
       })
       .promise();
   }
@@ -62,7 +60,7 @@ export class CodeCommit {
     return this.client
       .getBranch({
         repositoryName,
-        branchName
+        branchName,
       })
       .promise();
   }
@@ -74,7 +72,7 @@ export class CodeCommit {
   async createRepository(repositoryName: string): Promise<CreateRepositoryOutput> {
     return this.client
       .createRepository({
-        repositoryName
+        repositoryName,
       })
       .promise();
   }

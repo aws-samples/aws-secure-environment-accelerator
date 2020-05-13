@@ -26,21 +26,14 @@ export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD to another account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { 
-    accounts, 
-    assumeRoleName, 
-    stackOutputSecretId, 
-    configRepositoryName,
-    configFilePath,
-    configCommitId
-   } = input;
+  const { accounts, assumeRoleName, stackOutputSecretId, configRepositoryName, configFilePath, configCommitId } = input;
 
   const secrets = new SecretsManager();
-  
+
   // Retrive Configuration from Code Commit with specific commitId
   const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
   const acceleratorConfig = AcceleratorConfig.fromString(configString);
-  
+
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];

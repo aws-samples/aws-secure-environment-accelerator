@@ -27,23 +27,15 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { 
-    assumeRoleName,
-    accounts, 
-    configRepositoryName, 
-    stackOutputSecretId, 
-    configFilePath, 
-    configCommitId 
-  } = input;
+  const { assumeRoleName, accounts, configRepositoryName, stackOutputSecretId, configFilePath, configCommitId } = input;
 
   const secrets = new SecretsManager();
   const outputsString = await secrets.getSecret(stackOutputSecretId);
-  
+
   // Retrive Configuration from Code Commit with specific commitId
   const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
   const acceleratorConfig = AcceleratorConfig.fromString(configString);
 
-  
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();

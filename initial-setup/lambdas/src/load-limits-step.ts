@@ -68,14 +68,7 @@ export const handler = async (input: LoadLimitsInput) => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { 
-    configRepositoryName, 
-    configFilePath, 
-    limitsSecretId, 
-    accounts, 
-    assumeRoleName,
-    configCommitId 
-  } = input;
+  const { configRepositoryName, configFilePath, limitsSecretId, accounts, assumeRoleName, configCommitId } = input;
 
   const secrets = new SecretsManager();
 

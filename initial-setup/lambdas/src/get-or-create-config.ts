@@ -31,7 +31,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       const s3 = new S3();
       const configString = await s3.getObjectBodyAsString({
         Bucket: s3Bucket,
-        Key: s3FileName
+        Key: s3FileName,
       });
       // Push config file to repository
       const commit = await codecommit.putFile({
@@ -39,7 +39,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         repositoryName,
         filePath,
         fileContent: configString,
-        commitMessage: 'Config push'
+        commitMessage: 'Config push',
       });
       commitId = commit.commitId;
     } else {

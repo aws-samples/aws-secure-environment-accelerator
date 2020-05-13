@@ -32,14 +32,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { 
-    configRepositoryName, 
-    accounts, 
-    assumeRoleName, 
-    stackOutputSecretId, 
-    configCommitId,
-    configFilePath
-  } = input;
+  const { configRepositoryName, accounts, assumeRoleName, stackOutputSecretId, configCommitId, configFilePath } = input;
 
   const secrets = new SecretsManager();
 
