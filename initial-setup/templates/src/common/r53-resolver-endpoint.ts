@@ -66,6 +66,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     );
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
+    // tslint:disable-next-line: deprecation
     const getDnsEndpointIpsResource = new cfn.CustomResource(this, 'InboundIp', {
       provider: cfn.CustomResourceProvider.fromLambda(getDnsEndpointIpsLambda),
       properties: {

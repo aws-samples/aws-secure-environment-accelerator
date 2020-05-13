@@ -10,7 +10,7 @@ import { pascalCase } from 'pascal-case';
 import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { IamUserConfigType, IamConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
@@ -20,6 +20,7 @@ import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -118,6 +119,10 @@ async function main() {
   //   },
   // });
 
+  // Create a secrets container in the master account
+  // Only the master account can contain secrets
+  const secretsContainer = new SecretsContainer(masterAccountStack, 'Secrets');
+
   const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountId = getAccountId(accounts, accountKey);
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
@@ -132,8 +137,7 @@ async function main() {
           );
         } else {
           for (const userId of iamUser['user-ids']) {
-            const secretsStack = new SecretsStack(masterAccountStack, `Secrets-${userId}-UserPassword`);
-            const password = secretsStack.createSecret(`${userId}-UserPassword`, {
+            const password = secretsContainer.createSecret(`${userId}-UserPassword`, {
               secretName: `accelerator/${accountKey}/user/password/${userId}`,
               description: `Password for IAM User - ${userId}.`,
               generateSecretString: {
@@ -206,18 +210,16 @@ async function main() {
     }
   }
 
-  for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+  for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
     }
-    const accountId = getAccountId(accounts, accountKey);
-    const bucketName = `pbmmaccel-${accountId}-${cdk.Aws.REGION}`;
 
     // creating a bucket to store RDGW Host power shell scripts
     const rdgwBucket = new s3.Bucket(masterAccountStack, `RdgwArtifactsBucket${accountKey}`, {
+      bucketName: createName('rdgw', { lowercase: true }),
       versioned: true,
-      bucketName,
     });
 
     // Granting read access to all the accounts
@@ -225,10 +227,12 @@ async function main() {
 
     const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', 'scripts');
 
+    const artifactsDestination = 'config/scripts';
+
     new s3deployment.BucketDeployment(masterAccountStack, `RdgwArtifactsDeployment${accountKey}`, {
       sources: [s3deployment.Source.asset(artifactsFolderPath)],
       destinationBucket: rdgwBucket,
-      destinationKeyPrefix: 'config/scripts/',
+      destinationKeyPrefix: `${artifactsDestination}/`,
     });
 
     // outputs to store RDGW reference artifacts scripts s3 bucket information
@@ -238,7 +242,7 @@ async function main() {
         accountKey,
         bucketArn: rdgwBucket.bucketArn,
         bucketName: rdgwBucket.bucketName,
-        keyPrefix: 'config/scripts/',
+        keyPrefix: artifactsDestination,
       },
     });
   }

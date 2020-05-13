@@ -3,12 +3,12 @@ import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { pascalCase } from 'pascal-case';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { ResolversOutput } from './phase-2';
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
+import { AccountStacks } from '../common/account-stacks';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -31,6 +31,12 @@ async function main() {
   const outputs = await loadStackOutputs();
 
   const app = new cdk.App();
+
+  const accountStacks = new AccountStacks(app, {
+    phase: 4,
+    accounts,
+    context,
+  });
 
   // to share the resolver rules
   // get the list of account IDs with which the resolver rules needs to be shared
@@ -76,19 +82,7 @@ async function main() {
         );
       }
 
-      const r53ResolverRulesSharingStack = new AcceleratorStack(
-        app,
-        `PBMMAccel-Route53ResolverRulesSharing-${accountKey}Stack`,
-        {
-          env: {
-            account: accountId,
-            region: cdk.Aws.REGION,
-          },
-          acceleratorName: context.acceleratorName,
-          acceleratorPrefix: context.acceleratorPrefix,
-          stackName: `PBMMAccel-Route53ResolverRulesSharing-${pascalCase(accountKey)}Stack`,
-        },
-      );
+      const r53ResolverRulesSharingStack = accountStacks.getOrCreateAccountStack(accountKey);
 
       const route53ResolverRuleSharing = new Route53ResolverRuleSharing(
         r53ResolverRulesSharingStack,

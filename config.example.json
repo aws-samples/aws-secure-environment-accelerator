@@ -392,7 +392,9 @@
       "account-name": "Perimeter",
       "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
-      "limits": {},
+      "limits": {
+        "Amazon EC2/Number of EIPs": 10
+      },
       "share-mad-from": "",
       "budget": {
          "name": "Perimeter Budget",
@@ -568,12 +570,7 @@
           "asn": 65534
         },
         "pcx": false,
-        "natgw": {
-          "subnet": {
-            "name": "Public",
-            "az": "a"
-          }
-        },
+        "natgw": false,
         "subnets": [
           {
             "name": "Public",
@@ -798,7 +795,8 @@
             "ports": [
               {
                 "subnet": "Public",
-                "eip": true,
+                "create-eip": true,
+                "create-cgw": true,
                 "internal-ip-addresses": {
                   "a": "100.96.251.69/26",
                   "b": "100.96.251.133/26"
@@ -806,7 +804,8 @@
               },
               {
                 "subnet": "OnPremise",
-                "eip": false,
+                "create-eip": false,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.251.5/28",
                   "b": "100.96.251.37/28"
@@ -814,7 +813,8 @@
               },
               {
                 "subnet": "FWMgmt",
-                "eip": true,
+                "create-eip": true,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.251.21/28",
                   "b": "100.96.251.53/28"
@@ -822,7 +822,8 @@
               },
               {
                 "subnet": "Proxy",
-                "eip": false,
+                "create-eip": false,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.250.5/25",
                   "b": "100.96.250.133/25"
@@ -849,7 +850,7 @@
         "firewall-manager": {
           "name": "FortigateMgr",
           "instance-sizes": "c5.large",
-          "image": "https://aws.amazon.com/marketplace/server/procurement?productId=c15e8d8d-1e46-41cf-9543-418a3f652745",
+          "image": "BYOL",
           "version": "6.2.3",
           "region": "ca-central-1",
           "vpc": "Perimeter",
@@ -857,7 +858,8 @@
           "subnet": {
             "name": "FWMgmt",
             "az": "a"
-          }
+          },
+          "create-eip": true
         }
       }
     },

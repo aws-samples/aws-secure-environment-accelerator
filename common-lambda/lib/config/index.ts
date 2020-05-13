@@ -282,7 +282,8 @@ export const AdcConfigType = t.interface({
 
 export const FirewallPortConfigType = t.interface({
   subnet: t.string,
-  eip: t.boolean,
+  'create-eip': t.boolean,
+  'create-cgw': t.boolean,
   'internal-ip-addresses': t.record(availabilityZone, cidr),
 });
 
@@ -309,6 +310,7 @@ export const FirewallConfigType = t.interface({
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
 
 export const FirewallManagerConfigType = t.interface({
+  name: t.string,
   'instance-sizes': t.string,
   image: t.string, // TODO Enum of BYOL, PAYG
   version: t.string,
@@ -319,6 +321,7 @@ export const FirewallManagerConfigType = t.interface({
     name: t.string,
     az: t.string,
   }),
+  'create-eip': t.boolean,
 });
 
 export type FirewallManagerConfig = t.TypeOf<typeof FirewallManagerConfigType>;
@@ -466,6 +469,17 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
   constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
     Object.assign(this, values);
+  }
+
+  /**
+   * @return [accountKey: string, accountConfig: AccountConfig][]
+   */
+  getAccountByLandingZoneAccountType(
+    type: typeof LANDING_ZONE_ACCOUNT_TYPES[number],
+  ): [string, AccountConfig] | undefined {
+    return this.getMandatoryAccountConfigs().find(
+      ([_, accountConfig]) => accountConfig['landing-zone-account-type'] === type,
+    );
   }
 
   /**

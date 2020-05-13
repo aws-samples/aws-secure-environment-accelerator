@@ -13,6 +13,7 @@ interface ShareDirectoryInput {
   configSecretSourceId: string;
 }
 
+// TODO Move to common outputs
 interface MadOutput {
   id: number;
   vpcName: string;
@@ -86,16 +87,6 @@ export const handler = async (input: ShareDirectoryInput) => {
     const directoryId = madOutput.directoryId;
 
     const accountId = getAccountId(accounts, accountKey);
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    const directoryService = new DirectoryService(credentials);
-    const hasLogGroup = await directoryService.hasLogGroup({ DirectoryId: directoryId });
-
-    if (!hasLogGroup) {
-      await directoryService.enableCloudWatchLogs({
-        DirectoryId: directoryId,
-        LogGroupName: `/aws/directoryservice/${madConfig['log-group-name']}`,
-      });
-    }
 
     if (madConfig['share-to-account']) {
       const shareToAccountId = getAccountId(accounts, madConfig['share-to-account']);
