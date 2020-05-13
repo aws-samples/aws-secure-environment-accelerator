@@ -25,12 +25,13 @@ interface BuildProps {
 
 export namespace InitialSetup {
   export interface CommonProps {
-    configSecretName: string;
     acceleratorPrefix: string;
     acceleratorName: string;
     solutionRoot: string;
     stateMachineName: string;
     stateMachineExecutionRole: string;
+    configFilePath: string;
+    configRepositoryName: string;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -235,6 +236,14 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: configSecretInProgress.secretArn,
             },
+            CONFIG_FILE_PATH: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.configFilePath,
+            },
+            CONFIG_REPOSITORY_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.configRepositoryName,
+            },
             ACCOUNTS_SECRET_ID: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: accountsSecret.secretArn,
@@ -282,8 +291,8 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          configSecretSourceId: props.configSecretName,
-          configSecretInProgressId: configSecretInProgress.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
         },
         resultPath: '$.configuration',
       });
@@ -390,7 +399,8 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          configSecretId: configSecretInProgress.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
           limitsSecretId: limitsSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
