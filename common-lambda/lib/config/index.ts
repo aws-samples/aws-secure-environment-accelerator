@@ -263,6 +263,43 @@ export const MadConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
 });
 
+export const AlbTargetConfigType = t.interface({
+  'target-name': t.string,
+  'target-type': t.string,
+  protocol: optional(t.string),
+  port: optional(t.number),
+  'health-check-protocol': optional(t.string),
+  'health-check-path': t.string,
+  'health-check-port': optional(t.number),
+  'lambda-filename': optional(t.string),
+  'target-instances': optional(t.array(t.string)),
+  'tg-weight': optional(t.number),
+});
+
+export const AlbConfigType = t.interface({
+  name: t.string,
+  scheme: t.string,
+  'ip-type': t.string,
+  listeners: t.string,
+  ports: t.string,
+  vpc: t.string,
+  subnets: t.string,
+  'cert-name': t.string,
+  'cert-arn': optional(t.string),
+  'security-policy': t.string,
+  'security-group': t.string,
+  'tg-stickiness': t.string,
+  'target-alarms-notify': optional(t.string),
+  'target-alarms-when': optional(t.string),
+  'target-alarms-of': optional(t.string),
+  'target-alarms-is': optional(t.string),
+  'target-alarms-Count': optional(t.string),
+  'target-alarms-for': optional(t.string),
+  'target-alarms-periods-of': optional(t.string),
+  'access-logs': t.boolean,
+  targets: t.array(AlbTargetConfigType),
+});
+
 export const AccountConfigType = t.interface({
   // 'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
@@ -352,6 +389,7 @@ export const MandatoryAccountConfigType = t.interface({
   limits: fromNullable(t.record(t.string, t.number), {}),
   vpc: optional(VpcConfigType),
   deployments: optional(DeploymentConfigType),
+  alb: optional(t.array(AlbConfigType)),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -365,6 +403,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
+  alb: optional(t.array(AlbConfigType)),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
@@ -436,6 +475,8 @@ export const AcceleratorConfigType = t.interface({
 export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
+
+export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
 
 export interface ResolvedVpcConfig {
   /**
