@@ -12,7 +12,8 @@ async function main() {
   const app = new cdk.App();
   const acceleratorName = process.env.ACCELERATOR_NAME || 'PBMM';
   const acceleratorPrefix = process.env.ACCELERATOR_PREFIX || 'PBMMAccel-';
-  const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID || 'accelerator/config';
+  const configFilePath = process.env.ACCELERATOR_CONFIG_FILE_PATH || 'config.json';
+  const configRepositoryName = `${acceleratorPrefix}Repo-Config`;
   const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine`;
   const stateMachineExecutionRole =
     process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
@@ -20,14 +21,15 @@ async function main() {
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
   console.log(`  Prefix: ${acceleratorPrefix}`);
-  console.log(`  Configuration: ${configSecretName}`);
+  console.log(`  Configuration: ${configFilePath} from ${configRepositoryName}`);
 
   // Find the root director of the solution
   const solutionRoot = path.join(__dirname, '..', '..', '..');
 
   // Create the initial setup pipeline stack
   await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
-    configSecretName,
+    configFilePath,
+    configRepositoryName,
     acceleratorPrefix,
     acceleratorName,
     solutionRoot,
