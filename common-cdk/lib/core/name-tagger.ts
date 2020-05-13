@@ -56,6 +56,7 @@ export class AcceleratorNameTagger implements cdk.IAspect {
     addNameTagAsIdWithSuffix(ec2.CfnCustomerGateway, '_cgw'),
     addNameTagAsIdWithSuffix(ec2.VpnConnection, '_vpn', 200),
     addNameTagAsIdWithSuffix(ec2.CfnVPNConnection, '_vpn', 100),
+    addNameTagAsIdWithSuffix(ec2.CfnEIP, '_eip', 100),
     addNameTagAsIdWithSuffix(kms.Key, '_key', 200),
     addNameTagAsIdWithSuffix(kms.CfnKey, '_key', 100),
     addNameTagAsIdWithSuffix(elb.ApplicationLoadBalancer, '_alb', 200),

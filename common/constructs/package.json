@@ -12,7 +12,7 @@
     "lib"
   ],
   "devDependencies": {
-    "@aws-cdk/assert": "1.32.2",
+    "@aws-cdk/assert": "1.38.0",
     "@types/jest": "25.2.1",
     "@types/node": "12.12.6",
     "babel-jest": "25.2.0",
@@ -26,12 +26,12 @@
     "typescript": "3.8.3"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "1.32.2",
-    "@aws-cdk/aws-ec2": "1.32.2",
-    "@aws-cdk/aws-iam": "1.32.2",
-    "@aws-cdk/aws-lambda": "1.32.2",
-    "@aws-cdk/aws-s3-assets": "1.32.2",
-    "@aws-cdk/core": "1.32.2",
+    "@aws-cdk/aws-cloudformation": "1.38.0",
+    "@aws-cdk/aws-ec2": "1.38.0",
+    "@aws-cdk/aws-iam": "1.38.0",
+    "@aws-cdk/aws-lambda": "1.38.0",
+    "@aws-cdk/aws-s3-assets": "1.38.0",
+    "@aws-cdk/core": "1.38.0",
     "cdk-ec2-key-pair": "1.2.1",
     "ip-num": "^1.2.2",
     "pascal-case": "^3.1.1",

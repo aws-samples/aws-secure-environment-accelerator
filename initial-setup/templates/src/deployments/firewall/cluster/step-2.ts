@@ -1,10 +1,11 @@
 import * as t from 'io-ts';
+import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { VpnTunnelOptions, Attribute } from '@custom-resources/vpn-tunnel-options';
+import { VpnTunnelOptions, Attribute } from '@custom-resources/ec2-vpn-tunnel-options';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { TransitGateway } from '../../../common/transit-gateway';
@@ -29,6 +30,16 @@ export const FirewallVpnConnectionType = t.intersection([
     transitGatewayId: t.string,
     customerGatewayId: optional(t.string),
     vpnConnectionId: optional(t.string),
+    vpnTunnelOptions: optional(
+      t.interface({
+        cgwTunnelInsideAddress: t.string,
+        cgwBgpAsn: t.string,
+        vpnTunnelInsideAddress: t.string,
+        vpnTunnelOutsideAddress: t.string,
+        vpnBgpAsn: t.string,
+        preSharedSecret: t.string,
+      }),
+    ),
   }),
 ]);
 
@@ -103,28 +114,40 @@ async function createCustomerGateways(props: {
   // Keep track of the created VPN connection so we can use them in the next steps
   const vpnConnections: FirewallVpnConnection[] = [];
 
+  const firewallCgwName = firewallConfig['fw-cgw-name'];
+  const firewallCgwAsn = firewallConfig['fw-cgw-asn'];
+
   for (const [index, port] of Object.entries(firewallPorts)) {
     let customerGateway;
     let vpnConnection;
     let vpnTunnelOptions;
-    if (port.eipIpAddress) {
-      // TODO Name Perimeter_fw1_azA_cgw
-      customerGateway = new ec2.CfnCustomerGateway(scope, `Cgw${index}`, {
+    if (port.eipIpAddress && port.createCustomerGateway) {
+      const prefix = `${firewallCgwName}_az${pascalCase(port.az)}_${index}`;
+
+      customerGateway = new ec2.CfnCustomerGateway(scope, `${prefix}_cgw`, {
         type: 'ipsec.1',
         ipAddress: port.eipIpAddress,
-        bgpAsn: firewallConfig['fw-cgw-asn'],
+        bgpAsn: firewallCgwAsn,
       });
 
-      vpnConnection = new ec2.CfnVPNConnection(scope, `VpnConnection${index}`, {
+      vpnConnection = new ec2.CfnVPNConnection(scope, `${prefix}_vpn`, {
         type: 'ipsec.1',
         transitGatewayId,
         customerGatewayId: customerGateway.ref,
       });
 
-      // TODO Custom resource to get the tunnel info
-      vpnTunnelOptions = new VpnTunnelOptions(scope, `VpnTunnelOptions${index}`, {
+      const options = new VpnTunnelOptions(scope, `VpnTunnelOptions${index}`, {
         vpnConnectionId: vpnConnection.ref,
       });
+
+      vpnTunnelOptions = {
+        cgwTunnelInsideAddress: options?.getAttString('CgwInsideIpAddress1'),
+        cgwBgpAsn: options?.getAttString('CgwBgpAsn1'),
+        vpnTunnelInsideAddress: options?.getAttString('VpnInsideIpAddress1'),
+        vpnTunnelOutsideAddress: options?.getAttString('VpnOutsideIpAddress1'),
+        vpnBgpAsn: options?.getAttString('VpnBgpAsn1'),
+        preSharedSecret: options?.getAttString('PreSharedKey1'),
+      };
     }
 
     vpnConnections.push({
@@ -133,6 +156,7 @@ async function createCustomerGateways(props: {
       transitGatewayId,
       customerGatewayId: customerGateway?.ref,
       vpnConnectionId: vpnConnection?.ref,
+      vpnTunnelOptions,
     });
   }
 

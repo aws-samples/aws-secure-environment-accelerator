@@ -1,10 +1,10 @@
-# Image Finder
+# EC2 Image Finder
 
 This is a custom resource to find an AMI by using the EC2 `DescribeImages` API call.
 
 ## Usage
 
-    import { ImageFinder } from '@custom-resources/image-finder';
+    import { ImageFinder } from '@custom-resources/ec2-image-finder';
 
     const imageFinder = new ImageFinder(scope, 'ImageFinder', {
       imageOwner: '679593333241',

@@ -3,23 +3,19 @@ import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import * as iam from '@aws-cdk/aws-iam';
-import { pascalCase } from 'pascal-case';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import * as ssm from '@aws-cdk/aws-ssm';
-import { KeyPairStack } from '@aws-pbmm/common-cdk/lib/core/key-pair';
-import { ResolversOutput } from './phase-2';
+import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
+import { AccountStacks } from '../common/account-stacks';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
-
-type ResolversOutputs = ResolversOutput[];
 
 export interface RdgwArtifactsOutput {
   bucketArn: string;
@@ -44,16 +40,21 @@ async function main() {
 
   const app = new cdk.App();
 
-  const masterUserPasswordStack = new AcceleratorStack(app, 'MasterUserPasswordStack', {
-    env: {
-      account: getAccountId(accounts, 'master'),
-      region: cdk.Aws.REGION,
-    },
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    stackName: 'PBMMAccel-Ad-Users-Secrets',
+  const accountStacks = new AccountStacks(app, {
+    phase: 5,
+    accounts,
+    context,
   });
-  const secretsStack = new SecretsStack(masterUserPasswordStack, 'Secrets');
+
+  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
+  if (!masterAccount) {
+    throw new Error(`Cannot find primary account`);
+  }
+
+  const [masterAccountKey, _] = masterAccount;
+  const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+
+  const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
   type UserSecrets = UserSecret[];
   const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
@@ -67,25 +68,16 @@ async function main() {
     const ec2KeyPairName = 'rdgw-key-pair';
     const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
 
-    const keyPairStack = new KeyPairStack(app, 'Ec2KeyPair', {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: 'PBMMAccel-Ec2KeyPair',
-    });
+    const stack = accountStacks.getOrCreateAccountStack(accountKey);
 
-    keyPairStack.createKeyPair(
-      'RDGWEc2KeyPair',
-      {
-        name: ec2KeyPairName,
-        description: 'This is a Key Pair for RDGW host instance',
-        secretPrefix: ec2KeyPairPrefix,
-      },
-      new iam.AccountPrincipal(accountId),
-    );
+    const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
+
+    const keyPair = keyPairContainer.createKeyPair('RDGWEc2KeyPair', {
+      name: ec2KeyPairName,
+      description: 'This is a Key Pair for RDGW host instance',
+      secretPrefix: ec2KeyPairPrefix,
+      principal: new iam.AccountPrincipal(accountId),
+    });
 
     const userSecrets: UserSecrets = [];
     for (const adUser of madDeploymentConfig['ad-users']) {
@@ -99,18 +91,6 @@ async function main() {
       });
       userSecrets.push({ user: adUser.user, password: madUserPassword });
     }
-
-    const stack = new AcceleratorStack(app, 'ADUsersAndGroups', {
-      env: {
-        account: accountId,
-        region: cdk.Aws.REGION,
-      },
-      acceleratorName: context.acceleratorName,
-      acceleratorPrefix: context.acceleratorPrefix,
-      stackName: `PBMMAccel-${pascalCase('adUsersAndGroups')}`,
-    });
-
-    stack.addDependency(keyPairStack);
 
     const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
       stack,
@@ -153,7 +133,7 @@ async function main() {
       throw new Error(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
     }
 
-    new ADUsersAndGroups(stack, 'RDGWHost', {
+    const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,
@@ -169,6 +149,7 @@ async function main() {
       userSecrets,
       accountKey,
     });
+    adUsersAndGroups.node.addDependency(keyPair);
   }
 }
 

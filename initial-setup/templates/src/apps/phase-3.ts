@@ -1,11 +1,11 @@
 import * as cdk from '@aws-cdk/core';
-import { getAccountId, loadAccounts } from '../utils/accounts';
+import { loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
+import { AccountStacks } from '../common/account-stacks';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -20,6 +20,12 @@ async function main() {
 
   const app = new cdk.App();
 
+  const accountStacks = new AccountStacks(app, {
+    phase: 3,
+    accounts,
+    context,
+  });
+
   /**
    * Code to create Peering Connection Routes in all accounts
    */
@@ -29,19 +35,7 @@ async function main() {
     if (!currentRouteTable) {
       continue;
     }
-    const pcxRouteDeployment = new AcceleratorStack(
-      app,
-      `PBMMAccel-PcxRouteDeployment${accountKey}${vpcConfig.name}RoutesStack`,
-      {
-        env: {
-          account: getAccountId(accounts, accountKey),
-          region: cdk.Aws.REGION,
-        },
-        stackName: `PBMMAccel-PcxRouteDeployment${accountKey}${vpcConfig.name.replace('_', '')}RoutesStack`,
-        acceleratorName: context.acceleratorName,
-        acceleratorPrefix: context.acceleratorPrefix,
-      },
-    );
+    const pcxRouteDeployment = accountStacks.getOrCreateAccountStack(accountKey);
 
     new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
       accountKey,
@@ -58,17 +52,9 @@ async function main() {
   const zonesConfig = globalOptionsConfig.zones;
   const zonesAccountKey = zonesConfig.account;
 
-  const deployment = new AcceleratorStack(app, 'PBMMAccel-A-GlobalOptionsDNSResolversStack', {
-    env: {
-      account: getAccountId(accounts, zonesAccountKey),
-      region: cdk.Aws.REGION,
-    },
-    stackName: `PBMMAccel-A-GlobalOptionsDNSResolvers`,
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-  });
+  const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey);
 
-  new GlobalOptionsDeployment(deployment, `GlobalOptionsDNSResolvers`, {
+  new GlobalOptionsDeployment(zonesStack, `GlobalOptionsDNSResolvers`, {
     accounts,
     outputs,
     context,

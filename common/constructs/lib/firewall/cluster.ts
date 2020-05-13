@@ -43,7 +43,7 @@ export class FirewallCluster extends cdk.Construct {
       roles: [this.instanceRole.roleName],
     });
 
-    this.keyPairName = 'FirewallKey';
+    this.keyPairName = 'Firewall';
     this.keyPair = new KeyPair(this, 'KeyPair', {
       name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs',
@@ -60,6 +60,8 @@ export class FirewallCluster extends cdk.Construct {
       keyPairName: this.keyPairName,
       iamInstanceProfileName: this.instanceProfile.instanceProfileName!,
     });
+    instance.node.addDependency(this.keyPair);
+
     this.instances.push(instance);
     return instance;
   }
