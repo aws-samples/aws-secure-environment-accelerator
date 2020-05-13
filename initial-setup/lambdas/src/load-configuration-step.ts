@@ -4,19 +4,21 @@ import {
   LandingZoneAccountType,
   LANDING_ZONE_ACCOUNT_TYPES,
 } from '@aws-pbmm/common-lambda/lib/config';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
 export interface LoadConfigurationInput {
-  configSecretSourceId: string;
-  configSecretInProgressId: string;
+  configFilePath: string;
+  configRepositoryName: string;
+  configCommitId: string;
 }
 
 export interface LoadConfigurationOutput {
   accounts: ConfigurationAccount[];
   warnings: string[];
+  configCommitId: string;
 }
 
 export interface ConfigurationAccount {
@@ -39,20 +41,11 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
   console.log(`Detected Landing Zone stack with version "${landingZoneStack.version}"`);
 
-  const { configSecretSourceId, configSecretInProgressId } = input;
+  const { configFilePath, configRepositoryName, configCommitId } = input;
 
-  const secrets = new SecretsManager();
-  const source = await secrets.getSecret(configSecretSourceId);
-
-  // Load the configuration from Secrets Manager
-  const configString = source.SecretString!;
+  // Retrive Configuration from Code Commit with specific commitId
+  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
   const config = AcceleratorConfig.fromString(configString);
-
-  // Store a copy of the secret
-  await secrets.putSecretValue({
-    SecretId: configSecretInProgressId,
-    SecretString: configString,
-  });
 
   const organizations = new Organizations();
   const organizationalUnits = await organizations.listOrganizationalUnits();
@@ -270,6 +263,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   return {
     accounts: configurationAccounts,
     warnings,
+    configCommitId: configCommitId,
   };
 };
 

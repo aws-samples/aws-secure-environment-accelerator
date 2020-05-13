@@ -13,7 +13,9 @@ async function main() {
   const acceleratorName = process.env.ACCELERATOR_NAME || 'PBMM';
   const acceleratorPrefix = process.env.ACCELERATOR_PREFIX || 'PBMMAccel-';
   const configFilePath = process.env.ACCELERATOR_CONFIG_FILE_PATH || 'config.json';
-  const configRepositoryName = `${acceleratorPrefix}Repo-Config`;
+  const configRepositoryName = process.env.ACCELERATOR_CONFIG_REPOSITORY || `${acceleratorPrefix}Repo-Config`;
+  const configS3Bucket = process.env.CONFIG_S3_BUCKET || `${acceleratorPrefix}Config`.toLowerCase();
+  const configS3FileName = process.env.CONFIG_S3_KEY || `config.json`;
   const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine`;
   const stateMachineExecutionRole =
     process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
@@ -21,7 +23,8 @@ async function main() {
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
   console.log(`  Prefix: ${acceleratorPrefix}`);
-  console.log(`  Configuration: ${configFilePath} from ${configRepositoryName}`);
+  console.log(`  Code Commit Configuration: ${configFilePath} from ${configRepositoryName}`);
+  console.log(`  Existing S3 Configuration: ${configS3FileName} from ${configS3Bucket}`);
 
   // Find the root director of the solution
   const solutionRoot = path.join(__dirname, '..', '..', '..');
@@ -30,6 +33,8 @@ async function main() {
   await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
     configFilePath,
     configRepositoryName,
+    configS3Bucket,
+    configS3FileName,
     acceleratorPrefix,
     acceleratorName,
     solutionRoot,

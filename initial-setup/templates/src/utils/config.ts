@@ -1,7 +1,8 @@
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import * as fs from 'fs';
 import * as path from 'path';
+import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
+import { Base64 } from 'js-base64';
 
 export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
   if (process.env.CONFIG_MODE === 'development') {
@@ -13,14 +14,22 @@ export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
     return AcceleratorConfig.fromBuffer(contents);
   }
 
-  const secretId = process.env.CONFIG_SECRET_ID;
-  if (!secretId) {
-    throw new Error(`The environment variable "CONFIG_SECRET_ID" needs to be set`);
+  const configFilePath = process.env.CONFIG_FILE_PATH!;
+  const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
+  if (!configFilePath && configRepositoryName) {
+    throw new Error(`The environment variables "CONFIG_FILE_NAME" and "CONFIG_REPOSITORY_NAME" needs to be set`);
   }
-  const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(secretId);
-  if (!secret) {
-    throw new Error(`Cannot find secret with ID "${secretId}"`);
+
+  const codecommit = new CodeCommit();
+  let configString;
+  try {
+    const source = await codecommit.getFile(configRepositoryName, configFilePath);
+    configString = Base64.decode(source.fileContent.toString('base64'));
+  } catch (e) {
+    throw new Error(
+      `Cannot find file with name "${configFilePath}" in Repository ${configRepositoryName} \n ${e.message}`,
+    );
   }
-  return AcceleratorConfig.fromString(secret.SecretString!);
+
+  return AcceleratorConfig.fromString(configString);
 }

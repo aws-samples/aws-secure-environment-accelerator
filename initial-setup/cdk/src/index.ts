@@ -30,8 +30,13 @@ export namespace InitialSetup {
     solutionRoot: string;
     stateMachineName: string;
     stateMachineExecutionRole: string;
-    configFilePath: string;
-    configRepositoryName: string;
+    /**
+     * Paramaters for configuration file
+     */
+    configFilePath: string,
+    configRepositoryName: string,
+    configS3Bucket: string,
+    configS3FileName: string,
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -92,6 +97,10 @@ export namespace InitialSetup {
   export interface PipelineProps extends CommonProps {
     lambdaCode: lambda.Code;
     solutionZipPath: string;
+    configFilePath: string;
+    configRepositoryName: string;
+    configS3Bucket: string;
+    configS3FileName: string;
   }
 
   export class Pipeline extends cdk.Construct {
@@ -121,11 +130,6 @@ export namespace InitialSetup {
         secretName: 'accelerator/limits',
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
-
-      // TODO Copy the configSecretInProgress to configSecretLive when deployment is complete.
-      //  const configSecretLive = new secrets.Secret(this, 'ConfigSecretLive', {
-      //    description: 'This is the config that was used to deploy the current accelerator.',
-      //  });
 
       // TODO This should be the repo containing our code in the future
       // Upload the templates ZIP as an asset to S3
@@ -285,6 +289,21 @@ export namespace InitialSetup {
         },
       });
 
+      const getOrCreateConfigurationTask = new CodeTask(this, 'Get or Create Configuration from S3', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.getOrCreateConfig',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          repositoryName: props.configRepositoryName,
+          filePath: props.configFilePath,
+          s3Bucket: props.configS3Bucket,
+          s3FileName: props.configS3FileName,
+        },
+        resultPath: '$.configuration',
+      });
+
       const loadConfigurationTask = new CodeTask(this, 'Load Configuration', {
         functionProps: {
           code: lambdaCode,
@@ -294,9 +313,12 @@ export namespace InitialSetup {
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId'
         },
+        // inputPath: '$',
         resultPath: '$.configuration',
       });
+      
 
       // TODO We might want to load this from the Landing Zone configuration
       const avmProductName = 'AWS-Landing-Zone-Account-Vending-Machine';
@@ -676,7 +698,8 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: `${props.stateMachineName}_sm`,
-        definition: sfn.Chain.start(loadConfigurationTask)
+        definition: sfn.Chain.start(getOrCreateConfigurationTask)
+          .next(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)

@@ -4,9 +4,10 @@ import { Account } from './load-accounts-step';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getAccountId } from '../../templates/src/utils/accounts';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-export interface LoadLimitsInput {
-  configSecretId: string;
+export interface LoadLimitsInput extends LoadConfigurationInput {
   limitsSecretId: string;
   accounts: Account[];
   assumeRoleName: string;
@@ -67,15 +68,21 @@ export const handler = async (input: LoadLimitsInput) => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configSecretId, limitsSecretId, accounts, assumeRoleName } = input;
+  const { 
+    configRepositoryName, 
+    configFilePath, 
+    limitsSecretId, 
+    accounts, 
+    assumeRoleName,
+    configCommitId 
+  } = input;
 
   const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(configSecretId);
 
-  // Load the configuration from Secrets Manager
-  const configString = secret.SecretString!;
+  // Retriving Config from code commit with specific commitId
+  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
+
   const config = AcceleratorConfig.fromString(configString);
-
   // Capture limit results
   const limits: LimitOutput[] = [];
 

@@ -17,11 +17,12 @@ import { ResolversOutput } from '../../templates/src/apps/phase-2';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
 import * as t from 'io-ts';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-interface AssociateHostedZonesInput {
+interface AssociateHostedZonesInput extends LoadConfigurationInput {
   accounts: Account[];
   assumeRoleName: string;
-  configSecretSourceId: string;
   stackOutputSecretId: string;
 }
 
@@ -31,12 +32,20 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configSecretSourceId, accounts, assumeRoleName, stackOutputSecretId } = input;
+  const { 
+    configRepositoryName, 
+    accounts, 
+    assumeRoleName, 
+    stackOutputSecretId, 
+    configCommitId,
+    configFilePath
+  } = input;
 
   const secrets = new SecretsManager();
 
-  const source = await secrets.getSecret(configSecretSourceId);
-  const acceleratorConfig = AcceleratorConfig.fromString(source.SecretString!);
+  // Retrive Configuration from Code Commit with specific commitId
+  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
+  const acceleratorConfig = AcceleratorConfig.fromString(configString);
 
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];

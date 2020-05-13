@@ -14,11 +14,12 @@ import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 import { CUR } from '@aws-pbmm/common-lambda/lib/aws/cur';
 import { PutReportDefinitionRequest } from 'aws-sdk/clients/cur';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-interface AccountDefaultSettingsInput {
+interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
   accounts: Account[];
-  configSecretSourceId: string;
   stackOutputSecretId: string;
 }
 
@@ -26,13 +27,23 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, accounts, configSecretSourceId, stackOutputSecretId } = input;
+  const { 
+    assumeRoleName,
+    accounts, 
+    configRepositoryName, 
+    stackOutputSecretId, 
+    configFilePath, 
+    configCommitId 
+  } = input;
 
   const secrets = new SecretsManager();
-  const configString = await secrets.getSecret(configSecretSourceId);
   const outputsString = await secrets.getSecret(stackOutputSecretId);
+  
+  // Retrive Configuration from Code Commit with specific commitId
+  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
+  const acceleratorConfig = AcceleratorConfig.fromString(configString);
 
-  const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
+  
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();

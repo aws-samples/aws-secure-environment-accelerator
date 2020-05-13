@@ -5,12 +5,13 @@ import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getAccountId } from '../../templates/src/utils/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-interface ShareDirectoryInput {
+interface ShareDirectoryInput extends LoadConfigurationInput {
   accounts: Account[];
   stackOutputSecretId: string;
   assumeRoleName: string;
-  configSecretSourceId: string;
 }
 
 interface MadOutput {
@@ -25,13 +26,23 @@ export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD to another account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, assumeRoleName, stackOutputSecretId, configSecretSourceId: configSecretId } = input;
+  const { 
+    accounts, 
+    assumeRoleName, 
+    stackOutputSecretId, 
+    configRepositoryName,
+    configFilePath,
+    configCommitId
+   } = input;
 
   const secrets = new SecretsManager();
-  const configString = await secrets.getSecret(configSecretId);
+  
+  // Retrive Configuration from Code Commit with specific commitId
+  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
+  const acceleratorConfig = AcceleratorConfig.fromString(configString);
+  
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
-  const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
