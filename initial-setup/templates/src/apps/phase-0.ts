@@ -3,16 +3,10 @@ import * as iam from '@aws-cdk/aws-iam';
 import { getAccountId, loadAccounts, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
 import { LogArchiveBucket } from '../common/log-archive-bucket';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { pascalCase } from 'pascal-case';
-import { AccountDefaultSettingsAssets } from '../common/account-default-settings-assets';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
-import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
-import { IamUserConfigType, IamConfig, IamConfigType, IamPolicyConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
 import * as s3 from '@aws-cdk/aws-s3';
@@ -20,8 +14,8 @@ import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
-import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
+import { DefaultEbsEncryptionKey } from '../common/default-ebs-encryption-key';
+import { AccessAnalyzer } from '../common/access-analyzer';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -40,7 +34,6 @@ async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
 
   // TODO Get these values dynamically
   const globalOptionsConfig = acceleratorConfig['global-options'];
@@ -49,12 +42,6 @@ async function main() {
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
   const logArchiveAccountId = getAccountId(accounts, 'log-archive');
-  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-  const logArchiveS3KmsKeyArn = getStackOutput(
-    outputs,
-    'log-archive',
-    outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
-  );
 
   const app = new cdk.App();
 
@@ -160,93 +147,9 @@ async function main() {
   };
 
   const masterAccountId = getAccountId(accounts, 'master');
-  const sts = new STS();
-  const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
-    masterAccountId,
-    context.acceleratorExecutionRoleName,
-  );
-  const iamPolicyS3 = new S3(masterAcctCredentials);
-
-  const iamPoliciesDefinition: { [policyName: string]: string } = {};
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    const iamConfig = accountConfig.iam;
-    if (IamConfigType.is(iamConfig)) {
-      const iamPolicies = iamConfig?.policies;
-      if (iamPolicies && iamPolicies?.length > 1) {
-        for (const iamPolicy of iamPolicies) {
-          if (IamPolicyConfigType.is(iamPolicy)) {
-            const iamPolicyName = iamPolicy['policy-name'];
-            const iamPolicyFileName = iamPolicy.policy;
-            const policyContent = await iamPolicyS3.getObjectBodyAsString({
-              Bucket: 'pbmmaccel-iam-policy-config',
-              Key: `iam-policy/${iamPolicyFileName}`,
-            });
-            iamPoliciesDefinition[iamPolicyName] = policyContent;
-          }
-        }
-      }
-    }
-  }
-
-  const createAccountDefaultAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
-    const defaultAssetAccountId = getAccountId(accounts, accountKey);
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    const userPasswords: { [userId: string]: Secret } = {};
-
-    const iamUsers = iamConfig?.users;
-    if (iamUsers && iamUsers?.length >= 1) {
-      for (const iamUser of iamUsers) {
-        if (!IamUserConfigType.is(iamUser)) {
-          console.log(
-            `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
-          );
-        } else {
-          for (const userId of iamUser['user-ids']) {
-            const secretsStack = new SecretsStack(masterAccountStack, `Secrets-${userId}-UserPassword`);
-            const password = secretsStack.createSecret(`${userId}-UserPassword`, {
-              secretName: `accelerator/${accountKey}/user/password/${userId}`,
-              description: `Password for IAM User - ${userId}.`,
-              generateSecretString: {
-                passwordLength: 16,
-              },
-              principals: [new iam.AccountPrincipal(defaultAssetAccountId)],
-            });
-            userPasswords[userId] = password;
-          }
-        }
-      }
-    }
-
-    const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
-    const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
-      .replace('xxaccountIdxx', defaultAssetAccountId)
-      .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
-
-    const accountDefaultsSettingsAssets = new AccountDefaultSettingsAssets(
-      accountStack,
-      `Account Default Settings Assets-${pascalCase(accountKey)}`,
-      {
-        accountId: defaultAssetAccountId,
-        accountKey,
-        iamConfig,
-        iamPoliciesDefinition,
-        accounts,
-        userPasswords,
-        s3BucketNameForCur,
-        expirationInDays: globalOptionsConfig['central-log-retention'],
-        replication: {
-          accountId: logArchiveAccountId,
-          bucketArn: logArchiveS3BucketArn,
-          kmsKeyArn: logArchiveS3KmsKeyArn,
-        },
-      },
-    );
-
-    // save the kms key Id for later reference
-    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
-      value: accountDefaultsSettingsAssets.kmsKeyIdForEbsDefaultEncryption,
-    });
-  };
+  const iamPoliciesBucketName = `pbmmaccel-iam-policies-${masterAccountId}-${cdk.Aws.REGION}`;
+  // upload IAM-Policies Artifacts
+  uploadArtifacts('IamPolicy', 'iam-policies', 'iam-policy', 'master', iamPoliciesBucketName, 'iam-policy');
 
   const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
     const accountsPerOu: Account[] = [];
@@ -258,20 +161,40 @@ async function main() {
     return accountsPerOu;
   };
 
+  const createDefaultEbsEncryptionKey = async (accountKey: string): Promise<void> => {
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const defaultEbsEncryptionKey = new DefaultEbsEncryptionKey(
+      accountStack,
+      `Default EBS Encryption Key-${pascalCase(accountKey)}`,
+    );
+
+    // save the kms key Id for later reference
+    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
+      value: defaultEbsEncryptionKey.kmsKeyIdForEbsDefaultEncryption,
+    });
+  };
+
+  const createAccessAnalyzer = async (accountKey: string): Promise<void> => {
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+
+    const accessAnalyzer = new AccessAnalyzer(accountStack, `Access Analyzer-${pascalCase(accountKey)}`);
+  };
+
   const mandatoryAccountKeys: string[] = [];
   // creating assets for default account settings
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     mandatoryAccountKeys.push(accountKey);
-    await createAccountDefaultAssets(accountKey, accountConfig.iam);
-    console.log(`Default assets created for account - ${accountKey}`);
+    await createDefaultEbsEncryptionKey(accountKey);
+    if (accountKey === 'security') {
+      await createAccessAnalyzer(accountKey);
+    }
   }
 
   // creating assets for org unit accounts
   for (const [orgName, orgConfig] of orgUnits) {
     const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
     for (const orgAccount of orgAccounts) {
-      await createAccountDefaultAssets(orgAccount.key, orgConfig.iam);
-      console.log(`Default assets created for account - ${orgAccount.key}`);
+      await createDefaultEbsEncryptionKey(orgAccount.key);
     }
   }
 
