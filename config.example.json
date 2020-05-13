@@ -154,7 +154,13 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "EndpointVPC_Common"
+            "name": "EndpointVPC_Common",
+            "routes": [
+              {
+                "destination": "0.0.0.0/0",
+                "target": "TGW"
+              }
+            ]
           }
         ],
         "tgw-attach": {
