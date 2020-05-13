@@ -170,17 +170,20 @@ async function main() {
 
     // Enable flow logging if necessary
     const flowLogs = vpcConfig['flow-logs'];
+    let flowLogsDestination;
     if (flowLogs) {
       const flowLogContainer = getFlowLogContainer(accountKey);
       const flowLogBucket = flowLogContainer.bucket;
       const flowLogRole = flowLogContainer.role;
+
+      flowLogsDestination = `${flowLogBucket.bucketArn}/flowlogs`;
 
       new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
         deliverLogsPermissionArn: flowLogRole.roleArn,
         resourceId: vpc.vpcId,
         resourceType: 'VPC',
         trafficType: ec2.FlowLogTrafficType.ALL,
-        logDestination: `${flowLogBucket.bucketArn}/flowlogs`,
+        logDestination: flowLogsDestination,
         logDestinationType: ec2.FlowLogDestinationType.S3,
       });
     }
@@ -203,6 +206,7 @@ async function main() {
           securityGroupName: name,
         }),
       ),
+      flowLogsDestination,
     };
 
     // Store the VPC output so that subsequent phases can access the output

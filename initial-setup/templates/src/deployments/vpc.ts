@@ -21,6 +21,7 @@ export interface VpcOutput {
   routeTables: { [key: string]: string };
   securityGroups: VpcSecurityGroupOutput[];
   pcx?: string;
+  flowLogsDestination?: string;
 }
 
 export interface ImportedVpcProps {

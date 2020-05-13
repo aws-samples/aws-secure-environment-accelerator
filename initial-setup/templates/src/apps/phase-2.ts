@@ -19,6 +19,7 @@ import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as firewallManagement from '../deployments/firewall/manager';
+import * as conformancePackage from '../deployments/conformance-package';
 import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 
@@ -235,6 +236,12 @@ async function main() {
     accountStacks,
     config: acceleratorConfig,
     vpcs: allVpcs,
+  });
+
+  await conformancePackage.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
   });
 
   // Deploy Security Hub

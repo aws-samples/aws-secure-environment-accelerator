@@ -11,6 +11,7 @@
   "devDependencies": {
     "@aws-cdk/assert": "1.38.0",
     "@types/jest": "25.1.4",
+    "@types/js-yaml": "3.12.3",
     "@types/node": "12.12.6",
     "aws-cdk": "1.38.0",
     "babel-jest": "25.2.0",
@@ -50,6 +51,7 @@
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "@aws-pbmm/common-outputs": "workspace:^0.0.1",
     "@aws-pbmm/constructs": "workspace:^0.0.1",
+    "@config-rules/vpc-config-rule": "workspace:^0.0.1",
     "@custom-resources/ds-log-subscription": "workspace:^0.0.1",
     "@custom-resources/ec2-image-finder": "workspace:^0.0.1",
     "@custom-resources/ec2-vpn-tunnel-options": "workspace:^0.0.1",
@@ -60,6 +62,7 @@
     "generate-password": "1.5.1",
     "io-ts": "2.1.2",
     "io-ts-types": "0.5.6",
+    "js-yaml": "3.13.1",
     "pascal-case": "^3.1.1"
   },
   "jest": {
