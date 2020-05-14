@@ -33,7 +33,7 @@ export const handler = async (input: CodeBuildStartInput) => {
           name: 'CONFIG_COMMIT_ID',
           value: configCommitId,
           type: 'PLAINTEXT',
-        }
+        },
       ],
     })
     .promise();

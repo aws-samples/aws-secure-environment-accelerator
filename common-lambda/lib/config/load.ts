@@ -2,7 +2,7 @@ import { CodeCommit } from '../aws/codecommit';
 import { Base64 } from 'js-base64';
 
 // Retriving Config from code commit with specific commitId
-export async function loadAcceleratorConfig (
+export async function loadAcceleratorConfig(
   repositoryName: string,
   filePath: string,
   commitId: string,
