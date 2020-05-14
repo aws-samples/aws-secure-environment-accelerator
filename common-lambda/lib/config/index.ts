@@ -215,7 +215,7 @@ export const CertificatesConfigType = t.interface({
   arn: optional(t.string),
   domain: optional(t.string),
   validation: optional(t.string),
-  san: optional(t.string),
+  san: optional(t.array(NonEmptyString)),
 });
 
 export type CertificatesConfig = t.TypeOf<typeof CertificatesConfigType>;

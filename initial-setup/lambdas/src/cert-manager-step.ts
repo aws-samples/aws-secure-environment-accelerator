@@ -26,6 +26,8 @@ export const handler = async (input: certManagerInput) => {
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
   const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
+  const globalOptionsConfig = acceleratorConfig["global-options"];
+  const centralBucket = globalOptionsConfig["central-bucket"];
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
@@ -59,20 +61,60 @@ export const handler = async (input: certManagerInput) => {
     const s3 = new S3(masterCredentials);
     const acm = new ACM(credentials);
 
-    const listCertificatesParam: aws.ACM.ListCertificatesRequest = {};
-    const certList = await acm.listCertificates(listCertificatesParam);
-    console.log('certList: ', certList);
-    // const framedCertArn =
-    // certList.find(a => )
+    // check whether arn exists before creating new cert
 
     if (certConfig.type === 'import') {
-      s3.getObjectBodyAsString;
-      const importCertificateResponse = await acm.importCertificate();
+      const importCertificateRequest: aws.ACM.ImportCertificateRequest = {
+        Certificate: await s3.getObjectBodyAsString({
+          Bucket: centralBucket, 
+          Key: certConfig.cert!
+        }),
+        PrivateKey: await s3.getObjectBodyAsString({
+          Bucket: centralBucket, 
+          Key: certConfig["priv-key"]!
+        }),
+        CertificateArn: certConfig.arn,
+        CertificateChain: certConfig.chain,
+        Tags: [
+          {
+            Key: 'Accelerator',
+            Value: 'PBMM',
+          },
+        ],
+      };
+      const importCertificateResponse = await acm.importCertificate(importCertificateRequest);
       console.log('importCertificateResponse: ', importCertificateResponse);
+      console.log(`Requested ACM Certificate for account - ${accountKey}`);
+
+      // store arn here
     } else if (certConfig.type === 'request') {
-    }
+      const requestCertificateRequest: aws.ACM.RequestCertificateRequest = {
+      DomainName: certConfig.domain!,
+      CertificateAuthorityArn: certConfig.arn,
+      DomainValidationOptions: [
+        {
+          DomainName: certConfig.domain!,
+          ValidationDomain: certConfig.domain!,
+        },
+      ],
+      IdempotencyToken: 'idempotencyToken',
+      Options: {
+        CertificateTransparencyLoggingPreference: 'ENABLE',
+      },
+      SubjectAlternativeNames: certConfig.san!,
+      Tags: [
+        {
+          Key: 'Accelerator',
+          Value: 'PBMM',
+        },
+      ],
+      ValidationMethod: certConfig.validation,
+    };
 
     console.log(`Requested ACM Certificate for account - ${accountKey}`);
+
+    // store arn here
+    }
   };
 
   const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
