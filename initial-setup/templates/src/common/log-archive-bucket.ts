@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as kms from '@aws-cdk/aws-kms';
+import { createEncryptionKeyName, createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface LogArchiveBucketProps {
   logRetention: cdk.Duration;
@@ -28,7 +29,7 @@ export class LogArchiveBucket extends cdk.Construct {
     this.accountIds = accountIds;
 
     this.encryptionKey = new kms.Key(this, 'EncryptionKey', {
-      // alias: 'alias/S3-Default-key',
+      alias: 'alias/' + createEncryptionKeyName('S3DefaultKey'),
       description: 'PBMM Accel - KMS Key used by s3',
       enableKeyRotation: false,
       enabled: true,
@@ -76,15 +77,9 @@ export class LogArchiveBucket extends cdk.Construct {
       }),
     );
 
-    // bucket name format: pbmmaccel-{account #}-{region}
-    const stack = cdk.Stack.of(this);
-    const bucketName = undefined;
-    // TODO Re-enable this
-    // const bucketName = `pbmmaccel-${stack.account}-${stack.region}`;
-
     // s3 bucket to collect vpc-flow-logs
     this.bucket = new s3.Bucket(this, 'Bucket', {
-      bucketName,
+      bucketName: createBucketName('log-archive'),
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       versioned: true,
       encryption: s3.BucketEncryption.KMS,

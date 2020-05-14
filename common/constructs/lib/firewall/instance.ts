@@ -31,7 +31,12 @@ export class FirewallInstance extends cdk.Construct {
     };
   }
 
-  addPort(props: { securityGroup: SecurityGroup; subnet: Subnet; ipCidr: string; eipAllocationId?: string }) {
+  addNetworkInterface(props: {
+    securityGroup: SecurityGroup;
+    subnet: Subnet;
+    ipCidr: string;
+    eipAllocationId?: string;
+  }) {
     const { securityGroup, subnet, ipCidr, eipAllocationId } = props;
     const index = this.networkInterfaces.length;
 

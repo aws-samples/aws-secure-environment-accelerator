@@ -1,10 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
-import { AcceleratorStack, AcceleratorStackProps } from './accelerator-stack';
 import { KeyPair, KeyPairProps } from 'cdk-ec2-key-pair';
-
-export type KeyPairStackProps = AcceleratorStackProps;
+import { createKeyPairName } from './accelerator-name-generator';
 
 /**
  * This is a utility class that creates a stack to manage ec2 key pair. It creates a KMS key that is used to encrypt key pair
@@ -13,14 +11,16 @@ export type KeyPairStackProps = AcceleratorStackProps;
  * Key pair can be created using the `createKeyPair` function. This function will create a key pair in this stack and grants
  * the given principals decrypt access on the KMS key and access to retrieve the secret value.
  */
-export class KeyPairStack extends AcceleratorStack {
+export class KeyPairContainer extends cdk.Construct {
   readonly encryptionKey: kms.Key;
   readonly principals: iam.IPrincipal[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: KeyPairStackProps) {
-    super(scope, id, props);
+  constructor(scope: cdk.Construct, id: string) {
+    super(scope, id);
 
     this.encryptionKey = new kms.Key(this, 'KeyPairEncryptionKey');
+    this.encryptionKey.addAlias('alias/' + createKeyPairName('KeyPairEncryptionKey'));
+
     this.encryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({
         sid:
@@ -49,17 +49,17 @@ export class KeyPairStack extends AcceleratorStack {
   /**
    * Create a secret in the stack with the given ID and the given props.
    */
-  createKeyPair(id: string, props: KeyPairProps, principal: iam.IPrincipal) {
-    const keyPair = new KeyPair(this, 'RDGW-Key-Pair', {
+  createKeyPair(id: string, props: KeyPairProps & { principal: iam.IPrincipal }) {
+    const keyPair = new KeyPair(this, id, {
       ...props,
       kms: this.encryptionKey,
     });
-    this.principals.push(principal);
+    this.principals.push(props.principal);
     return keyPair;
   }
 
   protected onPrepare(): void {
-    console.debug(`Adding decrypt access to secrets key for principals ${this.principals.join(', ')}`);
+    console.debug(`Adding decrypt access to key pairs for principals ${this.principals.join(', ')}`);
 
     this.encryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({

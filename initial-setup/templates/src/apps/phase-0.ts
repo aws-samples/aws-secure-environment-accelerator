@@ -16,6 +16,7 @@ import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
 import { DefaultEbsEncryptionKey } from '../common/default-ebs-encryption-key';
 import { AccessAnalyzer } from '../common/access-analyzer';
+import { createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -114,13 +115,13 @@ async function main() {
     artifactFolderName: string,
     artifactKeyPrefix: string,
     accountKey: string,
-    artifactBucketName: string,
+    bucketNameGeneratorInput: string,
     destinationKeyPrefix?: string,
   ): void => {
     // creating a bucket to store artifacts
     const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
       versioned: true,
-      bucketName: artifactBucketName,
+      bucketName: createBucketName(bucketNameGeneratorInput),
     });
 
     // Granting read access to all the accounts
@@ -146,10 +147,8 @@ async function main() {
     });
   };
 
-  const masterAccountId = getAccountId(accounts, 'master');
-  const iamPoliciesBucketName = `pbmmaccel-iam-policies-${masterAccountId}-${cdk.Aws.REGION}`;
   // upload IAM-Policies Artifacts
-  uploadArtifacts('IamPolicy', 'iam-policies', 'iam-policy', 'master', iamPoliciesBucketName, 'iam-policy');
+  uploadArtifacts('IamPolicy', 'iam-policies', 'iam-policy', 'master', 'iam', 'iam-policy');
 
   const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
     const accountsPerOu: Account[] = [];
@@ -198,7 +197,7 @@ async function main() {
     }
   }
 
-  for (const [accountKey, accountConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+  for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
@@ -207,7 +206,7 @@ async function main() {
     const rdgwBucketName = `pbmmaccel-${mandatoryAccountId}-${cdk.Aws.REGION}`;
 
     // upload RDGW Artifacts
-    uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, rdgwBucketName, 'config/scripts');
+    uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, 'rdgw', 'config/scripts');
   }
 
   const globalOptions = acceleratorConfig['global-options'];

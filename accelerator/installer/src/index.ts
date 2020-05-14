@@ -72,6 +72,7 @@ async function main() {
 
   // Role that is used by the CodeBuild project
   const installerProjectRole = new iam.Role(stack, 'InstallerRole', {
+    roleName: `${acceleratorPrefix.valueAsString}L-CPL-Installer`,
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
   });
 
@@ -152,6 +153,7 @@ async function main() {
 
   // The role that will be used to start the state machine
   const stateMachineExecutionRole = new iam.Role(stack, 'ExecutionRoleName', {
+    roleName: `${acceleratorPrefix.valueAsString}L-SFN-Execution`,
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 

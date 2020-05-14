@@ -30,8 +30,9 @@ import { CurBucket } from '../common/cur-bucket';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
-import { SecretsStack } from '@aws-pbmm/common-cdk/lib/core/secrets-stack';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -105,7 +106,7 @@ async function main() {
     if (existing) {
       return;
     }
-    const peeringRole = new iam.Role(accountStack, roleName, {
+    const peeringRole = new iam.Role(accountStack, 'PeeringRole', {
       roleName,
       assumedBy: new iam.ArnPrincipal(
         `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
@@ -264,7 +265,8 @@ async function main() {
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
       // Create Accepter Role for Peering Connection
-      const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+      // const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+      const roleName = createRoleName('VPC-PeeringConnection');
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
     }
   }
@@ -362,7 +364,7 @@ async function main() {
           );
         } else {
           for (const userId of iamUser['user-ids']) {
-            const secretsStack = new SecretsStack(masterAccountStack, `Secrets-${userId}-UserPassword`);
+            const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
             const password = secretsStack.createSecret(`${userId}-UserPassword`, {
               secretName: `accelerator/${accountKey}/user/password/${userId}`,
               description: `Password for IAM User - ${userId}.`,

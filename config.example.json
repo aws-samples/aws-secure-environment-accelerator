@@ -1,33 +1,34 @@
 {
   "global-options": {
     "alz-minimum-version": "v2.3.1",
-	"alz-baseline": true,
-	"ct-baseline": false,
+    "alz-baseline": true,
+    "ct-baseline": false,
     "central-log-retention": 730,
-	"default-log-retention": 90,
-	"central-security-services": {
-	   "account": "security",
-	   "security-hub": true,
-	   "guard-duty": true,
-	   "cwl": true,
-	   "access-analyzer": true
-	},
-	"central-operations-services": {
-	   "account": "operations",
-	   "cwl": true,
-	   "cwl-access-level": "full"
-	},
-	"central-log-services": {
-	   "account": "log-archive",
-	   "region": "ca-central-1",
-	   "cwl-glbl-exclusions": ["/xxx/yyy/*","abc/*"],
-	   "cwl-exclusions": {
-	      "account": "fun-acct",
-		  "exclusions": ["def/*"]
-	   },
-	   "ssm-to-s3": true,
-	   "ssm-to-cwl": true
-	},
+    "default-log-retention": 90,
+    "central-bucket": "pbmmaccel-config-123456789012",
+    "central-security-services": {
+       "account": "security",
+       "security-hub": true,
+       "guard-duty": true,
+       "cwl": true,
+       "access-analyzer": true
+    },
+    "central-operations-services": {
+       "account": "operations",
+       "cwl": true,
+       "cwl-access-level": "full"
+    },
+    "central-log-services": {
+       "account": "log-archive",
+       "region": "ca-central-1",
+       "cwl-glbl-exclusions": ["/xxx/yyy/*","abc/*"],
+       "cwl-exclusions": {
+          "account": "fun-acct",
+          "exclusions": ["def/*"]
+       },
+       "ssm-to-s3": true,
+       "ssm-to-cwl": true
+    },
     "reports": {
       "cost-and-usage-report": {
         "additional-schema-elements": ["RESOURCES"],
@@ -43,14 +44,14 @@
          "report-versioning": "OVERWRITE_REPORT"
       }
     },
-	"conformance-packs": {
-	   "gc-pack": {
+    "conformance-packs": {
+       "gc-pack": {
           "install": true,
           "auto-remediation": true,
           "monitoring": true,
           "frequency": 24
-	   }
-	},
+       }
+    },
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -75,7 +76,6 @@
         }
       ]
     },
-    "central-bucket": "pbmmaccel-config-123456789012",
     "scps": [
       {
         "name": "alz-core",
@@ -186,7 +186,13 @@
         "gateway-endpoints": [],
         "route-tables": [
           {
-            "name": "EndpointVPC_Common"
+            "name": "EndpointVPC_Common",
+            "routes": [
+              {
+                "destination": "0.0.0.0/0",
+                "target": "TGW"
+              }
+            ]
           }
         ],
         "tgw-attach": {
@@ -387,8 +393,8 @@
                 {
                   "description": "Allow Inbound High Ports",
                   "type": ["TCP"],
-                  "toPort": 1024,
-                  "fromPort": 65535,
+                  "toPort": 65535,
+                  "fromPort": 1024,
                   "source": ["0.0.0.0/0"]
                 }
               ],
@@ -418,8 +424,33 @@
       "account-name": "Perimeter",
       "email": "bmycroft+lzT-perimeter@amazon.com",
       "ou": "core",
-      "limits": {},
+      "limits": {
+        "Amazon EC2/Number of EIPs": 10
+      },
       "share-mad-from": "",
+      "budget": {
+         "name": "Perimeter Budget",
+         "period": "Monthly",
+         "amount": 2000,
+         "include": ["Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      },
       "certificates": [
         {
           "name": "PerimSelf-SignedCert",
@@ -455,7 +486,7 @@
           "targets": [
             {
               "target-name": "FG1-Web_azA",
-              "target-type": "Instance",
+              "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7001,
               "health-check-protocol": "HTTPS",
@@ -571,12 +602,7 @@
           "asn": 65534
         },
         "pcx": false,
-        "natgw": {
-          "subnet": {
-            "name": "Public",
-            "az": "a"
-          }
-        },
+        "natgw": false,
         "subnets": [
           {
             "name": "Public",
@@ -801,7 +827,8 @@
             "ports": [
               {
                 "subnet": "Public",
-                "eip": true,
+                "create-eip": true,
+                "create-cgw": true,
                 "internal-ip-addresses": {
                   "a": "100.96.251.69/26",
                   "b": "100.96.251.133/26"
@@ -809,7 +836,8 @@
               },
               {
                 "subnet": "OnPremise",
-                "eip": false,
+                "create-eip": false,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.251.5/28",
                   "b": "100.96.251.37/28"
@@ -817,7 +845,8 @@
               },
               {
                 "subnet": "FWMgmt",
-                "eip": true,
+                "create-eip": true,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.251.21/28",
                   "b": "100.96.251.53/28"
@@ -825,7 +854,8 @@
               },
               {
                 "subnet": "Proxy",
-                "eip": false,
+                "create-eip": false,
+                "create-cgw": false,
                 "internal-ip-addresses": {
                   "a": "100.96.250.5/25",
                   "b": "100.96.250.133/25"
@@ -852,7 +882,7 @@
         "firewall-manager": {
           "name": "FortigateMgr",
           "instance-sizes": "c5.large",
-          "image": "https://aws.amazon.com/marketplace/server/procurement?productId=c15e8d8d-1e46-41cf-9543-418a3f652745",
+          "image": "BYOL",
           "version": "6.2.3",
           "region": "ca-central-1",
           "vpc": "Perimeter",
@@ -860,7 +890,8 @@
           "subnet": {
             "name": "FWMgmt",
             "az": "a"
-          }
+          },
+          "create-eip": true
         }
       }
     },
@@ -870,7 +901,7 @@
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
-	  "log-retention": 180,
+      "log-retention": 180,
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
         "AWS CloudFormation/Stack count": 400
@@ -997,12 +1028,58 @@
     "core": {
       "type": "ignore",
       "share-mad-from": "",
-      "scps": ["alz-core"]
+      "scps": ["alz-core"],
+      "default-budgets": {
+         "name": "Default Core Budget",
+         "period": "Monthly",
+         "amount": 1000,
+         "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      }
     },
     "central": {
       "type": "mandatory",
       "share-mad-from": "operations",
       "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
+      "default-budgets": {
+         "name": "Default Central Budget",
+         "period": "Monthly",
+         "amount": 100,
+         "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      },
       "certificates": [
         {
           "name": "CentralSelf-SignedCert",
@@ -1478,6 +1555,29 @@
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
+      "default-budgets": {
+         "name": "Default Dev Budget",
+         "period": "Monthly",
+         "amount": 2000,
+         "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      },
       "certificates": [
         {
           "name": "DevSelf-SignedCert",
@@ -1514,7 +1614,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "internal-dev-alb-lambda.txt"
             }
@@ -1924,6 +2024,29 @@
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
+      "default-budgets": {
+         "name": "Default Test Budget",
+         "period": "Monthly",
+         "amount": 200,
+         "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      },
       "certificates": [
         {
           "name": "TestSelf-SignedCert",
@@ -1960,7 +2083,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "internal-test-alb-lambda.txt"
             }
@@ -2370,6 +2493,29 @@
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
+      "default-budgets": {
+         "name": "Default Prod Budget",
+         "period": "Monthly",
+         "amount": 1000,
+         "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      },
       "certificates": [
         {
           "name": "ProdSelf-SignedCert",
@@ -2406,7 +2552,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "intrenal-prod-alb-lambda.txt"
             }
@@ -2816,6 +2962,29 @@
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-unclass-only"],
+      "default-budgets": {
+         "name": "Default Unclass Budget",
+         "period": "Monthly",
+         "amount": 1000,
+         "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      },
       "certificates": [
         {
           "name": "UnclassSelf-SignedCert",
@@ -3237,6 +3406,29 @@
       "type": "workload",
       "share-mad-from": "",
       "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-unclass-only"],
+      "default-budgets": {
+         "name": "Default Sandbox Budget",
+         "period": "Monthly",
+         "amount": 200,
+         "include": ["Refunds", "Credits", "Upfront-reservation-fees", "Recurring-reservation-charges", "Other-subscription-costs", "Taxes", "Support-charges", "Discounts"],
+         "alerts": [{
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["bmycroft@amazon.com"]
+         },{
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["bmycroft@amazon.com"]
+         }]
+      },
       "vpc": {
         "deploy": "local",
         "name": "Sandbox",

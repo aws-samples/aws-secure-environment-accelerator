@@ -77,6 +77,7 @@
         "route53domains:*",
         "s3:GetAccountPublic*",
         "s3:PutAccountPublic*",
+        "s3:listBuckets",
         "shield:*",
         "sts:*",
         "support:*",

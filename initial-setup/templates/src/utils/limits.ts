@@ -13,6 +13,7 @@ export interface LimitOutput {
 
 // TODO Move to common as soon as Mani has added the new common folder
 export enum Limit {
+  Ec2Eips = 'Amazon EC2/Number of EIPs',
   VpcPerRegion = 'Amazon VPC/VPCs per Region',
   VpcInterfaceEndpointsPerVpc = 'Amazon VPC/Interface VPC endpoints per VPC',
   CloudFormationStackCount = 'AWS CloudFormation/Stack count',

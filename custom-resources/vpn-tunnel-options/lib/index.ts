@@ -6,6 +6,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 
 export interface VpnTunnelOptionsProps {
   vpnConnectionId: string;
+  roleName: string;
 }
 
 export type Attribute =
@@ -36,12 +37,16 @@ export type Attribute =
  * Custom resource that has an VPN tunnel options attribute for the VPN connection with the given ID.
  */
 export class VpnTunnelOptions extends cdk.Construct {
+  private readonly props: VpnTunnelOptionsProps;
+  // tslint:disable-next-line: deprecation
   private readonly resource: cfn.CustomResource;
 
   constructor(scope: cdk.Construct, id: string, props: VpnTunnelOptionsProps) {
     super(scope, id);
+    this.props = props;
 
     // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
+    // tslint:disable-next-line: deprecation
     this.resource = new cfn.CustomResource(this, 'Resource', {
       provider: cfn.CustomResourceProvider.fromLambda(this.ensureLambda()),
       properties: {
@@ -60,6 +65,7 @@ export class VpnTunnelOptions extends cdk.Construct {
     }
 
     const imageFinderRole = new iam.Role(stack, 'Role', {
+      roleName: this.props.roleName,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
@@ -79,7 +85,7 @@ export class VpnTunnelOptions extends cdk.Construct {
     );
 
     // Resolve the path of the Lambda function
-    const lambdaPath = require.resolve('@custom-resources/vpn-tunnel-options-lambda');
+    const lambdaPath = require.resolve('@custom-resources/ec2-vpn-tunnel-options-lambda');
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {

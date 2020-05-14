@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
+import { createEncryptionKeyName, createBucketName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface FlowLogBucketReplication {
   accountId: string;
@@ -25,15 +26,9 @@ export class FlowLogBucket extends cdk.Construct {
 
     const { expirationInDays, replication } = props;
 
-    // bucket name format: pbmmaccel-{account #}-{region}
-    const stack = cdk.Stack.of(this);
-    const bucketName = undefined;
-    // TODO Re-enable this
-    // const bucketName = `pbmmaccel-${stack.account}-${stack.region}`;
-
     // kms key used for vpc-flow-logs s3 bucket encryption
     const encryptionKey = new kms.Key(this, 'EncryptionKey', {
-      alias: 'alias/S3-Default-key',
+      alias: 'alias/' + createEncryptionKeyName('FlowLogsEncryptionKey'),
       description: 'PBMM - Key used to encrypt/decrypt S3 bucket by default',
     });
 
@@ -42,6 +37,7 @@ export class FlowLogBucket extends cdk.Construct {
     if (replication) {
       // Create a role that will be able to replicate to the log-archive bucket
       replicationRole = new iam.Role(this, 'ReplicationRole', {
+        roleName: createRoleName('S3-Replication'),
         assumedBy: new iam.ServicePrincipal('s3.amazonaws.com'),
       });
 
@@ -101,7 +97,7 @@ export class FlowLogBucket extends cdk.Construct {
 
     // s3 bucket to collect vpc-flow-logs
     this.bucket = new s3.CfnBucket(this, 'Bucket', {
-      bucketName,
+      bucketName: createBucketName('flow-logs'),
       publicAccessBlockConfiguration: {
         blockPublicAcls: true,
         blockPublicPolicy: true,

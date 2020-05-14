@@ -10,7 +10,7 @@
     "prettier": "1.19.1"
   },
   "dependencies": {
-    "aws-cdk": "1.32.2",
+    "aws-cdk": "1.38.0",
     "aws-sdk": "2.668.0",
     "colors": "1.4.0"
   }

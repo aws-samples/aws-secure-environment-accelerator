@@ -12,15 +12,14 @@ export interface VpcSubnetSharingProps extends VpcCommonProps {
   vpc: ec2.CfnVPC;
 }
 
-export function getSharedAccounts(
+export function getSharedAccountKeys(
   accounts: Account[],
-  shareToOuAccounts?: boolean,
-  specificAccounts?: string[],
+  shareToOuAccounts: boolean,
+  specificAccounts: string[],
   organizationalUnitName?: string,
 ): string[] {
   // Share to accounts with a specific name
-  const shareToAccounts = specificAccounts || [];
-  const shareToAccountIds = shareToAccounts.map((accountKey: string) => getAccountId(accounts, accountKey));
+  const shareToAccountKeys = [...specificAccounts];
 
   // Share to accounts in this OU
   if (shareToOuAccounts) {
@@ -29,29 +28,29 @@ export function getSharedAccounts(
     }
 
     const ouAccounts = accounts.filter(a => a.ou === organizationalUnitName);
-    const ouAccountIds = ouAccounts.map(a => getAccountId(accounts, a.key));
-    shareToAccountIds.push(...ouAccountIds);
+    const ouAccountKeys = ouAccounts.map(a => a.key);
+    shareToAccountKeys.push(...ouAccountKeys);
   }
-  return shareToAccountIds;
+  return shareToAccountKeys;
 }
 
-export function getVpcSharedAccounts(
+export function getVpcSharedAccountKeys(
   accounts: Account[],
   vpcConfig: config.VpcConfig,
   organizationalUnitName?: string,
 ): string[] {
-  const shareToAccountsIds: string[] = [];
+  const shareToAccountsKeys: string[] = [];
   const subnets = vpcConfig.subnets;
   for (const subnet of subnets || []) {
-    const subnetShareAccounts = getSharedAccounts(
+    const subnetShareAccountKeys = getSharedAccountKeys(
       accounts,
       subnet['share-to-ou-accounts'],
       subnet['share-to-specific-accounts'] || [],
       organizationalUnitName,
     );
-    shareToAccountsIds.push(...subnetShareAccounts);
+    shareToAccountsKeys.push(...subnetShareAccountKeys);
   }
-  return shareToAccountsIds;
+  return shareToAccountsKeys;
 }
 
 /**
@@ -79,14 +78,15 @@ export class VpcSubnetSharing extends cdk.Construct {
       }
 
       // Share to accounts with a specific name
-      const shareToAccountIds = getSharedAccounts(
+      const shareToAccountKeys = getSharedAccountKeys(
         accounts,
         subnet['share-to-ou-accounts'],
         subnet['share-to-specific-accounts'] || [],
         organizationalUnitName,
       );
 
-      if (shareToAccountIds.length > 0) {
+      if (shareToAccountKeys.length > 0) {
+        const shareToAccountIds = shareToAccountKeys.map(accountKey => getAccountId(accounts, accountKey));
         const shareName = `${pascalCase(vpcConfig.name)}-${pascalCase(subnet.name)}`;
 
         // Share the subnets
