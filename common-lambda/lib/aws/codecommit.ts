@@ -69,10 +69,11 @@ export class CodeCommit {
    * Create Repository in Code Commit
    * @param repositoryName
    */
-  async createRepository(repositoryName: string): Promise<CreateRepositoryOutput> {
+  async createRepository(repositoryName: string, repositoryDescription: string): Promise<CreateRepositoryOutput> {
     return this.client
       .createRepository({
         repositoryName,
+        repositoryDescription,
       })
       .promise();
   }

@@ -18,7 +18,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   let commitId: string = '';
   if (!repos.repositories || repos.repositories?.length === 0) {
     console.log(`Creating repository "${repositoryName}" for Config file`);
-    await codecommit.createRepository(repositoryName);
+    await codecommit.createRepository(repositoryName, 'This repository contains configuration');
     console.log(`Creation of repository "${repositoryName}" is done for Config file`);
   }
   console.log(`Retriving Config file from config Repo`);
