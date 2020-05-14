@@ -310,8 +310,3 @@ function getLandingZoneAccountTypeBySsmParameters(
   }
   return undefined;
 }
-
-handler({
-  configSecretSourceId: 'accelerator/config',
-  configSecretInProgressId: 'accelerator/config/in-progress',
-}).then(r => console.log(JSON.stringify(r, null, 2)));
