@@ -69,7 +69,6 @@ async function main() {
   const limiter = new Limiter(limits);
 
   const globalOptions = acceleratorConfig['global-options'];
-  const accountConfigs = acceleratorConfig['mandatory-account-configs'];
 
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
@@ -128,8 +127,10 @@ async function main() {
       return flowLogContainers[accountKey];
     }
 
+    const accountConfig = acceleratorConfig.getAccountByKey(accountKey);
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    const logRetention = accountConfigs[accountKey]['log-retention'];
+
+    const logRetention = accountConfig['log-retention'];
     const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
       expirationInDays: logRetention ? logRetention : globalOptions['default-log-retention'],
       replication: {
