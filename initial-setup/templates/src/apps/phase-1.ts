@@ -19,6 +19,7 @@ import { VpcOutput } from '../deployments/vpc';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
 import * as iam from '@aws-cdk/aws-iam';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -83,7 +84,7 @@ async function main() {
     if (existing) {
       return;
     }
-    const peeringRole = new iam.Role(accountStack, roleName, {
+    const peeringRole = new iam.Role(accountStack, 'PeeringRole', {
       roleName,
       assumedBy: new iam.ArnPrincipal(
         `arn:aws:iam::${getAccountId(accounts, targetAccount)}:role/${context.acceleratorExecutionRoleName}`,
@@ -242,7 +243,8 @@ async function main() {
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
       // Create Accepter Role for Peering Connection
-      const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+      // const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+      const roleName = createRoleName('VPC-PeeringConnection');
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
     }
   }

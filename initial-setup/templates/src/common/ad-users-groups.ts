@@ -5,6 +5,7 @@ import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnAutoScalingGroup, CfnLaunchConfiguration, AutoScalingGroup } from '@aws-cdk/aws-autoscaling';
 import { pascalCase } from 'pascal-case';
 import { SecurityGroup } from './security-group';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -94,7 +95,9 @@ export class ADUsersAndGroups extends cdk.Construct {
       vpcName,
     });
 
+    // TODO Get the role name from the config file
     const RDGWHostRole = new iam.Role(this, 'RDGWHostRole', {
+      roleName: createRoleName('L-EC2-RDGWHostRole'),
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
       managedPolicies: [
         iam.ManagedPolicy.fromManagedPolicyArn(

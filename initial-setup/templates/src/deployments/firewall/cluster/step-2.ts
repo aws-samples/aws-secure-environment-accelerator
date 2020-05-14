@@ -5,7 +5,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { VpnTunnelOptions, Attribute } from '@custom-resources/ec2-vpn-tunnel-options';
+import { VpnTunnelOptions } from '@custom-resources/ec2-vpn-tunnel-options';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { TransitGateway } from '../../../common/transit-gateway';

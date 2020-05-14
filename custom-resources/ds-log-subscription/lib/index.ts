@@ -52,26 +52,13 @@ export class DirectoryServiceLogSubscription extends cdk.Construct {
       ]),
     });
 
-    // Workaround to find the CfnResource that are backing this construct
-    // Add the log group and the directory as dependencies
-    for (const cfnResource of findAllCfnResources(awsCustomResource)) {
-      if (logGroup instanceof cdk.Construct) {
-        for (const logGroupCfnResource of findAllCfnResources(logGroup)) {
-          cfnResource.addDependsOn(logGroupCfnResource);
-        }
-      }
-      if (directory instanceof cdk.Construct) {
-        for (const directoryCfnResource of findAllCfnResources(directory)) {
-          cfnResource.addDependsOn(directoryCfnResource);
-        }
-      }
+    if (logGroup instanceof cdk.Construct) {
+      awsCustomResource.node.addDependency(logGroup);
+    }
+    if (directory instanceof cdk.Construct) {
+      awsCustomResource.node.addDependency(directory);
     }
   }
-}
-
-function findAllCfnResources(construct: cdk.Construct): cdk.CfnResource[] {
-  const children = construct.node.findAll();
-  return children.filter((c: cdk.IConstruct): c is cdk.CfnResource => c instanceof cdk.CfnResource);
 }
 
 function getLogGroupName(value: LogGroupOrName): string {
