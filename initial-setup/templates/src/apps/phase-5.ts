@@ -36,7 +36,9 @@ async function main() {
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
   const outputs = await loadStackOutputs();
-  const accountNames = Object.values(acceleratorConfig['mandatory-account-configs']).map(a => a['account-name']);
+  const accountNames = acceleratorConfig
+    .getMandatoryAccountConfigs()
+    .map(([_, accountConfig]) => accountConfig['account-name']);
 
   const app = new cdk.App();
 
@@ -57,8 +59,7 @@ async function main() {
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
   type UserSecrets = UserSecret[];
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+  for (const [accountKey, accountConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;

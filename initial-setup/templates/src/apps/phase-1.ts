@@ -50,7 +50,7 @@ async function main() {
   const limiter = new Limiter(limits);
 
   const globalOptions = acceleratorConfig['global-options'];
-  const accountConfigs = acceleratorConfig['mandatory-account-configs'];
+  const accountConfigs = acceleratorConfig.getAccountConfigs();
 
   const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
   const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);

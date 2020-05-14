@@ -2,7 +2,11 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
-import { createEncryptionKeyName, createBucketName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import {
+  createEncryptionKeyName,
+  createBucketName,
+  createRoleName,
+} from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface FlowLogBucketReplication {
   accountId: string;
