@@ -7,6 +7,7 @@ import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import * as cdk from '@aws-cdk/core';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { zipFiles } from '@aws-pbmm/common-lambda/lib/util/zip';
 import { Archiver } from 'archiver';
@@ -130,13 +131,13 @@ export namespace InitialSetup {
       });
 
       const cfnCustomResourceRole = new iam.Role(this, 'CfnCustomResourceRole', {
-        roleName: `${props.acceleratorPrefix}CustomResourceRole`,
+        roleName: createRoleName('L-CFN-CustomResource'),
         assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
       });
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
-        roleName: `${props.acceleratorPrefix}AcceleratorMasterRole`,
+        roleName: createRoleName('L-SFN-MasterRole'),
         assumedBy: new iam.CompositePrincipal(
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),

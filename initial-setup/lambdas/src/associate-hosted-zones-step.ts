@@ -1,13 +1,6 @@
-import * as aws from 'aws-sdk';
-import {
-  ListHostedZonesResponse,
-  AssociateVPCWithHostedZoneResponse,
-  CreateVPCAssociationAuthorizationResponse,
-  DeleteVPCAssociationAuthorizationResponse,
-} from 'aws-sdk/clients/route53';
-import { AssociateResolverRuleResponse } from 'aws-sdk/clients/route53resolver';
+import * as r53 from 'aws-sdk/clients/route53';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig, VpcConfigType, InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account } from './load-accounts-step';
 import { getAccountId } from '../../templates/src/utils/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
@@ -16,7 +9,6 @@ import { VpcOutput } from '../../templates/src/deployments/vpc';
 import { ResolversOutput } from '../../templates/src/apps/phase-2';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
-import * as t from 'io-ts';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 
@@ -28,6 +20,31 @@ interface AssociateHostedZonesInput extends LoadConfigurationInput {
 
 type ResolversOutputs = ResolversOutput[];
 
+/**
+ * Auxiliary interface that represents a hosted zone in a specific account and VPC.
+ */
+interface AccountHostedZone {
+  accountKey: string;
+  accountId: string;
+  vpcId: string;
+  vpcName: string;
+  hostedZoneId: string;
+}
+
+/**
+ * Auxiliary interface that represents a resolver rule in a specific account and VPC.
+ */
+interface AccountRule {
+  accountKey: string;
+  accountId: string;
+  vpcId: string;
+  vpcName: string;
+  ruleId: string;
+}
+
+const sts = new STS();
+const secrets = new SecretsManager();
+
 export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
@@ -38,281 +55,214 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
   // Retrive Configuration from Code Commit with specific commitId
   const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
-  const acceleratorConfig = AcceleratorConfig.fromString(configString);
+  const config = AcceleratorConfig.fromString(configString);
 
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
-  const globalOptionsConfig = acceleratorConfig['global-options'];
-  const mandatoryAccountConfigs = acceleratorConfig['mandatory-account-configs'];
-  const organizationalUnits = acceleratorConfig['organizational-units'];
-
-  const mandatoryAccountKeys: string[] = [];
-
-  const sts = new STS();
-
-  const allHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
-  const allPrivateHostedZones: ListHostedZonesResponse['HostedZones'][] = [];
-  const allPrivateHostedZonesId: string[] = [];
-  let hostedZonesAccountKey: string = '';
-  let hostedZonesAccountId: string = '';
-  let hostedZonesAccountCredentials: aws.Credentials;
-  let hostedZonesAccountVpcName: string = '';
-
   // get the private zones from global-options
+  const globalOptionsConfig = config['global-options'];
   const privateZones = globalOptionsConfig.zones.names.private;
   console.log(`private zones from global config - ${privateZones}`);
 
-  console.log('getting all private hosted zones from Route 53');
-  // get all hosted zones ID
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
-    mandatoryAccountKeys.push(accountKey);
+  const accountHostedZones: AccountHostedZone[] = [];
+  const accountRules: AccountRule[] = [];
+  for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
+    const accountId = getAccountId(accounts, accountKey);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
-    // if VPC section not found, move to next account
-    const vpcConfig = accountConfig.vpc;
-    if (!VpcConfigType.is(vpcConfig)) {
-      console.log(`VPC is not defined for account key - ${accountKey}. Moving to next account.`);
+    // Find the VPC in the outputs from previous phases
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'VpcOutput',
+    });
+    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+    if (!vpcOutput) {
+      console.warn(`Cannot find VPC "${vpcConfig.name}" in outputs`);
       continue;
     }
 
-    // if Interface Endpoint section not found, move to next account
-    const interfaceEndpointConfig = vpcConfig['interface-endpoints'];
-    if (!InterfaceEndpointConfig.is(interfaceEndpointConfig)) {
-      console.log(`Interface Endpoints are not defined for account key - ${accountKey}. Moving to next account.`);
-      continue;
-    }
+    // TODO Store all hosted zones in outputs and load those outputs here
+    // Find all hosted zones in Route53
+    const route53 = new Route53(credentials);
+    let listHostedZones;
+    let nextMarker;
+    do {
+      // TODO Use pagination withNextToken function when it supports NextMarker
+      listHostedZones = await route53.listHostedZones(undefined, nextMarker);
+      nextMarker = listHostedZones.NextMarker;
 
-    // if interface endpoints are defined, pick the account name
-    if (!t.string.is(interfaceEndpointConfig.subnet)) {
-      console.log(
-        `Hosted Zones are not created in the account with account key - ${accountKey}. Moving to next account.`,
-      );
-      continue;
-    }
-    console.log(
-      `Hosted Zones are created in the account with account key - ${accountKey}. Finding all private hosted zones.`,
-    );
-
-    hostedZonesAccountKey = accountKey;
-    hostedZonesAccountId = getAccountId(accounts, accountKey);
-    hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
-    hostedZonesAccountVpcName = vpcConfig.name;
-    const route53 = new Route53(hostedZonesAccountCredentials);
-
-    let listHostedZonesResponse = await route53.listHostedZones('1');
-
-    // get all hosted zones
-    allHostedZones.push(listHostedZonesResponse.HostedZones);
-    while (listHostedZonesResponse.IsTruncated === true) {
-      const nextMarker = listHostedZonesResponse.NextMarker;
-      listHostedZonesResponse = await route53.listHostedZones('1', nextMarker);
-      allHostedZones.push(listHostedZonesResponse.HostedZones);
-    }
-    console.log('All Hosted Zones: ', allHostedZones);
-
-    // get all private hosted zones
-    for (const eachHostedZone of allHostedZones) {
-      if (eachHostedZone[0].Name.includes('ca-central-1.amazonaws.com')) {
-        allPrivateHostedZones.push(eachHostedZone);
-      } else {
-        for (const privateZone of privateZones) {
-          if (eachHostedZone[0].Name.includes(privateZone)) {
-            allPrivateHostedZones.push(eachHostedZone);
-          }
+      const hostedZones = listHostedZones.HostedZones || [];
+      // get all private hosted zones
+      for (const hostedZone of hostedZones) {
+        if (isPrivateHostedZone(privateZones, hostedZone)) {
+          const privateHostedZoneId = hostedZone.Id.split('/')[2];
+          accountHostedZones.push({
+            accountKey,
+            accountId,
+            vpcName: vpcConfig.name,
+            vpcId: vpcOutput.vpcId,
+            hostedZoneId: privateHostedZoneId,
+          });
         }
       }
-    }
-    console.log('All Private Hosted Zones: ', allPrivateHostedZones);
+    } while (nextMarker);
 
-    // get all private hosted zones Id
-    for (const eachPrivateHostedZone of allPrivateHostedZones) {
-      const privateHostedZoneId: string = eachPrivateHostedZone[0].Id.split('/')[2];
-      allPrivateHostedZonesId.push(privateHostedZoneId);
+    // Find all resolver rules in outputs
+    const resolversOutputs: ResolversOutputs[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'GlobalOptionsOutput',
+    });
+
+    for (const resolversOutput of resolversOutputs) {
+      const resolverOutput = resolversOutput.find(o => o.vpcName === vpcConfig.name);
+      if (!resolverOutput) {
+        console.warn(`No Resolver Rules found in outputs for VPC name "${vpcConfig.name}"`);
+        continue;
+      }
+
+      // example arn: arn:aws:route53resolver:ca-central-1:421338879487:resolver-rule/rslvr-rr-1950974c876a4201b
+      const inboundRuleId = resolverOutput.rules?.inBoundRule;
+      if (inboundRuleId) {
+        accountRules.push({
+          accountKey,
+          accountId,
+          vpcName: vpcConfig.name,
+          vpcId: vpcOutput.vpcId,
+          ruleId: inboundRuleId,
+        });
+      }
+      resolverOutput.rules?.onPremRules?.forEach(ruleId =>
+        accountRules.push({
+          accountKey,
+          accountId,
+          vpcName: vpcConfig.name,
+          vpcId: vpcOutput.vpcId,
+          ruleId,
+        }),
+      );
     }
-    console.log('All Private Hosted Zones ID: ', allPrivateHostedZonesId);
   }
 
-  const sharedAccountIdsWithVpcIds: { [accountId: string]: string } = {};
-  const sharedAccountIdsWithCredentials: { [accountId: string]: aws.Credentials } = {};
-
-  const associateHostedZone = async (
-    vpcAccountId: string,
-    hostedZoneAccountId: string,
-    privateHostedZoneId: string,
-    vpcId: string,
-    vpcRegion: string,
-  ): Promise<void> => {
-    sharedAccountIdsWithVpcIds[vpcAccountId] = vpcId;
-
-    const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
-    const vpcRoute53 = new Route53(vpcAccountCredentials);
-
-    sharedAccountIdsWithCredentials[vpcAccountId] = vpcAccountCredentials;
-
-    const hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
-    const hostedZoneRoute53 = new Route53(hostedZoneAccountCredentials);
-
-    // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
-    if (vpcAccountId !== hostedZoneAccountId) {
-      const createVPCAssociationAuthorizationResponse: CreateVPCAssociationAuthorizationResponse = await hostedZoneRoute53.createVPCAssociationAuthorization(
-        privateHostedZoneId,
-        vpcId,
-        vpcRegion,
-      );
-      console.log('createVPCAssociationAuthorizationResponse: ', createVPCAssociationAuthorizationResponse);
+  console.log('Starting association of private hosted zones with accounts VPC...');
+  for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
+    if (!vpcConfig['use-central-endpoints']) {
+      // TODO Disassociate hosted zones and resolver rules
+      continue;
     }
 
-    // associate VPC with Hosted zones
-    try {
-      const associateVPCWithHostedZoneResponse: AssociateVPCWithHostedZoneResponse = await vpcRoute53.associateVPCWithHostedZone(
-        privateHostedZoneId,
+    console.log(`use-central-endpoints is true for account with key - ${accountKey} ${vpcConfig.name}`);
+
+    const accountId = getAccountId(accounts, accountKey);
+    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'VpcOutput',
+    });
+    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+    if (!vpcOutput) {
+      console.warn(`Cannot find VPC "${vpcConfig.name}" in outputs`);
+      continue;
+    }
+
+    const vpcId = vpcOutput.vpcId;
+    const vpcRegion = vpcConfig.region;
+
+    // TODO Support the use-case that the VPC could have its own interface endpoints
+
+    const associateHostedZonePromises = [];
+    for (const accountHostedZone of accountHostedZones) {
+      const associateHostedZonePromise = associateHostedZone({
+        assumeRoleName,
+        vpcAccountId: accountId,
+        vpcName: vpcConfig.name,
         vpcId,
         vpcRegion,
-      );
-      console.log('associateVPCWithHostedZoneResponse: ', associateVPCWithHostedZoneResponse);
-    } catch (e) {
-      if (e.code === 'ConflictingDomainExists') {
-        // Domain already added; ignore this error and continue
-        console.log('Exception message: ' + e.message);
-        console.log('Ignoring exception and continuing...');
-      } else if (e.code === 'NotAuthorizedException') {
-        // not authorized error; throw exception
-        console.log('Exception message: ' + e.message);
-        console.log('Stopping further exceution...');
-        throw e;
+        hostedZoneAccountId: accountHostedZone.accountId,
+        hostedZoneId: accountHostedZone.hostedZoneId,
+      }).catch(e => {
+        // TODO Make this safer by adding a retry
+        console.error(`Ignoring error while associating the hosted zones to VPC "${vpcConfig.name}"`);
+        console.error(e);
+      });
+      associateHostedZonePromises.push(associateHostedZonePromise);
+    }
+
+    // Wait for all hosted zones to be associated
+    await Promise.all(associateHostedZonePromises);
+
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+    const r53Resolver = new Route53Resolver(credentials);
+    for (const accountRule of accountRules) {
+      try {
+        await r53Resolver.associateResolverRule(accountRule.ruleId, vpcId);
+      } catch (e) {
+        console.error(`Ignoring error while associating the resolver rule to VPC "${vpcConfig.name}"`);
+        console.error(e);
       }
     }
-
-    // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
-    if (vpcAccountId !== hostedZoneAccountId) {
-      const deleteVPCAssociationAuthorizationResponse: DeleteVPCAssociationAuthorizationResponse = await hostedZoneRoute53.deleteVPCAssociationAuthorization(
-        privateHostedZoneId,
-        vpcId,
-        vpcRegion,
-      );
-      console.log('deleteVPCAssociationAuthorizationResponse: ', deleteVPCAssociationAuthorizationResponse);
-    }
-  };
-
-  // TODO Use config.getVpcConfigs
-  console.log('Starting association of private hosted zones with mandatory accounts VPC...');
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfigs)) {
-    // if VPC section not found, move to next account
-    const vpcConfig = accountConfig.vpc;
-    if (!VpcConfigType.is(vpcConfig)) {
-      console.log(`VPC is not defined for account with key - ${accountKey}. Moving to next account.`);
-      continue;
-    }
-
-    console.log(`account-key: ${accountKey}; use-central-endpoints: ${vpcConfig['use-central-endpoints']}`);
-    if (vpcConfig['use-central-endpoints'] === false) {
-      console.log(`use-central-enpoints is set as false for account with key - ${accountKey}. Moving to next account.`);
-      continue;
-    }
-
-    const vpcAccountId = getAccountId(accounts, accountKey);
-
-    for (const privateHostedZoneId of allPrivateHostedZonesId) {
-      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-        accountKey,
-        outputType: 'VpcOutput',
-      });
-      const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
-      const vpcId = vpcOutput!.vpcId;
-      const vpcRegion = vpcConfig.region;
-
-      // associate the hosted zones with VPC
-      await associateHostedZone(vpcAccountId, hostedZonesAccountId, privateHostedZoneId, vpcId, vpcRegion);
-    }
   }
-  console.log('Completed association of private hosted zones with mandatory accounts VPC...');
-
-  console.log('Starting association of private hosted zones with organizational units accounts VPC...');
-  for (const [orgKey, orgUnit] of Object.entries(organizationalUnits)) {
-    // if VPC section not found, move to next account
-    const vpcConfig = orgUnit.vpc;
-    if (!VpcConfigType.is(vpcConfig)) {
-      console.log(`VPC is not defined for organizational unit with key - ${orgKey}. Moving to next org unit.`);
-      continue;
-    }
-
-    console.log(`org-key: ${orgKey}; use-central-endpoints: ${vpcConfig['use-central-endpoints']}`);
-    if (vpcConfig['use-central-endpoints'] === false) {
-      console.log(
-        `use-central-enpoints is set as false for organizational unit with key - ${orgKey}. Moving to next org unit.`,
-      );
-      continue;
-    }
-
-    // TODO Support 'local'
-    const vpcAccountKey = orgUnit.vpc!.deploy;
-    if (mandatoryAccountKeys.includes(vpcAccountKey)) {
-      console.log(
-        `Association of private hosted zones done already for organization unit with key - ${orgKey} and account key - ${vpcAccountKey}. Moving to next org unit.`,
-      );
-      continue;
-    }
-
-    const vpcAccountId = getAccountId(accounts, vpcAccountKey);
-
-    for (const privateHostedZoneId of allPrivateHostedZonesId) {
-      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-        accountKey: vpcAccountKey,
-        outputType: 'VpcOutput',
-      });
-      const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
-      const vpcId = vpcOutput!.vpcId;
-      const vpcRegion = vpcConfig.region;
-
-      // associate the hosted zones with VPC
-      await associateHostedZone(vpcAccountId, hostedZonesAccountId, privateHostedZoneId, vpcId, vpcRegion);
-    }
-  }
-  console.log('Completed association of private hosted zones with organizational units accounts VPC...');
-
-  console.log('Starting association of resolver rules with accounts to which VPCs are shared...');
-  hostedZonesAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZonesAccountId, assumeRoleName);
-
-  const resolverRuleIds: string[] = [];
-  const resolversOutputs: ResolversOutputs[] = getStackJsonOutput(outputs, {
-    accountKey: hostedZonesAccountKey,
-    outputType: 'GlobalOptionsOutput',
-  });
-
-  for (const resolversOutput of resolversOutputs) {
-    const resolverOutput = resolversOutput.find(x => x.vpcName === hostedZonesAccountVpcName);
-    if (!resolverOutput) {
-      throw new Error(`No Resolver Rules found in outputs for VPC name "${hostedZonesAccountVpcName}"`);
-    }
-
-    // example arn: arn:aws:route53resolver:ca-central-1:421338879487:resolver-rule/rslvr-rr-1950974c876a4201b
-    resolverRuleIds.push(resolverOutput.rules?.inBoundRule!);
-    resolverOutput.rules?.onPremRules?.map(x => resolverRuleIds.push(x));
-  }
-  console.log('resolverRuleIds: ', resolverRuleIds);
-
-  console.log('sharedAccountIdsWithVpcIds: ', sharedAccountIdsWithVpcIds);
-  console.log('sharedAccountIdsWithCredentials: ', sharedAccountIdsWithCredentials);
-
-  const sharedAccountIds = [...Object.keys(sharedAccountIdsWithVpcIds)];
-  console.log('sharedAccountIds: ' + sharedAccountIds);
-
-  for (const [eachAccountId, sharedVpcId] of Object.entries(sharedAccountIdsWithVpcIds)) {
-    const credentials = sharedAccountIdsWithCredentials[eachAccountId];
-    const r53Resolver = new Route53Resolver(credentials);
-
-    for (const resolverRuleId of resolverRuleIds) {
-      const associateResolverRuleResponse: AssociateResolverRuleResponse = await r53Resolver.associateResolverRule(
-        resolverRuleId,
-        sharedVpcId,
-      );
-      console.log('associateResolverRuleResponse: ', associateResolverRuleResponse);
-    }
-  }
-  console.log('Completed association of resolver rules with accounts to which VPCs are shared...');
 
   return {
     status: 'SUCCESS',
     statusReason: 'Associated Hosted Zones and resolver rules with the VPC',
   };
 };
+
+/**
+ * Auxiliary function that associates the given VPC to the given hosted zone. An VPC association authorization is
+ * created when the VPC is in a different account than the hosted zone.
+ */
+async function associateHostedZone(props: {
+  assumeRoleName: string;
+  vpcAccountId: string;
+  vpcName?: string;
+  vpcId: string;
+  vpcRegion: string;
+  hostedZoneAccountId: string;
+  hostedZoneId: string;
+}) {
+  const { assumeRoleName, vpcAccountId, hostedZoneAccountId, hostedZoneId, vpcId, vpcRegion } = props;
+
+  const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
+  const vpcRoute53 = new Route53(vpcAccountCredentials);
+
+  const hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
+  const hostedZoneRoute53 = new Route53(hostedZoneAccountCredentials);
+
+  // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
+  if (vpcAccountId !== hostedZoneAccountId) {
+    await hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneId, vpcId, vpcRegion);
+  }
+
+  // associate VPC with Hosted zones
+  try {
+    await vpcRoute53.associateVPCWithHostedZone(hostedZoneId, vpcId, vpcRegion);
+  } catch (e) {
+    if (e.code === 'ConflictingDomainExists') {
+      // Domain already added; ignore this error and continue
+      console.log('Ignoring ConflictingDomainExists exception and continuing...');
+    }
+  }
+
+  // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
+  if (vpcAccountId !== hostedZoneAccountId) {
+    await hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneId, vpcId, vpcRegion);
+  }
+}
+
+/**
+ * Returns true if the given hosted zone is in the given private zones or if is an interface or gateway endpoint.
+ */
+function isPrivateHostedZone(privateZones: string[], hostedZoned: r53.HostedZone): boolean {
+  // TODO
+  if (hostedZoned.Name.includes('ca-central-1.amazonaws.com')) {
+    return true;
+  } else {
+    for (const privateZone of privateZones) {
+      if (hostedZoned.Name.includes(privateZone)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}

@@ -361,8 +361,8 @@
                 {
                   "description": "Allow Inbound High Ports",
                   "type": ["TCP"],
-                  "toPort": 1024,
-                  "fromPort": 65535,
+                  "toPort": 65535,
+                  "fromPort": 1024,
                   "source": ["0.0.0.0/0"]
                 }
               ],
@@ -454,7 +454,7 @@
           "targets": [
             {
               "target-name": "FG1-Web_azA",
-              "target-type": "Instance",
+              "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7001,
               "health-check-protocol": "HTTPS",
@@ -1582,7 +1582,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "internal-dev-alb-lambda.txt"
             }
@@ -2051,7 +2051,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "internal-test-alb-lambda.txt"
             }
@@ -2520,7 +2520,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "intrenal-prod-alb-lambda.txt"
             }

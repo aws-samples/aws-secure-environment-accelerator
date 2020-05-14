@@ -58,7 +58,7 @@ export const handler = async (input: AdConnectorInput) => {
 
   const sts = new STS();
 
-  for (const [accountKey, mandatoryConfig] of Object.entries(acceleratorConfig['mandatory-account-configs'])) {
+  for (const [accountKey, mandatoryConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {
     const adcConfig = mandatoryConfig.deployments?.adc;
     if (!adcConfig || !adcConfig.deploy) {
       continue;
@@ -77,9 +77,10 @@ export const handler = async (input: AdConnectorInput) => {
     }
 
     // Finding the account specific MAD configuration based on dir-id and connect-dir-id
-    const madDeployConfig = Object.values(acceleratorConfig['mandatory-account-configs']).find(
-      config => config.deployments?.mad?.['dir-id'] === adcConfig['connect-dir-id'],
-    );
+    const madDeployConfig = acceleratorConfig
+      .getMandatoryAccountConfigs()
+      .map(([_, accountConfig]) => accountConfig)
+      .find(accountConfig => accountConfig.deployments?.mad?.['dir-id'] === adcConfig['connect-dir-id']);
     if (!madDeployConfig) {
       throw new Error(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
     }

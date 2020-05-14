@@ -27,7 +27,7 @@ export class ActiveDirectory extends cdk.Construct {
 
     const logGroupName = madDeploymentConfig['log-group-name'];
     const logGroup = new logs.LogGroup(this, 'MadLogGroup', {
-      logGroupName: '/aws/directoryservice/' + createName(logGroupName),
+      logGroupName: '/aws/directoryservice/' + createName({ name: logGroupName }),
     });
 
     // Allow directory services to write to the log group

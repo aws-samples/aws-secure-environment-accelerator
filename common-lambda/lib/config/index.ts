@@ -261,6 +261,7 @@ export const MadConfigType = t.interface({
   'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
+  'security-groups': t.array(SecurityGroupConfigType),
 });
 
 export const AccountConfigType = t.interface({
@@ -469,6 +470,13 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
   constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
     Object.assign(this, values);
+  }
+
+  /**
+   * @return AccountConfig
+   */
+  getAccountByKey(accountKey: string): AccountConfig {
+    return this['mandatory-account-configs'][accountKey] ?? this['workload-account-configs'][accountKey];
   }
 
   /**

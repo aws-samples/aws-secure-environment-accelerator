@@ -36,7 +36,9 @@ async function main() {
   const acceleratorConfig = await loadAcceleratorConfig();
   const accounts = await loadAccounts();
   const outputs = await loadStackOutputs();
-  const accountNames = Object.values(acceleratorConfig['mandatory-account-configs']).map(a => a['account-name']);
+  const accountNames = acceleratorConfig
+    .getMandatoryAccountConfigs()
+    .map(([_, accountConfig]) => accountConfig['account-name']);
 
   const app = new cdk.App();
 
@@ -57,8 +59,7 @@ async function main() {
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
   type UserSecrets = UserSecret[];
-  const mandatoryAccountConfig = acceleratorConfig['mandatory-account-configs'];
-  for (const [accountKey, accountConfig] of Object.entries(mandatoryAccountConfig)) {
+  for (const [accountKey, accountConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
@@ -120,6 +121,7 @@ async function main() {
     }
 
     const vpcId = vpcOutput.vpcId;
+    const vpcName = vpcOutput.vpcName;
     const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madDeploymentConfig.subnet).map(s => s.subnetId);
 
     const madOutputs: MadOutput[] = getStackJsonOutput(outputs, {
@@ -127,24 +129,26 @@ async function main() {
       outputType: 'MadOutput',
     });
 
-    const madOuput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
-    if (!madOuput || !madOuput.directoryId) {
-      throw new Error(`Cannot find madOuput with vpc name ${madDeploymentConfig['vpc-name']}`);
+    const madOutput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
+    if (!madOutput || !madOutput.directoryId) {
+      throw new Error(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
     }
 
     const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
       madDeploymentConfig,
       latestRdgwAmiId,
       vpcId,
+      vpcName,
       keyPairName: ec2KeyPairName,
       subnetIds,
-      adminPasswordArn: madOuput.passwordArn,
+      adminPasswordArn: madOutput.passwordArn,
       s3BucketName,
       s3KeyPrefix: S3KeyPrefix,
       stackId: stack.stackId,
       stackName: stack.stackName,
       accountNames,
       userSecrets,
+      accountKey,
     });
     adUsersAndGroups.node.addDependency(keyPair);
   }
