@@ -365,8 +365,8 @@ async function main() {
           );
         } else {
           for (const userId of iamUser['user-ids']) {
-            const secretsStack = new SecretsContainer(masterAccountStack, `Secrets-${userId}-UserPassword`);
-            const password = secretsStack.createSecret(`${userId}-UserPassword`, {
+            const secretsStack = new SecretsContainer(masterAccountStack, `${accountKey}-Secret-${userId}-UserPswd`);
+            const password = secretsStack.createSecret(`${userId}-UserPswd`, {
               secretName: `accelerator/${accountKey}/user/password/${userId}`,
               description: `Password for IAM User - ${userId}.`,
               generateSecretString: {
@@ -378,6 +378,10 @@ async function main() {
           }
         }
       }
+    } else {
+      console.log(
+        `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
+      );
     }
 
     return userPasswords;
