@@ -206,6 +206,20 @@ export const IamConfigType = t.interface({
 
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
+export const CertificatesConfigType = t.interface({
+  name: t.string, 
+  type: t.string,
+  'priv-key': optional(t.string),
+  cert: optional(t.string),
+  chain: optional(t.string),
+  arn: optional(t.string),
+  domain: optional(t.string),
+  validation: optional(t.string),
+  san: optional(t.string),
+});
+
+export type CertificatesConfig = t.TypeOf<typeof CertificatesConfigType>;
+
 export const TgwDeploymentConfigType = t.interface({
   name: t.string,
   asn: optional(t.number),
@@ -354,6 +368,7 @@ export const MandatoryAccountConfigType = t.interface({
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
+  certificates: optional(t.array(CertificatesConfigType)),
   vpc: optional(VpcConfigType),
   deployments: optional(DeploymentConfigType),
   'log-retention': optional(t.number),
@@ -368,6 +383,7 @@ export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
   'share-mad-from': optional(t.string),
+  certificates: optional(t.array(CertificatesConfigType)),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
 });

@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as acm from 'aws-sdk/clients/acm';
+import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 
 export class ACM {
   private readonly client: aws.ACM;
@@ -88,5 +89,13 @@ export class ACM {
       ValidationMethod: validationMethod,
     };
     return this.client.requestCertificate(params).promise();
+  }
+
+  async listCertificates(input: acm.ListCertificatesRequest): Promise<acm.CertificateSummary[]> {
+    return listWithNextToken<acm.ListCertificatesRequest, acm.ListCertificatesResponse, acm.CertificateSummary>(
+      this.client.listCertificates.bind(this.client),
+      r => r.CertificateSummaryList!,
+      input,
+    );
   }
 }
