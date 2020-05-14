@@ -16,14 +16,15 @@ export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
 
   const configFilePath = process.env.CONFIG_FILE_PATH!;
   const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
+  const configCommitId = process.env.CONFIG_COMMIT_ID!;
   if (!configFilePath && configRepositoryName) {
-    throw new Error(`The environment variables "CONFIG_FILE_NAME" and "CONFIG_REPOSITORY_NAME" needs to be set`);
+    throw new Error(`The environment variables "CONFIG_FILE_PATH" and "CONFIG_REPOSITORY_NAME" needs to be set`);
   }
 
   const codecommit = new CodeCommit();
   let configString;
   try {
-    const source = await codecommit.getFile(configRepositoryName, configFilePath);
+    const source = await codecommit.getFile(configRepositoryName, configFilePath, configCommitId);
     configString = Base64.decode(source.fileContent.toString('base64'));
   } catch (e) {
     throw new Error(

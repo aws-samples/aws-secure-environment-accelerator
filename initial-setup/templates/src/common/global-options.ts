@@ -199,7 +199,6 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         continue;
       }
       madIPs = madOutput[0].dnsIps.split(',');
-      console.log(madIPs);
 
       const centralResolverAccount = madConfig['central-resolver-rule-account'];
       const centralResolverVpcName = madConfig['central-resolver-rule-vpc'];
@@ -212,7 +211,6 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       if (!centralResolverVpc) {
         throw new Error(`Cannot find resolved VPC with name "${centralResolverVpcName}"`);
       }
-      console.log(vpcOutBoundMapping);
       const endpointId = vpcOutBoundMapping.get(centralResolverVpcName);
       if (!endpointId) {
         throw new Error(`Cannot find outbound mapping for VPC with name "${centralResolverVpcName}"`);

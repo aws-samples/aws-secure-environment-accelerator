@@ -23,11 +23,13 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   }
   console.log(`Retriving Config file from config Repo`);
   try {
+    console.log(`Trying to retrive existing config from branch "${branchName}"`);
     const configFile = await codecommit.getFile(repositoryName, filePath, branchName);
     commitId = configFile.commitId;
   } catch (e) {
     if (e.code === 'FileDoesNotExistException' || e.code === 'CommitDoesNotExistException') {
       // Retrive file from S3 and push to Code Commit Config Repo
+      console.log(`No Config found in branch "${branchName}", creating one`);
       const s3 = new S3();
       const configString = await s3.getObjectBodyAsString({
         Bucket: s3Bucket,

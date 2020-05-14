@@ -5,13 +5,14 @@ interface CodeBuildStartInput {
   sourceBucketName: string;
   sourceBucketKey: string;
   appPath: string;
+  configCommitId: string;
 }
 
 export const handler = async (input: CodeBuildStartInput) => {
   console.log(`Starting CodeBuild build...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, appPath } = input;
+  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, appPath, configCommitId } = input;
 
   const codeBuild = new aws.CodeBuild();
   const response = await codeBuild
@@ -28,6 +29,11 @@ export const handler = async (input: CodeBuildStartInput) => {
           value: appPath,
           type: 'PLAINTEXT',
         },
+        {
+          name: 'CONFIG_COMMIT_ID',
+          value: configCommitId,
+          type: 'PLAINTEXT',
+        }
       ],
     })
     .promise();

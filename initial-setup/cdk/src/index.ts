@@ -37,6 +37,7 @@ export namespace InitialSetup {
     configRepositoryName: string;
     configS3Bucket: string;
     configS3FileName: string;
+    configBranchName: string;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -97,10 +98,6 @@ export namespace InitialSetup {
   export interface PipelineProps extends CommonProps {
     lambdaCode: lambda.Code;
     solutionZipPath: string;
-    configFilePath: string;
-    configRepositoryName: string;
-    configS3Bucket: string;
-    configS3FileName: string;
   }
 
   export class Pipeline extends cdk.Construct {
@@ -119,11 +116,6 @@ export namespace InitialSetup {
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
         secretName: 'accelerator/outputs',
         description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
-      });
-
-      const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
-        secretName: 'accelerator/config/in-progress',
-        description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
       });
 
       const limitsSecret = new secrets.Secret(this, 'Limits', {
@@ -237,10 +229,6 @@ export namespace InitialSetup {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.acceleratorPrefix,
             },
-            CONFIG_SECRET_ID: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: configSecretInProgress.secretArn,
-            },
             CONFIG_FILE_PATH: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.configFilePath,
@@ -300,6 +288,7 @@ export namespace InitialSetup {
           filePath: props.configFilePath,
           s3Bucket: props.configS3Bucket,
           s3FileName: props.configS3FileName,
+          branchName: props.configBranchName,
         },
         resultPath: '$.configuration',
       });
@@ -423,6 +412,7 @@ export namespace InitialSetup {
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
           limitsSecretId: limitsSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -478,6 +468,7 @@ export namespace InitialSetup {
         codeBuildProjectName: project.projectName,
         sourceBucketName: solutionZip.s3BucketName,
         sourceBucketKey: solutionZip.s3ObjectKey,
+        'configCommitId.$': '$.configuration.configCommitId',
       };
 
       const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
@@ -540,8 +531,10 @@ export namespace InitialSetup {
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
-          configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
         },
         resultPath: 'DISCARD',
       });
@@ -555,8 +548,10 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
         },
         resultPath: 'DISCARD',
       });
@@ -633,7 +628,9 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: configSecretInProgress.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
@@ -653,7 +650,9 @@ export namespace InitialSetup {
           input: {
             'accounts.$': '$.accounts',
             assumeRoleName: props.stateMachineExecutionRole,
-            configSecretSourceId: configSecretInProgress.secretArn,
+            configRepositoryName: props.configRepositoryName,
+            configFilePath: props.configFilePath,
+            'configCommitId.$': '$.configuration.configCommitId',
             stackOutputSecretId: stackOutputSecret.secretArn,
           },
         }),

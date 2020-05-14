@@ -16,6 +16,7 @@ async function main() {
   const configRepositoryName = process.env.ACCELERATOR_CONFIG_REPOSITORY || `${acceleratorPrefix}Repo-Config`;
   const configS3Bucket = process.env.CONFIG_S3_BUCKET || `${acceleratorPrefix}Config`.toLowerCase();
   const configS3FileName = process.env.CONFIG_S3_KEY || `config.json`;
+  const configBranchName = process.env.CONFIG_BRANCH_NAME || 'master';
   const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine`;
   const stateMachineExecutionRole =
     process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
@@ -40,6 +41,7 @@ async function main() {
     solutionRoot,
     stateMachineName,
     stateMachineExecutionRole,
+    configBranchName,
   });
 }
 
