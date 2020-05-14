@@ -26,8 +26,8 @@ export const handler = async (input: certManagerInput) => {
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
   const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
-  const globalOptionsConfig = acceleratorConfig["global-options"];
-  const centralBucket = globalOptionsConfig["central-bucket"];
+  const globalOptionsConfig = acceleratorConfig['global-options'];
+  const centralBucket = globalOptionsConfig['central-bucket'];
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
@@ -66,12 +66,12 @@ export const handler = async (input: certManagerInput) => {
     if (certConfig.type === 'import') {
       const importCertificateRequest: aws.ACM.ImportCertificateRequest = {
         Certificate: await s3.getObjectBodyAsString({
-          Bucket: centralBucket, 
-          Key: certConfig.cert!
+          Bucket: centralBucket,
+          Key: certConfig.cert!,
         }),
         PrivateKey: await s3.getObjectBodyAsString({
-          Bucket: centralBucket, 
-          Key: certConfig["priv-key"]!
+          Bucket: centralBucket,
+          Key: certConfig['priv-key']!,
         }),
         CertificateArn: certConfig.arn,
         CertificateChain: certConfig.chain,
@@ -89,31 +89,31 @@ export const handler = async (input: certManagerInput) => {
       // store arn here
     } else if (certConfig.type === 'request') {
       const requestCertificateRequest: aws.ACM.RequestCertificateRequest = {
-      DomainName: certConfig.domain!,
-      CertificateAuthorityArn: certConfig.arn,
-      DomainValidationOptions: [
-        {
-          DomainName: certConfig.domain!,
-          ValidationDomain: certConfig.domain!,
+        DomainName: certConfig.domain!,
+        CertificateAuthorityArn: certConfig.arn,
+        DomainValidationOptions: [
+          {
+            DomainName: certConfig.domain!,
+            ValidationDomain: certConfig.domain!,
+          },
+        ],
+        IdempotencyToken: 'idempotencyToken',
+        Options: {
+          CertificateTransparencyLoggingPreference: 'ENABLE',
         },
-      ],
-      IdempotencyToken: 'idempotencyToken',
-      Options: {
-        CertificateTransparencyLoggingPreference: 'ENABLE',
-      },
-      SubjectAlternativeNames: certConfig.san!,
-      Tags: [
-        {
-          Key: 'Accelerator',
-          Value: 'PBMM',
-        },
-      ],
-      ValidationMethod: certConfig.validation,
-    };
+        SubjectAlternativeNames: certConfig.san!,
+        Tags: [
+          {
+            Key: 'Accelerator',
+            Value: 'PBMM',
+          },
+        ],
+        ValidationMethod: certConfig.validation,
+      };
 
-    console.log(`Requested ACM Certificate for account - ${accountKey}`);
+      console.log(`Requested ACM Certificate for account - ${accountKey}`);
 
-    // store arn here
+      // store arn here
     }
   };
 
