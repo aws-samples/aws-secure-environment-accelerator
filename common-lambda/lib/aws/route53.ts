@@ -24,7 +24,7 @@ export class Route53 {
    * @param maxItems
    * @param nextMarker
    */
-  async listHostedZones(maxItems: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
+  async listHostedZones(maxItems?: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
     let params: ListHostedZonesRequest = {};
     if (nextMarker) {
       params = {
