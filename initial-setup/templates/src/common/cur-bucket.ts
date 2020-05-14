@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as kms from '@aws-cdk/aws-kms';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
+import { createEncryptionKeyName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface FlowLogBucketReplication {
   accountId: string;
@@ -25,8 +26,7 @@ export class CurBucket extends cdk.Construct {
 
     // kms key used for s3 bucket encryption
     const encryptionKey = new kms.Key(this, 'EncryptionKey', {
-      // TODO Re-enable alias
-      // alias: 'alias/S3-Default-key',
+      alias: 'alias/' + createEncryptionKeyName('S3-Default'),
       description: 'PBMM - Key used to encrypt/decrypt S3 bucket by default',
     });
 

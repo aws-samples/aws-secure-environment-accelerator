@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as kms from '@aws-cdk/aws-kms';
 import * as iam from '@aws-cdk/aws-iam';
+import { createEncryptionKeyName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export class DefaultEbsEncryptionKey extends cdk.Construct {
   readonly kmsKeyIdForEbsDefaultEncryption: string;
@@ -10,8 +11,7 @@ export class DefaultEbsEncryptionKey extends cdk.Construct {
 
     // kms key used for default EBS encryption
     const kmsKey = new kms.Key(this, 'EBS-DefaultEncryption', {
-      // TODO Re-enable alias
-      // alias: 'alias/EBS-Default-key',
+      alias: 'alias/' + createEncryptionKeyName('EBS-DefaultEncryption'),
       description: 'PBMM - Key used to encrypt/decrypt EBS by default',
       policy: new iam.PolicyDocument({
         statements: [

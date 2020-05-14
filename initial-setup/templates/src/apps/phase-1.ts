@@ -348,13 +348,15 @@ async function main() {
     return iamPoliciesDef;
   };
 
+  // TODO Remove hard-coded 'master' account key and use configuration file somehow
+  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
+
   const iamPoliciesDefinition = await getIamPoliciesDefinition();
 
   const getUserPasswords = async (accountKey: string, iamConfig?: IamConfig): Promise<{ [userId: string]: Secret }> => {
     const userPasswords: { [userId: string]: Secret } = {};
     const accountId = getAccountId(accounts, accountKey);
-    // TODO Remove hard-coded 'master' account key and use configuration file somehow
-    const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
 
     const iamUsers = iamConfig?.users;
     if (iamUsers && iamUsers?.length >= 1) {
@@ -365,7 +367,6 @@ async function main() {
           );
         } else {
           for (const userId of iamUser['user-ids']) {
-            const secretsStack = new SecretsContainer(masterAccountStack, `${accountKey}-Secret-${userId}-UserPswd`);
             const password = secretsStack.createSecret(`${userId}-UserPswd`, {
               secretName: `accelerator/${accountKey}/user/password/${userId}`,
               description: `Password for IAM User - ${userId}.`,
