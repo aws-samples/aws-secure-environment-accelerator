@@ -40,11 +40,11 @@
       ],
       "Resource": "*",
       "Condition": {
-        "StringNotLike": {
+        "ArnNotLike": {
           "aws:PrincipalArn": [
               "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-              "arn:aws:iam::*:role/PBMMAccel-PipelineRole",
-              "arn:aws:iam::*:role/OpsRole-NotUsed-39241986786*"
+              "arn:aws:iam::*:role/PBMMAccel-*",
+              "arn:aws:iam::*:role/PBMMOps-*"
           ]
         }
       }
@@ -97,7 +97,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/PBMMAccel-PipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
