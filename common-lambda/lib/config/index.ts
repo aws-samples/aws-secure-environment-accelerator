@@ -207,7 +207,7 @@ export const IamConfigType = t.interface({
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
 export const CertificatesConfigType = t.interface({
-  name: t.string, 
+  name: t.string,
   type: t.string,
   'priv-key': optional(t.string),
   cert: optional(t.string),

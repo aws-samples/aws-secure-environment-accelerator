@@ -44,16 +44,16 @@ export class ACM {
   }
 
   /**
-   * to request ACM certificate 
-   * @param domainName 
-   * @param certificateAuthorityArn 
-   * @param validationDomain 
-   * @param idempotencyToken 
-   * @param certificateTransparencyLoggingPreference 
-   * @param subjectAlternativeNames 
-   * @param validationMethod 
-   * @param tagKey 
-   * @param tagValue 
+   * to request ACM certificate
+   * @param domainName
+   * @param certificateAuthorityArn
+   * @param validationDomain
+   * @param idempotencyToken
+   * @param certificateTransparencyLoggingPreference
+   * @param subjectAlternativeNames
+   * @param validationMethod
+   * @param tagKey
+   * @param tagValue
    */
   async requestCertificate(
     domainName: string,

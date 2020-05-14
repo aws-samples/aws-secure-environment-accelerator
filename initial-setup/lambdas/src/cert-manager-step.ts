@@ -62,15 +62,14 @@ export const handler = async (input: certManagerInput) => {
     const listCertificatesParam: aws.ACM.ListCertificatesRequest = {};
     const certList = await acm.listCertificates(listCertificatesParam);
     console.log('certList: ', certList);
-    // const framedCertArn = 
+    // const framedCertArn =
     // certList.find(a => )
 
-    if(certConfig.type === 'import') {
-      s3.getObjectBodyAsString
+    if (certConfig.type === 'import') {
+      s3.getObjectBodyAsString;
       const importCertificateResponse = await acm.importCertificate();
       console.log('importCertificateResponse: ', importCertificateResponse);
     } else if (certConfig.type === 'request') {
-
     }
 
     console.log(`Requested ACM Certificate for account - ${accountKey}`);
@@ -91,20 +90,20 @@ export const handler = async (input: certManagerInput) => {
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     const certificatesConfig = accountConfig.certificates;
-    if(certificatesConfig && certificatesConfig.length > 1) {
-      for(const certificateConfig of certificatesConfig) {
+    if (certificatesConfig && certificatesConfig.length > 1) {
+      for (const certificateConfig of certificatesConfig) {
         mandatoryAccountKeys.push(accountKey);
         await requestOrImportCert(accountKey, certificateConfig);
       }
-    }  
+    }
   }
 
   // creating assets for org unit accounts
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   for (const [orgName, orgConfig] of orgUnits) {
     const certificatesConfig = orgConfig.certificates;
-    if(certificatesConfig && certificatesConfig.length > 1) {
-      for(const certificateConfig of certificatesConfig) {
+    if (certificatesConfig && certificatesConfig.length > 1) {
+      for (const certificateConfig of certificatesConfig) {
         const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
         for (const orgAccount of orgAccounts) {
           await requestOrImportCert(orgAccount.key, certificateConfig);
