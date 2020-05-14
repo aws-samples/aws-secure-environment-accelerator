@@ -476,7 +476,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
    * @return AccountConfig
    */
   getAccountByKey(accountKey: string): AccountConfig {
-    return this["mandatory-account-configs"][accountKey] ?? this["workload-account-configs"][accountKey];
+    return this['mandatory-account-configs'][accountKey] ?? this['workload-account-configs'][accountKey];
   }
 
   /**
