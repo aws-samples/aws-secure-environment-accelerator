@@ -76,16 +76,48 @@
         }
       ]
     },
-    "scps": {
-      "ALZ-Core": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json",
-      "ALZ-Non-Core": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json",
-      "Guardrails-Part1": "PBMMAccel-Guardrails-Part1.json",
-      "Guardrails-Part2": "PBMMAccel-Guardrails-Part2.json",
-      "Guardrails-PBMM-Only": "PBMMAccel-Guardrails-PBMM-Only.json",
-      "Guardrails-Unclass-Only": "PBMMAccel-Guardrails-Unclass-Only.json",
-      "Quarantine-Deny-All": "Quarantine-Deny-All.json",
-      "Full-Access": "Full-AWS-Access.json"
+    "scps": [
+      {
+        "name": "alz-core",
+        "description": "Preventive Guardrail for core OU",
+        "policy": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json"
     },
+    {
+      "name": "alz-non-core",
+      "description": "Preventive Guardrail for non core OU",
+      "policy": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json"
+    },
+    {
+      "name": "guardrails-part1",
+      "description": "Guardrails part 1",
+      "policy": "PBMMAccel-Guardrails-Part1.json"
+    },
+    {
+      "name": "guardrails-part2",
+      "description": "Guardrails part 2",
+      "policy": "PBMMAccel-Guardrails-Part2.json"
+    },
+    {
+      "name": "guardrails-pbmm-only",
+      "description": "Guardrails PBMM Only",
+      "policy": "PBMMAccel-Guardrails-PBMM-Only.json"
+    },
+    {
+      "name": "guardrails-unclass-only",
+      "description": "Guardrails unclass Only",
+      "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
+    },
+    {
+      "name": "quarantine-deny-all",
+      "description": "Quarantine Deny All",
+      "policy": "Quarantine-Deny-All.json"
+    },
+    {
+      "name": "FullAWSAccess",
+      "description": "Full AWS Access",
+      "policy": "FullAWSAccess.json"
+    }
+  ],
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
@@ -996,7 +1028,7 @@
     "core": {
       "type": "ignore",
       "share-mad-from": "",
-      "SCPs": ["ALZ-Core"],
+      "scps": ["alz-core"],
       "default-budgets": {
          "name": "Default Core Budget",
          "period": "Monthly",
@@ -1024,7 +1056,7 @@
     "central": {
       "type": "mandatory",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "default-budgets": {
          "name": "Default Central Budget",
          "period": "Monthly",
@@ -1522,7 +1554,7 @@
     "dev": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "default-budgets": {
          "name": "Default Dev Budget",
          "period": "Monthly",
@@ -1991,7 +2023,7 @@
     "test": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "default-budgets": {
          "name": "Default Test Budget",
          "period": "Monthly",
@@ -2460,7 +2492,7 @@
     "prod": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-pbmm-only"],
       "default-budgets": {
          "name": "Default Prod Budget",
          "period": "Monthly",
@@ -2929,7 +2961,7 @@
     "unclass": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-unclass-only"],
       "default-budgets": {
          "name": "Default Unclass Budget",
          "period": "Monthly",
@@ -3373,7 +3405,7 @@
     "sandbox": {
       "type": "workload",
       "share-mad-from": "",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "scps": ["alz-non-core", "guardrails-part1", "guardrails-part2", "guardrails-unclass-only"],
       "default-budgets": {
          "name": "Default Sandbox Budget",
          "period": "Monthly",
