@@ -428,6 +428,8 @@ export const ScpsConfigType = t.interface({
   policy: NonEmptyString,
 });
 
+export type ScpConfig = t.TypeOf<typeof ScpsConfigType>;
+
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   'default-log-retention': t.number,

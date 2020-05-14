@@ -15,6 +15,7 @@ export interface LoadConfigurationInput {
 }
 
 export interface LoadConfigurationOutput {
+  organizationalUnits: ConfigurationOrganizationalUnit[];
   accounts: ConfigurationAccount[];
   warnings: string[];
 }
@@ -26,6 +27,12 @@ export interface ConfigurationAccount {
   emailAddress: string;
   organizationalUnit: string;
   landingZoneAccountType?: LandingZoneAccountType;
+}
+
+export interface ConfigurationOrganizationalUnit {
+  ouId: string;
+  ouKey: string;
+  ouName: string;
 }
 
 export const handler = async (input: LoadConfigurationInput): Promise<LoadConfigurationOutput> => {
@@ -55,35 +62,55 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   });
 
   const organizations = new Organizations();
-  const organizationalUnits = await organizations.listOrganizationalUnits();
-  const organizationalUnitAccountMap: { [ouId: string]: org.Account[] } = {};
-  const accounts: org.Account[] = [];
+
+  // Find OUs and accounts in AWS account
+  const awsOus = await organizations.listOrganizationalUnits();
+  const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
+  const awsAccounts: org.Account[] = [];
 
   // Store organizational units and their accounts
-  for (const organizationalUnit of organizationalUnits) {
+  for (const organizationalUnit of awsOus) {
     const ouId = organizationalUnit.Id!;
     const accountsInOu = await organizations.listAccountsForParent(ouId);
 
     // Associate accounts to organizational unit
-    organizationalUnitAccountMap[ouId] = accountsInOu;
+    awsOuAccountMap[ouId] = accountsInOu;
 
     // Store the accounts in a simple list as well
-    accounts.push(...accountsInOu);
+    awsAccounts.push(...accountsInOu);
   }
 
   console.log(`Found organizational units:`);
-  console.log(JSON.stringify(organizationalUnits, null, 2));
+  console.log(JSON.stringify(awsOus, null, 2));
 
   // Keep track of errors and warnings instead of failing immediately
   const errors = [];
   const warnings = [];
 
-  // Store the discovered accounts in this object
+  // Store the discovered accounts and OUs in these objects
   const configurationAccounts: ConfigurationAccount[] = [];
+  const configurationOus: ConfigurationOrganizationalUnit[] = [];
 
   // -------------------------------- \\
   // VERIFY ACCELERATOR CONFIGURATION \\
   // -------------------------------- \\
+
+  // Verify that Landing Zone and Accelerator config have the same OUs
+  const acceleratorOuConfigs = config['organizational-units'];
+  const acceleratorOus = Object.keys(acceleratorOuConfigs);
+  for (const acceleratorOu of acceleratorOus) {
+    const awsOu = awsOus.find(ou => ou.Name === acceleratorOu);
+    if (!awsOu) {
+      errors.push(`Cannot find organizational unit "${acceleratorOu}" that is used by Accelerator`);
+      continue;
+    }
+
+    configurationOus.push({
+      ouId: awsOu.Id!,
+      ouName: awsOu.Name!,
+      ouKey: acceleratorOu,
+    });
+  }
 
   // First load mandatory accounts configuration
   const mandatoryAccountConfigs = config.getAccountConfigs();
@@ -94,15 +121,15 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
 
     // Find the organizational account used by this
     const organizationalUnitName = mandatoryAccountConfig.ou;
-    const organizationalUnit = organizationalUnits.find(ou => ou.Name === organizationalUnitName);
+    const organizationalUnit = awsOus.find(ou => ou.Name === organizationalUnitName);
     if (!organizationalUnit) {
       errors.push(`Cannot find organizational unit "${mandatoryAccountConfig.ou}" that is used by Accelerator`);
       continue;
     }
 
-    const account = accounts.find(a => a.Email === accountConfigEmail);
+    const account = awsAccounts.find(a => a.Email === accountConfigEmail);
     if (account) {
-      const accountsInOu = organizationalUnitAccountMap[organizationalUnit.Id!];
+      const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
       if (!accountInOu) {
         errors.push(`The account with name "${accountConfigName}" is not in OU "${organizationalUnitName}".`);
@@ -136,18 +163,15 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
 
   // Check if there are additional OUs that are not managed by Landing Zone
   const lzOrganizationalUnits = landingZoneStack.config.organizational_units;
-  if (organizationalUnits.length !== lzOrganizationalUnits.length) {
+  if (awsOus.length !== lzOrganizationalUnits.length) {
     warnings.push(
-      `There are ${organizationalUnits.length} organizational units in the organization while there are only ` +
+      `There are ${awsOus.length} organizational units in the organization while there are only ` +
         `${lzOrganizationalUnits.length} organizational units in the Landing Zone configuration\n` +
-        `  Organizational units in organization: ${organizationalUnits.map(ou => ou.Name).join(', ')}\n` +
-        `  Organizational units in config:       ${lzOrganizationalUnits.map(ou => ou.name).join(', ')}\n`,
+        `  Organizational units in organization: ${awsOus.map(ou => ou.Name).join(', ')}\n` +
+        `  Organizational units in Landing Zone: ${lzOrganizationalUnits.map(ou => ou.name).join(', ')}\n`,
     );
   }
 
-  // Verify that Landing Zone and Accelerator config have the same OUs
-  const acceleratorOuConfigs = config['organizational-units'];
-  const acceleratorOus = Object.keys(acceleratorOuConfigs);
   const lzOus = lzOrganizationalUnits.map(ou => ou.name);
   if (!arrayEqual(acceleratorOus, lzOus)) {
     errors.push(
@@ -158,20 +182,13 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     );
   }
 
-  // Verify that AWS Orgs is not missing an Accel_config or an ALZ_config ou
-  const awsOrganizationUnits = organizationalUnits.map(ou => ou.Name);
-  if (acceleratorOus.some(ou => !awsOrganizationUnits.includes(ou))) {
-    errors.push(
-      `There are missing OUs found in Accelerator configuration but not in AWS Organization\n` +
-        ` Organizational units in Accelerator: ${acceleratorOus.join(', ')}\n` +
-        ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
-    );
-  }
-  if (lzOus.some(ou => !awsOrganizationUnits.includes(ou))) {
+  // Verify that AWS organizations is not missing an Accel_config or an ALZ_config ou
+  const awsOuNames = awsOus.map(ou => ou.Name);
+  if (lzOus.some(ou => !awsOuNames.includes(ou))) {
     errors.push(
       `There are missing OUs found in Landing Zone configuration but not in AWS Organization\n` +
         ` Organizational units in Landing Zone: ${lzOus.join(', ')}\n` +
-        ` Organizational units in AWS Organizations: ${awsOrganizationUnits.join(', ')}\n`,
+        ` Organizational units in AWS Organizations: ${awsOuNames.join(', ')}\n`,
     );
   }
 
@@ -182,13 +199,13 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       continue;
     }
 
-    const organizationalUnit = organizationalUnits.find(ou => ou.Name === lzOrganizationalUnitName);
+    const organizationalUnit = awsOus.find(ou => ou.Name === lzOrganizationalUnitName);
     if (!organizationalUnit) {
       errors.push(`Cannot find organizational unit "${lzOrganizationalUnitName}" that is used by Landing Zone`);
       continue;
     }
 
-    const accountsInOu = organizationalUnitAccountMap[organizationalUnit.Id!];
+    const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
 
     for (const lzAccount of lzOrganizationalUnit.core_accounts) {
       const lzAccountType = getLandingZoneAccountTypeBySsmParameters(lzAccount.ssm_parameters);
@@ -247,8 +264,8 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   // Verify if there are additional accounts in the OU that are not managed by Landing Zone or Accelerator
-  for (const organizationalUnit of organizationalUnits) {
-    const accountsInOu = organizationalUnitAccountMap[organizationalUnit.Id!];
+  for (const organizationalUnit of awsOus) {
+    const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
     const acceleratorAccountsInOu = configurationAccounts.filter(
       account => account.organizationalUnit === organizationalUnit.Name,
     );
@@ -268,6 +285,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   return {
+    organizationalUnits: configurationOus,
     accounts: configurationAccounts,
     warnings,
   };
@@ -292,3 +310,8 @@ function getLandingZoneAccountTypeBySsmParameters(
   }
   return undefined;
 }
+
+handler({
+  configSecretSourceId: 'accelerator/config',
+  configSecretInProgressId: 'accelerator/config/in-progress',
+}).then(r => console.log(JSON.stringify(r, null, 2)));

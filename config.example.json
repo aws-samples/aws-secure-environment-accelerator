@@ -113,9 +113,9 @@
       "policy": "Quarantine-Deny-All.json"
     },
     {
-      "name": "full-access",
-      "description": "Full Access",
-      "policy": "Full-AWS-Access.json"
+      "name": "FullAWSAccess",
+      "description": "Full AWS Access",
+      "policy": "FullAWSAccess.json"
     }
   ],
     "on-prem": {

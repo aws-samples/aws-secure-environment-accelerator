@@ -1,24 +1,30 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { Account } from './load-accounts-step';
-import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { ConfigurationOrganizationalUnit } from './load-configuration-step';
+
+const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
 interface AddScpInput {
   acceleratorPrefix: string;
   configSecretId: string;
   scpBucketName: string;
   scpBucketPrefix: string;
+  organizationalUnits: ConfigurationOrganizationalUnit[];
   accounts: Account[];
 }
 
+const s3 = new S3();
+const organizations = new Organizations();
+
 export const handler = async (input: AddScpInput) => {
-  console.log(`Adding service control policy to Organization...`);
+  console.log(`Adding service control policy to organization...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, configSecretId, scpBucketName, scpBucketPrefix, accounts } = input;
+  const { acceleratorPrefix, configSecretId, scpBucketName, scpBucketPrefix, accounts, organizationalUnits } = input;
 
   const secrets = new SecretsManager();
   const source = await secrets.getSecret(configSecretId);
@@ -27,154 +33,386 @@ export const handler = async (input: AddScpInput) => {
   const configString = source.SecretString!;
   const config = AcceleratorConfig.fromString(configString);
 
-  const organizations = new Organizations();
-  const orgUnits = await organizations.listOrganizationalUnits();
-
-  const listPoliciesRequest: org.ListPoliciesRequest = {
-    Filter: 'SERVICE_CONTROL_POLICY',
-  };
-  let policiesList = await organizations.listPolicies(listPoliciesRequest);
-
-  const lzPolicyNames: string[] = [];
-  const pbmmPolicyNames: string[] = [];
-
-  for (const policy of policiesList) {
-    if (policy.Name?.startsWith(acceleratorPrefix)) {
-      pbmmPolicyNames.push(policy.Name);
-    } else {
-      lzPolicyNames.push(policy.Name!);
-    }
-  }
-
+  // Find policy config
   const globalOptionsConfig = config['global-options'];
-  const scps = globalOptionsConfig.scps;
-  for (const scp of scps) {
-    let scpContent: string | undefined;
+  const policyConfigs = globalOptionsConfig.scps;
+
+  // Keep track of Accelerator policy names so we later can detach all non-Accelerator policies
+  const acceleratorPolicies = await createPoliciesFromConfiguration({
+    acceleratorPrefix,
+    scpBucketName,
+    scpBucketPrefix,
+    policyConfigs,
+  });
+  const acceleratorPolicyNames = acceleratorPolicies.map(p => p.Name!);
+
+  // Query all the existing policies
+  const existingPolicies = await organizations.listPolicies({
+    Filter: 'SERVICE_CONTROL_POLICY',
+  });
+
+  // Find roots to attach FullAWSAccess
+  const roots = await organizations.listRoots();
+  const rootIds = roots.map(r => r.Id!);
+
+  // Find Accelerator accounts and OUs to attach FullAWSAccess
+  const acceleratorOuIds = organizationalUnits.map(ou => ou.ouId);
+  const acceleratorAccountIds = accounts.map(a => a.id);
+  const acceleratorTargetIds = [...rootIds, ...acceleratorOuIds, ...acceleratorAccountIds];
+
+  // Detach non-Accelerator policies from Accelerator accounts
+  await detachPoliciesFromTargets({
+    existingPolicies,
+    policyNamesToKeep: acceleratorPolicyNames,
+    policyTargetIdsToInclude: acceleratorTargetIds,
+  });
+
+  await attachFullAwsAccessPolicyToTargets({
+    existingPolicies,
+    targetIds: acceleratorTargetIds,
+  });
+
+  await attachOrDetachPoliciesToOrganizationalUnits({
+    existingPolicies,
+    configurationOus: organizationalUnits,
+    acceleratorOus: config.getOrganizationalUnits(),
+    acceleratorPrefix,
+  });
+
+  return {
+    status: 'SUCCESS',
+  };
+};
+
+/**
+ * Create or update the policies from the policy configuration.
+ *
+ * @return Accelerator policies that were created based on the given policy config.
+ */
+async function createPoliciesFromConfiguration(props: {
+  acceleratorPrefix: string;
+  scpBucketName: string;
+  scpBucketPrefix: string;
+  policyConfigs: ScpConfig[];
+}): Promise<org.PolicySummary[]> {
+  const { acceleratorPrefix, scpBucketName, scpBucketPrefix, policyConfigs } = props;
+
+  // Find all policies in the organization
+  const existingPolicies = await organizations.listPolicies({
+    Filter: 'SERVICE_CONTROL_POLICY',
+  });
+
+  // Keep track of all the policies created based on the config
+  const policies = [];
+
+  // Create or update all policies from the Accelerator config file
+  for (const policyConfig of policyConfigs) {
+    const policyKey = `${scpBucketPrefix}/${policyConfig.policy}`;
+    let policyContent: string | undefined;
     try {
-      const s3 = new S3();
-      scpContent = await s3.getObjectBodyAsString({
+      policyContent = await s3.getObjectBodyAsString({
         Bucket: scpBucketName,
-        Key: `${scpBucketPrefix}/${scp.policy}`,
+        Key: policyKey,
       });
     } catch (e) {
       if (e.message === 'Access Denied') {
-        console.error(`Access denied to the SCP file at "s3://${scpBucketName}/${scpBucketPrefix}/${scp.policy}"`);
+        console.error(`Access denied to the SCP file at "s3://${scpBucketName}/${policyKey}"`);
       }
       throw e;
     }
 
-    const pbmmPolicyName = scp.name.startsWith(acceleratorPrefix) ? scp.name : `${acceleratorPrefix}${scp.name}`;
-    if (pbmmPolicyNames.includes(pbmmPolicyName)) {
-      const existingPolicy = policiesList.find(x => x.Name === pbmmPolicyName);
-      const existingPolicyId = existingPolicy?.Id;
+    // Minify the SCP content
+    policyContent = JSON.stringify(JSON.parse(policyContent));
 
-      // minify the JSON before calling updatePolicy
-      // as policy max size should be less than 5,120 bytes
-      const updatePolicyResponse = await organizations.updatePolicy(
-        JSON.stringify(JSON.parse(scpContent)),
-        scp.description,
-        pbmmPolicyName,
-        existingPolicyId!,
+    // Prefix the Accelerator prefix if necessary
+    const acceleratorPolicyName = policyNameToAcceleratorPolicyName({
+      acceleratorPrefix,
+      policyName: policyConfig.name,
+    });
+
+    const existingPolicy = existingPolicies.find(p => p.Name === acceleratorPolicyName);
+    if (existingPolicy?.AwsManaged) {
+      console.log(`Skipping update of AWS Managed Policy "${existingPolicy.Name}"`);
+      policies.push(existingPolicy);
+    } else if (existingPolicy) {
+      console.log(`Updating policy ${acceleratorPolicyName}`);
+
+      const response = await organizations.updatePolicy(
+        policyContent,
+        policyConfig.description,
+        acceleratorPolicyName,
+        existingPolicy.Id!,
       );
-      console.log(`SCP - ${pbmmPolicyName} updated`);
+      policies.push(response.Policy?.PolicySummary!);
     } else {
-      // minify the JSON before calling createPolicy
-      // as policy max size should be less than 5,120 bytes
-      const createPolicyResponse = await organizations.createPolicy(
-        JSON.stringify(JSON.parse(scpContent)),
-        scp.description,
-        pbmmPolicyName,
+      console.log(`Creating policy ${acceleratorPolicyName}`);
+
+      const response = await organizations.createPolicy(
+        policyContent,
+        policyConfig.description,
+        acceleratorPolicyName,
         'SERVICE_CONTROL_POLICY',
       );
-      console.log(`SCP - ${pbmmPolicyName} created`);
+      policies.push(response.Policy?.PolicySummary!);
     }
   }
+  return policies;
+}
 
-  // refresh policies list after creating / updating all policies.
-  policiesList = await organizations.listPolicies(listPoliciesRequest);
+/**
+ * Detach the policies that are not in the given policy names to keep from targets that are in the targets list.
+ */
+async function detachPoliciesFromTargets(props: {
+  existingPolicies: org.PolicySummary[];
+  policyNamesToKeep: string[];
+  policyTargetIdsToInclude: string[];
+}) {
+  const { existingPolicies, policyNamesToKeep, policyTargetIdsToInclude } = props;
 
-  const pbmmFullAccessPolicyName = outputKeys.PBMM_FULL_ACCESS_POLICY_NAME;
-  const pbmmFullAccessPolicy = policiesList.find(x => x.Name === pbmmFullAccessPolicyName);
+  // Remove non-Accelerator policies from Accelerator targets
+  for (const policy of existingPolicies) {
+    const policyName = policy.Name!;
+    // Do **NOT** detach FullAWSAccess and do not detach Accelerator policy names
+    if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyNamesToKeep.includes(policyName)) {
+      continue;
+    }
 
-  if (!pbmmFullAccessPolicy) {
-    throw new Error(`Cannot find policy with name ${pbmmFullAccessPolicyName}`);
+    // Find targets of this policy
+    const policyId = policy.Id!;
+    const policyTargets = await organizations.listTargetsForPolicy({
+      PolicyId: policyId,
+    });
+
+    // Detach from existing targets
+    for (const target of policyTargets) {
+      const targetId = target.TargetId!;
+      if (!policyTargetIdsToInclude.includes(targetId)) {
+        console.log(`Skipping detachment of Accelerator policy ${policyName} from target ${targetId} ${target.Name}`);
+        continue;
+      }
+
+      console.log(`Detaching policy ${policyName} from target ${targetId} ${target.Name}`);
+      await organizations.detachPolicy(policyId, targetId);
+    }
   }
-  const pbmmFullAccessPolicyId = pbmmFullAccessPolicy.Id;
+}
 
-  const pbmmFullAccessPolicyTargetsRequest: org.ListTargetsForPolicyRequest = {
-    PolicyId: pbmmFullAccessPolicyId!,
-  };
-  const pbmmFullAccessPolicyTargets = await organizations.listTargetsForPolicy(pbmmFullAccessPolicyTargetsRequest);
+/**
+ * Attach the FullAWSAccess policy to the given targets.
+ */
+async function attachFullAwsAccessPolicyToTargets(props: {
+  existingPolicies: org.PolicySummary[];
+  targetIds: string[];
+}) {
+  const { existingPolicies, targetIds } = props;
 
-  // add pbmm-full-access policy to root.
-  // add pbmm-full-access policy to all OUs.
-  // add pbmm-full-access policy to all accounts.
-  const roots = await organizations.listRoots();
-  const rootIds = roots.map(r => r.Id);
-  const orgUnitIds = orgUnits.map(o => o.Id);
-  const accountIds = accounts.map(a => a.id);
-  const targetIds = [...rootIds, ...orgUnitIds, ...accountIds];
+  // Find the full access policy
+  const fullAccessPolicy = existingPolicies.find(p => p.Name === FULL_AWS_ACCESS_POLICY_NAME);
+  if (!fullAccessPolicy) {
+    throw new Error(`Cannot find policy with name ${FULL_AWS_ACCESS_POLICY_NAME}`);
+  }
 
+  const fullAccessPolicyId = fullAccessPolicy.Id!;
+  const fullAccessPolicyTargets = await organizations.listTargetsForPolicy({
+    PolicyId: fullAccessPolicyId,
+  });
+
+  // Attach FullAWSAccess to all roots, OUs in Accelerator and accounts in Accelerator
   for (const targetId of targetIds) {
-    const target = pbmmFullAccessPolicyTargets.find(x => x.TargetId === targetId);
-    if (!target) {
-      await organizations.attachPolicy(pbmmFullAccessPolicyId!, targetId!);
-      console.log(`SCP - ${pbmmFullAccessPolicyName} attached to target - ${targetId}`);
-    } else {
-      console.log(`SCP - ${pbmmFullAccessPolicyName} already attached to target - ${target.Name}`);
+    const target = fullAccessPolicyTargets.find(t => t.TargetId === targetId);
+    if (target) {
+      console.log(`Skipping attachment of ${fullAccessPolicy.Name} to already attached target ${target.Name}`);
+      continue;
     }
+
+    console.log(`Attaching policy ${fullAccessPolicy.Name} attaching to target ${targetId}`);
+    await organizations.attachPolicy(fullAccessPolicyId, targetId);
   }
+}
 
-  // remove the LZ SCps from every target
-  for (const lzPolicyName of lzPolicyNames) {
-    const lzPolicy = policiesList.find(x => x.Name === lzPolicyName);
-    const lzPolicyId = lzPolicy?.Id;
+/**
+ * Attach new or detach removed policies based on the organizational unit configuration.
+ */
+async function attachOrDetachPoliciesToOrganizationalUnits(props: {
+  existingPolicies: org.PolicySummary[];
+  configurationOus: ConfigurationOrganizationalUnit[];
+  acceleratorOus: [string, OrganizationalUnitConfig][];
+  acceleratorPrefix: string;
+}) {
+  const { existingPolicies, configurationOus, acceleratorOus, acceleratorPrefix } = props;
 
-    const listTargetsForPolicyRequest: org.ListTargetsForPolicyRequest = {
-      PolicyId: lzPolicyId!,
-    };
-    const listTargetsForPolicyResponse = await organizations.listTargetsForPolicy(listTargetsForPolicyRequest);
-
-    for (const target of listTargetsForPolicyResponse) {
-      await organizations.detachPolicy(lzPolicyId!, target.TargetId!);
-      console.log(`SCP - ${lzPolicyName} detached from target - ${target.Name}`);
+  // Attach Accelerator SCPs to OUs
+  for (const [ouKey, ouConfig] of acceleratorOus) {
+    const organizationalUnit = configurationOus.find(ou => ou.ouKey === ouKey);
+    if (!organizationalUnit) {
+      throw new Error(`Cannot find OU configuration with key "${ouKey}"`);
     }
-  }
-
-  // attach PBMM SCPs to OU
-  const orgUnitConfigs = config.getOrganizationalUnits();
-  for (const [orgName, orgConfig] of orgUnitConfigs) {
-    const orgUnit = orgUnits.find(x => x.Name === orgName);
-    const orgUnitId = orgUnit?.Id;
-
-    const orgScpList = orgConfig.scps;
-
-    if (orgScpList.length > 4) {
-      throw new Error(`Max allowed SCP per OU is 5. Limit exceeded for OU - ${orgName}`);
+    const ouPolicyNames = ouConfig.scps.map(policyName =>
+      policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
+    );
+    if (ouPolicyNames.length > 4) {
+      throw new Error(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
     }
 
-    const listPoliciesForTargetRequest: org.ListPoliciesForTargetRequest = {
+    // Find targets for this policy
+    const policyTargets = await organizations.listPoliciesForTarget({
       Filter: 'SERVICE_CONTROL_POLICY',
-      TargetId: orgUnitId!,
-    };
-    const listPoliciesForTargetResponse = await organizations.listPoliciesForTarget(listPoliciesForTargetRequest);
+      TargetId: organizationalUnit.ouId,
+    });
 
-    for (const orgScp of orgScpList) {
-      const pbmmScpName = `${acceleratorPrefix}${orgScp}`;
-      const target = listPoliciesForTargetResponse.find(x => x.Name === pbmmScpName);
-      const policy = policiesList.find(x => x.Name === pbmmScpName);
-      if (!target) {
-        await organizations.attachPolicy(policy?.Id!, orgUnitId!);
-        console.log(`SCP - ${pbmmScpName} attached to OU - ${orgName}`);
-      } else {
-        console.log(`SCP - ${pbmmScpName} already attached to OU - ${orgName}`);
+    // Detach removed policies
+    for (const policyTarget of policyTargets) {
+      const policyTargetName = policyTarget.Name!;
+      if (!ouPolicyNames.includes(policyTargetName) && policyTargetName !== FULL_AWS_ACCESS_POLICY_NAME) {
+        console.log(`Detaching ${policyTargetName} from OU ${ouKey}`);
+        await organizations.detachPolicy(policyTarget.Id!, organizationalUnit.ouId);
       }
     }
-  }
-  console.log('PBMM SCPs - created/updated/attached to the Org as per config.');
 
-  return {
-    status: 'SUCCESS',
-    statusReason: 'PBMM SCPs - created/updated/attached to the Org as per config.',
-  };
-};
+    // Attach new policies
+    for (const ouPolicyName of ouPolicyNames) {
+      const policy = existingPolicies.find(p => p.Name === ouPolicyName);
+      if (!policy) {
+        console.warn(`Cannot find policy with name "${ouPolicyName}"`);
+        continue;
+      }
+
+      const policyTarget = policyTargets.find(x => x.Name === ouPolicyName);
+      if (policyTarget) {
+        console.log(`Skipping attachment of ${ouPolicyName} to already attached OU ${ouKey}`);
+        continue;
+      }
+
+      console.log(`Attaching ${ouPolicyName} to OU ${ouKey}`);
+      await organizations.attachPolicy(policy.Id!, organizationalUnit.ouId);
+    }
+  }
+}
+
+/**
+ * Convert policy name to Accelerator policy name. If the policy name is the FullAWSAccess policy name, then we keep
+ * the name as is. If the policy name does not have the Accelerator prefix, then we add the prefix.
+ *
+ * @return Policy name with Accelerator prefix.
+ */
+function policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
+  const { policyName, acceleratorPrefix } = props;
+  if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyName.startsWith(acceleratorPrefix)) {
+    return policyName;
+  }
+  return `${acceleratorPrefix}${policyName}`;
+}
+
+handler({
+  acceleratorPrefix: 'PBMMAccel-',
+  configSecretId: 'arn:aws:secretsmanager:ca-central-1:687384172140:secret:accelerator/config/in-progress-XiXqsv',
+  scpBucketName: 'pbmmaccel-initialsetup-scpartifactsbucket884613e4-1k8njrqbxt5io',
+  scpBucketPrefix: 'scp',
+  accounts: [
+    {
+      key: 'shared-network',
+      id: '007307298200',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/007307298200',
+      name: 'ggindera-pbmm-shared-network',
+      email: 'ggindera+pbmm-mandatory-shared-network@amazon.com',
+      ou: 'core',
+    },
+    {
+      key: 'operations',
+      id: '278816265654',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/278816265654',
+      name: 'ggindera-pbmm-operations',
+      email: 'ggindera+pbmm-mandatory-operations@amazon.com',
+      ou: 'core',
+    },
+    {
+      key: 'perimeter',
+      id: '422986242298',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/422986242298',
+      name: 'ggindera-pbmm-perimeter',
+      email: 'ggindera+pbmm-mandatory-perimeter@amazon.com',
+      ou: 'core',
+    },
+    {
+      key: 'master',
+      id: '687384172140',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/687384172140',
+      name: 'ggindera+pbmm@amazon.com',
+      email: 'ggindera+pbmm@amazon.com',
+      ou: 'core',
+      type: 'primary',
+    },
+    {
+      key: 'log-archive',
+      id: '272091715658',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/272091715658',
+      name: 'ggindera-pbmm-logs',
+      email: 'ggindera+pbmm-lz-logs@amazon.com',
+      ou: 'core',
+      type: 'log-archive',
+    },
+    {
+      key: 'security',
+      id: '122259674264',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/122259674264',
+      name: 'ggindera-pbmm-security',
+      email: 'ggindera+pbmm-lz-security@amazon.com',
+      ou: 'core',
+      type: 'security',
+    },
+    {
+      key: 'shared-services',
+      id: '378053304141',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/378053304141',
+      name: 'ggindera-pbmm-shared-services',
+      email: 'ggindera+pbmm-lz-shared-services@amazon.com',
+      ou: 'core',
+      type: 'shared-services',
+    },
+    {
+      key: 'fun-acct',
+      id: '934027390063',
+      arn: 'arn:aws:organizations::687384172140:account/o-9q2rluozke/934027390063',
+      name: 'ggindera-pbmm-workload-fun',
+      email: 'ggindera+pbmm-workload-fun@amazon.com',
+      ou: 'sandbox',
+    },
+  ],
+  organizationalUnits: [
+    {
+      ouId: 'ou-07ad-zcl6r7ao',
+      ouName: 'core',
+      ouKey: 'core',
+    },
+    {
+      ouId: 'ou-07ad-md12tu2a',
+      ouName: 'central',
+      ouKey: 'central',
+    },
+    {
+      ouId: 'ou-07ad-ttcwtq0v',
+      ouName: 'dev',
+      ouKey: 'dev',
+    },
+    {
+      ouId: 'ou-07ad-2r9t9f3l',
+      ouName: 'test',
+      ouKey: 'test',
+    },
+    {
+      ouId: 'ou-07ad-r6j4slrt',
+      ouName: 'prod',
+      ouKey: 'prod',
+    },
+    {
+      ouId: 'ou-07ad-5bo152z0',
+      ouName: 'unclass',
+      ouKey: 'unclass',
+    },
+    {
+      ouId: 'ou-07ad-h1lwqn5n',
+      ouName: 'sandbox',
+      ouKey: 'sandbox',
+    },
+  ],
+});
