@@ -640,6 +640,7 @@ export namespace InitialSetup {
             stackOutputSecretId: stackOutputSecret.secretArn,
           },
         }),
+        resultPath: 'DISCARD',
       });
 
       const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
