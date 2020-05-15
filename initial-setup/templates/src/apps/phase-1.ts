@@ -20,6 +20,7 @@ import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
 import * as iam from '@aws-cdk/aws-iam';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import * as centralServices from '../deployments/central-services';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -256,6 +257,12 @@ async function main() {
     config: acceleratorConfig,
     outputs,
     transitGateways,
+  });
+
+  // Central Services step 1
+  await centralServices.step2({
+    accountStacks,
+    config: acceleratorConfig
   });
 }
 

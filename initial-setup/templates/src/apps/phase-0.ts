@@ -21,6 +21,7 @@ import * as path from 'path';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
 import { createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import * as centralServices from '../deployments/central-services';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -270,6 +271,13 @@ async function main() {
   await firewall.step1({
     accountStacks,
     config: acceleratorConfig,
+  });
+
+  // Central Services step 1
+  await centralServices.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts
   });
 }
 
