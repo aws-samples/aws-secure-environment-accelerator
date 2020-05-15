@@ -461,8 +461,8 @@
         {
           "name": "PerimSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt",
           "chain": "",
           "arn": ""
         }
@@ -1086,8 +1086,8 @@
         {
           "name": "CentralSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt",
           "chain": "",
           "arn": ""
         },
@@ -1096,7 +1096,7 @@
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
+          "san": ["*.example1.com"],
           "arn": ""
         }
       ],
@@ -1584,8 +1584,8 @@
         {
           "name": "DevSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt",
           "chain": "",
           "arn": ""
         },
@@ -1594,7 +1594,7 @@
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
+          "san": ["*.example1.com"],
           "arn": ""
         }
       ],
@@ -2053,8 +2053,8 @@
         {
           "name": "TestSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt",
           "chain": "",
           "arn": ""
         },
@@ -2063,7 +2063,7 @@
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
+          "san": ["*.example1.com"],
           "arn": ""
         }
       ],
@@ -2522,8 +2522,8 @@
         {
           "name": "ProdSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt",
           "chain": "",
           "arn": ""
         },
@@ -2532,7 +2532,7 @@
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
+          "san": ["*.example1.com"],
           "arn": ""
         }
       ],
@@ -2991,8 +2991,8 @@
         {
           "name": "UnclassSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt",
           "chain": "",
           "arn": ""
         },
@@ -3001,7 +3001,7 @@
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
+          "san": ["*.example1.com"],
           "arn": ""
         }
       ],
