@@ -430,6 +430,7 @@ export const CentralServicesConfigType = t.interface({
   'guard-duty': fromNullable(t.boolean, false),
   cwl: fromNullable(t.boolean, false),
   'access-analyzer': fromNullable(t.boolean, false),
+  'cwl-access-level': optional(t.string),
 });
 
 export const ScpsConfigType = t.interface({

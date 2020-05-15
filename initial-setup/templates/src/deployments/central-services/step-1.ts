@@ -66,11 +66,11 @@ async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; account
   const accountPrincipals: iam.PrincipalBase[] = accountIds.map(accountId => {
     return new iam.AccountPrincipal(accountId);
   });
-  const cloudWatchCrossAccountSharingRole = new iam.Role(scope, 'CloudWatch-CrossAccountSharing', {
+  const cwlCrossAccountSharingRole = new iam.Role(scope, 'CloudWatch-CrossAccountSharing', {
     roleName: 'CloudWatch-CrossAccountSharing-ListAccountsRole',
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),
   });
-  cloudWatchCrossAccountSharingRole.addToPolicy(
+  cwlCrossAccountSharingRole.addToPolicy(
     new iam.PolicyStatement({
       resources: ['*'],
       actions: ['organizations:ListAccounts', 'organizations:ListAccountsForParent'],
