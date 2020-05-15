@@ -266,7 +266,7 @@ async function main() {
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
       // Create Accepter Role for Peering Connection **WITHOUT** random suffix
-      const roleName = createRoleName(`VPC-PCX-${accountKey}To${pcxConfig.source}`, undefined);
+      const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
     }
   }
