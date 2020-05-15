@@ -12,18 +12,23 @@ export interface CentralServicesStep2Props {
 
 const LOG_PERMISSIONS = [
   {
-      'level' : 'full',
-      'permissions': ['CloudWatchReadOnlyAccess', 'CloudWatchAutomaticDashboardsAccess', 'job-function/ViewOnlyAccess', 'AWSXrayReadOnlyAccess']
+    level: 'full',
+    permissions: [
+      'CloudWatchReadOnlyAccess',
+      'CloudWatchAutomaticDashboardsAccess',
+      'job-function/ViewOnlyAccess',
+      'AWSXrayReadOnlyAccess',
+    ],
   },
   {
-    'level' : 'cwl+auto+xray',
-    'permissions': ['CloudWatchReadOnlyAccess', 'CloudWatchAutomaticDashboardsAccess', 'AWSXrayReadOnlyAccess']
+    level: 'cwl+auto+xray',
+    permissions: ['CloudWatchReadOnlyAccess', 'CloudWatchAutomaticDashboardsAccess', 'AWSXrayReadOnlyAccess'],
   },
   {
-    'level' : 'cwl+auto',
-    'permissions': ['CloudWatchReadOnlyAccess', 'CloudWatchAutomaticDashboardsAccess']
-  }
-]
+    level: 'cwl+auto',
+    permissions: ['CloudWatchReadOnlyAccess', 'CloudWatchAutomaticDashboardsAccess'],
+  },
+];
 
 /**
  * Enable Central Services Step 2
@@ -53,18 +58,21 @@ export async function step2(props: CentralServicesStep2Props) {
   }
 
   if (monitoringAccounts.length === 0) {
-    return
+    return;
   }
-  const accessLevel = centralOperationsServices["cwl-access-level"] || centralSecurityServices["cwl-access-level"] || 'full';
+  const accessLevel =
+    centralOperationsServices['cwl-access-level'] || centralSecurityServices['cwl-access-level'] || 'full';
   for (const account of accounts) {
     const accountStack = accountStacks.getOrCreateAccountStack(account.key);
-    const monitoringAccountIds = monitoringAccounts.filter(accountKey => accountKey != account.key).map(a => {
-      return getAccountId(accounts, a)
-    });
+    const monitoringAccountIds = monitoringAccounts
+      .filter(accountKey => accountKey != account.key)
+      .map(a => {
+        return getAccountId(accounts, a);
+      });
     await centralLoggingShareDataSettings({
       scope: accountStack,
       monitoringAccountIds,
-      accessLevel
+      accessLevel,
     });
   }
 }
@@ -81,14 +89,13 @@ async function centralLoggingMonitoringEnable(props: { scope: cdk.Construct }) {
   });
 }
 
-
 /**
  * Share Cloud Watch Log Data settings in Sub Account to Monitoring Accounts
  */
-async function centralLoggingShareDataSettings(props: { 
-  scope: cdk.Construct,
-  monitoringAccountIds: string[] ,
-  accessLevel: string,
+async function centralLoggingShareDataSettings(props: {
+  scope: cdk.Construct;
+  monitoringAccountIds: string[];
+  accessLevel: string;
 }) {
   const { scope, monitoringAccountIds, accessLevel } = props;
   const accountPrincipals: iam.PrincipalBase[] = monitoringAccountIds.map(accountId => {
@@ -97,8 +104,10 @@ async function centralLoggingShareDataSettings(props: {
   new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
     roleName: 'CloudWatch-CrossAccountSharingRole',
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),
-    managedPolicies: LOG_PERMISSIONS.find(logPermission => logPermission.level === accessLevel)?.permissions.map(permission => {
-      return iam.ManagedPolicy.fromAwsManagedPolicyName(permission)
-    })
+    managedPolicies: LOG_PERMISSIONS.find(logPermission => logPermission.level === accessLevel)?.permissions.map(
+      permission => {
+        return iam.ManagedPolicy.fromAwsManagedPolicyName(permission);
+      },
+    ),
   });
 }
