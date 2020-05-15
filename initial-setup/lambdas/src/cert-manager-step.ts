@@ -44,6 +44,8 @@ export const handler = async (input: certManagerInput) => {
   };
 
   const requestOrImportCert = async (accountKey: string, certConfig: CertificatesConfig): Promise<void> => {
+    console.log(`${certConfig.type}ing certificate for the account - ${accountKey}...`);
+
     const masterAccount = accounts.find(a => a.key === 'master');
     if (!masterAccount) {
       throw new Error(`Cannot find account with key master`);
@@ -62,7 +64,6 @@ export const handler = async (input: certManagerInput) => {
     const acm = new ACM(credentials);
 
     // check whether arn exists before creating new cert
-
     if (certConfig.type === 'import') {
       const importCertificateRequest: aws.ACM.ImportCertificateRequest = {
         Certificate: await s3.getObjectBodyAsString({
@@ -73,8 +74,8 @@ export const handler = async (input: certManagerInput) => {
           Bucket: centralBucket,
           Key: certConfig['priv-key']!,
         }),
-        CertificateArn: certConfig.arn,
-        CertificateChain: certConfig.chain,
+        CertificateArn: (certConfig.arn === '' ? undefined: certConfig.arn),
+        CertificateChain: (certConfig.chain === '' ? undefined: certConfig.chain),
         Tags: [
           {
             Key: 'Accelerator',
@@ -83,10 +84,11 @@ export const handler = async (input: certManagerInput) => {
         ],
       };
       const importCertificateResponse = await acm.importCertificate(importCertificateRequest);
-      console.log('importCertificateResponse: ', importCertificateResponse);
-      console.log(`Requested ACM Certificate for account - ${accountKey}`);
+      console.log('importCertificateResponse: ', importCertificateResponse);      
+      
+      // store the certificate arn in secrets manager
+      
 
-      // store arn here
     } else if (certConfig.type === 'request') {
       const requestCertificateRequest: aws.ACM.RequestCertificateRequest = {
         DomainName: certConfig.domain!,
@@ -111,8 +113,6 @@ export const handler = async (input: certManagerInput) => {
         ValidationMethod: certConfig.validation,
       };
 
-      console.log(`Requested ACM Certificate for account - ${accountKey}`);
-
       // store arn here
     }
   };
@@ -132,11 +132,14 @@ export const handler = async (input: certManagerInput) => {
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     const certificatesConfig = accountConfig.certificates;
-    if (certificatesConfig && certificatesConfig.length > 1) {
+    if (certificatesConfig && certificatesConfig.length > 0) {
+      console.log(`certificates config defined for the account - ${accountKey}`);
       for (const certificateConfig of certificatesConfig) {
         mandatoryAccountKeys.push(accountKey);
         await requestOrImportCert(accountKey, certificateConfig);
       }
+    } else {
+      console.log(`certificates config not defined for the account - ${accountKey}`);
     }
   }
 
@@ -145,12 +148,15 @@ export const handler = async (input: certManagerInput) => {
   for (const [orgName, orgConfig] of orgUnits) {
     const certificatesConfig = orgConfig.certificates;
     if (certificatesConfig && certificatesConfig.length > 1) {
+      console.log(`certificates config defined for the OU - ${orgName}`);
       for (const certificateConfig of certificatesConfig) {
         const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
         for (const orgAccount of orgAccounts) {
           await requestOrImportCert(orgAccount.key, certificateConfig);
         }
       }
+    } else {
+      console.log(`certificates config not defined for the OU - ${orgName}`);
     }
   }
 
@@ -159,3 +165,4 @@ export const handler = async (input: certManagerInput) => {
     statusReason: 'Successfully requested or imported certificates into AWS Certificate Manager.',
   };
 };
+
