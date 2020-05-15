@@ -101,6 +101,8 @@
         "guardduty:UpdateDetector",
         "guardduty:UpdateFindingsFeedback",
         "guardduty:UpdatePublishingDestination",
+        "guardduty:CreateMembers",
+        "guardduty:InviteMembers",
         "securityhub:AcceptInvitation",
         "securityhub:DeclineInvitations",
         "securityhub:DeleteInvitations",

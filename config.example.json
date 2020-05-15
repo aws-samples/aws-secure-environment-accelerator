@@ -656,7 +656,7 @@
               },
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az1-p2"
+                "target": "{ENI-FW-azA-p2}"
               },
               {
                 "destination": "s3",
@@ -673,7 +673,7 @@
               },
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az2-p2"
+                "target": "{ENI-FW-azB-p2}"
               },
               {
                 "destination": "s3",
@@ -686,7 +686,7 @@
             "routes": [
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az1-p4"
+                "target": "{ENI-FW-azA-p4}"
               }
             ]
           },
@@ -695,7 +695,7 @@
             "routes": [
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az2-p4"
+                "target": "{ENI-FW-azB-p4}"
               }
             ]
           }
