@@ -17,6 +17,8 @@ import { SecurityHubStack } from '../common/security-hub';
 import { DefaultEbsEncryptionKey } from '../common/default-ebs-encryption-key';
 import { AccessAnalyzer } from '../common/access-analyzer';
 import { createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { CertificatesConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -179,11 +181,30 @@ async function main() {
     const accessAnalyzer = new AccessAnalyzer(accountStack, `Access Analyzer-${pascalCase(accountKey)}`);
   };
 
+  const createAcmSecret = async (accountKey: string, certsConfig: CertificatesConfig): Promise<void> => {
+    const accountId = getAccountId(accounts, accountKey);
+    const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
+
+    const acmSecret = secretsStack.createSecret(`ACM-${certsConfig.name}`, {
+      secretName: `accelerator/${accountKey}/acm/${certsConfig.name}`,
+      description: `ARN of ACM certificate - ${certsConfig.name}.`,
+      principals: [new iam.AccountPrincipal(accountId)],
+    });
+  }
+
   const mandatoryAccountKeys: string[] = [];
   // creating assets for default account settings
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     mandatoryAccountKeys.push(accountKey);
     await createDefaultEbsEncryptionKey(accountKey);
+
+    const certsConfig = accountConfig.certificates;
+    if(certsConfig && certsConfig.length > 0) {
+      for (const certConfig of certsConfig) {
+        await createAcmSecret(accountKey, certConfig);
+      }
+    }
+    
     if (accountKey === 'security') {
       await createAccessAnalyzer(accountKey);
     }
@@ -194,6 +215,13 @@ async function main() {
     const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
     for (const orgAccount of orgAccounts) {
       await createDefaultEbsEncryptionKey(orgAccount.key);
+
+      const certsConfig = orgConfig.certificates;
+      if(certsConfig && certsConfig.length > 0) {
+        for (const certConfig of certsConfig) {
+          await createAcmSecret(orgAccount.key, certConfig);
+        }
+      }
     }
   }
 

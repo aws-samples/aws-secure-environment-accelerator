@@ -3,19 +3,19 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { AcceleratorConfig, CertificatesConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { Account } from './load-accounts-step';
-import { StackOutput, getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { ACM } from '@aws-pbmm/common-lambda/lib/aws/acm';
 
-interface certManagerInput {
+interface CertManagerInput {
   assumeRoleName: string;
   accounts: Account[];
   configSecretSourceId: string;
   stackOutputSecretId: string;
 }
 
-export const handler = async (input: certManagerInput) => {
+export const handler = async (input: CertManagerInput) => {
   console.log('Requesting or Importing certificates into AWS Certificate Manager ...');
   console.log(JSON.stringify(input, null, 2));
 
@@ -64,8 +64,15 @@ export const handler = async (input: certManagerInput) => {
     const acm = new ACM(credentials);
 
     // check whether arn exists before creating new cert
-    if (certConfig.type === 'import') {
-      const importCertificateRequest: aws.ACM.ImportCertificateRequest = {
+    let acmCertArnSecretId = outputKeys.ACM_CERT_ARN_SECRET_ID_FORMAT;
+    acmCertArnSecretId = acmCertArnSecretId.replace('xxaccountKeyxx', accountKey).replace('xxcertNamexx',certConfig.name);
+
+    const acmCertArnSecret = await secrets.getSecret(acmCertArnSecretId);
+    
+    if(acmCertArnSecret.SecretString?.startsWith('arn:aws:acm')) {
+      console.log(`Cert ${certConfig.name} already generated.`);
+    } else if (certConfig.type === 'import') {
+        const importCertificateRequest: aws.ACM.ImportCertificateRequest = {
         Certificate: await s3.getObjectBodyAsString({
           Bucket: centralBucket,
           Key: certConfig.cert!,
@@ -87,19 +94,24 @@ export const handler = async (input: certManagerInput) => {
       console.log('importCertificateResponse: ', importCertificateResponse);
 
       // store the certificate arn in secrets manager
+      const putSecretValueRequest: aws.SecretsManager.PutSecretValueRequest = {
+        SecretId: acmCertArnSecretId,
+        SecretString: importCertificateResponse.CertificateArn,
+      };
+      const putSecretValueResponse = await secrets.putSecretValue(putSecretValueRequest);
+      console.log('putSecretValueResponse: ', putSecretValueResponse);
     } else if (certConfig.type === 'request') {
       const requestCertificateRequest: aws.ACM.RequestCertificateRequest = {
         DomainName: certConfig.domain!,
-        CertificateAuthorityArn: certConfig.arn,
+        CertificateAuthorityArn: certConfig.arn === '' ? undefined : certConfig.arn,
         DomainValidationOptions: [
           {
             DomainName: certConfig.domain!,
             ValidationDomain: certConfig.domain!,
           },
         ],
-        IdempotencyToken: 'idempotencyToken',
         Options: {
-          CertificateTransparencyLoggingPreference: 'ENABLE',
+          CertificateTransparencyLoggingPreference: 'ENABLED',
         },
         SubjectAlternativeNames: certConfig.san!,
         Tags: [
@@ -111,7 +123,16 @@ export const handler = async (input: certManagerInput) => {
         ValidationMethod: certConfig.validation,
       };
 
-      // store arn here
+      const requestCertificateResponse = await acm.requestCertificate(requestCertificateRequest);
+      console.log('requestCertificateResponse: ', requestCertificateResponse);
+
+      // store the certificate arn in secrets manager
+      const putSecretValueRequest: aws.SecretsManager.PutSecretValueRequest = {
+        SecretId: acmCertArnSecretId,
+        SecretString: requestCertificateResponse.CertificateArn,
+      };
+      const putSecretValueResponse = await secrets.putSecretValue(putSecretValueRequest);
+      console.log('putSecretValueResponse: ', putSecretValueResponse);
     }
   };
 
