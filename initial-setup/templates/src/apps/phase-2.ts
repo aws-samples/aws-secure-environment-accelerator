@@ -4,7 +4,6 @@ import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import * as iam from '@aws-cdk/aws-iam';
-import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
@@ -72,7 +71,7 @@ async function main() {
     const pcxSourceVpc = pcxConfig['source-vpc'];
     // TODO store role name in outputs
     // Get the exact same role name as in phase 1
-    const roleName = createRoleName(`VPC-PCX-${accountKey}To${pcxConfig.source}`, undefined)
+    const roleName = createRoleName(`VPC-PCX-${accountKey}To${pcxConfig.source}`, undefined);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     // Get Peer VPC Configuration
