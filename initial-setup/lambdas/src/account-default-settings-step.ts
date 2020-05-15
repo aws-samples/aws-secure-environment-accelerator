@@ -1,5 +1,4 @@
 import * as aws from 'aws-sdk';
-import * as kms from 'aws-sdk/clients/kms';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';

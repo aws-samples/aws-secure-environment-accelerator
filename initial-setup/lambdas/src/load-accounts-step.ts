@@ -1,6 +1,6 @@
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { LoadConfigurationOutput } from './load-configuration-step';
+import { LoadConfigurationOutput, ConfigurationOrganizationalUnit } from './load-configuration-step';
 import { LandingZoneAccountType } from '@aws-pbmm/common-lambda/lib/config';
 
 export interface LoadAccountsInput {
@@ -8,7 +8,10 @@ export interface LoadAccountsInput {
   configuration: LoadConfigurationOutput;
 }
 
-export type LoadAccountsOutput = Account[];
+export type LoadAccountsOutput = {
+  organizationalUnits: ConfigurationOrganizationalUnit[];
+  accounts: Account[];
+};
 
 export interface Account {
   key: string;
@@ -68,5 +71,8 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   });
 
   // Find all relevant accounts in the organization
-  return accounts;
+  return {
+    organizationalUnits: configuration.organizationalUnits,
+    accounts,
+  };
 };
