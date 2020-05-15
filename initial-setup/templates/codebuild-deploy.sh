@@ -16,5 +16,9 @@ pnpx cdk bootstrap \
 # Deploy all stacks for the given app
 pnpx cdk deploy "*" \
   --require-approval never \
+  --version-reporting false \
+  --path-metadata false \
+  --asset-metadata false \
+  --force \
   --plugin "$ASSUME_ROLE_PLUGIN_PATH" \
   --app "pnpx ts-node src/$APP_PATH"
