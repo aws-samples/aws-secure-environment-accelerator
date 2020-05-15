@@ -18,6 +18,8 @@ import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 
 interface BuildProps {
   lambdaCode: lambda.Code;
@@ -345,7 +347,7 @@ export namespace InitialSetup {
           accountsSecretId: accountsSecret.secretArn,
           'configuration.$': '$.configuration',
         },
-        resultPath: '$.accounts',
+        resultPath: '$',
       });
 
       const installRoleTemplate = new s3assets.Asset(this, 'ExecutionRoleTemplate', {
@@ -400,20 +402,32 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
-      // TODO We might want to load this from the Landing Zone configuration
-      const coreMandatoryScpName = 'aws-landing-zone-core-mandatory-preventive-guardrails';
-      const nonCoreMandatoryScpName = 'aws-landing-zone-non-core-mandatory-preventive-guardrails';
-      const lzScpNames: string[] = [coreMandatoryScpName, nonCoreMandatoryScpName];
+      // creating a bucket to store SCP artifacts
+      const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
+        versioned: true,
+      });
 
-      const addRoleToScpTask = new CodeTask(this, 'Add Execution Role to SCP', {
+      const scpArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'SCPs');
+
+      new s3deployment.BucketDeployment(stack, 'ScpArtifactsDeployment', {
+        sources: [s3deployment.Source.asset(scpArtifactsFolderPath)],
+        destinationBucket: scpArtifactBucket,
+        destinationKeyPrefix: 'scp',
+      });
+
+      const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.addRoleToScpStep',
+          handler: 'index.addScpStep',
           role: pipelineRole,
         },
         functionPayload: {
-          roleName: props.stateMachineExecutionRole,
-          policyNames: lzScpNames,
+          acceleratorPrefix: props.acceleratorPrefix,
+          configSecretId: configSecretInProgress.secretArn,
+          scpBucketName: scpArtifactBucket.bucketName,
+          scpBucketPrefix: 'scp',
+          'organizationalUnits.$': '$.organizationalUnits',
+          'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
       });
@@ -433,7 +447,7 @@ export namespace InitialSetup {
       // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
       // });
       // preDeployParallelTask.branch(loadLimitsTask);
-      // preDeployParallelTask.branch(addRoleToScpTask);
+      // preDeployParallelTask.branch(addScpTask);
       // preDeployParallelTask.branch(enableResourceSharingTask);
 
       const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
@@ -627,6 +641,7 @@ export namespace InitialSetup {
             stackOutputSecretId: stackOutputSecret.secretArn,
           },
         }),
+        resultPath: 'DISCARD',
       });
 
       const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
@@ -668,17 +683,18 @@ export namespace InitialSetup {
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: `${props.stateMachineName}_sm`,
         definition: sfn.Chain.start(loadConfigurationTask)
-          .next(addRoleToServiceCatalog)
-          .next(createAccountsTask)
+          // .next(addRoleToServiceCatalog)
+          // .next(createAccountsTask)
           .next(loadAccountsTask)
-          .next(installRolesTask)
-          .next(loadLimitsTask)
-          .next(addRoleToScpTask)
-          .next(enableTrustedAccessForServicesTask)
+          // .next(installRolesTask)
+          // .next(loadLimitsTask)
+          // .next(addScpTask)
+          // .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)
           .next(storePhase1Output)
+          .next(accountDefaultSettingsTask)
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
@@ -689,8 +705,7 @@ export namespace InitialSetup {
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
           .next(deployPhase5Task)
-          .next(createAdConnectorTask)
-          .next(accountDefaultSettingsTask),
+          .next(createAdConnectorTask),
       });
     }
   }

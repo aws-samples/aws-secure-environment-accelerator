@@ -12,10 +12,10 @@ export function createBucketName(name?: string): string {
   });
 }
 
-export function createRoleName(name: string): string {
+export function createRoleName(name: string, suffixLength: number = 8): string {
   return createName({
     name,
-    suffixLength: 8,
+    suffixLength,
   });
 }
 
@@ -100,7 +100,7 @@ export function createName(props: CreateNameProps = {}): string {
       if (name) {
         pieces.push(prepareString(name, props));
       }
-      if (suffixLength) {
+      if (suffixLength && suffixLength > 0) {
         // Create a suffix that is based on the path of the component
         const path = parents.map(p => p.node.id);
         const suffix = hashPath(path, suffixLength);
