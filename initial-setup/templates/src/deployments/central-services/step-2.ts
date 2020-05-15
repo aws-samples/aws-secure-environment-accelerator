@@ -10,14 +10,14 @@ export interface CentralServicesStep2Props {
 
 /**
  * Enable Central Services Step 2
- * - Enable Cross Account Cross Region in monitoring accounts 
+ * - Enable Cross Account Cross Region in monitoring accounts
  */
 export async function step2(props: CentralServicesStep2Props) {
   const { accountStacks, config } = props;
 
-  const centralSecurityServices = config["global-options"]["central-security-services"];
-  const centralOperationsServices = config["global-options"]["central-operations-services"];
-  
+  const centralSecurityServices = config['global-options']['central-security-services'];
+  const centralOperationsServices = config['global-options']['central-operations-services'];
+
   if (centralSecurityServices && centralSecurityServices.cwl) {
     const accountStack = accountStacks.getOrCreateAccountStack(centralSecurityServices.account);
     await centralServicesSettings({
@@ -28,7 +28,7 @@ export async function step2(props: CentralServicesStep2Props) {
   if (centralOperationsServices && centralOperationsServices.cwl) {
     const accountStack = accountStacks.getOrCreateAccountStack(centralOperationsServices.account);
     await centralServicesSettings({
-      scope: accountStack
+      scope: accountStack,
     });
   }
 }
@@ -36,13 +36,12 @@ export async function step2(props: CentralServicesStep2Props) {
 /**
  * Central CloudWatch Services Settings in Sub Account
  */
-async function centralServicesSettings (props: {
-  scope: cdk.Construct;
-}) {
+async function centralServicesSettings(props: { scope: cdk.Construct }) {
   const { scope } = props;
   new iam.CfnServiceLinkedRole(scope, 'CloudWatch-CrossAccountSharing', {
     awsServiceName: 'cloudwatch-crossaccount.amazonaws.com',
-    description: 'Allows CloudWatch to assume CloudWatch-CrossAccountSharing roles in remote accounts on behalf of the current account in order to display data cross-account, cross region ',
-    customSuffix: ''
+    description:
+      'Allows CloudWatch to assume CloudWatch-CrossAccountSharing roles in remote accounts on behalf of the current account in order to display data cross-account, cross region ',
+    customSuffix: '',
   });
 }

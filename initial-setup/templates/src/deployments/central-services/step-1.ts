@@ -18,13 +18,13 @@ export interface CentralServicesStep1Props {
 export async function step1(props: CentralServicesStep1Props) {
   const { accountStacks, config, accounts } = props;
 
-  const globalOptions = config["global-options"];
-  
+  const globalOptions = config['global-options'];
+
   if (globalOptions) {
     await centralServicesSettingsInMaster({
       accountStacks,
       config: globalOptions,
-      accounts
+      accounts,
     });
   }
 }
@@ -32,7 +32,7 @@ export async function step1(props: CentralServicesStep1Props) {
 /**
  * Central Services Settings in Master Account
  */
-async function centralServicesSettingsInMaster (props: {
+async function centralServicesSettingsInMaster(props: {
   accountStacks: AccountStacks;
   config: c.GlobalOptionsConfig;
   accounts: Account[];
@@ -40,20 +40,20 @@ async function centralServicesSettingsInMaster (props: {
   const { accountStacks, config, accounts } = props;
 
   const accountIds: string[] = [];
-  if (config["central-security-services"] && config["central-security-services"].cwl) {
-    accountIds.push(getAccountId(accounts, config["central-security-services"].account));
+  if (config['central-security-services'] && config['central-security-services'].cwl) {
+    accountIds.push(getAccountId(accounts, config['central-security-services'].account));
   }
-  if (config["central-operations-services"] && config["central-operations-services"].cwl) {
-    accountIds.push(getAccountId(accounts, config["central-operations-services"].account));
+  if (config['central-operations-services'] && config['central-operations-services'].cwl) {
+    accountIds.push(getAccountId(accounts, config['central-operations-services'].account));
   }
-  if (config["central-log-services"] && config["central-log-services"].cwl) {
-    accountIds.push(getAccountId(accounts, config["central-log-services"].account));
+  if (config['central-log-services'] && config['central-log-services'].cwl) {
+    accountIds.push(getAccountId(accounts, config['central-log-services'].account));
   }
 
   // Enable Cross-Account CloudWatch access in Master account fot sub accounts
   const accountStack = accountStacks.getOrCreateAccountStack('master');
   await cloudWatchSettingsInMaster({
-    scope: accountStack, 
+    scope: accountStack,
     accountIds,
   });
 }
@@ -61,16 +61,11 @@ async function centralServicesSettingsInMaster (props: {
 /**
  * Cloud Watch Cross Account Settings in Master Account
  */
-async function cloudWatchSettingsInMaster (props: {
-  scope: cdk.Construct;
-  accountIds: string[];
-}) {
+async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; accountIds: string[] }) {
   const { scope, accountIds } = props;
-  const accountPrincipals: iam.PrincipalBase[] = accountIds.map(
-    accountId => {
-      return new iam.AccountPrincipal(accountId)
-    }
-  );
+  const accountPrincipals: iam.PrincipalBase[] = accountIds.map(accountId => {
+    return new iam.AccountPrincipal(accountId);
+  });
   const cloudWatchCrossAccountSharingRole = new iam.Role(scope, 'CloudWatch-CrossAccountSharing', {
     roleName: 'CloudWatch-CrossAccountSharing-ListAccountsRole',
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),

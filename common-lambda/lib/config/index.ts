@@ -426,7 +426,7 @@ export const CentralServicesConfigType = t.interface({
   'security-hub': fromNullable(t.boolean, false),
   'guard-duty': fromNullable(t.boolean, false),
   cwl: fromNullable(t.boolean, false),
-  'access-analyzer': fromNullable(t.boolean, false)
+  'access-analyzer': fromNullable(t.boolean, false),
 });
 
 export const GlobalOptionsConfigType = t.interface({
