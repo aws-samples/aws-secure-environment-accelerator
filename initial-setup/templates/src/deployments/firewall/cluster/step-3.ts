@@ -55,7 +55,7 @@ export async function step3(props: FirewallStep3Props) {
     });
     const firewallVpnConnections = firewallVpnConnectionOutputs
       .flatMap(array => array)
-      .filter(c => c.firewallAccountKey === accountKey);
+      .filter(conn => conn.firewallAccountKey === accountKey);
     if (firewallVpnConnections.length === 0) {
       throw new Error(`Cannot find firewall VPN connection outputs`);
     }
