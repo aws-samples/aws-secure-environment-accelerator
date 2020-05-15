@@ -1,15 +1,19 @@
-import * as t from 'io-ts';
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpnTunnelOptions } from '@custom-resources/ec2-vpn-tunnel-options';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { TransitGateway } from '../../../common/transit-gateway';
-import { FirewallPortOutputType, FirewallPortType, FirewallPort } from './step-1';
+import {
+  FirewallPortOutputType,
+  FirewallPort,
+  FirewallVpnConnection,
+  FirewallVpnConnectionOutput,
+  FirewallVpnConnectionOutputType,
+} from './outputs';
 
 export interface FirewallStep2Props {
   accountStacks: AccountStacks;
@@ -22,33 +26,6 @@ export interface FirewallStep2Props {
    */
   transitGateways: Map<string, TransitGateway>;
 }
-
-export const FirewallVpnTunnelOptionsType = t.interface({
-  cgwTunnelInsideAddress1: t.string,
-  cgwTunnelOutsideAddress1: t.string,
-  cgwBgpAsn1: t.string,
-  vpnTunnelInsideAddress1: t.string,
-  vpnTunnelOutsideAddress1: t.string,
-  vpnBgpAsn1: t.string,
-  preSharedSecret1: t.string,
-});
-
-export const FirewallVpnConnectionType = t.intersection([
-  FirewallPortType,
-  t.interface({
-    firewallAccountKey: t.string,
-    transitGatewayId: t.string,
-    customerGatewayId: optional(t.string),
-    vpnConnectionId: optional(t.string),
-    vpnTunnelOptions: optional(FirewallVpnTunnelOptionsType),
-  }),
-]);
-
-export const FirewallVpnConnectionOutputType = t.array(FirewallVpnConnectionType, 'FirewallVpnConnectionOutput');
-
-export type FirewallVpnTunnelOptions = t.TypeOf<typeof FirewallVpnTunnelOptionsType>;
-export type FirewallVpnConnection = t.TypeOf<typeof FirewallVpnConnectionType>;
-export type FirewallVpnConnectionOutput = t.TypeOf<typeof FirewallVpnConnectionOutputType>;
 
 /**
  * Creates the customer gateways for the EIPs of the firewall.

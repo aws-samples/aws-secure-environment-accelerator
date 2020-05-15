@@ -9,7 +9,12 @@ import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
-import { FirewallVpnConnectionOutputType, FirewallVpnConnection } from './step-2';
+import {
+  FirewallVpnConnectionOutputType,
+  FirewallVpnConnection,
+  FirewallInstanceOutput,
+  FirewallInstanceOutputType,
+} from './outputs';
 
 export interface FirewallStep3Props {
   accountStacks: AccountStacks;
@@ -50,7 +55,7 @@ export async function step3(props: FirewallStep3Props) {
     });
     const firewallVpnConnections = firewallVpnConnectionOutputs
       .flatMap(array => array)
-      .filter(conn => conn.firewallAccountKey === accountKey);
+      .filter(c => c.firewallAccountKey === accountKey);
     if (firewallVpnConnections.length === 0) {
       throw new Error(`Cannot find firewall VPN connection outputs`);
     }
@@ -120,8 +125,18 @@ async function createFirewallCluster(props: {
 
     let instance = instancePerAz[az];
     if (!instance) {
-      instance = cluster.createInstance(`Fgt${pascalCase(az)}`);
+      const instanceName = `Fgt${pascalCase(az)}`;
+      instance = cluster.createInstance(instanceName);
       instancePerAz[az] = instance;
+
+      new StructuredOutput<FirewallInstanceOutput>(scope, `Fgt${pascalCase(az)}Output`, {
+        type: FirewallInstanceOutputType,
+        value: {
+          id: instance.instanceId,
+          name: instanceName,
+          az,
+        },
+      });
     }
 
     instance.addNetworkInterface({
