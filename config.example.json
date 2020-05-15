@@ -6,8 +6,13 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "pbmmaccel-config-123456789012",
+    "aws-org-master": {
+       "account": "master",
+       "region": "ca-central-1"
+    },
     "central-security-services": {
        "account": "security",
+       "region": "ca-central-1",
        "security-hub": true,
        "guard-duty": true,
        "cwl": true,
@@ -15,6 +20,7 @@
     },
     "central-operations-services": {
        "account": "operations",
+       "region": "ca-central-1",
        "cwl": true,
        "cwl-access-level": "full"
     },
