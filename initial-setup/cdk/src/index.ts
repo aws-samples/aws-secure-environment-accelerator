@@ -482,6 +482,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -507,6 +508,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -576,6 +578,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -601,6 +604,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -662,6 +666,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -683,13 +688,13 @@ export namespace InitialSetup {
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: `${props.stateMachineName}_sm`,
         definition: sfn.Chain.start(loadConfigurationTask)
-          // .next(addRoleToServiceCatalog)
-          // .next(createAccountsTask)
+          .next(addRoleToServiceCatalog)
+          .next(createAccountsTask)
           .next(loadAccountsTask)
-          // .next(installRolesTask)
-          // .next(loadLimitsTask)
-          // .next(addScpTask)
-          // .next(enableTrustedAccessForServicesTask)
+          .next(installRolesTask)
+          .next(loadLimitsTask)
+          .next(addScpTask)
+          .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)
