@@ -109,7 +109,7 @@ async function main() {
     }
 
     const s3BucketName = rdgwScriptsOutput[0].bucketName;
-    const S3KeyPrefix = rdgwScriptsOutput[0].keyPrefix + '/';
+    const S3KeyPrefix = rdgwScriptsOutput[0].keyPrefix;
     console.log('RDGW reference scripts s3 bucket name with key ', s3BucketName, S3KeyPrefix);
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
