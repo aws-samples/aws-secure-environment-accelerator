@@ -43,7 +43,6 @@ interface AccountRule {
 }
 
 const sts = new STS();
-const secrets = new SecretsManager();
 
 export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);

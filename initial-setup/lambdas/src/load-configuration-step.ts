@@ -281,7 +281,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     organizationalUnits: configurationOus,
     accounts: configurationAccounts,
     warnings,
-    configCommitId: configCommitId,
+    configCommitId,
   };
 };
 

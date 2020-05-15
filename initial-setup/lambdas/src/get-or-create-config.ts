@@ -37,7 +37,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       });
       // Push config file to repository
       const commit = await codecommit.putFile({
-        branchName: branchName,
+        branchName,
         repositoryName,
         filePath,
         fileContent: configString,
