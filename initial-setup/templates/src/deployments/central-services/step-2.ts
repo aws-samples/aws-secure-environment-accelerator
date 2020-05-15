@@ -65,7 +65,7 @@ export async function step2(props: CentralServicesStep2Props) {
   for (const account of accounts) {
     const accountStack = accountStacks.getOrCreateAccountStack(account.key);
     const monitoringAccountIds = monitoringAccounts
-      .filter(accountKey => accountKey != account.key)
+      .filter(accountKey => accountKey !== account.key)
       .map(a => {
         return getAccountId(accounts, a);
       });
