@@ -28,7 +28,7 @@ export class S3Template extends cdk.Construct {
       templatePath: props.templatePath,
       outputBucketName: props.outputBucket.bucketName,
       outputPath: props.outputPath,
-      parameters: {}
+      parameters: {},
     };
 
     new cdk.CustomResource(this, 'Resource', {
