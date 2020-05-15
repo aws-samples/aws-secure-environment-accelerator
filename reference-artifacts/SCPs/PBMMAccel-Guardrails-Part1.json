@@ -30,7 +30,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
@@ -49,7 +49,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
@@ -75,7 +75,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
@@ -87,53 +87,40 @@
         "iam:*"
       ],
       "Resource":[
-        "arn:aws:iam::*:role/AcceleratorPipelineRole",
+        "arn:aws:iam::*:role/PBMMAccel-*",
+        "arn:aws:iam::*:role/PBMMOps-*",
         "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole"
       ],
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
     },
     {
-      "Sid":"DenySSMDocDel",
-      "Effect":"Deny",
-      "Action":[
-        "ssm:DeleteDocument",
-        "ssm:UpdateDocument",
-        "ssm:CreateDocument"
-      ],
-      "Resource":"arn:aws:ssm:*:*:document/PBMMAccel-*",
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
-          ]
-        }
-      }
-    },
-    {
-      "Sid":"DenySSMParamDel",
+      "Sid":"DenySSMDel",
       "Effect":"Deny",
       "Action":[
         "ssm:DeleteParameter",
         "ssm:DeleteParameters",
-        "ssm:PutParameter"
+        "ssm:PutParameter",
+        "ssm:DeleteDocument",
+        "ssm:UpdateDocument",
+        "ssm:CreateDocument"
       ],
       "Resource":[
         "arn:aws:ssm:*:*:parameter/PBMMAccel-*",
-        "arn:aws:ssm:*:*:parameter/cloudformation*"
+        "arn:aws:ssm:*:*:parameter/cloudformation*",
+        "arn:aws:ssm:*:*:document/PBMMAccel-*"
       ],
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
@@ -157,7 +144,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
@@ -192,7 +179,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
@@ -225,7 +212,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
