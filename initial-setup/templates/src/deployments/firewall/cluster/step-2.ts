@@ -23,6 +23,16 @@ export interface FirewallStep2Props {
   transitGateways: Map<string, TransitGateway>;
 }
 
+export const FirewallVpnTunnelOptionsType = t.interface({
+  cgwTunnelInsideAddress1: t.string,
+  cgwTunnelOutsideAddress1: t.string,
+  cgwBgpAsn1: t.string,
+  vpnTunnelInsideAddress1: t.string,
+  vpnTunnelOutsideAddress1: t.string,
+  vpnBgpAsn1: t.string,
+  preSharedSecret1: t.string,
+});
+
 export const FirewallVpnConnectionType = t.intersection([
   FirewallPortType,
   t.interface({
@@ -30,21 +40,13 @@ export const FirewallVpnConnectionType = t.intersection([
     transitGatewayId: t.string,
     customerGatewayId: optional(t.string),
     vpnConnectionId: optional(t.string),
-    vpnTunnelOptions: optional(
-      t.interface({
-        cgwTunnelInsideAddress: t.string,
-        cgwBgpAsn: t.string,
-        vpnTunnelInsideAddress: t.string,
-        vpnTunnelOutsideAddress: t.string,
-        vpnBgpAsn: t.string,
-        preSharedSecret: t.string,
-      }),
-    ),
+    vpnTunnelOptions: optional(FirewallVpnTunnelOptionsType),
   }),
 ]);
 
 export const FirewallVpnConnectionOutputType = t.array(FirewallVpnConnectionType, 'FirewallVpnConnectionOutput');
 
+export type FirewallVpnTunnelOptions = t.TypeOf<typeof FirewallVpnTunnelOptionsType>;
 export type FirewallVpnConnection = t.TypeOf<typeof FirewallVpnConnectionType>;
 export type FirewallVpnConnectionOutput = t.TypeOf<typeof FirewallVpnConnectionOutputType>;
 
@@ -141,12 +143,13 @@ async function createCustomerGateways(props: {
       });
 
       vpnTunnelOptions = {
-        cgwTunnelInsideAddress: options?.getAttString('CgwInsideIpAddress1'),
-        cgwBgpAsn: options?.getAttString('CgwBgpAsn1'),
-        vpnTunnelInsideAddress: options?.getAttString('VpnInsideIpAddress1'),
-        vpnTunnelOutsideAddress: options?.getAttString('VpnOutsideIpAddress1'),
-        vpnBgpAsn: options?.getAttString('VpnBgpAsn1'),
-        preSharedSecret: options?.getAttString('PreSharedKey1'),
+        cgwTunnelInsideAddress1: options.getAttString('CgwInsideIpAddress1'),
+        cgwTunnelOutsideAddress1: options.getAttString('CgwOutsideIpAddress1'),
+        cgwBgpAsn1: options.getAttString('CgwBgpAsn1'),
+        vpnTunnelInsideAddress1: options.getAttString('VpnInsideIpAddress1'),
+        vpnTunnelOutsideAddress1: options.getAttString('VpnOutsideIpAddress1'),
+        vpnBgpAsn1: options.getAttString('VpnBgpAsn1'),
+        preSharedSecret1: options.getAttString('PreSharedKey1'),
       };
     }
 

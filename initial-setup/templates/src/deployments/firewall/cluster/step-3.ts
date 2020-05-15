@@ -1,10 +1,12 @@
+import * as path from 'path';
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
+import * as s3 from '@aws-cdk/aws-s3';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
-import { ImageFinder } from '@custom-resources/ec2-image-finder';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { FirewallVpnConnectionOutputType, FirewallVpnConnection } from './step-2';
@@ -74,22 +76,39 @@ async function createFirewallCluster(props: {
 }) {
   const { scope, vpc, firewallConfig, firewallVpnConnections } = props;
 
-  const imageFinder = new ImageFinder(scope, 'FirewallImage', {
-    // FortiGate owner ID
-    imageOwner: '679593333241',
-    // If Bring-Your-Own-License, then use the AWS build, otherwise the AWSONDEMAND build
-    imageName: firewallConfig.image === 'BYOL' ? 'FortiGate-VM64-AWS build*' : 'FortiGate-VM64-AWSONDEMAND build*',
-    // Version is always wrapped in round brackets
-    imageVersion: `*(${firewallConfig.version})*`,
+  const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
+
+  // TODO Single bucket per account!
+  // This is for testing
+  const bucket = new s3.Bucket(scope, 'FirewallConfig', {
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
   });
 
-  const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
+  const artifactsFolderPath = path.join(__dirname, 'artifacts');
+  const artifactsDeployment = new s3deployment.BucketDeployment(scope, 'FirewallConfigDeploy', {
+    destinationBucket: bucket,
+    destinationKeyPrefix: undefined,
+    sources: [s3deployment.Source.asset(artifactsFolderPath)],
+  });
 
   const cluster = new FirewallCluster(scope, 'Firewall', {
     vpcCidrBlock: vpc.cidrBlock,
-    imageId: imageFinder.imageId,
+    imageId: firewallConfig['image-id'],
     instanceType: firewallConfig['instance-sizes'],
+    configuration: {
+      bucket,
+      bucketRegion: cdk.Aws.REGION,
+      licensePath: 'fortigate.lic',
+      templateBucket: bucket,
+      templateConfigPath: 'fortigate.txt',
+    },
   });
+
+  // Make sure the artifacts are deployed before using them
+  cluster.node.addDependency(artifactsDeployment);
+
+  // Make sure the cluster can read the license and write the configuration template
+  bucket.grantRead(cluster.instanceRole);
 
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
@@ -106,10 +125,11 @@ async function createFirewallCluster(props: {
     }
 
     instance.addNetworkInterface({
+      name: vpnConnection.name,
       subnet,
       securityGroup,
-      ipCidr: vpnConnection.internalIpCidr,
-      eipAllocationId: vpnConnection?.eipAllocationId,
+      eipAllocationId: vpnConnection.eipAllocationId,
+      vpnTunnelOptions: vpnConnection.vpnTunnelOptions,
     });
   }
   return cluster;

@@ -13,9 +13,9 @@ export interface FirewallStep1Props {
 }
 
 export const FirewallPortType = t.interface({
+  name: t.string,
   subnetName: t.string,
   az: t.string,
-  internalIpCidr: t.string,
   eipIpAddress: optional(t.string),
   eipAllocationId: optional(t.string),
   createCustomerGateway: t.boolean,
@@ -77,12 +77,7 @@ async function createFirewallEips(props: {
   const subnetDefinitions = vpcConfig.subnets?.flatMap(s => s.definitions) || [];
   const azs = subnetDefinitions.map(def => def.az);
   for (const az of new Set(azs)) {
-    for (const [index, port] of Object.entries(firewallConfig.eni.ports)) {
-      const ipCidr = port['internal-ip-addresses'][az];
-      if (!ipCidr) {
-        throw new Error(`Cannot find IP CIDR for firewall port for subnet "${port.subnet}"`);
-      }
-
+    for (const [index, port] of Object.entries(firewallConfig.ports)) {
       let eip;
       if (port['create-eip']) {
         eip = new ec2.CfnEIP(scope, `${firewallCgwName}_az${pascalCase(az)}_${index}_eip`, {
@@ -91,9 +86,9 @@ async function createFirewallEips(props: {
       }
 
       ports.push({
+        name: port.name,
         subnetName: port.subnet,
         az,
-        internalIpCidr: ipCidr.toCidrString(),
         eipIpAddress: eip?.ref,
         eipAllocationId: eip?.attrAllocationId,
         createCustomerGateway: port['create-cgw'],

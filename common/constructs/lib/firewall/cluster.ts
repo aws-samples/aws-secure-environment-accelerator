@@ -1,21 +1,25 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import { KeyPair } from 'cdk-ec2-key-pair';
-import { FirewallInstance } from './instance';
+import { FirewallInstance, FirewallConfigurationProps } from './instance';
+
+export type FirewallClusterConfigurationProps = Omit<FirewallConfigurationProps, 'configPath'>;
 
 export interface FirewallClusterProps {
   vpcCidrBlock: string;
   imageId: string;
   instanceType: string;
+  configuration: FirewallClusterConfigurationProps;
 }
 
 export class FirewallCluster extends cdk.Construct {
   private readonly props: FirewallClusterProps;
-  private readonly instances: FirewallInstance[] = [];
-  private readonly instanceRole: iam.Role;
-  private readonly instanceProfile: iam.CfnInstanceProfile;
-  private readonly keyPairName: string;
-  private readonly keyPair: KeyPair;
+
+  readonly instances: FirewallInstance[] = [];
+  readonly instanceRole: iam.Role;
+  readonly instanceProfile: iam.CfnInstanceProfile;
+  readonly keyPairName: string;
+  readonly keyPair: KeyPair;
 
   constructor(scope: cdk.Construct, id: string, props: FirewallClusterProps) {
     super(scope, id);
@@ -33,7 +37,6 @@ export class FirewallCluster extends cdk.Construct {
           'ec2:AssignPrivateIpAddresses',
           'ec2:UnassignPrivateIpAddresses',
           'ec2:ReplaceRoute',
-          's3:GetObject',
         ],
         resources: ['*'],
       }),
@@ -54,11 +57,15 @@ export class FirewallCluster extends cdk.Construct {
     const index = this.instances.length;
     const instance = new FirewallInstance(this, `Instance${index}`, {
       hostname,
-      vpcCidr: this.props.vpcCidrBlock,
+      vpcCidrBlock: this.props.vpcCidrBlock,
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
       keyPairName: this.keyPairName,
       iamInstanceProfileName: this.instanceProfile.instanceProfileName!,
+      configuration: {
+        ...this.props.configuration,
+        configPath: `fgtconfig-init-${hostname}-${index}.txt`,
+      },
     });
     instance.node.addDependency(this.keyPair);
 
