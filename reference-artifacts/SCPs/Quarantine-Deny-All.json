@@ -10,7 +10,7 @@
                 "ArnNotLike": {
                     "aws:PrincipalARN": [
                         "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-                        "arn:aws:iam::*:role/AcceleratorPipelineRole"
+                        "arn:aws:iam::*:role/PBMMAccel-*"
                     ]
                 }
             }

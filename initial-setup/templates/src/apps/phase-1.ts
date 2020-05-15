@@ -1,8 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
-import { loadAccounts, getAccountId } from '../utils/accounts';
+import { loadAccounts, getAccountId, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
@@ -13,18 +13,37 @@ import { TransitGateway } from '../common/transit-gateway';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
-import { InterfaceEndpointConfig, PeeringConnectionConfig } from '@aws-pbmm/common-lambda/lib/config';
+import {
+  InterfaceEndpointConfig,
+  PeeringConnectionConfig,
+  IamUserConfigType,
+  IamConfig,
+  IamConfigType,
+  IamPolicyConfigType,
+} from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
 import { AccountStacks } from '../common/account-stacks';
 import * as firewall from '../deployments/firewall/cluster';
 import * as iam from '@aws-cdk/aws-iam';
+import { CurBucket } from '../common/cur-bucket';
+import { IamAssets } from '../common/iam-assets';
+import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
+import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
+
+export interface IamPolicyArtifactsOutput {
+  bucketArn: string;
+  bucketName: string;
+  keyPrefix: string;
+}
 
 /**
  * This is the main entry point to deploy phase 1.
@@ -50,6 +69,9 @@ async function main() {
   const limiter = new Limiter(limits);
 
   const globalOptions = acceleratorConfig['global-options'];
+
+  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
+  const orgUnits = acceleratorConfig.getOrganizationalUnits();
 
   const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
   const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
@@ -243,9 +265,8 @@ async function main() {
 
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
-      // Create Accepter Role for Peering Connection
-      // const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
-      const roleName = createRoleName('VPC-PeeringConnection');
+      // Create Accepter Role for Peering Connection **WITHOUT** random suffix
+      const roleName = createRoleName(`VPC-PCX-${accountKey}To${pcxConfig.source}`, undefined);
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
     }
   }
@@ -257,6 +278,156 @@ async function main() {
     outputs,
     transitGateways,
   });
+
+  const createCurBucket = async (accountKey: string): Promise<void> => {
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountId = getAccountId(accounts, accountKey);
+
+    const costAndUsageReportConfig = globalOptions.reports['cost-and-usage-report'];
+    const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
+      .replace('xxaccountIdxx', accountId)
+      .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
+
+    const curBucket = new CurBucket(accountStack, `Cost And Usage Report Bucket-${pascalCase(accountKey)}`, {
+      s3BucketNameForCur,
+      expirationInDays: globalOptions['central-log-retention'],
+      replication: {
+        accountId: logArchiveAccountId,
+        bucketArn: logArchiveS3BucketArn,
+        kmsKeyArn: logArchiveS3KmsKeyArn,
+      },
+    });
+  };
+
+  const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string }> => {
+    const iamPoliciesDef: { [policyName: string]: string } = {};
+
+    // TODO Remove hard-coded 'master' account key and use configuration file somehow
+    const masterAccountId = getAccountId(accounts, 'master');
+    const sts = new STS();
+    const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
+      masterAccountId,
+      context.acceleratorExecutionRoleName,
+    );
+
+    const iamPolicyS3 = new S3(masterAcctCredentials);
+
+    const iamPolicyArtifactOutput: IamPolicyArtifactsOutput[] = getStackJsonOutput(outputs, {
+      accountKey: 'master',
+      outputType: 'IamPolicyArtifactsOutput',
+    });
+
+    if (iamPolicyArtifactOutput.length === 0) {
+      throw new Error(`Cannot find output with Iam Policy reference artifacts`);
+    }
+
+    const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
+    const iamPoliciesBucketPrefix = iamPolicyArtifactOutput[0].keyPrefix + '/';
+
+    for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+      const iamConfig = accountConfig.iam;
+      if (IamConfigType.is(iamConfig)) {
+        const iamPolicies = iamConfig?.policies;
+        if (iamPolicies && iamPolicies?.length > 1) {
+          for (const iamPolicy of iamPolicies) {
+            if (IamPolicyConfigType.is(iamPolicy)) {
+              const iamPolicyName = iamPolicy['policy-name'];
+              const iamPolicyFileName = iamPolicy.policy;
+              const policyContent = await iamPolicyS3.getObjectBodyAsString({
+                Bucket: iamPoliciesBucketName,
+                Key: `${iamPoliciesBucketPrefix}${iamPolicyFileName}`,
+              });
+              iamPoliciesDef[iamPolicyName] = policyContent;
+            }
+          }
+        }
+      }
+    }
+
+    return iamPoliciesDef;
+  };
+
+  // TODO Remove hard-coded 'master' account key and use configuration file somehow
+  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
+
+  const iamPoliciesDefinition = await getIamPoliciesDefinition();
+
+  const getUserPasswords = async (accountKey: string, iamConfig?: IamConfig): Promise<{ [userId: string]: Secret }> => {
+    const userPasswords: { [userId: string]: Secret } = {};
+    const accountId = getAccountId(accounts, accountKey);
+
+    const iamUsers = iamConfig?.users;
+    if (iamUsers && iamUsers?.length >= 1) {
+      for (const iamUser of iamUsers) {
+        if (!IamUserConfigType.is(iamUser)) {
+          console.log(
+            `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
+          );
+        } else {
+          for (const userId of iamUser['user-ids']) {
+            const password = secretsStack.createSecret(`${userId}-UserPswd`, {
+              secretName: `accelerator/${accountKey}/user/password/${userId}`,
+              description: `Password for IAM User - ${userId}.`,
+              generateSecretString: {
+                passwordLength: 16,
+              },
+              principals: [new iam.AccountPrincipal(accountId)],
+            });
+            userPasswords[userId] = password;
+          }
+        }
+      }
+    } else {
+      console.log(
+        `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
+      );
+    }
+
+    return userPasswords;
+  };
+
+  const createIamAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
+    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+
+    const userPasswords = await getUserPasswords(accountKey, iamConfig);
+
+    const iamAssets = new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
+      accountKey,
+      iamConfig,
+      iamPoliciesDefinition,
+      accounts,
+      userPasswords,
+    });
+  };
+
+  const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
+    const accountsPerOu: Account[] = [];
+    for (const account of accounts) {
+      if (account.ou === ouName && !mandatoryAccKeys.includes(account.key)) {
+        accountsPerOu.push(account);
+      }
+    }
+    return accountsPerOu;
+  };
+
+  const mandatoryAccountKeys: string[] = [];
+  // creating assets for default account settings
+  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+    mandatoryAccountKeys.push(accountKey);
+    if (accountKey === 'master') {
+      await createCurBucket(accountKey);
+    }
+    await createIamAssets(accountKey, accountConfig.iam);
+  }
+
+  // creating assets for org unit accounts
+  for (const [orgName, orgConfig] of orgUnits) {
+    const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
+    for (const orgAccount of orgAccounts) {
+      await createIamAssets(orgAccount.key, orgConfig.iam);
+    }
+  }
 }
 
 // tslint:disable-next-line: no-floating-promises

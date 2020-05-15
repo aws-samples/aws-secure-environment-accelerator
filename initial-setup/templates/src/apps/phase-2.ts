@@ -21,6 +21,7 @@ import * as firewallCluster from '../deployments/firewall/cluster';
 import * as firewallManagement from '../deployments/firewall/manager';
 import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -69,7 +70,9 @@ async function main() {
       continue;
     }
     const pcxSourceVpc = pcxConfig['source-vpc'];
-    const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+    // TODO store role name in outputs
+    // Get the exact same role name as in phase 1
+    const roleName = createRoleName(`VPC-PCX-${accountKey}To${pcxConfig.source}`, undefined)
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     // Get Peer VPC Configuration

@@ -12,10 +12,10 @@ export function createBucketName(name?: string): string {
   });
 }
 
-export function createRoleName(name: string): string {
+export function createRoleName(name: string, suffixLength: number = 8): string {
   return createName({
     name,
-    suffixLength: 8,
+    suffixLength,
   });
 }
 

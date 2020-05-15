@@ -1,5 +1,6 @@
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { FMS } from '@aws-pbmm/common-lambda/lib/aws/fms';
+import { IAM } from '@aws-pbmm/common-lambda/lib/aws/iam';
 import { Account } from './load-accounts-step';
 
 interface EnableTrustedAccessForServicesInput {
@@ -31,6 +32,22 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
 
   await org.enableAWSServiceAccess('access-analyzer.amazonaws.com');
   console.log('Enabled Access Analyzer service access within the Organization.');
+
+  const iam = new IAM();
+  // as access analyzer will be created in security account, creating service linked role specifically in master.
+  try {
+    await iam.createServiceLinkedRole('access-analyzer.amazonaws.com');
+  } catch (e) {
+    if (
+      e.message ===
+      'Service role name AWSServiceRoleForAccessAnalyzer has been taken in this account, please try a different suffix.'
+    ) {
+      // ignore exception
+    } else {
+      throw e;
+    }
+  }
+  console.log('AWS Service Linked Role created for Access Analyzer service in master account.');
 
   await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');

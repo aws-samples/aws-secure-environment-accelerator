@@ -101,6 +101,8 @@
         "guardduty:UpdateDetector",
         "guardduty:UpdateFindingsFeedback",
         "guardduty:UpdatePublishingDestination",
+        "guardduty:CreateMembers",
+        "guardduty:InviteMembers",
         "securityhub:AcceptInvitation",
         "securityhub:DeclineInvitations",
         "securityhub:DeleteInvitations",
@@ -122,7 +124,7 @@
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/AcceleratorPipelineRole"
+            "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
