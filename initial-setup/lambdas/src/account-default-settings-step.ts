@@ -210,8 +210,13 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const blockPublicAccess = !accountConfig['enable-s3-public-access'];
     await putPublicAccessBlock(account.id, account.key, blockPublicAccess);
 
-    // enable default encryption for EBS
-    await enableEbsDefaultEncryption(account.id, account.key);
+    try {
+      // enable default encryption for EBS
+      await enableEbsDefaultEncryption(account.id, account.key);
+    } catch (e) {
+      console.error(`Ignoring error while enabling EBS default encryption`);
+      console.error(e);
+    }
 
     try {
       // update AWS LZ cloud trail settings

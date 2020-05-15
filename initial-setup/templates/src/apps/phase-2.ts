@@ -1,3 +1,4 @@
+import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId, loadAccounts } from '../utils/accounts';
@@ -71,7 +72,7 @@ async function main() {
     const pcxSourceVpc = pcxConfig['source-vpc'];
     // TODO store role name in outputs
     // Get the exact same role name as in phase 1
-    const roleName = createRoleName(`VPC-PCX-${accountKey}To${pcxConfig.source}`, undefined);
+    const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     // Get Peer VPC Configuration
