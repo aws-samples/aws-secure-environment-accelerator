@@ -74,8 +74,8 @@ export const handler = async (input: certManagerInput) => {
           Bucket: centralBucket,
           Key: certConfig['priv-key']!,
         }),
-        CertificateArn: (certConfig.arn === '' ? undefined: certConfig.arn),
-        CertificateChain: (certConfig.chain === '' ? undefined: certConfig.chain),
+        CertificateArn: certConfig.arn === '' ? undefined : certConfig.arn,
+        CertificateChain: certConfig.chain === '' ? undefined : certConfig.chain,
         Tags: [
           {
             Key: 'Accelerator',
@@ -84,11 +84,9 @@ export const handler = async (input: certManagerInput) => {
         ],
       };
       const importCertificateResponse = await acm.importCertificate(importCertificateRequest);
-      console.log('importCertificateResponse: ', importCertificateResponse);      
-      
-      // store the certificate arn in secrets manager
-      
+      console.log('importCertificateResponse: ', importCertificateResponse);
 
+      // store the certificate arn in secrets manager
     } else if (certConfig.type === 'request') {
       const requestCertificateRequest: aws.ACM.RequestCertificateRequest = {
         DomainName: certConfig.domain!,
@@ -165,4 +163,3 @@ export const handler = async (input: certManagerInput) => {
     statusReason: 'Successfully requested or imported certificates into AWS Certificate Manager.',
   };
 };
-
