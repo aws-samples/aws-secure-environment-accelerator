@@ -193,6 +193,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
         ReportVersioning: costAndUsageReportConfig['report-versioning'],
       },
     };
+    // TODO Overwrite report if exists
     const PutReportDefinitionResponse = await cur.putReportDefinition(params);
     console.log('PutReportDefinitionResponse: ', PutReportDefinitionResponse);
     console.log(`Cost and Usage Report - enabled for account - ${accountKey}`);
@@ -212,8 +213,13 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     // enable default encryption for EBS
     await enableEbsDefaultEncryption(account.id, account.key);
 
-    // update AWS LZ cloud trail settings
-    await updateCloudTrailSettings(account.id, account.key);
+    try {
+      // update AWS LZ cloud trail settings
+      await updateCloudTrailSettings(account.id, account.key);
+    } catch (e) {
+      console.error(`Error while updating CloudTrail settings`);
+      console.error(e);
+    }
 
     if (account.type === 'log-archive') {
       // alter the encryption key used cloud trail s3 bucket
@@ -221,8 +227,17 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
     }
 
-    if (account.type === 'primary') {
-      await enableCostAndUsageReport(account.id, account.key);
+    try {
+      if (account.type === 'primary') {
+        await enableCostAndUsageReport(account.id, account.key);
+      }
+    } catch (e) {
+      // TODO Overwrite report
+      if (e.code === 'DuplicateReportNameException') {
+        console.warn(`Report already exists`);
+      } else {
+        throw e;
+      }
     }
   }
 
