@@ -347,7 +347,7 @@ export namespace InitialSetup {
           accountsSecretId: accountsSecret.secretArn,
           'configuration.$': '$.configuration',
         },
-        resultPath: '$.accounts',
+        resultPath: '$',
       });
 
       const installRoleTemplate = new s3assets.Asset(this, 'ExecutionRoleTemplate', {
@@ -415,7 +415,7 @@ export namespace InitialSetup {
         destinationKeyPrefix: 'scp',
       });
 
-      const addScpTask = new CodeTask(this, 'Add SCP to Org', {
+      const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {
         functionProps: {
           code: lambdaCode,
           handler: 'index.addScpStep',
@@ -426,6 +426,7 @@ export namespace InitialSetup {
           configSecretId: configSecretInProgress.secretArn,
           scpBucketName: scpArtifactBucket.bucketName,
           scpBucketPrefix: 'scp',
+          'organizationalUnits.$': '$.organizationalUnits',
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
@@ -682,17 +683,18 @@ export namespace InitialSetup {
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: `${props.stateMachineName}_sm`,
         definition: sfn.Chain.start(loadConfigurationTask)
-          .next(addRoleToServiceCatalog)
-          .next(createAccountsTask)
+          // .next(addRoleToServiceCatalog)
+          // .next(createAccountsTask)
           .next(loadAccountsTask)
-          .next(installRolesTask)
-          .next(loadLimitsTask)
-          .next(addScpTask)
-          .next(enableTrustedAccessForServicesTask)
+          // .next(installRolesTask)
+          // .next(loadLimitsTask)
+          // .next(addScpTask)
+          // .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)
           .next(storePhase1Output)
+          .next(accountDefaultSettingsTask)
           .next(deployPhase2Task)
           .next(storePhase2Output)
           .next(deployPhase3Task)
@@ -703,8 +705,7 @@ export namespace InitialSetup {
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
           .next(deployPhase5Task)
-          .next(createAdConnectorTask)
-          .next(accountDefaultSettingsTask),
+          .next(createAdConnectorTask),
       });
     }
   }

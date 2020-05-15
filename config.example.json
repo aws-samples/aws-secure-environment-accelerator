@@ -803,9 +803,7 @@
             ]
           }
         ],
-        "tgw-attach": {
-          "associate-to-tgw": ""
-        },
+        "tgw-attach": false,
         "interface-endpoints": {
           "subnet": "Proxy",
           "endpoints": [
@@ -973,9 +971,7 @@
             ]
           }
         ],
-        "tgw-attach": {
-          "associate-to-tgw": ""
-        },
+        "tgw-attach": false,
         "interface-endpoints": false
       },
       "deployments": {
@@ -3768,9 +3764,7 @@
             ]
           }
         ],
-        "tgw-attach": {
-          "associate-to-tgw": ""
-        },
+        "tgw-attach": false,
         "interface-endpoints": false
       },
       "iam": {

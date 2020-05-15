@@ -83,7 +83,7 @@ export const RouteTableConfigType = t.interface({
 
 export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all attach options here
 
-export const TransitGatewayAttachConfig = t.interface({
+export const TransitGatewayAttachConfigType = t.interface({
   'associate-to-tgw': t.string,
   account: optional(t.string),
   'associate-type': optional(t.literal('ATTACH')),
@@ -93,6 +93,8 @@ export const TransitGatewayAttachConfig = t.interface({
   'attach-subnets': optional(t.array(NonEmptyString)),
   options: optional(t.array(TransitGatewayAttachOption)),
 });
+
+export type TransitGatewayAttachConfig = t.TypeOf<typeof TransitGatewayAttachConfigType>;
 
 export const InterfaceEndpointName = t.string; // TODO Define all endpoints here
 
@@ -166,7 +168,7 @@ export const VpcConfigType = t.interface({
   subnets: optional(t.array(SubnetConfigType)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfigType)),
-  'tgw-attach': optional(TransitGatewayAttachConfig),
+  'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
