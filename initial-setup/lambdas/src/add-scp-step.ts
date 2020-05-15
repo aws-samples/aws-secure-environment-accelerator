@@ -4,13 +4,13 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { AcceleratorConfig, OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { Account } from './load-accounts-step';
-import { ConfigurationOrganizationalUnit } from './load-configuration-step';
+import { ConfigurationOrganizationalUnit, LoadConfigurationInput } from './load-configuration-step';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
 const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
-interface AddScpInput {
+interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
-  configSecretId: string;
   scpBucketName: string;
   scpBucketPrefix: string;
   organizationalUnits: ConfigurationOrganizationalUnit[];
@@ -24,13 +24,20 @@ export const handler = async (input: AddScpInput) => {
   console.log(`Adding service control policy to organization...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, configSecretId, scpBucketName, scpBucketPrefix, accounts, organizationalUnits } = input;
+  const {
+    acceleratorPrefix,
+    scpBucketName,
+    scpBucketPrefix,
+    accounts,
+    organizationalUnits,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+  } = input;
 
   const secrets = new SecretsManager();
-  const source = await secrets.getSecret(configSecretId);
-
-  // Load the configuration from Secrets Manager
-  const configString = source.SecretString!;
+  // Retrive Configuration from Code Commit with specific commitId
+  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
   const config = AcceleratorConfig.fromString(configString);
 
   // Find policy config
