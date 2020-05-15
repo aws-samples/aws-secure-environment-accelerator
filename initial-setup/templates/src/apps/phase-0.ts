@@ -190,7 +190,7 @@ async function main() {
       description: `ARN of ACM certificate - ${certsConfig.name}.`,
       principals: [new iam.AccountPrincipal(accountId)],
     });
-  }
+  };
 
   const mandatoryAccountKeys: string[] = [];
   // creating assets for default account settings
@@ -199,12 +199,12 @@ async function main() {
     await createDefaultEbsEncryptionKey(accountKey);
 
     const certsConfig = accountConfig.certificates;
-    if(certsConfig && certsConfig.length > 0) {
+    if (certsConfig && certsConfig.length > 0) {
       for (const certConfig of certsConfig) {
         await createAcmSecret(accountKey, certConfig);
       }
     }
-    
+
     if (accountKey === 'security') {
       await createAccessAnalyzer(accountKey);
     }
@@ -217,7 +217,7 @@ async function main() {
       await createDefaultEbsEncryptionKey(orgAccount.key);
 
       const certsConfig = orgConfig.certificates;
-      if(certsConfig && certsConfig.length > 0) {
+      if (certsConfig && certsConfig.length > 0) {
         for (const certConfig of certsConfig) {
           await createAcmSecret(orgAccount.key, certConfig);
         }

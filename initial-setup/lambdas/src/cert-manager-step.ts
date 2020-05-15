@@ -65,14 +65,16 @@ export const handler = async (input: CertManagerInput) => {
 
     // check whether arn exists before creating new cert
     let acmCertArnSecretId = outputKeys.ACM_CERT_ARN_SECRET_ID_FORMAT;
-    acmCertArnSecretId = acmCertArnSecretId.replace('xxaccountKeyxx', accountKey).replace('xxcertNamexx',certConfig.name);
+    acmCertArnSecretId = acmCertArnSecretId
+      .replace('xxaccountKeyxx', accountKey)
+      .replace('xxcertNamexx', certConfig.name);
 
     const acmCertArnSecret = await secrets.getSecret(acmCertArnSecretId);
-    
-    if(acmCertArnSecret.SecretString?.startsWith('arn:aws:acm')) {
+
+    if (acmCertArnSecret.SecretString?.startsWith('arn:aws:acm')) {
       console.log(`Cert ${certConfig.name} already generated.`);
     } else if (certConfig.type === 'import') {
-        const importCertificateRequest: aws.ACM.ImportCertificateRequest = {
+      const importCertificateRequest: aws.ACM.ImportCertificateRequest = {
         Certificate: await s3.getObjectBodyAsString({
           Bucket: centralBucket,
           Key: certConfig.cert!,
