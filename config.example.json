@@ -139,7 +139,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -309,7 +309,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -379,23 +379,8 @@
               "name": "RemoteDesktopGatewaySG",
               "inbound-rules": [
                 {
-                  "description": "Allow Inbound Domain Traffic",
-                  "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
-                  "udp-ports": [445, 138, 464, 53, 389, 123, 88],
-                  "source": ["0.0.0.0/0"]
-                },
-                {
-                  "description": "Allow Inbound RDSH",
-                  "type": ["TCP"],
-                  "toPort": 3269,
-                  "fromPort": 3268,
-                  "source": ["0.0.0.0/0"]
-                },
-                {
-                  "description": "Allow Inbound High Ports",
-                  "type": ["TCP"],
-                  "toPort": 65535,
-                  "fromPort": 1024,
+                  "description": "Allow RDP Traffic Inbound",
+                  "type": ["RDP"],
                   "source": ["0.0.0.0/0"]
                 }
               ],
@@ -403,7 +388,7 @@
                 {
                   "description": "All Outbound",
                   "type": ["ALL"],
-                  "source": ["0.0.0.0/0", "0::/0"]
+                  "source": ["0.0.0.0/0"]
                 }
               ]
             }
@@ -574,7 +559,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -1343,6 +1328,38 @@
         ],
         "security-groups": [
           {
+            "name": "SampleComplexSecurityGroup",
+            "inbound-rules": [
+              {
+                "description": "Allow Inbound Domain Traffic",
+                "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
+                "udp-ports": [445, 138, 464, 53, 389, 123, 88],
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound RDSH",
+                "type": ["TCP"],
+                "toPort": 3269,
+                "fromPort": 3268,
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound High Ports",
+                "type": ["TCP"],
+                "toPort": 65535,
+                "fromPort": 1024,
+                "source": ["0.0.0.0/0"]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0", "0::/0"]
+              }
+            ]
+          },
+          {
             "name": "Mgmt",
             "inbound-rules": [
               {
@@ -1527,7 +1544,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -1996,7 +2013,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -2465,7 +2482,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -2934,7 +2951,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -3378,7 +3395,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -3778,7 +3795,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
