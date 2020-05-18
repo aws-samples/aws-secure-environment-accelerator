@@ -3,7 +3,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
-import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 
 export namespace CreateStackTask {
   export interface Props {

@@ -1,5 +1,5 @@
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { Account } from './load-accounts-step';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { CloudFormation } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
