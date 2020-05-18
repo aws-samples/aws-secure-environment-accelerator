@@ -40,10 +40,10 @@ export async function step2(props: CentralServicesStep2Props) {
 
   const centralSecurityServices = config['global-options']['central-security-services'];
   const centralOperationsServices = config['global-options']['central-operations-services'];
-  const monitoringAccounts: string[] = [];
+  const monitoringAccountKeys: string[] = [];
   if (centralSecurityServices && centralSecurityServices.cwl) {
     const accountStack = accountStacks.getOrCreateAccountStack(centralSecurityServices.account);
-    monitoringAccounts.push(centralSecurityServices.account);
+    monitoringAccountKeys.push(centralSecurityServices.account);
     await centralLoggingMonitoringEnable({
       scope: accountStack,
     });
@@ -51,20 +51,20 @@ export async function step2(props: CentralServicesStep2Props) {
 
   if (centralOperationsServices && centralOperationsServices.cwl) {
     const accountStack = accountStacks.getOrCreateAccountStack(centralOperationsServices.account);
-    monitoringAccounts.push(centralOperationsServices.account);
+    monitoringAccountKeys.push(centralOperationsServices.account);
     await centralLoggingMonitoringEnable({
       scope: accountStack,
     });
   }
 
-  if (monitoringAccounts.length === 0) {
+  if (monitoringAccountKeys.length === 0) {
     return;
   }
   const accessLevel =
     centralOperationsServices['cwl-access-level'] || centralSecurityServices['cwl-access-level'] || 'full';
   for (const account of accounts) {
     const accountStack = accountStacks.getOrCreateAccountStack(account.key);
-    const monitoringAccountIds = monitoringAccounts
+    const monitoringAccountIds = monitoringAccountKeys
       .filter(accountKey => accountKey !== account.key)
       .map(a => {
         return getAccountId(accounts, a);
@@ -98,16 +98,18 @@ async function centralLoggingShareDataSettings(props: {
   accessLevel: string;
 }) {
   const { scope, monitoringAccountIds, accessLevel } = props;
-  const accountPrincipals: iam.PrincipalBase[] = monitoringAccountIds.map(accountId => {
-    return new iam.AccountPrincipal(accountId);
-  });
+  const accountPrincipals: iam.PrincipalBase[] = monitoringAccountIds.map(accountId => 
+    new iam.AccountPrincipal(accountId)
+  );
+  const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
+  if (!logPermission) {
+    throw new Error("Invalid Log Level Access given for CWL Central logging");
+  }
   new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
     roleName: 'CloudWatch-CrossAccountSharingRole',
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),
-    managedPolicies: LOG_PERMISSIONS.find(logPermission => logPermission.level === accessLevel)?.permissions.map(
-      permission => {
-        return iam.ManagedPolicy.fromAwsManagedPolicyName(permission);
-      },
+    managedPolicies: logPermission.permissions.map(
+      permission => iam.ManagedPolicy.fromAwsManagedPolicyName(permission),
     ),
   });
 }

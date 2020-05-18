@@ -51,11 +51,15 @@ async function centralServicesSettingsInMaster(props: {
   }
 
   // Enable Cross-Account CloudWatch access in Master account fot sub accounts
-  const accountStack = accountStacks.getOrCreateAccountStack('master');
+  const masterAccount = accounts.find(account => account.type === 'primary');
+  if (!masterAccount) {
+    throw new Error("Landing Zone Master Account Not found");
+  }
+  const accountStack = accountStacks.getOrCreateAccountStack(masterAccount.key);
   await cloudWatchSettingsInMaster({
     scope: accountStack,
     accountIds,
-  });
+  }); 
 }
 
 /**
