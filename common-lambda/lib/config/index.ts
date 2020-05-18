@@ -321,22 +321,19 @@ export const AdcConfigType = t.interface({
 });
 
 export const FirewallPortConfigType = t.interface({
+  name: t.string,
   subnet: t.string,
   'create-eip': t.boolean,
   'create-cgw': t.boolean,
-  'internal-ip-addresses': t.record(availabilityZone, cidr),
 });
 
 export const FirewallConfigType = t.interface({
   'instance-sizes': t.string,
-  image: t.string, // TODO Enum of BYOL, PAYG
-  version: t.string,
+  'image-id': t.string,
   region: t.string,
   vpc: t.string,
   'security-group': t.string,
-  eni: t.interface({
-    ports: t.array(FirewallPortConfigType),
-  }),
+  ports: t.array(FirewallPortConfigType),
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.string,
@@ -352,8 +349,7 @@ export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
 export const FirewallManagerConfigType = t.interface({
   name: t.string,
   'instance-sizes': t.string,
-  image: t.string, // TODO Enum of BYOL, PAYG
-  version: t.string,
+  'image-id': t.string,
   region: t.string,
   vpc: t.string,
   'security-group': t.string,
