@@ -686,7 +686,7 @@ export namespace InitialSetup {
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
-        stateMachineName: `${props.stateMachineName}_sm`,
+        stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
