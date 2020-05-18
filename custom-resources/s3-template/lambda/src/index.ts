@@ -2,9 +2,9 @@ import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent, Context } from 'aws-lambda';
 import { send, SUCCESS, FAILED } from 'cfn-response-async';
 
-export type TemplateParameters = { [key: string]: string };
+type TemplateParameters = { [key: string]: string };
 
-export interface HandlerProperties {
+interface HandlerProperties {
   templateBucketName: string;
   templatePath: string;
   outputBucketName: string;
@@ -30,7 +30,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   }
 };
 
-export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   // tslint:disable-next-line: switch-default
   switch (event.RequestType) {
     case 'Create':
