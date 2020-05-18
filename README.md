@@ -4,7 +4,12 @@
 
 ### Prerequisites
 
-You need an AWS account with Landing Zone deployed.
+You need an AWS account with Landing Zone v2.3.1 deployed (v2.4.0 not yet tested).
+When deploying ALZ select: 
+  a) `Lock StackSetExecution Role` to `No`
+  b) All regions for production
+  c) ca-central-1 for testing
+  d) Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (these match sample Accel config file, case sensative)
 
 ### Using the Installer
 
