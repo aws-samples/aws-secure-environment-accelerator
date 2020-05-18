@@ -579,7 +579,8 @@
       "vpc": {
         "deploy": "local",
         "name": "Perimeter",
-        "cidr": "100.96.250.0/23",
+        "cidr": "10.7.4.0/22",
+        "cidr2": "100.96.250.0/23",
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
@@ -596,12 +597,12 @@
               {
                 "az": "a",
                 "route-table": "Public_Shared",
-                "cidr": "100.96.251.64/26"
+                "cidr": "100.96.250.0/25"
               },
               {
                 "az": "b",
                 "route-table": "Public_Shared",
-                "cidr": "100.96.251.128/26"
+                "cidr": "100.96.250.128/25"
               }
             ]
           },
@@ -611,12 +612,12 @@
               {
                 "az": "a",
                 "route-table": "FWMgmt_azA",
-                "cidr": "100.96.251.16/28"
+                "cidr": "100.96.251.32/27"
               },
               {
                 "az": "b",
                 "route-table": "FWMgmt_azB",
-                "cidr": "100.96.251.48/28"
+                "cidr": "100.96.251.160/27"
               }
             ]
           },
@@ -626,12 +627,12 @@
               {
                 "az": "a",
                 "route-table": "Proxy_azA",
-                "cidr": "100.96.250.0/25"
+                "cidr": "100.96.251.64/26"
               },
               {
                 "az": "b",
                 "route-table": "Proxy_azB",
-                "cidr": "100.96.250.128/25"
+                "cidr": "100.96.251.192/26"
               }
             ]
           },
@@ -641,12 +642,27 @@
               {
                 "az": "a",
                 "route-table": "OnPremise_Shared",
-                "cidr": "100.96.251.0/28"
+                "cidr": "100.96.251.0/27"
               },
               {
                 "az": "b",
                 "route-table": "OnPremise_Shared",
-                "cidr": "100.96.251.32/28"
+                "cidr": "100.96.251.128/27"
+              }
+            ]
+          },
+          {
+            "name": "Detonation",
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "Detonation_Shared",
+                "cidr": "10.7.4.0/24"
+              },
+              {
+                "az": "b",
+                "route-table": "Detonation_Shared",
+                "cidr": "10.7.5.0/24"
               }
             ]
           }
@@ -716,6 +732,9 @@
                 "target": "{ENI-FW-azB-p4}"
               }
             ]
+          },
+          {
+            "name": "Detonation_Shared"
           }
         ],
         "security-groups": [
