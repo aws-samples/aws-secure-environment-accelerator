@@ -126,7 +126,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "bmycroft+lzT-network@amazon.com",
+      "email": "myemail+pbmmT-network@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
       "iam": {
@@ -295,7 +295,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "bmycroft+lzT-operations@amazon.com",
+      "email": "myemail+pbmmT-operations@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
@@ -408,7 +408,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "bmycroft+lzT-perimeter@amazon.com",
+      "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {
         "Amazon EC2/Number of EIPs": 10
@@ -885,7 +885,7 @@
     },
     "master": {
       "account-name": "primary",
-      "email": "bmycroft+lzT@amazon.com",
+      "email": "myemail+pbmmT-master@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
@@ -983,21 +983,21 @@
       "account-name": "log-archive",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+logs@amazon.com",
+      "email": "myemail+pbmmT-logs@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+security@amazon.com",
+      "email": "myemail+pbmmT-security@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+services@amazon.com",
+      "email": "myemail+pbmmT-ss@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "shared-services",
       "enable-s3-public-access": true
     }
@@ -1005,19 +1005,19 @@
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "bmycroft+FunAcct@amazon.com",
+      "email": "myemail+pbmmT-FunAcct@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "Sandbox",
       "share-mad-from": ""
     },
     "mydevacct1": {
       "account-name": "MyDev1",
-      "email": "bmycroft+PBMM-Dev1@amazon.com",
+      "email": "myemail+pbmmT-Dev1@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "Dev",
       "share-mad-from": ""
     },
     "my-dev-acct2": {
       "account-name": "MyDev2",
-      "email": "bmycroft+PBMM-Dev2@amazon.com",
+      "email": "myemail+pbmmT-Dev2@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "Dev",
       "share-mad-from": ""
     }
