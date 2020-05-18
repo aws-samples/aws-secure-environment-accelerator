@@ -9,7 +9,6 @@
     "@babel/plugin-transform-typescript": "7.9.4",
     "@babel/preset-env": "7.9.0",
     "@babel/preset-typescript": "7.9.0",
-    "@custom-resources/cfn-sleep-lambda": "workspace:^0.0.1",
     "@types/adm-zip": "0.4.32",
     "@types/aws-lambda": "8.10.46",
     "@types/cfn-response": "1.0.3",
@@ -34,7 +33,8 @@
   "dependencies": {
     "@aws-cdk/aws-iam": "1.38.0",
     "@aws-cdk/aws-lambda": "1.38.0",
-    "@aws-cdk/core": "1.38.0"
+    "@aws-cdk/core": "1.38.0",
+    "@custom-resources/cfn-sleep-lambda": "workspace:^0.0.1"
   },
   "peerDependencies": {
     "@aws-cdk/aws-iam": "^1.38.0",
