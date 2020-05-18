@@ -2,47 +2,30 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
-import { HandlerProperties, TemplateParameters } from '@custom-resources/s3-template-lambda';
+import { HandlerProperties } from '@custom-resources/cfn-sleep-lambda';
 
-const resourceType = 'Custom::S3Template';
+const resourceType = 'Custom::Sleep';
 
-export interface S3TemplateProps {
-  templateBucket: s3.IBucket;
-  templatePath: string;
-  outputBucket: s3.IBucket;
-  outputPath: string;
+export interface CfnSleepProps {
+  sleep: number;
 }
 
 /**
- * Custom resource that has an VPN tunnel options attribute for the VPN connection with the given ID.
+ * Custom resource that has an image ID attribute for the image with the given properties.
  */
-export class S3Template extends cdk.Construct {
-  private readonly handlerProperties: HandlerProperties;
-
-  constructor(scope: cdk.Construct, id: string, props: S3TemplateProps) {
+export class CfnSleep extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props: CfnSleepProps) {
     super(scope, id);
 
-    this.handlerProperties = {
-      templateBucketName: props.templateBucket.bucketName,
-      templatePath: props.templatePath,
-      outputBucketName: props.outputBucket.bucketName,
-      outputPath: props.outputPath,
-      parameters: {},
+    const handlerProperties: HandlerProperties = {
+      sleep: props.sleep,
     };
 
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: this.handlerProperties,
+      properties: handlerProperties,
     });
-
-    props.templateBucket.grantRead(this.role);
-    props.outputBucket.grantWrite(this.role);
-  }
-
-  addReplacement(key: string, value: string) {
-    this.handlerProperties.parameters[key] = value;
   }
 
   get lambdaFunction(): lambda.Function {
@@ -61,7 +44,7 @@ export class S3Template extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@custom-resources/s3-template-lambda');
+    const lambdaPath = require.resolve('@custom-resources/cfn-sleep-lambda');
     const lambdaDir = path.dirname(lambdaPath);
 
     const role = new iam.Role(stack, 'Role', {
@@ -80,6 +63,8 @@ export class S3Template extends cdk.Construct {
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
+      // Set timeout to maximum timeout
+      timeout: cdk.Duration.minutes(15),
     });
   }
 }

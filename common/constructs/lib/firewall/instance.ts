@@ -1,6 +1,8 @@
 import { IPv4CidrRange } from 'ip-num';
+import { KeyPair } from 'cdk-ec2-key-pair';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import { S3Template } from '@custom-resources/s3-template';
 import { Subnet, SecurityGroup } from '../vpc';
@@ -32,8 +34,8 @@ export interface FirewallInstanceProps {
    */
   imageId: string;
   instanceType: string;
-  iamInstanceProfileName: string;
-  keyPairName: string;
+  iamInstanceProfile: iam.CfnInstanceProfile;
+  keyPair: KeyPair | string;
   configuration: FirewallConfigurationProps;
 }
 
@@ -63,8 +65,8 @@ export class FirewallInstance extends cdk.Construct {
     this.resource = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
-      iamInstanceProfile: this.props.iamInstanceProfileName,
-      keyName: this.props.keyPairName,
+      iamInstanceProfile: this.props.iamInstanceProfile.ref,
+      keyName: getKeyPairName(this.props.keyPair),
       networkInterfaces: this.networkInterfacesProps,
       userData: cdk.Fn.base64(
         JSON.stringify(
@@ -79,7 +81,11 @@ export class FirewallInstance extends cdk.Construct {
         ),
       ),
     });
+    this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
+    if (this.props.keyPair instanceof cdk.DependableTrait) {
+      this.resource.node.addDependency(this.props.keyPair);
+    }
   }
 
   addNetworkInterface(props: {
@@ -160,4 +166,11 @@ export class FirewallInstance extends cdk.Construct {
   get instanceId() {
     return this.resource.ref;
   }
+}
+
+function getKeyPairName(keyPairOrName: KeyPair | string) {
+  if (typeof keyPairOrName === 'string') {
+    return keyPairOrName;
+  }
+  return keyPairOrName.name;
 }

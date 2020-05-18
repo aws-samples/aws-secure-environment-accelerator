@@ -50,6 +50,7 @@
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "@aws-pbmm/common-outputs": "workspace:^0.0.1",
     "@aws-pbmm/constructs": "workspace:^0.0.1",
+    "@custom-resources/cfn-sleep": "workspace:^0.0.1",
     "@custom-resources/ds-log-subscription": "workspace:^0.0.1",
     "@custom-resources/ec2-image-finder": "workspace:^0.0.1",
     "@custom-resources/ec2-vpn-tunnel-options": "workspace:^0.0.1",

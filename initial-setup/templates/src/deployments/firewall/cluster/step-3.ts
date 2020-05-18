@@ -92,7 +92,6 @@ async function createFirewallCluster(props: {
   const artifactsFolderPath = path.join(__dirname, 'artifacts');
   const artifactsDeployment = new s3deployment.BucketDeployment(scope, 'FirewallConfigDeploy', {
     destinationBucket: bucket,
-    destinationKeyPrefix: undefined,
     sources: [s3deployment.Source.asset(artifactsFolderPath)],
   });
 

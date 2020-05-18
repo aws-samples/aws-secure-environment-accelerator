@@ -60,8 +60,8 @@ export class FirewallCluster extends cdk.Construct {
       vpcCidrBlock: this.props.vpcCidrBlock,
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
-      keyPairName: this.keyPairName,
-      iamInstanceProfileName: this.instanceProfile.instanceProfileName!,
+      iamInstanceProfile: this.instanceProfile,
+      keyPair: this.keyPairName,
       configuration: {
         ...this.props.configuration,
         configPath: `fgtconfig-init-${hostname}-${index}.txt`,
