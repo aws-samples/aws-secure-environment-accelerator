@@ -54,6 +54,7 @@
       "Effect":"Deny",
       "NotAction":[
         "a4b:*",
+        "access-analyzer:*",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
@@ -76,8 +77,8 @@
         "route53:*",
         "route53domains:*",
         "s3:GetAccountPublic*",
+        "s3:ListBuckets",
         "s3:PutAccountPublic*",
-        "s3:listBuckets",
         "shield:*",
         "sts:*",
         "support:*",

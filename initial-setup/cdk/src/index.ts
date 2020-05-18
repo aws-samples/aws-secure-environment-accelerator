@@ -482,6 +482,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -507,6 +508,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -576,6 +578,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -601,6 +604,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -662,6 +666,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
           stackOutputSecretId: stackOutputSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
