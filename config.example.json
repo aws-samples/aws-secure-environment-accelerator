@@ -983,14 +983,14 @@
       "account-name": "log-archive",
       "share-mad-from": "",
       "ou": "core",
-      "email": "myemail+pbmmT-logs@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-log@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
       "ou": "core",
-      "email": "myemail+pbmmT-security@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-sec@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
@@ -1005,19 +1005,19 @@
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "myemail+pbmmT-FunAcct@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-funacct@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "Sandbox",
       "share-mad-from": ""
     },
     "mydevacct1": {
       "account-name": "MyDev1",
-      "email": "myemail+pbmmT-Dev1@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-dev1@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "Dev",
       "share-mad-from": ""
     },
     "my-dev-acct2": {
       "account-name": "MyDev2",
-      "email": "myemail+pbmmT-Dev2@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-dev2@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "Dev",
       "share-mad-from": ""
     }
