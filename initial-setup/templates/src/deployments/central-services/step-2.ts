@@ -98,18 +98,18 @@ async function centralLoggingShareDataSettings(props: {
   accessLevel: string;
 }) {
   const { scope, monitoringAccountIds, accessLevel } = props;
-  const accountPrincipals: iam.PrincipalBase[] = monitoringAccountIds.map(accountId => 
-    new iam.AccountPrincipal(accountId)
+  const accountPrincipals: iam.PrincipalBase[] = monitoringAccountIds.map(
+    accountId => new iam.AccountPrincipal(accountId),
   );
   const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
   if (!logPermission) {
-    throw new Error("Invalid Log Level Access given for CWL Central logging");
+    throw new Error('Invalid Log Level Access given for CWL Central logging');
   }
   new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
     roleName: 'CloudWatch-CrossAccountSharingRole',
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),
-    managedPolicies: logPermission.permissions.map(
-      permission => iam.ManagedPolicy.fromAwsManagedPolicyName(permission),
+    managedPolicies: logPermission.permissions.map(permission =>
+      iam.ManagedPolicy.fromAwsManagedPolicyName(permission),
     ),
   });
 }
