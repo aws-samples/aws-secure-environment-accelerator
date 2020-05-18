@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "prepare": "webpack-cli --config webpack.config.ts"
+    "prepare": "webpack-cli --config webpack.config.ts && tsc --declaration --emitDeclarationOnly"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

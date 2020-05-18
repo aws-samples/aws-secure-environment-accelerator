@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
+import { HandlerProperties } from '@custom-resources/cfn-sleep-lambda';
 
 const resourceType = 'Custom::Sleep';
 
@@ -16,12 +17,14 @@ export class CfnSleep extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: CfnSleepProps) {
     super(scope, id);
 
+    const handlerProperties: HandlerProperties = {
+      sleep: props.sleep,
+    };
+
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: {
-        sleep: props.sleep,
-      },
+      properties: handlerProperties,
     });
   }
 

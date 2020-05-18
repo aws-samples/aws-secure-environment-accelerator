@@ -3,20 +3,9 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
+import { HandlerProperties, TemplateParameters } from '@custom-resources/s3-template-lambda';
 
 const resourceType = 'Custom::S3Template';
-
-// TODO Share with Lambda
-type TemplateParameters = { [key: string]: string };
-
-// TODO Share with Lambda
-interface HandlerProperties {
-  templateBucketName: string;
-  templatePath: string;
-  outputBucketName: string;
-  outputPath: string;
-  parameters: TemplateParameters;
-}
 
 export interface S3TemplateProps {
   templateBucket: s3.IBucket;

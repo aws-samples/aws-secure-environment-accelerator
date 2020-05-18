@@ -1,7 +1,7 @@
 import { CloudFormationCustomResourceEvent, Context } from 'aws-lambda';
 import { send, SUCCESS, FAILED } from 'cfn-response-async';
 
-interface HandlerProperties {
+export interface HandlerProperties {
   sleep: number;
 }
 
@@ -21,7 +21,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   }
 };
 
-const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   // tslint:disable-next-line: switch-default
   switch (event.RequestType) {
     case 'Create':
