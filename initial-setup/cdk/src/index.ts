@@ -216,9 +216,7 @@ export namespace InitialSetup {
               'runtime-versions': {
                 nodejs: 12,
               },
-              // TODO Figure out why we need `pnpm recursive run prepare`
-              //   Installing packages should run this automatically
-              commands: ['npm install --global pnpm', 'pnpm install', 'pnpm recursive run prepare'],
+              commands: ['npm install --global pnpm', 'pnpm install'],
             },
             build: {
               commands: ['cd initial-setup/templates', 'bash codebuild-deploy.sh'],
