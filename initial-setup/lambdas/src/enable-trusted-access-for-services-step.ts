@@ -1,7 +1,7 @@
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { FMS } from '@aws-pbmm/common-lambda/lib/aws/fms';
 import { IAM } from '@aws-pbmm/common-lambda/lib/aws/iam';
-import { Account } from './load-accounts-step';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 
 interface EnableTrustedAccessForServicesInput {
   accounts: Account[];

@@ -1,55 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { loadAcceleratorConfig } from './config';
-import { loadAccounts, Account } from './accounts';
-import { loadStackOutputs } from './outputs';
-import { loadLimits, LimitOutput, Limiter } from './limits';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-
-// export interface ContextProps {
-//   environment: Context;
-//   config: AcceleratorConfig;
-//   accounts: Account[];
-//   outputs: StackOutput[];
-//   limits: LimitOutput[];
-// }
-
-// export class Context {
-//   readonly environment: Context;
-//   readonly config: AcceleratorConfig;
-//   readonly accounts: Account[];
-//   readonly outputs: StackOutput[];
-//   readonly limits: LimitOutput[];
-//   readonly limiter: Limiter;
-
-//   constructor(props: ContextProps) {
-//     this.environment = props.environment;
-//     this.config = props.config;
-//     this.accounts = props.accounts;
-//     this.outputs = props.outputs;
-//     this.limits = props.limits;
-//     this.limiter = new Limiter(this.limits);
-//   }
-
-//   static async load() {
-//     const environment = loadContext();
-//     const config = await loadAcceleratorConfig();
-//     const accounts = await loadAccounts();
-//     const outputs = await loadStackOutputs();
-//     const limits = await loadLimits();
-
-//     return new Context({
-//       environment,
-//       config,
-//       accounts,
-//       outputs,
-//       limits,
-//     });
-//   }
-// }
-
 interface CfnCustomResourceFunctions {
   getDnsIpsFunctionArn: string;
   enableSecurityHubFunctionArn: string;
