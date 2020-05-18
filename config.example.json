@@ -1006,7 +1006,19 @@
     "fun-acct": {
       "account-name": "TheFunAccount",
       "email": "bmycroft+FunAcct@amazon.com",
-      "ou": "sandbox",
+      "ou": "Sandbox",
+      "share-mad-from": ""
+    },
+    "mydevacct1": {
+      "account-name": "MyDev1",
+      "email": "bmycroft+PBMM-Dev1@amazon.com",
+      "ou": "Dev",
+      "share-mad-from": ""
+    },
+    "my-dev-acct2": {
+      "account-name": "MyDev2",
+      "email": "bmycroft+PBMM-Dev2@amazon.com",
+      "ou": "Dev",
       "share-mad-from": ""
     }
   },
@@ -1039,7 +1051,7 @@
          }]
       }
     },
-    "central": {
+    "Central": {
       "type": "mandatory",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -1569,7 +1581,7 @@
         ]
       }
     },
-    "dev": {
+    "Dev": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -2038,7 +2050,7 @@
         ]
       }
     },
-    "test": {
+    "Test": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -2507,7 +2519,7 @@
         ]
       }
     },
-    "prod": {
+    "Prod": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -2976,7 +2988,7 @@
         ]
       }
     },
-    "unclass": {
+    "Unclass": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
@@ -3420,7 +3432,7 @@
         ]
       }
     },
-    "sandbox": {
+    "Sandbox": {
       "type": "workload",
       "share-mad-from": "",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
