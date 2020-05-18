@@ -134,7 +134,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
     const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, accountVpcConfigs } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
-    const useCentralEndpointsConfig: boolean = props.vpcProps.vpcConfig['use-central-endpoints'] ?? false;
 
     this.name = props.vpcProps.vpcConfig.name;
     this.region = vpcConfig.region;
@@ -143,8 +142,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
       cidrBlock: props.vpcProps.vpcConfig.cidr.toCidrString(),
-      enableDnsHostnames: useCentralEndpointsConfig,
-      enableDnsSupport: useCentralEndpointsConfig,
+      enableDnsHostnames: true,
+      enableDnsSupport: true,
     });
     this.vpcId = vpcObj.ref;
 

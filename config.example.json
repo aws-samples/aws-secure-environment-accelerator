@@ -801,52 +801,37 @@
       },
       "deployments": {
         "firewall": {
+          "image-id": "ami-047aac44951feb9fb",
           "instance-sizes": "c5n.2xlarge",
-          "image": "BYOL",
-          "version": "6.2.3",
           "region": "ca-central-1",
           "security-group": "Fortigates",
           "vpc": "Perimeter",
-          "eni": {
-            "ports": [
-              {
-                "subnet": "Public",
-                "create-eip": true,
-                "create-cgw": true,
-                "internal-ip-addresses": {
-                  "a": "100.96.251.69/26",
-                  "b": "100.96.251.133/26"
-                }
-              },
-              {
-                "subnet": "OnPremise",
-                "create-eip": false,
-                "create-cgw": false,
-                "internal-ip-addresses": {
-                  "a": "100.96.251.5/28",
-                  "b": "100.96.251.37/28"
-                }
-              },
-              {
-                "subnet": "FWMgmt",
-                "create-eip": true,
-                "create-cgw": false,
-                "internal-ip-addresses": {
-                  "a": "100.96.251.21/28",
-                  "b": "100.96.251.53/28"
-                }
-              },
-              {
-                "subnet": "Proxy",
-                "create-eip": false,
-                "create-cgw": false,
-                "internal-ip-addresses": {
-                  "a": "100.96.250.5/25",
-                  "b": "100.96.250.133/25"
-                }
-              }
-            ]
-          },
+          "ports": [
+            {
+              "name": "Public",
+              "subnet": "Public",
+              "create-eip": true,
+              "create-cgw": true
+            },
+            {
+              "name": "OnPremise",
+              "subnet": "OnPremise",
+              "create-eip": false,
+              "create-cgw": false
+            },
+            {
+              "name": "FWMgmt",
+              "subnet": "FWMgmt",
+              "create-eip": true,
+              "create-cgw": false
+            },
+            {
+              "name": "Proxy",
+              "subnet": "Proxy",
+              "create-eip": false,
+              "create-cgw": false
+            }
+          ],
           "config": "fortigate_AA_20200504.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
@@ -865,8 +850,8 @@
         },
         "firewall-manager": {
           "name": "FortigateMgr",
+          "image-id": "ami-06fa2a9e6f8fae9f2",
           "instance-sizes": "c5.large",
-          "image": "BYOL",
           "version": "6.2.3",
           "region": "ca-central-1",
           "vpc": "Perimeter",

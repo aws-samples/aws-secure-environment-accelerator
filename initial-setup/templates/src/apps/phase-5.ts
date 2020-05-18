@@ -11,6 +11,8 @@ import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import * as ssm from '@aws-cdk/aws-ssm';
 import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { AccountStacks } from '../common/account-stacks';
+import { StructuredOutput } from '../common/structured-output';
+import { MadAutoScalingRoleOutputType } from '../deployments/mad';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -58,12 +60,23 @@ async function main() {
 
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
+  // TODO Move to deployments/mad/step-x.ts
   type UserSecrets = UserSecret[];
   for (const [accountKey, accountConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {
     const madDeploymentConfig = accountConfig.deployments?.mad;
     if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
       continue;
     }
+
+    const madAutoScalingRoleOutputs = StructuredOutput.fromOutputs(outputs, {
+      accountKey,
+      type: MadAutoScalingRoleOutputType,
+    });
+    if (madAutoScalingRoleOutputs.length !== 1) {
+      throw new Error(`Cannot find required service-linked auto scaling role in account "${accountKey}"`);
+    }
+    const madAutoScalingRoleOutput = madAutoScalingRoleOutputs[0];
+
     const accountId = getAccountId(accounts, accountKey);
 
     const ec2KeyPairName = 'rdgw-key-pair';
@@ -149,6 +162,7 @@ async function main() {
       accountNames,
       userSecrets,
       accountKey,
+      serviceLinkedRoleArn: madAutoScalingRoleOutput.roleArn,
     });
     adUsersAndGroups.node.addDependency(keyPair);
   }
