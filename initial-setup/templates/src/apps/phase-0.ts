@@ -244,7 +244,7 @@ async function main() {
           budgetName: budgetConfig.name,
           budgetLimit: {
             amount: budgetConfig.amount,
-            unit: 'dollars',
+            unit: 'USD',
           },
           budgetType: 'COST',
           timeUnit: budgetConfig.period.toUpperCase(),
@@ -254,6 +254,13 @@ async function main() {
       new CfnBudget(accountStack, budgetConfig.name, budgetProps);
     }
   };
+  // Create dependency on Master account since budget requires Master account deploy first
+  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+    if (accountKey !== 'master') {
+      const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+      accountStack.addDependency(masterAccountStack);
+    }
+  }
   // Create Budgets for mandatory accounts
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     const budgetConfig = accountConfig.budget;
