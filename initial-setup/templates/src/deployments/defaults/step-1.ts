@@ -45,6 +45,36 @@ async function createDefaultS3Buckets(props: DefaultsStep1Props) {
     buckets[accountKey] = bucket;
 
     // TODO Add bucket permissions
+    if (accountKey === 'log-archive') {
+      bucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          principals: [new iam.AccountPrincipal('985666609251')],
+          actions: ['s3:PutObject'],
+          resources: [`${bucket.bucketArn}/*`],
+        }),
+      );
+
+      bucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+          actions: ['s3:PutObject'],
+          resources: [`${bucket.bucketArn}/*`],
+          conditions: {
+            'StringEquals': {
+              's3:x-amz-acl': 'bucket-owner-full-control',
+            },
+          }
+        }),
+      );
+
+      bucket.addToResourcePolicy(
+        new iam.PolicyStatement({
+          principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+          actions: ['s3:GetBucketAcl'],
+          resources: [`${bucket.bucketArn}`],
+        }),
+      );
+    }
 
     new StructuredOutput<AccountBucketOutput>(accountStack, 'DefaultBucketOutput', {
       type: AccountBucketOutputType,

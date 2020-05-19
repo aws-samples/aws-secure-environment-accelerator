@@ -279,6 +279,8 @@ export const AlbTargetConfigType = t.interface({
   'tg-weight': optional(t.number),
 });
 
+export type AlbTargetConfig = t.TypeOf<typeof AlbTargetConfigType>;
+
 export const AlbConfigType = t.interface({
   name: t.string,
   scheme: t.string,

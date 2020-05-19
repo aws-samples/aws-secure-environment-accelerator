@@ -6,6 +6,9 @@ import { loadStackOutputs } from '../utils/outputs';
 import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { AccountStacks } from '../common/account-stacks';
+import { VpcOutput, ImportedVpc } from '../deployments/vpc';
+import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import * as alb from '../deployments/alb';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -59,6 +62,20 @@ async function main() {
     outputs,
     context,
     acceleratorConfig,
+  });
+
+  // Import all VPCs from all outputs
+  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    outputType: 'VpcOutput',
+  });
+  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
+
+  await alb.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    vpcOutputs: allVpcs,
+    accounts,
   });
 }
 

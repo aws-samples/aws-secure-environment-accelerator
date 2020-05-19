@@ -86,6 +86,18 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
     return securityGroup;
   }
 
+  findSubnetIdsByName(name: string): string[] {
+    const subnets = this.tryFindSubnetIdsByName(name);
+    if (!subnets) {
+      throw new Error(`Cannot find subnet with name "${name}"`);
+    }
+    return subnets;
+  }
+
+  tryFindSubnetIdsByName(name: string): string[] | undefined {
+    return this.subnets.filter(s => s.name === name).map(s => s.id);
+  }
+
   tryFindSecurityGroupByName(name: string): SecurityGroup | undefined {
     return this.securityGroups.find(sg => sg.name === name);
   }

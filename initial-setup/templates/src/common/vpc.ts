@@ -79,7 +79,7 @@ export class AzSubnets {
   }
 }
 
-export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
+export interface VpcProps extends cdk.StackProps, VpcCommonProps { }
 
 export interface VpcStackProps extends NestedStackProps {
   vpcProps: VpcProps;
@@ -445,6 +445,18 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet | undefined {
     return this.subnets.find(s => s.name === name && s.az === az);
+  }
+
+  findSubnetIdsByName(name: string): string[] {
+    const subnets = this.tryFindSubnetIdsByName(name);
+    if (!subnets) {
+      throw new Error(`Cannot find subnet with name "${name}"`);
+    }
+    return subnets;
+  }
+
+  tryFindSubnetIdsByName(name: string): string[] | undefined {
+    return this.subnets.filter(s => s.name === name).map(s => s.id);
   }
 
   findSecurityGroupByName(name: string): constructs.SecurityGroup {

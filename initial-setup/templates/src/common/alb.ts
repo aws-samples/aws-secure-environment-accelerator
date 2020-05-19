@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
-import { AlbConfig, IamConfigType } from '@aws-pbmm/common-lambda/lib/config';
-import { CfnLoadBalancer, CfnListener, CfnTargetGroup, CfnListenerRule } from '@aws-cdk/aws-elasticloadbalancingv2';
+import { AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { CfnLoadBalancer, CfnListener, CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
 
 export interface AlbProps extends cdk.StackProps {
   albConfig: AlbConfig;
@@ -8,14 +8,16 @@ export interface AlbProps extends cdk.StackProps {
   subnetIds: string[];
   securityGroupIds: string[];
   bucketName: string;
-  lambdaFunctionArn?: string;
+  instances?: { [instanceName: string]: string };
+  lambdaArn?: string;
+
 }
 
 export class Alb extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: AlbProps) {
     super(scope, id);
 
-    const { albConfig, vpcId, subnetIds, securityGroupIds, bucketName, lambdaFunctionArn } = props;
+    const { albConfig, vpcId, subnetIds, securityGroupIds, bucketName, instances, lambdaArn } = props;
 
     const applicationLoadBalancer = new CfnLoadBalancer(this, 'Alb', {
       name: albConfig.name,
@@ -25,23 +27,27 @@ export class Alb extends cdk.Construct {
       securityGroups: securityGroupIds,
     });
 
-    // if (albConfig['access-logs']) {
-    //   applicationLoadBalancer.loadBalancerAttributes = [
-    //     {
-    //       key: 'access_logs.s3.enabled',
-    //       value: 'true',
-    //     },
-    //     {
-    //       key: 'access_logs.s3.bucket',
-    //       value: bucketName,
-    //     },
-    //   ];
-    // }
+    if (albConfig['access-logs']) {
+      applicationLoadBalancer.loadBalancerAttributes = [
+        {
+          key: 'access_logs.s3.enabled',
+          value: 'true',
+        },
+        {
+          key: 'access_logs.s3.bucket',
+          value: bucketName,
+        },
+        {
+          key: 'access_logs.s3.prefix',
+          value: 'elb',
+        },
+      ];
+    }
 
     const targetGroups: string[] = [];
     for (const target of albConfig.targets) {
       // TODO get instanceId and Lambda function Arn
-      targetGroups.push(this.createTargetGroup(target, albConfig.name, vpcId, '', '').ref);
+      targetGroups.push(this.createTargetGroup(target, albConfig.name, vpcId, instances, '').ref);
     }
 
     this.createAlbListener(
@@ -120,11 +126,11 @@ export class Alb extends cdk.Construct {
   }
 
   createTargetGroup(
-    target: any,
+    target: AlbTargetConfig,
     albName: string,
     vpcId: string,
-    instanceId: string,
-    lambdaFunctionArn: string,
+    instances?: { [instanceName: string]: string },
+    lambdaFunctionArn?: string,
   ): CfnTargetGroup {
     const targetGroup = new CfnTargetGroup(this, `AlbTargetGroup${albName}${target['target-name']}`, {
       name: albName.concat(target['target-name']),
@@ -136,11 +142,10 @@ export class Alb extends cdk.Construct {
       healthCheckPath: target['health-check-path'],
       healthCheckPort: String(target['health-check-port']),
     });
-
     if (!target['lambda-filename']) {
       targetGroup.targets = [
         {
-          id: 'i-086a3f803282d17c6', // TODO get the instance id from outputs
+          id: instances![target["target-instances"]![0]],
           port: target.port,
         },
       ];
