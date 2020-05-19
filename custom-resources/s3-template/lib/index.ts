@@ -34,7 +34,11 @@ export class S3Template extends cdk.Construct {
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: this.handlerProperties,
+      properties: {
+        ...this.handlerProperties,
+        // Add a dummy value that is a random number to update the resource every time
+        forceUpdate: Math.round(Math.random() * 1000000),
+      },
     });
 
     props.templateBucket.grantRead(this.role);
