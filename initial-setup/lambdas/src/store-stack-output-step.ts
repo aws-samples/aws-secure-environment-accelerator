@@ -64,6 +64,5 @@ export const handler = async (input: StoreStackOutputInput) => {
 
   return {
     status: 'SUCCESS',
-    statusReason: outputs,
   };
 };
