@@ -10,7 +10,6 @@ export interface AlbProps extends cdk.StackProps {
   bucketName: string;
   instances?: { [instanceName: string]: string };
   lambdaArn?: string;
-
 }
 
 export class Alb extends cdk.Construct {
@@ -145,7 +144,7 @@ export class Alb extends cdk.Construct {
     if (!target['lambda-filename']) {
       targetGroup.targets = [
         {
-          id: instances![target["target-instances"]![0]],
+          id: instances![target['target-instances']![0]],
           port: target.port,
         },
       ];

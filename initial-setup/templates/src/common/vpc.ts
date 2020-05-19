@@ -79,7 +79,7 @@ export class AzSubnets {
   }
 }
 
-export interface VpcProps extends cdk.StackProps, VpcCommonProps { }
+export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
 
 export interface VpcStackProps extends NestedStackProps {
   vpcProps: VpcProps;

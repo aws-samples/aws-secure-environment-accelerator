@@ -60,10 +60,10 @@ async function createDefaultS3Buckets(props: DefaultsStep1Props) {
           actions: ['s3:PutObject'],
           resources: [`${bucket.bucketArn}/*`],
           conditions: {
-            'StringEquals': {
+            StringEquals: {
               's3:x-amz-acl': 'bucket-owner-full-control',
             },
-          }
+          },
         }),
       );
 

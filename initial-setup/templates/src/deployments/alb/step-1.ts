@@ -34,7 +34,6 @@ interface ElbArtifactsOutput {
 export async function step1(props: AlbStep1Props) {
   const { accountStacks, config, vpcOutputs, outputs, accounts } = props;
 
-
   // const mandatoryAccountKeys: string[] = [];
   // // creating assets for default account settings
   // for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
@@ -78,7 +77,7 @@ export async function step1(props: AlbStep1Props) {
 
       const logArchiveBuckets: LogArchiveBucketProps[] = getStackJsonOutput(outputs, {
         outputType: 'AccountBucket',
-        accountKey: 'log-archive'
+        accountKey: 'log-archive',
       });
 
       if (logArchiveBuckets.length == 0) {
@@ -86,17 +85,17 @@ export async function step1(props: AlbStep1Props) {
         continue;
       }
 
-      const securityGroup = vpc.tryFindSecurityGroupByName(alb["security-group"]);
+      const securityGroup = vpc.tryFindSecurityGroupByName(alb['security-group']);
       if (!securityGroup) {
-        console.log(`Cannot find output with security name ${alb["security-group"]}`);
+        console.log(`Cannot find output with security name ${alb['security-group']}`);
         continue;
       }
 
       for (const target of alb.targets) {
-        if (!target["target-instances"]) {
+        if (!target['target-instances']) {
           continue;
         }
-        const instanceName = target["target-instances"][0];
+        const instanceName = target['target-instances'][0];
         const instanceOutputs = getStackJsonOutput(outputs, {
           accountKey,
           outputType: 'FirewallInstanceOutputType',
@@ -120,10 +119,7 @@ export async function step1(props: AlbStep1Props) {
   }
 }
 
-export async function createLambdaRole(
-  scope: cdk.Construct,
-  ouAccount: string,
-) {
+export async function createLambdaRole(scope: cdk.Construct, ouAccount: string) {
   const elbLambdaAccessRole = new iam.Role(scope, `ElbLambdaAccessRole${ouAccount}`, {
     roleName: 'ElbLambdaAccessRole',
     assumedBy: new iam.CompositePrincipal(
