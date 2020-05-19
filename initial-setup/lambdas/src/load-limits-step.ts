@@ -1,8 +1,7 @@
 import { ServiceQuotas } from '@aws-pbmm/common-lambda/lib/aws/service-quotas';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { Account } from './load-accounts-step';
+import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getAccountId } from '../../templates/src/utils/accounts';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 
 export interface LoadLimitsInput {

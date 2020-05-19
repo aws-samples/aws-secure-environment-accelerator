@@ -216,7 +216,8 @@ export namespace InitialSetup {
               'runtime-versions': {
                 nodejs: 12,
               },
-              commands: ['npm install --global pnpm', 'pnpm install'],
+              // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+              commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
             },
             build: {
               commands: ['cd initial-setup/templates', 'bash codebuild-deploy.sh'],
@@ -686,7 +687,7 @@ export namespace InitialSetup {
       });
 
       new sfn.StateMachine(this, 'StateMachine', {
-        stateMachineName: `${props.stateMachineName}_sm`,
+        stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)

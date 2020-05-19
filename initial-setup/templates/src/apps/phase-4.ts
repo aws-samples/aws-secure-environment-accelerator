@@ -1,4 +1,5 @@
 import * as cdk from '@aws-cdk/core';
+import { ResolversOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
@@ -6,7 +7,6 @@ import { loadStackOutputs } from '../utils/outputs';
 import { pascalCase } from 'pascal-case';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { ResolversOutput } from './phase-2';
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
 import { AccountStacks } from '../common/account-stacks';
 

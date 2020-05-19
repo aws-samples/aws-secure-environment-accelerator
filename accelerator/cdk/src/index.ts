@@ -8,14 +8,16 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 async function main() {
+  const env = process.env;
+
   // Load accelerator parameters
   const app = new cdk.App();
-  const acceleratorName = process.env.ACCELERATOR_NAME || 'PBMM';
-  const acceleratorPrefix = process.env.ACCELERATOR_PREFIX || 'PBMMAccel-';
-  const configSecretName = process.env.ACCELERATOR_CONFIG_SECRET_ID || 'accelerator/config';
-  const stateMachineName = process.env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine`;
-  const stateMachineExecutionRole =
-    process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
+
+  const acceleratorName = env.ACCELERATOR_NAME || 'PBMM';
+  const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'PBMMAccel-';
+  const configSecretName = env.ACCELERATOR_CONFIG_SECRET_ID || 'accelerator/config';
+  const stateMachineName = env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine_sm`;
+  const stateMachineExecutionRole = env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
