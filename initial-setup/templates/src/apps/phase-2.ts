@@ -1,10 +1,10 @@
+import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import * as iam from '@aws-cdk/aws-iam';
-import { pascalCase } from 'pascal-case';
 import { loadStackOutputs } from '../utils/outputs';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
@@ -22,28 +22,12 @@ import * as firewallManagement from '../deployments/firewall/manager';
 import * as conformancePackage from '../deployments/conformance-package';
 import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
-
-export interface MadRuleOutput {
-  [key: string]: string;
-}
-
-export interface ResolverRulesOutput {
-  onPremRules?: string[];
-  inBoundRule?: string;
-  madRules?: MadRuleOutput;
-}
-
-export interface ResolversOutput {
-  vpcName: string;
-  inBound?: string;
-  outBound?: string;
-  rules?: ResolverRulesOutput;
-}
 
 async function main() {
   const context = loadContext();
@@ -70,7 +54,9 @@ async function main() {
       continue;
     }
     const pcxSourceVpc = pcxConfig['source-vpc'];
-    const roleName = pascalCase(`VPCPeeringAccepter${accountKey}To${pcxConfig.source}`);
+    // TODO store role name in outputs
+    // Get the exact same role name as in phase 1
+    const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     // Get Peer VPC Configuration

@@ -1,6 +1,5 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { ImageFinder } from '@custom-resources/ec2-image-finder';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallManager } from '@aws-pbmm/constructs/lib/firewall';
@@ -52,15 +51,6 @@ async function createFirewallManager(props: {
 }) {
   const { scope, vpc, firewallManagerConfig: config } = props;
 
-  const imageFinder = new ImageFinder(scope, 'FirewallManagerImage', {
-    // FortiGate owner ID
-    imageOwner: '679593333241',
-    // If Bring-Your-Own-License, then use the AWS build, otherwise the AWSONDEMAND build
-    imageName: config.image === 'BYOL' ? 'FortiManager VM64-AWS build*' : 'FortiManager VM64-AWSOnDemand build*',
-    // Version is always wrapped in round brackets
-    imageVersion: `*(${config.version})*`,
-  });
-
   const subnetConfig = config.subnet;
   const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
   const securityGroup = vpc.findSecurityGroupByName(config['security-group']);
@@ -73,7 +63,7 @@ async function createFirewallManager(props: {
   }
 
   const manager = new FirewallManager(scope, 'FirewallManager', {
-    imageId: imageFinder.imageId,
+    imageId: config['image-id'],
     instanceType: config['instance-sizes'],
   });
 

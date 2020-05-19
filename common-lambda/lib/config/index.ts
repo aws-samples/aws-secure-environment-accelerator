@@ -83,7 +83,7 @@ export const RouteTableConfigType = t.interface({
 
 export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all attach options here
 
-export const TransitGatewayAttachConfig = t.interface({
+export const TransitGatewayAttachConfigType = t.interface({
   'associate-to-tgw': t.string,
   account: optional(t.string),
   'associate-type': optional(t.literal('ATTACH')),
@@ -93,6 +93,8 @@ export const TransitGatewayAttachConfig = t.interface({
   'attach-subnets': optional(t.array(NonEmptyString)),
   options: optional(t.array(TransitGatewayAttachOption)),
 });
+
+export type TransitGatewayAttachConfig = t.TypeOf<typeof TransitGatewayAttachConfigType>;
 
 export const InterfaceEndpointName = t.string; // TODO Define all endpoints here
 
@@ -166,7 +168,7 @@ export const VpcConfigType = t.interface({
   subnets: optional(t.array(SubnetConfigType)),
   'gateway-endpoints': optional(t.array(GatewayEndpointType)),
   'route-tables': optional(t.array(RouteTableConfigType)),
-  'tgw-attach': optional(TransitGatewayAttachConfig),
+  'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
   'interface-endpoints': t.union([InterfaceEndpointConfig, t.boolean, t.undefined]),
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
@@ -178,21 +180,21 @@ export type SecurityGroupConfig = t.TypeOf<typeof SecurityGroupConfigType>;
 
 export const IamUserConfigType = t.interface({
   'user-ids': t.array(NonEmptyString),
-  group: t.string,
+  group: NonEmptyString,
   policies: t.array(NonEmptyString),
-  'boundary-policy': t.string,
+  'boundary-policy': NonEmptyString,
 });
 
 export const IamPolicyConfigType = t.interface({
-  'policy-name': t.string,
-  policy: t.string,
+  'policy-name': NonEmptyString,
+  policy: NonEmptyString,
 });
 
 export const IamRoleConfigType = t.interface({
-  role: t.string,
-  type: t.string,
+  role: NonEmptyString,
+  type: NonEmptyString,
   policies: t.array(NonEmptyString),
-  'boundary-policy': t.string,
+  'boundary-policy': NonEmptyString,
   'source-account': optional(t.string),
   'source-account-role': optional(t.string),
   'trust-policy': optional(t.string),
@@ -261,6 +263,7 @@ export const MadConfigType = t.interface({
   'ad-per-account-groups': t.array(t.string),
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
+  'security-groups': t.array(SecurityGroupConfigType),
 });
 
 export const AccountConfigType = t.interface({
@@ -281,22 +284,19 @@ export const AdcConfigType = t.interface({
 });
 
 export const FirewallPortConfigType = t.interface({
+  name: t.string,
   subnet: t.string,
   'create-eip': t.boolean,
   'create-cgw': t.boolean,
-  'internal-ip-addresses': t.record(availabilityZone, cidr),
 });
 
 export const FirewallConfigType = t.interface({
   'instance-sizes': t.string,
-  image: t.string, // TODO Enum of BYOL, PAYG
-  version: t.string,
+  'image-id': t.string,
   region: t.string,
   vpc: t.string,
   'security-group': t.string,
-  eni: t.interface({
-    ports: t.array(FirewallPortConfigType),
-  }),
+  ports: t.array(FirewallPortConfigType),
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.string,
@@ -312,8 +312,7 @@ export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
 export const FirewallManagerConfigType = t.interface({
   name: t.string,
   'instance-sizes': t.string,
-  image: t.string, // TODO Enum of BYOL, PAYG
-  version: t.string,
+  'image-id': t.string,
   region: t.string,
   vpc: t.string,
   'security-group': t.string,
@@ -366,6 +365,7 @@ export type AccountsConfig = t.TypeOf<typeof AccountsConfigType>;
 
 export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
+  scps: t.array(t.string),
   'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
@@ -419,6 +419,15 @@ export const SecurityHubFrameworksConfigType = t.interface({
     }),
   ),
 });
+
+export const ScpsConfigType = t.interface({
+  name: NonEmptyString,
+  description: NonEmptyString,
+  policy: NonEmptyString,
+});
+
+export type ScpConfig = t.TypeOf<typeof ScpsConfigType>;
+
 export const GlobalOptionsConfigType = t.interface({
   'central-log-retention': t.number,
   'default-log-retention': t.number,
@@ -426,6 +435,7 @@ export const GlobalOptionsConfigType = t.interface({
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
+  scps: t.array(ScpsConfigType),
 });
 
 export type SecurityHubFrameworksConfig = t.TypeOf<typeof SecurityHubFrameworksConfigType>;
@@ -469,6 +479,13 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
   constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
     Object.assign(this, values);
+  }
+
+  /**
+   * @return AccountConfig
+   */
+  getAccountByKey(accountKey: string): AccountConfig {
+    return this['mandatory-account-configs'][accountKey] ?? this['workload-account-configs'][accountKey];
   }
 
   /**

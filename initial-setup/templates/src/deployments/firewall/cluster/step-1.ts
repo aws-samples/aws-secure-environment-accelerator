@@ -1,30 +1,15 @@
 import { pascalCase } from 'pascal-case';
-import * as t from 'io-ts';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
+import { FirewallPort, FirewallPortOutput, FirewallPortOutputType } from './outputs';
 
 export interface FirewallStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
 }
-
-export const FirewallPortType = t.interface({
-  subnetName: t.string,
-  az: t.string,
-  internalIpCidr: t.string,
-  eipIpAddress: optional(t.string),
-  eipAllocationId: optional(t.string),
-  createCustomerGateway: t.boolean,
-});
-
-export const FirewallPortOutputType = t.array(FirewallPortType, 'FirewallPortOutput');
-
-export type FirewallPort = t.TypeOf<typeof FirewallPortType>;
-export type FirewallPortOutput = t.TypeOf<typeof FirewallPortOutputType>;
 
 /**
  * Creates the EIPs for the firewall instances.
@@ -77,12 +62,7 @@ async function createFirewallEips(props: {
   const subnetDefinitions = vpcConfig.subnets?.flatMap(s => s.definitions) || [];
   const azs = subnetDefinitions.map(def => def.az);
   for (const az of new Set(azs)) {
-    for (const [index, port] of Object.entries(firewallConfig.eni.ports)) {
-      const ipCidr = port['internal-ip-addresses'][az];
-      if (!ipCidr) {
-        throw new Error(`Cannot find IP CIDR for firewall port for subnet "${port.subnet}"`);
-      }
-
+    for (const [index, port] of Object.entries(firewallConfig.ports)) {
       let eip;
       if (port['create-eip']) {
         eip = new ec2.CfnEIP(scope, `${firewallCgwName}_az${pascalCase(az)}_${index}_eip`, {
@@ -91,9 +71,9 @@ async function createFirewallEips(props: {
       }
 
       ports.push({
+        name: port.name,
         subnetName: port.subnet,
         az,
-        internalIpCidr: ipCidr.toCidrString(),
         eipIpAddress: eip?.ref,
         eipAllocationId: eip?.attrAllocationId,
         createCustomerGateway: port['create-cgw'],

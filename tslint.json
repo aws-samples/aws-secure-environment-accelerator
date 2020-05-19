@@ -41,7 +41,7 @@
     "no-eval": true,
     "no-implicit-dependencies": false,
     "no-namespace": false,
-    "no-shadowed-variable": true,
+    "no-shadowed-variable": [true, {"underscore": false}],
     "no-string-literal": true,
     "no-submodule-imports": false,
     "no-switch-case-fall-through": true,

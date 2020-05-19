@@ -2,18 +2,60 @@ import * as crypto from 'crypto';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack } from './accelerator-stack';
 
-const DEFAULT_SUFFIX_LENGTH = 8;
+export function createBucketName(name?: string): string {
+  return createName({
+    name,
+    account: true,
+    region: true,
+    suffixLength: 8,
+    lowercase: true,
+  });
+}
+
+export function createRoleName(name: string, suffixLength: number = 8): string {
+  return createName({
+    name,
+    suffixLength,
+  });
+}
+
+export function createEncryptionKeyName(name: string): string {
+  return createName({
+    name,
+    suffixLength: 8,
+  });
+}
+
+export function createKeyPairName(name: string): string {
+  return createName({
+    name,
+    suffixLength: 8,
+  });
+}
+
 const DEFAULT_SEPARATOR = '-';
 
-export interface PrefixNameProps {
+export interface CreateNameProps {
   /**
-   * @default 8
+   * @default undefined
    */
   suffixLength?: number;
   /**
    * @default '-'
    */
   separator?: string;
+  /**
+   * @default false
+   */
+  account?: boolean;
+  /**
+   * @default false
+   */
+  region?: boolean;
+  /**
+   * @default false
+   */
+  name?: string;
   /**
    * @default false
    */
@@ -26,11 +68,11 @@ export interface PrefixNameProps {
  *
  * @param name
  */
-export function createName(name: string, props: PrefixNameProps = {}): string {
+export function createName(props: CreateNameProps = {}): string {
   return cdk.Lazy.stringValue({
     produce: (context: cdk.IResolveContext) => {
       const { scope } = context;
-      const { suffixLength = DEFAULT_SUFFIX_LENGTH, separator = DEFAULT_SEPARATOR } = props;
+      const { name, account, region, suffixLength, separator = DEFAULT_SEPARATOR } = props;
 
       // Find the AcceleratorStack in the parents.
       const parents = scope.node.scopes;
@@ -42,20 +84,24 @@ export function createName(name: string, props: PrefixNameProps = {}): string {
       // Use the AcceleratorStack prefix
       const prefix = stack.acceleratorPrefix;
 
-      // Create a suffix that is based on the path of the component
-      const path = parents.map(p => p.node.id);
-      const suffix = hashPath(path, suffixLength);
+      const pieces = [];
+      if (account) {
+        pieces.push(cdk.Aws.ACCOUNT_ID);
+      }
+      if (region) {
+        pieces.push(cdk.Aws.REGION);
+      }
+      if (name) {
+        pieces.push(prepareString(name, props));
+      }
+      if (suffixLength && suffixLength > 0) {
+        // Create a suffix that is based on the path of the component
+        const path = parents.map(p => p.node.id);
+        const suffix = hashPath(path, suffixLength);
+        pieces.push(prepareString(suffix, props));
+      }
 
-      return (
-        prepareString(prefix, props) +
-        cdk.Aws.ACCOUNT_ID +
-        separator +
-        cdk.Aws.REGION +
-        separator +
-        prepareString(name, props) +
-        separator +
-        prepareString(suffix, props)
-      );
+      return prepareString(prefix, props) + pieces.join(separator);
     },
   });
 }
@@ -73,7 +119,7 @@ function hashPath(path: string[], length: number) {
 /**
  * Prepare the given string with the given props. Currently only lowercases the string.
  */
-function prepareString(str: string, props: PrefixNameProps): string {
+function prepareString(str: string, props: CreateNameProps): string {
   if (cdk.Token.isUnresolved(str)) {
     // We should not modify an unresolved token
     return str;

@@ -1,10 +1,11 @@
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { Account } from './load-accounts-step';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { CloudFormation } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 export interface StoreStackOutputInput {
+  acceleratorPrefix: string;
   stackOutputSecretId: string;
   assumeRoleName: string;
   accounts: Account[];
@@ -14,7 +15,7 @@ export const handler = async (input: StoreStackOutputInput) => {
   console.log(`Storing stack output...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { stackOutputSecretId, assumeRoleName, accounts } = input;
+  const { acceleratorPrefix, stackOutputSecretId, assumeRoleName, accounts } = input;
 
   const outputs: StackOutput[] = [];
   for (const account of accounts) {
@@ -26,6 +27,10 @@ export const handler = async (input: StoreStackOutputInput) => {
       StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
     });
     for await (const summary of stacks) {
+      if (!summary.StackName.startsWith(acceleratorPrefix)) {
+        console.warn(`Skipping stack with name "${summary.StackName}"`);
+        continue;
+      }
       const stack = await cfn.describeStack(summary.StackName);
       if (!stack) {
         console.warn(`Could not load stack with name "${summary.StackName}"`);
@@ -37,6 +42,7 @@ export const handler = async (input: StoreStackOutputInput) => {
         continue;
       }
 
+      console.debug(`Storing outputs for stack with name "${summary.StackName}"`);
       stack.Outputs?.forEach(output =>
         outputs.push({
           accountKey: account.key,
@@ -58,6 +64,5 @@ export const handler = async (input: StoreStackOutputInput) => {
 
   return {
     status: 'SUCCESS',
-    statusReason: outputs,
   };
 };

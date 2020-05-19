@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import { FlowLogBucket, FlowLogBucketProps } from './flow-log-bucket';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export type FlowLogContainerProps = FlowLogBucketProps;
 
@@ -19,6 +20,7 @@ export class FlowLogContainer extends cdk.Construct {
     this.bucket = new FlowLogBucket(this, 'FlowLogBucket', this.props);
 
     this.role = new iam.Role(this, 'Role', {
+      roleName: createRoleName('VPC-FlowLog'),
       assumedBy: new iam.ServicePrincipal('vpc-flow-logs.amazonaws.com'),
     });
 

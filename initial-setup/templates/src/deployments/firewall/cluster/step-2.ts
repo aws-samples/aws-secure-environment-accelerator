@@ -1,15 +1,19 @@
-import * as t from 'io-ts';
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { VpnTunnelOptions, Attribute } from '@custom-resources/ec2-vpn-tunnel-options';
+import { VpnTunnelOptions } from '@custom-resources/ec2-vpn-tunnel-options';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { TransitGateway } from '../../../common/transit-gateway';
-import { FirewallPortOutputType, FirewallPortType, FirewallPort } from './step-1';
+import {
+  FirewallPortOutputType,
+  FirewallPort,
+  FirewallVpnConnection,
+  FirewallVpnConnectionOutput,
+  FirewallVpnConnectionOutputType,
+} from './outputs';
 
 export interface FirewallStep2Props {
   accountStacks: AccountStacks;
@@ -22,31 +26,6 @@ export interface FirewallStep2Props {
    */
   transitGateways: Map<string, TransitGateway>;
 }
-
-export const FirewallVpnConnectionType = t.intersection([
-  FirewallPortType,
-  t.interface({
-    firewallAccountKey: t.string,
-    transitGatewayId: t.string,
-    customerGatewayId: optional(t.string),
-    vpnConnectionId: optional(t.string),
-    vpnTunnelOptions: optional(
-      t.interface({
-        cgwTunnelInsideAddress: t.string,
-        cgwBgpAsn: t.string,
-        vpnTunnelInsideAddress: t.string,
-        vpnTunnelOutsideAddress: t.string,
-        vpnBgpAsn: t.string,
-        preSharedSecret: t.string,
-      }),
-    ),
-  }),
-]);
-
-export const FirewallVpnConnectionOutputType = t.array(FirewallVpnConnectionType, 'FirewallVpnConnectionOutput');
-
-export type FirewallVpnConnection = t.TypeOf<typeof FirewallVpnConnectionType>;
-export type FirewallVpnConnectionOutput = t.TypeOf<typeof FirewallVpnConnectionOutputType>;
 
 /**
  * Creates the customer gateways for the EIPs of the firewall.
@@ -141,12 +120,13 @@ async function createCustomerGateways(props: {
       });
 
       vpnTunnelOptions = {
-        cgwTunnelInsideAddress: options?.getAttString('CgwInsideIpAddress1'),
-        cgwBgpAsn: options?.getAttString('CgwBgpAsn1'),
-        vpnTunnelInsideAddress: options?.getAttString('VpnInsideIpAddress1'),
-        vpnTunnelOutsideAddress: options?.getAttString('VpnOutsideIpAddress1'),
-        vpnBgpAsn: options?.getAttString('VpnBgpAsn1'),
-        preSharedSecret: options?.getAttString('PreSharedKey1'),
+        cgwTunnelInsideAddress1: options.getAttString('CgwInsideIpAddress1'),
+        cgwTunnelOutsideAddress1: options.getAttString('CgwOutsideIpAddress1'),
+        cgwBgpAsn1: options.getAttString('CgwBgpAsn1'),
+        vpnTunnelInsideAddress1: options.getAttString('VpnInsideIpAddress1'),
+        vpnTunnelOutsideAddress1: options.getAttString('VpnOutsideIpAddress1'),
+        vpnBgpAsn1: options.getAttString('VpnBgpAsn1'),
+        preSharedSecret1: options.getAttString('PreSharedKey1'),
       };
     }
 

@@ -6,8 +6,13 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "pbmmaccel-config-123456789012",
+    "aws-org-master": {
+       "account": "master",
+       "region": "ca-central-1"
+    },
     "central-security-services": {
        "account": "security",
+       "region": "ca-central-1",
        "security-hub": true,
        "guard-duty": true,
        "cwl": true,
@@ -15,6 +20,7 @@
     },
     "central-operations-services": {
        "account": "operations",
+       "region": "ca-central-1",
        "cwl": true,
        "cwl-access-level": "full"
     },
@@ -76,16 +82,43 @@
         }
       ]
     },
-    "scps": {
-      "ALZ-Core": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json",
-      "ALZ-Non-Core": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json",
-      "Guardrails-Part1": "PBMMAccel-Guardrails-Part1.json",
-      "Guardrails-Part2": "PBMMAccel-Guardrails-Part2.json",
-      "Guardrails-PBMM-Only": "PBMMAccel-Guardrails-PBMM-Only.json",
-      "Guardrails-Unclass-Only": "PBMMAccel-Guardrails-Unclass-Only.json",
-      "Quarantine-Deny-All": "Quarantine-Deny-All.json",
-      "Full-Access": "Full-AWS-Access.json"
-    },
+    "scps": [
+      {
+        "name": "ALZ-Core",
+        "description": "ALZ Core Preventive Guardrails",
+        "policy": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json"
+      },
+      {
+        "name": "ALZ-Non-Core",
+        "description": "ALZ Non-core Preventive Guardrails",
+        "policy": "aws-landing-zone-non-core-mandatory-preventive-guardrails-Accel.json"
+      },
+      {
+        "name": "Guardrails-Part-1",
+        "description": "PBMMAccel Guardrails Part 1",
+        "policy": "PBMMAccel-Guardrails-Part1.json"
+      },
+      {
+        "name": "Guardrails-Part-2",
+        "description": "PBMMAccel Guardrails Part 2",
+        "policy": "PBMMAccel-Guardrails-Part2.json"
+      },
+      {
+        "name": "Guardrails-PBMM-Only",
+        "description": "PBMMAccel Guardrails PBMM Environment Specific",
+        "policy": "PBMMAccel-Guardrails-PBMM-Only.json"
+      },
+      {
+        "name": "Guardrails-Unclass-Only",
+        "description": "PBMMAccel Guardrails Unclassified Environment Specific",
+        "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
+      },
+      {
+        "name": "Quarantine-Deny-All",
+        "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
+        "policy": "Quarantine-Deny-All.json"
+      }
+    ],
     "on-prem": {
       "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
     }
@@ -106,7 +139,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -276,7 +309,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -346,23 +379,8 @@
               "name": "RemoteDesktopGatewaySG",
               "inbound-rules": [
                 {
-                  "description": "Allow Inbound Domain Traffic",
-                  "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
-                  "udp-ports": [445, 138, 464, 53, 389, 123, 88],
-                  "source": ["0.0.0.0/0"]
-                },
-                {
-                  "description": "Allow Inbound RDSH",
-                  "type": ["TCP"],
-                  "toPort": 3269,
-                  "fromPort": 3268,
-                  "source": ["0.0.0.0/0"]
-                },
-                {
-                  "description": "Allow Inbound High Ports",
-                  "type": ["TCP"],
-                  "toPort": 1024,
-                  "fromPort": 65535,
+                  "description": "Allow RDP Traffic Inbound",
+                  "type": ["RDP"],
                   "source": ["0.0.0.0/0"]
                 }
               ],
@@ -370,7 +388,7 @@
                 {
                   "description": "All Outbound",
                   "type": ["ALL"],
-                  "source": ["0.0.0.0/0", "0::/0"]
+                  "source": ["0.0.0.0/0"]
                 }
               ]
             }
@@ -454,7 +472,7 @@
           "targets": [
             {
               "target-name": "FG1-Web_azA",
-              "target-type": "Instance",
+              "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7001,
               "health-check-protocol": "HTTPS",
@@ -541,7 +559,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -656,7 +674,7 @@
               },
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az1-p2"
+                "target": "{ENI-FW-azA-p2}"
               },
               {
                 "destination": "s3",
@@ -673,7 +691,7 @@
               },
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az2-p2"
+                "target": "{ENI-FW-azB-p2}"
               },
               {
                 "destination": "s3",
@@ -686,7 +704,7 @@
             "routes": [
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az1-p4"
+                "target": "{ENI-FW-azA-p4}"
               }
             ]
           },
@@ -695,7 +713,7 @@
             "routes": [
               {
                 "destination": "0.0.0.0/0",
-                "target": "ENI-FW-az2-p4"
+                "target": "{ENI-FW-azB-p4}"
               }
             ]
           }
@@ -771,9 +789,7 @@
             ]
           }
         ],
-        "tgw-attach": {
-          "associate-to-tgw": ""
-        },
+        "tgw-attach": false,
         "interface-endpoints": {
           "subnet": "Proxy",
           "endpoints": [
@@ -785,52 +801,37 @@
       },
       "deployments": {
         "firewall": {
+          "image-id": "ami-047aac44951feb9fb",
           "instance-sizes": "c5n.2xlarge",
-          "image": "BYOL",
-          "version": "6.2.3",
           "region": "ca-central-1",
           "security-group": "Fortigates",
           "vpc": "Perimeter",
-          "eni": {
-            "ports": [
-              {
-                "subnet": "Public",
-                "create-eip": true,
-                "create-cgw": true,
-                "internal-ip-addresses": {
-                  "a": "100.96.251.69/26",
-                  "b": "100.96.251.133/26"
-                }
-              },
-              {
-                "subnet": "OnPremise",
-                "create-eip": false,
-                "create-cgw": false,
-                "internal-ip-addresses": {
-                  "a": "100.96.251.5/28",
-                  "b": "100.96.251.37/28"
-                }
-              },
-              {
-                "subnet": "FWMgmt",
-                "create-eip": true,
-                "create-cgw": false,
-                "internal-ip-addresses": {
-                  "a": "100.96.251.21/28",
-                  "b": "100.96.251.53/28"
-                }
-              },
-              {
-                "subnet": "Proxy",
-                "create-eip": false,
-                "create-cgw": false,
-                "internal-ip-addresses": {
-                  "a": "100.96.250.5/25",
-                  "b": "100.96.250.133/25"
-                }
-              }
-            ]
-          },
+          "ports": [
+            {
+              "name": "Public",
+              "subnet": "Public",
+              "create-eip": true,
+              "create-cgw": true
+            },
+            {
+              "name": "OnPremise",
+              "subnet": "OnPremise",
+              "create-eip": false,
+              "create-cgw": false
+            },
+            {
+              "name": "FWMgmt",
+              "subnet": "FWMgmt",
+              "create-eip": true,
+              "create-cgw": false
+            },
+            {
+              "name": "Proxy",
+              "subnet": "Proxy",
+              "create-eip": false,
+              "create-cgw": false
+            }
+          ],
           "config": "fortigate_AA_20200504.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
@@ -849,8 +850,8 @@
         },
         "firewall-manager": {
           "name": "FortigateMgr",
+          "image-id": "ami-06fa2a9e6f8fae9f2",
           "instance-sizes": "c5.large",
-          "image": "BYOL",
           "version": "6.2.3",
           "region": "ca-central-1",
           "vpc": "Perimeter",
@@ -941,9 +942,7 @@
             ]
           }
         ],
-        "tgw-attach": {
-          "associate-to-tgw": ""
-        },
+        "tgw-attach": false,
         "interface-endpoints": false
       },
       "deployments": {
@@ -996,7 +995,7 @@
     "core": {
       "type": "ignore",
       "share-mad-from": "",
-      "SCPs": ["ALZ-Core"],
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
          "name": "Default Core Budget",
          "period": "Monthly",
@@ -1024,7 +1023,7 @@
     "central": {
       "type": "mandatory",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
          "name": "Default Central Budget",
          "period": "Monthly",
@@ -1314,6 +1313,38 @@
         ],
         "security-groups": [
           {
+            "name": "SampleComplexSecurityGroup",
+            "inbound-rules": [
+              {
+                "description": "Allow Inbound Domain Traffic",
+                "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
+                "udp-ports": [445, 138, 464, 53, 389, 123, 88],
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound RDSH",
+                "type": ["TCP"],
+                "toPort": 3269,
+                "fromPort": 3268,
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound High Ports",
+                "type": ["TCP"],
+                "toPort": 65535,
+                "fromPort": 1024,
+                "source": ["0.0.0.0/0"]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0", "0::/0"]
+              }
+            ]
+          },
+          {
             "name": "Mgmt",
             "inbound-rules": [
               {
@@ -1498,7 +1529,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -1522,7 +1553,7 @@
     "dev": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
          "name": "Default Dev Budget",
          "period": "Monthly",
@@ -1582,7 +1613,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "internal-dev-alb-lambda.txt"
             }
@@ -1967,7 +1998,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -1991,7 +2022,7 @@
     "test": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
          "name": "Default Test Budget",
          "period": "Monthly",
@@ -2051,7 +2082,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "internal-test-alb-lambda.txt"
             }
@@ -2436,7 +2467,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -2460,7 +2491,7 @@
     "prod": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-PBMM-Only"],
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
          "name": "Default Prod Budget",
          "period": "Monthly",
@@ -2520,7 +2551,7 @@
           "targets": [
             {
               "target-name": "health-check-Lambda",
-              "target-type": "Lambda",
+              "target-type": "lambda",
               "health-check-path": "/health-check",
               "lambda-filename": "intrenal-prod-alb-lambda.txt"
             }
@@ -2905,7 +2936,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -2929,7 +2960,7 @@
     "unclass": {
       "type": "workload",
       "share-mad-from": "operations",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
       "default-budgets": {
          "name": "Default Unclass Budget",
          "period": "Monthly",
@@ -3349,7 +3380,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",
@@ -3373,7 +3404,7 @@
     "sandbox": {
       "type": "workload",
       "share-mad-from": "",
-      "SCPs": ["ALZ-Non-Core", "Guardrails-Part1", "Guardrails-Part2", "Guardrails-Unclass-Only"],
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
       "default-budgets": {
          "name": "Default Sandbox Budget",
          "period": "Monthly",
@@ -3736,9 +3767,7 @@
             ]
           }
         ],
-        "tgw-attach": {
-          "associate-to-tgw": ""
-        },
+        "tgw-attach": false,
         "interface-endpoints": false
       },
       "iam": {
@@ -3751,7 +3780,7 @@
         ],
         "roles": [
           {
-            "role": "EC2-Default-SSM-AD",
+            "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
             "policies": [
               "AmazonSSMManagedInstanceCore",

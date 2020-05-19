@@ -134,7 +134,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
     const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, accountVpcConfigs } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
-    const useCentralEndpointsConfig: boolean = props.vpcProps.vpcConfig['use-central-endpoints'] ?? false;
 
     this.name = props.vpcProps.vpcConfig.name;
     this.region = vpcConfig.region;
@@ -143,8 +142,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     // Create Custom VPC using CFN construct as tags override option not available in default construct
     const vpcObj = new ec2.CfnVPC(this, vpcName, {
       cidrBlock: props.vpcProps.vpcConfig.cidr.toCidrString(),
-      enableDnsHostnames: useCentralEndpointsConfig,
-      enableDnsSupport: useCentralEndpointsConfig,
+      enableDnsHostnames: true,
+      enableDnsSupport: true,
     });
     this.vpcId = vpcObj.ref;
 
@@ -276,31 +275,31 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     }
 
     let tgwAttachment;
-    if (tgwAttach) {
+    if (config.TransitGatewayAttachConfigType.is(tgwAttach)) {
       const tgwName = tgwAttach['associate-to-tgw'];
       const tgw = props.transitGateways.get(tgwName);
-      if (tgw && tgwName.length > 0) {
-        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
-        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
-        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-        // Attach VPC To TGW
-        tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
-          vpcId: this.vpcId,
-          subnetIds,
-          transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-        });
-        // Add name tag
-        cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
+      if (!tgw) {
+        throw new Error(`Cannot find transit gateway with name "${tgwName}"`);
       }
+
+      const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+      const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+      const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+      const subnetIds = attachSubnetsConfig.flatMap(subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || []);
+      const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+      const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+      // Attach VPC To TGW
+      tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
+        vpcId: this.vpcId,
+        subnetIds,
+        transitGatewayId: tgw.tgwId,
+        tgwRouteAssociates,
+        tgwRoutePropagates,
+      });
+      // Add name tag
+      cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
     }
 
     // Add Routes to Route Tables
@@ -331,7 +330,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           } else if (route.target.toLowerCase() === 'dynamodb') {
             dynamoRoutes.push(routeTableObj);
             continue;
-          } else if (route.target === 'TGW' && tgwAttach && tgwAttachment) {
+          } else if (route.target === 'TGW' && config.TransitGatewayAttachConfigType.is(tgwAttach) && tgwAttachment) {
             const tgwName = tgwAttach['associate-to-tgw'];
             const tgw = props.transitGateways.get(tgwName);
             dependsOn = tgw?.tgw;
