@@ -125,7 +125,7 @@ export async function createAlb(
     throw new Error(`Cannot find output with log-archive AccountBucket`);
   }
 
-  const securityGroup = vpc.tryFindSecurityGroupByName(alb['security-group']);
+  const securityGroup = vpc.tryFindSecurityGroupByName(alb.vpc.concat('-').concat(alb['security-group']));
   if (!securityGroup) {
     throw new Error(`Cannot find output with security name ${alb['security-group']}`);
   }
