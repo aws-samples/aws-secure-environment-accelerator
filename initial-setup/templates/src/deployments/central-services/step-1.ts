@@ -211,6 +211,20 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds
       },
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRole.roleArn,
+      processingConfiguration: {
+        enabled: true,
+        processors: [
+          {
+            type: 'Lambda',
+            parameters: [
+              {
+                parameterName: 'LambdaArn',
+                parameterValue: 'arn:aws:lambda:ca-central-1:344281165467:function:logsprocessor'
+              }
+            ]
+          }
+        ]
+      }
     },
   });
   kinesisDeliveryStream.node.addDependency(kinesisStreamPolicy);

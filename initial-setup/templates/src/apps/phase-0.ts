@@ -55,169 +55,169 @@ async function main() {
 
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
-  for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
-    for (const account of accounts) {
-      new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
-        functionName: funcArn,
-        action: 'lambda:InvokeFunction',
-        principal: `arn:aws:iam::${account.id}:role/${context.acceleratorExecutionRoleName}`,
-      });
-    }
-  }
+  // const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  // for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
+  //   for (const account of accounts) {
+  //     new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
+  //       functionName: funcArn,
+  //       action: 'lambda:InvokeFunction',
+  //       principal: `arn:aws:iam::${account.id}:role/${context.acceleratorExecutionRoleName}`,
+  //     });
+  //   }
+  // }
 
-  // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
-  const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
+  // // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
+  // const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
 
-  const accountIds: string[] = accounts.map(account => account.id);
+  // const accountIds: string[] = accounts.map(account => account.id);
 
-  // Create the log archive bucket
-  const bucket = new LogArchiveBucket(logArchiveStack, 'LogArchive', {
-    logRetention: cdk.Duration.days(logRetentionInDays),
-    logArchiveAccountId,
-    accountIds,
-  });
-
-  // Grant all accounts access to the log archive bucket
-  const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
-  bucket.grantReplicate(...principals);
-
-  // store the log archive account Id for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
-    value: logArchiveAccountId,
-  });
-
-  // store the s3 bucket arn for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
-    value: bucket.bucketArn,
-  });
-
-  // store the s3 bucket - kms key arn for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
-    value: bucket.encryptionKeyArn,
-  });
-
-  // store the s3 bucket - kms key id for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID, {
-    value: bucket.encryptionKey.keyId,
-  });
-
-  // TODO Replace above outputs with JSON output
-  // new JsonOutputValue(stack, 'LogArchiveOutput', {
-  //   type: 'LogArchiveOutput',
-  //   value: {
-  //     bucketArn: bucket.bucketArn,
-  //     encryptionKeyArn: bucket.encryptionKeyArn,
-  //   },
+  // // Create the log archive bucket
+  // const bucket = new LogArchiveBucket(logArchiveStack, 'LogArchive', {
+  //   logRetention: cdk.Duration.days(logRetentionInDays),
+  //   logArchiveAccountId,
+  //   accountIds,
   // });
 
-  const uploadArtifacts = (
-    artifactName: string,
-    artifactFolderName: string,
-    artifactKeyPrefix: string,
-    accountKey: string,
-    bucketNameGeneratorInput: string,
-    destinationKeyPrefix?: string,
-  ): void => {
-    // creating a bucket to store artifacts
-    const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
-      versioned: true,
-      bucketName: createBucketName(bucketNameGeneratorInput),
-    });
+  // // Grant all accounts access to the log archive bucket
+  // const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
+  // bucket.grantReplicate(...principals);
 
-    // Granting read access to all the accounts
-    principals.map(principal => artifactBucket.grantRead(principal));
+  // // store the log archive account Id for later reference
+  // new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
+  //   value: logArchiveAccountId,
+  // });
 
-    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
+  // // store the s3 bucket arn for later reference
+  // new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
+  //   value: bucket.bucketArn,
+  // });
 
-    new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
-      sources: [s3deployment.Source.asset(artifactsFolderPath)],
-      destinationBucket: artifactBucket,
-      destinationKeyPrefix,
-    });
+  // // store the s3 bucket - kms key arn for later reference
+  // new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
+  //   value: bucket.encryptionKeyArn,
+  // });
 
-    // outputs to store reference artifacts s3 bucket information
-    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
-      type: `${artifactName}ArtifactsOutput`,
-      value: {
-        accountKey,
-        bucketArn: artifactBucket.bucketArn,
-        bucketName: artifactBucket.bucketName,
-        keyPrefix: artifactKeyPrefix,
-      },
-    });
-  };
+  // // store the s3 bucket - kms key id for later reference
+  // new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID, {
+  //   value: bucket.encryptionKey.keyId,
+  // });
 
-  // upload IAM-Policies Artifacts
-  uploadArtifacts('IamPolicy', 'iam-policies', 'iam-policy', 'master', 'iam', 'iam-policy');
+  // // TODO Replace above outputs with JSON output
+  // // new JsonOutputValue(stack, 'LogArchiveOutput', {
+  // //   type: 'LogArchiveOutput',
+  // //   value: {
+  // //     bucketArn: bucket.bucketArn,
+  // //     encryptionKeyArn: bucket.encryptionKeyArn,
+  // //   },
+  // // });
 
-  const createAccessAnalyzer = async (accountKey: string): Promise<void> => {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+  // const uploadArtifacts = (
+  //   artifactName: string,
+  //   artifactFolderName: string,
+  //   artifactKeyPrefix: string,
+  //   accountKey: string,
+  //   bucketNameGeneratorInput: string,
+  //   destinationKeyPrefix?: string,
+  // ): void => {
+  //   // creating a bucket to store artifacts
+  //   const artifactBucket = new s3.Bucket(masterAccountStack, `${artifactName}ArtifactsBucket${accountKey}`, {
+  //     versioned: true,
+  //     bucketName: createBucketName(bucketNameGeneratorInput),
+  //   });
 
-    new AccessAnalyzer(accountStack, `Access Analyzer-${pascalCase(accountKey)}`);
-  };
+  //   // Granting read access to all the accounts
+  //   principals.map(principal => artifactBucket.grantRead(principal));
 
-  // creating assets for default account settings
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    // TODO Remove hard-coded account key
-    if (accountKey === 'security') {
-      await createAccessAnalyzer(accountKey);
-    }
-  }
+  //   const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
 
-  for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
-    const madDeploymentConfig = accountConfig.deployments?.mad;
-    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
-      continue;
-    }
-    const mandatoryAccountId = getAccountId(accounts, accountKey);
-    const rdgwBucketName = `pbmmaccel-${mandatoryAccountId}-${cdk.Aws.REGION}`;
+  //   new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
+  //     sources: [s3deployment.Source.asset(artifactsFolderPath)],
+  //     destinationBucket: artifactBucket,
+  //     destinationKeyPrefix,
+  //   });
 
-    // upload RDGW Artifacts
-    uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, 'rdgw', 'config/scripts');
-  }
+  //   // outputs to store reference artifacts s3 bucket information
+  //   new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
+  //     type: `${artifactName}ArtifactsOutput`,
+  //     value: {
+  //       accountKey,
+  //       bucketArn: artifactBucket.bucketArn,
+  //       bucketName: artifactBucket.bucketName,
+  //       keyPrefix: artifactKeyPrefix,
+  //     },
+  //   });
+  // };
 
-  const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
-  const subAccountIds = accounts.map(account => {
-    return {
-      AccountId: account.id,
-      Email: account.email,
-    };
-  });
-  const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
-  // Create Security Hub stack for Master Account in Security Account
-  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
-    account: securityMasterAccount!,
-    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-    standards: globalOptions['security-hub-frameworks'],
-    subAccountIds,
-  });
+  // // upload IAM-Policies Artifacts
+  // uploadArtifacts('IamPolicy', 'iam-policies', 'iam-policy', 'master', 'iam', 'iam-policy');
 
-  // Create defaults, e.g. S3 buckets, EBS encryption keys
-  const defaultsResult = await defaults.step1({
-    acceleratorName: context.acceleratorName,
-    accountStacks,
-    config: acceleratorConfig,
-  });
+  // const createAccessAnalyzer = async (accountKey: string): Promise<void> => {
+  //   const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
 
-  // MAD creation step 1
-  // Needs EBS default keys from the EBS default step
-  await mad.step1({
-    acceleratorName: context.acceleratorName,
-    acceleratorPrefix: context.acceleratorPrefix,
-    accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
-    accountStacks,
-    config: acceleratorConfig,
-  });
+  //   new AccessAnalyzer(accountStack, `Access Analyzer-${pascalCase(accountKey)}`);
+  // };
 
-  // Firewall creation step 1
-  await firewallCluster.step1({
-    accountStacks,
-    config: acceleratorConfig,
-  });
+  // // creating assets for default account settings
+  // for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+  //   // TODO Remove hard-coded account key
+  //   if (accountKey === 'security') {
+  //     await createAccessAnalyzer(accountKey);
+  //   }
+  // }
+
+  // for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
+  //   const madDeploymentConfig = accountConfig.deployments?.mad;
+  //   if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+  //     continue;
+  //   }
+  //   const mandatoryAccountId = getAccountId(accounts, accountKey);
+  //   const rdgwBucketName = `pbmmaccel-${mandatoryAccountId}-${cdk.Aws.REGION}`;
+
+  //   // upload RDGW Artifacts
+  //   uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, 'rdgw', 'config/scripts');
+  // }
+
+  // const globalOptions = acceleratorConfig['global-options'];
+  // const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  // const subAccountIds = accounts.map(account => {
+  //   return {
+  //     AccountId: account.id,
+  //     Email: account.email,
+  //   };
+  // });
+  // const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
+  // // Create Security Hub stack for Master Account in Security Account
+  // const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+  //   account: securityMasterAccount!,
+  //   acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+  //   enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+  //   inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+  //   standards: globalOptions['security-hub-frameworks'],
+  //   subAccountIds,
+  // });
+
+  // // Create defaults, e.g. S3 buckets, EBS encryption keys
+  // const defaultsResult = await defaults.step1({
+  //   acceleratorName: context.acceleratorName,
+  //   accountStacks,
+  //   config: acceleratorConfig,
+  // });
+
+  // // MAD creation step 1
+  // // Needs EBS default keys from the EBS default step
+  // await mad.step1({
+  //   acceleratorName: context.acceleratorName,
+  //   acceleratorPrefix: context.acceleratorPrefix,
+  //   accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
+  //   accountStacks,
+  //   config: acceleratorConfig,
+  // });
+
+  // // Firewall creation step 1
+  // await firewallCluster.step1({
+  //   accountStacks,
+  //   config: acceleratorConfig,
+  // });
 
   // Central Services step 1
   await centralServices.step1({
