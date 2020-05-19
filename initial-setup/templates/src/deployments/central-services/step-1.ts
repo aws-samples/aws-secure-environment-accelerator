@@ -71,11 +71,11 @@ async function centralServicesSettingsInMaster(props: {
   if (!logsAccount) {
     throw new Error('Landing Zone "log-archive" Account Not found');
   }
-  const allAccountIds = accounts.map(account =>account.id);
+  const allAccountIds = accounts.map(account => account.id);
   const logsAccountStack = accountStacks.getOrCreateAccountStack(logsAccount.key);
   await cwlSettingsInLogArchive({
     scope: logsAccountStack,
-    accountIds: allAccountIds
+    accountIds: allAccountIds,
   });
 }
 
@@ -104,7 +104,7 @@ async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; account
  * Create initial Setup in Log Archive Account for centralized logging for sub accounts in single S3 bucket
  * 5.15b - READY - Centralize CWL - Part 2
  */
-async function cwlSettingsInLogArchive(props: { scope: cdk.Construct, accountIds: string[] }) {
+async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds: string[] }) {
   const { scope, accountIds } = props;
   // Creating Central Log Bucket
   const logsBucket = new s3.Bucket(scope, `CWL-Centralized-logging-Bucket`, {
@@ -115,9 +115,9 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct, accountIds
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
     streamName: createName({
       name: 'Logs-Stream',
-      suffixLength: 0
+      suffixLength: 0,
     }),
-    encryption: kinesis.StreamEncryption.UNENCRYPTED
+    encryption: kinesis.StreamEncryption.UNENCRYPTED,
   });
 
   // Create IAM Role for reading logs from stream and push to destination
@@ -133,34 +133,29 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct, accountIds
     statements: [
       new iam.PolicyStatement({
         resources: [logsStream.streamArn],
-        actions: [
-          'kinesis:PutRecord'
-        ],
+        actions: ['kinesis:PutRecord'],
       }),
       new iam.PolicyStatement({
         resources: [logsRole.roleArn],
-        actions: [
-          'iam:PassRole'
-        ],
-      })
-    ]
+        actions: ['iam:PassRole'],
+      }),
+    ],
   });
 
   const destinationName = createName({
-    name:'log-destination',
-    suffixLength: 0
+    name: 'log-destination',
+    suffixLength: 0,
   });
   const accountIdsStr = `"${accountIds.join('","')}"`;
   console.log(accountIdsStr);
-  const destinationPolicyStr = 
-    `{"Version" : "2012-10-17","Statement" : [{"Effect" : "Allow","Principal" : {"AWS" : [${accountIdsStr}]},"Action" : "logs:PutSubscriptionFilter","Resource" : "arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}"}]}`;
-iam.AccountPrincipal
+  const destinationPolicyStr = `{"Version" : "2012-10-17","Statement" : [{"Effect" : "Allow","Principal" : {"AWS" : [${accountIdsStr}]},"Action" : "logs:PutSubscriptionFilter","Resource" : "arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}"}]}`;
+  iam.AccountPrincipal;
   // Create AWS Logs Destination
   const logDestination = new logs.CfnDestination(scope, 'Log-Destination', {
     destinationName: destinationName,
     targetArn: logsStream.streamArn,
     roleArn: logsRole.roleArn,
-    destinationPolicy: destinationPolicyStr
+    destinationPolicy: destinationPolicyStr,
   });
   logDestination.node.addDependency(logsRolePolicy);
 
@@ -176,27 +171,27 @@ iam.AccountPrincipal
       new iam.PolicyStatement({
         resources: ['*'],
         actions: [
-          'kinesis:DescribeStream', 
-          'kinesis:GetShardIterator', 
-          'kinesis:GetRecords', 
+          'kinesis:DescribeStream',
+          'kinesis:GetShardIterator',
+          'kinesis:GetRecords',
           'kms:Decrypt',
           'logs:PutLogEvents',
           'lambda:GetFunctionConfiguration',
-          'lambda:InvokeFunction'
+          'lambda:InvokeFunction',
         ],
       }),
       new iam.PolicyStatement({
         resources: [logsBucket.bucketArn, `${logsBucket.bucketArn}${cdk.Aws.URL_SUFFIX}*`],
         actions: [
-          "s3:AbortMultipartUpload",
-          "s3:GetBucketLocation",
-          "s3:GetObject",
-          "s3:ListBucket",
-          "s3:ListBucketMultipartUploads",
-          "s3:PutObject"
+          's3:AbortMultipartUpload',
+          's3:GetBucketLocation',
+          's3:GetObject',
+          's3:ListBucket',
+          's3:ListBucketMultipartUploads',
+          's3:PutObject',
         ],
-      })
-    ]
+      }),
+    ],
   });
 
   const kinesisDeliveryStream = new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream', {
@@ -206,17 +201,17 @@ iam.AccountPrincipal
     deliveryStreamType: 'KinesisStreamAsSource',
     kinesisStreamSourceConfiguration: {
       kinesisStreamArn: logsStream.streamArn,
-      roleArn: kinesisStreamRole.roleArn
+      roleArn: kinesisStreamRole.roleArn,
     },
     extendedS3DestinationConfiguration: {
       bucketArn: logsBucket.bucketArn,
       bufferingHints: {
-        intervalInSeconds:  60,
-        sizeInMBs: 50
+        intervalInSeconds: 60,
+        sizeInMBs: 50,
       },
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRole.roleArn,
-    }
+    },
   });
   kinesisDeliveryStream.node.addDependency(kinesisStreamPolicy);
   kinesisDeliveryStream.node.addDependency(logsRolePolicy);
