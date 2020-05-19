@@ -1,8 +1,7 @@
 import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-service';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { Account } from '../load-accounts-step';
+import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getAccountId } from '../../../templates/src/utils/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';

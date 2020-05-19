@@ -1,14 +1,14 @@
 import * as cdk from '@aws-cdk/core';
-import { AcceleratorConfig, VpcConfig, AccountConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { Account } from '../utils/accounts';
 import { Context } from '../utils/context';
 import { Route53Zones } from './r53-zones';
 import { Route53ResolverEndpoint } from './r53-resolver-endpoint';
 import { Route53ResolverRule } from './r53-resolver-rule';
-import { StackOutput, getStackJsonOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../deployments/vpc';
 import { JsonOutputValue } from './json-output';
-import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '../apps/phase-2';
 
 interface ResolverOutput {
   [key: string]: string;

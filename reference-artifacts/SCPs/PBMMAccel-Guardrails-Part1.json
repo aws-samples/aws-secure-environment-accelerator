@@ -10,6 +10,7 @@
         "s3:PutBucketVersioning",
         "s3:PutEncryptionConfiguration",
         "s3:PutLifecycleConfiguration",
+        "s3:PutReplicationConfiguration",
         "s3:PutBucketPolicy",
         "s3:ReplicateDelete",
         "s3:PutObjectRetention",
@@ -137,6 +138,7 @@
         "logs:DeleteRetentionPolicy",
         "logs:DeleteLogDelivery",
         "logs:DeleteDestination",
+        "logs:PutRetentionPolicy",
         "logs:DeleteLogStream"
       ],
       "Resource":"*",

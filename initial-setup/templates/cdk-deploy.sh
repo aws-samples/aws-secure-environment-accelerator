@@ -14,5 +14,9 @@ fi
 
 pnpx cdk deploy \
   --require-approval never \
+  --version-reporting false \
+  --path-metadata false \
+  --asset-metadata false \
+  --force \
   --plugin "$(pwd)/../../plugins/assume-role" \
   --app "pnpx ts-node src/$APP_PATH" $ARGS

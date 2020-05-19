@@ -1,9 +1,9 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { AcceleratorConfig, OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
-import { Account } from './load-accounts-step';
 import { ConfigurationOrganizationalUnit, LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
