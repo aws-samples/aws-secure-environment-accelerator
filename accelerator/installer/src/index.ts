@@ -30,9 +30,14 @@ async function main() {
     description: 'The prefix that will be used by the Accelerator when creating resources.',
   });
 
-  const acceleratorConfigSecretId = new cdk.CfnParameter(stack, 'AcceleratorSecretId', {
-    default: 'accelerator/config',
-    description: 'The ID of the secret that contains the Accelerator configuration.',
+  const acceleratorConfigS3Bucket = new cdk.CfnParameter(stack, 'acceleratorConfigS3Bucket', {
+    default: 'pbmmaccel-config',
+    description: 'The S3 Bucket name that contains Accelerator configuration.',
+  });
+
+  const acceleratorCodeCommitRepo = new cdk.CfnParameter(stack, 'acceleratorCodeCommitRepository', {
+    default: 'PBMMAccel-Repo-Config',
+    description: 'The Code Commit Repository to store Accelerator configuration from "acceleratorConfigS3Bucket".',
   });
 
   const githubOauthSecretId = new cdk.CfnParameter(stack, 'GithubSecretId', {
@@ -139,9 +144,13 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: acceleratorPrefix.valueAsString,
         },
-        ACCELERATOR_CONFIG_SECRET_ID: {
+        ACCELERATOR_CONFIG_REPOSITORY: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorConfigSecretId.valueAsString,
+          value: acceleratorCodeCommitRepo.valueAsString,
+        },
+        CONFIG_S3_BUCKET: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: acceleratorConfigS3Bucket.valueAsString,
         },
         ACCELERATOR_STATE_MACHINE_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
