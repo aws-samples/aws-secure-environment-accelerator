@@ -1,27 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import { Vpc, SecurityGroup, Subnet } from '@aws-pbmm/constructs/lib/vpc';
+import { VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
-export interface VpcSubnetOutput {
-  subnetId: string;
-  subnetName: string;
-  az: string;
-  cidrBlock: string;
-}
-
-export interface VpcSecurityGroupOutput {
-  securityGroupId: string;
-  securityGroupName: string;
-}
-
-export interface VpcOutput {
-  vpcId: string;
-  vpcName: string;
-  cidrBlock: string;
-  subnets: VpcSubnetOutput[];
-  routeTables: { [key: string]: string };
-  securityGroups: VpcSecurityGroupOutput[];
-  pcx?: string;
-}
+export { VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface ImportedVpcProps {
   readonly id: string;

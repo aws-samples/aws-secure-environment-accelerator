@@ -1,12 +1,12 @@
 import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
 import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { Account } from './load-accounts-step';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
-import { StackOutput, getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
