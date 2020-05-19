@@ -3,7 +3,10 @@ import * as cdk from '@aws-cdk/core';
 import * as cnf from '@aws-cdk/aws-config';
 import { ConfigRule } from '@config-rules/vpc-config-rule';
 
-export type OrganizationConformancePackProps = Omit<cnf.CfnOrganizationConformancePackProps, 'templateBody' | 'templateS3Uri'>;
+export type OrganizationConformancePackProps = Omit<
+  cnf.CfnOrganizationConformancePackProps,
+  'templateBody' | 'templateS3Uri'
+>;
 
 export class OrganizationConformancePack extends cdk.Construct {
   private readonly props: OrganizationConformancePackProps;

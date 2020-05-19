@@ -12,10 +12,10 @@ export interface ConfigRule {
 }
 
 export interface VpcConfigRuleExpectedFlowLogDestination {
-  accountId: string,
-  executionRoleName: string,
-  vpcId: string,
-  flowLogDestination: string,
+  accountId: string;
+  executionRoleName: string;
+  vpcId: string;
+  flowLogDestination: string;
 }
 
 export interface VpcConfigRuleProps {

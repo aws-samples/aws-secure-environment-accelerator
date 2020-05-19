@@ -41,7 +41,9 @@ export async function step1(props: ConformancePackStep1Props) {
   });
 }
 
-function createConformancePack(props: { primaryAccountStack: AcceleratorStack }): OrganizationConformancePack | undefined {
+function createConformancePack(props: {
+  primaryAccountStack: AcceleratorStack;
+}): OrganizationConformancePack | undefined {
   const { primaryAccountStack } = props;
 
   const bucket = new s3.Bucket(primaryAccountStack, 'ConformancePackBucket', {
