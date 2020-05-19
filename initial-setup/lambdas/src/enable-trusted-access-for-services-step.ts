@@ -1,7 +1,8 @@
+import * as aws from 'aws-sdk';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { FMS } from '@aws-pbmm/common-lambda/lib/aws/fms';
 import { IAM } from '@aws-pbmm/common-lambda/lib/aws/iam';
-import { Account } from './load-accounts-step';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 
 interface EnableTrustedAccessForServicesInput {
   accounts: Account[];
@@ -19,10 +20,13 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   }
   const securityAccountId: string = securityAccount.id;
 
-  const org = new Organizations();
-  await org.enableAWSServiceAccess('ram.amazonaws.com');
+  const ram = new aws.RAM();
+  await ram.enableSharingWithAwsOrganization().promise();
+
+  // await org.enableAWSServiceAccess('ram.amazonaws.com');
   console.log('Enabled Resource Access Manager service access within the Organization.');
 
+  const org = new Organizations();
   await org.enableAWSServiceAccess('fms.amazonaws.com');
   console.log('Enabled Firewall Manager service access within the Organization.');
 
