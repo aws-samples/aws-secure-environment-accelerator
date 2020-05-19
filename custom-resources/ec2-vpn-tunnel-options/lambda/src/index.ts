@@ -4,6 +4,10 @@ import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 
 const ec2 = new AWS.EC2();
 
+export interface HandlerProperties {
+  VPNConnectionID: string;
+}
+
 export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   console.log(`Finding tunnel options...`);
   console.log(JSON.stringify(event, null, 2));
@@ -20,10 +24,12 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 };
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+
   // Find VPN connection by its ID
   const describeVpnConnections = await ec2
     .describeVpnConnections({
-      VpnConnectionIds: [event.ResourceProperties.VPNConnectionID],
+      VpnConnectionIds: [properties.VPNConnectionID],
     })
     .promise();
 
