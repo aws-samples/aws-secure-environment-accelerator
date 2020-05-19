@@ -386,7 +386,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
-  'default-budgets': optional(BudgetConfigType), 
+  'default-budgets': optional(BudgetConfigType),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;

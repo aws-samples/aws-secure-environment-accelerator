@@ -223,14 +223,14 @@ async function main() {
   const accountsAlreadyHaveBudget = [];
   const createBudget = async (accountKey: string, budgetConfig: BudgetConfig): Promise<void> => {
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    if(budgetConfig) {
+    if (budgetConfig) {
       const notifications = [];
       for (const notification of budgetConfig.alerts) {
         notifications.push({
           notification: {
             comparisonOperator: 'GREATER_THAN',
             notificationType: notification.type.toUpperCase(),
-            threshold: notification["threshold-percent"],
+            threshold: notification['threshold-percent'],
             thresholdType: 'PERCENTAGE',
           },
           subscribers: notification.emails.map(email => ({
@@ -250,14 +250,14 @@ async function main() {
           timeUnit: budgetConfig.period.toUpperCase(),
         },
         notificationsWithSubscribers: notifications,
-      }
+      };
       new CfnBudget(accountStack, budgetConfig.name, budgetProps);
     }
   };
   // Create Budgets for mandatory accounts
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     const budgetConfig = accountConfig.budget;
-    if(budgetConfig) {
+    if (budgetConfig) {
       await createBudget(accountKey, budgetConfig);
 
       accountsAlreadyHaveBudget.push(accountKey);
@@ -265,8 +265,8 @@ async function main() {
   }
   // Create Budgets for rest accounts in OU
   for (const [ouKey, ouConfig] of acceleratorConfig.getOrganizationalUnits()) {
-    const budgetConfig = ouConfig["default-budgets"]
-    if( budgetConfig) {
+    const budgetConfig = ouConfig['default-budgets'];
+    if (budgetConfig) {
       for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigsForOu(ouKey)) {
         // only create if Budgets has not been created yet
         if (!accountsAlreadyHaveBudget.includes(accountKey)) {
