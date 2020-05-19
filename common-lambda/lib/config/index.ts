@@ -284,6 +284,7 @@ export type AlbTargetConfig = t.TypeOf<typeof AlbTargetConfigType>;
 export const AlbConfigType = t.interface({
   name: t.string,
   scheme: t.string,
+  'action-type': t.string,
   'ip-type': t.string,
   listeners: t.string,
   ports: t.string,
