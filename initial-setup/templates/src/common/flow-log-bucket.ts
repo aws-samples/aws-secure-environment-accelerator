@@ -160,16 +160,7 @@ export class FlowLogBucket extends cdk.Construct {
     }
   }
 
-  protected onPrepare() {
-    const bucketPolicy = s3.Bucket.fromBucketArn(this, 'AlbBucketPolicy', this.bucket.attrArn);
-    bucketPolicy.grantPut(new iam.ArnPrincipal('arn:aws:iam::985666609251:root'));
-  }
-
   get bucketArn(): string {
     return this.bucket.attrArn;
-  }
-
-  get bucketName(): string {
-    return this.bucket.bucketName!;
   }
 }

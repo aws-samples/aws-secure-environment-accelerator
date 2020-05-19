@@ -451,6 +451,7 @@
         {
           "name": "Public-Prod",
           "scheme": "internet-facing",
+          "action-type": "forward",
           "ip-type": "ipv4",
           "listeners": "HTTPS",
           "ports": "443",
@@ -459,7 +460,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security-group": "Public-Prod-ALB",
+          "security-group": "Perimeter-Prod-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -471,7 +472,7 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "FG1-Web_azA",
+              "target-name": "FG1-Web-azA",
               "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7001,
@@ -479,19 +480,19 @@
               "health-check-path": "/health-check",
               "health-check-port": 7001,
               "lambda-filename": "",
-              "target-instances": ["{ENI-FW1-azA-p1}"],
+              "target-instances": ["FgtA"],
               "tg-weight": 1
             },
             {
-              "target-name": "FG1-Web_azB",
-              "target-type": "Instance",
+              "target-name": "FG1-Web-azB",
+              "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7001,
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7001,
               "lambda-filename": "",
-              "target-instances": ["{ENI-FW1-azB-p1}"],
+              "target-instances": ["FgtB"],
               "tg-weight": 1
             }
           ]
@@ -499,6 +500,7 @@
         {
           "name": "Public-DevTest",
           "scheme": "internet-facing",
+          "action-type": "forward",
           "ip-type": "ipv4",
           "listeners": "HTTPS",
           "ports": "443",
@@ -507,7 +509,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security-group": "Public-DevTest-ALB",
+          "security-group": "Perimeter-DevTest-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -519,27 +521,27 @@
           "access-logs": true,
           "targets": [
             {
-              "target-name": "FG1-Web_azA",
-              "target-type": "Instance",
+              "target-name": "FG1-Web-azA",
+              "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7002,
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7002,
               "lambda-filename": "",
-              "target-instances": ["{ENI-FW1-azA-p1}"],
+              "target-instances": ["FgtA"],
               "tg-weight": 1
             },
             {
-              "target-name": "FG1-Web_azB",
-              "target-type": "Instance",
+              "target-name": "FG1-Web-azB",
+              "target-type": "instance",
               "protocol": "HTTPS",
               "port": 7002,
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
               "health-check-port": 7002,
               "lambda-filename": "",
-              "target-instances": ["{ENI-FW1-azB-p1}"],
+              "target-instances": ["FgtB"],
               "tg-weight": 1
             }
           ]
@@ -1598,7 +1600,8 @@
       "alb": [
         {
           "name": "Core-",
-          "scheme": "internet-facing",
+          "scheme": "internal",
+          "action-type": "forward",
           "ip-type": "ipv4",
           "listeners": "HTTPS",
           "ports": "443",
@@ -2067,7 +2070,8 @@
       "alb": [
         {
           "name": "Core-",
-          "scheme": "internet-facing",
+          "scheme": "internal",
+          "action-type": "forward",
           "ip-type": "ipv4",
           "listeners": "HTTPS",
           "ports": "443",
@@ -2536,7 +2540,8 @@
       "alb": [
         {
           "name": "Core-",
-          "scheme": "internet-facing",
+          "scheme": "internal",
+          "action-type": "forward",
           "ip-type": "ipv4",
           "listeners": "HTTPS",
           "ports": "443",
@@ -2553,7 +2558,7 @@
               "target-name": "health-check-Lambda",
               "target-type": "lambda",
               "health-check-path": "/health-check",
-              "lambda-filename": "intrenal-prod-alb-lambda.txt"
+              "lambda-filename": "internal-prod-alb-lambda.txt"
             }
           ]
         }
