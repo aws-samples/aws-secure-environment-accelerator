@@ -546,7 +546,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
       for (const vpcConfig of accountConfig.vpc || []) {
         vpcConfigs.push({
           accountKey,
-          vpcConfig: vpcConfig,
+          vpcConfig,
           deployments: accountConfig.deployments,
         });
       }
@@ -566,7 +566,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
             vpcConfigs.push({
               ouKey,
               accountKey,
-              vpcConfig: vpcConfig,
+              vpcConfig,
               deployments: accountConfig.deployments,
             });
           }
@@ -575,7 +575,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
           vpcConfigs.push({
             ouKey,
             accountKey: destinationAccountKey,
-            vpcConfig: vpcConfig,
+            vpcConfig,
           });
         }
       }
@@ -586,7 +586,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
       for (const vpcConfig of accountConfig.vpc || []) {
         vpcConfigs.push({
           accountKey,
-          vpcConfig: vpcConfig,
+          vpcConfig,
           deployments: accountConfig.deployments,
         });
       }
