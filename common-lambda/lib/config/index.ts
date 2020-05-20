@@ -420,6 +420,15 @@ export const SecurityHubFrameworksConfigType = t.interface({
   ),
 });
 
+export const CentralServicesConfigType = t.interface({
+  account: NonEmptyString,
+  'security-hub': fromNullable(t.boolean, false),
+  'guard-duty': fromNullable(t.boolean, false),
+  cwl: fromNullable(t.boolean, false),
+  'access-analyzer': fromNullable(t.boolean, false),
+  'cwl-access-level': optional(t.string),
+});
+
 export const ScpsConfigType = t.interface({
   name: NonEmptyString,
   description: NonEmptyString,
@@ -435,9 +444,13 @@ export const GlobalOptionsConfigType = t.interface({
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
+  'central-security-services': CentralServicesConfigType,
+  'central-operations-services': CentralServicesConfigType,
+  'central-log-services': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
 });
 
+export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
 export type SecurityHubFrameworksConfig = t.TypeOf<typeof SecurityHubFrameworksConfigType>;
 export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
 
