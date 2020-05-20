@@ -66,7 +66,7 @@ export class InterfaceEndpoint extends cdk.Construct {
         },
       ],
       hostedZoneConfig: {
-        comment: `Custom-${serviceName}`,
+        comment: `zzEndpoint - ${serviceName}`,
       },
     });
     hostedZone.addDependsOn(endpoint);

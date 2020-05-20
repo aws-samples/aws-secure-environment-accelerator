@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
+import * as codecommit from '@aws-cdk/aws-codecommit';
 import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
@@ -30,9 +31,19 @@ async function main() {
     description: 'The prefix that will be used by the Accelerator when creating resources.',
   });
 
-  const acceleratorConfigSecretId = new cdk.CfnParameter(stack, 'AcceleratorSecretId', {
-    default: 'accelerator/config',
-    description: 'The ID of the secret that contains the Accelerator configuration.',
+  const acceleratorConfigS3Bucket = new cdk.CfnParameter(stack, 'ConfigS3Bucket', {
+    default: 'pbmmaccel-config',
+    description: 'The S3 bucket name that contains the initial Accelerator configuration.',
+  });
+
+  const configRepositoryName = new cdk.CfnParameter(stack, 'ConfigRepositoryName', {
+    default: 'PBMMAccel-Config-Repo',
+    description: 'The Code Commit repository name that contains the Accelerator configuration.',
+  });
+
+  const configBranchName = new cdk.CfnParameter(stack, 'ConfigBranchName', {
+    default: 'master',
+    description: 'The Code Commit branch name that contains the Accelerator configuration',
   });
 
   const githubOauthSecretId = new cdk.CfnParameter(stack, 'GithubSecretId', {
@@ -57,12 +68,12 @@ async function main() {
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
 
-  const email = new cdk.CfnParameter(stack, 'Email', {
+  const notificationEmail = new cdk.CfnParameter(stack, 'Email', {
     default: '',
     description: 'The notification email that will get Code Release notifications.',
   });
 
-  const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine`;
+  const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine_sm`;
 
   // The state machine name has to match the name of the state machine in initial setup
   const stateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${stateMachineName}`;
@@ -116,7 +127,8 @@ async function main() {
           'runtime-versions': {
             nodejs: 12,
           },
-          commands: ['npm install --global pnpm', 'pnpm install'],
+          // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
         },
         build: {
           commands: [
@@ -139,13 +151,21 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: acceleratorPrefix.valueAsString,
         },
-        ACCELERATOR_CONFIG_SECRET_ID: {
-          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorConfigSecretId.valueAsString,
-        },
         ACCELERATOR_STATE_MACHINE_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: stateMachineName,
+        },
+        CONFIG_REPOSITORY_NAME: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: configRepositoryName.valueAsString,
+        },
+        CONFIG_BRANCH_NAME: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: acceleratorConfigS3Bucket.valueAsString,
+        },
+        CONFIG_S3_BUCKET: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: acceleratorConfigS3Bucket.valueAsString,
         },
       },
     },
@@ -184,8 +204,18 @@ async function main() {
     },
   });
 
+  // Create the repository that contains the configuration
+  const configRepository = new codecommit.Repository(stack, 'ConfigRepository', {
+    repositoryName: configRepositoryName.valueAsString,
+    description: `Repository containing configuration for ${acceleratorName.valueAsString} Accelerator.`,
+  });
+
   // This artifact is used as output for the Github code and as input for the build step
   const sourceArtifact = new codepipeline.Artifact();
+
+  // This artifact is used as output for the configuration code
+  // It is not used as an input
+  const configArtifact = new codepipeline.Artifact();
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
     pipelineName: `${acceleratorPrefix.valueAsString}InstallerPipeline`,
@@ -204,6 +234,12 @@ async function main() {
             oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
             output: sourceArtifact,
           }),
+          new actions.CodeCommitSourceAction({
+            actionName: 'CodeCommitSource',
+            repository: configRepository,
+            branch: configBranchName.valueAsString,
+            output: configArtifact,
+          }),
         ],
       },
       {
@@ -211,7 +247,7 @@ async function main() {
         actions: [
           new actions.ManualApprovalAction({
             actionName: 'Approval',
-            notifyEmails: [email.valueAsString],
+            notifyEmails: [notificationEmail.valueAsString],
           }),
         ],
       },

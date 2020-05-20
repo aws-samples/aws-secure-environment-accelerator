@@ -1,7 +1,7 @@
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import * as fs from 'fs';
 import * as path from 'path';
+import { loadAcceleratorConfig as load } from '@aws-pbmm/common-lambda/lib/config/load';
 
 export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
   if (process.env.CONFIG_MODE === 'development') {
@@ -13,14 +13,18 @@ export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
     return AcceleratorConfig.fromBuffer(contents);
   }
 
-  const secretId = process.env.CONFIG_SECRET_ID;
-  if (!secretId) {
-    throw new Error(`The environment variable "CONFIG_SECRET_ID" needs to be set`);
+  const configFilePath = process.env.CONFIG_FILE_PATH!;
+  const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
+  const configCommitId = process.env.CONFIG_COMMIT_ID!;
+  if (!configFilePath || !configRepositoryName || !configCommitId) {
+    throw new Error(
+      `The environment variables "CONFIG_FILE_PATH" and "CONFIG_REPOSITORY_NAME" and "CONFIG_COMMIT_ID" need to be set`,
+    );
   }
-  const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(secretId);
-  if (!secret) {
-    throw new Error(`Cannot find secret with ID "${secretId}"`);
-  }
-  return AcceleratorConfig.fromString(secret.SecretString!);
+  // Retrieve Configuration from Code Commit with specific commitId
+  return load({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 }

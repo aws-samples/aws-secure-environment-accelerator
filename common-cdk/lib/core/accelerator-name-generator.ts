@@ -22,20 +22,14 @@ export function createRoleName(name: string, suffixLength: number = 8): string {
 export function createEncryptionKeyName(name: string): string {
   return createName({
     name,
-    account: true,
-    region: true,
     suffixLength: 8,
-    lowercase: true,
   });
 }
 
 export function createKeyPairName(name: string): string {
   return createName({
     name,
-    account: true,
-    region: true,
     suffixLength: 8,
-    lowercase: true,
   });
 }
 

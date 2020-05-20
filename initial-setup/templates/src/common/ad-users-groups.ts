@@ -21,6 +21,7 @@ export interface ADUsersAndGroupsProps extends cdk.StackProps {
   accountNames: string[];
   userSecrets: UserSecret[];
   accountKey: string;
+  serviceLinkedRoleArn: string;
 }
 
 export interface UserSecret {
@@ -47,6 +48,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       accountNames,
       userSecrets,
       accountKey,
+      serviceLinkedRoleArn,
     } = props;
 
     // Creating AD Users command
@@ -173,6 +175,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       cooldown: '300',
       desiredCapacity: madDeploymentConfig['num-rdgw-hosts'].toString(),
       autoScalingGroupName: 'PBMMRDGWAutoScalingGroup',
+      serviceLinkedRoleArn,
     });
 
     autoscalingGroup.cfnOptions.creationPolicy = {

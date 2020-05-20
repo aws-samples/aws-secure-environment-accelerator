@@ -1,16 +1,15 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig, OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
-import { Account } from './load-accounts-step';
-import { ConfigurationOrganizationalUnit } from './load-configuration-step';
+import { ConfigurationOrganizationalUnit, LoadConfigurationInput } from './load-configuration-step';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
 const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
-interface AddScpInput {
+interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
-  configSecretId: string;
   scpBucketName: string;
   scpBucketPrefix: string;
   organizationalUnits: ConfigurationOrganizationalUnit[];
@@ -24,14 +23,23 @@ export const handler = async (input: AddScpInput) => {
   console.log(`Adding service control policy to organization...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, configSecretId, scpBucketName, scpBucketPrefix, accounts, organizationalUnits } = input;
+  const {
+    acceleratorPrefix,
+    scpBucketName,
+    scpBucketPrefix,
+    accounts,
+    organizationalUnits,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+  } = input;
 
-  const secrets = new SecretsManager();
-  const source = await secrets.getSecret(configSecretId);
-
-  // Load the configuration from Secrets Manager
-  const configString = source.SecretString!;
-  const config = AcceleratorConfig.fromString(configString);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
   // Find policy config
   const globalOptionsConfig = config['global-options'];

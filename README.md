@@ -4,13 +4,20 @@
 
 ### Prerequisites
 
-You need an AWS account with Landing Zone deployed.
+You need an AWS account with Landing Zone v2.3.1 deployed (v2.4.0 not yet tested).
+
+When deploying ALZ select: 
+1. `Lock StackSetExecution Role` to `No`
+2. All regions for production
+3. ca-central-1 for testing
+4. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (these match sample Accel config file, case sensative)
 
 ### Using the Installer
 
 1. Login to the Organization **master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
 2. Set the region to `ca-central-1`.
-3. Grant the `AcceleratorMasterRole` access to use the `AwsLandingZoneKMSKey`.
+3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
+   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`,
 
 #### Create a GitHub Personal Access Token.
 
@@ -27,13 +34,17 @@ You need an AWS account with Landing Zone deployed.
 
 #### Create an Accelerator Configuration File
 
-1. You can use the [`config.example.json`](./config.example.json) file as base.
+1. You can use the [`config.example.json`](./config.example.json) file as base 
+   (Use the version in branch "Desired-Config-will-require-perimeter-redeploy").
 2. Make sure to update the account names and email addresses to match the ones in your account.
 
    ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING. Expected file content and values will be defined in future***
+   
+   ***AT THIS TIME, DO NOT INCLUDE any workload accounts, as it will slow down the deployment process***
+      (ALZ AVM takes 40 minutes per sub-account)
 
 3. Store the configuration file in Secrets Manager as plain text. Name the secret `accelerator/config`.
-   - Via the AWS console;
+   - Via the AWS console (pre above);
    - Via the AWS CLI `aws secretsmanager create-secret --name accelerator/config --secret-string file://<path>`
 
 #### Deploy the Accelerator Installer Stack
@@ -42,12 +53,15 @@ You need an AWS account with Landing Zone deployed.
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account.
 4. Fill out the required parameters.
-5. Apply a tag on the stack, `Accelerator=PBMM` (case sensitive).
+5. Specify stack name STARTING with `PBMMAccel-` (case sensitive)
+6. Apply a tag on the stack, `Accelerator=PBMM` (case sensitive).
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
 state machine should start automatically and deploy the Accelerator in your account.
 
 After the pipline executes, the state machine will execute (Step functions).
+
+7. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI.
 
 ### Using the Command-Line (Not required if followed above process)
 
