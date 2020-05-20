@@ -2,50 +2,10 @@
   "Version":"2012-10-17",
   "Statement":[
     {
-      "Sid":"DenyTag1",
+      "Sid":"DenyPBMMAccelTag",
       "Effect":"Deny",
       "Action":[
-        "ec2:DeleteSecurityGroup",
-        "ec2:RevokeSecurityGroup*",
-        "ec2:AuthorizeSecurityGroup*",
-        "ec2:CreateSecurityGroup"
-      ],
-      "Resource":"*",
-      "Condition":{
-        "StringEquals":{
-          "ec2:ResourceTag/Accelerator":"PBMM"
-        },
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      }
-    },
-    {
-      "Sid":"DenyTag2",
-      "Effect":"Deny",
-      "Action":[
-        "iam:*"
-      ],
-      "Resource":"*",
-      "Condition":{
-        "StringEquals":{
-          "iam:ResourceTag/Accelerator":"PBMM"
-        },
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      }
-    },
-    {
-      "Sid":"DenyS3",
-      "Effect":"Deny",
-      "Action":[
+        "cloudformation:*",
         "s3:Delete*",
         "s3:PutBucketVersioning",
         "s3:PutEncryptionConfiguration",
@@ -54,10 +14,20 @@
         "s3:PutBucketPolicy",
         "s3:ReplicateDelete",
         "s3:PutObjectRetention",
-        "s3:PutObjectTagging"
+        "s3:PutObjectTagging",
+        "ec2:DeleteSecurityGroup",
+        "ec2:RevokeSecurityGroup*",
+        "ec2:AuthorizeSecurityGroup*",
+        "ec2:CreateSecurityGroup",
+        "iam:*",
+        "kms:ScheduleKeyDeletion",
+        "kms:Delete*"
       ],
-      "Resource":"arn:aws:s3:::pbmmaccel-*",
+      "Resource":"*",
       "Condition":{
+        "StringEquals":{
+          "aws:ResourceTag/Accelerator":"PBMM"
+        },
         "ArnNotLike":{
           "aws:PrincipalARN":[
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
@@ -74,7 +44,6 @@
       ],
       "Resource":[
         "arn:aws:cloudformation:*:*:stack/StackSet-AWS-Landing-Zone-*",
-        "arn:aws:cloudformation:*:*:stack/StackSet-PBMMAccel-*",
         "arn:aws:cloudformation:*:*:stack/PBMMAccel-*"
       ],
       "Condition":{

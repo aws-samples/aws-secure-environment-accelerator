@@ -27,6 +27,8 @@
         "ec2:DeleteVpcPeeringConnection",
         "globalaccelerator:Create*",
         "globalaccelerator:Update*",
+		"kms:ScheduleKeyDeletion",
+        "kms:Delete*",
         "iam:CreateGroup",
         "iam:CreateUser",
         "iam:CreateAccessKey",
@@ -36,6 +38,8 @@
         "iam:UpdateGroup",
         "iam:DeleteRolePermissionsBoundary",
         "iam:AddUserToGroup",
+		"iam:UpdateAccountPasswordPolicy",
+        "iam:DeleteAccountPasswordPolicy",
         "iam:TagUser"
       ],
       "Resource": "*",
