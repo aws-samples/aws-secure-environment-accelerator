@@ -1,12 +1,12 @@
 import { ServiceQuotas } from '@aws-pbmm/common-lambda/lib/aws/service-quotas';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { Limit, LimitOutput } from '@aws-pbmm/common-outputs/lib/limits';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-export interface LoadLimitsInput {
-  configSecretId: string;
+export interface LoadLimitsInput extends LoadConfigurationInput {
   limitsSecretId: string;
   accounts: Account[];
   assumeRoleName: string;
@@ -55,14 +55,14 @@ export const handler = async (input: LoadLimitsInput) => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configSecretId, limitsSecretId, accounts, assumeRoleName } = input;
+  const { configRepositoryName, configFilePath, limitsSecretId, accounts, assumeRoleName, configCommitId } = input;
 
-  const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(configSecretId);
-
-  // Load the configuration from Secrets Manager
-  const configString = secret.SecretString!;
-  const config = AcceleratorConfig.fromString(configString);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
   // Capture limit results
   const limits: LimitOutput[] = [];
@@ -131,6 +131,7 @@ export const handler = async (input: LoadLimitsInput) => {
   }
 
   // Store the limits in the secrets manager
+  const secrets = new SecretsManager();
   await secrets.putSecretValue({
     SecretId: limitsSecretId,
     SecretString: JSON.stringify(limits, null, 2),
