@@ -305,6 +305,10 @@
           {
             "policy-name": "Default-Boundary-Policy",
             "policy": "boundary-policy.txt"
+          },
+          {
+            "policy-name": "PBMMAccel-RDGW-Custom-Policy",
+            "policy": "pbmmaccel-rdgw-custom-policies.txt"
           }
         ],
         "roles": [
@@ -315,6 +319,17 @@
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "PBMMAccel-RDGW-Role",
+            "type": "ec2",
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy",
+              "PBMMAccel-RDGW-Custom-Policy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
           },
@@ -346,6 +361,7 @@
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
           "rdgw-instance-type": "t2.large",
+		  "rdgw-instance-role": "PBMMAccel-RDGW-Role",
           "password-policies": {
             "history": 24,
             "max-age": 90,

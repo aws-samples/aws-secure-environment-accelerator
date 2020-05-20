@@ -62,7 +62,7 @@ async function main() {
     description: 'The notification email that will get Code Release notifications.',
   });
 
-  const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine`;
+  const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine_sm`;
 
   // The state machine name has to match the name of the state machine in initial setup
   const stateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${stateMachineName}`;
@@ -116,7 +116,8 @@ async function main() {
           'runtime-versions': {
             nodejs: 12,
           },
-          commands: ['npm install --global pnpm', 'pnpm install'],
+          // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
         },
         build: {
           commands: [

@@ -1,5 +1,5 @@
 import * as aws from 'aws-sdk';
-import { Account } from './load-accounts-step';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 
 interface AddRoleToKmsKeyInput {
   roleName: string;
