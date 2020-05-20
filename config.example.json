@@ -1364,7 +1364,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1391,7 +1391,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1406,11 +1406,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -1438,7 +1437,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1447,7 +1446,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1487,7 +1486,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1496,7 +1495,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -1841,7 +1840,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1868,7 +1867,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1883,11 +1882,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -1915,7 +1913,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1924,7 +1922,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1964,7 +1962,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1973,7 +1971,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -2318,7 +2316,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2345,7 +2343,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2360,11 +2358,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -2392,7 +2389,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2401,7 +2398,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2441,7 +2438,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2450,7 +2447,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -2795,7 +2792,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2822,7 +2819,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2837,11 +2834,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -2869,7 +2865,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2878,7 +2874,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2918,7 +2914,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2927,7 +2923,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -3247,7 +3243,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -3274,7 +3270,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -3289,11 +3285,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -3321,7 +3316,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3330,7 +3325,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3370,7 +3365,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3379,7 +3374,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -3666,19 +3661,9 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
               }
             ],
             "outbound-rules": [
@@ -3693,26 +3678,15 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
               {
-                "description": "Central VPC Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -3730,17 +3704,7 @@
             "name": "App",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3749,7 +3713,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3779,17 +3743,7 @@
             "name": "Data",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3798,7 +3752,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
