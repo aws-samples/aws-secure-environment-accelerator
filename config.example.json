@@ -156,7 +156,7 @@
         "AWS CloudFormation/Stack count": 400,
         "AWS CloudFormation/Stack sets per administrator account": 400
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
@@ -277,7 +277,7 @@
             "outbound-ips": ["7.23.0.1", "7.26.0.2"]
           }
         ]
-      },
+      }],
       "deployments": {
         "tgw": {
           "name": "Main",
@@ -576,7 +576,7 @@
           }
         ]
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Perimeter",
         "cidr": "100.96.250.0/23",
@@ -798,7 +798,7 @@
             "ec2messages"
           ]
         }
-      },
+      }],
       "deployments": {
         "firewall": {
           "image-id": "ami-047aac44951feb9fb",
@@ -898,7 +898,7 @@
         ],
         "roles": []
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
@@ -944,7 +944,7 @@
         ],
         "tgw-attach": false,
         "interface-endpoints": false
-      },
+      }],
       "deployments": {
         "adc": {
           "deploy": true,
@@ -1065,7 +1065,7 @@
           "arn": ""
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Central",
         "cidr": "10.1.0.0/16",
@@ -1518,7 +1518,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -1620,7 +1620,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Dev",
         "cidr": "10.2.0.0/16",
@@ -1987,7 +1987,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -2089,7 +2089,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Test",
         "cidr": "10.3.0.0/16",
@@ -2456,7 +2456,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -2558,7 +2558,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Prod",
         "cidr": "10.4.0.0/16",
@@ -2925,7 +2925,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -3002,7 +3002,7 @@
           "arn": ""
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
@@ -3369,7 +3369,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -3428,7 +3428,7 @@
             "emails": ["bmycroft@amazon.com"]
          }]
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
@@ -3769,7 +3769,7 @@
         ],
         "tgw-attach": false,
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
