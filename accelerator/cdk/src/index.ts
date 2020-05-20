@@ -12,16 +12,17 @@ async function main() {
 
   // Load accelerator parameters
   const app = new cdk.App();
-  const acceleratorName = process.env.ACCELERATOR_NAME || 'PBMM';
-  const acceleratorPrefix = process.env.ACCELERATOR_PREFIX || 'PBMMAccel-';
-  const configFilePath = process.env.ACCELERATOR_CONFIG_FILE_PATH || 'config.json';
-  const configRepositoryName = process.env.ACCELERATOR_CONFIG_REPOSITORY || `${acceleratorPrefix}Repo-Config`;
-  const configS3Bucket = process.env.CONFIG_S3_BUCKET || `${acceleratorPrefix}Config`.toLowerCase();
-  const configS3FileName = process.env.CONFIG_S3_KEY || `config.json`;
-  const configBranchName = process.env.CONFIG_BRANCH_NAME || 'master';
+
+  const acceleratorName = env.ACCELERATOR_NAME || 'PBMM';
+  const acceleratorPrefix = env.ACCELERATOR_PREFIX || 'PBMMAccel-';
   const stateMachineName = env.ACCELERATOR_STATE_MACHINE_NAME || `${acceleratorPrefix}MainStateMachine_sm`;
-  const stateMachineExecutionRole =
-    process.env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
+  const stateMachineExecutionRole = env.ACCELERATOR_STATE_MACHINE_ROLE_NAME || `${acceleratorPrefix}PipelineRole`;
+  const configRepositoryName = env.CONFIG_REPOSITORY_NAME || `${acceleratorPrefix}Config-Repo`;
+  const configBranchName = env.CONFIG_BRANCH_NAME || 'master';
+  const configFilePath = env.CONFIG_FILE_PATH || 'config.json';
+  const configS3FileName = env.CONFIG_S3_KEY || `config.json`;
+  const configS3Bucket =
+    env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
@@ -36,6 +37,7 @@ async function main() {
   await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
     configFilePath,
     configRepositoryName,
+    configBranchName,
     configS3Bucket,
     configS3FileName,
     acceleratorPrefix,
@@ -43,7 +45,6 @@ async function main() {
     solutionRoot,
     stateMachineName,
     stateMachineExecutionRole,
-    configBranchName,
   });
 }
 

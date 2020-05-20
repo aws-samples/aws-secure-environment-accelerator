@@ -1,9 +1,5 @@
 import * as org from 'aws-sdk/clients/organizations';
-import {
-  AcceleratorConfig,
-  LandingZoneAccountType,
-  LANDING_ZONE_ACCOUNT_TYPES,
-} from '@aws-pbmm/common-lambda/lib/config';
+import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES } from '@aws-pbmm/common-lambda/lib/config';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
@@ -50,9 +46,12 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
 
   const { configFilePath, configRepositoryName, configCommitId } = input;
 
-  // Retrive Configuration from Code Commit with specific commitId
-  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
-  const config = AcceleratorConfig.fromString(configString);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
   const organizations = new Organizations();
 
@@ -278,10 +277,10 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   return {
+    ...input,
     organizationalUnits: configurationOus,
     accounts: configurationAccounts,
     warnings,
-    configCommitId,
   };
 };
 

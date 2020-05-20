@@ -2,7 +2,6 @@ import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-serv
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
@@ -28,14 +27,15 @@ export const handler = async (input: ShareDirectoryInput) => {
 
   const { accounts, assumeRoleName, stackOutputSecretId, configRepositoryName, configFilePath, configCommitId } = input;
 
+  // Retrieve Configuration from Code Commit with specific commitId
+  const acceleratorConfig = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
+
   const secrets = new SecretsManager();
-
-  // Retrive Configuration from Code Commit with specific commitId
-  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
-  const acceleratorConfig = AcceleratorConfig.fromString(configString);
-
   const outputsString = await secrets.getSecret(stackOutputSecretId);
-
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();

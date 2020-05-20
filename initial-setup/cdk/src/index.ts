@@ -1,25 +1,25 @@
+import { Archiver } from 'archiver';
+import * as path from 'path';
+import * as tempy from 'tempy';
+import * as cdk from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
-import * as cdk from '@aws-cdk/core';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { zipFiles } from '@aws-pbmm/common-lambda/lib/util/zip';
-import { Archiver } from 'archiver';
-import * as path from 'path';
-import * as tempy from 'tempy';
 import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 
 interface BuildProps {
   lambdaCode: lambda.Code;
@@ -34,7 +34,7 @@ export namespace InitialSetup {
     stateMachineName: string;
     stateMachineExecutionRole: string;
     /**
-     * Paramaters for configuration file
+     * Parameters for configuration file
      */
     configFilePath: string;
     configRepositoryName: string;
@@ -308,7 +308,6 @@ export namespace InitialSetup {
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
         },
-        // inputPath: '$',
         resultPath: '$.configuration',
       });
 
@@ -414,9 +413,9 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
-          'configCommitId.$': '$.configuration.configCommitId',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
           limitsSecretId: limitsSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -445,9 +444,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           acceleratorPrefix: props.acceleratorPrefix,
-          configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
-          'configCommitId.$': '$.configuration.configCommitId',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
           scpBucketName: scpArtifactBucket.bucketName,
           scpBucketPrefix: 'scp',
           'organizationalUnits.$': '$.organizationalUnits',
@@ -468,12 +467,6 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
-      // });
-      // preDeployParallelTask.branch(loadLimitsTask);
-      // preDeployParallelTask.branch(addScpTask);
-      // preDeployParallelTask.branch(enableResourceSharingTask);
-
       const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
         stateMachineName: `${props.acceleratorPrefix}Deploy_sm`,
         definition: new BuildTask(this, 'Build', {
@@ -482,20 +475,22 @@ export namespace InitialSetup {
         }),
       });
 
-      const deployTaskCommonInput = {
+      const createDeploymentTaskInput = (phase: number) => ({
         codeBuildProjectName: project.projectName,
         sourceBucketName: solutionZip.s3BucketName,
         sourceBucketKey: solutionZip.s3ObjectKey,
-        'configCommitId.$': '$.configuration.configCommitId',
-      };
+        environment: {
+          APP_PATH: `apps/phase-${phase}.ts`,
+          'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
+          'CONFIG_FILE_PATH.$': '$.configFilePath',
+          'CONFIG_COMMIT_ID.$': '$.configCommitId',
+        },
+      });
 
       const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-0.ts',
-          },
+          input: createDeploymentTaskInput(0),
         }),
         resultPath: 'DISCARD',
       });
@@ -518,10 +513,7 @@ export namespace InitialSetup {
       const deployPhase1Task = new sfn.Task(this, 'Deploy Phase 1', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-1.ts',
-          },
+          input: createDeploymentTaskInput(1),
         }),
         resultPath: 'DISCARD',
       });
@@ -552,9 +544,9 @@ export namespace InitialSetup {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
           stackOutputSecretId: stackOutputSecret.secretArn,
-          configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
-          'configCommitId.$': '$.configuration.configCommitId',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         },
         resultPath: 'DISCARD',
       });
@@ -569,9 +561,9 @@ export namespace InitialSetup {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
           stackOutputSecretId: stackOutputSecret.secretArn,
-          configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
-          'configCommitId.$': '$.configuration.configCommitId',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         },
         resultPath: 'DISCARD',
       });
@@ -592,10 +584,7 @@ export namespace InitialSetup {
       const deployPhase2Task = new sfn.Task(this, 'Deploy Phase 2', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-2.ts',
-          },
+          input: createDeploymentTaskInput(2),
         }),
         resultPath: 'DISCARD',
       });
@@ -618,10 +607,7 @@ export namespace InitialSetup {
       const deployPhase3Task = new sfn.Task(this, 'Deploy Phase 3', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-3.ts',
-          },
+          input: createDeploymentTaskInput(3),
         }),
         resultPath: 'DISCARD',
       });
@@ -650,9 +636,9 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
-          configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
-          'configCommitId.$': '$.configuration.configCommitId',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
@@ -672,9 +658,9 @@ export namespace InitialSetup {
           input: {
             'accounts.$': '$.accounts',
             assumeRoleName: props.stateMachineExecutionRole,
-            configRepositoryName: props.configRepositoryName,
-            configFilePath: props.configFilePath,
-            'configCommitId.$': '$.configuration.configCommitId',
+            'configRepositoryName.$': '$.configRepositoryName',
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
             stackOutputSecretId: stackOutputSecret.secretArn,
           },
         }),
@@ -684,10 +670,7 @@ export namespace InitialSetup {
       const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-4.ts',
-          },
+          input: createDeploymentTaskInput(4),
         }),
         resultPath: 'DISCARD',
       });
@@ -710,10 +693,7 @@ export namespace InitialSetup {
       const deployPhase5Task = new sfn.Task(this, 'Deploy Phase 5', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-5.ts',
-          },
+          input: createDeploymentTaskInput(5),
         }),
         resultPath: 'DISCARD',
       });

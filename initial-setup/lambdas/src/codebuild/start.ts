@@ -4,15 +4,21 @@ interface CodeBuildStartInput {
   codeBuildProjectName: string;
   sourceBucketName: string;
   sourceBucketKey: string;
-  appPath: string;
-  configCommitId: string;
+  environment: { [name: string]: string };
 }
 
 export const handler = async (input: CodeBuildStartInput) => {
   console.log(`Starting CodeBuild build...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, appPath, configCommitId } = input;
+  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, environment } = input;
+
+  // Build environment variables in CodeBuild format
+  const environmentVariablesOverride = Object.entries(environment).map(([name, value]) => ({
+    name,
+    value,
+    type: 'PLAINTEXT',
+  }));
 
   const codeBuild = new aws.CodeBuild();
   const response = await codeBuild
@@ -23,18 +29,7 @@ export const handler = async (input: CodeBuildStartInput) => {
       artifactsOverride: {
         type: 'NO_ARTIFACTS',
       },
-      environmentVariablesOverride: [
-        {
-          name: 'APP_PATH',
-          value: appPath,
-          type: 'PLAINTEXT',
-        },
-        {
-          name: 'CONFIG_COMMIT_ID',
-          value: configCommitId,
-          type: 'PLAINTEXT',
-        },
-      ],
+      environmentVariablesOverride,
     })
     .promise();
 

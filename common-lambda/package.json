@@ -40,9 +40,7 @@
     "ip-num": "1.2.2",
     "js-yaml": "3.13.1",
     "tempy": "0.5.0",
-    "uuid": "7.0.3",
-    "@types/js-base64": "2.3.1",
-    "js-base64": "2.5.2"
+    "uuid": "7.0.3"
   },
   "jest": {
     "preset": "ts-jest",

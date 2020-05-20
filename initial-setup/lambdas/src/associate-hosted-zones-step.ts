@@ -1,6 +1,5 @@
 import * as r53 from 'aws-sdk/clients/route53';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { ResolversOutput, VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
@@ -49,12 +48,14 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
   const { configRepositoryName, accounts, assumeRoleName, stackOutputSecretId, configCommitId, configFilePath } = input;
 
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId
+  });
+
   const secrets = new SecretsManager();
-
-  // Retrive Configuration from Code Commit with specific commitId
-  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
-  const config = AcceleratorConfig.fromString(configString);
-
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 

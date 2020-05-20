@@ -1,8 +1,7 @@
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import * as fs from 'fs';
 import * as path from 'path';
-import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
-import { Base64 } from 'js-base64';
+import { loadAcceleratorConfig as load } from '@aws-pbmm/common-lambda/lib/config/load';
 
 export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
   if (process.env.CONFIG_MODE === 'development') {
@@ -17,20 +16,15 @@ export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
   const configFilePath = process.env.CONFIG_FILE_PATH!;
   const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
   const configCommitId = process.env.CONFIG_COMMIT_ID!;
-  if (!configFilePath && configRepositoryName) {
-    throw new Error(`The environment variables "CONFIG_FILE_PATH" and "CONFIG_REPOSITORY_NAME" needs to be set`);
-  }
-
-  const codecommit = new CodeCommit();
-  let configString;
-  try {
-    const source = await codecommit.getFile(configRepositoryName, configFilePath, configCommitId);
-    configString = Base64.decode(source.fileContent.toString('base64'));
-  } catch (e) {
+  if (!configFilePath || !configRepositoryName || !configCommitId) {
     throw new Error(
-      `Cannot find file with name "${configFilePath}" in Repository ${configRepositoryName} \n ${e.message}`,
+      `The environment variables "CONFIG_FILE_PATH" and "CONFIG_REPOSITORY_NAME" and "CONFIG_COMMIT_ID" need to be set`,
     );
   }
-
-  return AcceleratorConfig.fromString(configString);
+  // Retrieve Configuration from Code Commit with specific commitId
+  return await load({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 }

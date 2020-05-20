@@ -62,9 +62,7 @@
     "generate-password": "1.5.1",
     "io-ts": "2.1.2",
     "io-ts-types": "0.5.6",
-    "pascal-case": "^3.1.1",
-    "@types/js-base64": "2.3.1",
-    "js-base64": "2.5.2"
+    "pascal-case": "^3.1.1"
   },
   "jest": {
     "preset": "ts-jest",

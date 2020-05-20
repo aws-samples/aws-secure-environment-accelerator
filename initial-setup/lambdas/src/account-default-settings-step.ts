@@ -1,6 +1,5 @@
 import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
 import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
@@ -31,9 +30,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const secrets = new SecretsManager();
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
-  // Retrive Configuration from Code Commit with specific commitId
-  const configString = await loadAcceleratorConfig(configRepositoryName, configFilePath, configCommitId);
-  const acceleratorConfig = AcceleratorConfig.fromString(configString);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const acceleratorConfig = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId
+  });
 
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
