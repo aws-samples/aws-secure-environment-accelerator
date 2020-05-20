@@ -22,7 +22,7 @@ export async function loadAcceleratorConfig(): Promise<AcceleratorConfig> {
     );
   }
   // Retrieve Configuration from Code Commit with specific commitId
-  return await load({
+  return load({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
     commitId: configCommitId,

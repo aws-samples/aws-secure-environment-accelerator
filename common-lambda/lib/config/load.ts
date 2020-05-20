@@ -3,11 +3,11 @@ import { AcceleratorConfig } from '.';
 
 /**
  * Retrieve the configuration from CodeCommit.
-*/
+ */
 export async function loadAcceleratorConfig(props: {
-  repositoryName: string,
-  filePath: string,
-  commitId: string,
+  repositoryName: string;
+  filePath: string;
+  commitId: string;
 }): Promise<AcceleratorConfig> {
   const { repositoryName, filePath, commitId } = props;
   const codecommit = new CodeCommit();

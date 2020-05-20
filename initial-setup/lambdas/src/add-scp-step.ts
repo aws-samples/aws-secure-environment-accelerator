@@ -38,7 +38,7 @@ export const handler = async (input: AddScpInput) => {
   const config = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
-    commitId: configCommitId
+    commitId: configCommitId,
   });
 
   // Find policy config

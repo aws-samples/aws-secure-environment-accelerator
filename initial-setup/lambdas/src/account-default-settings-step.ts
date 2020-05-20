@@ -34,7 +34,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const acceleratorConfig = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
-    commitId: configCommitId
+    commitId: configCommitId,
   });
 
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];

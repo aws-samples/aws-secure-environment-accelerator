@@ -61,7 +61,7 @@ export const handler = async (input: LoadLimitsInput) => {
   const config = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
-    commitId: configCommitId
+    commitId: configCommitId,
   });
 
   // Capture limit results

@@ -49,7 +49,7 @@ export const handler = async (input: AdConnectorInput) => {
   const acceleratorConfig = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
-    commitId: configCommitId
+    commitId: configCommitId,
   });
 
   const secrets = new SecretsManager();
