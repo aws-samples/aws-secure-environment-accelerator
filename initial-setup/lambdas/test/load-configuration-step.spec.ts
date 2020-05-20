@@ -12,8 +12,9 @@ beforeEach(() => {
 
 test('the handler should be successfully return when the configuration is correct', async () => {
   const result = await handler({
-    configSecretSourceId: 'accelerator/config',
-    configSecretInProgressId: 'accelerator/in-progress-config',
+    configFilePath: 'config.json',
+    configRepositoryName: 'PBMMAccel-Repo-Config',
+    configCommitId: 'fasdjfkhsdf',
   });
 
   expect(result.accounts).toHaveLength(6);
@@ -73,8 +74,9 @@ test('the handler should be successfully return when a mandatory account is miss
   coreAccounts.splice(index);
 
   const result = await handler({
-    configSecretSourceId: 'accelerator/config',
-    configSecretInProgressId: 'accelerator/in-progress-config',
+    configFilePath: 'config.json',
+    configRepositoryName: 'PBMMAccel-Repo-Config',
+    configCommitId: '',
   });
 
   expect(result.accounts).toHaveLength(6);
@@ -87,8 +89,9 @@ test('the handler should throw an error when the Accelerator config name does no
   expect.assertions(1);
   try {
     await handler({
-      configSecretSourceId: 'accelerator/config',
-      configSecretInProgressId: 'accelerator/in-progress-config',
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
     });
   } catch (e) {
     expect(e.message).toMatch('does not match the name in the Accelerator configuration');
@@ -102,8 +105,9 @@ test('the handler should throw an error when the Accelerator config OU does not 
   expect.assertions(1);
   try {
     await handler({
-      configSecretSourceId: 'accelerator/config',
-      configSecretInProgressId: 'accelerator/in-progress-config',
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
     });
   } catch (e) {
     expect(e.message).toMatch('is not in OU');
@@ -119,8 +123,9 @@ test('the handler should throw an error when a Landing Zone account is missing',
   expect.assertions(2);
   try {
     await handler({
-      configSecretSourceId: 'accelerator/config',
-      configSecretInProgressId: 'accelerator/in-progress-config',
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
     });
   } catch (e) {
     expect(e.message).toMatch('Cannot find non-primary account with name "security" that is used by Landing Zone');
@@ -137,8 +142,9 @@ test('the handler should throw an error when Landing Zone has more organizationa
   expect.assertions(1);
   try {
     await handler({
-      configSecretSourceId: 'accelerator/config',
-      configSecretInProgressId: 'accelerator/in-progress-config',
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
     });
   } catch (e) {
     expect(e.message).toMatch(
@@ -154,8 +160,9 @@ test('the handler should throw an error when Accelerator has more organizational
   expect.assertions(1);
   try {
     await handler({
-      configSecretSourceId: 'accelerator/config',
-      configSecretInProgressId: 'accelerator/in-progress-config',
+      configFilePath: 'config.json',
+      configRepositoryName: 'PBMMAccel-Repo-Config',
+      configCommitId: 'fasdjfkhsdf',
     });
   } catch (e) {
     expect(e.message).toMatch(
