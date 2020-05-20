@@ -19,6 +19,7 @@ import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as mad from '../deployments/mad';
+import * as budget from '../deployments/billing/budget';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -215,6 +216,12 @@ async function main() {
 
   // Firewall creation step 1
   await firewallCluster.step1({
+    accountStacks,
+    config: acceleratorConfig,
+  });
+
+  // Budget creation step 1
+  await budget.step1({
     accountStacks,
     config: acceleratorConfig,
   });
