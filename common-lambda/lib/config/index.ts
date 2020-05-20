@@ -543,7 +543,6 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
     // Add mandatory account VPC configuration first
     for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
-      
       for (const vpcConfig of accountConfig.vpc || []) {
         vpcConfigs.push({
           accountKey,
