@@ -5,7 +5,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
-import { CfnBudget } from '@aws-cdk/aws-budgets';
 import { createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getAccountId, loadAccounts, Account } from '../utils/accounts';
@@ -19,7 +18,7 @@ import { AccessAnalyzer } from '../common/access-analyzer';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as mad from '../deployments/mad';
-import { BudgetConfig } from '@aws-pbmm/common-lambda/lib/config';
+import * as budget from '../deployments/billing/budget';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -220,68 +219,11 @@ async function main() {
     config: acceleratorConfig,
   });
 
-  const accountsAlreadyHaveBudget = [];
-  const createBudget = async (accountKey: string, budgetConfig: BudgetConfig): Promise<void> => {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    if (budgetConfig) {
-      const notifications = [];
-      for (const notification of budgetConfig.alerts) {
-        notifications.push({
-          notification: {
-            comparisonOperator: 'GREATER_THAN',
-            notificationType: notification.type.toUpperCase(),
-            threshold: notification['threshold-percent'],
-            thresholdType: 'PERCENTAGE',
-          },
-          subscribers: notification.emails.map(email => ({
-            address: email,
-            subscriptionType: 'EMAIL',
-          })),
-        });
-      }
-      const budgetProps = {
-        budget: {
-          budgetName: budgetConfig.name,
-          budgetLimit: {
-            amount: budgetConfig.amount,
-            unit: 'USD',
-          },
-          budgetType: 'COST',
-          timeUnit: budgetConfig.period.toUpperCase(),
-        },
-        notificationsWithSubscribers: notifications,
-      };
-      new CfnBudget(accountStack, budgetConfig.name, budgetProps);
-    }
-  };
-  // Create dependency on Master account since budget requires Master account deploy first
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    if (accountKey !== 'master') {
-      const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-      accountStack.addDependency(masterAccountStack);
-    }
-  }
-  // Create Budgets for mandatory accounts
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    const budgetConfig = accountConfig.budget;
-    if (budgetConfig) {
-      await createBudget(accountKey, budgetConfig);
-
-      accountsAlreadyHaveBudget.push(accountKey);
-    }
-  }
-  // Create Budgets for rest accounts in OU
-  for (const [ouKey, ouConfig] of acceleratorConfig.getOrganizationalUnits()) {
-    const budgetConfig = ouConfig['default-budgets'];
-    if (budgetConfig) {
-      for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigsForOu(ouKey)) {
-        // only create if Budgets has not been created yet
-        if (!accountsAlreadyHaveBudget.includes(accountKey)) {
-          await createBudget(accountKey, budgetConfig);
-        }
-      }
-    }
-  }
+  // Budget creation step 1
+  await budget.step1({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises
