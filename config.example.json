@@ -1367,16 +1367,6 @@
                 "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
               }
             ],
             "outbound-rules": [
@@ -1394,16 +1384,6 @@
                 "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
               },
               {
                 "description": "Local Mgmt Traffic Inbound",
@@ -1426,16 +1406,6 @@
           {
             "name": "App",
             "inbound-rules": [
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
               {
                 "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
@@ -1475,16 +1445,6 @@
           {
             "name": "Data",
             "inbound-rules": [
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
               {
                 "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
