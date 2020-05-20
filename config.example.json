@@ -1200,7 +1200,7 @@
                 "cidr-blocks": [
                   {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Web"]
                   }
                 ]
               },
@@ -1221,7 +1221,7 @@
                 "cidr-blocks": [
                   {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Web"]
                   }
                 ]
               },
@@ -1748,8 +1748,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Dev",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Data", "Web"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -1769,8 +1773,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Dev",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Data", "Web"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2217,8 +2225,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Test",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2238,8 +2250,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Test",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2686,8 +2702,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Prod",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2707,8 +2727,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Prod",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3130,8 +3154,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "UnClass",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3151,8 +3179,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "UnClass",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3538,8 +3570,13 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Sandbox",
+                    "subnet": ["Web"]
+                  },
+                  {
+                    "account": "shared-network",
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3559,8 +3596,13 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Sandbox",
+                    "subnet": ["Web"]
+                  },
+                  {
+                    "account": "shared-network",
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
