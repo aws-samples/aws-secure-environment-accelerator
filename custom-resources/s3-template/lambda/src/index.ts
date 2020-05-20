@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
-import { CloudFormationCustomResourceEvent, Context } from 'aws-lambda';
-import { send, SUCCESS, FAILED } from 'cfn-response-async';
+import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { errorHandler } from '@custom-resources/cfn-response';
 
 export type TemplateParameters = { [key: string]: string };
 
@@ -14,23 +14,10 @@ export interface HandlerProperties {
 
 const s3 = new AWS.S3();
 
-export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating S3 object from template...`);
   console.log(JSON.stringify(event, null, 2));
 
-  try {
-    const data = await onEvent(event);
-    console.debug('Sending successful response');
-    console.debug(JSON.stringify(data, null, 2));
-    await send(event, context, SUCCESS, data);
-  } catch (e) {
-    console.error('Sending failure response');
-    console.error(e);
-    await send(event, context, FAILED);
-  }
-};
-
-export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   // tslint:disable-next-line: switch-default
   switch (event.RequestType) {
     case 'Create':
@@ -40,7 +27,9 @@ export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise
     case 'Delete':
       return onDelete(event);
   }
-};
+}
+
+export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
@@ -79,6 +68,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {
   console.log(`Nothing to do for delete...`);
+  return {};
 }
 
 function replaceAll(str: string, needle: string, replacement: string) {
