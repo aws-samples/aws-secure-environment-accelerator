@@ -75,17 +75,16 @@ async function createBudget(accountStack: AcceleratorStack, budgetConfig: Budget
 
 export async function step1(props: BudgetStep1Props) {
   const accountsAlreadyHaveBudget = [];
-  const mandatoryAccountConfig = props.config.getMandatoryAccountConfigs();
   // Create dependency on Master account since budget requires Payer account deploy first
   const masterAccountStack = props.accountStacks.getOrCreateAccountStack('master');
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     if (accountKey !== 'master') {
       const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
       accountStack.addDependency(masterAccountStack);
     }
   }
   // Create Budgets for mandatory accounts
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     const budgetConfig = accountConfig.budget;
     if (budgetConfig) {
       const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
