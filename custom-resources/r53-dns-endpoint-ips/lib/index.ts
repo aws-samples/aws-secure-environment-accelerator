@@ -23,7 +23,7 @@ export class R53DnsEndPointIps extends cdk.Construct {
       action: 'listResolverEndpointIpAddresses',
       physicalResourceId,
       parameters: {
-        ResolverEndpointId: resolverEndpointId
+        ResolverEndpointId: resolverEndpointId,
       },
     };
 
@@ -38,8 +38,8 @@ export class R53DnsEndPointIps extends cdk.Construct {
         }),
       ]),
     });
-    
-    for (let count=0; count <  subnetsCount; count++) {
+
+    for (let count = 0; count < subnetsCount; count++) {
       this.endpointIps.push(customResource.getResponseField(`IpAddresses.${count}.Ip`));
     }
   }
