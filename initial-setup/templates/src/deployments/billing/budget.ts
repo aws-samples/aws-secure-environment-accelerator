@@ -36,7 +36,7 @@ async function convertCostTypes(budgetConfig: BudgetConfig) {
     includeUpfront: include.includes(CostTypes.UPFRONT),
     useAmortized: include.includes(CostTypes.AMORTIZED),
     useBlended: include.includes(CostTypes.BLENDED),
-  }
+  };
 }
 
 async function createBudget(accountStack: AcceleratorStack, budgetConfig: BudgetConfig): Promise<void> {
@@ -71,7 +71,7 @@ async function createBudget(accountStack: AcceleratorStack, budgetConfig: Budget
     };
     new CfnBudget(accountStack, budgetConfig.name, budgetProps);
   }
-};
+}
 
 export async function step1(props: BudgetStep1Props) {
   const accountsAlreadyHaveBudget = [];
