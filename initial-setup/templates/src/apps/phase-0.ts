@@ -225,7 +225,7 @@ async function main() {
     accountStacks,
     config: acceleratorConfig,
   });
-  
+
   // Central Services step 1
   await centralServices.step1({
     accountStacks,
