@@ -70,7 +70,6 @@ async function main() {
   });
 
   const notificationEmail = new cdk.CfnParameter(stack, 'Email', {
-    default: '',
     description: 'The notification email that will get Code Release notifications.',
   });
 
