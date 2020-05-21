@@ -37,7 +37,7 @@ export interface VpcCommonProps {
   /**
    * All VPC Configs to read Subnet Cidrs for Security Group and NACLs creation
    */
-  accountVpcConfigs?: config.ResolvedVpcConfig[];
+  vpcConfigs?: config.ResolvedVpcConfig[];
 }
 
 export interface AzSubnet extends constructs.Subnet {
@@ -132,7 +132,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name);
 
-    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, accountVpcConfigs } = props.vpcProps;
+    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, vpcConfigs } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
     this.name = props.vpcProps.vpcConfig.name;
@@ -265,11 +265,12 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       if (subnetConfig.nacls) {
         console.log(`NACL's Defined in VPC "${vpcName}" in Subnet "${subnetName}"`);
         new Nacl(this, `NACL-${subnetName}`, {
+          accountKey,
           subnetConfig,
           vpcConfig,
           vpcId: this.vpcId,
           subnets: this.azSubnets,
-          accountVpcConfigs: accountVpcConfigs!,
+          vpcConfigs: vpcConfigs!,
         });
       }
     }
@@ -407,7 +408,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         vpcName: vpcConfig.name,
         vpcId: this.vpcId,
         accountKey,
-        accountVpcConfigs: accountVpcConfigs!,
+        vpcConfigs: vpcConfigs!,
       });
     }
 

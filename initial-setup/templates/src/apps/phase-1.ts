@@ -255,15 +255,14 @@ async function main() {
         ouKey ? ` and organizational unit "${ouKey}"` : ''
       }`,
     );
-    const accountVpcConfigs = acceleratorConfig.getVpcConfigs().filter(x => x.accountKey === accountKey);
-    const vpc = createVpc(accountKey, {
+    createVpc(accountKey, {
       accountKey,
       limiter,
       accounts,
       vpcConfig,
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
-      accountVpcConfigs,
+      vpcConfigs: acceleratorConfig.getVpcConfigs(),
     });
 
     const pcxConfig = vpcConfig.pcx;
