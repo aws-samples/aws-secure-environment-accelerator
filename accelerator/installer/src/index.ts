@@ -19,6 +19,7 @@ async function main() {
 
   const stack = new cdk.Stack(app, 'InstallerStack', {
     stackName: 'AcceleratorInstaller',
+    terminationProtection: true,
   });
 
   const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
