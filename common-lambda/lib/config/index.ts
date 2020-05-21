@@ -370,7 +370,7 @@ export const MandatoryAccountConfigType = t.interface({
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
-  vpc: optional(VpcConfigType),
+  vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),
   'log-retention': optional(t.number),
   budget: optional(BudgetConfigType),
@@ -387,7 +387,7 @@ export const OrganizationalUnitConfigType = t.interface({
   scps: t.array(t.string),
   'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
-  vpc: optional(VpcConfigType),
+  vpc: optional(t.array(VpcConfigType)),
   'default-budgets': optional(BudgetConfigType),
 });
 
@@ -576,10 +576,10 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
     // Add mandatory account VPC configuration first
     for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
-      if (accountConfig.vpc) {
+      for (const vpcConfig of accountConfig.vpc || []) {
         vpcConfigs.push({
           accountKey,
-          vpcConfig: accountConfig.vpc,
+          vpcConfig,
           deployments: accountConfig.deployments,
         });
       }
@@ -591,26 +591,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
     prioritizedOus.sort(([_, ou1], [__, ou2]) => priorityByOuType(ou1, ou2));
 
     for (const [ouKey, ouConfig] of prioritizedOus) {
-      if (ouConfig.vpc) {
-        const destinationAccountKey = ouConfig.vpc.deploy;
+      for (const vpcConfig of ouConfig.vpc || []) {
+        const destinationAccountKey = vpcConfig.deploy;
         if (destinationAccountKey === 'local') {
           // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
           for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(ouKey)) {
-            if (accountConfig.vpc) {
-              vpcConfigs.push({
-                ouKey,
-                accountKey,
-                vpcConfig: accountConfig.vpc,
-                deployments: accountConfig.deployments,
-              });
-            }
+            vpcConfigs.push({
+              ouKey,
+              accountKey,
+              vpcConfig,
+              deployments: accountConfig.deployments,
+            });
           }
         } else {
           // When deploy is not 'local' then the VPC should only be deployed in the given account
           vpcConfigs.push({
             ouKey,
             accountKey: destinationAccountKey,
-            vpcConfig: ouConfig.vpc,
+            vpcConfig,
           });
         }
       }
@@ -618,10 +616,10 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
     // Add workload accounts as they are lower priority
     for (const [accountKey, accountConfig] of this.getWorkloadAccountConfigs()) {
-      if (accountConfig.vpc) {
+      for (const vpcConfig of accountConfig.vpc || []) {
         vpcConfigs.push({
           accountKey,
-          vpcConfig: accountConfig.vpc,
+          vpcConfig,
           deployments: accountConfig.deployments,
         });
       }
