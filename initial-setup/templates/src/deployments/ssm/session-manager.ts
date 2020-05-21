@@ -13,31 +13,31 @@ export interface SSMStep1Props {
 
 export async function step1(props: SSMStep1Props) {
   const globalOptionsConfig = props.config['global-options'];
-  const useS3 = globalOptionsConfig["central-log-services"]["ssm-to-s3"];
-  const useCWL = globalOptionsConfig["central-log-services"]["ssm-to-cwl"];
+  const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
+  const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
 
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
 
     const ssmKey = new Key(accountStack, `${props.acceleratorPrefix}SSM-Key`, {
       alias: `alias/${props.acceleratorPrefix}SSM-Key`,
-      trustAccountIdentities: true
+      trustAccountIdentities: true,
     });
     ssmKey.grantEncryptDecrypt(new AnyPrincipal());
 
     // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
     const settings = {
-      "schemaVersion": "1.0",
-      "description": "Document to hold regional settings for Session Manager",
-      "sessionType": "Standard_Stream",
-      "inputs": {
-        "s3BucketName": `${props.bucketName}`,
-        "s3EncryptionEnabled": true,
-        "cloudWatchLogGroupName": "/PBMMAccel/SSM",
-        "cloudWatchEncryptionEnabled": true,
-        "kmsKeyId": `${ssmKey.keyId}`,
-        "runAsEnabled": false
-      }
+      schemaVersion: '1.0',
+      description: 'Document to hold regional settings for Session Manager',
+      sessionType: 'Standard_Stream',
+      inputs: {
+        s3BucketName: `${props.bucketName}`,
+        s3EncryptionEnabled: true,
+        cloudWatchLogGroupName: '/PBMMAccel/SSM',
+        cloudWatchEncryptionEnabled: true,
+        kmsKeyId: `${ssmKey.keyId}`,
+        runAsEnabled: false,
+      },
     };
     new CfnDocument(accountStack, 'SessionManager', {
       name: 'SessionManager Settings',
