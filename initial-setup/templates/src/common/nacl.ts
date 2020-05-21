@@ -6,17 +6,18 @@ import { AzSubnets } from './vpc';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 
 export interface NaclProps {
+  accountKey: string;
   vpcConfig: config.VpcConfig;
   vpcId: string;
   subnetConfig: config.SubnetConfig;
   subnets: AzSubnets;
-  accountVpcConfigs: config.ResolvedVpcConfig[];
+  vpcConfigs: config.ResolvedVpcConfig[];
 }
 
 export class Nacl extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: NaclProps) {
     super(parent, name);
-    const { vpcConfig, vpcId, subnetConfig, subnets, accountVpcConfigs } = props;
+    const { accountKey, vpcConfig, vpcId, subnetConfig, subnets, vpcConfigs } = props;
     const naclRules = subnetConfig.nacls;
     if (!naclRules) {
       return;
@@ -56,7 +57,9 @@ export class Nacl extends cdk.Construct {
           new ec2.CfnNetworkAclEntry(this, `Nacl-Rule-Cidr-${vpcConfig.name}-${index + 1}`, aclEntryProps);
           ruleNumber = ruleNumber + 200;
         } else {
-          const ruleVpcConfig = accountVpcConfigs.find(x => x.vpcConfig.name === cidr.vpc)?.vpcConfig;
+          const vpcAccountKey = cidr.account ? cidr.account : accountKey;
+          const ruleVpcConfig = vpcConfigs.find(x => x.vpcConfig.name === cidr.vpc && x.accountKey === vpcAccountKey)
+            ?.vpcConfig;
           if (!ruleVpcConfig) {
             throw new Error(`VPC Not Found in Config "${cidr.vpc}"`);
           }
@@ -66,6 +69,9 @@ export class Nacl extends cdk.Construct {
               throw new Error(`Subnet config for "${subnetName}" is not found in Accelerator Config`);
             }
             for (const subnetDefinition of cidrSubnet.definitions) {
+              if (subnetDefinition.disabled) {
+                continue;
+              }
               const cidrBlock = subnetDefinition.cidr
                 ? subnetDefinition.cidr.toCidrString()
                 : subnetDefinition.cidr2?.toCidrString();
