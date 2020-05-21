@@ -54,18 +54,8 @@ async function main() {
     context,
   });
 
-  // Master Stack to update Custom Resource Lambda Functions invoke permissions
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
   const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
-  for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
-    for (const account of accounts) {
-      new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
-        functionName: funcArn,
-        action: 'lambda:InvokeFunction',
-        principal: `arn:aws:iam::${account.id}:role/${context.acceleratorExecutionRoleName}`,
-      });
-    }
-  }
 
   // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
   const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
