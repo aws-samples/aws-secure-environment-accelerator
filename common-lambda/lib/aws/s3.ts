@@ -23,6 +23,10 @@ export class S3 {
     return this.client.putObject(input).promise();
   }
 
+  async deleteObject(input: s3.DeleteObjectRequest): Promise<s3.DeleteObjectOutput> {
+    return this.client.deleteObject(input).promise();
+  }
+
   async putBucketKmsEncryption(bucket: string, kmsMasterKeyId: string): Promise<void> {
     const params: s3.PutBucketEncryptionRequest = {
       Bucket: bucket,

@@ -62,7 +62,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
 
   // Find all relevant accounts in the organization
   return {
-    organizationalUnits: configuration.organizationalUnits,
+    ...configuration,
     accounts,
   };
 };

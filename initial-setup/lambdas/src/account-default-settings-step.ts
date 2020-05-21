@@ -1,6 +1,5 @@
 import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
 import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
@@ -13,11 +12,12 @@ import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 import { CUR } from '@aws-pbmm/common-lambda/lib/aws/cur';
 import { PutReportDefinitionRequest } from 'aws-sdk/clients/cur';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-interface AccountDefaultSettingsInput {
+interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
   accounts: Account[];
-  configSecretSourceId: string;
   stackOutputSecretId: string;
 }
 
@@ -25,13 +25,18 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, accounts, configSecretSourceId, stackOutputSecretId } = input;
+  const { assumeRoleName, accounts, configRepositoryName, stackOutputSecretId, configFilePath, configCommitId } = input;
 
   const secrets = new SecretsManager();
-  const configString = await secrets.getSecret(configSecretSourceId);
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
-  const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const acceleratorConfig = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
+
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
