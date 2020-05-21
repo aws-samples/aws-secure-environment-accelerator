@@ -30,10 +30,12 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     const ownerInvitation = invitations.Invitations.find(x => x.AccountId === masterAccountId);
     if (ownerInvitation) {
       const invitationId = ownerInvitation?.InvitationId!;
-      await hub.acceptInvitation({
-        InvitationId: invitationId,
-        MasterId: masterAccountId
-      }).promise();
+      await hub
+        .acceptInvitation({
+          InvitationId: invitationId,
+          MasterId: masterAccountId,
+        })
+        .promise();
     }
   }
 }

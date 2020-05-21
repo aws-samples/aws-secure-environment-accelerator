@@ -35,9 +35,13 @@ export class SecurityHubStack extends cdk.Construct {
 
     if (subAccountIds) {
       // Send Invites to subaccounts
-      const sendInviteSecurityHubResource = new SecurityHubSendInvites(this, `InviteMembersSecurityHubStandards-${account.key}`, {
-        memberAccounts : subAccountIds?.filter(x => x.AccountId !== account.id)
-      });
+      const sendInviteSecurityHubResource = new SecurityHubSendInvites(
+        this,
+        `InviteMembersSecurityHubStandards-${account.key}`,
+        {
+          memberAccounts: subAccountIds?.filter(x => x.AccountId !== account.id),
+        },
+      );
       sendInviteSecurityHubResource.node.addDependency(enableHub);
     } else {
       // Accept Invite in sub account
@@ -48,8 +52,8 @@ export class SecurityHubStack extends cdk.Construct {
           this,
           `AcceptInviteSecurityHubStandards-${account.key}`,
           {
-            masterAccountId
-          }
+            masterAccountId,
+          },
         );
         acceptInviteSecurityHubResource.node.addDependency(enableHub);
       }

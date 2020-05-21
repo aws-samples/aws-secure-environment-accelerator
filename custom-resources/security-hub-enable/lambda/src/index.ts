@@ -47,7 +47,8 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         const standardControl = standardControls.Controls?.find(x => x.ControlId === disableConrtol);
         if (standardControl) {
           console.log(`Disabling Control "${disableConrtol}" for Standard "${standard.name}"`);
-          await hub.updateStandardsControl({
+          await hub
+            .updateStandardsControl({
               StandardsControlArn: standardControl.StandardsControlArn!,
               ControlStatus: 'DISABLED',
               DisabledReason: 'Not Required Done through Accelerator',
