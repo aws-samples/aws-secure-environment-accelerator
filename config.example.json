@@ -838,7 +838,7 @@
             {
               "name": "FWMgmt",
               "subnet": "FWMgmt",
-              "create-eip": true,
+              "create-eip": false,
               "create-cgw": false
             },
             {
