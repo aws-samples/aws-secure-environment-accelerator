@@ -5,6 +5,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import { CfnHub } from '@aws-cdk/aws-securityhub';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
+import { SecurityHubEnable } from '@custom-resources/security-hub-enable';
 
 export interface SubAccount {
   AccountId: string;
@@ -12,7 +13,6 @@ export interface SubAccount {
 }
 export interface SecurityHubProps {
   account: Account;
-  enableStandardsFuncArn: string;
   inviteMembersFuncArn: string;
   acceptInvitationFuncArn: string;
   standards: config.SecurityHubFrameworksConfig;
@@ -25,7 +25,6 @@ export class SecurityHubStack extends cdk.Construct {
     super(scope, name);
     const {
       account,
-      enableStandardsFuncArn,
       inviteMembersFuncArn,
       acceptInvitationFuncArn,
       subAccountIds,
@@ -35,20 +34,10 @@ export class SecurityHubStack extends cdk.Construct {
 
     const enableHub = new CfnHub(this, `EnableSecurityHub-${account.key}`, {});
 
-    const enableSecurityHubLambda = lambda.Function.fromFunctionArn(
-      this,
-      'CfnEnableSecurityHub',
-      enableStandardsFuncArn,
-    );
-
-    // tslint:disable-next-line: deprecation
-    const enableSecurityHubResource = new cfn.CustomResource(this, `EnableSecurityHubStandards-${account.key}`, {
-      provider: cfn.CustomResourceProvider.fromLambda(enableSecurityHubLambda),
-      properties: {
-        AccountID: cdk.Aws.ACCOUNT_ID,
-        Standards: standards.standards,
-      },
+    const enableSecurityHubResource = new SecurityHubEnable(this, `EnableSecurityHubStandards-${account.key}`, {
+      standards: standards.standards,
     });
+
     enableSecurityHubResource.node.addDependency(enableHub);
 
     if (subAccountIds) {
