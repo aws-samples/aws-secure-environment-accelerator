@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 interface CfnCustomResourceFunctions {
-  getDnsIpsFunctionArn: string;
   enableSecurityHubFunctionArn: string;
   inviteMembersSecurityHubFunctionArn: string;
   acceptInviteSecurityHubFunctionArn: string;
@@ -31,7 +30,6 @@ export function loadContext(): Context {
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
     cfnCustomResourceFunctions: {
-      getDnsIpsFunctionArn: process.env.CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN!,
       enableSecurityHubFunctionArn: process.env.CFN_ENABLE_SECURITY_HUB_LAMBDA_ARN!,
       inviteMembersSecurityHubFunctionArn: process.env.CFN_INVITE_MEMBERS_SECURITY_HUB_LAMBDA_ARN!,
       acceptInviteSecurityHubFunctionArn: process.env.CFN_ACCEPT_INVITE_SECURITY_HUB_LAMBDA_ARN!,

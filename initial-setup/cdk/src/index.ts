@@ -155,17 +155,6 @@ export namespace InitialSetup {
         }),
       );
 
-      const dnsEndpointIpPollerLambda = new lambda.Function(this, 'DnsEndpointIpPoller', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.getDnsEndpointIps',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceR53EndpointIPPooler',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-      });
-
       const enableSecurityHubLambda = new lambda.Function(this, 'EnableSecurityHub', {
         runtime: lambda.Runtime.NODEJS_12_X,
         code: lambdaCode,
