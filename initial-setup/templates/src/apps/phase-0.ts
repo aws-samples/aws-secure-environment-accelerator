@@ -103,6 +103,11 @@ async function main() {
     value: bucket.encryptionKey.keyId,
   });
 
+  // store the s3 bucket name for later reference
+  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME, {
+    value: bucket.bucket.bucketName,
+  });
+
   // TODO Replace above outputs with JSON output
   // new JsonOutputValue(stack, 'LogArchiveOutput', {
   //   type: 'LogArchiveOutput',

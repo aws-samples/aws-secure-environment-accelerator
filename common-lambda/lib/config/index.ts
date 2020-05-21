@@ -445,6 +445,9 @@ export const CentralServicesConfigType = t.interface({
   cwl: fromNullable(t.boolean, false),
   'access-analyzer': fromNullable(t.boolean, false),
   'cwl-access-level': optional(t.string),
+  'cwl-glbl-exclusions': optional(t.array(t.string)),
+  'ssm-to-s3': optional(t.boolean),
+  'ssm-to-cwl': optional(t.boolean),
 });
 
 export const ScpsConfigType = t.interface({

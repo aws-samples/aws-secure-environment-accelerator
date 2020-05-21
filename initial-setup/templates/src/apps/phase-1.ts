@@ -34,6 +34,7 @@ import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-containe
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as centralServices from '../deployments/central-services';
+import * as ssm from '../deployments/ssm/session-manager';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -76,6 +77,7 @@ async function main() {
 
   const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
   const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+  const logArchiveS3BucketName = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
   const logArchiveS3KmsKeyArn = getStackOutput(
     outputs,
     'log-archive',
@@ -435,6 +437,14 @@ async function main() {
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  // SSM config step 1
+  await ssm.step1({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    bucketName: logArchiveS3BucketName,
+    config: acceleratorConfig,
   });
 }
 
