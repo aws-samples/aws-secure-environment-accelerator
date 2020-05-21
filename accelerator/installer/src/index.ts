@@ -161,7 +161,7 @@ async function main() {
         },
         CONFIG_BRANCH_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorConfigS3Bucket.valueAsString,
+          value: configBranchName.valueAsString,
         },
         CONFIG_S3_BUCKET: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
