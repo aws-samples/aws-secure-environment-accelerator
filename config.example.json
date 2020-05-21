@@ -126,7 +126,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "bmycroft+lzT-network@amazon.com",
+      "email": "myemail+pbmmT-network@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
       "iam": {
@@ -295,7 +295,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "bmycroft+lzT-operations@amazon.com",
+      "email": "myemail+pbmmT-operations@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
@@ -424,7 +424,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "bmycroft+lzT-perimeter@amazon.com",
+      "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {
         "Amazon EC2/Number of EIPs": 10
@@ -438,19 +438,19 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
@@ -595,7 +595,8 @@
       "vpc": [{
         "deploy": "local",
         "name": "Perimeter",
-        "cidr": "100.96.250.0/23",
+        "cidr": "10.7.4.0/22",
+        "cidr2": "100.96.250.0/23",
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
@@ -612,12 +613,12 @@
               {
                 "az": "a",
                 "route-table": "Public_Shared",
-                "cidr": "100.96.251.64/26"
+                "cidr": "100.96.250.0/25"
               },
               {
                 "az": "b",
                 "route-table": "Public_Shared",
-                "cidr": "100.96.251.128/26"
+                "cidr": "100.96.250.128/25"
               }
             ]
           },
@@ -627,12 +628,12 @@
               {
                 "az": "a",
                 "route-table": "FWMgmt_azA",
-                "cidr": "100.96.251.16/28"
+                "cidr": "100.96.251.32/27"
               },
               {
                 "az": "b",
                 "route-table": "FWMgmt_azB",
-                "cidr": "100.96.251.48/28"
+                "cidr": "100.96.251.160/27"
               }
             ]
           },
@@ -642,12 +643,12 @@
               {
                 "az": "a",
                 "route-table": "Proxy_azA",
-                "cidr": "100.96.250.0/25"
+                "cidr": "100.96.251.64/26"
               },
               {
                 "az": "b",
                 "route-table": "Proxy_azB",
-                "cidr": "100.96.250.128/25"
+                "cidr": "100.96.251.192/26"
               }
             ]
           },
@@ -657,12 +658,27 @@
               {
                 "az": "a",
                 "route-table": "OnPremise_Shared",
-                "cidr": "100.96.251.0/28"
+                "cidr": "100.96.251.0/27"
               },
               {
                 "az": "b",
                 "route-table": "OnPremise_Shared",
-                "cidr": "100.96.251.32/28"
+                "cidr": "100.96.251.128/27"
+              }
+            ]
+          },
+          {
+            "name": "Detonation",
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "Detonation_Shared",
+                "cidr": "10.7.4.0/24"
+              },
+              {
+                "az": "b",
+                "route-table": "Detonation_Shared",
+                "cidr": "10.7.5.0/24"
               }
             ]
           }
@@ -732,6 +748,9 @@
                 "target": "{ENI-FW-azB-p4}"
               }
             ]
+          },
+          {
+            "name": "Detonation_Shared"
           }
         ],
         "security-groups": [
@@ -882,7 +901,7 @@
     },
     "master": {
       "account-name": "primary",
-      "email": "bmycroft+lzT@amazon.com",
+      "email": "myemail+pbmmT-master@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
@@ -980,21 +999,21 @@
       "account-name": "log-archive",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+logs@amazon.com",
+      "email": "myemail+pbmmT-log@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+security@amazon.com",
+      "email": "myemail+pbmmT-sec@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+services@amazon.com",
+      "email": "myemail+pbmmT-ss@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "shared-services",
       "enable-s3-public-access": true
     }
@@ -1002,8 +1021,20 @@
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "bmycroft+FunAcct@amazon.com",
-      "ou": "sandbox",
+      "email": "myemail+pbmmT-funacct@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Sandbox",
+      "share-mad-from": ""
+    },
+    "mydevacct1": {
+      "account-name": "MyDev1",
+      "email": "myemail+pbmmT-dev1@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Dev",
+      "share-mad-from": ""
+    },
+    "my-dev-acct2": {
+      "account-name": "MyDev2",
+      "email": "myemail+pbmmT-dev2@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Dev",
       "share-mad-from": ""
     }
   },
@@ -1020,23 +1051,23 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       }
     },
-    "central": {
+    "Central": {
       "type": "mandatory",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -1048,19 +1079,19 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
@@ -1525,7 +1556,7 @@
         ]
       }
     },
-    "dev": {
+    "Dev": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -1537,19 +1568,19 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
@@ -2001,7 +2032,7 @@
         ]
       }
     },
-    "test": {
+    "Test": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -2013,19 +2044,19 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
@@ -2477,7 +2508,7 @@
         ]
       }
     },
-    "prod": {
+    "Prod": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -2489,19 +2520,19 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
@@ -2953,7 +2984,7 @@
         ]
       }
     },
-    "unclass": {
+    "Unclass": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
@@ -2965,19 +2996,19 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
@@ -3404,7 +3435,7 @@
         ]
       }
     },
-    "sandbox": {
+    "Sandbox": {
       "type": "workload",
       "share-mad-from": "",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
@@ -3416,19 +3447,19 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "vpc": [{
