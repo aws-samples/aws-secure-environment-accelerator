@@ -46,6 +46,7 @@
     "@aws-cdk/aws-ssm": "1.38.0",
     "@aws-cdk/core": "1.38.0",
     "@aws-cdk/custom-resources": "1.38.0",
+    "@aws-cdk/aws-budgets": "1.38.0",
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "@aws-pbmm/common-outputs": "workspace:^0.0.1",

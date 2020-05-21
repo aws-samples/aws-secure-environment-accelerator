@@ -33,6 +33,7 @@ import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import * as centralServices from '../deployments/central-services';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -428,6 +429,13 @@ async function main() {
       await createIamAssets(orgAccount.key, orgConfig.iam);
     }
   }
+
+  // Central Services step 1
+  await centralServices.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises

@@ -343,6 +343,22 @@ export const DeploymentConfigType = t.interface({
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 
+export const BudgetNotificationType = t.interface({
+  type: t.string,
+  'threshold-percent': t.number,
+  emails: t.array(t.string),
+});
+
+export type BudgetConfig = t.TypeOf<typeof BudgetConfigType>;
+
+export const BudgetConfigType = t.interface({
+  name: t.string,
+  period: t.string,
+  amount: t.number,
+  include: t.array(t.string),
+  alerts: t.array(BudgetNotificationType),
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -355,6 +371,7 @@ export const MandatoryAccountConfigType = t.interface({
   vpc: optional(VpcConfigType),
   deployments: optional(DeploymentConfigType),
   'log-retention': optional(t.number),
+  budget: optional(BudgetConfigType),
 });
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -369,6 +386,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'share-mad-from': optional(t.string),
   iam: optional(IamConfigType),
   vpc: optional(VpcConfigType),
+  'default-budgets': optional(BudgetConfigType),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
@@ -420,6 +438,15 @@ export const SecurityHubFrameworksConfigType = t.interface({
   ),
 });
 
+export const CentralServicesConfigType = t.interface({
+  account: NonEmptyString,
+  'security-hub': fromNullable(t.boolean, false),
+  'guard-duty': fromNullable(t.boolean, false),
+  cwl: fromNullable(t.boolean, false),
+  'access-analyzer': fromNullable(t.boolean, false),
+  'cwl-access-level': optional(t.string),
+});
+
 export const ScpsConfigType = t.interface({
   name: NonEmptyString,
   description: NonEmptyString,
@@ -435,9 +462,13 @@ export const GlobalOptionsConfigType = t.interface({
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
+  'central-security-services': CentralServicesConfigType,
+  'central-operations-services': CentralServicesConfigType,
+  'central-log-services': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
 });
 
+export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
 export type SecurityHubFrameworksConfig = t.TypeOf<typeof SecurityHubFrameworksConfigType>;
 export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
 
