@@ -121,12 +121,12 @@ export const handler = async (input: LoadLimitsInput) => {
       }
 
       // Request the increase or renew if the previous request was more than two days ago
-      // await quotas.renewServiceQuotaIncrease({
-      //   ServiceCode: limitCode.serviceCode,
-      //   QuotaCode: limitCode.quotaCode,
-      //   DesiredValue: desiredValue,
-      //   MinTimeBetweenRequestsMillis: 1000 * 60 * 60 * 24 * 2, // Two days in milliseconds
-      // });
+      await quotas.renewServiceQuotaIncrease({
+        ServiceCode: limitCode.serviceCode,
+        QuotaCode: limitCode.quotaCode,
+        DesiredValue: desiredValue,
+        MinTimeBetweenRequestsMillis: 1000 * 60 * 60 * 24 * 2, // Two days in milliseconds
+      });
     }
   }
 

@@ -144,7 +144,7 @@ export class ADUsersAndGroups extends cdk.Construct {
     launchConfig.addOverride('Metadata.AWS::CloudFormation::Authentication', {
       S3AccessCreds: {
         type: 'S3',
-        roleName: RDGWHostRole.roleName,
+        roleName: madDeploymentConfig["rdgw-instance-role"],
         buckets: [s3BucketName],
       },
     });
