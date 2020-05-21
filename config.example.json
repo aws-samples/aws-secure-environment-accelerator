@@ -156,7 +156,7 @@
         "AWS CloudFormation/Stack count": 400,
         "AWS CloudFormation/Stack sets per administrator account": 400
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
@@ -277,7 +277,7 @@
             "outbound-ips": ["7.23.0.1", "7.26.0.2"]
           }
         ]
-      },
+      }],
       "deployments": {
         "tgw": {
           "name": "Main",
@@ -592,7 +592,7 @@
           }
         ]
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Perimeter",
         "cidr": "10.7.4.0/22",
@@ -833,7 +833,7 @@
             "ec2messages"
           ]
         }
-      },
+      }],
       "deployments": {
         "firewall": {
           "image-id": "ami-047aac44951feb9fb",
@@ -933,7 +933,7 @@
         ],
         "roles": []
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
@@ -979,7 +979,7 @@
         ],
         "tgw-attach": false,
         "interface-endpoints": false
-      },
+      }],
       "deployments": {
         "adc": {
           "deploy": true,
@@ -1112,7 +1112,7 @@
           "arn": ""
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Central",
         "cidr": "10.1.0.0/16",
@@ -1231,7 +1231,7 @@
                 "cidr-blocks": [
                   {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Web"]
                   }
                 ]
               },
@@ -1252,7 +1252,7 @@
                 "cidr-blocks": [
                   {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Web"]
                   }
                 ]
               },
@@ -1395,19 +1395,9 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
               }
             ],
             "outbound-rules": [
@@ -1422,26 +1412,15 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
               {
-                "description": "Central VPC Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -1459,17 +1438,7 @@
             "name": "App",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1478,7 +1447,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1508,17 +1477,7 @@
             "name": "Data",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1527,7 +1486,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -1565,7 +1524,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -1667,7 +1626,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Dev",
         "cidr": "10.2.0.0/16",
@@ -1779,8 +1738,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Dev",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Data", "Web"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -1800,8 +1763,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Dev",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Data", "Web"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -1864,7 +1831,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1891,7 +1858,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1906,11 +1873,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -1938,7 +1904,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1947,7 +1913,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1987,7 +1953,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1996,7 +1962,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -2034,7 +2000,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -2136,7 +2102,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Test",
         "cidr": "10.3.0.0/16",
@@ -2248,8 +2214,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Test",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2269,8 +2239,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Test",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2333,7 +2307,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2360,7 +2334,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2375,11 +2349,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -2407,7 +2380,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2416,7 +2389,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2456,7 +2429,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2465,7 +2438,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -2503,7 +2476,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -2605,7 +2578,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Prod",
         "cidr": "10.4.0.0/16",
@@ -2717,8 +2690,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Prod",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2738,8 +2715,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Prod",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2802,7 +2783,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2829,7 +2810,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2844,11 +2825,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -2876,7 +2856,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2885,7 +2865,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2925,7 +2905,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2934,7 +2914,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -2972,7 +2952,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -3049,7 +3029,7 @@
           "arn": ""
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
@@ -3161,8 +3141,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "UnClass",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3182,8 +3166,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "UnClass",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3246,7 +3234,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -3273,7 +3261,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -3288,11 +3276,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -3320,7 +3307,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3329,7 +3316,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3369,7 +3356,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3378,7 +3365,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -3416,7 +3403,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -3475,7 +3462,7 @@
             "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
@@ -3569,8 +3556,13 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Sandbox",
+                    "subnet": ["Web"]
+                  },
+                  {
+                    "account": "shared-network",
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3590,8 +3582,13 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Sandbox",
+                    "subnet": ["Web"]
+                  },
+                  {
+                    "account": "shared-network",
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3655,19 +3652,9 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
               }
             ],
             "outbound-rules": [
@@ -3682,26 +3669,15 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
               {
-                "description": "Central VPC Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -3719,17 +3695,7 @@
             "name": "App",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3738,7 +3704,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3768,17 +3734,7 @@
             "name": "Data",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3787,7 +3743,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -3816,7 +3772,7 @@
         ],
         "tgw-attach": false,
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
