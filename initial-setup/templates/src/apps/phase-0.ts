@@ -178,7 +178,6 @@ async function main() {
     uploadArtifacts('Rdgw', 'scripts', 'config/scripts/', accountKey, 'rdgw', 'config/scripts');
   }
 
-  const globalOptions = acceleratorConfig['global-options'];
   const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
   const subAccountIds = accounts.map(account => {
     return {
@@ -188,12 +187,9 @@ async function main() {
   });
   const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
   // Create Security Hub stack for Master Account in Security Account
-  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+  new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
     account: securityMasterAccount!,
-    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-    standards: globalOptions['security-hub-frameworks'],
+    standards: globalOptionsConfig['security-hub-frameworks'],
     subAccountIds,
   });
 

@@ -2,22 +2,22 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 
-const resourceType = 'Custom::SecurityHubEnable';
+const resourceType = 'Custom::SecurityHubAcceptInvites';
 
-export interface SecurityHubEnableProps {
-  standards: unknown;
+export interface SecurityHubAcceptInvitesProps {
+  masterAccountId: string;
 }
 
 /**
- * Custom resource that will enable SecurityHub and disable controls.
+ * Custom resource that has an image ID attribute for the image with the given properties.
  */
-export class SecurityHubEnable extends cdk.Construct {
+export class SecurityHubAcceptInvites extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: SecurityHubEnableProps) {
+  constructor(scope: cdk.Construct, id: string, props: SecurityHubAcceptInvitesProps) {
     super(scope, id);
 
-    const lambdaPath = require.resolve('@custom-resources/security-hub-enable-lambda');
+    const lambdaPath = require.resolve('@custom-resources/security-hub-accept-invites-lambda');
     const lambdaDir = path.dirname(lambdaPath);
 
     const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
@@ -35,7 +35,7 @@ export class SecurityHubEnable extends cdk.Construct {
       resourceType,
       serviceToken: provider,
       properties: {
-        standards: props.standards,
+        masterAccountId: props.masterAccountId,
       },
     });
   }

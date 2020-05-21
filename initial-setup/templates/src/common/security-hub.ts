@@ -6,6 +6,8 @@ import { CfnHub } from '@aws-cdk/aws-securityhub';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { SecurityHubEnable } from '@custom-resources/security-hub-enable';
+import { SecurityHubSendInvites } from '@custom-resources/security-hub-send-invites';
+import { SecurityHubAcceptInvites } from '@custom-resources/security-hub-accept-invites';
 
 export interface SubAccount {
   AccountId: string;
@@ -13,8 +15,6 @@ export interface SubAccount {
 }
 export interface SecurityHubProps {
   account: Account;
-  inviteMembersFuncArn: string;
-  acceptInvitationFuncArn: string;
   standards: config.SecurityHubFrameworksConfig;
   subAccountIds?: SubAccount[];
   masterAccountId?: string;
@@ -23,7 +23,7 @@ export interface SecurityHubProps {
 export class SecurityHubStack extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string, props: SecurityHubProps) {
     super(scope, name);
-    const { account, inviteMembersFuncArn, acceptInvitationFuncArn, subAccountIds, masterAccountId, standards } = props;
+    const { account, subAccountIds, masterAccountId, standards } = props;
 
     const enableHub = new CfnHub(this, `EnableSecurityHub-${account.key}`, {});
 
@@ -35,46 +35,24 @@ export class SecurityHubStack extends cdk.Construct {
 
     if (subAccountIds) {
       // Send Invites to subaccounts
-      const sendInvitesLambda = lambda.Function.fromFunctionArn(
-        this,
-        'CfnInviteMembersSecurityHub',
-        inviteMembersFuncArn,
-      );
-
-      // tslint:disable-next-line: deprecation
-      const sendInviteSecurityHubResource = new cfn.CustomResource(
-        this,
-        `InviteMembersSecurityHubStandards-${account.key}`,
-        {
-          provider: cfn.CustomResourceProvider.fromLambda(sendInvitesLambda),
-          properties: {
-            AccountID: cdk.Aws.ACCOUNT_ID,
-            MemberAccounts: subAccountIds?.filter(x => x.AccountId !== account.id),
-          },
-        },
-      );
+      const sendInviteSecurityHubResource = new SecurityHubSendInvites(this, `InviteMembersSecurityHubStandards-${account.key}`, {
+        memberAccounts : subAccountIds?.filter(x => x.AccountId !== account.id)
+      });
       sendInviteSecurityHubResource.node.addDependency(enableHub);
     } else {
       // Accept Invite in sub account
-      const acceptInvitesLambda = lambda.Function.fromFunctionArn(
-        this,
-        'CfnAcceptInviteSecurityHub',
-        acceptInvitationFuncArn,
-      );
-
-      // tslint:disable-next-line: deprecation
-      const acceptInviteSecurityHubResource = new cfn.CustomResource(
-        this,
-        `AcceptInviteSecurityHubStandards-${account.key}`,
-        {
-          provider: cfn.CustomResourceProvider.fromLambda(acceptInvitesLambda),
-          properties: {
-            AccountID: cdk.Aws.ACCOUNT_ID,
-            MasterAccountID: masterAccountId,
-          },
-        },
-      );
-      acceptInviteSecurityHubResource.node.addDependency(enableHub);
+      if (!masterAccountId) {
+        console.log('Invalid Request. No "masterAccountId" found');
+      } else {
+        const acceptInviteSecurityHubResource = new SecurityHubAcceptInvites(
+          this,
+          `AcceptInviteSecurityHubStandards-${account.key}`,
+          {
+            masterAccountId
+          }
+        );
+        acceptInviteSecurityHubResource.node.addDependency(enableHub);
+      }
     }
   }
 }

@@ -20,7 +20,6 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const standards = event.ResourceProperties.standards;
-  // Find images that match the given owner, name and version
   const standardsResponse = await hub.describeStandards().promise();
 
   // Enable standards and Disabling unnecessary Controls for eash standard
@@ -48,8 +47,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         const standardControl = standardControls.Controls?.find(x => x.ControlId === disableConrtol);
         if (standardControl) {
           console.log(`Disabling Control "${disableConrtol}" for Standard "${standard.name}"`);
-          await hub
-            .updateStandardsControl({
+          await hub.updateStandardsControl({
               StandardsControlArn: standardControl.StandardsControlArn!,
               ControlStatus: 'DISABLED',
               DisabledReason: 'Not Required Done through Accelerator',

@@ -132,11 +132,6 @@ export namespace InitialSetup {
         path: props.solutionZipPath,
       });
 
-      const cfnCustomResourceRole = new iam.Role(this, 'CfnCustomResourceRole', {
-        roleName: createRoleName('L-CFN-CustomResource'),
-        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
-      });
-
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: createRoleName('L-SFN-MasterRole'),
@@ -146,49 +141,6 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
-      });
-
-      cfnCustomResourceRole.addToPolicy(
-        new iam.PolicyStatement({
-          resources: ['*'],
-          actions: ['sts:AssumeRole', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-        }),
-      );
-
-      const enableSecurityHubLambda = new lambda.Function(this, 'EnableSecurityHub', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.enableSecurityHub',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceEnableSecurityHub',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-        timeout: cdk.Duration.seconds(900),
-      });
-
-      const inviteMembersSecurityHub = new lambda.Function(this, 'InviteMembersSecurityHub', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.inviteMembersSecurityHub',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceInviteMembersSecurityHub',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-        timeout: cdk.Duration.seconds(900),
-      });
-
-      const acceptInviteSecurityHub = new lambda.Function(this, 'AcceptInviteSecurityHub', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.acceptInviteSecurityHub',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceAcceptInviteSecurityHub',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-        timeout: cdk.Duration.seconds(900),
       });
 
       // Define a build specification to build the initial setup templates
@@ -249,22 +201,6 @@ export namespace InitialSetup {
             CDK_PLUGIN_ASSUME_ROLE_NAME: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.stateMachineExecutionRole,
-            },
-            CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: dnsEndpointIpPollerLambda.functionArn,
-            },
-            CFN_ENABLE_SECURITY_HUB_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: enableSecurityHubLambda.functionArn,
-            },
-            CFN_INVITE_MEMBERS_SECURITY_HUB_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: inviteMembersSecurityHub.functionArn,
-            },
-            CFN_ACCEPT_INVITE_SECURITY_HUB_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: acceptInviteSecurityHub.functionArn,
             },
           },
         },

@@ -59,6 +59,8 @@
     "@custom-resources/s3-template": "workspace:^0.0.1",
     "@custom-resources/r53-dns-endpoint-ips": "workspace:^0.0.1",
     "@custom-resources/security-hub-enable": "workspace:^0.0.1",
+    "@custom-resources/security-hub-send-invites": "workspace:^0.0.1",
+    "@custom-resources/security-hub-accept-invites": "workspace:^0.0.1",
     "@types/cfn-response": "^1.0.3",
     "colors": "1.4.0",
     "constructs": "2.0.1",
