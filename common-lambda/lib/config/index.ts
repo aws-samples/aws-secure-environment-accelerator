@@ -36,6 +36,7 @@ export const NaclRuleCidrSourceConfig = t.interface({
 });
 
 export const NaclRuleSubnetSourceConfig = t.interface({
+  account: optional(t.string),
   vpc: NonEmptyString,
   subnet: t.array(NonEmptyString),
 });
@@ -121,6 +122,7 @@ export const SecurityGroupRuleCidrSourceConfig = t.interface({
 });
 
 export const SecurityGroupRuleSubnetSourceConfig = t.interface({
+  account: optional(t.string),
   vpc: NonEmptyString,
   subnet: t.array(NonEmptyString),
 });
