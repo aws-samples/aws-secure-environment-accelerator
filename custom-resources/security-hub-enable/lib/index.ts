@@ -27,7 +27,7 @@ export class SecurityHubEnable extends cdk.Construct {
         new iam.PolicyStatement({
           actions: ['securityhub:*'],
           resources: ['*'],
-        }).toJSON()
+        }).toJSON(),
       ],
     });
 
@@ -35,7 +35,7 @@ export class SecurityHubEnable extends cdk.Construct {
       resourceType,
       serviceToken: provider,
       properties: {
-        standards: props.standards
+        standards: props.standards,
       },
     });
   }
