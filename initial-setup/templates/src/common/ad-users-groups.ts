@@ -96,9 +96,9 @@ export class ADUsersAndGroups extends cdk.Construct {
       vpcId,
       vpcName,
     });
-    
+
     const RDGWHostProfile = new iam.CfnInstanceProfile(this, 'RDGWHostProfile', {
-      roles: [madDeploymentConfig["rdgw-instance-role"]],
+      roles: [madDeploymentConfig['rdgw-instance-role']],
       instanceProfileName: 'PBMM-RDGWHostProfile',
     });
 
