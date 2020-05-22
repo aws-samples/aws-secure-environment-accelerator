@@ -57,8 +57,9 @@ If using an internal AWS account, to successfully install, you need to enable pr
    
    ***(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)***
 
-3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and with versioning enabled
-4. Place your config file, named `config.json`, in your new bucket
+~~3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and with versioning enabled
+4. Place your config file, named `config.json`, in your new bucket~~ (S3 Functionality BROKEN)
+
    
 #### Deploy the Accelerator Installer Stack
 
@@ -73,7 +74,11 @@ If using an internal AWS account, to successfully install, you need to enable pr
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
-state machine should start automatically and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.  From this point forward, you must update your configuration file in CodeCommit.
+state machine should start automatically ~~and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.~~  
+
+**NEW: Manually import config.json, into the master branch of the CodeCommitt repository created by the CFN template.**
+
+From this point forward, you must update your configuration file in CodeCommit.
 
 After the pipline executes, the state machine will execute (Step functions).
 
