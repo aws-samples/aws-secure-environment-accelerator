@@ -32,15 +32,17 @@ export async function step1(props: SSMStep1Props) {
       sessionType: 'Standard_Stream',
       inputs: {
         s3BucketName: `${props.bucketName}`,
+        s3KeyPrefix: '',
         s3EncryptionEnabled: true,
         cloudWatchLogGroupName: '/PBMMAccel/SSM',
         cloudWatchEncryptionEnabled: true,
         kmsKeyId: `${ssmKey.keyId}`,
         runAsEnabled: false,
+        runAsDefaultUser: '',
       },
     };
     new CfnDocument(accountStack, 'SessionManager', {
-      name: 'SessionManager Settings',
+      name: 'SSM-SessionManagerRunShell',
       content: settings,
       documentType: 'Session',
     });
