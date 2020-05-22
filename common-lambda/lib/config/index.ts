@@ -273,6 +273,7 @@ export const MadConfigType = t.interface({
   'share-to-account': optional(t.string),
   restrict_srcips: t.array(cidr),
   'rdgw-instance-type': t.string,
+  'rdgw-instance-role': t.string,
   'num-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),

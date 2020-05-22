@@ -97,54 +97,8 @@ export class ADUsersAndGroups extends cdk.Construct {
       vpcName,
     });
 
-    // TODO Get the role name from the config file
-    const RDGWHostRole = new iam.Role(this, 'RDGWHostRole', {
-      roleName: createRoleName('L-EC2-RDGWHostRole'),
-      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
-      managedPolicies: [
-        iam.ManagedPolicy.fromManagedPolicyArn(
-          this,
-          'EC2RoleforSSM',
-          'arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM',
-        ),
-        iam.ManagedPolicy.fromManagedPolicyArn(
-          this,
-          'SSMAutomationRole',
-          'arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole',
-        ),
-      ],
-    });
-
-    RDGWHostRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ['s3:GetObject'],
-        resources: ['*'],
-      }),
-    );
-
-    RDGWHostRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ['ec2:AssociateAddress', 'ec2:DescribeAddresses'],
-        resources: ['*'],
-      }),
-    );
-
-    RDGWHostRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ['secretsmanager:Get*'],
-        resources: ['*'],
-      }),
-    );
-
-    RDGWHostRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: ['kms:Decrypt', 'kms:GenerateDataKey'],
-        resources: ['*'],
-      }),
-    );
-
     const RDGWHostProfile = new iam.CfnInstanceProfile(this, 'RDGWHostProfile', {
-      roles: [RDGWHostRole.roleName],
+      roles: [madDeploymentConfig['rdgw-instance-role']],
       instanceProfileName: 'PBMM-RDGWHostProfile',
     });
 
@@ -190,7 +144,7 @@ export class ADUsersAndGroups extends cdk.Construct {
     launchConfig.addOverride('Metadata.AWS::CloudFormation::Authentication', {
       S3AccessCreds: {
         type: 'S3',
-        roleName: RDGWHostRole.roleName,
+        roleName: madDeploymentConfig['rdgw-instance-role'],
         buckets: [s3BucketName],
       },
     });
