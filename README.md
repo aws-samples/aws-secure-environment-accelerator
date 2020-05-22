@@ -47,25 +47,25 @@ If using an internal AWS account, to successfully install, you need to enable pr
 #### Create an Accelerator Configuration File
 
 1. You can use the [`config.example.json`](./config.example.json) file as base (from the master branch)
-2. Make sure to update the account names and email addresses to match the ones in your account, or that you want to create.
+2. Make sure to update the account names and email addresses to match the ones in your account, or that you want to create
 
    ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING. Expected file content and values will be defined in future***
    
    ***AT THIS TIME, DO NOT INCLUDE any workload accounts, as it will slow down the deployment process***
-      ALZ AVM takes 42 minutes per sub-account, we can add additional AWS workload accounts at a later time.
+   ***The ALZ AVM takes 42 minutes per sub-account, you can add additional AWS workload accounts at a later time***
 
-3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and versioning enabled.
+3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and versioning enabled
 4. Place your config file, named `config.json`, in your new bucket
    
 #### Deploy the Accelerator Installer Stack
 
 1. You can find the latest release in the repository: https://github.com/aws-samples/aws-pbmm-accelerator/tree/master/reference-artifacts/deployment (master branch)
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
-3. Use the template to deploy a new stack in your AWS account.
+3. Use the template to deploy a new stack in your AWS account
 4. Fill out the required parameters - ***LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW***
 5. Specify stack name STARTING with `PBMMAccel-` (case sensitive)
-6. Change `ConfigS3Bucket` to the name of the bucket holding your configuaration file.
-7. Add an `Email` address to be used for notification of code releases.
+6. Change `ConfigS3Bucket` to the name of the bucket holding your configuaration file
+7. Add an `Email` address to be used for notification of code releases
 8. Change `GithubBranch` to the latest stable branch (currently master, case sensitive)
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 
