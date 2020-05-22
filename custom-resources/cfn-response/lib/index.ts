@@ -69,23 +69,29 @@ export async function send(event: CloudFormationCustomResourceEvent, context: Co
   );
 }
 
+export interface ErrorHandlerResponse {
+  data?: ResponseData;
+  physicalResourceId?: string;
+}
+
 /**
  * Auxiliary method that calls the given `onEvent` function, catches errors and sends the corresponding response to
  * CloudFormation.
  */
 export function errorHandler(
-  onEvent: (event: CloudFormationCustomResourceEvent) => Promise<ResponseData | undefined | void>,
+  onEvent: (event: CloudFormationCustomResourceEvent) => Promise<ErrorHandlerResponse | undefined | void>,
 ) {
   return async (event: CloudFormationCustomResourceEvent, context: Context) => {
     try {
-      const data = (await onEvent(event)) || undefined;
+      const response = (await onEvent(event)) || undefined;
 
       console.debug('Sending successful response');
-      console.debug(JSON.stringify(data, null, 2));
+      console.debug(JSON.stringify(response, null, 2));
 
       await send(event, context, {
         status: SUCCESS,
-        data,
+        data: response?.data,
+        physicalResourceId: response?.physicalResourceId,
       });
     } catch (e) {
       console.error('Sending failure response');

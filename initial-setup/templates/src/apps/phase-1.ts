@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as s3 from '@aws-cdk/aws-s3';
 import { getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
 import { loadAccounts, getAccountId, Account } from '../utils/accounts';
@@ -34,6 +35,9 @@ import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-containe
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as centralServices from '../deployments/central-services';
+import * as certificates from '../deployments/certificates';
+import { StructuredOutput } from '../common/structured-output';
+import { CentralBucketOutput, CentralBucketOutputType } from '../deployments/defaults';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -348,7 +352,8 @@ async function main() {
   };
 
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
 
   const iamPoliciesDefinition = await getIamPoliciesDefinition();
@@ -428,6 +433,25 @@ async function main() {
       await createIamAssets(orgAccount.key, orgConfig.iam);
     }
   }
+
+  const centralBucketOutputs = StructuredOutput.fromOutputs<CentralBucketOutput>(outputs, {
+    accountKey: masterAccountKey,
+    type: CentralBucketOutputType,
+  });
+  const centralBucketOutput = centralBucketOutputs?.[0];
+  if (!centralBucketOutput) {
+    throw new Error(`Cannot find central bucket`);
+  }
+  const centralBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
+    bucketArn: centralBucketOutput.bucketArn,
+    bucketName: centralBucketOutput.bucketName,
+  });
+
+  await certificates.step1({
+    accountStacks,
+    centralBucket: centralBucket,
+    config: acceleratorConfig,
+  });
 
   // Central Services step 1
   await centralServices.step2({

@@ -2,11 +2,36 @@ import * as crypto from 'crypto';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack } from './accelerator-stack';
 
+/**
+ * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
+ * resources in a customer's account. Please take this into account!
+ */
 export function createBucketName(name?: string): string {
   return createName({
     name,
     account: true,
     region: true,
+    suffixLength: 8,
+    lowercase: true,
+  });
+}
+
+/**
+ * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
+ * resources in a customer's account. Please take this into account!
+ *
+ * Creates a fixed bucket name that can be used across accounts. The given properties *have to be* resolved properties,
+ * otherwise the bucket name *cannot* be used across accounts!
+ */
+export function createFixedBucketName(props: {
+  acceleratorPrefix: string;
+  account: string;
+  region: string;
+  name?: string;
+  seed?: string;
+}): string {
+  return createFixedName({
+    ...props,
     suffixLength: 8,
     lowercase: true,
   });
@@ -35,6 +60,71 @@ export function createKeyPairName(name: string): string {
 
 const DEFAULT_SEPARATOR = '-';
 
+export interface FixedBucketNameGeneratorProps {
+  acceleratorPrefix: string;
+  /**
+   * @default undefined
+   */
+  seed?: string;
+  /**
+   * @default undefined
+   */
+  account?: string;
+  /**
+   * @default undefined
+   */
+  region?: string;
+  /**
+   * @default undefined
+   */
+  suffixLength?: number;
+  /**
+   * @default '-'
+   */
+  separator?: string;
+  /**
+   * @default undefined
+   */
+  name?: string;
+  /**
+   * @default false
+   */
+  lowercase?: boolean;
+}
+
+/**
+ * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
+ * resources in a customer's account. Please take this into account!
+ */
+export function createFixedName(props: FixedBucketNameGeneratorProps) {
+  // Verify that all properties are resolved values
+  Object.entries(props).forEach(([name, value]) => {
+    if (value && cdk.Token.isUnresolved(value)) {
+      throw new Error(`Property '${name}' cannot be an unresolved value: ${value}`);
+    }
+  });
+
+  const { acceleratorPrefix, name, seed, account, region, suffixLength, separator = DEFAULT_SEPARATOR } = props;
+
+  const pieces = [];
+  if (account) {
+    pieces.push(cdk.Aws.ACCOUNT_ID);
+  }
+  if (region) {
+    pieces.push(cdk.Aws.REGION);
+  }
+  if (name) {
+    pieces.push(prepareString(name, props));
+  }
+  if (suffixLength && suffixLength > 0) {
+    // Create a suffix that is based on the path of the component
+    const path = [seed, name].filter((s): s is string => !!s);
+    const suffix = hashPath(path, suffixLength);
+    pieces.push(prepareString(suffix, props));
+  }
+  return prepareString(acceleratorPrefix, props) + pieces.join(separator);
+}
+
 export interface CreateNameProps {
   /**
    * @default undefined
@@ -53,7 +143,7 @@ export interface CreateNameProps {
    */
   region?: boolean;
   /**
-   * @default false
+   * @default undefined
    */
   name?: string;
   /**
@@ -63,6 +153,9 @@ export interface CreateNameProps {
 }
 
 /**
+ * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
+ * resources in a customer's account. Please take this into account!
+ *
  * Generates a name with the Accelerator prefix of the AcceleratorStack, the given name and a random prefix based on
  * the constructs path.
  *
@@ -112,14 +205,17 @@ export function createName(props: CreateNameProps = {}): string {
  * https://github.com/aws/aws-cdk/blob/f8df4e04f6f9631f963353903e020cfa8377e8bc/packages/%40aws-cdk/core/lib/private/uniqueid.ts#L33
  */
 function hashPath(path: string[], length: number) {
-  const hash = crypto.createHash('md5').update(path.join('/')).digest('hex');
+  const hash = crypto
+    .createHash('md5')
+    .update(path.join('/'))
+    .digest('hex');
   return hash.slice(0, length).toUpperCase();
 }
 
 /**
  * Prepare the given string with the given props. Currently only lowercases the string.
  */
-function prepareString(str: string, props: CreateNameProps): string {
+function prepareString(str: string, props: { lowercase?: boolean }): string {
   if (cdk.Token.isUnresolved(str)) {
     // We should not modify an unresolved token
     return str;

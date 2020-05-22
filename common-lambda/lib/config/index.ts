@@ -210,19 +210,35 @@ export const IamConfigType = t.interface({
 
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
-export const CertificatesConfigType = t.interface({
+export const ImportCertificateConfigType = t.interface({
   name: t.string,
-  type: t.string,
-  'priv-key': optional(t.string),
-  cert: optional(t.string),
+  type: t.literal('import'),
+  'priv-key': t.string,
+  cert: t.string,
   chain: optional(t.string),
-  arn: optional(t.string),
-  domain: optional(t.string),
-  validation: optional(t.string),
+});
+
+export type ImportCertificateConfig = t.TypeOf<typeof ImportCertificateConfigType>;
+
+export const CERTIFICATE_VALIDATION = ["DNS", "EMAIL"] as const;
+
+export const CertificateValidationType = enumType<typeof CERTIFICATE_VALIDATION[number]>(CERTIFICATE_VALIDATION, 'CertificateValidation');
+
+export type CertificateValidation = t.TypeOf<typeof CertificateValidationType>;
+
+export const RequestCertificateConfigType = t.interface({
+  name: t.string,
+  type: t.literal('request'),
+  domain: t.string,
+  validation: CertificateValidationType,
   san: optional(t.array(NonEmptyString)),
 });
 
-export type CertificatesConfig = t.TypeOf<typeof CertificatesConfigType>;
+export type RequestCertificateConfig = t.TypeOf<typeof RequestCertificateConfigType>;
+
+export const CertificateConfigType = t.union([ImportCertificateConfigType, RequestCertificateConfigType]);
+
+export type CertificateConfig = t.TypeOf<typeof CertificateConfigType>;
 
 export const TgwDeploymentConfigType = t.interface({
   name: t.string,
@@ -385,7 +401,7 @@ export const MandatoryAccountConfigType = t.interface({
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
-  certificates: optional(t.array(CertificatesConfigType)),
+  certificates: optional(t.array(CertificateConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),
   'log-retention': optional(t.number),
@@ -402,7 +418,7 @@ export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
   scps: t.array(t.string),
   'share-mad-from': optional(t.string),
-  certificates: optional(t.array(CertificatesConfigType)),
+  certificates: optional(t.array(CertificateConfigType)),
   iam: optional(IamConfigType),
   vpc: optional(t.array(VpcConfigType)),
   'default-budgets': optional(BudgetConfigType),
@@ -466,6 +482,13 @@ export const CentralServicesConfigType = t.interface({
   'cwl-access-level': optional(t.string),
 });
 
+export const OrganizationMasterConfigType = t.interface({
+  account: NonEmptyString,
+  region: NonEmptyString,
+});
+
+export type OrganizationMasterConfig = t.TypeOf<typeof OrganizationMasterConfigType>;
+
 export const ScpsConfigType = t.interface({
   name: NonEmptyString,
   description: NonEmptyString,
@@ -481,6 +504,7 @@ export const GlobalOptionsConfigType = t.interface({
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
+  'aws-org-master': OrganizationMasterConfigType,
   'central-security-services': CentralServicesConfigType,
   'central-operations-services': CentralServicesConfigType,
   'central-log-services': CentralServicesConfigType,
@@ -502,7 +526,7 @@ export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
-export interface ResolvedVpcConfig {
+export interface ResolvedConfigBase {
   /**
    * The organizational unit to which this VPC belongs.
    */
@@ -511,6 +535,9 @@ export interface ResolvedVpcConfig {
    * The resolved account key where the VPC should be deployed.
    */
   accountKey: string;
+}
+
+export interface ResolvedVpcConfig extends ResolvedConfigBase {
   /**
    * The VPC config to be deployed.
    */
@@ -521,6 +548,12 @@ export interface ResolvedVpcConfig {
   deployments?: DeploymentConfig;
 }
 
+export interface ResolvedCertificateConfig extends ResolvedConfigBase {
+  /**
+   * The certificates config to be deployed.
+   */
+  certificates: CertificateConfig[];
+}
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
   readonly 'global-options': GlobalOptionsConfig;
   readonly 'mandatory-account-configs': AccountsConfig;
@@ -643,6 +676,76 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
     }
 
     return vpcConfigs;
+  }
+
+  /**
+   * Find all certificate configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getCertificateConfigs(): ResolvedCertificateConfig[] {
+    return this.getAccountAndOuConfigs(
+      accountConfig => [
+        {
+          certificates: accountConfig.certificates || [],
+        },
+      ],
+      ouConfig => [
+        {
+          certificates: ouConfig.certificates || [],
+        },
+      ],
+    );
+  }
+
+  /**
+   * Find all VPC configurations in mandatory accounts, workload accounts and organizational units. VPC configuration in
+   * organizational units will have the correct `accountKey` based on the `deploy` value of the VPC configuration.
+   */
+  private getAccountAndOuConfigs<T>(
+    accountConfigGetter: (accountConfig: AccountConfig) => T[] | undefined,
+    ouConfigGetter: (ouConfig: OrganizationalUnitConfig) => T[] | undefined,
+  ): (T & ResolvedConfigBase)[] {
+    const result: (T & ResolvedConfigBase)[] = [];
+
+    // Add mandatory account VPC configuration first
+    for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
+      const accountResult = accountConfigGetter(accountConfig) || [];
+      result.push(
+        ...accountResult.map(result => ({
+          accountKey,
+          ...result,
+        })),
+      );
+    }
+
+    const prioritizedOus = this.getOrganizationalUnits();
+    // Sort OUs by OU priority
+    // Config for mandatory OUs should be first in the list
+    prioritizedOus.sort(([_, ou1], [__, ou2]) => priorityByOuType(ou1, ou2));
+
+    for (const [ouKey, ouConfig] of prioritizedOus) {
+      for (const [accountKey, _] of this.getAccountConfigsForOu(ouKey)) {
+        const ouResult = ouConfigGetter(ouConfig) || [];
+        result.push(
+          ...ouResult.map(result => ({
+            ouKey,
+            accountKey,
+            ...result,
+          })),
+        );
+      }
+    }
+
+    // Add workload accounts as they are lower priority
+    for (const [accountKey, accountConfig] of this.getWorkloadAccountConfigs()) {
+      const accountResult = accountConfigGetter(accountConfig) || [];
+      result.push(
+        ...accountResult.map(result => ({
+          accountKey,
+          ...result,
+        })),
+      );
+    }
+    return result;
   }
 
   static fromBuffer(content: Buffer): AcceleratorConfig {

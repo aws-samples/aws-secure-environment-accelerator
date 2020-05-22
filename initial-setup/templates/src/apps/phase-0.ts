@@ -15,8 +15,6 @@ import { AccountStacks } from '../common/account-stacks';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
 import { AccessAnalyzer } from '../common/access-analyzer';
-import { CertificatesConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
@@ -160,17 +158,6 @@ async function main() {
     new AccessAnalyzer(accountStack, `Access Analyzer-${pascalCase(accountKey)}`);
   };
 
-  const createAcmSecret = async (accountKey: string, certsConfig: CertificatesConfig): Promise<void> => {
-    const accountId = getAccountId(accounts, accountKey);
-    const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
-
-    const acmSecret = secretsStack.createSecret(`ACM-${certsConfig.name}`, {
-      secretName: `accelerator/${accountKey}/acm/${certsConfig.name}`,
-      description: `ARN of ACM certificate - ${certsConfig.name}.`,
-      principals: [new iam.AccountPrincipal(accountId)],
-    });
-  };
-
   const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
     const accountsPerOu: Account[] = [];
     for (const account of accounts) {
@@ -181,38 +168,11 @@ async function main() {
     return accountsPerOu;
   };
 
-  const mandatoryAccountKeys: string[] = [];
-  // creating assets for default account settings
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    mandatoryAccountKeys.push(accountKey);
-
-    const certsConfig = accountConfig.certificates;
-    if (certsConfig && certsConfig.length > 0) {
-      for (const certConfig of certsConfig) {
-        await createAcmSecret(accountKey, certConfig);
-      }
-    }
-  }
-
   // creating assets for default account settings
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     // TODO Remove hard-coded account key
     if (accountKey === 'security') {
       await createAccessAnalyzer(accountKey);
-    }
-  }
-
-  // creating assets for org unit accounts
-  for (const [orgName, orgConfig] of acceleratorConfig.getOrganizationalUnits()) {
-    const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
-    for (const orgAccount of orgAccounts) {
-
-      const certsConfig = orgConfig.certificates;
-      if (certsConfig && certsConfig.length > 0) {
-        for (const certConfig of certsConfig) {
-          await createAcmSecret(orgAccount.key, certConfig);
-        }
-      }
     }
   }
 
@@ -249,8 +209,10 @@ async function main() {
 
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
+    acceleratorPrefix: context.acceleratorPrefix,
     acceleratorName: context.acceleratorName,
     accountStacks,
+    accounts,
     config: acceleratorConfig,
   });
 

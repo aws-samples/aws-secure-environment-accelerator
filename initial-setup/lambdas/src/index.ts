@@ -14,7 +14,6 @@ export { handler as enableDirectorySharingStep } from './enable-directory-sharin
 export { handler as enableSecurityHub } from './enable-security-hub';
 export { handler as inviteMembersSecurityHub } from './send-security-hub-invite';
 export { handler as acceptInviteSecurityHub } from './accept-security-hub-invite';
-export { handler as certManagerStep } from './cert-manager-step';
 export { handler as getOrCreateConfig } from './get-or-create-config';
 
 // TODO Replace with

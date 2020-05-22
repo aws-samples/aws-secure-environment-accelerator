@@ -68,7 +68,6 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {
   console.log(`Nothing to do for delete...`);
-  return {};
 }
 
 function replaceAll(str: string, needle: string, replacement: string) {
