@@ -303,7 +303,7 @@ async function main() {
 
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string }> => {
     const iamPoliciesDef: { [policyName: string]: string } = {};
-    
+
     const masterAccountId = getAccountId(accounts, masterAccountKey);
     const sts = new STS();
     const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(

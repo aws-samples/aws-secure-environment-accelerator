@@ -578,13 +578,13 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
    */
   getMandatoryAccountKey(accountName: MandatoryAccountType): string {
     if (accountName === 'master') {
-      return this["global-options"]["aws-org-master"].account;
+      return this['global-options']['aws-org-master'].account;
     } else if (accountName === 'central-security') {
-      return this["global-options"]["central-security-services"].account;
+      return this['global-options']['central-security-services'].account;
     } else if (accountName === 'central-operations') {
-      return this["global-options"]["central-operations-services"].account;
-    } else if (accountName === 'central-log'){
-      return this["global-options"]["central-log-services"].account;
+      return this['global-options']['central-operations-services'].account;
+    } else if (accountName === 'central-log') {
+      return this['global-options']['central-log-services'].account;
     } else {
       // Invalid account name
       throw new Error(`Invalid Account Type sent to "getMandatoryAccountKey"`);

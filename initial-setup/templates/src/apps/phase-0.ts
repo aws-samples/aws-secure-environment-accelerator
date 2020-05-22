@@ -65,7 +65,9 @@ async function main() {
     }
   }
 
-  const logArchiveStack = accountStacks.getOrCreateAccountStack(acceleratorConfig.getMandatoryAccountKey('central-log'));
+  const logArchiveStack = accountStacks.getOrCreateAccountStack(
+    acceleratorConfig.getMandatoryAccountKey('central-log'),
+  );
 
   const accountIds: string[] = accounts.map(account => account.id);
 
@@ -175,7 +177,9 @@ async function main() {
   }
 
   const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.key === acceleratorConfig.getMandatoryAccountKey('central-security'));
+  const securityMasterAccount = accounts.find(
+    a => a.key === acceleratorConfig.getMandatoryAccountKey('central-security'),
+  );
   const subAccountIds = accounts.map(account => {
     return {
       AccountId: account.id,
