@@ -9,10 +9,19 @@ You need an AWS account with Landing Zone v2.3.1 deployed (v2.4.0 not yet tested
 When deploying ALZ select: 
 1. Set `Lock StackSetExecution Role` to `No`
 2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
-3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (these match sample Accel config file, case sensative)
-4. If using an internal AWS account, to successfully install, you need to enable private marketplace before starting
-   - 
+3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (these match sample Accel config file, case sensative).
 
+If using an internal AWS account, to successfully install, you need to enable private marketplace before starting:
+1. In the master account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
+2. Click Create Marketplace, 
+3. Go to Profile sub-tab, click 'Not Live' slider to make it 'Live',  
+4. Change the name field (i.e. add -PMP) and change the color, so it is clear PMP is enabled.  
+5. Search PrivateMarketplace for Fortinet products, and select:
+   - Fortinet FortiGate (BYOL) Next-Generation Firewall 
+6. Select "Add to Private Marketplace" in the top right
+7. Wait a couple of minutes while it adds it - do NOT subscribe or accept the EULA
+   - Repeat for Fortinet FortiManager (BYOL) Centralized Security Management
+   
 ### Using the Installer
 
 1. Login to the Organization **master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
