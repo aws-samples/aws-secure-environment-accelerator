@@ -39,8 +39,8 @@ export class IamAssets extends cdk.Construct {
         iamPolicy.addStatements(
           new iam.PolicyStatement({
             effect: statement.Effect === 'Allow' ? iam.Effect.ALLOW : iam.Effect.DENY,
-            actions: statement.Action,
-            resources: statement.Resource,
+            actions: typeof statement.Action === 'string' ? [statement.Action] : statement.Action,
+            resources: typeof statement.Resource === 'string' ? [statement.Resource] : statement.Resource,
           }),
         );
       }

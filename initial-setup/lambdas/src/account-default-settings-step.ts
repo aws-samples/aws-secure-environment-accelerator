@@ -101,15 +101,15 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const s3KmsKeyArn = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
     console.log('AWS LZ CloudTrail S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
 
-    const cloudtrail = new CloudTrail(credentials);
+    const cloudTrail = new CloudTrail(credentials);
 
-    const putInsightSelectorsResponse = await cloudtrail.putInsightSelectors(cloudTrailName);
+    const putInsightSelectorsResponse = await cloudTrail.putInsightSelectors(cloudTrailName);
     console.log('putInsightSelectorsResponse: ', putInsightSelectorsResponse);
     console.log(`Cloud Trail - Insights enabled for AWS LZ CloudTrail in account - ${accountKey}`);
 
     const trailNameList: string[] = [];
     trailNameList.push(cloudTrailName);
-    const describeTrailsResponse = await cloudtrail.describeTrails(false, trailNameList);
+    const describeTrailsResponse = await cloudTrail.describeTrails(false, trailNameList);
     console.log('describeTrailsResponse: ', describeTrailsResponse);
 
     if (!describeTrailsResponse.trailList) {
@@ -126,7 +126,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
           DataResources: [
             {
               Type: 'AWS::S3::Object',
-              Values: [`arn:aws:s3:::${cloudTrailDetails?.S3BucketName}/`],
+              Values: ['arn:aws:s3:::'],
             },
           ],
           ExcludeManagementEventSources: [],
@@ -136,7 +136,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       ],
       TrailName: outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
     };
-    const putEventSelectorsResponse = await cloudtrail.putEventSelectors(putEventSelectorsRequest);
+    const putEventSelectorsResponse = await cloudTrail.putEventSelectors(putEventSelectorsRequest);
     console.log('putEventSelectorsResponse: ', putEventSelectorsResponse);
     console.log(`Cloud Trail - S3 Object Level Logging enabled for AWS LZ CloudTrail in account - ${accountKey}`);
 
@@ -153,7 +153,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       S3KeyPrefix: cloudTrailDetails?.S3KeyPrefix,
       SnsTopicName: cloudTrailDetails?.SnsTopicName,
     };
-    const updateTrailResponse = await cloudtrail.updateTrail(updateTrailRequest);
+    const updateTrailResponse = await cloudTrail.updateTrail(updateTrailRequest);
     console.log(`Cloud Trail - settings updated (encryption...) for AWS LZ CloudTrail in account - ${accountKey}`);
   };
 

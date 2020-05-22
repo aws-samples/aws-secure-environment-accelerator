@@ -45,6 +45,7 @@ async function main() {
     solutionRoot,
     stateMachineName,
     stateMachineExecutionRole,
+    terminationProtection: true,
   });
 }
 
