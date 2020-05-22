@@ -35,9 +35,8 @@ export class AccountStacks {
     const accountPrettyName = pascalCase(accountKey);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
     const stack = new AcceleratorStack(this.app, `${accountPrettyName}Phase${this.props.phase}`, {
-      env: {
-        account: accountId,
-      },
+      accountId,
+      accountKey,
       stackName: `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`,
       acceleratorName: this.props.context.acceleratorName,
       acceleratorPrefix: this.props.context.acceleratorPrefix,

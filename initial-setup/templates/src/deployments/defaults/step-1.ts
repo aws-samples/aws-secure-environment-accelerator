@@ -5,15 +5,9 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { S3CopyFiles } from '@custom-resources/s3-copy-files';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import {
-  createEncryptionKeyName,
-  createBucketName,
-  createRoleName,
-  createFixedBucketName,
-} from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createEncryptionKeyName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { AccountStacks } from '../../common/account-stacks';
-import { StructuredOutput } from '../../common/structured-output';
-import { AccountBucketOutput, AccountBucketOutputType, CentralBucketOutput, CentralBucketOutputType } from './outputs';
+import { createCentralBucketName, createDefaultBucketName, AccountBuckets } from './outputs';
 import { Account, getAccountId } from '../../utils/accounts';
 
 export interface DefaultsStep1Props {
@@ -26,7 +20,7 @@ export interface DefaultsStep1Props {
 
 export interface DefaultsStep1Result {
   centralBucketCopy: s3.Bucket;
-  accountS3Buckets: { [accountKey: string]: s3.Bucket };
+  accountS3Buckets: AccountBuckets;
   accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
 }
 
@@ -45,10 +39,9 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
  * Creates a bucket that contains copies of the files in the central bucket.
  */
 async function createCentralBucketCopy(props: DefaultsStep1Props) {
-  const { acceleratorPrefix, acceleratorName, accountStacks, accounts, config } = props;
+  const { acceleratorName, accountStacks, accounts, config } = props;
 
   const masterAccountConfig = config['global-options']['aws-org-master'];
-  const masterAccountId = getAccountId(accounts, masterAccountConfig.account);
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
 
   const centralBucketName = config['global-options']['central-bucket'];
@@ -63,12 +56,7 @@ async function createCentralBucketCopy(props: DefaultsStep1Props) {
   });
 
   const centralBucketCopy = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
-    bucketName: createFixedBucketName({
-      acceleratorPrefix,
-      account: masterAccountId,
-      region: masterAccountConfig.region,
-      name: 'central',
-    }),
+    bucketName: createCentralBucketName(props),
     encryptionKey,
     versioned: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -103,15 +91,6 @@ async function createCentralBucketCopy(props: DefaultsStep1Props) {
   });
   copyFiles.node.addDependency(centralBucketCopy);
 
-  new StructuredOutput<CentralBucketOutput>(masterAccountStack, 'CentralBucketCopyOutput', {
-    type: CentralBucketOutputType,
-    value: {
-      bucketName: centralBucketCopy.bucketName,
-      bucketArn: centralBucketCopy.bucketArn,
-      region: cdk.Aws.REGION,
-    },
-  });
-
   return centralBucketCopy;
 }
 
@@ -123,24 +102,16 @@ async function createDefaultS3Buckets(props: DefaultsStep1Props) {
   for (const [accountKey, _] of config.getAccountConfigs()) {
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
 
-    // Be careful *NOT* to change the ID or name of the bucket
     const bucket = new s3.Bucket(accountStack, 'DefaultBucket', {
-      // TODO Use createDefaultBucketName
-      bucketName: createBucketName(),
+      bucketName: createDefaultBucketName({
+        ...props,
+        accountKey,
+      }),
     });
     buckets[accountKey] = bucket;
 
     // TODO Encryption key
     // TODO Add bucket permissions
-
-    new StructuredOutput<AccountBucketOutput>(accountStack, 'DefaultBucketOutput', {
-      type: AccountBucketOutputType,
-      value: {
-        bucketName: bucket.bucketName,
-        bucketArn: bucket.bucketArn,
-        region: cdk.Aws.REGION,
-      },
-    });
   }
   return buckets;
 }

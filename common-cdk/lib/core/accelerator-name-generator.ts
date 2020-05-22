@@ -25,7 +25,7 @@ export function createBucketName(name?: string): string {
  */
 export function createFixedBucketName(props: {
   acceleratorPrefix: string;
-  account: string;
+  accountId: string;
   region: string;
   name?: string;
   seed?: string;
@@ -69,7 +69,7 @@ export interface FixedBucketNameGeneratorProps {
   /**
    * @default undefined
    */
-  account?: string;
+  accountId?: string;
   /**
    * @default undefined
    */
@@ -104,14 +104,14 @@ export function createFixedName(props: FixedBucketNameGeneratorProps) {
     }
   });
 
-  const { acceleratorPrefix, name, seed, account, region, suffixLength, separator = DEFAULT_SEPARATOR } = props;
+  const { acceleratorPrefix, name, seed, accountId, region, suffixLength, separator = DEFAULT_SEPARATOR } = props;
 
   const pieces = [];
-  if (account) {
-    pieces.push(cdk.Aws.ACCOUNT_ID);
+  if (accountId) {
+    pieces.push(accountId);
   }
   if (region) {
-    pieces.push(cdk.Aws.REGION);
+    pieces.push(region);
   }
   if (name) {
     pieces.push(prepareString(name, props));

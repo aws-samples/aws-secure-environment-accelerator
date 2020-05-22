@@ -1,6 +1,5 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import * as s3 from '@aws-cdk/aws-s3';
 import { getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
 import { loadAccounts, getAccountId, Account } from '../utils/accounts';
@@ -36,8 +35,7 @@ import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as centralServices from '../deployments/central-services';
 import * as certificates from '../deployments/certificates';
-import { StructuredOutput } from '../common/structured-output';
-import { CentralBucketOutput, CentralBucketOutputType } from '../deployments/defaults';
+import { CentralBucketOutput } from '../deployments/defaults';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -434,17 +432,11 @@ async function main() {
     }
   }
 
-  const centralBucketOutputs = StructuredOutput.fromOutputs<CentralBucketOutput>(outputs, {
-    accountKey: masterAccountKey,
-    type: CentralBucketOutputType,
-  });
-  const centralBucketOutput = centralBucketOutputs?.[0];
-  if (!centralBucketOutput) {
-    throw new Error(`Cannot find central bucket`);
-  }
-  const centralBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
-    bucketArn: centralBucketOutput.bucketArn,
-    bucketName: centralBucketOutput.bucketName,
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
   });
 
   await certificates.step1({

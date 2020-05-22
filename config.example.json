@@ -865,7 +865,8 @@
               "create-cgw": false
             }
           ],
-          "config": "fortigate_AA_20200504.txt",
+          "license": "firewall/license.lic",
+          "config": "firewall/config.template.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
           "fw-cgw-routing": "Dynamic",

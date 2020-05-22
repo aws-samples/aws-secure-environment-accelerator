@@ -42,6 +42,8 @@ function createCertificate(props: {
   const certificatePrettyName = pascalCase(certificate.name);
   let resource;
   if (c.ImportCertificateConfigType.is(certificate)) {
+    // TODO Condition to check if `certificate.cert` and `certificate['priv-key']` exist
+
     resource = new AcmImportCertificate(scope, `Cert${certificatePrettyName}`, {
       name: certificate.name,
       certificateBucket: centralBucket,

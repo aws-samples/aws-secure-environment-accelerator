@@ -81,6 +81,7 @@ export class S3CopyFiles extends cdk.Construct {
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
+      timeout: cdk.Duration.minutes(15),
     });
   }
 }

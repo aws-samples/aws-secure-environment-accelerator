@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceUpdateEvent } from 'aws-lambda';
-import { errorHandler } from '@custom-resources/cfn-response';
+import { send, errorHandler } from '@custom-resources/cfn-response';
 
 export interface HandlerProperties {
   sourceBucketName: string;
@@ -33,9 +33,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     sourceBucketName: properties.sourceBucketName,
     destinationBucketName: properties.destinationBucketName,
   });
+  return {
+    physicalResourceId: properties.destinationBucketName,
+  };
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
+  // Find resource last updated timestamp
   const describeStackResource = await cfn
     .describeStackResource({
       StackName: event.StackId,
@@ -43,6 +47,7 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
     })
     .promise();
   const lastUpdatedTimestamp = describeStackResource.StackResourceDetail?.LastUpdatedTimestamp;
+  console.debug(`Resource last updated timestamp ${lastUpdatedTimestamp}`);
 
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   return copyFiles({

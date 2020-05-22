@@ -22,6 +22,7 @@ import * as firewallManagement from '../deployments/firewall/manager';
 import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -98,12 +99,7 @@ async function main() {
     });
   }
 
-  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
-  if (!masterAccount) {
-    throw new Error(`Cannot find primary account`);
-  }
-
-  const [masterAccountKey, _] = masterAccount;
+  const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
@@ -210,8 +206,23 @@ async function main() {
   });
   const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
 
-  await firewallCluster.step3({
+  // Find the account buckets in the outputs
+  const accountBuckets = AccountBucketOutput.getAccountBuckets({
+    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
+    config: acceleratorConfig,
+  });
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+  });
+
+  await firewallCluster.step3({
+    accountBuckets,
+    accountStacks,
+    centralBucket,
     config: acceleratorConfig,
     outputs,
     vpcs: allVpcs,
