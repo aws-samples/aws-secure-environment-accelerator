@@ -19,6 +19,7 @@ async function main() {
 
   const stack = new cdk.Stack(app, 'InstallerStack', {
     stackName: 'AcceleratorInstaller',
+    terminationProtection: true,
   });
 
   const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
@@ -69,7 +70,6 @@ async function main() {
   });
 
   const notificationEmail = new cdk.CfnParameter(stack, 'Email', {
-    default: '',
     description: 'The notification email that will get Code Release notifications.',
   });
 
@@ -161,7 +161,7 @@ async function main() {
         },
         CONFIG_BRANCH_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorConfigS3Bucket.valueAsString,
+          value: configBranchName.valueAsString,
         },
         CONFIG_S3_BUCKET: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
