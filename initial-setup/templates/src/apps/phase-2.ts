@@ -28,6 +28,13 @@ process.on('unhandledRejection', (reason, _) => {
   process.exit(1);
 });
 
+/**
+ * This is the main entry point to deploy phase 2.
+ *
+ * The following resources are deployed in phase 2:
+ *   - Creates Peering Connection
+ */
+
 async function main() {
   const context = loadContext();
   const acceleratorConfig = await loadAcceleratorConfig();
@@ -41,6 +48,9 @@ async function main() {
     accounts,
     context,
   });
+
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
   /**
    * Code to create Peering Connection in all accounts
@@ -98,12 +108,6 @@ async function main() {
     });
   }
 
-  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
-  if (!masterAccount) {
-    throw new Error(`Cannot find primary account`);
-  }
-
-  const [masterAccountKey, _] = masterAccount;
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
@@ -225,7 +229,7 @@ async function main() {
 
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
 
   for (const account of accounts) {
     if (account.id === securityMasterAccount?.id) {

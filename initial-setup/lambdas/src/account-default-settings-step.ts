@@ -37,6 +37,9 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     commitId: configCommitId,
   });
 
+  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
@@ -93,12 +96,11 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const cloudTrailName = outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
     console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
 
-    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
     if (!logArchiveAccount) {
       throw new Error('Cannot find account with type log-archive');
     }
-    const logArchiveAccountKey = logArchiveAccount.key;
-    const s3KmsKeyArn = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+    const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
     console.log('AWS LZ CloudTrail S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
 
     const cloudtrail = new CloudTrail(credentials);
@@ -231,14 +233,14 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.error(e);
     }
 
-    if (account.type === 'log-archive') {
+    if (account.key === logAccountKey) {
       // alter the encryption key used cloud trail s3 bucket
       await alterCloudTrailS3BucketEncryptionKey(account.id, account.key);
       console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
     }
 
     try {
-      if (account.type === 'primary') {
+      if (account.key === masterAccountKey) {
         await enableCostAndUsageReport(account.id, account.key);
       }
     } catch (e) {

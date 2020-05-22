@@ -73,12 +73,14 @@ async function main() {
 
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
 
-  const logArchiveAccountId = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
-  const logArchiveS3BucketArn = getStackOutput(outputs, 'log-archive', outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+  const logArchiveAccountId = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
+  const logArchiveS3BucketArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
   const logArchiveS3KmsKeyArn = getStackOutput(
     outputs,
-    'log-archive',
+    logAccountKey,
     outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
   );
 
@@ -301,9 +303,8 @@ async function main() {
 
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string }> => {
     const iamPoliciesDef: { [policyName: string]: string } = {};
-
-    // TODO Remove hard-coded 'master' account key and use configuration file somehow
-    const masterAccountId = getAccountId(accounts, 'master');
+    
+    const masterAccountId = getAccountId(accounts, masterAccountKey);
     const sts = new STS();
     const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
       masterAccountId,
@@ -313,7 +314,7 @@ async function main() {
     const iamPolicyS3 = new S3(masterAcctCredentials);
 
     const iamPolicyArtifactOutput: IamPolicyArtifactsOutput[] = getStackJsonOutput(outputs, {
-      accountKey: 'master',
+      accountKey: masterAccountKey,
       outputType: 'IamPolicyArtifactsOutput',
     });
 
@@ -347,8 +348,7 @@ async function main() {
     return iamPoliciesDef;
   };
 
-  // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
 
   const iamPoliciesDefinition = await getIamPoliciesDefinition();
@@ -415,7 +415,7 @@ async function main() {
   // creating assets for default account settings
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     mandatoryAccountKeys.push(accountKey);
-    if (accountKey === 'master') {
+    if (accountKey === masterAccountKey) {
       await createCurBucket(accountKey);
     }
     await createIamAssets(accountKey, accountConfig.iam);

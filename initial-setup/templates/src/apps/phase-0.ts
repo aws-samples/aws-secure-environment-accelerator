@@ -43,8 +43,7 @@ async function main() {
   const globalOptionsConfig = acceleratorConfig['global-options'];
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const logRetentionInDays = globalOptionsConfig['central-log-retention'];
-  // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
-  const logArchiveAccountId = getAccountId(accounts, 'log-archive');
+  const logArchiveAccountId = getAccountId(accounts, acceleratorConfig.getMandatoryAccountKey('central-log'));
 
   const app = new cdk.App();
 
@@ -55,8 +54,7 @@ async function main() {
   });
 
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
-  // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(acceleratorConfig.getMandatoryAccountKey('master'));
   for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
     for (const account of accounts) {
       new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
@@ -67,8 +65,7 @@ async function main() {
     }
   }
 
-  // TODO Remove hard-coded 'log-archive' account key and use configuration file somehow
-  const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
+  const logArchiveStack = accountStacks.getOrCreateAccountStack(acceleratorConfig.getMandatoryAccountKey('central-log'));
 
   const accountIds: string[] = accounts.map(account => account.id);
 
@@ -160,8 +157,7 @@ async function main() {
 
   // creating assets for default account settings
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    // TODO Remove hard-coded account key
-    if (accountKey === 'security') {
+    if (accountKey === acceleratorConfig.getMandatoryAccountKey('central-security')) {
       await createAccessAnalyzer(accountKey);
     }
   }
@@ -179,7 +175,7 @@ async function main() {
   }
 
   const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const securityMasterAccount = accounts.find(a => a.key === acceleratorConfig.getMandatoryAccountKey('central-security'));
   const subAccountIds = accounts.map(account => {
     return {
       AccountId: account.id,

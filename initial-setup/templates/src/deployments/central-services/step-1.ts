@@ -51,7 +51,7 @@ async function centralServicesSettingsInMaster(props: {
   }
 
   // Enable Cross-Account CloudWatch access in Master account fot sub accounts
-  const masterAccount = accounts.find(account => account.type === 'primary');
+  const masterAccount = accounts.find(account => account.key === config['aws-org-master'].account);
   if (!masterAccount) {
     throw new Error('Landing Zone Master Account Not found');
   }
