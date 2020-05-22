@@ -50,9 +50,11 @@ If using an internal AWS account, to successfully install, you need to enable pr
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file to a) match the ones in your AWS Landing Zone and b) reflect the new account you want created.  All new AWS accounts being defined require a unique email address which has never before been used to create an AWS account.  Additional budget notification email addresses also need to be replaced within the sample, but a single email address for all is sufficient.
 
    ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING for a production deployment***
+   
    ***A Test environment can use the remainder of the values as-is***
       
-   ***AT THIS TIME, DO NOT INCLUDE any workload accounts (remove them), as it will slow down the deployment process***
+   ***AT THIS TIME, DO NOT include any workload accounts (remove them), as it will slow down the deployment process***
+   
    ***(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)***
 
 3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and with versioning enabled
