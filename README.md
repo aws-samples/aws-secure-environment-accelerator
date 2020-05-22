@@ -8,9 +8,8 @@ You need an AWS account with Landing Zone v2.3.1 deployed (v2.4.0 not yet tested
 
 When deploying ALZ select: 
 1. `Lock StackSetExecution Role` to `No`
-2. All regions for production
-3. ca-central-1 for testing
-4. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (these match sample Accel config file, case sensative)
+2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
+3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (these match sample Accel config file, case sensative)
 
 ### Using the Installer
 
@@ -36,20 +35,19 @@ When deploying ALZ select:
 
 1. You can use the [`config.example.json`](./config.example.json) file as base 
    (Use the version in branch "Desired-Config-will-require-perimeter-redeploy").
-2. Make sure to update the account names and email addresses to match the ones in your account.
+2. Make sure to update the account names and email addresses to match the ones in your account, or that you want to create.
 
    ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING. Expected file content and values will be defined in future***
    
    ***AT THIS TIME, DO NOT INCLUDE any workload accounts, as it will slow down the deployment process***
-      (ALZ AVM takes 40 minutes per sub-account)
+      (ALZ AVM takes 42 minutes per sub-account)
 
-3. Store the configuration file in Secrets Manager as plain text. Name the secret `accelerator/config`.
-   - Via the AWS console (pre above);
-   - Via the AWS CLI `aws secretsmanager create-secret --name accelerator/config --secret-string file://<path>`
-
+3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and versioning enabled.
+4. place your config file, named `config.json`, in your new bucket
+   
 #### Deploy the Accelerator Installer Stack
 
-1. You can find the latest release in the repository: https://github.com/aws-samples/aws-pbmm-accelerator/releases
+1. You can find the latest release in the repository: https://github.com/aws-samples/aws-pbmm-accelerator/tree/master/reference-artifacts/deployment
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account.
 4. Fill out the required parameters.
