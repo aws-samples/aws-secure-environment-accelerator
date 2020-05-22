@@ -57,8 +57,8 @@ If using an internal AWS account, to successfully install, you need to enable pr
    
    ***(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)***
 
-~~3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and with versioning enabled
-4. Place your config file, named `config.json`, in your new bucket~~ (S3 Functionality BROKEN)
+3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and with versioning enabled
+~~4. Place your config file, named `config.json`, in your new bucket~~ (S3 auto-load Functionality BROKEN)
 
    
 #### Deploy the Accelerator Installer Stack
@@ -68,7 +68,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 3. Use the template to deploy a new stack in your AWS account
 4. Fill out the required parameters - ***LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW***
 5. Specify stack name STARTING with `PBMMAccel-` (case sensitive)
-6. Change `ConfigS3Bucket` to the name of the bucket holding your configuaration file
+6. Change `ConfigS3Bucket` to the name of the bucket you created above
 7. Add an `Email` address to be used for notification of code releases
 8. Change `GithubBranch` to the latest stable branch (currently master, case sensitive)
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
