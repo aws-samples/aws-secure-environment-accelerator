@@ -14,6 +14,7 @@ import { CUR } from '@aws-pbmm/common-lambda/lib/aws/cur';
 import { PutReportDefinitionRequest } from 'aws-sdk/clients/cur';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
+import { UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
 
 interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
@@ -204,6 +205,46 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log(`Cost and Usage Report - enabled for account - ${accountKey}`);
   };
 
+  const updateSSMdocument = async (accountId: string, accountKey: string): Promise<void> => {
+    const credentials = await getAccountCredentials(accountId);
+    const ssm = new aws.SSM({
+      credentials
+    });
+
+    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    if (!logArchiveAccount) {
+      throw new Error('Cannot find account with type log-archive');
+    }
+    const logArchiveAccountKey = logArchiveAccount.key;
+    const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
+    const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
+
+    // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
+    const settings = {
+      schemaVersion: '1.0',
+      description: 'Document to hold regional settings for Session Manager',
+      sessionType: 'Standard_Stream',
+      inputs: {
+        s3BucketName: bucketName,
+        s3KeyPrefix: '',
+        s3EncryptionEnabled: true,
+        cloudWatchLogGroupName: '/PBMMAccel/SSM',
+        cloudWatchEncryptionEnabled: true,
+        kmsKeyId: ssmKeyId,
+        runAsEnabled: false,
+        runAsDefaultUser: '',
+      },
+    };
+
+    const updateDocumentRequest: UpdateDocumentRequest = {
+      Content: JSON.stringify(settings),
+      Name: 'SSM-SessionManagerRunShell',
+    }
+    console.log('Update SSM Request: ', updateDocumentRequest);
+    const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
+    console.log('Update SSM: ', updateSSMResponse);
+  }
+
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const account = accounts.find(a => a.key === accountKey);
@@ -248,6 +289,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       } else {
         throw e;
       }
+    }
+
+    try {
+      await updateSSMdocument(account.id, account.key);
+    } catch (e) {
+      console.error(e);
     }
   }
 

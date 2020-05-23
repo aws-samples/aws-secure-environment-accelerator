@@ -1,8 +1,11 @@
-import { CfnDocument } from '@aws-cdk/aws-ssm';
+import * as cdk from '@aws-cdk/core';
+import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
-import { AnyPrincipal } from '@aws-cdk/aws-iam';
+import { AccountPrincipal } from '@aws-cdk/aws-iam';
+import { LogGroup } from '@aws-cdk/aws-logs';
+
 
 export interface SSMStep1Props {
   acceleratorPrefix: string;
@@ -23,28 +26,24 @@ export async function step1(props: SSMStep1Props) {
       alias: `alias/${props.acceleratorPrefix}SSM-Key`,
       trustAccountIdentities: true,
     });
-    ssmKey.grantEncryptDecrypt(new AnyPrincipal());
+    ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
 
-    // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
-    const settings = {
-      schemaVersion: '1.0',
-      description: 'Document to hold regional settings for Session Manager',
-      sessionType: 'Standard_Stream',
-      inputs: {
-        s3BucketName: `${props.bucketName}`,
-        s3KeyPrefix: '',
-        s3EncryptionEnabled: true,
-        cloudWatchLogGroupName: '/PBMMAccel/SSM',
-        cloudWatchEncryptionEnabled: true,
-        kmsKeyId: `${ssmKey.keyId}`,
-        runAsEnabled: false,
-        runAsDefaultUser: '',
-      },
-    };
+    new LogGroup(accountStack, 'SSM-LogGroup', {
+      logGroupName: '/PBMMAccel/SSM',
+    });
+
+    // Save the output so it can be used in the state machine later
+    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER, {
+      value: ssmKey.keyId,
+    });
+
+    // Due to CfnDocument is not able to update SSM-SessionManagerRunShell, have to use SDK to update
+    // Move this logic to account-default-settings-step.ts
+    /*
     new CfnDocument(accountStack, 'SessionManager', {
       name: 'SSM-SessionManagerRunShell',
       content: settings,
       documentType: 'Session',
-    });
+    });*/
   }
 }
