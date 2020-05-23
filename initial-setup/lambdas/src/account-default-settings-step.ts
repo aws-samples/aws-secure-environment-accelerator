@@ -208,7 +208,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const updateSSMdocument = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await getAccountCredentials(accountId);
     const ssm = new aws.SSM({
-      credentials
+      credentials,
     });
 
     const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
@@ -239,11 +239,11 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const updateDocumentRequest: UpdateDocumentRequest = {
       Content: JSON.stringify(settings),
       Name: 'SSM-SessionManagerRunShell',
-    }
+    };
     console.log('Update SSM Request: ', updateDocumentRequest);
     const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
     console.log('Update SSM: ', updateSSMResponse);
-  }
+  };
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {

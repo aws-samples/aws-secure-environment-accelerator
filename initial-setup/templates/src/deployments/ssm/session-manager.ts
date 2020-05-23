@@ -6,7 +6,6 @@ import { Key } from '@aws-cdk/aws-kms';
 import { AccountPrincipal } from '@aws-cdk/aws-iam';
 import { LogGroup } from '@aws-cdk/aws-logs';
 
-
 export interface SSMStep1Props {
   acceleratorPrefix: string;
   accountStacks: AccountStacks;
