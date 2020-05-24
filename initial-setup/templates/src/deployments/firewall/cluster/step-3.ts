@@ -75,7 +75,7 @@ export async function step3(props: FirewallStep3Props) {
  * Create firewall for the given VPC and config in the given scope.
  */
 async function createFirewallCluster(props: {
-  config: c.AcceleratorConfig,
+  config: c.AcceleratorConfig;
   scope: cdk.Construct;
   vpc: Vpc;
   firewallConfig: c.FirewallConfig;
@@ -91,7 +91,7 @@ async function createFirewallCluster(props: {
 
   const centralBucketName = config['global-options']['central-bucket'];
   const centralBucket = s3.Bucket.fromBucketAttributes(scope, 'CentralBucket', {
-    bucketName: centralBucketName
+    bucketName: centralBucketName,
   });
 
   // Use S3 template to copy over the license from the central bucket
