@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
-import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceUpdateEvent } from 'aws-lambda';
-import { send, errorHandler } from '@custom-resources/cfn-response';
+import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { errorHandler } from '@custom-resources/cfn-response';
 
 export interface HandlerProperties {
   sourceBucketName: string;
@@ -77,7 +77,7 @@ async function copyFiles(props: {
       continue;
     }
 
-    console.debug(`Copying object ${object.Key}`);
+    console.debug(`Copying object ${object.Key}, last modified at ${objectLastModified}`);
     copyObjectPromises.push(
       copyObject({
         sourceBucketName,

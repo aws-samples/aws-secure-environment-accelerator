@@ -60,9 +60,14 @@ export async function step3(props: FirewallStep3Props) {
       throw new Error(`Cannot find firewall VPN connection outputs`);
     }
 
+    const accountBucket = accountBuckets[accountKey];
+    if (!accountBucket) {
+      throw new Error(`Cannot find default account bucket for account ${accountKey}`);
+    }
+
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     await createFirewallCluster({
-      accountBuckets,
+      accountBucket,
       centralBucket,
       firewallConfig,
       firewallVpnConnections,
@@ -76,14 +81,14 @@ export async function step3(props: FirewallStep3Props) {
  * Create firewall for the given VPC and config in the given scope.
  */
 async function createFirewallCluster(props: {
-  accountBuckets: { [accountKey: string]: s3.IBucket };
+  accountBucket: s3.IBucket;
   centralBucket: s3.IBucket;
   firewallConfig: c.FirewallConfig;
   firewallVpnConnections: FirewallVpnConnection[];
   scope: cdk.Construct;
   vpc: Vpc;
 }) {
-  const { scope, vpc, centralBucket, firewallConfig, firewallVpnConnections } = props;
+  const { accountBucket, centralBucket, firewallConfig, firewallVpnConnections, scope, vpc } = props;
 
   const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
 
@@ -94,8 +99,9 @@ async function createFirewallCluster(props: {
     imageId: firewallConfig['image-id'],
     instanceType: firewallConfig['instance-sizes'],
     configuration: {
-      bucket: centralBucket,
+      bucket: accountBucket,
       bucketRegion: cdk.Aws.REGION,
+      licenseBucket: centralBucket,
       licensePath: firewallConfig.license,
       templateBucket: centralBucket,
       templateConfigPath: firewallConfig.config,

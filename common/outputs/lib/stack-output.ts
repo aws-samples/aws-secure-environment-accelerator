@@ -7,7 +7,6 @@ export const ACM_CERT_ARN_SECRET_ID_FORMAT = 'accelerator/xxaccountKeyxx/acm/xxc
 export const OUTPUT_LOG_ARCHIVE_ACCOUNT_ID = 'LogArchiveAccountId';
 export const OUTPUT_LOG_ARCHIVE_BUCKET_ARN = 'LogArchiveBucketArn';
 export const OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN = 'LogArchiveEncryptionKey';
-export const OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID = 'LogArchiveEncryptionKeyId';
 
 export interface MadRuleOutput {
   [key: string]: string;

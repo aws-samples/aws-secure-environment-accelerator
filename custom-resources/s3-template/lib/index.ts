@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
-import { HandlerProperties, TemplateParameters } from '@custom-resources/s3-template-lambda';
+import { HandlerProperties } from '@custom-resources/s3-template-lambda';
 
 const resourceType = 'Custom::S3Template';
 

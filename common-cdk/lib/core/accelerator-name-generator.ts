@@ -44,9 +44,32 @@ export function createRoleName(name: string, suffixLength: number = 8): string {
   });
 }
 
+export function createFixedRoleName(props: {
+  acceleratorPrefix: string;
+  name?: string;
+  seed?: string;
+  suffixLength?: number;
+}): string {
+  return createFixedName({
+    ...props,
+    suffixLength: props.suffixLength ?? 8,
+  });
+}
+
 export function createEncryptionKeyName(name: string): string {
   return createName({
     name,
+    suffixLength: 8,
+  });
+}
+
+export function createFixedEncryptionKeyName(props: {
+  acceleratorPrefix: string;
+  name?: string;
+  seed?: string;
+}): string {
+  return createFixedName({
+    ...props,
     suffixLength: 8,
   });
 }
@@ -118,7 +141,7 @@ export function createFixedName(props: FixedBucketNameGeneratorProps) {
   }
   if (suffixLength && suffixLength > 0) {
     // Create a suffix that is based on the path of the component
-    const path = [seed, name].filter((s): s is string => !!s);
+    const path = [accountId, region, seed, name].filter((s): s is string => !!s);
     const suffix = hashPath(path, suffixLength);
     pieces.push(prepareString(suffix, props));
   }

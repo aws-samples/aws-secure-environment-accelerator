@@ -33,17 +33,23 @@ export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { templateBucketName, templatePath, outputBucketName, outputPath } = properties;
 
   // Load template
-  console.debug(`Loading template ${properties.templateBucketName}/${properties.templatePath}`);
-  const object = await s3
-    .getObject({
-      Bucket: properties.templateBucketName,
-      Key: properties.templatePath,
-    })
-    .promise();
-  const body = object.Body!;
-  const bodyString = body.toString();
+  console.debug(`Loading template ${templateBucketName}/${templatePath}`);
+  let bodyString;
+  try {
+    const object = await s3
+      .getObject({
+        Bucket: properties.templateBucketName,
+        Key: properties.templatePath,
+      })
+      .promise();
+    const body = object.Body!;
+    bodyString = body.toString();
+  } catch (e) {
+    throw new Error(`Unable to get S3 object s3://${templateBucketName}/${templatePath}: ${e}`);
+  }
 
   // Replace variables
   let replaced = bodyString;
@@ -51,15 +57,19 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     replaced = replaceAll(replaced, key, value);
   }
 
-  // Save the template with replacements to S3
-  console.debug(`Saving output ${properties.outputBucketName}/${properties.outputPath}`);
-  await s3
-    .putObject({
-      Bucket: properties.outputBucketName,
-      Key: properties.outputPath,
-      Body: Buffer.from(replaced),
-    })
-    .promise();
+  try {
+    // Save the template with replacements to S3
+    console.debug(`Saving output ${outputBucketName}/${outputPath}`);
+    await s3
+      .putObject({
+        Bucket: outputBucketName,
+        Key: outputPath,
+        Body: Buffer.from(replaced),
+      })
+      .promise();
+  } catch (e) {
+    throw new Error(`Unable to put S3 object s3://${outputBucketName}/${outputPath}: ${e}`);
+  }
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {

@@ -5,10 +5,16 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { S3CopyFiles } from '@custom-resources/s3-copy-files';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { createEncryptionKeyName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import {
+  createEncryptionKeyName,
+  createRoleName,
+  createBucketName,
+} from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { CentralBucketOutput, CentralBucketOutputType, LogBucketOutput, LogBucketOutputType } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
-import { createCentralBucketName, createDefaultBucketName, AccountBuckets } from './outputs';
-import { Account, getAccountId } from '../../utils/accounts';
+import { Account } from '../../utils/accounts';
+import { StructuredOutput } from '../../common/structured-output';
+import { createDefaultS3Bucket } from './shared';
 
 export interface DefaultsStep1Props {
   acceleratorPrefix: string;
@@ -20,17 +26,17 @@ export interface DefaultsStep1Props {
 
 export interface DefaultsStep1Result {
   centralBucketCopy: s3.Bucket;
-  accountS3Buckets: AccountBuckets;
+  centralLogBucket: s3.Bucket;
   accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
 }
 
 export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Result> {
-  const centralBucketCopy = await createCentralBucketCopy(props);
-  const accountS3Buckets = await createDefaultS3Buckets(props);
-  const accountEbsEncryptionKeys = await createDefaultEbsEncryptionKey(props);
+  const centralBucketCopy = createCentralBucketCopy(props);
+  const centralLogBucket = createCentralLogBucket(props);
+  const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
   return {
     centralBucketCopy,
-    accountS3Buckets,
+    centralLogBucket,
     accountEbsEncryptionKeys,
   };
 }
@@ -38,26 +44,26 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
 /**
  * Creates a bucket that contains copies of the files in the central bucket.
  */
-async function createCentralBucketCopy(props: DefaultsStep1Props) {
+function createCentralBucketCopy(props: DefaultsStep1Props) {
   const { acceleratorName, accountStacks, accounts, config } = props;
 
   const masterAccountConfig = config['global-options']['aws-org-master'];
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
 
+  // Get the location of the original central bucket
   const centralBucketName = config['global-options']['central-bucket'];
   const centralBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
-    // TODO Get default encryption key
     bucketName: centralBucketName,
   });
 
   const encryptionKey = new kms.Key(masterAccountStack, 'CentralBucketKey', {
-    alias: 'alias/' + createEncryptionKeyName('CentralBucket'),
+    alias: 'alias/' + createEncryptionKeyName('Central'),
     description: `${acceleratorName} - Key used to encrypt/decrypt the copy of central S3 bucket`,
   });
 
-  const centralBucketCopy = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
-    bucketName: createCentralBucketName(props),
-    encryptionKey,
+  const bucket = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
+    bucketName: createBucketName('central'),
+    encryptionKey: encryptionKey,
     versioned: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
   });
@@ -75,10 +81,10 @@ async function createCentralBucketCopy(props: DefaultsStep1Props) {
   );
 
   // Give all accounts access to get and list objects in this bucket
-  centralBucketCopy.addToResourcePolicy(
+  bucket.addToResourcePolicy(
     new iam.PolicyStatement({
       actions: ['s3:Get*', 's3:List*'],
-      resources: [centralBucketCopy.bucketArn, centralBucketCopy.arnForObjects('*')],
+      resources: [bucket.bucketArn, bucket.arnForObjects('*')],
       principals: accountPrincipals,
     }),
   );
@@ -87,39 +93,54 @@ async function createCentralBucketCopy(props: DefaultsStep1Props) {
   const copyFiles = new S3CopyFiles(masterAccountStack, 'CopyFiles', {
     roleName: createRoleName('S3CopyFiles'),
     sourceBucket: centralBucket,
-    destinationBucket: centralBucketCopy,
+    destinationBucket: bucket,
   });
-  copyFiles.node.addDependency(centralBucketCopy);
+  copyFiles.node.addDependency(bucket);
 
-  return centralBucketCopy;
+  new StructuredOutput<CentralBucketOutput>(masterAccountStack, 'CentralBucketOutput', {
+    type: CentralBucketOutputType,
+    value: {
+      bucketArn: bucket.bucketArn,
+      bucketName: bucket.bucketName,
+      encryptionKeyArn: encryptionKey.keyArn,
+    },
+  });
+
+  return bucket;
 }
 
-async function createDefaultS3Buckets(props: DefaultsStep1Props) {
-  const { accountStacks, config } = props;
+/**
+ * Creates a bucket that contains copies of the files in the central bucket.
+ */
+function createCentralLogBucket(props: DefaultsStep1Props) {
+  const { accountStacks, accounts, config } = props;
 
-  const buckets: { [accountKey: string]: s3.Bucket } = {};
-  // TODO Create log archive bucket first
-  for (const [accountKey, _] of config.getAccountConfigs()) {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+  const logAccountConfig = config['global-options']['central-log-services'];
+  const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
-    const bucket = new s3.Bucket(accountStack, 'DefaultBucket', {
-      bucketName: createDefaultBucketName({
-        ...props,
-        accountKey,
-      }),
-    });
-    buckets[accountKey] = bucket;
+  const logBucket = createDefaultS3Bucket({
+    accountStack: logAccountStack,
+    config,
+  });
 
-    // TODO Encryption key
-    // TODO Add bucket permissions
-  }
-  return buckets;
+  // Allow replication from all Accelerator accounts
+  logBucket.replicateFrom(accounts.map(account => account.id));
+
+  new StructuredOutput<LogBucketOutput>(logAccountStack, 'LogBucketOutput', {
+    type: LogBucketOutputType,
+    value: {
+      bucketArn: logBucket.bucketArn,
+      bucketName: logBucket.bucketName,
+      encryptionKeyArn: logBucket.encryptionKey!.keyArn,
+    },
+  });
+
+  return logBucket;
 }
 
-async function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
+function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
   const { accountStacks, config, acceleratorName } = props;
 
-  // Turn on EBS default encryption for accounts with a VPC
   const accountEbsEncryptionKeys: { [accountKey: string]: kms.Key } = {};
   for (const [accountKey, _] of config.getAccountConfigs()) {
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
@@ -132,7 +153,6 @@ async function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
 
     key.addToResourcePolicy(
       new iam.PolicyStatement({
-        sid: 'key-consolepolicy-3',
         effect: iam.Effect.ALLOW,
         principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
         actions: ['kms:*'],
@@ -143,6 +163,7 @@ async function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
     accountEbsEncryptionKeys[accountKey] = key;
 
     // Save the output so it can be used in the state machine later
+    // TODO Replace with custom resource
     new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
       value: key.keyId,
     });

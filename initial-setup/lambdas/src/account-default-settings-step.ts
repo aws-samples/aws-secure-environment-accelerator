@@ -157,22 +157,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log(`Cloud Trail - settings updated (encryption...) for AWS LZ CloudTrail in account - ${accountKey}`);
   };
 
-  const alterCloudTrailS3BucketEncryptionKey = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
-
-    let bucket = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-    bucket = bucket.replace('arn:aws:s3:::', '');
-    bucket.trimLeft;
-    console.log('bucket: ' + bucket);
-
-    const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID);
-    console.log('kmsKeyId: ' + kmsKeyId);
-
-    const s3 = new S3(credentials);
-    await s3.putBucketKmsEncryption(bucket, kmsKeyId);
-    console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
-  };
-
   const enableCostAndUsageReport = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await getAccountCredentials(accountId);
 
