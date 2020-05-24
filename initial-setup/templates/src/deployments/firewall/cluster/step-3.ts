@@ -3,6 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { S3Template } from '@custom-resources/s3-template';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks } from '../../../common/account-stacks';
@@ -13,6 +14,7 @@ import {
   FirewallInstanceOutput,
   FirewallInstanceOutputType,
 } from './outputs';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: s3.IBucket };
@@ -98,6 +100,7 @@ async function createFirewallCluster(props: {
     vpcCidrBlock: vpc.cidrBlock,
     imageId: firewallConfig['image-id'],
     instanceType: firewallConfig['instance-sizes'],
+    roleName: createRoleName('Firewall'),
     configuration: {
       bucket: accountBucket,
       bucketRegion: cdk.Aws.REGION,

@@ -7,11 +7,23 @@
 You need an AWS account with Landing Zone v2.3.1 deployed (v2.4.0 not yet tested).
 
 When deploying ALZ select: 
-1. `Lock StackSetExecution Role` to `No`
-2. All regions for production
-3. ca-central-1 for testing
-4. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (these match sample Accel config file, case sensative)
+1. Set `Lock StackSetExecution Role` to `No`
+2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
+3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (case sensitive)
+  - these match the provided sample Accelerator configuration file (config.example.json)
 
+If using an internal AWS account, to successfully install, you need to enable private marketplace before starting:
+1. In the master account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
+2. Click Create Marketplace
+3. Go to Profile sub-tab, click the 'Not Live' slider to make it 'Live'
+4. Change the name field (i.e. append -PMP) and change the color, so it is clear PMP is enabled for users
+5. Search PrivateMarketplace for Fortinet products
+6. Unselect the `Approved Products` filter and then select:
+   - `Fortinet FortiGate (BYOL) Next-Generation Firewall` 
+6. Select "Add to Private Marketplace" in the top right
+7. Wait a couple of minutes while it adds itm to your PMP - do NOT subscribe or accept the EULA
+   - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
+   
 ### Using the Installer
 
 1. Login to the Organization **master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
@@ -34,34 +46,47 @@ When deploying ALZ select:
 
 #### Create an Accelerator Configuration File
 
-1. You can use the [`config.example.json`](./config.example.json) file as base 
-   (Use the version in branch "Desired-Config-will-require-perimeter-redeploy").
-2. Make sure to update the account names and email addresses to match the ones in your account.
+1. You can use the [`config.example.json`](./config.example.json) file as base (from the master branch)
+2. At minimum, you MUST update the AWS account names and email addresses in the sample file to a) match the ones in your AWS Landing Zone and b) reflect the new account you want created.  All new AWS accounts being defined require a unique email address which has never before been used to create an AWS account.  Additional budget notification email addresses also need to be replaced within the sample, but a single email address for all is sufficient.
 
-   ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING. Expected file content and values will be defined in future***
+   ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING for a production deployment***
    
-   ***AT THIS TIME, DO NOT INCLUDE any workload accounts, as it will slow down the deployment process***
-      (ALZ AVM takes 40 minutes per sub-account)
+   ***A Test environment can use the remainder of the values as-is***
+      
+   ***AT THIS TIME, DO NOT include any workload accounts (remove them), as it will slow down the deployment process***
+   
+   ***(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)***
 
-3. Store the configuration file in Secrets Manager as plain text. Name the secret `accelerator/config`.
-   - Via the AWS console (pre above);
-   - Via the AWS CLI `aws secretsmanager create-secret --name accelerator/config --secret-string file://<path>`
+3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and with versioning enabled
+~~4. Place your config file, named `config.json`, in your new bucket~~ (S3 auto-load Functionality BROKEN)
 
+   
 #### Deploy the Accelerator Installer Stack
 
-1. You can find the latest release in the repository: https://github.com/aws-samples/aws-pbmm-accelerator/releases
+1. You can find the latest release v1.0.4b ALPHA found in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/tree/master/reference-artifacts/deployment (master branch)
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
-3. Use the template to deploy a new stack in your AWS account.
-4. Fill out the required parameters.
+3. Use the template to deploy a new stack in your AWS account
+4. Fill out the required parameters - ***LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW***
 5. Specify stack name STARTING with `PBMMAccel-` (case sensitive)
-6. Apply a tag on the stack, `Accelerator=PBMM` (case sensitive).
+6. Change `ConfigS3Bucket` to the name of the bucket you created above
+7. Add an `Email` address to be used for notification of code releases
+8. Change `GithubBranch` to the latest stable branch (currently master, case sensitive)
+9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
-state machine should start automatically and deploy the Accelerator in your account.
+state machine should start automatically ~~and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.~~  
+
+**NEW: Manually import config.json, into the master branch of the CodeCommitt repository created by the CFN template.**
+
+From this point forward, you must update your configuration file in CodeCommit.
 
 After the pipline executes, the state machine will execute (Step functions).
 
-7. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI.
+10. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI.
+
+***STOP HERE, YOU ARE DONE***
+
+***BELOW IS OUTDATED/INCORRECT***
 
 ### Using the Command-Line (Not required if followed above process)
 
