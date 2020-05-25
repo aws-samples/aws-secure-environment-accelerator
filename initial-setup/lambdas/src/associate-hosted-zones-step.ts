@@ -67,6 +67,12 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const accountRules: AccountRule[] = [];
   for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
     const accountId = getAccountId(accounts, accountKey);
+
+    if (!accountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
+    }
+
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
     // Find the VPC in the outputs from previous phases
@@ -173,6 +179,12 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     }
 
     const accountId = getAccountId(accounts, accountKey);
+
+    if (!accountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
+    }
+
     const vpcName = vpcConfig.name;
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey,

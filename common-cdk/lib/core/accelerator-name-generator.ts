@@ -78,7 +78,8 @@ export function createName(props: CreateNameProps = {}): string {
       const parents = scope.node.scopes;
       const stack = parents.find((p: cdk.IConstruct): p is AcceleratorStack => p instanceof AcceleratorStack);
       if (!stack) {
-        throw new Error(`The AcceleratorNameGenerator should only be used with constructs in AcceleratorStack`);
+        console.warn(`The AcceleratorNameGenerator should only be used with constructs in AcceleratorStack`);
+        return;
       }
 
       // Use the AcceleratorStack prefix

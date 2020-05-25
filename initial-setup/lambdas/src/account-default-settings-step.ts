@@ -76,6 +76,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const credentials = await getAccountCredentials(accountId);
 
     const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
+    if (!kmsKeyId) {
+      console.warn(
+        `Cannot find output of ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION} for account ${accountKey}`,
+      );
+      return;
+    }
     console.log('kmsKeyId: ' + kmsKeyId);
 
     const ec2 = new EC2(credentials);
@@ -95,7 +101,8 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
     if (!logArchiveAccount) {
-      throw new Error('Cannot find account with type log-archive');
+      console.warn('Cannot find account with type log-archive');
+      return;
     }
     const logArchiveAccountKey = logArchiveAccount.key;
     const s3KmsKeyArn = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
@@ -113,7 +120,8 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log('describeTrailsResponse: ', describeTrailsResponse);
 
     if (!describeTrailsResponse.trailList) {
-      throw new Error(`CloudTrail not found with name "${cloudTrailName}"`);
+      console.warn(`CloudTrail not found with name "${cloudTrailName}"`);
+      return;
     }
     let cloudTrailDetails;
     for (const trailList of describeTrailsResponse.trailList) {
@@ -161,11 +169,22 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const credentials = await getAccountCredentials(accountId);
 
     let bucket = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
+    if (!bucket) {
+      console.warn(`Cannot find output of "${outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN}" with account "${accountKey}"`);
+      return;
+    }
+
     bucket = bucket.replace('arn:aws:s3:::', '');
     bucket.trimLeft;
     console.log('bucket: ' + bucket);
 
     const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID);
+    if (!kmsKeyId) {
+      console.warn(
+        `Cannot find output of ${outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID} for account ${accountKey}`,
+      );
+      return;
+    }
     console.log('kmsKeyId: ' + kmsKeyId);
 
     const s3 = new S3(credentials);
@@ -208,7 +227,8 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   for (const [accountKey, accountConfig] of accountConfigs) {
     const account = accounts.find(a => a.key === accountKey);
     if (!account) {
-      throw new Error(`Cannot find account with key "${accountKey}"`);
+      console.warn(`Cannot find account with key "${accountKey}"`);
+      continue;
     }
 
     // if flag is undefined or false, turn ON s3 block public access

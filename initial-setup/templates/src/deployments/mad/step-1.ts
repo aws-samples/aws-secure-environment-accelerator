@@ -26,7 +26,8 @@ export async function step1(props: MadStep1Props) {
 
     const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey];
     if (!accountEbsEncryptionKey) {
-      throw new Error(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
+      console.warn(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
+      continue;
     }
 
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);

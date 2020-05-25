@@ -123,9 +123,13 @@ async function main() {
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
-  const getFlowLogContainer = (accountKey: string): FlowLogContainer => {
+  const getFlowLogContainer = (accountKey: string): FlowLogContainer | undefined => {
     if (flowLogContainers[accountKey]) {
       return flowLogContainers[accountKey];
+    }
+
+    if (!logArchiveAccountId || !logArchiveS3BucketArn || !logArchiveS3KmsKeyArn) {
+      return;
     }
 
     const accountConfig = acceleratorConfig.getAccountByKey(accountKey);
@@ -162,7 +166,8 @@ async function main() {
       const subnetName = endpointConfig.subnet;
       const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
       if (!subnetIds) {
-        throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
+        console.warn(`Cannot find subnet ID with name "${subnetName}'`);
+        return;
       }
 
       let endpointCount = 0;
@@ -197,17 +202,20 @@ async function main() {
     const flowLogs = vpcConfig['flow-logs'];
     if (flowLogs) {
       const flowLogContainer = getFlowLogContainer(accountKey);
-      const flowLogBucket = flowLogContainer.bucket;
-      const flowLogRole = flowLogContainer.role;
 
-      new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
-        deliverLogsPermissionArn: flowLogRole.roleArn,
-        resourceId: vpc.vpcId,
-        resourceType: 'VPC',
-        trafficType: ec2.FlowLogTrafficType.ALL,
-        logDestination: `${flowLogBucket.bucketArn}/flowlogs`,
-        logDestinationType: ec2.FlowLogDestinationType.S3,
-      });
+      if (flowLogContainer) {
+        const flowLogBucket = flowLogContainer.bucket;
+        const flowLogRole = flowLogContainer.role;
+
+        new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
+          deliverLogsPermissionArn: flowLogRole.roleArn,
+          resourceId: vpc.vpcId,
+          resourceType: 'VPC',
+          trafficType: ec2.FlowLogTrafficType.ALL,
+          logDestination: `${flowLogBucket.bucketArn}/flowlogs`,
+          logDestinationType: ec2.FlowLogDestinationType.S3,
+        });
+      }
     }
 
     // Prepare the output for next phases
@@ -283,6 +291,10 @@ async function main() {
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
     const accountId = getAccountId(accounts, accountKey);
 
+    if (!logArchiveAccountId || !logArchiveS3BucketArn || !logArchiveS3KmsKeyArn || !accountId) {
+      return;
+    }
+
     const costAndUsageReportConfig = globalOptions.reports['cost-and-usage-report'];
     const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
       .replace('xxaccountIdxx', accountId)
@@ -299,11 +311,16 @@ async function main() {
     });
   };
 
-  const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string }> => {
+  const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {
     const iamPoliciesDef: { [policyName: string]: string } = {};
 
     // TODO Remove hard-coded 'master' account key and use configuration file somehow
     const masterAccountId = getAccountId(accounts, 'master');
+    if (!masterAccountId) {
+      console.warn('Cannot find account with accountKey master');
+      return;
+    }
+
     const sts = new STS();
     const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
       masterAccountId,
@@ -318,7 +335,8 @@ async function main() {
     });
 
     if (iamPolicyArtifactOutput.length === 0) {
-      throw new Error(`Cannot find output with Iam Policy reference artifacts`);
+      console.warn(`Cannot find output with Iam Policy reference artifacts`);
+      return;
     }
 
     const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
@@ -392,13 +410,15 @@ async function main() {
 
     const userPasswords = await getUserPasswords(accountKey, iamConfig);
 
-    const iamAssets = new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
-      accountKey,
-      iamConfig,
-      iamPoliciesDefinition,
-      accounts,
-      userPasswords,
-    });
+    if (iamPoliciesDefinition) {
+      const iamAssets = new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
+        accountKey,
+        iamConfig,
+        iamPoliciesDefinition,
+        accounts,
+        userPasswords,
+      });
+    }
   };
 
   const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {

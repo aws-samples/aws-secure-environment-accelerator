@@ -47,10 +47,11 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
     return this.props.securityGroups;
   }
 
-  findSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet {
+  findSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet | undefined {
     const subnet = this.tryFindSubnetByNameAndAvailabilityZone(name, az);
     if (!subnet) {
-      throw new Error(`Cannot find subnet "${name}" in AZ "${az}" in VPC "${this.name}"`);
+      console.warn(`Cannot find subnet "${name}" in AZ "${az}" in VPC "${this.name}"`);
+      return;
     }
     return subnet;
   }
@@ -59,10 +60,11 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
     return this.subnets.find(s => s.name === name && s.az === az);
   }
 
-  findSecurityGroupByName(name: string): SecurityGroup {
+  findSecurityGroupByName(name: string): SecurityGroup | undefined {
     const securityGroup = this.tryFindSecurityGroupByName(name);
     if (!securityGroup) {
-      throw new Error(`Cannot find security group "${name}" in VPC "${this.name}"`);
+      console.warn(`Cannot find security group "${name}" in VPC "${this.name}"`);
+      return;
     }
     return securityGroup;
   }

@@ -42,7 +42,7 @@ async function main() {
   // get the list of account IDs with which the resolver rules needs to be shared
   const vpcConfigs = acceleratorConfig.getVpcConfigs();
   const sharedAccountIds: string[] = [];
-  let hostedZonesAccountId: string = '';
+  let hostedZonesAccountId: string | undefined;
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     if (InterfaceEndpointConfig.is(vpcConfig['interface-endpoints'])) {
       hostedZonesAccountId = getAccountId(accounts, accountKey);
@@ -50,7 +50,7 @@ async function main() {
 
     if (vpcConfig['use-central-endpoints']) {
       const accountId = getAccountId(accounts, accountKey);
-      if (accountId !== hostedZonesAccountId) {
+      if (accountId && hostedZonesAccountId && accountId !== hostedZonesAccountId) {
         sharedAccountIds.push(accountId);
       }
     }
@@ -69,9 +69,10 @@ async function main() {
       for (const resolversOutput of resolversOutputs) {
         const resolverOutput = resolversOutput.find(x => x.vpcName === vpcConfig.name);
         if (!resolverOutput) {
-          throw new Error(
+          console.warn(
             `No Resolver Rules found in outputs for account key ${accountKey} and VPC name ${vpcConfig.name}`,
           );
+          continue;
         }
 
         resolverRuleArns.push(

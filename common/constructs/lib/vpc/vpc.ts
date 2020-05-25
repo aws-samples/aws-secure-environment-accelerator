@@ -20,9 +20,9 @@ export interface Vpc {
   subnets: Subnet[];
   securityGroups: SecurityGroup[];
 
-  findSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet;
+  findSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet | undefined;
   tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet | undefined;
 
-  findSecurityGroupByName(name: string): SecurityGroup;
+  findSecurityGroupByName(name: string): SecurityGroup | undefined;
   tryFindSecurityGroupByName(name: string): SecurityGroup | undefined;
 }

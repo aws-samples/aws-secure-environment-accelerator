@@ -38,7 +38,8 @@ export namespace PeeringConnection {
       });
       const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcName);
       if (!vpcOutput) {
-        throw new Error(`No VPC Created with name "${vpcName}"`);
+        console.warn(`No VPC Created with name "${vpcName}"`);
+        return;
       }
       const routeTable = vpcConfig?.['route-tables']?.find(x => x.routes?.find(y => y.target === 'pcx'));
       if (!routeTable) {
@@ -50,7 +51,8 @@ export namespace PeeringConnection {
       }
       const routeTableId = vpcOutput.routeTables[routeTable.name];
       if (!routeTableId) {
-        throw new Error(`Cannot find route table with name "${routeTable?.name}"`);
+        console.warn(`Cannot find route table with name "${routeTable?.name}"`);
+        return;
       }
       for (const route of routes) {
         if (!PcxRouteConfigType.is(route.destination)) {
@@ -60,7 +62,8 @@ export namespace PeeringConnection {
         const targetVpcConfig = getVpcConfig(vpcConfigs, pcxRoute.account, pcxRoute.vpc);
         const targetSubnet = targetVpcConfig?.subnets?.find(x => x.name === pcxRoute.subnet);
         if (!targetSubnet) {
-          throw new Error(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
+          console.warn(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
+          continue;
         }
         let pcxId = vpcOutput.pcx;
         if (!pcxId) {
@@ -70,7 +73,8 @@ export namespace PeeringConnection {
           });
           const peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
           if (!vpcOutput) {
-            throw new Error(`No VPC Created with name "${vpcName}"`);
+            console.warn(`No VPC Created with name "${vpcName}"`);
+            continue;
           }
           pcxId = peerVpcOutput?.pcx;
         }

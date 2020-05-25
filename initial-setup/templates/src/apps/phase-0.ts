@@ -71,37 +71,41 @@ async function main() {
   const logArchiveStack = accountStacks.getOrCreateAccountStack('log-archive');
 
   const accountIds: string[] = accounts.map(account => account.id);
-
-  // Create the log archive bucket
-  const bucket = new LogArchiveBucket(logArchiveStack, 'LogArchive', {
-    logRetention: cdk.Duration.days(logRetentionInDays),
-    logArchiveAccountId,
-    accountIds,
-  });
-
-  // Grant all accounts access to the log archive bucket
   const principals = accounts.map(account => new iam.AccountPrincipal(account.id));
-  bucket.grantReplicate(...principals);
 
-  // store the log archive account Id for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
-    value: logArchiveAccountId,
-  });
+  if (logArchiveAccountId) {
+    // Create the log archive bucket
+    const bucket = new LogArchiveBucket(logArchiveStack, 'LogArchive', {
+      logRetention: cdk.Duration.days(logRetentionInDays),
+      logArchiveAccountId,
+      accountIds,
+    });
 
-  // store the s3 bucket arn for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
-    value: bucket.bucketArn,
-  });
+    // Grant all accounts access to the log archive bucket
+    bucket.grantReplicate(...principals);
 
-  // store the s3 bucket - kms key arn for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
-    value: bucket.encryptionKeyArn,
-  });
+    // store the log archive account Id for later reference
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID, {
+      value: logArchiveAccountId,
+    });
 
-  // store the s3 bucket - kms key id for later reference
-  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID, {
-    value: bucket.encryptionKey.keyId,
-  });
+    // store the s3 bucket arn for later reference
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
+      value: bucket.bucketArn,
+    });
+
+    // store the s3 bucket - kms key arn for later reference
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
+      value: bucket.encryptionKeyArn,
+    });
+
+    // store the s3 bucket - kms key id for later reference
+    new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID, {
+      value: bucket.encryptionKey.keyId,
+    });
+  } else {
+    console.warn('Cannot find log-archive account stack');
+  }
 
   // TODO Replace above outputs with JSON output
   // new JsonOutputValue(stack, 'LogArchiveOutput', {

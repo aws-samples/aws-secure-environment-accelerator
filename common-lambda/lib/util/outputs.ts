@@ -6,10 +6,11 @@ export interface StackOutput {
   outputExportName?: string;
 }
 
-export function getStackOutput(outputs: StackOutput[], accountKey: string, outputKey: string): string {
+export function getStackOutput(outputs: StackOutput[], accountKey: string, outputKey: string): string | undefined {
   const output = outputs.find(o => o.outputKey === outputKey && o.accountKey === accountKey);
   if (!output) {
-    throw new Error(`Cannot find output with key "${outputKey}" in account with key "${accountKey}"`);
+    console.warn(`Cannot find output with key "${outputKey}" in account with key "${accountKey}"`);
+    return;
   }
   return output.outputValue!;
 }

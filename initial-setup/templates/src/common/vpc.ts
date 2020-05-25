@@ -219,9 +219,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
         const subnetCidr = subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString();
         if (!subnetCidr) {
-          throw new Error(
-            `Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`,
-          );
+          console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
+          continue;
         }
 
         const subnetId = `${subnetName}_${vpcName}_az${subnetDefinition.az}`;
@@ -251,7 +250,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         // Find the route table ID for the route table name
         const routeTableId = this.routeTableNameToIdMap[routeTableName];
         if (!routeTableId) {
-          throw new Error(`Cannot find route table with name "${routeTableName}"`);
+          console.warn(`Cannot find route table with name "${routeTableName}"`);
+          continue;
         }
 
         // Associate the route table with the subnet
@@ -280,27 +280,30 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       const tgwName = tgwAttach['associate-to-tgw'];
       const tgw = props.transitGateways.get(tgwName);
       if (!tgw) {
-        throw new Error(`Cannot find transit gateway with name "${tgwName}"`);
+        console.warn(`Cannot find transit gateway with name "${tgwName}"`);
+      } else {
+        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
+          vpcId: this.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+        // Add name tag
+        cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
       }
-
-      const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
-      const associateConfig = tgwAttach['tgw-rt-associate'] || [];
-      const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
-
-      const subnetIds = attachSubnetsConfig.flatMap(subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || []);
-      const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-      const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-      // Attach VPC To TGW
-      tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
-        vpcId: this.vpcId,
-        subnetIds,
-        transitGatewayId: tgw.tgwId,
-        tgwRouteAssociates,
-        tgwRoutePropagates,
-      });
-      // Add name tag
-      cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
     }
 
     // Add Routes to Route Tables
@@ -377,25 +380,25 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       const subnetConfig = natgwProps.subnet;
       const subnetId = this.azSubnets.getAzSubnetIdForNameAndAz(subnetConfig.name, subnetConfig.az);
       if (!subnetId) {
-        throw new Error(`Cannot find NAT gateway subnet name "${subnetConfig.name}" in AZ "${subnetConfig.az}"`);
-      }
+        console.warn(`Cannot find NAT gateway subnet name "${subnetConfig.name}" in AZ "${subnetConfig.az}"`);
+      } else {
+        const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
 
-      const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
+        const natgw = new ec2.CfnNatGateway(this, `${vpcName}_ngw`, {
+          allocationId: eip.attrAllocationId,
+          subnetId,
+        });
 
-      const natgw = new ec2.CfnNatGateway(this, `${vpcName}_ngw`, {
-        allocationId: eip.attrAllocationId,
-        subnetId,
-      });
-
-      // Attach NatGw Routes to Non IGW Route Tables
-      for (const natRoute of natRouteTables) {
-        const routeTableId = this.routeTableNameToIdMap[natRoute];
-        const routeParams: ec2.CfnRouteProps = {
-          routeTableId,
-          destinationCidrBlock: '0.0.0.0/0',
-          natGatewayId: natgw?.ref,
-        };
-        new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+        // Attach NatGw Routes to Non IGW Route Tables
+        for (const natRoute of natRouteTables) {
+          const routeTableId = this.routeTableNameToIdMap[natRoute];
+          const routeParams: ec2.CfnRouteProps = {
+            routeTableId,
+            destinationCidrBlock: '0.0.0.0/0',
+            natGatewayId: natgw?.ref,
+          };
+          new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+        }
       }
     } else {
       console.log(`Skipping NAT gateway creation`);
@@ -436,10 +439,11 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     return this.securityGroup?.securityGroups || [];
   }
 
-  findSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet {
+  findSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet | undefined {
     const subnet = this.tryFindSubnetByNameAndAvailabilityZone(name, az);
     if (!subnet) {
-      throw new Error(`Cannot find subnet with name "${name}" in availability zone "${az}"`);
+      console.warn(`Cannot find subnet with name "${name}" in availability zone "${az}"`);
+      return;
     }
     return subnet;
   }
@@ -448,10 +452,11 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     return this.subnets.find(s => s.name === name && s.az === az);
   }
 
-  findSecurityGroupByName(name: string): constructs.SecurityGroup {
+  findSecurityGroupByName(name: string): constructs.SecurityGroup | undefined {
     const securityGroup = this.tryFindSecurityGroupByName(name);
     if (!securityGroup) {
-      throw new Error(`Cannot find security group with name "${name}"`);
+      console.warn(`Cannot find security group with name "${name}"`);
+      return;
     }
     return securityGroup;
   }

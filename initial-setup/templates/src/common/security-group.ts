@@ -145,13 +145,15 @@ export class SecurityGroup extends cdk.Construct {
           x => x.vpcConfig.name === ruleSource.vpc && x.accountKey === vpcAccountKey,
         )?.vpcConfig;
         if (!ruleVpcConfig) {
-          throw new Error(`VPC Not Found in Config "${ruleSource.vpc}"`);
+          console.warn(`VPC Not Found in Config "${ruleSource.vpc}"`);
+          continue;
         }
         // Check for Subnet CIDR Security Group
         for (const ruleSubnet of ruleSource.subnet) {
           const vpcConfigSubnets = ruleVpcConfig.subnets?.find(s => s.name === ruleSubnet);
           if (!vpcConfigSubnets) {
-            throw new Error(`Invalid Subnet provided in Security Group config "${ruleSubnet}"`);
+            console.warn(`Invalid Subnet provided in Security Group config "${ruleSubnet}"`);
+            continue;
           }
           for (const [index, subnet] of Object.entries(vpcConfigSubnets.definitions)) {
             if (subnet.disabled) {

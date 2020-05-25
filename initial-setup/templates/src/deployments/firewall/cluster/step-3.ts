@@ -57,7 +57,8 @@ export async function step3(props: FirewallStep3Props) {
       .flatMap(array => array)
       .filter(conn => conn.firewallAccountKey === accountKey);
     if (firewallVpnConnections.length === 0) {
-      throw new Error(`Cannot find firewall VPN connection outputs`);
+      console.warn(`Cannot find firewall VPN connection outputs`);
+      continue;
     }
 
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
@@ -128,6 +129,10 @@ async function createFirewallCluster(props: {
     const az = vpnConnection.az;
     const subnetName = vpnConnection.subnetName;
     const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetName, az);
+
+    if (!subnet || !securityGroup) {
+      continue;
+    }
 
     let instance = instancePerAz[az];
     if (!instance) {

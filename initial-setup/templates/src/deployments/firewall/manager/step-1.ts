@@ -55,6 +55,10 @@ async function createFirewallManager(props: {
   const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
   const securityGroup = vpc.findSecurityGroupByName(config['security-group']);
 
+  if (!subnet || !securityGroup) {
+    return;
+  }
+
   let eip;
   if (config['create-eip']) {
     eip = new ec2.CfnEIP(scope, `${config.name}_eip`, {
