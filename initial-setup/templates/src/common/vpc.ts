@@ -128,6 +128,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
+  readonly natgwToNameMap: NameToIdMap = {};
 
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name);
@@ -372,33 +373,44 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     }
 
     // Create NAT Gateway
+    const allSubnetDefinitions: config.SubnetDefinitionConfig[] = [];
+    for (const subnet of subnetsConfig) {
+      allSubnetDefinitions.push(...subnet.definitions);
+    }
+    const natGateWayNameToIdMap: NameToIdMap = {};
     const natgwProps = vpcConfig.natgw;
     if (config.NatGatewayConfig.is(natgwProps)) {
       const subnetConfig = natgwProps.subnet;
-      const subnetId = this.azSubnets.getAzSubnetIdForNameAndAz(subnetConfig.name, subnetConfig.az);
-      if (!subnetId) {
-        throw new Error(`Cannot find NAT gateway subnet name "${subnetConfig.name}" in AZ "${subnetConfig.az}"`);
+      const natSubnets = this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name);
+      for ( const natSubnet of natSubnets) {
+        console.log(`Creating natgw for az: ${natSubnet.az}`);
+        const natGWName = `NATGW_${natSubnet.name}_${natSubnet.az}_natgw`;
+        const eip = new ec2.CfnEIP(this, `EIP_shared-network_natgw_${natSubnet.az}`);
+
+        const natgw = new ec2.CfnNatGateway(this, natGWName, {
+          allocationId: eip.attrAllocationId,
+          subnetId: natSubnet.id,
+        });
+        natGateWayNameToIdMap[natGWName] = natgw.ref;
       }
 
-      const eip = new ec2.CfnEIP(this, 'EIP_shared-network');
-
-      const natgw = new ec2.CfnNatGateway(this, `${vpcName}_ngw`, {
-        allocationId: eip.attrAllocationId,
-        subnetId,
-      });
-
       // Attach NatGw Routes to Non IGW Route Tables
+      let natRoutesExistence = new Set();
       for (const natRoute of natRouteTables) {
+        const natRouteAZ = allSubnetDefinitions.find(subnetDef => subnetDef["route-table"] === natRoute)?.az;
+        const natGWName = `NATGW_${subnetConfig.name}_${natRouteAZ}_natgw`;
         const routeTableId = this.routeTableNameToIdMap[natRoute];
         const routeParams: ec2.CfnRouteProps = {
           routeTableId,
           destinationCidrBlock: '0.0.0.0/0',
-          natGatewayId: natgw?.ref,
+          natGatewayId: natGateWayNameToIdMap[natGWName],
         };
-        new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
+        new ec2.CfnRoute(this, `${natGWName}_route`, routeParams);
+        natRoutesExistence.add(natGWName);
       }
-    } else {
-      console.log(`Skipping NAT gateway creation`);
+      for (const removeNat of Object.keys(natGateWayNameToIdMap).filter(natgw => !natRoutesExistence.has(natgw))) {
+        this.node.tryRemoveChild(removeNat);
+      }
     }
 
     // Create all security groups

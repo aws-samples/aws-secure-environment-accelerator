@@ -23,7 +23,7 @@ export const NatGatewayConfig = t.interface({
   }),
 });
 
-export const SubnetDefinitionConfig = t.interface({
+export const SubnetDefinitionConfigType = t.interface({
   az: availabilityZone,
   cidr: optional(cidr),
   cidr2: optional(cidr),
@@ -56,11 +56,12 @@ export const SubnetConfigType = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
   'share-to-specific-accounts': optional(t.array(t.string)),
-  definitions: t.array(SubnetDefinitionConfig),
+  definitions: t.array(SubnetDefinitionConfigType),
   nacls: optional(t.array(NaclConfigType)),
 });
 
 export type SubnetConfig = t.TypeOf<typeof SubnetConfigType>;
+export type SubnetDefinitionConfig = t.TypeOf<typeof SubnetDefinitionConfigType>;
 
 export const GATEWAY_ENDPOINT_TYPES = ['s3', 'dynamodb'] as const;
 
