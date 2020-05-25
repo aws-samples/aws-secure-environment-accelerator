@@ -323,9 +323,3 @@ async function getLandingZoneAccountEmailBySsmParameters(
   const response = await ssm.getParameter(accountEmailParameter.name);
   return response.Parameter?.Value;
 }
-
-handler({
-  configRepositoryName: 'PBMMAccel-Config-Repo',
-  configFilePath: 'config.json',
-  configCommitId: 'eaa4959e3aed9f669b52eaedb51faf16cc74cb17',
-});
