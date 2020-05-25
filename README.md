@@ -65,7 +65,8 @@ If using an internal AWS account, to successfully install, you need to enable pr
    
 #### Deploy the Accelerator Installer Stack
 
-1. You can find the latest release v1.0.4b ALPHA found in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/tree/master/reference-artifacts/deployment (master branch)
+1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
+~~1. You can find the latest release v1.0.4b ALPHA found in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/tree/master/reference-artifacts/deployment (master branch) (DEFECT FIXED)~~
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account
 4. Fill out the required parameters - ***LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW***
