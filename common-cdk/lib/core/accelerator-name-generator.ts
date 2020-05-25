@@ -16,27 +16,6 @@ export function createBucketName(name?: string): string {
   });
 }
 
-/**
- * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
- * resources in a customer's account. Please take this into account!
- *
- * Creates a fixed bucket name that can be used across accounts. The given properties *have to be* resolved properties,
- * otherwise the bucket name *cannot* be used across accounts!
- */
-export function createFixedBucketName(props: {
-  acceleratorPrefix: string;
-  accountId: string;
-  region: string;
-  name?: string;
-  seed?: string;
-}): string {
-  return createFixedName({
-    ...props,
-    suffixLength: 8,
-    lowercase: true,
-  });
-}
-
 export function createRoleName(name: string, suffixLength: number = 8): string {
   return createName({
     name,
@@ -44,32 +23,9 @@ export function createRoleName(name: string, suffixLength: number = 8): string {
   });
 }
 
-export function createFixedRoleName(props: {
-  acceleratorPrefix: string;
-  name?: string;
-  seed?: string;
-  suffixLength?: number;
-}): string {
-  return createFixedName({
-    ...props,
-    suffixLength: props.suffixLength ?? 8,
-  });
-}
-
 export function createEncryptionKeyName(name: string): string {
   return createName({
     name,
-    suffixLength: 8,
-  });
-}
-
-export function createFixedEncryptionKeyName(props: {
-  acceleratorPrefix: string;
-  name?: string;
-  seed?: string;
-}): string {
-  return createFixedName({
-    ...props,
     suffixLength: 8,
   });
 }
@@ -82,71 +38,6 @@ export function createKeyPairName(name: string): string {
 }
 
 const DEFAULT_SEPARATOR = '-';
-
-export interface FixedBucketNameGeneratorProps {
-  acceleratorPrefix: string;
-  /**
-   * @default undefined
-   */
-  seed?: string;
-  /**
-   * @default undefined
-   */
-  accountId?: string;
-  /**
-   * @default undefined
-   */
-  region?: string;
-  /**
-   * @default undefined
-   */
-  suffixLength?: number;
-  /**
-   * @default '-'
-   */
-  separator?: string;
-  /**
-   * @default undefined
-   */
-  name?: string;
-  /**
-   * @default false
-   */
-  lowercase?: boolean;
-}
-
-/**
- * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
- * resources in a customer's account. Please take this into account!
- */
-export function createFixedName(props: FixedBucketNameGeneratorProps) {
-  // Verify that all properties are resolved values
-  Object.entries(props).forEach(([name, value]) => {
-    if (value && cdk.Token.isUnresolved(value)) {
-      throw new Error(`Property '${name}' cannot be an unresolved value: ${value}`);
-    }
-  });
-
-  const { acceleratorPrefix, name, seed, accountId, region, suffixLength, separator = DEFAULT_SEPARATOR } = props;
-
-  const pieces = [];
-  if (accountId) {
-    pieces.push(accountId);
-  }
-  if (region) {
-    pieces.push(region);
-  }
-  if (name) {
-    pieces.push(prepareString(name, props));
-  }
-  if (suffixLength && suffixLength > 0) {
-    // Create a suffix that is based on the path of the component
-    const path = [accountId, region, seed, name].filter((s): s is string => !!s);
-    const suffix = hashPath(path, suffixLength);
-    pieces.push(prepareString(suffix, props));
-  }
-  return prepareString(acceleratorPrefix, props) + pieces.join(separator);
-}
 
 export interface CreateNameProps {
   /**
@@ -228,10 +119,7 @@ export function createName(props: CreateNameProps = {}): string {
  * https://github.com/aws/aws-cdk/blob/f8df4e04f6f9631f963353903e020cfa8377e8bc/packages/%40aws-cdk/core/lib/private/uniqueid.ts#L33
  */
 function hashPath(path: string[], length: number) {
-  const hash = crypto
-    .createHash('md5')
-    .update(path.join('/'))
-    .digest('hex');
+  const hash = crypto.createHash('md5').update(path.join('/')).digest('hex');
   return hash.slice(0, length).toUpperCase();
 }
 
