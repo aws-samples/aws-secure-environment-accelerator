@@ -1,4 +1,3 @@
-import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
@@ -7,11 +6,8 @@ import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
-import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
-import { CUR } from '@aws-pbmm/common-lambda/lib/aws/cur';
-import { PutReportDefinitionRequest } from 'aws-sdk/clients/cur';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 
@@ -41,23 +37,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
   const sts = new STS();
 
-  // TODO Cache the account credentials in the STS class to improve reusability
-  const accountCredentials: { [accountId: string]: aws.Credentials } = {};
-  const getAccountCredentials = async (accountId: string): Promise<aws.Credentials> => {
-    if (accountCredentials[accountId]) {
-      return accountCredentials[accountId];
-    }
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    accountCredentials[accountId] = credentials;
-    return credentials;
-  };
-
   const putPublicAccessBlock = async (
     accountId: string,
     accountKey: string,
     blockPublicAccess: boolean,
   ): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const s3control = new S3Control(credentials);
     const putPublicAccessBlockRequest: PutPublicAccessBlockRequest = {
       AccountId: accountId,
@@ -73,7 +58,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   };
 
   const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
     const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
     console.log('kmsKeyId: ' + kmsKeyId);
@@ -88,7 +73,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   };
 
   const updateCloudTrailSettings = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
     const cloudTrailName = outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
     console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
@@ -157,53 +142,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log(`Cloud Trail - settings updated (encryption...) for AWS LZ CloudTrail in account - ${accountKey}`);
   };
 
-  const alterCloudTrailS3BucketEncryptionKey = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
-
-    let bucket = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-    bucket = bucket.replace('arn:aws:s3:::', '');
-    bucket.trimLeft;
-    console.log('bucket: ' + bucket);
-
-    const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID);
-    console.log('kmsKeyId: ' + kmsKeyId);
-
-    const s3 = new S3(credentials);
-    await s3.putBucketKmsEncryption(bucket, kmsKeyId);
-    console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
-  };
-
-  const enableCostAndUsageReport = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
-
-    const globalOptionsConfig = acceleratorConfig['global-options'];
-    const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
-
-    const cur = new CUR(credentials);
-
-    const params: PutReportDefinitionRequest = {
-      ReportDefinition: {
-        AdditionalSchemaElements: costAndUsageReportConfig['additional-schema-elements'],
-        Compression: costAndUsageReportConfig.compression,
-        Format: costAndUsageReportConfig.format,
-        ReportName: costAndUsageReportConfig['report-name'],
-        S3Bucket: costAndUsageReportConfig['s3-bucket']
-          .replace('xxaccountIdxx', accountId)
-          .replace('xxregionxx', costAndUsageReportConfig['s3-region']),
-        S3Prefix: costAndUsageReportConfig['s3-prefix'].replace('xxaccountIdxx', accountId),
-        S3Region: costAndUsageReportConfig['s3-region'],
-        TimeUnit: costAndUsageReportConfig['time-unit'],
-        AdditionalArtifacts: costAndUsageReportConfig['additional-artifacts'],
-        RefreshClosedReports: costAndUsageReportConfig['refresh-closed-reports'],
-        ReportVersioning: costAndUsageReportConfig['report-versioning'],
-      },
-    };
-    // TODO Overwrite report if exists
-    const PutReportDefinitionResponse = await cur.putReportDefinition(params);
-    console.log('PutReportDefinitionResponse: ', PutReportDefinitionResponse);
-    console.log(`Cost and Usage Report - enabled for account - ${accountKey}`);
-  };
-
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const account = accounts.find(a => a.key === accountKey);
@@ -229,25 +167,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     } catch (e) {
       console.error(`Error while updating CloudTrail settings`);
       console.error(e);
-    }
-
-    if (account.type === 'log-archive') {
-      // alter the encryption key used cloud trail s3 bucket
-      await alterCloudTrailS3BucketEncryptionKey(account.id, account.key);
-      console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
-    }
-
-    try {
-      if (account.type === 'primary') {
-        await enableCostAndUsageReport(account.id, account.key);
-      }
-    } catch (e) {
-      // TODO Overwrite report
-      if (e.code === 'DuplicateReportNameException') {
-        console.warn(`Report already exists`);
-      } else {
-        throw e;
-      }
     }
   }
 
