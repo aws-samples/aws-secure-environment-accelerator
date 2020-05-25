@@ -382,7 +382,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     if (config.NatGatewayConfig.is(natgwProps)) {
       const subnetConfig = natgwProps.subnet;
       const natSubnets = this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name);
-      for ( const natSubnet of natSubnets) {
+      for (const natSubnet of natSubnets) {
         console.log(`Creating natgw for az: ${natSubnet.az}`);
         const natGWName = `NATGW_${natSubnet.name}_${natSubnet.az}_natgw`;
         const eip = new ec2.CfnEIP(this, `EIP_shared-network_natgw_${natSubnet.az}`);
@@ -397,7 +397,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       // Attach NatGw Routes to Non IGW Route Tables
       let natRoutesExistence = new Set();
       for (const natRoute of natRouteTables) {
-        const natRouteAZ = allSubnetDefinitions.find(subnetDef => subnetDef["route-table"] === natRoute)?.az;
+        const natRouteAZ = allSubnetDefinitions.find(subnetDef => subnetDef['route-table'] === natRoute)?.az;
         const natGWName = `NATGW_${subnetConfig.name}_${natRouteAZ}_natgw`;
         const routeTableId = this.routeTableNameToIdMap[natRoute];
         const routeParams: ec2.CfnRouteProps = {
