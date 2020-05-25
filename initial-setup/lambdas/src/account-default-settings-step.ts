@@ -231,11 +231,11 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     // Encrypt CWL doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
     const kmsParams = {
-      KeyId: ssmKeyId
+      KeyId: ssmKeyId,
     };
     const ssmKey = await kms.describeKey(kmsParams).promise();
     console.log('SSM key: ', ssmKey);
-    
+
     const cwlParams = {
       kmsKeyId: ssmKey.KeyMetadata?.Arn || ssmKeyId,
       logGroupName: '/PBMMAccel/SSM',
