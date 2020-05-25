@@ -30,7 +30,7 @@ import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults';
+import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
 import * as centralServices from '../deployments/central-services';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
@@ -422,7 +422,7 @@ async function main() {
 
   await certificates.step1({
     accountStacks,
-    centralBucket: centralBucket,
+    centralBucket,
     config: acceleratorConfig,
   });
 

@@ -61,8 +61,8 @@ export class VpnTunnelOptions extends cdk.Construct {
     });
 
     const handlerProperties: HandlerProperties = {
-      VPNConnectionID: props.vpnConnectionId
-    }
+      VPNConnectionID: props.vpnConnectionId,
+    };
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,

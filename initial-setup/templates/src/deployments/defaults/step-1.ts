@@ -63,7 +63,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
 
   const bucket = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
     bucketName: createBucketName('central'),
-    encryptionKey: encryptionKey,
+    encryptionKey,
     versioned: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
   });
