@@ -60,7 +60,12 @@ export namespace AccountBucketOutput {
     accountBuckets[props.config['global-options']['central-log-services'].account] = logBucket;
 
     for (const account of props.accounts) {
-      const accountStack = props.accountStacks.getOrCreateAccountStack(account.key);
+      const accountStack = props.accountStacks.tryGetOrCreateAccountStack(account.key);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${account.key}`);
+        continue;
+      }
+
       const accountBucketOutputs = StructuredOutput.fromOutputs(props.outputs, {
         accountKey: account.key,
         type: AccountBucketOutputType,

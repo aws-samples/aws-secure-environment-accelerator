@@ -58,7 +58,12 @@ async function main() {
     // Get the exact same role name as in phase 1
     const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+
     // Get Peer VPC Configuration
     const peerVpcConfig = getVpcConfig(vpcConfigs, pcxConfig.source, pcxSourceVpc);
     if (!VpcConfigType.is(peerVpcConfig)) {
@@ -118,7 +123,11 @@ async function main() {
       continue;
     }
 
-    const stack = accountStacks.getOrCreateAccountStack(accountKey);
+    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!stack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
 
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
@@ -176,7 +185,12 @@ async function main() {
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountKey] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const accountStack = accountStacks.getOrCreateAccountStack(sharedAccountKey);
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(sharedAccountKey);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${sharedAccountKey}`);
+        continue;
+      }
+
       const securityGroupStack = new cfn.NestedStack(
         accountStack,
         `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
@@ -261,7 +275,11 @@ async function main() {
     if (account.id === securityMasterAccount?.id) {
       continue;
     }
-    const memberAccountStack = accountStacks.getOrCreateAccountStack(account.key);
+    const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
+    if (!memberAccountStack) {
+      console.warn(`Cannot find account stack ${account.key}`);
+      continue;
+    }
     new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
       account,
       standards: globalOptions['security-hub-frameworks'],

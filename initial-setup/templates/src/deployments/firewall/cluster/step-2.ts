@@ -68,7 +68,11 @@ export async function step2(props: FirewallStep2Props) {
       continue;
     }
 
-    const tgwAccountStack = accountStacks.getOrCreateAccountStack(tgwAccountKey);
+    const tgwAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAccountKey);
+    if (!tgwAccountStack) {
+      console.warn(`Cannot find account stack ${tgwAccountKey}`);
+      continue;
+    }
 
     await createCustomerGateways({
       scope: tgwAccountStack,

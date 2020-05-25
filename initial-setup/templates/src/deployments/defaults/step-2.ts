@@ -26,7 +26,7 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
   const buckets: { [accountKey: string]: s3.IBucket } = {};
 
   const logAccountKey = config['global-options']['central-log-services'].account;
-  const logAccountId = getAccountId(accounts, logAccountKey);
+  const logAccountId = getAccountId(accounts, logAccountKey)!;
 
   // We already created the log bucket in step 1
   buckets[logAccountKey] = centralLogBucket;
@@ -37,7 +37,12 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+
     const bucket = createDefaultS3Bucket({
       accountStack,
       config,

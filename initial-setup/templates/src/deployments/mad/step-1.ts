@@ -30,7 +30,11 @@ export async function step1(props: MadStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
 
     // Create the auto scaling service-linked role manually in order to attach the policy to the default EBS KMS key
     const role = new ServiceLinkedRole(accountStack, 'Slr', {

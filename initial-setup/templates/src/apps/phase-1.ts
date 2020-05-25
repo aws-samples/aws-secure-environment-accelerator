@@ -119,7 +119,11 @@ async function main() {
    * @param accountKey : Target Account Key, Access will be provided to this accout
    */
   const createIamRoleForPCXAcceptence = (roleName: string, sourceAccount: string, targetAccount: string) => {
-    const accountStack = accountStacks.getOrCreateAccountStack(sourceAccount);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${sourceAccount}`);
+      return;
+    }
     const existing = accountStack.node.tryFindChild(roleName);
     if (existing) {
       return;
@@ -146,22 +150,34 @@ async function main() {
       return flowLogContainers[accountKey];
     }
 
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      return;
+    }
     const accountBucket = accountBuckets[accountKey];
     if (accountBucket) {
-      const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-      const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
-        bucket: accountBucket,
-      });
-      flowLogContainers[accountKey] = flowLogContainer;
-      return flowLogContainer;
+      console.warn(`Cannot find account bucket ${accountKey}`);
+      return;
     }
+
+    const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
+      bucket: accountBucket,
+    });
+    flowLogContainers[accountKey] = flowLogContainer;
+    return flowLogContainer;
   };
 
   // Auxiliary method to create a VPC in the account with given account key
   const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
     const { vpcConfig } = props;
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      return;
+    }
+
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
@@ -390,7 +406,11 @@ async function main() {
   };
 
   const createIamAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      return;
+    }
 
     const userPasswords = await getUserPasswords(accountKey, iamConfig);
 

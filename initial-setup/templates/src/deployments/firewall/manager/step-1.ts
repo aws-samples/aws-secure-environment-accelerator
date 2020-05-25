@@ -32,7 +32,12 @@ export async function step1(props: FirewallManagerStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
+
     await createFirewallManager({
       scope: accountStack,
       vpc,

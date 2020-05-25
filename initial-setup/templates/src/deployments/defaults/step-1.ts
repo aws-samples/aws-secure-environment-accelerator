@@ -143,7 +143,11 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
 
   const accountEbsEncryptionKeys: { [accountKey: string]: kms.Key } = {};
   for (const [accountKey, _] of config.getAccountConfigs()) {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
 
     // Default EBS encryption key
     const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {

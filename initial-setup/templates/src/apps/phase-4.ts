@@ -83,7 +83,11 @@ async function main() {
         );
       }
 
-      const r53ResolverRulesSharingStack = accountStacks.getOrCreateAccountStack(accountKey);
+      const r53ResolverRulesSharingStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+      if (!r53ResolverRulesSharingStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
 
       const route53ResolverRuleSharing = new Route53ResolverRuleSharing(
         r53ResolverRulesSharingStack,

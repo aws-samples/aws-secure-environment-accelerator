@@ -116,7 +116,12 @@ async function main() {
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     // TODO Remove hard-coded account key
     if (accountKey === 'security') {
-      const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+      if (!accountStack) {
+        console.warn(`Cannot find security stack`);
+        continue;
+      }
+
       new AccessAnalyzer(accountStack, `Access Analyzer-${pascalCase(accountKey)}`);
     }
   }
@@ -129,13 +134,17 @@ async function main() {
       Email: account.email,
     };
   });
-  const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
-  // Create Security Hub stack for Master Account in Security Account
-  new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
-    account: securityMasterAccount!,
-    standards: globalOptions['security-hub-frameworks'],
-    subAccountIds,
-  });
+  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityMasterAccount?.key!);
+  if (!securityMasterAccountStack) {
+    console.warn(`Cannot find security stack`);
+  } else {
+    // Create Security Hub stack for Master Account in Security Account
+    new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+      account: securityMasterAccount!,
+      standards: globalOptions['security-hub-frameworks'],
+      subAccountIds,
+    });
+  }
 
   // MAD creation step 1
   // Needs EBS default keys from the EBS default step

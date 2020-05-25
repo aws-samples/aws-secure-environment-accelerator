@@ -17,7 +17,11 @@ export async function step1(props: SSMStep1Props) {
   const globalOptionsConfig = props.config['global-options'];
 
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
 
     const ssmKey = new Key(accountStack, `${props.acceleratorPrefix}SSM-Key`, {
       alias: `alias/${props.acceleratorPrefix}SSM-Key`,

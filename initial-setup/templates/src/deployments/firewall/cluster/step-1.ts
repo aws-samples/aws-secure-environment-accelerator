@@ -33,7 +33,12 @@ export async function step1(props: FirewallStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+
     // TODO We could create a nested stack here
     await createFirewallEips({
       scope: accountStack,

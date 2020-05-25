@@ -42,18 +42,18 @@ export async function step2(props: CentralServicesStep2Props) {
   const centralOperationsServices = config['global-options']['central-operations-services'];
   const monitoringAccountKeys: string[] = [];
   if (centralSecurityServices && centralSecurityServices.cwl) {
-    const accountStack = accountStacks.getOrCreateAccountStack(centralSecurityServices.account);
+    const securityStack = accountStacks.getOrCreateAccountStack(centralSecurityServices.account);
     monitoringAccountKeys.push(centralSecurityServices.account);
     await centralLoggingMonitoringEnable({
-      scope: accountStack,
+      scope: securityStack,
     });
   }
 
   if (centralOperationsServices && centralOperationsServices.cwl) {
-    const accountStack = accountStacks.getOrCreateAccountStack(centralOperationsServices.account);
+    const operationsStack = accountStacks.getOrCreateAccountStack(centralOperationsServices.account);
     monitoringAccountKeys.push(centralOperationsServices.account);
     await centralLoggingMonitoringEnable({
-      scope: accountStack,
+      scope: operationsStack,
     });
   }
 
@@ -63,7 +63,12 @@ export async function step2(props: CentralServicesStep2Props) {
   const accessLevel =
     centralOperationsServices['cwl-access-level'] || centralSecurityServices['cwl-access-level'] || 'full';
   for (const account of accounts) {
-    const accountStack = accountStacks.getOrCreateAccountStack(account.key);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${account.key}`);
+      continue;
+    }
+
     const monitoringAccountIds = monitoringAccountKeys
       .filter(accountKey => accountKey !== account.key)
       .map(a => {

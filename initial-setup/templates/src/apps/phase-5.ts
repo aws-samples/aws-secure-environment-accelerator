@@ -83,7 +83,11 @@ async function main() {
     const ec2KeyPairName = 'rdgw-key-pair';
     const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
 
-    const stack = accountStacks.getOrCreateAccountStack(accountKey);
+    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!stack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
 
     const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
 
