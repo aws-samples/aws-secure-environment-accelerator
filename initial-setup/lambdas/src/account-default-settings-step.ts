@@ -206,6 +206,10 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   };
 
   const updateSSMdocument = async (accountId: string, accountKey: string): Promise<void> => {
+    const globalOptionsConfig = acceleratorConfig['global-options'];
+    const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
+    const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
+
     const credentials = await getAccountCredentials(accountId);
     const ssm = new aws.SSM({
       credentials,
@@ -219,6 +223,14 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
     const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
 
+    // Encrypt CWL 
+    const cloudwatchlogs = new aws.CloudWatchLogs();
+    const params = {
+      kmsKeyId: ssmKeyId,
+      logGroupName: '/PBMMAccel/SSM'
+    };
+    await cloudwatchlogs.associateKmsKey(params).promise();
+
     // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
     const settings = {
       schemaVersion: '1.0',
@@ -227,9 +239,9 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       inputs: {
         s3BucketName: bucketName,
         s3KeyPrefix: '',
-        s3EncryptionEnabled: true,
+        s3EncryptionEnabled: useS3,
         cloudWatchLogGroupName: '/PBMMAccel/SSM',
-        cloudWatchEncryptionEnabled: true,
+        cloudWatchEncryptionEnabled: useCWL,
         kmsKeyId: ssmKeyId,
         runAsEnabled: false,
         runAsDefaultUser: '',

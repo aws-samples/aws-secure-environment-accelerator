@@ -15,8 +15,6 @@ export interface SSMStep1Props {
 
 export async function step1(props: SSMStep1Props) {
   const globalOptionsConfig = props.config['global-options'];
-  const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
-  const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
 
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
