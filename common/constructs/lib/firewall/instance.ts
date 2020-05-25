@@ -54,7 +54,7 @@ export class FirewallInstance extends cdk.Construct {
     const { configuration } = props;
 
     this.template = new S3Template(this, 'Config', {
-      templateBucket: configuration.bucket,
+      templateBucket: configuration.templateBucket,
       templatePath: configuration.templateConfigPath,
       outputBucket: configuration.bucket,
       outputPath: configuration.configPath,
