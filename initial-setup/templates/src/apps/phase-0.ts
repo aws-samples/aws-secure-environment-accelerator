@@ -133,7 +133,7 @@ async function main() {
   // Create Security Hub stack for Master Account in Security Account
   new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
     account: securityMasterAccount!,
-    standards: globalOptionsConfig['security-hub-frameworks'],
+    standards: globalOptions['security-hub-frameworks'],
     subAccountIds,
   });
 
