@@ -239,23 +239,23 @@ async function main() {
   });
 
   // Deploy Security Hub
-  // const globalOptions = acceleratorConfig['global-options'];
-  // const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
 
-  // for (const account of accounts) {
-  //   if (account.id === securityMasterAccount?.id) {
-  //     continue;
-  //   }
-  //   const memberAccountStack = accountStacks.getOrCreateAccountStack(account.key);
-  //   const securityHubMember = new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
-  //     account,
-  //     acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-  //     enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-  //     inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-  //     standards: globalOptions['security-hub-frameworks'],
-  //     masterAccountId: securityMasterAccount?.id,
-  //   });
-  // }
+  for (const account of accounts) {
+    if (account.id === securityMasterAccount?.id) {
+      continue;
+    }
+    const memberAccountStack = accountStacks.getOrCreateAccountStack(account.key);
+    const securityHubMember = new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
+      account,
+      acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
+      enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
+      inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
+      standards: globalOptions['security-hub-frameworks'],
+      masterAccountId: securityMasterAccount?.id,
+    });
+  }
 }
 
 // tslint:disable-next-line: no-floating-promises
