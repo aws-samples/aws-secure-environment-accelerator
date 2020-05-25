@@ -44,8 +44,8 @@ export function install() {
 
   jest.spyOn(SSM.prototype, 'getParameter').mockImplementation(() => ({
     Parameter: {
-      Value: 'lz@amazon.com'
-    }
+      Value: 'lz@amazon.com',
+    },
   }));
 
   jest
