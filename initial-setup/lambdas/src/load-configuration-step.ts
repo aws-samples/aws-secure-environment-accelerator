@@ -1,5 +1,9 @@
 import * as org from 'aws-sdk/clients/organizations';
-import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES, AccountConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import {
+  LandingZoneAccountType,
+  LANDING_ZONE_ACCOUNT_TYPES,
+  AccountConfigType,
+} from '@aws-pbmm/common-lambda/lib/config';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
@@ -222,9 +226,13 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         continue;
       }
 
-      const lzAccountEmail = lzAccount.email || await getLandingZoneAccountEmailBySsmParameters(lzAccount.ssm_parameters);
+      const lzAccountEmail =
+        lzAccount.email || (await getLandingZoneAccountEmailBySsmParameters(lzAccount.ssm_parameters));
       // When we find configuration for this account in the Accelerator config, then verify if properties match for non-primary accounts
-      if (acceleratorAccount.accountName !== lzAccount.name && acceleratorAccount.landingZoneAccountType !== 'primary') {
+      if (
+        acceleratorAccount.accountName !== lzAccount.name &&
+        acceleratorAccount.landingZoneAccountType !== 'primary'
+      ) {
         errors.push(
           `The Acceleror account name and Landing Zone account name for account type "${lzAccountType}" do not match.\n` +
             `"${acceleratorAccount.accountName}" != "${lzAccount.name}"`,
@@ -317,7 +325,7 @@ async function getLandingZoneAccountEmailBySsmParameters(
 }
 
 handler({
-  "configRepositoryName": "PBMMAccel-Config-Repo",
-  "configFilePath": "config.json",
-  "configCommitId": "eaa4959e3aed9f669b52eaedb51faf16cc74cb17"
-})
+  configRepositoryName: 'PBMMAccel-Config-Repo',
+  configFilePath: 'config.json',
+  configCommitId: 'eaa4959e3aed9f669b52eaedb51faf16cc74cb17',
+});

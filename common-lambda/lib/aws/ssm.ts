@@ -12,8 +12,10 @@ export class SSM {
   }
 
   async getParameter(name: string): Promise<sts.GetParameterResult> {
-    return this.client.getParameter({
-      Name: name
-    }).promise();
+    return this.client
+      .getParameter({
+        Name: name,
+      })
+      .promise();
   }
 }
