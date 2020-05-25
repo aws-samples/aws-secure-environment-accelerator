@@ -53,6 +53,8 @@ export class FirewallCluster extends cdk.Construct {
       name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs',
     });
+
+    this.props.configuration.bucket.grantRead(this.instanceRole);
   }
 
   createInstance(hostname: string): FirewallInstance {

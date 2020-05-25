@@ -18,12 +18,16 @@ export interface FirewallVpnTunnelOptions {
 }
 
 export interface FirewallConfigurationProps {
+  licenseBucket?: s3.IBucket;
+  licensePath?: string;
   templateBucket: s3.IBucket;
   templateConfigPath: string;
+  /**
+   * Account bucket where the template and license will be copied to.
+   */
   bucket: s3.IBucket;
   bucketRegion: string;
   configPath: string;
-  licensePath: string;
 }
 
 export interface FirewallInstanceProps {
@@ -53,6 +57,18 @@ export class FirewallInstance extends cdk.Construct {
 
     const { configuration } = props;
 
+    // Copy license without replacing anything
+    // TODO Should we create another custom resource for this?
+    const licensePath = 'license.lic';
+    if (configuration.licenseBucket && configuration.licensePath) {
+      new S3Template(this, 'License', {
+        templateBucket: configuration.licenseBucket,
+        templatePath: configuration.licensePath,
+        outputBucket: configuration.bucket,
+        outputPath: licensePath,
+      });
+    }
+
     this.template = new S3Template(this, 'Config', {
       templateBucket: configuration.templateBucket,
       templatePath: configuration.templateConfigPath,
@@ -74,15 +90,17 @@ export class FirewallInstance extends cdk.Construct {
             bucket: configuration.bucket.bucketName,
             region: configuration.bucketRegion,
             config: `/${configuration.configPath}`,
-            license: `/${configuration.licensePath}`,
+            license: `/${licensePath}`,
           },
           null,
           2,
         ),
       ),
     });
+
     this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
+
     if (this.props.keyPair instanceof cdk.DependableTrait) {
       this.resource.node.addDependency(this.props.keyPair);
     }

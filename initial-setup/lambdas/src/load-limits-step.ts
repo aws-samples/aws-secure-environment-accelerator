@@ -71,6 +71,11 @@ export const handler = async (input: LoadLimitsInput) => {
   for (const [accountKey, accountConfig] of accountConfigs) {
     const accountId = getAccountId(accounts, accountKey);
 
+    if (!accountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
+    }
+
     const sts = new STS();
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const quotas = new ServiceQuotas(credentials);
@@ -80,7 +85,8 @@ export const handler = async (input: LoadLimitsInput) => {
     for (const limitKey of Object.keys(limitConfig)) {
       const code = LIMITS[limitKey];
       if (!code) {
-        throw new Error(`Cannot find limit code with key "${limitKey}"`);
+        console.warn(`Cannot find limit code with key "${limitKey}"`);
+        continue;
       }
     }
 

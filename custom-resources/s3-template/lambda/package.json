@@ -31,9 +31,9 @@
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
+    "@custom-resources/cfn-response": "workspace:^0.0.1",
     "aws-lambda": "1.0.5",
-    "aws-sdk": "2.668.0",
-    "cfn-response-async": "^1.0.0"
+    "aws-sdk": "2.668.0"
   },
   "jest": {
     "preset": "ts-jest",

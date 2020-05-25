@@ -1,17 +1,17 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { getStackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import * as iam from '@aws-cdk/aws-iam';
+import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
 import { loadAccounts, getAccountId, Account } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
 import { loadContext } from '../utils/context';
 import { loadStackOutputs } from '../utils/outputs';
-import { FlowLogContainer } from '../common/flow-log-bucket-stack';
+import { FlowLogContainer } from '../common/flow-log-container';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
 import { loadLimits, Limiter, Limit } from '../utils/limits';
-import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
   InterfaceEndpointConfig,
@@ -24,16 +24,19 @@ import {
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
 import { AccountStacks } from '../common/account-stacks';
-import * as firewall from '../deployments/firewall/cluster';
-import * as iam from '@aws-cdk/aws-iam';
-import { CurBucket } from '../common/cur-bucket';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
 import * as centralServices from '../deployments/central-services';
+import * as certificates from '../deployments/certificates';
+import * as defaults from '../deployments/defaults';
+import * as firewall from '../deployments/firewall/cluster';
+import * as reports from '../deployments/reports';
+import * as ssm from '../deployments/ssm/session-manager';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -76,14 +79,6 @@ async function main() {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
 
-  const logArchiveAccountId = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ACCOUNT_ID);
-  const logArchiveS3BucketArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-  const logArchiveS3KmsKeyArn = getStackOutput(
-    outputs,
-    logAccountKey,
-    outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
-  );
-
   const app = new cdk.App();
 
   const transitGateways = new Map<string, TransitGateway>();
@@ -96,6 +91,29 @@ async function main() {
     context,
   });
 
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  const logBucket = LogBucketOutput.getBucket({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  // Find the account buckets in the outputs
+  const accountBuckets = await defaults.step2({
+    accounts,
+    accountStacks,
+    centralLogBucket: logBucket,
+    config: acceleratorConfig,
+  });
+
   /**
    * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
    * @param roleName : Role Name forpeering connection from source to target
@@ -103,7 +121,11 @@ async function main() {
    * @param accountKey : Target Account Key, Access will be provided to this accout
    */
   const createIamRoleForPCXAcceptence = (roleName: string, sourceAccount: string, targetAccount: string) => {
-    const accountStack = accountStacks.getOrCreateAccountStack(sourceAccount);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${sourceAccount}`);
+      return;
+    }
     const existing = accountStack.node.tryFindChild(roleName);
     if (existing) {
       return;
@@ -125,22 +147,24 @@ async function main() {
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
-  const getFlowLogContainer = (accountKey: string): FlowLogContainer => {
+  const getFlowLogContainer = (accountKey: string): FlowLogContainer | undefined => {
     if (flowLogContainers[accountKey]) {
       return flowLogContainers[accountKey];
     }
 
-    const accountConfig = acceleratorConfig.getAccountByKey(accountKey);
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      return;
+    }
+    const accountBucket = accountBuckets[accountKey];
+    if (accountBucket) {
+      console.warn(`Cannot find account bucket ${accountKey}`);
+      return;
+    }
 
-    const logRetention = accountConfig['log-retention'];
     const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
-      expirationInDays: logRetention ? logRetention : globalOptions['default-log-retention'],
-      replication: {
-        accountId: logArchiveAccountId,
-        bucketArn: logArchiveS3BucketArn,
-        kmsKeyArn: logArchiveS3KmsKeyArn,
-      },
+      bucket: accountBucket,
     });
     flowLogContainers[accountKey] = flowLogContainer;
     return flowLogContainer;
@@ -150,7 +174,12 @@ async function main() {
   const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
     const { vpcConfig } = props;
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      return;
+    }
+
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
@@ -163,8 +192,9 @@ async function main() {
     if (InterfaceEndpointConfig.is(endpointConfig)) {
       const subnetName = endpointConfig.subnet;
       const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
-      if (!subnetIds) {
-        throw new Error(`Cannot find subnet ID with name "${subnetName}'`);
+      if (subnetIds.length === 0) {
+        console.warn(`Cannot find subnet ID with name "${subnetName}'`);
+        return;
       }
 
       let endpointCount = 0;
@@ -199,17 +229,16 @@ async function main() {
     const flowLogs = vpcConfig['flow-logs'];
     if (flowLogs) {
       const flowLogContainer = getFlowLogContainer(accountKey);
-      const flowLogBucket = flowLogContainer.bucket;
-      const flowLogRole = flowLogContainer.role;
-
-      new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
-        deliverLogsPermissionArn: flowLogRole.roleArn,
-        resourceId: vpc.vpcId,
-        resourceType: 'VPC',
-        trafficType: ec2.FlowLogTrafficType.ALL,
-        logDestination: `${flowLogBucket.bucketArn}/flowlogs`,
-        logDestinationType: ec2.FlowLogDestinationType.S3,
-      });
+      if (flowLogContainer) {
+        new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
+          deliverLogsPermissionArn: flowLogContainer.role.roleArn,
+          resourceId: vpc.vpcId,
+          resourceType: 'VPC',
+          trafficType: ec2.FlowLogTrafficType.ALL,
+          logDestination: flowLogContainer.destination,
+          logDestinationType: ec2.FlowLogDestinationType.S3,
+        });
+      }
     }
 
     // Prepare the output for next phases
@@ -281,36 +310,22 @@ async function main() {
     transitGateways,
   });
 
-  const createCurBucket = async (accountKey: string): Promise<void> => {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    const accountId = getAccountId(accounts, accountKey);
-
-    const costAndUsageReportConfig = globalOptions.reports['cost-and-usage-report'];
-    const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
-      .replace('xxaccountIdxx', accountId)
-      .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
-
-    const curBucket = new CurBucket(accountStack, `Cost And Usage Report Bucket-${pascalCase(accountKey)}`, {
-      s3BucketNameForCur,
-      expirationInDays: globalOptions['central-log-retention'],
-      replication: {
-        accountId: logArchiveAccountId,
-        bucketArn: logArchiveS3BucketArn,
-        kmsKeyArn: logArchiveS3KmsKeyArn,
-      },
-    });
-  };
-
-  const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string }> => {
+  const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {
     const iamPoliciesDef: { [policyName: string]: string } = {};
 
     const masterAccountId = getAccountId(accounts, masterAccountKey);
+    if (!masterAccountId) {
+      console.warn('Cannot find account with accountKey master');
+      return;
+    }
+
     const sts = new STS();
     const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
       masterAccountId,
       context.acceleratorExecutionRoleName,
     );
 
+    // TODO Remove call to S3 here somehow
     const iamPolicyS3 = new S3(masterAcctCredentials);
 
     const iamPolicyArtifactOutput: IamPolicyArtifactsOutput[] = getStackJsonOutput(outputs, {
@@ -319,7 +334,8 @@ async function main() {
     });
 
     if (iamPolicyArtifactOutput.length === 0) {
-      throw new Error(`Cannot find output with Iam Policy reference artifacts`);
+      console.warn(`Cannot find output with Iam Policy reference artifacts`);
+      return;
     }
 
     const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
@@ -388,17 +404,23 @@ async function main() {
   };
 
   const createIamAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      return;
+    }
 
     const userPasswords = await getUserPasswords(accountKey, iamConfig);
 
-    const iamAssets = new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
-      accountKey,
-      iamConfig,
-      iamPoliciesDefinition,
-      accounts,
-      userPasswords,
-    });
+    if (iamPoliciesDefinition) {
+      const iamAssets = new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
+        accountKey,
+        iamConfig,
+        iamPoliciesDefinition,
+        accounts,
+        userPasswords,
+      });
+    }
   };
 
   const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
@@ -415,9 +437,6 @@ async function main() {
   // creating assets for default account settings
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     mandatoryAccountKeys.push(accountKey);
-    if (accountKey === masterAccountKey) {
-      await createCurBucket(accountKey);
-    }
     await createIamAssets(accountKey, accountConfig.iam);
   }
 
@@ -429,11 +448,32 @@ async function main() {
     }
   }
 
+  await certificates.step1({
+    accountStacks,
+    centralBucket,
+    config: acceleratorConfig,
+  });
+
   // Central Services step 1
   await centralServices.step2({
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  // SSM config step 1
+  await ssm.step1({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    bucketName: logBucket.bucketName,
+    config: acceleratorConfig,
+  });
+
+  // Cost and usage reports step 1
+  await reports.step1({
+    accountBuckets,
+    accountStacks,
+    config: acceleratorConfig,
   });
 }
 

@@ -7,13 +7,11 @@ import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
-import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
-import { CUR } from '@aws-pbmm/common-lambda/lib/aws/cur';
-import { PutReportDefinitionRequest } from 'aws-sdk/clients/cur';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
+import { UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
 
 interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
@@ -44,23 +42,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
   const sts = new STS();
 
-  // TODO Cache the account credentials in the STS class to improve reusability
-  const accountCredentials: { [accountId: string]: aws.Credentials } = {};
-  const getAccountCredentials = async (accountId: string): Promise<aws.Credentials> => {
-    if (accountCredentials[accountId]) {
-      return accountCredentials[accountId];
-    }
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    accountCredentials[accountId] = credentials;
-    return credentials;
-  };
-
   const putPublicAccessBlock = async (
     accountId: string,
     accountKey: string,
     blockPublicAccess: boolean,
   ): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const s3control = new S3Control(credentials);
     const putPublicAccessBlockRequest: PutPublicAccessBlockRequest = {
       AccountId: accountId,
@@ -76,9 +63,15 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   };
 
   const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
     const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
+    if (!kmsKeyId) {
+      console.warn(
+        `Cannot find output of ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION} for account ${accountKey}`,
+      );
+      return;
+    }
     console.log('kmsKeyId: ' + kmsKeyId);
 
     const ec2 = new EC2(credentials);
@@ -91,14 +84,15 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   };
 
   const updateCloudTrailSettings = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
     const cloudTrailName = outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
     console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
 
     const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
     if (!logArchiveAccount) {
-      throw new Error('Cannot find account with type log-archive');
+      console.warn('Cannot find account with type log-archive');
+      return;
     }
     const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
     console.log('AWS LZ CloudTrail S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
@@ -115,7 +109,8 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log('describeTrailsResponse: ', describeTrailsResponse);
 
     if (!describeTrailsResponse.trailList) {
-      throw new Error(`CloudTrail not found with name "${cloudTrailName}"`);
+      console.warn(`CloudTrail not found with name "${cloudTrailName}"`);
+      return;
     }
     let cloudTrailDetails;
     for (const trailList of describeTrailsResponse.trailList) {
@@ -159,58 +154,85 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log(`Cloud Trail - settings updated (encryption...) for AWS LZ CloudTrail in account - ${accountKey}`);
   };
 
-  const alterCloudTrailS3BucketEncryptionKey = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
-
-    let bucket = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN);
-    bucket = bucket.replace('arn:aws:s3:::', '');
-    bucket.trimLeft;
-    console.log('bucket: ' + bucket);
-
-    const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ID);
-    console.log('kmsKeyId: ' + kmsKeyId);
-
-    const s3 = new S3(credentials);
-    await s3.putBucketKmsEncryption(bucket, kmsKeyId);
-    console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
-  };
-
-  const enableCostAndUsageReport = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await getAccountCredentials(accountId);
-
+  const updateSSMdocument = async (accountId: string, accountKey: string): Promise<void> => {
     const globalOptionsConfig = acceleratorConfig['global-options'];
-    const costAndUsageReportConfig = globalOptionsConfig.reports['cost-and-usage-report'];
+    const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
+    const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
 
-    const cur = new CUR(credentials);
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+    const ssm = new aws.SSM({
+      credentials,
+    });
+    const kms = new aws.KMS({
+      credentials,
+    });
+    const cloudwatchlogs = new aws.CloudWatchLogs({
+      credentials,
+    });
 
-    const params: PutReportDefinitionRequest = {
-      ReportDefinition: {
-        AdditionalSchemaElements: costAndUsageReportConfig['additional-schema-elements'],
-        Compression: costAndUsageReportConfig.compression,
-        Format: costAndUsageReportConfig.format,
-        ReportName: costAndUsageReportConfig['report-name'],
-        S3Bucket: costAndUsageReportConfig['s3-bucket']
-          .replace('xxaccountIdxx', accountId)
-          .replace('xxregionxx', costAndUsageReportConfig['s3-region']),
-        S3Prefix: costAndUsageReportConfig['s3-prefix'].replace('xxaccountIdxx', accountId),
-        S3Region: costAndUsageReportConfig['s3-region'],
-        TimeUnit: costAndUsageReportConfig['time-unit'],
-        AdditionalArtifacts: costAndUsageReportConfig['additional-artifacts'],
-        RefreshClosedReports: costAndUsageReportConfig['refresh-closed-reports'],
-        ReportVersioning: costAndUsageReportConfig['report-versioning'],
+    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    if (!logArchiveAccount) {
+      console.warn('Cannot find account with type log-archive');
+      return;
+    }
+    const logArchiveAccountKey = logArchiveAccount.key;
+    const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
+    if (!bucketName) {
+      console.warn(`Cannot find output ${outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME}`);
+      return;
+    }
+    const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
+    if (!ssmKeyId) {
+      console.warn(`Cannot find output ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER}`);
+      return;
+    }
+
+    // Encrypt CWL doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
+    const kmsParams = {
+      KeyId: ssmKeyId,
+    };
+    const ssmKey = await kms.describeKey(kmsParams).promise();
+    console.log('SSM key: ', ssmKey);
+
+    const cwlParams = {
+      kmsKeyId: ssmKey.KeyMetadata?.Arn || ssmKeyId,
+      logGroupName: '/PBMMAccel/SSM',
+    };
+    const cwlResponse = await cloudwatchlogs.associateKmsKey(cwlParams).promise();
+    console.log('CWL encrypt: ', cwlResponse);
+
+    // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
+    const settings = {
+      schemaVersion: '1.0',
+      description: 'Document to hold regional settings for Session Manager',
+      sessionType: 'Standard_Stream',
+      inputs: {
+        s3BucketName: bucketName,
+        s3KeyPrefix: '',
+        s3EncryptionEnabled: useS3,
+        cloudWatchLogGroupName: '/PBMMAccel/SSM',
+        cloudWatchEncryptionEnabled: useCWL,
+        kmsKeyId: ssmKeyId,
+        runAsEnabled: false,
+        runAsDefaultUser: '',
       },
     };
-    // TODO Overwrite report if exists
-    const PutReportDefinitionResponse = await cur.putReportDefinition(params);
-    console.log('PutReportDefinitionResponse: ', PutReportDefinitionResponse);
-    console.log(`Cost and Usage Report - enabled for account - ${accountKey}`);
+
+    const updateDocumentRequest: UpdateDocumentRequest = {
+      Content: JSON.stringify(settings),
+      Name: 'SSM-SessionManagerRunShell',
+    };
+    console.log('Update SSM Request: ', updateDocumentRequest);
+    const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
+    console.log('Update SSM: ', updateSSMResponse);
   };
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const account = accounts.find(a => a.key === accountKey);
     if (!account) {
-      throw new Error(`Cannot find account with key "${accountKey}"`);
+      console.warn(`Cannot find account with key "${accountKey}"`);
+      continue;
     }
 
     // if flag is undefined or false, turn ON s3 block public access
@@ -233,23 +255,10 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.error(e);
     }
 
-    if (account.key === logAccountKey) {
-      // alter the encryption key used cloud trail s3 bucket
-      await alterCloudTrailS3BucketEncryptionKey(account.id, account.key);
-      console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
-    }
-
     try {
-      if (account.key === masterAccountKey) {
-        await enableCostAndUsageReport(account.id, account.key);
-      }
+      await updateSSMdocument(account.id, account.key);
     } catch (e) {
-      // TODO Overwrite report
-      if (e.code === 'DuplicateReportNameException') {
-        console.warn(`Report already exists`);
-      } else {
-        throw e;
-      }
+      console.error(e);
     }
   }
 
