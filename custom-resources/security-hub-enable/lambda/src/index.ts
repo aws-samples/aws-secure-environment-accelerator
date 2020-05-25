@@ -34,19 +34,19 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       ],
     };
 
-    const enableResonse = await hub.batchEnableStandards(params).promise();
+    const enableResponse = await hub.batchEnableStandards(params).promise();
     new Promise(resolve => setTimeout(resolve, 3000));
-    for (const responseStandard of enableResonse.StandardsSubscriptions || []) {
+    for (const responseStandard of enableResponse.StandardsSubscriptions || []) {
       const standardControls = await hub
         .describeStandardsControls({
           StandardsSubscriptionArn: responseStandard.StandardsSubscriptionArn,
           MaxResults: 100,
         })
         .promise();
-      for (const disableConrtol of standard['controls-to-disable']) {
-        const standardControl = standardControls.Controls?.find(x => x.ControlId === disableConrtol);
+      for (const disableControl of standard['controls-to-disable']) {
+        const standardControl = standardControls.Controls?.find(x => x.ControlId === disableControl);
         if (standardControl) {
-          console.log(`Disabling Control "${disableConrtol}" for Standard "${standard.name}"`);
+          console.log(`Disabling Control "${disableControl}" for Standard "${standard.name}"`);
           await hub
             .updateStandardsControl({
               StandardsControlArn: standardControl.StandardsControlArn!,
@@ -55,7 +55,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
             })
             .promise();
         } else {
-          console.log(`Control "${disableConrtol}" not found for Standard "${standard.name}"`);
+          console.log(`Control "${disableControl}" not found for Standard "${standard.name}"`);
         }
       }
     }

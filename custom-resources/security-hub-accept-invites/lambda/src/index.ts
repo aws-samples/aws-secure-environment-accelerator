@@ -21,7 +21,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const masterAccountId = event.ResourceProperties.masterAccountId;
 
-  // Check for pending invitaions from Master
+  // Check for pending invitations from Master
   const invitations = await hub.listInvitations().promise();
   if (!invitations.Invitations) {
     console.log(`No Security Hub invitations found`);

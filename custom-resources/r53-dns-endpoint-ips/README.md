@@ -1,6 +1,6 @@
-# Retrive Route53 Dns Endpoint IPAddresses 
+# Retrieve Route53 DNS Endpoint IP Addresses
 
-This is a custom resource to retrive IpAddresses assigned to Route53 Resolver Endpoint using `listResolverEndpointIpAddresses` API call.
+This is a custom resource to retrieve IpAddresses assigned to Route53 Resolver Endpoint using `listResolverEndpointIpAddresses` API call.
 
 ## Usage
 
