@@ -220,9 +220,12 @@ export const ImportCertificateConfigType = t.interface({
 
 export type ImportCertificateConfig = t.TypeOf<typeof ImportCertificateConfigType>;
 
-export const CERTIFICATE_VALIDATION = ["DNS", "EMAIL"] as const;
+export const CERTIFICATE_VALIDATION = ['DNS', 'EMAIL'] as const;
 
-export const CertificateValidationType = enumType<typeof CERTIFICATE_VALIDATION[number]>(CERTIFICATE_VALIDATION, 'CertificateValidation');
+export const CertificateValidationType = enumType<typeof CERTIFICATE_VALIDATION[number]>(
+  CERTIFICATE_VALIDATION,
+  'CertificateValidation',
+);
 
 export type CertificateValidation = t.TypeOf<typeof CertificateValidationType>;
 
@@ -409,6 +412,8 @@ export const MandatoryAccountConfigType = t.interface({
   'log-retention': optional(t.number),
   budget: optional(BudgetConfigType),
 });
+
+export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
 
@@ -679,42 +684,86 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
   }
 
   /**
-   * Find all certificate configurations in mandatory accounts, workload accounts and organizational units.
-   */
-  getCertificateConfigs(): ResolvedCertificateConfig[] {
-    return this.getAccountAndOuConfigs(
-      accountConfig => [
-        {
-          certificates: accountConfig.certificates || [],
-        },
-      ],
-      ouConfig => [
-        {
-          certificates: ouConfig.certificates || [],
-        },
-      ],
-    );
-  }
-
-  /**
    * Find all VPC configurations in mandatory accounts, workload accounts and organizational units. VPC configuration in
    * organizational units will have the correct `accountKey` based on the `deploy` value of the VPC configuration.
    */
-  private getAccountAndOuConfigs<T>(
-    accountConfigGetter: (accountConfig: AccountConfig) => T[] | undefined,
-    ouConfigGetter: (ouConfig: OrganizationalUnitConfig) => T[] | undefined,
-  ): (T & ResolvedConfigBase)[] {
-    const result: (T & ResolvedConfigBase)[] = [];
+  getVpcConfigs2(): ResolvedVpcConfig[] {
+    const result: ResolvedVpcConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const vpcConfigs = config.vpc;
+      if (!vpcConfigs || vpcConfigs.length === 0) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        for (const vpcConfig of vpcConfigs) {
+          result.push({
+            accountKey: key,
+            vpcConfig,
+            deployments: config.deployments,
+          });
+        }
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const vpcConfig of vpcConfigs) {
+          const destinationAccountKey = vpcConfig.deploy;
+          if (destinationAccountKey === 'local') {
+            // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
+            for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(key)) {
+              result.push({
+                ouKey: key,
+                accountKey,
+                vpcConfig,
+                deployments: accountConfig.deployments,
+              });
+            }
+          } else {
+            // When deploy is not 'local' then the VPC should only be deployed in the given account
+            result.push({
+              ouKey: key,
+              accountKey: destinationAccountKey,
+              vpcConfig,
+            });
+          }
+        }
+      }
+    }
+    return result;
+  }
 
+  /**
+   * Find all certificate configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getCertificateConfigs(): ResolvedCertificateConfig[] {
+    const result: ResolvedCertificateConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const certificates = config.certificates;
+      if (!certificates || certificates.length === 0) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          certificates,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            certificates,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Iterate all account configs and organizational unit configs in order.
+   */
+  private *getAccountAndOuConfigs(): IterableIterator<[string, MandatoryAccountConfig | OrganizationalUnitConfig]> {
     // Add mandatory account VPC configuration first
     for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
-      const accountResult = accountConfigGetter(accountConfig) || [];
-      result.push(
-        ...accountResult.map(result => ({
-          accountKey,
-          ...result,
-        })),
-      );
+      yield [accountKey, accountConfig];
     }
 
     const prioritizedOus = this.getOrganizationalUnits();
@@ -723,29 +772,13 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
     prioritizedOus.sort(([_, ou1], [__, ou2]) => priorityByOuType(ou1, ou2));
 
     for (const [ouKey, ouConfig] of prioritizedOus) {
-      for (const [accountKey, _] of this.getAccountConfigsForOu(ouKey)) {
-        const ouResult = ouConfigGetter(ouConfig) || [];
-        result.push(
-          ...ouResult.map(result => ({
-            ouKey,
-            accountKey,
-            ...result,
-          })),
-        );
-      }
+      yield [ouKey, ouConfig];
     }
 
     // Add workload accounts as they are lower priority
     for (const [accountKey, accountConfig] of this.getWorkloadAccountConfigs()) {
-      const accountResult = accountConfigGetter(accountConfig) || [];
-      result.push(
-        ...accountResult.map(result => ({
-          accountKey,
-          ...result,
-        })),
-      );
+      yield [accountKey, accountConfig];
     }
-    return result;
   }
 
   static fromBuffer(content: Buffer): AcceleratorConfig {
