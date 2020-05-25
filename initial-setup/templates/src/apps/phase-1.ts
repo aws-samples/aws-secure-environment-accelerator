@@ -165,7 +165,7 @@ async function main() {
     if (InterfaceEndpointConfig.is(endpointConfig)) {
       const subnetName = endpointConfig.subnet;
       const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
-      if (!subnetIds) {
+      if (subnetIds.length === 0) {
         console.warn(`Cannot find subnet ID with name "${subnetName}'`);
         return;
       }

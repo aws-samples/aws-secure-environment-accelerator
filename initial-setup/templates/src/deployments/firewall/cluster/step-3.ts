@@ -84,7 +84,11 @@ async function createFirewallCluster(props: {
 }) {
   const { config, scope, vpc, firewallConfig, firewallVpnConnections } = props;
 
-  const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
+  const securityGroup = vpc.tryFindSecurityGroupByName(firewallConfig['security-group']);
+  if (!securityGroup) {
+    console.warn(`Cannot find security group with name "${firewallConfig['security-group']}" in VPC "${vpc.name}"`);
+    return;
+  }
 
   // TODO Single bucket per account!
   // This is for testing
@@ -128,9 +132,10 @@ async function createFirewallCluster(props: {
   for (const vpnConnection of firewallVpnConnections) {
     const az = vpnConnection.az;
     const subnetName = vpnConnection.subnetName;
-    const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetName, az);
+    const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetName, az);
 
     if (!subnet || !securityGroup) {
+      console.warn(`Cannot find subnet with name "${subnetName}" in availability zone "${az}"`);
       continue;
     }
 

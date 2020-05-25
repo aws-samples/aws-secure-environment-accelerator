@@ -104,13 +104,14 @@ async function centralLoggingShareDataSettings(props: {
   const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
   if (!logPermission) {
     console.warn('Invalid Log Level Access given for CWL Central logging');
-  } else {
-    new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
-      roleName: 'CloudWatch-CrossAccountSharingRole',
-      assumedBy: new iam.CompositePrincipal(...accountPrincipals),
-      managedPolicies: logPermission.permissions.map(permission =>
-        iam.ManagedPolicy.fromAwsManagedPolicyName(permission),
-      ),
-    });
+    return;
   }
+
+  new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
+    roleName: 'CloudWatch-CrossAccountSharingRole',
+    assumedBy: new iam.CompositePrincipal(...accountPrincipals),
+    managedPolicies: logPermission.permissions.map(permission =>
+      iam.ManagedPolicy.fromAwsManagedPolicyName(permission),
+    ),
+  });
 }

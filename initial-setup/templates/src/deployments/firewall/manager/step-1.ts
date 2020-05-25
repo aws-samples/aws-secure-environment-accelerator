@@ -52,10 +52,15 @@ async function createFirewallManager(props: {
   const { scope, vpc, firewallManagerConfig: config } = props;
 
   const subnetConfig = config.subnet;
-  const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
-  const securityGroup = vpc.findSecurityGroupByName(config['security-group']);
+  const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
+  if (!subnet) {
+    console.warn(`Cannot find subnet with name "${subnetConfig.name}" in availability zone "${subnetConfig.az}"`);
+    return;
+  }
 
-  if (!subnet || !securityGroup) {
+  const securityGroup = vpc.tryFindSecurityGroupByName(config['security-group']);
+  if (!securityGroup) {
+    console.warn(`Cannot find security group with name "${config['security-group']}" in VPC "${vpc.name}"`);
     return;
   }
 
