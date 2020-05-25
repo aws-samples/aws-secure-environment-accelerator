@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "aws-lambda": "1.0.5",
-    "aws-sdk": "2.668.0"
+    "aws-sdk": "2.668.0",
+    "exponential-backoff": "3.0.0"
   },
   "jest": {
     "preset": "ts-jest",

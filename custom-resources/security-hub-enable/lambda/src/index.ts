@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { backOff } from 'exponential-backoff';
 
 const hub = new AWS.SecurityHub();
 
@@ -26,37 +27,46 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   for (const standard of standards) {
     const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
 
-    const params = {
-      StandardsSubscriptionRequests: [
-        {
-          StandardsArn: standardArn!,
-        },
-      ],
-    };
-
-    const enableResponse = await hub.batchEnableStandards(params).promise();
-    new Promise(resolve => setTimeout(resolve, 3000));
-    for (const responseStandard of enableResponse.StandardsSubscriptions || []) {
-      const standardControls = await hub
-        .describeStandardsControls({
-          StandardsSubscriptionArn: responseStandard.StandardsSubscriptionArn,
-          MaxResults: 100,
+    const enableResponse = await backOff(() =>
+      hub
+        .batchEnableStandards({
+          StandardsSubscriptionRequests: [
+            {
+              StandardsArn: standardArn!,
+            },
+          ],
         })
-        .promise();
+        .promise(),
+    );
+
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
+    for (const responseStandard of enableResponse.StandardsSubscriptions || []) {
+      const standardControls = await backOff(() =>
+        hub
+          .describeStandardsControls({
+            StandardsSubscriptionArn: responseStandard.StandardsSubscriptionArn,
+            MaxResults: 100,
+          })
+          .promise(),
+      );
       for (const disableControl of standard['controls-to-disable']) {
         const standardControl = standardControls.Controls?.find(x => x.ControlId === disableControl);
-        if (standardControl) {
-          console.log(`Disabling Control "${disableControl}" for Standard "${standard.name}"`);
-          await hub
+        if (!standardControl) {
+          console.log(`Control "${disableControl}" not found for Standard "${standard.name}"`);
+          continue;
+        }
+
+        console.log(`Disabling Control "${disableControl}" for Standard "${standard.name}"`);
+        await backOff(() =>
+          hub
             .updateStandardsControl({
               StandardsControlArn: standardControl.StandardsControlArn!,
               ControlStatus: 'DISABLED',
               DisabledReason: 'Not Required Done through Accelerator',
             })
-            .promise();
-        } else {
-          console.log(`Control "${disableControl}" not found for Standard "${standard.name}"`);
-        }
+            .promise(),
+        );
       }
     }
   }
