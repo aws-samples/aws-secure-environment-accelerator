@@ -59,15 +59,6 @@ async function main() {
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
   // TODO Remove hard-coded 'master' account key and use configuration file somehow
   const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
-  for (const [index, funcArn] of Object.entries(context.cfnCustomResourceFunctions)) {
-    for (const account of accounts) {
-      new lambda.CfnPermission(masterAccountStack, `${index}${account.key}InvokePermission`, {
-        functionName: funcArn,
-        action: 'lambda:InvokeFunction',
-        principal: `arn:aws:iam::${account.id}:role/${context.acceleratorExecutionRoleName}`,
-      });
-    }
-  }
 
   const uploadArtifacts = ({
     artifactName,
@@ -140,12 +131,9 @@ async function main() {
   });
   const securityMasterAccountStack = accountStacks.getOrCreateAccountStack(securityMasterAccount?.key!);
   // Create Security Hub stack for Master Account in Security Account
-  const securityHubMaster = new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+  new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
     account: securityMasterAccount!,
-    acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-    enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-    inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
-    standards: globalOptions['security-hub-frameworks'],
+    standards: globalOptionsConfig['security-hub-frameworks'],
     subAccountIds,
   });
 

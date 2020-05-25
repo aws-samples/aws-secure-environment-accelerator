@@ -4,6 +4,7 @@ import * as r53resolver from '@aws-cdk/aws-route53resolver';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { Context } from '../utils/context';
+import { R53DnsEndPointIps } from '@custom-resources/r53-dns-endpoint-ips';
 
 export interface Route53ResolverEndpointProps {
   context: Context;
@@ -59,26 +60,14 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Inbound Endpoint`,
     });
-    const getDnsEndpointIpsLambda = lambda.Function.fromFunctionArn(
-      this,
-      'CfnInBoundEndpointIpPooler',
-      this.props.context.cfnCustomResourceFunctions.getDnsIpsFunctionArn,
-    );
 
-    // Create CfnCustom Resource to get IPs which are alloted to InBound Endpoint
-    // tslint:disable-next-line: deprecation
-    const getDnsEndpointIpsResource = new cfn.CustomResource(this, 'InboundIp', {
-      provider: cfn.CustomResourceProvider.fromLambda(getDnsEndpointIpsLambda),
-      properties: {
-        EndpointResolver: this._inboundEndpoint.ref,
-        AccountId: cdk.Aws.ACCOUNT_ID,
-      },
+    const dnsIps = new R53DnsEndPointIps(this, 'InboundIp', {
+      resolverEndpointId: this._inboundEndpoint.ref,
+      subnetsCount: ipAddresses.length,
     });
 
     // Every IP address that we supply to inbound endpoint will result in an DNS endpoint IP
-    this._inboundEndpointIps = ipAddresses.map((_, index) => {
-      return getDnsEndpointIpsResource.getAttString(`IpAddress${index}`);
-    });
+    this._inboundEndpointIps = dnsIps.endpointIps;
 
     return this._inboundEndpoint;
   }

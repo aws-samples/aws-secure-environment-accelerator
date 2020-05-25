@@ -247,11 +247,8 @@ async function main() {
       continue;
     }
     const memberAccountStack = accountStacks.getOrCreateAccountStack(account.key);
-    const securityHubMember = new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
+    new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
       account,
-      acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-      enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-      inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
       standards: globalOptions['security-hub-frameworks'],
       masterAccountId: securityMasterAccount?.id,
     });
