@@ -3,7 +3,6 @@ import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { S3Template } from '@custom-resources/s3-template';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks } from '../../../common/account-stacks';
