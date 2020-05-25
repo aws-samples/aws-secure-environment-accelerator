@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
-import { HandlerProperties, TemplateParameters } from '@custom-resources/s3-template-lambda';
+import { HandlerProperties } from '@custom-resources/s3-template-lambda';
 
 const resourceType = 'Custom::S3Template';
 
@@ -34,7 +34,11 @@ export class S3Template extends cdk.Construct {
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: this.handlerProperties,
+      properties: {
+        ...this.handlerProperties,
+        // Add a dummy value that is a random number to update the resource every time
+        forceUpdate: Math.round(Math.random() * 1000000),
+      },
     });
 
     props.templateBucket.grantRead(this.role);
@@ -70,7 +74,7 @@ export class S3Template extends cdk.Construct {
 
     role.addToPolicy(
       new iam.PolicyStatement({
-        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         resources: ['*'],
       }),
     );

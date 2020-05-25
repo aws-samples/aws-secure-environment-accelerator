@@ -2,6 +2,10 @@ import * as crypto from 'crypto';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack } from './accelerator-stack';
 
+/**
+ * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
+ * resources in a customer's account. Please take this into account!
+ */
 export function createBucketName(name?: string): string {
   return createName({
     name,
@@ -53,7 +57,7 @@ export interface CreateNameProps {
    */
   region?: boolean;
   /**
-   * @default false
+   * @default undefined
    */
   name?: string;
   /**
@@ -63,6 +67,9 @@ export interface CreateNameProps {
 }
 
 /**
+ * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
+ * resources in a customer's account. Please take this into account!
+ *
  * Generates a name with the Accelerator prefix of the AcceleratorStack, the given name and a random prefix based on
  * the constructs path.
  *
@@ -119,7 +126,7 @@ function hashPath(path: string[], length: number) {
 /**
  * Prepare the given string with the given props. Currently only lowercases the string.
  */
-function prepareString(str: string, props: CreateNameProps): string {
+function prepareString(str: string, props: { lowercase?: boolean }): string {
   if (cdk.Token.isUnresolved(str)) {
     // We should not modify an unresolved token
     return str;

@@ -1,7 +1,6 @@
 import { CfnBudget } from '@aws-cdk/aws-budgets';
 import { BudgetConfig, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AccountStacks } from '../../common/account-stacks';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { AccountStacks, AccountStack } from '../../common/account-stacks';
 
 export interface BudgetStep1Props {
   accountStacks: AccountStacks;
@@ -39,7 +38,7 @@ async function convertCostTypes(budgetConfig: BudgetConfig) {
   };
 }
 
-async function createBudget(accountStack: AcceleratorStack, budgetConfig: BudgetConfig): Promise<void> {
+async function createBudget(accountStack: AccountStack, budgetConfig: BudgetConfig): Promise<void> {
   if (budgetConfig) {
     const notifications = [];
     for (const notification of budgetConfig.alerts) {
@@ -75,14 +74,16 @@ async function createBudget(accountStack: AcceleratorStack, budgetConfig: Budget
 
 export async function step1(props: BudgetStep1Props) {
   const accountsAlreadyHaveBudget = [];
+
   // Create dependency on Master account since budget requires Payer account deploy first
   const masterAccountStack = props.accountStacks.getOrCreateAccountStack('master');
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
+  for (const [accountKey, _] of props.config.getAccountConfigs()) {
     if (accountKey !== 'master') {
       const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
       accountStack.addDependency(masterAccountStack);
     }
   }
+
   // Create Budgets for mandatory accounts
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     const budgetConfig = accountConfig.budget;
