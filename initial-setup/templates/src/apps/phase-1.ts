@@ -36,6 +36,7 @@ import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
 import * as reports from '../deployments/reports';
+import * as ssm from '../deployments/ssm/session-manager';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -241,6 +242,7 @@ async function main() {
           securityGroupName: name,
         }),
       ),
+      pcx: `${vpcConfig.pcx}`,
     };
 
     // Store the VPC output so that subsequent phases can access the output
@@ -431,6 +433,14 @@ async function main() {
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  // SSM config step 1
+  await ssm.step1({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    bucketName: logBucket.bucketName,
+    config: acceleratorConfig,
   });
 
   // Cost and usage reports step 1

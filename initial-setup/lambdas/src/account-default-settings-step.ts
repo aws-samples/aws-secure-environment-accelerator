@@ -1,3 +1,4 @@
+import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
@@ -10,6 +11,7 @@ import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
+import { UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
 
 interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
@@ -142,6 +144,70 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log(`Cloud Trail - settings updated (encryption...) for AWS LZ CloudTrail in account - ${accountKey}`);
   };
 
+  const updateSSMdocument = async (accountId: string, accountKey: string): Promise<void> => {
+    const globalOptionsConfig = acceleratorConfig['global-options'];
+    const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
+    const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
+
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+    const ssm = new aws.SSM({
+      credentials,
+    });
+    const kms = new aws.KMS({
+      credentials,
+    });
+    const cloudwatchlogs = new aws.CloudWatchLogs({
+      credentials,
+    });
+
+    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    if (!logArchiveAccount) {
+      throw new Error('Cannot find account with type log-archive');
+    }
+    const logArchiveAccountKey = logArchiveAccount.key;
+    const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
+    const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
+
+    // Encrypt CWL doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
+    const kmsParams = {
+      KeyId: ssmKeyId,
+    };
+    const ssmKey = await kms.describeKey(kmsParams).promise();
+    console.log('SSM key: ', ssmKey);
+
+    const cwlParams = {
+      kmsKeyId: ssmKey.KeyMetadata?.Arn || ssmKeyId,
+      logGroupName: '/PBMMAccel/SSM',
+    };
+    const cwlResponse = await cloudwatchlogs.associateKmsKey(cwlParams).promise();
+    console.log('CWL encrypt: ', cwlResponse);
+
+    // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
+    const settings = {
+      schemaVersion: '1.0',
+      description: 'Document to hold regional settings for Session Manager',
+      sessionType: 'Standard_Stream',
+      inputs: {
+        s3BucketName: bucketName,
+        s3KeyPrefix: '',
+        s3EncryptionEnabled: useS3,
+        cloudWatchLogGroupName: '/PBMMAccel/SSM',
+        cloudWatchEncryptionEnabled: useCWL,
+        kmsKeyId: ssmKeyId,
+        runAsEnabled: false,
+        runAsDefaultUser: '',
+      },
+    };
+
+    const updateDocumentRequest: UpdateDocumentRequest = {
+      Content: JSON.stringify(settings),
+      Name: 'SSM-SessionManagerRunShell',
+    };
+    console.log('Update SSM Request: ', updateDocumentRequest);
+    const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
+    console.log('Update SSM: ', updateSSMResponse);
+  };
+
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const account = accounts.find(a => a.key === accountKey);
@@ -166,6 +232,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       await updateCloudTrailSettings(account.id, account.key);
     } catch (e) {
       console.error(`Error while updating CloudTrail settings`);
+      console.error(e);
+    }
+
+    try {
+      await updateSSMdocument(account.id, account.key);
+    } catch (e) {
       console.error(e);
     }
   }
