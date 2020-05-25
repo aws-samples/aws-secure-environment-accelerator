@@ -57,8 +57,10 @@ If using an internal AWS account, to successfully install, you need to enable pr
    
    ***(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)***
 
-3. Create an S3 bucket in your master account, preferably encrypted with the `AwsLandingZoneKMSKey` KMS key, and with versioning enabled
+3. Create an S3 bucket in your master account with versioning enabled
 ~~4. Place your config file, named `config.json`, in your new bucket~~ (S3 auto-load Functionality BROKEN)
+5. place the firewall license and configuration in the folder and path defined in the config file 
+   (i.e. firewall/license.lic and firewall/fortigate.txt)
 
    
 #### Deploy the Accelerator Installer Stack
