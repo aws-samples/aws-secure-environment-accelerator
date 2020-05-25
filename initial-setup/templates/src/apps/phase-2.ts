@@ -105,8 +105,8 @@ async function main() {
         vpcId: vpcOutput.vpcId,
         vpcName: vpcOutput.vpcName,
         pcxId: pcx.ref,
-      }
-    })
+      },
+    });
   }
 
   const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;
