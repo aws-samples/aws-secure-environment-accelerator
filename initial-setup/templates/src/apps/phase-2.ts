@@ -23,6 +23,8 @@ import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
+import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
+import { StructuredOutput } from '../common/structured-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -97,14 +99,14 @@ async function main() {
       peerOwnerId,
     });
 
-    vpcOutput.pcx = pcx.ref;
-
-    // Store the VPC output so that subsequent phases can access the output
-    new JsonOutputValue(accountStack, `VpcOutput`, {
-      type: 'VpcOutput',
-      // tslint:disable-next-line deprecation
-      value: vpcOutput,
-    });
+    new StructuredOutput<PcxOutput>(accountStack, `PcxOutput${vpcConfig.name}`, {
+      type: PcxOutputType,
+      value: {
+        vpcId: vpcOutput.vpcId,
+        vpcName: vpcOutput.vpcName,
+        pcxId: pcx.ref,
+      }
+    })
   }
 
   const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;

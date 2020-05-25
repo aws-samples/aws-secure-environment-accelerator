@@ -46,5 +46,4 @@ export interface VpcOutput {
   subnets: VpcSubnetOutput[];
   routeTables: { [key: string]: string };
   securityGroups: VpcSecurityGroupOutput[];
-  pcx?: string;
 }

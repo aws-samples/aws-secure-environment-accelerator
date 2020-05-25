@@ -257,7 +257,6 @@ async function main() {
           securityGroupName: name,
         }),
       ),
-      pcx: `${vpcConfig.pcx}`,
     };
 
     // Store the VPC output so that subsequent phases can access the output

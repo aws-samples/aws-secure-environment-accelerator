@@ -4,6 +4,8 @@ import { PcxRouteConfig, PcxRouteConfigType, ResolvedVpcConfig } from '@aws-pbmm
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpcOutput } from '../deployments/vpc';
 import { getVpcConfig } from './get-all-vpcs';
+import { StructuredOutput } from './structured-output';
+import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 
 export namespace PeeringConnection {
   export interface PeeringConnectionRoutesProps {
@@ -65,19 +67,17 @@ export namespace PeeringConnection {
           console.warn(`No subnet Config Found for "${pcxRoute.subnet}" in VPC "${pcxRoute.vpc}"`);
           continue;
         }
-        let pcxId = vpcOutput.pcx;
-        if (!pcxId) {
-          const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-            accountKey: pcxRoute.account,
-            outputType: 'VpcOutput',
-          });
-          const peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
-          if (!vpcOutput) {
-            console.warn(`No VPC Created with name "${vpcName}"`);
-            continue;
-          }
-          pcxId = peerVpcOutput?.pcx;
+
+        const peerVpcOutputs: PcxOutput[] = StructuredOutput.fromOutputs(outputs, {
+          accountKey: pcxRoute.account,
+          type: PcxOutputType,
+        });
+        const peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
+        if (!peerVpcOutput) {
+          console.warn(`No VPC PCX created with name "${vpcName}" in "${pcxRoute.account}"`);
+          continue;
         }
+        const pcxId = peerVpcOutput.pcxId;
         // Add Route to RouteTable
         for (const [index, subnet] of targetSubnet.definitions.entries()) {
           if (subnet.disabled) {
