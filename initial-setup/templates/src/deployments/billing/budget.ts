@@ -1,7 +1,6 @@
 import { CfnBudget } from '@aws-cdk/aws-budgets';
 import { BudgetConfig, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AccountStacks } from '../../common/account-stacks';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { AccountStacks, AccountStack } from '../../common/account-stacks';
 
 export interface BudgetStep1Props {
   accountStacks: AccountStacks;
@@ -39,7 +38,7 @@ async function convertCostTypes(budgetConfig: BudgetConfig) {
   };
 }
 
-async function createBudget(accountStack: AcceleratorStack, budgetConfig: BudgetConfig): Promise<void> {
+async function createBudget(accountStack: AccountStack, budgetConfig: BudgetConfig): Promise<void> {
   if (budgetConfig) {
     const notifications = [];
     for (const notification of budgetConfig.alerts) {

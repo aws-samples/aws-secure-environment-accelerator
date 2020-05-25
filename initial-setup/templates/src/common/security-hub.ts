@@ -1,4 +1,3 @@
-import { AcceleratorStackProps, AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import * as cdk from '@aws-cdk/core';
 import { Account } from '../utils/accounts';
 import * as lambda from '@aws-cdk/aws-lambda';

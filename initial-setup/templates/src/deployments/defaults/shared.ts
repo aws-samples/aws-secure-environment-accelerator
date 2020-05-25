@@ -3,12 +3,12 @@ import * as kms from '@aws-cdk/aws-kms';
 import { Bucket } from '@aws-pbmm/constructs/lib/s3';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { createEncryptionKeyName, createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { AccountStack } from '../../common/account-stacks';
 
 /**
  * Creates a bucket in the account with given accountKey.
  */
-export function createDefaultS3Bucket(props: { accountStack: AcceleratorStack; config: AcceleratorConfig }): Bucket {
+export function createDefaultS3Bucket(props: { accountStack: AccountStack; config: AcceleratorConfig }): Bucket {
   const { accountStack, config } = props;
 
   const defaultLogRetention = config['global-options']['central-log-retention'];

@@ -510,21 +510,6 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const certManagerTask = new CodeTask(this, 'Cert Manager', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.certManagerStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-          configSecretSourceId: configSecretInProgress.secretArn,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-        },
-        resultPath: 'DISCARD',
-      });
-
       const deployPhase1Task = new sfn.Task(this, 'Deploy Phase 1', {
         task: new tasks.StartExecution(deployStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
@@ -726,7 +711,6 @@ export namespace InitialSetup {
           .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
-          .next(certManagerTask)
           .next(deployPhase1Task)
           .next(storePhase1Output)
           .next(accountDefaultSettingsTask)

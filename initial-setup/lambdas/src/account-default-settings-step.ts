@@ -215,12 +215,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.error(e);
     }
 
-    if (account.type === 'log-archive') {
-      // alter the encryption key used cloud trail s3 bucket
-      await alterCloudTrailS3BucketEncryptionKey(account.id, account.key);
-      console.log(`Cloud Trail - S3 bucket - default encryption key set as KMS CMK for account - ${accountKey}`);
-    }
-
     try {
       if (account.type === 'primary') {
         await enableCostAndUsageReport(account.id, account.key);
