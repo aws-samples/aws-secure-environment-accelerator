@@ -76,9 +76,10 @@ export async function step1(props: BudgetStep1Props) {
   const accountsAlreadyHaveBudget = [];
 
   // Create dependency on Master account since budget requires Payer account deploy first
-  const masterAccountStack = props.accountStacks.getOrCreateAccountStack('master');
+  const masterAccountKey = props.config.getMandatoryAccountKey('master');
+  const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey);
   for (const [accountKey, _] of props.config.getAccountConfigs()) {
-    if (accountKey !== 'master') {
+    if (accountKey !== masterAccountKey) {
       const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
       if (!accountStack) {
         console.warn(`Cannot find account stack ${accountKey}`);

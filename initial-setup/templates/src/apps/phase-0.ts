@@ -57,8 +57,8 @@ async function main() {
   const centralBucket = defaultsResult.centralBucketCopy;
 
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
-  // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
   const uploadArtifacts = ({
     artifactName,
@@ -98,7 +98,7 @@ async function main() {
     artifactName: 'IamPolicy',
     artifactFolderName: 'iam-policies',
     artifactKeyPrefix: 'iam-policy',
-    accountKey: 'master',
+    accountKey: masterAccountKey,
     destinationKeyPrefix: 'iam-policy',
   });
 
@@ -107,33 +107,30 @@ async function main() {
     artifactName: 'Rdgw',
     artifactFolderName: 'scripts',
     artifactKeyPrefix: 'config/scripts/',
-    accountKey: 'master',
+    accountKey: masterAccountKey,
     destinationKeyPrefix: 'config/scripts',
   });
 
   // creating assets for default account settings
-  const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    // TODO Remove hard-coded account key
-    if (accountKey === 'security') {
-      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-      if (!accountStack) {
-        console.warn(`Cannot find security stack`);
-        continue;
-      }
-
-      new AccessAnalyzer(accountStack, `Access Analyzer-${pascalCase(accountKey)}`);
-    }
+  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
+  const securityStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
+  if (!securityStack) {
+    console.warn(`Cannot find security stack`);
+  } else {
+    new AccessAnalyzer(securityStack, `Access Analyzer`);
   }
 
   const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const securityMasterAccount = accounts.find(
+    a => a.key === acceleratorConfig.getMandatoryAccountKey('central-security'),
+  );
   const subAccountIds = accounts.map(account => {
     return {
       AccountId: account.id,
       Email: account.email,
     };
   });
+
   const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityMasterAccount?.key!);
   if (!securityMasterAccountStack) {
     console.warn(`Cannot find security stack`);

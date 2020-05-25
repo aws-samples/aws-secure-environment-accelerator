@@ -5,6 +5,10 @@ import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import { isLeft } from 'fp-ts/lib/Either';
 
+export const MANDATORY_ACCOUNT_TYPES = ['master', 'central-security', 'central-log', 'central-operations'] as const;
+
+export type MandatoryAccountType = typeof MANDATORY_ACCOUNT_TYPES[number];
+
 export const VirtualPrivateGatewayConfig = t.interface({
   asn: optional(t.number),
 });
@@ -490,13 +494,6 @@ export const CentralServicesConfigType = t.interface({
   'ssm-to-cwl': optional(t.boolean),
 });
 
-export const OrganizationMasterConfigType = t.interface({
-  account: NonEmptyString,
-  region: NonEmptyString,
-});
-
-export type OrganizationMasterConfig = t.TypeOf<typeof OrganizationMasterConfigType>;
-
 export const ScpsConfigType = t.interface({
   name: NonEmptyString,
   description: NonEmptyString,
@@ -512,10 +509,10 @@ export const GlobalOptionsConfigType = t.interface({
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
-  'aws-org-master': OrganizationMasterConfigType,
   'central-security-services': CentralServicesConfigType,
   'central-operations-services': CentralServicesConfigType,
   'central-log-services': CentralServicesConfigType,
+  'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
 });
 
@@ -623,6 +620,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
    */
   getOrganizationalUnits(): [string, OrganizationalUnitConfig][] {
     return Object.entries(this['organizational-units']);
+  }
+
+  /**
+   * @return string // Account Key for Mandatory accounts
+   */
+  getMandatoryAccountKey(accountName: MandatoryAccountType): string {
+    if (accountName === 'master') {
+      return this['global-options']['aws-org-master'].account;
+    } else if (accountName === 'central-security') {
+      return this['global-options']['central-security-services'].account;
+    } else if (accountName === 'central-operations') {
+      return this['global-options']['central-operations-services'].account;
+    } else if (accountName === 'central-log') {
+      return this['global-options']['central-log-services'].account;
+    } else {
+      // Invalid account name
+      throw new Error(`Invalid Account Type sent to "getMandatoryAccountKey"`);
+    }
   }
 
   /**

@@ -35,6 +35,8 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     commitId: configCommitId,
   });
 
+  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
+
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
@@ -86,13 +88,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const cloudTrailName = outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
     console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
 
-    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
     if (!logArchiveAccount) {
       console.warn('Cannot find account with type log-archive');
       return;
     }
-    const logArchiveAccountKey = logArchiveAccount.key;
-    const s3KmsKeyArn = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+    const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
     console.log('AWS LZ CloudTrail S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
 
     const cloudTrail = new CloudTrail(credentials);
@@ -168,7 +169,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       credentials,
     });
 
-    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
     if (!logArchiveAccount) {
       console.warn('Cannot find account with type log-archive');
       return;

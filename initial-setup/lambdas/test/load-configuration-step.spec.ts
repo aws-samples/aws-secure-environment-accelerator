@@ -234,6 +234,10 @@ function reset() {
                 name: '/org/primary/account_id',
                 value: '$[AccountId]',
               },
+              {
+                name: '/org/primary/email_id',
+                value: '$[AccountEmail]',
+              },
             ],
           },
           {

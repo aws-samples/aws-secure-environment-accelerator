@@ -76,6 +76,8 @@ async function main() {
 
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
 
   const app = new cdk.App();
 
@@ -311,8 +313,7 @@ async function main() {
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {
     const iamPoliciesDef: { [policyName: string]: string } = {};
 
-    // TODO Remove hard-coded 'master' account key and use configuration file somehow
-    const masterAccountId = getAccountId(accounts, 'master');
+    const masterAccountId = getAccountId(accounts, masterAccountKey);
     if (!masterAccountId) {
       console.warn('Cannot find account with accountKey master');
       return;
@@ -328,7 +329,7 @@ async function main() {
     const iamPolicyS3 = new S3(masterAcctCredentials);
 
     const iamPolicyArtifactOutput: IamPolicyArtifactsOutput[] = getStackJsonOutput(outputs, {
-      accountKey: 'master',
+      accountKey: masterAccountKey,
       outputType: 'IamPolicyArtifactsOutput',
     });
 
@@ -363,8 +364,6 @@ async function main() {
     return iamPoliciesDef;
   };
 
-  // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
 

@@ -50,12 +50,7 @@ async function main() {
     context,
   });
 
-  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
-  if (!masterAccount) {
-    throw new Error(`Cannot find primary account`);
-  }
-
-  const [masterAccountKey, _] = masterAccount;
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
@@ -118,7 +113,7 @@ async function main() {
     );
 
     const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
-      accountKey: 'master',
+      accountKey: masterAccountKey,
       outputType: 'RdgwArtifactsOutput',
     });
 
