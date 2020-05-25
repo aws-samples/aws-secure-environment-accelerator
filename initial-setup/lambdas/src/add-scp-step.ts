@@ -1,16 +1,15 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
-import { AcceleratorConfig, OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
-import { ConfigurationOrganizationalUnit } from './load-configuration-step';
+import { ConfigurationOrganizationalUnit, LoadConfigurationInput } from './load-configuration-step';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
 const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
-interface AddScpInput {
+interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
-  configSecretId: string;
   scpBucketName: string;
   scpBucketPrefix: string;
   organizationalUnits: ConfigurationOrganizationalUnit[];
@@ -24,14 +23,23 @@ export const handler = async (input: AddScpInput) => {
   console.log(`Adding service control policy to organization...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, configSecretId, scpBucketName, scpBucketPrefix, accounts, organizationalUnits } = input;
+  const {
+    acceleratorPrefix,
+    scpBucketName,
+    scpBucketPrefix,
+    accounts,
+    organizationalUnits,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+  } = input;
 
-  const secrets = new SecretsManager();
-  const source = await secrets.getSecret(configSecretId);
-
-  // Load the configuration from Secrets Manager
-  const configString = source.SecretString!;
-  const config = AcceleratorConfig.fromString(configString);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
   // Find policy config
   const globalOptionsConfig = config['global-options'];
@@ -209,7 +217,8 @@ async function attachFullAwsAccessPolicyToTargets(props: {
   // Find the full access policy
   const fullAccessPolicy = existingPolicies.find(p => p.Name === FULL_AWS_ACCESS_POLICY_NAME);
   if (!fullAccessPolicy) {
-    throw new Error(`Cannot find policy with name ${FULL_AWS_ACCESS_POLICY_NAME}`);
+    console.warn(`Cannot find policy with name ${FULL_AWS_ACCESS_POLICY_NAME}`);
+    return;
   }
 
   const fullAccessPolicyId = fullAccessPolicy.Id!;
@@ -245,13 +254,15 @@ async function attachOrDetachPoliciesToOrganizationalUnits(props: {
   for (const [ouKey, ouConfig] of acceleratorOus) {
     const organizationalUnit = configurationOus.find(ou => ou.ouKey === ouKey);
     if (!organizationalUnit) {
-      throw new Error(`Cannot find OU configuration with key "${ouKey}"`);
+      console.warn(`Cannot find OU configuration with key "${ouKey}"`);
+      continue;
     }
     const ouPolicyNames = ouConfig.scps.map(policyName =>
       policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
     );
     if (ouPolicyNames.length > 4) {
-      throw new Error(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
+      console.warn(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
+      continue;
     }
 
     // Find targets for this policy

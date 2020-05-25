@@ -16,7 +16,8 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
 
   const securityAccount = accounts.find(a => a.type === 'security');
   if (!securityAccount) {
-    throw new Error(`Cannot find account with type security`);
+    console.warn('Cannot find account with type security');
+    return;
   }
   const securityAccountId: string = securityAccount.id;
 

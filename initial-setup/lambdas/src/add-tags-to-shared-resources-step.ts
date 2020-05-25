@@ -64,7 +64,7 @@ export const handler = async (input: CreateTagsRequestInput) => {
             Tags: tags.map(t => ({ Key: t.key, Value: t.value })),
           });
         } else {
-          throw new Error(`Unsupported resource type "${resourceType}"`);
+          console.warn(`Unsupported resource type "${resourceType}"`);
         }
       }
     }

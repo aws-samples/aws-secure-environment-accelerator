@@ -1,22 +1,15 @@
 import { ServiceQuotas } from '@aws-pbmm/common-lambda/lib/aws/service-quotas';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
+import { Limit, LimitOutput } from '@aws-pbmm/common-outputs/lib/limits';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-export interface LoadLimitsInput {
-  configSecretId: string;
+export interface LoadLimitsInput extends LoadConfigurationInput {
   limitsSecretId: string;
   accounts: Account[];
   assumeRoleName: string;
-}
-
-export interface LimitOutput {
-  accountKey: string;
-  limitKey: string;
-  serviceCode: string;
-  quotaCode: string;
-  value: number;
 }
 
 interface LimitCode {
@@ -25,20 +18,10 @@ interface LimitCode {
   enabled: boolean;
 }
 
-// TODO Move this to common so we can use it from initial-setup/cdk
-enum Limit {
-  Ec2Eips = 'Amazon EC2/Number of EIPs',
-  VpcPerRegion = 'Amazon VPC/VPCs per Region',
-  VpcInterfaceEndpointsPerVpc = 'Amazon VPC/Interface VPC endpoints per VPC',
-  CloudFormationStackCount = 'AWS CloudFormation/Stack count',
-  CloudFormationStackSetPerAdmin = 'AWS CloudFormation/Stack sets per administrator account',
-  OrganizationsMaximumAccounts = 'AWS Organizations/Maximum accounts',
-}
-
 const LIMITS: { [limitKey: string]: LimitCode } = {
   [Limit.Ec2Eips]: {
     serviceCode: 'ec2',
-    quotaCode: 'L-D0B7243C',
+    quotaCode: 'L-0263D0A3',
     enabled: true,
   },
   [Limit.VpcPerRegion]: {
@@ -72,14 +55,14 @@ export const handler = async (input: LoadLimitsInput) => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configSecretId, limitsSecretId, accounts, assumeRoleName } = input;
+  const { configRepositoryName, configFilePath, limitsSecretId, accounts, assumeRoleName, configCommitId } = input;
 
-  const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(configSecretId);
-
-  // Load the configuration from Secrets Manager
-  const configString = secret.SecretString!;
-  const config = AcceleratorConfig.fromString(configString);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
   // Capture limit results
   const limits: LimitOutput[] = [];
@@ -87,6 +70,11 @@ export const handler = async (input: LoadLimitsInput) => {
   const accountConfigs = config.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const accountId = getAccountId(accounts, accountKey);
+
+    if (!accountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
+    }
 
     const sts = new STS();
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
@@ -97,7 +85,8 @@ export const handler = async (input: LoadLimitsInput) => {
     for (const limitKey of Object.keys(limitConfig)) {
       const code = LIMITS[limitKey];
       if (!code) {
-        throw new Error(`Cannot find limit code with key "${limitKey}"`);
+        console.warn(`Cannot find limit code with key "${limitKey}"`);
+        continue;
       }
     }
 
@@ -148,6 +137,7 @@ export const handler = async (input: LoadLimitsInput) => {
   }
 
   // Store the limits in the secrets manager
+  const secrets = new SecretsManager();
   await secrets.putSecretValue({
     SecretId: limitsSecretId,
     SecretString: JSON.stringify(limits, null, 2),

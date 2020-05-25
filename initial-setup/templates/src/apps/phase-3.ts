@@ -38,7 +38,11 @@ async function main() {
     if (!currentRouteTable) {
       continue;
     }
-    const pcxRouteDeployment = accountStacks.getOrCreateAccountStack(accountKey);
+    const pcxRouteDeployment = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!pcxRouteDeployment) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
 
     new PeeringConnection.PeeringConnectionRoutes(pcxRouteDeployment, `PcxRoutes${vpcConfig.name}`, {
       accountKey,
@@ -55,14 +59,17 @@ async function main() {
   const zonesConfig = globalOptionsConfig.zones;
   const zonesAccountKey = zonesConfig.account;
 
-  const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey);
-
-  new GlobalOptionsDeployment(zonesStack, `GlobalOptionsDNSResolvers`, {
-    accounts,
-    outputs,
-    context,
-    acceleratorConfig,
-  });
+  const zonesStack = accountStacks.tryGetOrCreateAccountStack(zonesAccountKey);
+  if (!zonesStack) {
+    console.warn(`Cannot find account stack ${zonesAccountKey}`);
+  } else {
+    new GlobalOptionsDeployment(zonesStack, `GlobalOptionsDNSResolvers`, {
+      accounts,
+      outputs,
+      context,
+      acceleratorConfig,
+    });
+  }
 
   // Import all VPCs from all outputs
   const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {

@@ -95,7 +95,7 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
         az: s.az,
         cidrBlock: s.cidrBlock,
       })),
-      securityGroups: output.securityGroups.map(sg => ({
+      securityGroups: (output.securityGroups || []).map(sg => ({
         id: sg.securityGroupId,
         name: sg.securityGroupName,
       })),

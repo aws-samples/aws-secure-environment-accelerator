@@ -58,7 +58,8 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     // Find the VPC in with the given name in the zones account
     const resolverVpc = zonesVpcOutputs.find(output => output.vpcName === zonesResolverVpcName);
     if (!resolverVpc) {
-      throw new Error(`Cannot find resolver VPC with name "${zonesResolverVpcName}"`);
+      console.warn(`Cannot find resolver VPC with name "${zonesResolverVpcName}"`);
+      return;
     }
 
     // Creating Hosted Zones based on config
@@ -72,14 +73,15 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     const createResolvers = (accountKey: string, vpcConfig: VpcConfig): ResolversOutput | undefined => {
       const resolversConfig = vpcConfig.resolvers;
       if (!resolversConfig) {
-        console.debug(`Skipping resolver creation for VPC "${vpcConfig.name}" in account "${accountKey}"`);
+        console.warn(`Skipping resolver creation for VPC "${vpcConfig.name}" in account "${accountKey}"`);
         return;
       }
       const vpcSubnet = vpcConfig.subnets?.find(s => s.name === resolversConfig.subnet);
       if (!vpcSubnet) {
-        throw new Error(
+        console.warn(
           `Subnet provided in resolvers doesn't exist in Subnet = ${resolversConfig.subnet} and VPC = ${vpcConfig.name}`,
         );
+        return;
       }
 
       const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
@@ -88,13 +90,13 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       });
       const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcConfig.name);
       if (!vpcOutput) {
-        throw new Error(`Cannot find resolved VPC with name "${vpcConfig.name}"`);
+        console.warn(`Cannot find resolved VPC with name "${vpcConfig.name}"`);
+        return;
       }
       const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === resolversConfig.subnet).map(s => s.subnetId);
       if (subnetIds.length === 0) {
-        throw new Error(
-          `Cannot find subnet IDs for subnet name = ${resolversConfig.subnet} and VPC = ${vpcConfig.name}`,
-        );
+        console.warn(`Cannot find subnet IDs for subnet name = ${resolversConfig.subnet} and VPC = ${vpcConfig.name}`);
+        return;
       }
 
       // Call r53-resolver-endpoint per Account
@@ -199,7 +201,6 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         continue;
       }
       madIPs = madOutput[0].dnsIps.split(',');
-      console.log(madIPs);
 
       const centralResolverAccount = madConfig['central-resolver-rule-account'];
       const centralResolverVpcName = madConfig['central-resolver-rule-vpc'];
@@ -210,12 +211,13 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       });
       const centralResolverVpc = centralResolverVpcOutputs.find(output => output.vpcName === centralResolverVpcName);
       if (!centralResolverVpc) {
-        throw new Error(`Cannot find resolved VPC with name "${centralResolverVpcName}"`);
+        console.warn(`Cannot find resolved VPC with name "${centralResolverVpcName}"`);
+        continue;
       }
-      console.log(vpcOutBoundMapping);
       const endpointId = vpcOutBoundMapping.get(centralResolverVpcName);
       if (!endpointId) {
-        throw new Error(`Cannot find outbound mapping for VPC with name "${centralResolverVpcName}"`);
+        console.warn(`Cannot find outbound mapping for VPC with name "${centralResolverVpcName}"`);
+        continue;
       }
 
       const rule = new Route53ResolverRule(this, `${domainToName(madConfig['dns-domain'])}-phz-rule`, {

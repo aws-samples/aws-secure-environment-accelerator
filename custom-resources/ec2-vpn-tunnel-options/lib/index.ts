@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import { HandlerProperties } from '@custom-resources/ec2-vpn-tunnel-options-lambda';
 
 const resourceType = 'Custom::EC2VpnTunnelOptions';
 
@@ -59,12 +60,14 @@ export class VpnTunnelOptions extends cdk.Construct {
       ],
     });
 
+    const handlerProperties: HandlerProperties = {
+      VPNConnectionID: props.vpnConnectionId,
+    };
+
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: provider,
-      properties: {
-        VPNConnectionID: props.vpnConnectionId,
-      },
+      properties: handlerProperties,
     });
   }
 

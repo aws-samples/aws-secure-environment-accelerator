@@ -217,7 +217,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
       },
       transitGateways: new Map<string, TransitGateway>(),
     });
-  }).toThrowError();
+  });
 });
 
 test('the VPC creation should create the internet gateway', () => {

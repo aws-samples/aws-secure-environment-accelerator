@@ -23,7 +23,8 @@ export const handler = async (input: AddRoleToKmsKeyInput) => {
 
   const policy = getKeyPolicy?.Policy;
   if (!policy) {
-    throw new Error(`Cannot find default KMS key policy for key "${kmsKeyId}"`);
+    console.warn(`Cannot find default KMS key policy for key "${kmsKeyId}"`);
+    return;
   }
 
   // Parse the policy and find the statement
@@ -31,7 +32,8 @@ export const handler = async (input: AddRoleToKmsKeyInput) => {
   // tslint:disable-next-line: no-any
   const statements: any[] = content.Statement;
   if (!statements) {
-    throw new Error(`The default KMS key policy for key "${kmsKeyId}" does not have a Statement field`);
+    console.warn(`The default KMS key policy for key "${kmsKeyId}" does not have a Statement field`);
+    return;
   }
 
   // Add our role to all the statements

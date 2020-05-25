@@ -41,9 +41,7 @@
         "compression": "Parquet",
         "format": "Parquet",
         "report-name": "cost-and-usage-report",
-        "s3-bucket": "pbmmaccel-xxaccountIdxx-xxregionxx",
-        "s3-prefix": "/CUR-xxaccountIdxx",
-        "s3-region": "ca-central-1",
+        "s3-prefix": "cur",
         "time-unit": "HOURLY",
         "additional-artifacts": ["ATHENA"],
         "refresh-closed-reports": true,
@@ -126,7 +124,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "bmycroft+lzT-network@amazon.com",
+      "email": "myemail+pbmmT-network@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
       "iam": {
@@ -156,7 +154,7 @@
         "AWS CloudFormation/Stack count": 400,
         "AWS CloudFormation/Stack sets per administrator account": 400
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Endpoint",
         "cidr": "10.7.0.0/22",
@@ -277,7 +275,7 @@
             "outbound-ips": ["7.23.0.1", "7.26.0.2"]
           }
         ]
-      },
+      }],
       "deployments": {
         "tgw": {
           "name": "Main",
@@ -295,7 +293,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "bmycroft+lzT-operations@amazon.com",
+      "email": "myemail+pbmmT-operations@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
@@ -305,6 +303,10 @@
           {
             "policy-name": "Default-Boundary-Policy",
             "policy": "boundary-policy.txt"
+          },
+          {
+            "policy-name": "PBMMAccel-RDGW-Custom-Policy",
+            "policy": "pbmmaccel-rdgw-custom-policies.txt"
           }
         ],
         "roles": [
@@ -315,6 +317,17 @@
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "PBMMAccel-RDGW-Role",
+            "type": "ec2",
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy",
+              "PBMMAccel-RDGW-Custom-Policy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
           },
@@ -346,6 +359,7 @@
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
           "rdgw-instance-type": "t2.large",
+		  "rdgw-instance-role": "PBMMAccel-RDGW-Role",
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -408,7 +422,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "bmycroft+lzT-perimeter@amazon.com",
+      "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {
         "Amazon EC2/Number of EIPs": 10
@@ -422,29 +436,27 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
         {
           "name": "PerimSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
-          "chain": "",
-          "arn": ""
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt"
         }
       ],
       "alb": [
@@ -578,10 +590,11 @@
           }
         ]
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Perimeter",
-        "cidr": "100.96.250.0/23",
+        "cidr": "10.7.4.0/22",
+        "cidr2": "100.96.250.0/23",
         "region": "ca-central-1",
         "use-central-endpoints": false,
         "flow-logs": true,
@@ -598,12 +611,12 @@
               {
                 "az": "a",
                 "route-table": "Public_Shared",
-                "cidr": "100.96.251.64/26"
+                "cidr": "100.96.250.0/25"
               },
               {
                 "az": "b",
                 "route-table": "Public_Shared",
-                "cidr": "100.96.251.128/26"
+                "cidr": "100.96.250.128/25"
               }
             ]
           },
@@ -613,12 +626,12 @@
               {
                 "az": "a",
                 "route-table": "FWMgmt_azA",
-                "cidr": "100.96.251.16/28"
+                "cidr": "100.96.251.32/27"
               },
               {
                 "az": "b",
                 "route-table": "FWMgmt_azB",
-                "cidr": "100.96.251.48/28"
+                "cidr": "100.96.251.160/27"
               }
             ]
           },
@@ -628,12 +641,12 @@
               {
                 "az": "a",
                 "route-table": "Proxy_azA",
-                "cidr": "100.96.250.0/25"
+                "cidr": "100.96.251.64/26"
               },
               {
                 "az": "b",
                 "route-table": "Proxy_azB",
-                "cidr": "100.96.250.128/25"
+                "cidr": "100.96.251.192/26"
               }
             ]
           },
@@ -643,12 +656,27 @@
               {
                 "az": "a",
                 "route-table": "OnPremise_Shared",
-                "cidr": "100.96.251.0/28"
+                "cidr": "100.96.251.0/27"
               },
               {
                 "az": "b",
                 "route-table": "OnPremise_Shared",
-                "cidr": "100.96.251.32/28"
+                "cidr": "100.96.251.128/27"
+              }
+            ]
+          },
+          {
+            "name": "Detonation",
+            "definitions": [
+              {
+                "az": "a",
+                "route-table": "Detonation_Shared",
+                "cidr": "10.7.4.0/24"
+              },
+              {
+                "az": "b",
+                "route-table": "Detonation_Shared",
+                "cidr": "10.7.5.0/24"
               }
             ]
           }
@@ -718,6 +746,9 @@
                 "target": "{ENI-FW-azB-p4}"
               }
             ]
+          },
+          {
+            "name": "Detonation_Shared"
           }
         ],
         "security-groups": [
@@ -800,7 +831,7 @@
             "ec2messages"
           ]
         }
-      },
+      }],
       "deployments": {
         "firewall": {
           "image-id": "ami-047aac44951feb9fb",
@@ -824,7 +855,7 @@
             {
               "name": "FWMgmt",
               "subnet": "FWMgmt",
-              "create-eip": true,
+              "create-eip": false,
               "create-cgw": false
             },
             {
@@ -834,7 +865,8 @@
               "create-cgw": false
             }
           ],
-          "config": "fortigate_AA_20200504.txt",
+          "license": "firewall/license.lic",
+          "config": "firewall/config.template.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
           "fw-cgw-routing": "Dynamic",
@@ -868,7 +900,7 @@
     },
     "master": {
       "account-name": "primary",
-      "email": "bmycroft+lzT@amazon.com",
+      "email": "myemail+pbmmT-master@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
@@ -900,7 +932,7 @@
         ],
         "roles": []
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "ForSSO",
         "cidr": "10.249.1.0/24",
@@ -946,7 +978,7 @@
         ],
         "tgw-attach": false,
         "interface-endpoints": false
-      },
+      }],
       "deployments": {
         "adc": {
           "deploy": true,
@@ -966,21 +998,21 @@
       "account-name": "log-archive",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+logs@amazon.com",
+      "email": "myemail+pbmmT-log@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+security@amazon.com",
+      "email": "myemail+pbmmT-sec@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
       "share-mad-from": "",
       "ou": "core",
-      "email": "bmycroft+lzT+services@amazon.com",
+      "email": "myemail+pbmmT-ss@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "shared-services",
       "enable-s3-public-access": true
     }
@@ -988,8 +1020,20 @@
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "bmycroft+FunAcct@amazon.com",
-      "ou": "sandbox",
+      "email": "myemail+pbmmT-funacct@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Sandbox",
+      "share-mad-from": ""
+    },
+    "mydevacct1": {
+      "account-name": "MyDev1",
+      "email": "myemail+pbmmT-dev1@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Dev",
+      "share-mad-from": ""
+    },
+    "my-dev-acct2": {
+      "account-name": "MyDev2",
+      "email": "myemail+pbmmT-dev2@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Dev",
       "share-mad-from": ""
     }
   },
@@ -1006,23 +1050,23 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       }
     },
-    "central": {
+    "Central": {
       "type": "mandatory",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -1034,40 +1078,37 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
         {
           "name": "CentralSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
-          "chain": "",
-          "arn": ""
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt"
         },
         {
           "name": "PublicCert",
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
-          "arn": ""
+          "san": ["*.example1.com"]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Central",
         "cidr": "10.1.0.0/16",
@@ -1186,7 +1227,7 @@
                 "cidr-blocks": [
                   {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Web"]
                   }
                 ]
               },
@@ -1207,7 +1248,7 @@
                 "cidr-blocks": [
                   {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Web"]
                   }
                 ]
               },
@@ -1350,19 +1391,9 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
               }
             ],
             "outbound-rules": [
@@ -1377,26 +1408,15 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
               {
-                "description": "Central VPC Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -1414,17 +1434,7 @@
             "name": "App",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1433,7 +1443,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1463,17 +1473,7 @@
             "name": "Data",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1482,7 +1482,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -1520,7 +1520,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -1552,7 +1552,7 @@
         ]
       }
     },
-    "dev": {
+    "Dev": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -1564,37 +1564,34 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
         {
           "name": "DevSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
-          "chain": "",
-          "arn": ""
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt"
         },
         {
           "name": "PublicCert",
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
-          "arn": ""
+          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -1623,7 +1620,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Dev",
         "cidr": "10.2.0.0/16",
@@ -1735,8 +1732,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Dev",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Data", "Web"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -1756,8 +1757,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Dev",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Data", "Web"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -1820,7 +1825,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1847,7 +1852,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -1862,11 +1867,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -1894,7 +1898,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1903,7 +1907,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1943,7 +1947,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -1952,7 +1956,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -1990,7 +1994,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -2022,7 +2026,7 @@
         ]
       }
     },
-    "test": {
+    "Test": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -2034,37 +2038,34 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
         {
           "name": "TestSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
-          "chain": "",
-          "arn": ""
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt"
         },
         {
           "name": "PublicCert",
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
-          "arn": ""
+          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2093,7 +2094,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Test",
         "cidr": "10.3.0.0/16",
@@ -2205,8 +2206,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Test",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2226,8 +2231,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Test",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2290,7 +2299,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2317,7 +2326,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2332,11 +2341,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -2364,7 +2372,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2373,7 +2381,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2413,7 +2421,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2422,7 +2430,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -2460,7 +2468,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -2492,7 +2500,7 @@
         ]
       }
     },
-    "prod": {
+    "Prod": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
@@ -2504,37 +2512,34 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
         {
           "name": "ProdSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
-          "chain": "",
-          "arn": ""
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt"
         },
         {
           "name": "PublicCert",
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
-          "arn": ""
+          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2563,7 +2568,7 @@
           ]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "Prod",
         "cidr": "10.4.0.0/16",
@@ -2675,8 +2680,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Prod",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2696,8 +2705,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Prod",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -2760,7 +2773,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2787,7 +2800,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -2802,11 +2815,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -2834,7 +2846,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2843,7 +2855,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2883,7 +2895,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -2892,7 +2904,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -2930,7 +2942,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -2962,7 +2974,7 @@
         ]
       }
     },
-    "unclass": {
+    "Unclass": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
@@ -2974,40 +2986,37 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
       "certificates": [
         {
           "name": "UnclassSelf-SignedCert",
           "type": "import",
-          "priv-key": "domain1.key",
-          "cert": "domain1.crt",
-          "chain": "",
-          "arn": ""
+          "priv-key": "certs/domain1.key",
+          "cert": "certs/domain1.crt"
         },
         {
           "name": "PublicCert",
           "type": "request",
           "domain": "*.example.com",
           "validation": "DNS",
-          "SAN": "*.example1.com",
-          "arn": ""
+          "san": ["*.example1.com"]
         }
       ],
-      "vpc": {
+      "vpc": [{
         "deploy": "shared-network",
         "name": "UnClass",
         "cidr": "10.5.0.0/16",
@@ -3119,8 +3128,12 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "UnClass",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3140,8 +3153,12 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "UnClass",
+                    "subnet": ["Web"]
+                  },
+                  {
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3204,7 +3221,7 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
               },
@@ -3231,7 +3248,7 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
@@ -3246,11 +3263,10 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -3278,7 +3294,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3287,7 +3303,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3327,7 +3343,7 @@
                 ]
               },
               {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3336,7 +3352,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -3374,7 +3390,7 @@
           "options": ["DNS-support", "IPv6-support"]
         },
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [
@@ -3406,7 +3422,7 @@
         ]
       }
     },
-    "sandbox": {
+    "Sandbox": {
       "type": "workload",
       "share-mad-from": "",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
@@ -3418,22 +3434,22 @@
          "alerts": [{
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          },{
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["bmycroft@amazon.com"]
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
          }]
       },
-      "vpc": {
+      "vpc": [{
         "deploy": "local",
         "name": "Sandbox",
         "cidr": "10.6.0.0/16",
@@ -3527,8 +3543,13 @@
                 "egress": true,
                 "cidr-blocks": [
                   {
+                    "vpc": "Sandbox",
+                    "subnet": ["Web"]
+                  },
+                  {
+                    "account": "shared-network",
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3548,8 +3569,13 @@
                 "egress": false,
                 "cidr-blocks": [
                   {
+                    "vpc": "Sandbox",
+                    "subnet": ["Web"]
+                  },
+                  {
+                    "account": "shared-network",
                     "vpc": "Central",
-                    "subnet": ["Web", "Data"]
+                    "subnet": ["Data"]
                   }
                 ]
               },
@@ -3613,19 +3639,9 @@
             "name": "Mgmt",
             "inbound-rules": [
               {
-                "description": "Allow Mgmt Traffic Inbound",
+                "description": "World RDP/SSH Traffic Inbound",
                 "type": ["RDP", "SSH"],
                 "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
               }
             ],
             "outbound-rules": [
@@ -3640,26 +3656,15 @@
             "name": "Web",
             "inbound-rules": [
               {
-                "description": "Web Traffic Inbound",
+                "description": "World Web Traffic Inbound",
                 "type": ["HTTP", "HTTPS"],
                 "source": ["0.0.0.0/0"]
               },
               {
-                "description": "Central VPC Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
                     "security-group": ["Mgmt"]
                   }
                 ]
@@ -3677,17 +3682,7 @@
             "name": "App",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3696,7 +3691,7 @@
                 ]
               },
               {
-                "description": "Web Traffic Inbound",
+                "description": "Local Web Tier Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3726,17 +3721,7 @@
             "name": "Data",
             "inbound-rules": [
               {
-                "description": "Central VPC Traffic Inbound",
-                "type": ["ALL"],
-                "source": [
-                  {
-                    "vpc": "Central",
-                    "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                  }
-                ]
-              },
-              {
-                "description": "Mgmt Traffic Inbound",
+                "description": "Local Mgmt Traffic Inbound",
                 "type": ["ALL"],
                 "source": [
                   {
@@ -3745,7 +3730,7 @@
                 ]
               },
               {
-                "description": "App Traffic Inbound",
+                "description": "Local App DB Traffic Inbound",
                 "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
                 "source": [
                   {
@@ -3774,7 +3759,7 @@
         ],
         "tgw-attach": false,
         "interface-endpoints": false
-      },
+      }],
       "iam": {
         "users": [],
         "policies": [

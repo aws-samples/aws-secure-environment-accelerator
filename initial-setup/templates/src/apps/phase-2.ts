@@ -22,11 +22,21 @@ import * as firewallManagement from '../deployments/firewall/manager';
 import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
+import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
+import { StructuredOutput } from '../common/structured-output';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
   process.exit(1);
 });
+
+/**
+ * This is the main entry point to deploy phase 2.
+ *
+ * The following resources are deployed in phase 2:
+ *   - Creates Peering Connection
+ */
 
 async function main() {
   const context = loadContext();
@@ -41,6 +51,9 @@ async function main() {
     accounts,
     context,
   });
+
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
   /**
    * Code to create Peering Connection in all accounts
@@ -57,11 +70,17 @@ async function main() {
     // Get the exact same role name as in phase 1
     const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
     const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+
     // Get Peer VPC Configuration
     const peerVpcConfig = getVpcConfig(vpcConfigs, pcxConfig.source, pcxSourceVpc);
     if (!VpcConfigType.is(peerVpcConfig)) {
-      throw new Error(`No configuration found for Peer VPC "${pcxSourceVpc}"`);
+      console.warn(`No configuration found for Peer VPC "${pcxSourceVpc}"`);
+      continue;
     }
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey,
@@ -69,7 +88,8 @@ async function main() {
     });
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     if (!vpcOutput) {
-      throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+      console.warn(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+      continue;
     }
     const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey: pcxConfig.source,
@@ -77,7 +97,8 @@ async function main() {
     });
     const peerVpcOutout = peerVpcOutputs.find(x => x.vpcName === pcxSourceVpc);
     if (!peerVpcOutout) {
-      throw new Error(`No VPC Found in outputs for VPC name "${pcxSourceVpc}"`);
+      console.warn(`No VPC Found in outputs for VPC name "${pcxSourceVpc}"`);
+      continue;
     }
     const peerOwnerId = getAccountId(accounts, pcxConfig.source);
 
@@ -88,22 +109,16 @@ async function main() {
       peerOwnerId,
     });
 
-    vpcOutput.pcx = pcx.ref;
-
-    // Store the VPC output so that subsequent phases can access the output
-    new JsonOutputValue(accountStack, `VpcOutput`, {
-      type: 'VpcOutput',
-      // tslint:disable-next-line deprecation
-      value: vpcOutput,
+    new StructuredOutput<PcxOutput>(accountStack, `PcxOutput${vpcConfig.name}`, {
+      type: PcxOutputType,
+      value: {
+        vpcId: vpcOutput.vpcId,
+        vpcName: vpcOutput.vpcName,
+        pcxId: pcx.ref,
+      },
     });
   }
 
-  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
-  if (!masterAccount) {
-    throw new Error(`Cannot find primary account`);
-  }
-
-  const [masterAccountKey, _] = masterAccount;
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
@@ -114,8 +129,16 @@ async function main() {
       continue;
     }
     const accountId = getAccountId(accounts, accountKey);
+    if (!accountId) {
+      console.warn(`Cannot find account with key ${accountKey}`);
+      continue;
+    }
 
-    const stack = accountStacks.getOrCreateAccountStack(accountKey);
+    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!stack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
 
     const madPassword = secretsStack.createSecret('MadPassword', {
       secretName: `accelerator/${accountKey}/mad/password`,
@@ -131,7 +154,8 @@ async function main() {
     });
     const vpcOutput = vpcOutputs.find(output => output.vpcName === madDeploymentConfig['vpc-name']);
     if (!vpcOutput) {
-      throw new Error(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
+      console.warn(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
+      continue;
     }
 
     const vpcId = vpcOutput.vpcId;
@@ -172,23 +196,35 @@ async function main() {
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountKey] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const accountStack = accountStacks.getOrCreateAccountStack(sharedAccountKey);
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(sharedAccountKey);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${sharedAccountKey}`);
+        continue;
+      }
+
       const securityGroupStack = new cfn.NestedStack(
         accountStack,
         `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
       );
       if (!vpcOutput) {
-        throw new Error(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+        console.warn(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+        continue;
       }
       const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${index + 1}`, {
         securityGroups: vpcConfig['security-groups']!,
         vpcName: vpcConfig.name,
         vpcId: vpcOutput.vpcId,
         accountKey,
-        accountVpcConfigs: vpcConfigs,
+        vpcConfigs,
       });
-      // Add Tags Output
+
       const accountId = getAccountId(accounts, accountKey);
+      if (!accountId) {
+        console.warn(`Cannot find account with key ${accountKey}`);
+        continue;
+      }
+
+      // Add Tags Output
       const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
       new AddTagsToResourcesOutput(securityGroupStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
         dependencies: securityGroupsResources,
@@ -210,8 +246,27 @@ async function main() {
   });
   const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
 
-  await firewallCluster.step3({
+  // Find the account buckets in the outputs
+  const accountBuckets = AccountBucketOutput.getAccountBuckets({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accounts,
     accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await firewallCluster.step3({
+    accountBuckets,
+    accountStacks,
+    centralBucket,
     config: acceleratorConfig,
     outputs,
     vpcs: allVpcs,
@@ -225,18 +280,19 @@ async function main() {
 
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.type === 'security' && a.ou === 'core');
+  const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
 
   for (const account of accounts) {
     if (account.id === securityMasterAccount?.id) {
       continue;
     }
-    const memberAccountStack = accountStacks.getOrCreateAccountStack(account.key);
-    const securityHubMember = new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
+    const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
+    if (!memberAccountStack) {
+      console.warn(`Cannot find account stack ${account.key}`);
+      continue;
+    }
+    new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
       account,
-      acceptInvitationFuncArn: context.cfnCustomResourceFunctions.acceptInviteSecurityHubFunctionArn,
-      enableStandardsFuncArn: context.cfnCustomResourceFunctions.enableSecurityHubFunctionArn,
-      inviteMembersFuncArn: context.cfnCustomResourceFunctions.inviteMembersSecurityHubFunctionArn,
       standards: globalOptions['security-hub-frameworks'],
       masterAccountId: securityMasterAccount?.id,
     });
