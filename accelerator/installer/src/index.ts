@@ -22,15 +22,18 @@ async function main() {
     terminationProtection: true,
   });
 
-  const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
-    default: 'PBMM',
-    description: 'The name of the Accelerator. The name will used as value for the Accelerator tag.',
-  });
+  // const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
+  //   default: 'PBMM',
+  //   description: 'The name of the Accelerator. The name will used as value for the Accelerator tag.',
+  // });
 
-  const acceleratorPrefix = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
-    default: 'PBMMAccel-',
-    description: 'The prefix that will be used by the Accelerator when creating resources.',
-  });
+  // const acceleratorPrefix = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
+  //   default: 'PBMMAccel-',
+  //   description: 'The prefix that will be used by the Accelerator when creating resources.',
+  // });
+
+  const acceleratorName = 'PBMM';
+  const acceleratorPrefix = 'PBMMAccel-';
 
   const acceleratorConfigS3Bucket = new cdk.CfnParameter(stack, 'ConfigS3Bucket', {
     default: 'pbmmaccel-config',
@@ -73,7 +76,7 @@ async function main() {
     description: 'The notification email that will get Code Release notifications.',
   });
 
-  const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine_sm`;
+  const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
 
   // The state machine name has to match the name of the state machine in initial setup
   const stateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${stateMachineName}`;
@@ -83,7 +86,7 @@ async function main() {
 
   // Role that is used by the CodeBuild project
   const installerProjectRole = new iam.Role(stack, 'InstallerRole', {
-    roleName: `${acceleratorPrefix.valueAsString}L-CPL-Installer`,
+    roleName: `${acceleratorPrefix}L-CPL-Installer`,
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
   });
 
@@ -118,7 +121,7 @@ async function main() {
 
   // Define a build specification to build the initial setup templates
   const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
-    projectName: `${acceleratorPrefix.valueAsString}InstallerProject_pl`,
+    projectName: `${acceleratorPrefix}InstallerProject_pl`,
     role: installerProjectRole,
     buildSpec: codebuild.BuildSpec.fromObject({
       version: '0.2',
@@ -145,11 +148,11 @@ async function main() {
       environmentVariables: {
         ACCELERATOR_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorName.valueAsString,
+          value: acceleratorName,
         },
         ACCELERATOR_PREFIX: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorPrefix.valueAsString,
+          value: acceleratorPrefix,
         },
         ACCELERATOR_STATE_MACHINE_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -173,7 +176,7 @@ async function main() {
 
   // The role that will be used to start the state machine
   const stateMachineExecutionRole = new iam.Role(stack, 'ExecutionRoleName', {
-    roleName: `${acceleratorPrefix.valueAsString}L-SFN-Execution`,
+    roleName: `${acceleratorPrefix}L-SFN-Execution`,
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 
@@ -207,7 +210,7 @@ async function main() {
   // Create the repository that contains the configuration
   const configRepository = new codecommit.Repository(stack, 'ConfigRepository', {
     repositoryName: configRepositoryName.valueAsString,
-    description: `Repository containing configuration for ${acceleratorName.valueAsString} Accelerator.`,
+    description: `Repository containing configuration for ${acceleratorName} Accelerator.`,
   });
 
   // This artifact is used as output for the Github code and as input for the build step
@@ -218,7 +221,7 @@ async function main() {
   const configArtifact = new codepipeline.Artifact();
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
-    pipelineName: `${acceleratorPrefix.valueAsString}InstallerPipeline`,
+    pipelineName: `${acceleratorPrefix}InstallerPipeline`,
     // The default bucket is encrypted
     // That is not necessary for this pipeline so we create a custom unencrypted bucket.
     artifactBucket: new s3.Bucket(stack, 'ArtifactsBucket'),
@@ -267,7 +270,7 @@ async function main() {
     ],
   });
 
-  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName.valueAsString));
+  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName));
 }
 
 // tslint:disable-next-line: no-floating-promises
