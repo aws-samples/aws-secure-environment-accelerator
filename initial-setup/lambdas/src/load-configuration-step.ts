@@ -1,7 +1,8 @@
 import * as org from 'aws-sdk/clients/organizations';
-import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES } from '@aws-pbmm/common-lambda/lib/config';
+import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES, AccountConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
@@ -221,28 +222,27 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         continue;
       }
 
-      // When we find configuration for this account in the Accelerator config, then verify if properties match
-      if (acceleratorAccount.accountName !== lzAccount.name) {
+      const lzAccountEmail = lzAccount.email || await getLandingZoneAccountEmailBySsmParameters(lzAccount.ssm_parameters);
+      // When we find configuration for this account in the Accelerator config, then verify if properties match for non-primary accounts
+      if (acceleratorAccount.accountName !== lzAccount.name && acceleratorAccount.landingZoneAccountType !== 'primary') {
         errors.push(
           `The Acceleror account name and Landing Zone account name for account type "${lzAccountType}" do not match.\n` +
             `"${acceleratorAccount.accountName}" != "${lzAccount.name}"`,
         );
       }
 
-      // Only validate email address and OU for non-primary accounts
-      if (lzAccountType !== 'primary') {
-        if (acceleratorAccount.emailAddress !== lzAccount.email) {
-          errors.push(
-            `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
-              `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
-          );
-        }
-        if (acceleratorAccount.organizationalUnit !== lzOrganizationalUnitName) {
-          errors.push(
-            `The Acceleror account OU and Landing Zone OU email for account type "${lzAccountType}" do not match.\n` +
-              `"${acceleratorAccount.organizationalUnit}" != "${lzOrganizationalUnitName}"`,
-          );
-        }
+      // Only validate email address and OU for mandatory accounts
+      if (acceleratorAccount.emailAddress !== lzAccountEmail) {
+        errors.push(
+          `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
+            `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
+        );
+      }
+      if (acceleratorAccount.organizationalUnit !== lzOrganizationalUnitName) {
+        errors.push(
+          `The Acceleror account OU and Landing Zone OU email for account type "${lzAccountType}" do not match.\n` +
+            `"${acceleratorAccount.organizationalUnit}" != "${lzOrganizationalUnitName}"`,
+        );
       }
     }
   }
@@ -303,3 +303,21 @@ function getLandingZoneAccountTypeBySsmParameters(
   }
   return undefined;
 }
+
+async function getLandingZoneAccountEmailBySsmParameters(
+  ssmParameters: { name: string; value: string }[],
+): Promise<string | undefined> {
+  const accountEmailParameter = ssmParameters.find(p => p.value === '$[AccountEmail]');
+  if (!accountEmailParameter) {
+    return undefined;
+  }
+  const ssm = new SSM();
+  const response = await ssm.getParameter(accountEmailParameter.name);
+  return response.Parameter?.Value;
+}
+
+handler({
+  "configRepositoryName": "PBMMAccel-Config-Repo",
+  "configFilePath": "config.json",
+  "configCommitId": "eaa4959e3aed9f669b52eaedb51faf16cc74cb17"
+})

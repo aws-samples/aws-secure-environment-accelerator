@@ -233,13 +233,7 @@ async function main() {
             branch: githubBranch.valueAsString,
             oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
             output: sourceArtifact,
-          }),
-          new actions.CodeCommitSourceAction({
-            actionName: 'CodeCommitSource',
-            repository: configRepository,
-            branch: configBranchName.valueAsString,
-            output: configArtifact,
-          }),
+          })
         ],
       },
       {
