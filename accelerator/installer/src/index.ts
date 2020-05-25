@@ -22,16 +22,6 @@ async function main() {
     terminationProtection: true,
   });
 
-  // const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
-  //   default: 'PBMM',
-  //   description: 'The name of the Accelerator. The name will used as value for the Accelerator tag.',
-  // });
-
-  // const acceleratorPrefix = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
-  //   default: 'PBMMAccel-',
-  //   description: 'The prefix that will be used by the Accelerator when creating resources.',
-  // });
-
   const acceleratorName = 'PBMM';
   const acceleratorPrefix = 'PBMMAccel-';
 
