@@ -170,11 +170,20 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
     if (!logArchiveAccount) {
-      throw new Error('Cannot find account with type log-archive');
+      console.warn('Cannot find account with type log-archive');
+      return;
     }
     const logArchiveAccountKey = logArchiveAccount.key;
     const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
+    if (!bucketName) {
+      console.warn(`Cannot find output ${outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME}`);
+      return;
+    }
     const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
+    if (!ssmKeyId) {
+      console.warn(`Cannot find output ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER}`);
+      return;
+    }
 
     // Encrypt CWL doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
     const kmsParams = {
