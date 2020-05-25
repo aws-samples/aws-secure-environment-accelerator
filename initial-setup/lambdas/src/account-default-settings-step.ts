@@ -223,11 +223,11 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
     const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
 
-    // Encrypt CWL 
+    // Encrypt CWL
     const cloudwatchlogs = new aws.CloudWatchLogs();
     const params = {
       kmsKeyId: ssmKeyId,
-      logGroupName: '/PBMMAccel/SSM'
+      logGroupName: '/PBMMAccel/SSM',
     };
     await cloudwatchlogs.associateKmsKey(params).promise();
 
