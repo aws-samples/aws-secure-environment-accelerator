@@ -96,8 +96,6 @@ async function main() {
     outputs,
   });
 
-  const logAccountKey = globalOptions['central-log-services'].account;
-  const logAccountId = getAccountId(accounts, logAccountKey);
   const logBucket = LogBucketOutput.getBucket({
     acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,

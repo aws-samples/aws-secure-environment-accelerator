@@ -4,6 +4,31 @@ import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/li
 import { Context } from '../utils/context';
 import { Account, getAccountId } from '../utils/accounts';
 
+export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
+  accountId: string;
+  accountKey: string;
+}
+
+/**
+ * Auxiliary class that extends AcceleratorStack and knows about the account ID and account key.
+ */
+export class AccountStack extends AcceleratorStack {
+  readonly accountId: string;
+  readonly accountKey: string;
+
+  constructor(scope: cdk.Construct, id: string, props: AccountStackProps) {
+    super(scope, id, {
+      ...props,
+      env: {
+        account: props.accountId,
+      },
+    });
+
+    this.accountId = props.accountId;
+    this.accountKey = props.accountKey;
+  }
+}
+
 export interface AccountStacksProps {
   phase: number;
   accounts: Account[];
@@ -44,22 +69,5 @@ export class AccountStacks {
     });
     this.stacks[accountKey] = stack;
     return stack;
-  }
-}
-
-export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
-  accountId: string;
-  accountKey: string;
-}
-
-export class AccountStack extends AcceleratorStack {
-  readonly accountId: string;
-  readonly accountKey: string;
-
-  constructor(scope: cdk.Construct, id: string, props: AccountStackProps) {
-    super(scope, id, props);
-
-    this.accountId = props.accountId;
-    this.accountKey = props.accountKey;
   }
 }

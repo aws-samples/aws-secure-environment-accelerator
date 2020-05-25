@@ -18,7 +18,7 @@ export function createDefaultS3Bucket(props: { accountStack: AccountStack; confi
 
   const encryptionKey = new kms.Key(accountStack, 'DefaultKey', {
     alias: 'alias/' + createEncryptionKeyName('Default'),
-    description: `Key used to encrypt/decrypt the copy of default S3 bucket`,
+    description: `Encryption key used for encrypting the default S3 bucket`,
   });
   encryptionKey.addToResourcePolicy(
     new iam.PolicyStatement({
