@@ -1,0 +1,34 @@
+{
+  "name": "@custom-resources/acm-import-certificate",
+  "version": "0.0.1",
+  "private": true,
+  "main": "lib/index.ts",
+  "devDependencies": {
+    "@custom-resources/acm-import-certificate-lambda": "workspace:^0.0.1",
+    "@types/jest": "25.1.4",
+    "@types/node": "12.12.6",
+    "jest": "25.2.4",
+    "prettier": "1.19.1",
+    "ts-jest": "25.3.0",
+    "ts-node": "6.2.0",
+    "tslint": "6.1.0",
+    "tslint-config-prettier": "1.18.0",
+    "tslint-config-standard": "9.0.0",
+    "typescript": "3.8.3"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-iam": "1.38.0",
+    "@aws-cdk/aws-lambda": "1.38.0",
+    "@aws-cdk/aws-s3": "1.38.0",
+    "@aws-cdk/core": "1.38.0"
+  },
+  "peerDependencies": {
+    "@aws-cdk/aws-iam": "^1.38.0",
+    "@aws-cdk/aws-lambda": "^1.38.0",
+    "@aws-cdk/core": "^1.38.0"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
