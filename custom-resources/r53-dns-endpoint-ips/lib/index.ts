@@ -2,20 +2,19 @@ import * as cdk from '@aws-cdk/core';
 import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
 
-export interface R53DnsEndPointIpsProps {
+export interface R53DnsEndpointIpsProps {
   resolverEndpointId: string;
-  subnetsCount: number;
 }
 
 /**
  * Custom resource implementation that retrive IPs for a created DNS Endpoint.
  */
-export class R53DnsEndPointIps extends cdk.Construct {
-  readonly endpointIps: string[] = [];
+export class R53DnsEndpointIps extends cdk.Construct {
+  private readonly resource: custom.AwsCustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: R53DnsEndPointIpsProps) {
+  constructor(scope: cdk.Construct, id: string, props: R53DnsEndpointIpsProps) {
     super(scope, id);
-    const { resolverEndpointId, subnetsCount } = props;
+    const { resolverEndpointId } = props;
 
     const physicalResourceId = custom.PhysicalResourceId.of(resolverEndpointId);
     const onCreateOrUpdate: custom.AwsSdkCall = {
@@ -27,7 +26,7 @@ export class R53DnsEndPointIps extends cdk.Construct {
       },
     };
 
-    const customResource = new custom.AwsCustomResource(this, 'Resource', {
+    this.resource = new custom.AwsCustomResource(this, 'Resource', {
       resourceType: 'Custom::LogResourcePolicy',
       onCreate: onCreateOrUpdate,
       onUpdate: onCreateOrUpdate,
@@ -38,9 +37,9 @@ export class R53DnsEndPointIps extends cdk.Construct {
         }),
       ]),
     });
+  }
 
-    for (let count = 0; count < subnetsCount; count++) {
-      this.endpointIps.push(customResource.getResponseField(`IpAddresses.${count}.Ip`));
-    }
+  getEndpointIpAddress(index: number): string {
+    return this.resource.getResponseField(`IpAddresses.${index}.Ip`);
   }
 }
