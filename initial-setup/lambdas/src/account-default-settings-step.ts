@@ -36,7 +36,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   });
 
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
-  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
 
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
@@ -170,7 +169,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       credentials,
     });
 
-    const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
+    const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
     if (!logArchiveAccount) {
       console.warn('Cannot find account with type log-archive');
       return;

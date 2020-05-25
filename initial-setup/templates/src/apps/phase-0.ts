@@ -57,8 +57,8 @@ async function main() {
   const centralBucket = defaultsResult.centralBucketCopy;
 
   // Master Stack to update Custom Resource Lambda Functions invoke permissions
-  // TODO Remove hard-coded 'master' account key and use configuration file somehow
-  const masterAccountStack = accountStacks.getOrCreateAccountStack('master');
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
   const uploadArtifacts = ({
     artifactName,
@@ -98,7 +98,7 @@ async function main() {
     artifactName: 'IamPolicy',
     artifactFolderName: 'iam-policies',
     artifactKeyPrefix: 'iam-policy',
-    accountKey: 'master',
+    accountKey: masterAccountKey,
     destinationKeyPrefix: 'iam-policy',
   });
 
@@ -107,7 +107,7 @@ async function main() {
     artifactName: 'Rdgw',
     artifactFolderName: 'scripts',
     artifactKeyPrefix: 'config/scripts/',
-    accountKey: 'master',
+    accountKey: masterAccountKey,
     destinationKeyPrefix: 'config/scripts',
   });
 
