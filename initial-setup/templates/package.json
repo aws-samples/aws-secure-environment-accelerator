@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.38.0",
+    "@custom-resources/cur-report-definition": "workspace:^0.0.1",
     "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
     "aws-cdk": "1.38.0",

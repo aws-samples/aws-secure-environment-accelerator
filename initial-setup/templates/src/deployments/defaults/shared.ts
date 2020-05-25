@@ -36,25 +36,7 @@ export function createDefaultS3Bucket(props: { accountStack: AccountStack; confi
     expirationInDays: logRetention,
   });
 
-  // TODO Move this to the respective deployment folders
-  bucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      sid: 'Allow billing reports to check bucket policy',
-      principals: [new iam.ServicePrincipal('billingreports.amazonaws.com')],
-      actions: ['s3:GetBucketAcl', 's3:GetBucketPolicy'],
-      resources: [bucket.bucketArn],
-    }),
-  );
-  bucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      sid: 'Allow billing reports to add reports to bucket',
-      principals: [new iam.ServicePrincipal('billingreports.amazonaws.com')],
-      actions: ['s3:PutObject'],
-      resources: [bucket.arnForObjects('*')],
-    }),
-  );
-
-  encryptionKey.addToResourcePolicy(
+  bucket.encryptionKey?.addToResourcePolicy(
     new iam.PolicyStatement({
       sid: 'Allow AWS services to use the encryption key',
       actions: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
@@ -62,7 +44,6 @@ export function createDefaultS3Bucket(props: { accountStack: AccountStack; confi
         // TODO Isn't there a better way to grant to all AWS services through a condition?
         new iam.ServicePrincipal('ds.amazonaws.com'),
         new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
-        new iam.ServicePrincipal('billingreports.amazonaws.com'),
       ],
       resources: ['*'],
     }),

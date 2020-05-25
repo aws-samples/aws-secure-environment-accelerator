@@ -448,16 +448,14 @@ export const GlobalOptionsZonesConfigType = t.interface({
 
 export const CostAndUsageReportConfigType = t.interface({
   'additional-schema-elements': t.array(t.string),
-  compression: NonEmptyString,
-  format: NonEmptyString,
-  'report-name': NonEmptyString,
-  's3-bucket': NonEmptyString,
-  's3-prefix': NonEmptyString,
-  's3-region': NonEmptyString,
-  'time-unit': NonEmptyString,
+  compression: t.string,
+  format: t.string,
+  'report-name': t.string,
+  's3-prefix': t.string,
+  'time-unit': t.string,
   'additional-artifacts': t.array(t.string),
   'refresh-closed-reports': t.boolean,
-  'report-versioning': NonEmptyString,
+  'report-versioning': t.string,
 });
 
 export const ReportsConfigType = t.interface({

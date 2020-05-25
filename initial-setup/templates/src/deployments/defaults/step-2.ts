@@ -1,3 +1,4 @@
+import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountBuckets, AccountBucketOutputType, AccountBucketOutput } from './outputs';
@@ -44,6 +45,8 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
     bucket.replicateTo({
       destinationBucket: centralLogBucket,
       destinationAccountId: logAccountId,
+      // Only replicate files under ACCOUNT_ID/
+      prefix: `${cdk.Aws.ACCOUNT_ID}/`,
     });
     buckets[accountKey] = bucket;
 

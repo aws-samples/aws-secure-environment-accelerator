@@ -35,7 +35,7 @@ import * as centralServices from '../deployments/central-services';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
-import { Bucket } from '@aws-pbmm/constructs/lib/s3';
+import * as reports from '../deployments/reports';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -294,43 +294,6 @@ async function main() {
     transitGateways,
   });
 
-  const createCurBucket = async (accountKey: string): Promise<void> => {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    const accountId = getAccountId(accounts, accountKey);
-
-    // TODO Move this to the account bucket
-    // TODO Create custom resource to enable cost and usage reports
-    const costAndUsageReportConfig = globalOptions.reports['cost-and-usage-report'];
-    const s3BucketNameForCur = costAndUsageReportConfig['s3-bucket']
-      .replace('xxaccountIdxx', accountId)
-      .replace('xxregionxx', costAndUsageReportConfig['s3-region']);
-
-    const curBucket = new Bucket(accountStack, `Cost And Usage Report Bucket-${pascalCase(accountKey)}`, {
-      bucketName: s3BucketNameForCur,
-      expirationInDays: globalOptions['central-log-retention'],
-    });
-    curBucket.replicateTo({
-      destinationBucket: logBucket,
-      destinationAccountId: logAccountId,
-    });
-    curBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        sid: 'Allow billing reports to check bucket policy',
-        principals: [new iam.ServicePrincipal('billingreports.amazonaws.com')],
-        actions: ['s3:GetBucketAcl', 's3:GetBucketPolicy'],
-        resources: [curBucket.bucketArn],
-      }),
-    );
-    curBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        sid: 'Allow billing reports to add reports to bucket',
-        principals: [new iam.ServicePrincipal('billingreports.amazonaws.com')],
-        actions: ['s3:PutObject'],
-        resources: [curBucket.arnForObjects('*')],
-      }),
-    );
-  };
-
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string }> => {
     const iamPoliciesDef: { [policyName: string]: string } = {};
 
@@ -448,9 +411,6 @@ async function main() {
   // creating assets for default account settings
   for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
     mandatoryAccountKeys.push(accountKey);
-    if (accountKey === 'master') {
-      await createCurBucket(accountKey);
-    }
     await createIamAssets(accountKey, accountConfig.iam);
   }
 
@@ -473,6 +433,13 @@ async function main() {
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  // Cost and usage reports step 1
+  await reports.step1({
+    accountBuckets,
+    accountStacks,
+    config: acceleratorConfig,
   });
 }
 
