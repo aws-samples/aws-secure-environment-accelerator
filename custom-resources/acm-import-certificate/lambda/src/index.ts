@@ -17,6 +17,7 @@ export interface HandlerProperties {
   privateKeyBucketPath: string;
   certificateChainBucketName?: string;
   certificateChainBucketPath?: string;
+  ignoreLimitExceededException?: boolean;
   tags?: TagList;
 }
 
@@ -43,9 +44,9 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const response = await importCertificate(event);
   return {
-    physicalResourceId: response.CertificateArn,
+    physicalResourceId: response,
     data: {
-      CertificateArn: response.CertificateArn,
+      CertificateArn: response,
     },
   };
 }
@@ -53,9 +54,9 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const response = await importCertificate(event);
   return {
-    physicalResourceId: response.CertificateArn,
+    physicalResourceId: response,
     data: {
-      CertificateArn: response.CertificateArn,
+      CertificateArn: response,
     },
   };
 }
@@ -71,8 +72,12 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 async function importCertificate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
+
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  if (typeof properties.ignoreLimitExceededException === 'string') {
+    properties.ignoreLimitExceededException = properties.ignoreLimitExceededException === 'true';
+  }
 
   // Tagging is not permitted on re-import
   const tags = physicalResourceId ? undefined : addCustomResourceTags(properties.tags, event);
@@ -80,18 +85,28 @@ async function importCertificate(
   // TODO Handle manual deletion of a certificate
   //  Check if certificate with ARN `physicalResourceId` exists
 
-  return await acm
-    .importCertificate({
-      Certificate: await getS3Body(properties.certificateBucketName, properties.certificateBucketPath),
-      PrivateKey: await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath),
-      CertificateChain: await getOptionalS3Body(
-        properties.certificateChainBucketName,
-        properties.certificateChainBucketPath,
-      ),
-      CertificateArn: physicalResourceId,
-      Tags: tags,
-    })
-    .promise();
+  try {
+    const response = await acm
+      .importCertificate({
+        Certificate: await getS3Body(properties.certificateBucketName, properties.certificateBucketPath),
+        PrivateKey: await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath),
+        CertificateChain: await getOptionalS3Body(
+          properties.certificateChainBucketName,
+          properties.certificateChainBucketPath,
+        ),
+        CertificateArn: physicalResourceId,
+        Tags: tags,
+      })
+      .promise();
+    return response.CertificateArn!;
+  } catch (e) {
+    if (e.code === 'LimitExceededException' && properties.ignoreLimitExceededException === true) {
+      console.warn(`Ignoring limit exceeded exception`);
+      return physicalResourceId || 'LimitExceeded';
+    } else {
+      throw e;
+    }
+  }
 }
 
 async function getOptionalS3Body(bucketName?: string, bucketPath?: string) {

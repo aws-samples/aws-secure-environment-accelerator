@@ -15,6 +15,7 @@ export interface AcmImportCertificateProps {
   privateKeyBucketPath: string;
   certificateChainBucket?: s3.IBucket;
   certificateChainBucketPath?: string;
+  ignoreLimitExceededException?: boolean;
   /**
    * @default cdk.RemovalPolicy.RETAIN
    */
@@ -61,6 +62,7 @@ export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable
       privateKeyBucketPath: this.props.privateKeyBucketPath,
       certificateChainBucketName: this.props.certificateChainBucket?.bucketName,
       certificateChainBucketPath: this.props.certificateChainBucketPath,
+      ignoreLimitExceededException: this.props.ignoreLimitExceededException,
       tags: this.tags.renderTags(),
     };
 
@@ -69,11 +71,7 @@ export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
       removalPolicy: this.props.removalPolicy ?? cdk.RemovalPolicy.RETAIN,
-      properties: {
-        ...handlerProperties,
-        // Add a dummy value that is a random number to update the resource every time
-        forceUpdate: Math.round(Math.random() * 1000000),
-      },
+      properties: handlerProperties,
     });
   }
 

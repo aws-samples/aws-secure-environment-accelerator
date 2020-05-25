@@ -52,6 +52,7 @@ function createCertificate(props: {
       privateKeyBucketPath: certificate['priv-key'],
       certificateChainBucket: centralBucket,
       certificateChainBucketPath: certificate.chain,
+      ignoreLimitExceededException: true,
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
   } else if (c.RequestCertificateConfigType.is(certificate)) {

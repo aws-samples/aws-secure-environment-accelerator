@@ -30,8 +30,7 @@ process.on('unhandledRejection', (reason, _) => {
  *
  * The following resources are deployed in phase 0:
  *   - Log archive bucket
- *
- * TODO This phase could be merged into phase 1.
+ *   - Copy of the central bucket
  */
 async function main() {
   const context = loadContext();
