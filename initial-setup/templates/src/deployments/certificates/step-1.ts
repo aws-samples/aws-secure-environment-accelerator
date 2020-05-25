@@ -21,7 +21,12 @@ export async function step1(props: CertificatesStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+
     for (const certificate of certificates) {
       createCertificate({
         centralBucket,

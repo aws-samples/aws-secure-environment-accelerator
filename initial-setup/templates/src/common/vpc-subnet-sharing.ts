@@ -17,14 +17,15 @@ export function getSharedAccountKeys(
   shareToOuAccounts: boolean,
   specificAccounts: string[],
   organizationalUnitName?: string,
-): string[] {
+): string[] | undefined {
   // Share to accounts with a specific name
   const shareToAccountKeys = [...specificAccounts];
 
   // Share to accounts in this OU
   if (shareToOuAccounts) {
     if (!organizationalUnitName) {
-      throw new Error(`Cannot share subnet with OU accounts because the subnet is not in a OU`);
+      console.warn(`Cannot share subnet with OU accounts because the subnet is not in a OU`);
+      return;
     }
 
     const ouAccounts = accounts.filter(a => a.ou === organizationalUnitName);
@@ -48,7 +49,10 @@ export function getVpcSharedAccountKeys(
       subnet['share-to-specific-accounts'] || [],
       organizationalUnitName,
     );
-    shareToAccountsKeys.push(...subnetShareAccountKeys);
+
+    if (subnetShareAccountKeys) {
+      shareToAccountsKeys.push(...subnetShareAccountKeys);
+    }
   }
   return shareToAccountsKeys;
 }
@@ -74,7 +78,8 @@ export class VpcSubnetSharing extends cdk.Construct {
     for (const subnet of subnets) {
       const azSubnets = vpcSubnets.getAzSubnetsForSubnetName(subnet.name);
       if (azSubnets.length === 0) {
-        throw new Error(`Cannot find subnet with name "${subnet.name}" in VPC`);
+        console.warn(`Cannot find subnet with name "${subnet.name}" in VPC`);
+        continue;
       }
 
       // Share to accounts with a specific name
@@ -85,8 +90,8 @@ export class VpcSubnetSharing extends cdk.Construct {
         organizationalUnitName,
       );
 
-      if (shareToAccountKeys.length > 0) {
-        const shareToAccountIds = shareToAccountKeys.map(accountKey => getAccountId(accounts, accountKey));
+      if (shareToAccountKeys && shareToAccountKeys.length > 0) {
+        const shareToAccountIds = shareToAccountKeys.map(accountKey => getAccountId(accounts, accountKey)!);
         const shareName = `${pascalCase(vpcConfig.name)}-${pascalCase(subnet.name)}`;
 
         // Share the subnets

@@ -79,7 +79,11 @@ export async function step1(props: BudgetStep1Props) {
   const masterAccountStack = props.accountStacks.getOrCreateAccountStack('master');
   for (const [accountKey, _] of props.config.getAccountConfigs()) {
     if (accountKey !== 'master') {
-      const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
+      const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
       accountStack.addDependency(masterAccountStack);
     }
   }
@@ -88,7 +92,11 @@ export async function step1(props: BudgetStep1Props) {
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     const budgetConfig = accountConfig.budget;
     if (budgetConfig) {
-      const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
+      const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
       await createBudget(accountStack, budgetConfig);
 
       accountsAlreadyHaveBudget.push(accountKey);
@@ -98,10 +106,14 @@ export async function step1(props: BudgetStep1Props) {
   for (const [ouKey, ouConfig] of props.config.getOrganizationalUnits()) {
     const budgetConfig = ouConfig['default-budgets'];
     if (budgetConfig) {
-      for (const [accountKey, accountConfig] of props.config.getAccountConfigsForOu(ouKey)) {
+      for (const [accountKey, _] of props.config.getAccountConfigsForOu(ouKey)) {
         // only create if Budgets has not been created yet
         if (!accountsAlreadyHaveBudget.includes(accountKey)) {
-          const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
+          const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
+          if (!accountStack) {
+            console.warn(`Cannot find account stack ${accountKey}`);
+            continue;
+          }
           await createBudget(accountStack, budgetConfig);
         }
       }

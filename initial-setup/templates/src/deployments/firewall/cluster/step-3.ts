@@ -58,7 +58,8 @@ export async function step3(props: FirewallStep3Props) {
       .flatMap(array => array)
       .filter(conn => conn.firewallAccountKey === accountKey);
     if (firewallVpnConnections.length === 0) {
-      throw new Error(`Cannot find firewall VPN connection outputs`);
+      console.warn(`Cannot find firewall VPN connection outputs`);
+      continue;
     }
 
     const accountBucket = accountBuckets[accountKey];
@@ -66,7 +67,12 @@ export async function step3(props: FirewallStep3Props) {
       throw new Error(`Cannot find default account bucket for account ${accountKey}`);
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
+
     await createFirewallCluster({
       accountBucket,
       centralBucket,
@@ -91,7 +97,11 @@ async function createFirewallCluster(props: {
 }) {
   const { accountBucket, centralBucket, firewallConfig, firewallVpnConnections, scope, vpc } = props;
 
-  const securityGroup = vpc.findSecurityGroupByName(firewallConfig['security-group']);
+  const securityGroup = vpc.tryFindSecurityGroupByName(firewallConfig['security-group']);
+  if (!securityGroup) {
+    console.warn(`Cannot find security group with name "${firewallConfig['security-group']}" in VPC "${vpc.name}"`);
+    return;
+  }
 
   // TODO Condition to check if `firewallConfig.license` and `firewallConfig.config` exist
 
@@ -119,7 +129,12 @@ async function createFirewallCluster(props: {
   for (const vpnConnection of firewallVpnConnections) {
     const az = vpnConnection.az;
     const subnetName = vpnConnection.subnetName;
-    const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetName, az);
+    const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetName, az);
+
+    if (!subnet || !securityGroup) {
+      console.warn(`Cannot find subnet with name "${subnetName}" in availability zone "${az}"`);
+      continue;
+    }
 
     let instance = instancePerAz[az];
     if (!instance) {

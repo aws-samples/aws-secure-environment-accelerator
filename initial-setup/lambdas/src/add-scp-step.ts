@@ -217,7 +217,8 @@ async function attachFullAwsAccessPolicyToTargets(props: {
   // Find the full access policy
   const fullAccessPolicy = existingPolicies.find(p => p.Name === FULL_AWS_ACCESS_POLICY_NAME);
   if (!fullAccessPolicy) {
-    throw new Error(`Cannot find policy with name ${FULL_AWS_ACCESS_POLICY_NAME}`);
+    console.warn(`Cannot find policy with name ${FULL_AWS_ACCESS_POLICY_NAME}`);
+    return;
   }
 
   const fullAccessPolicyId = fullAccessPolicy.Id!;
@@ -253,13 +254,15 @@ async function attachOrDetachPoliciesToOrganizationalUnits(props: {
   for (const [ouKey, ouConfig] of acceleratorOus) {
     const organizationalUnit = configurationOus.find(ou => ou.ouKey === ouKey);
     if (!organizationalUnit) {
-      throw new Error(`Cannot find OU configuration with key "${ouKey}"`);
+      console.warn(`Cannot find OU configuration with key "${ouKey}"`);
+      continue;
     }
     const ouPolicyNames = ouConfig.scps.map(policyName =>
       policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
     );
     if (ouPolicyNames.length > 4) {
-      throw new Error(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
+      console.warn(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
+      continue;
     }
 
     // Find targets for this policy

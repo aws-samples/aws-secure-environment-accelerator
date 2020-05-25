@@ -32,7 +32,8 @@ export const handler = async (event: CloudFormationCustomResourceEvent, context:
   try {
     const executionRoleName = process.env.ACCELERATOR_EXECUTION_ROLE_NAME;
     if (!executionRoleName) {
-      throw new Error(`Please set environment variable "ACCELERATOR_EXECUTION_ROLE_NAME"`);
+      console.warn('Please set environment variable ACCELERATOR_EXECUTION_ROLE_NAME');
+      return;
     }
 
     const accountId = event.ResourceProperties.AccountId;

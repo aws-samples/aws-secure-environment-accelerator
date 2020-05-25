@@ -49,14 +49,26 @@ export class AccountStacks {
     this.props = props;
   }
 
+  getOrCreateAccountStack(accountKey: string): AccountStack {
+    const accountStack = this.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      throw new Error(`Cannot find account stack for account ${accountKey}`);
+    }
+    return accountStack;
+  }
+
   /**
    * Get the existing stack for the given account or create a new stack if no such stack exists yet.
    */
-  getOrCreateAccountStack(accountKey: string): AccountStack {
+  tryGetOrCreateAccountStack(accountKey: string): AccountStack | undefined {
     if (this.stacks[accountKey]) {
       return this.stacks[accountKey];
     }
     const accountId = getAccountId(this.props.accounts, accountKey);
+    if (!accountId) {
+      return undefined;
+    }
+
     const accountPrettyName = pascalCase(accountKey);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
     const stack = new AccountStack(this.app, `${accountPrettyName}Phase${this.props.phase}`, {

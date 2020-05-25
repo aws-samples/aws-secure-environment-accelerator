@@ -26,10 +26,15 @@ export async function step1(props: MadStep1Props) {
 
     const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey];
     if (!accountEbsEncryptionKey) {
-      throw new Error(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
+      console.warn(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
+      continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
 
     // Create the auto scaling service-linked role manually in order to attach the policy to the default EBS KMS key
     const role = new ServiceLinkedRole(accountStack, 'Slr', {
