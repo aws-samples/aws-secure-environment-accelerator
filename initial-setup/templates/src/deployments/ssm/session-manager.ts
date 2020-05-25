@@ -3,7 +3,7 @@ import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
-import { AccountPrincipal } from '@aws-cdk/aws-iam';
+import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { LogGroup } from '@aws-cdk/aws-logs';
 
 export interface SSMStep1Props {
@@ -24,6 +24,7 @@ export async function step1(props: SSMStep1Props) {
       trustAccountIdentities: true,
     });
     ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
+    ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
 
     new LogGroup(accountStack, 'SSM-LogGroup', {
       logGroupName: '/PBMMAccel/SSM',

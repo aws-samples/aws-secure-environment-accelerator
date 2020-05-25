@@ -214,6 +214,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const ssm = new aws.SSM({
       credentials,
     });
+    const kms = new aws.KMS({
+      credentials,
+    });
+    const cloudwatchlogs = new aws.CloudWatchLogs({
+      credentials,
+    });
 
     const logArchiveAccount = accounts.find(a => a.type === 'log-archive');
     if (!logArchiveAccount) {
@@ -223,13 +229,19 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
     const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
 
-    // Encrypt CWL
-    const cloudwatchlogs = new aws.CloudWatchLogs();
-    const params = {
-      kmsKeyId: ssmKeyId,
+    // Encrypt CWL doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
+    const kmsParams = {
+      KeyId: ssmKeyId
+    };
+    const ssmKey = await kms.describeKey(kmsParams).promise();
+    console.log('SSM key: ', ssmKey);
+    
+    const cwlParams = {
+      kmsKeyId: ssmKey.KeyMetadata?.Arn || ssmKeyId,
       logGroupName: '/PBMMAccel/SSM',
     };
-    await cloudwatchlogs.associateKmsKey(params).promise();
+    const cwlResponse = await cloudwatchlogs.associateKmsKey(cwlParams).promise();
+    console.log('CWL encrypt: ', cwlResponse);
 
     // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
     const settings = {
