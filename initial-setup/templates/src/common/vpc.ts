@@ -398,7 +398,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       }
 
       // Attach NatGw Routes to Non IGW Route Tables
-      let natRoutesExistence = new Set();
+      const natRoutesExistence = new Set();
       for (const natRoute of natRouteTables) {
         const natRouteAZ = allSubnetDefinitions.find(subnetDef => subnetDef['route-table'] === natRoute)?.az;
         const natGWName = `NATGW_${subnetConfig.name}_${natRouteAZ}_natgw`;
