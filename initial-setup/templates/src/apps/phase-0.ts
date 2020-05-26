@@ -111,13 +111,12 @@ async function main() {
     destinationKeyPrefix: 'config/scripts',
   });
 
-  // creating assets for default account settings
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
   const securityStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
   if (!securityStack) {
     console.warn(`Cannot find security stack`);
   } else {
-    new AccessAnalyzer(securityStack, `Access Analyzer`);
+    new AccessAnalyzer(securityStack, `Access Analyzer-${pascalCase(securityAccountKey)}`);
   }
 
   const globalOptions = acceleratorConfig['global-options'];
