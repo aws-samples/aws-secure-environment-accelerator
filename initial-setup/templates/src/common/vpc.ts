@@ -378,19 +378,18 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     const routeExistsForNatGW = (az: string | undefined, routeTable?: string): boolean => {
       // Returns True/False based on routes attachement to NATGW
       let routeExists = false;
-      for (const natRoute of routeTable? [routeTable]: natRouteTables) {
-        const natRouteTableSubnetDef
-         = allSubnetDefinitions.find(subnetDef => subnetDef['route-table'] === natRoute);
+      for (const natRoute of routeTable ? [routeTable] : natRouteTables) {
+        const natRouteTableSubnetDef = allSubnetDefinitions.find(subnetDef => subnetDef['route-table'] === natRoute);
         if (az && natRouteTableSubnetDef?.az === az) {
           routeExists = true;
           break;
-        } else if(!az && natRouteTableSubnetDef) {
+        } else if (!az && natRouteTableSubnetDef) {
           routeExists = true;
           break;
         }
       }
       return routeExists;
-    }
+    };
 
     // Create NAT Gateway
     const allSubnetDefinitions = subnetsConfig.flatMap(s => s.definitions);
@@ -406,7 +405,9 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       for (const natSubnet of natSubnets) {
         if (!routeExistsForNatGW(natSubnet.az)) {
           // Skipping Creation of NATGW
-          console.log(`Skipping Creation of NAT Gateway "${natSubnet.name}-${natSubnet.az}", as there is no routes associated to it`);
+          console.log(
+            `Skipping Creation of NAT Gateway "${natSubnet.name}-${natSubnet.az}", as there is no routes associated to it`,
+          );
           continue;
         }
         console.log(`Creating natgw for Subnet "${natSubnet.name}" az: "${natSubnet.az}"`);
@@ -417,13 +418,15 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           allocationId: eip.attrAllocationId,
           subnetId: natSubnet.id,
         });
-        
+
         // Attach NatGw Routes to Non IGW Route Tables
         for (const natRoute of natRouteTables) {
           const routeTableId = this.routeTableNameToIdMap[natRoute];
-          if (!routeExistsForNatGW(subnetConfig.az? undefined: natSubnet.az, natRoute)) {
+          if (!routeExistsForNatGW(subnetConfig.az ? undefined : natSubnet.az, natRoute)) {
             // Skipping Route Association of NATGW if no route specified in subnet config
-            console.log(`Skipping NAT Gateway Route association to Route Table "${natRoute}", as there is no subnet is mapped to it`);
+            console.log(
+              `Skipping NAT Gateway Route association to Route Table "${natRoute}", as there is no subnet is mapped to it`,
+            );
             continue;
           }
           const routeParams: ec2.CfnRouteProps = {
