@@ -396,7 +396,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     const natgwProps = vpcConfig.natgw;
     if (config.NatGatewayConfig.is(natgwProps)) {
       const subnetConfig = natgwProps.subnet;
-      let natSubnets: AzSubnet[] = [];
+      const natSubnets: AzSubnet[] = [];
       if (subnetConfig.az) {
         natSubnets.push(this.azSubnets.getAzSubnetForNameAndAz(subnetConfig.name, subnetConfig.az)!);
       } else {
