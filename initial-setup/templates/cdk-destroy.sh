@@ -3,14 +3,9 @@
 export CONFIG_MODE="development"
 export CDK_PLUGIN_ASSUME_ROLE_NAME="PBMMAccel-PipelineRole"
 
-APP_PATH=$1
-shift
-
-ARGS=$@
-if [ -z "$ARGS" ]
-then
-  ARGS="'*'"
-fi
+export ACCELERATOR_PHASE=$1
+export ACCELERATOR_ACCOUNT_KEY=$2
+export ACCELERATOR_REGION=$3
 
 pnpx cdk destroy \
   --require-approval never \
@@ -19,4 +14,4 @@ pnpx cdk destroy \
   --asset-metadata false \
   --force \
   --plugin "$(pwd)/../../plugins/assume-role" \
-  --app "pnpx ts-node src/$APP_PATH" $ARGS
+  --app "pnpx ts-node src/app.ts"

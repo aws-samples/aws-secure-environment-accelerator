@@ -1,17 +1,13 @@
-import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
-import { loadAccounts, getAccountId, Account } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
+import { getAccountId, Account } from '../utils/accounts';
 import { FlowLogContainer } from '../common/flow-log-container';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
-import { loadLimits, Limiter, Limit } from '../utils/limits';
+import { Limit } from '../utils/limits';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
   InterfaceEndpointConfig,
@@ -23,7 +19,6 @@ import {
 } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
-import { AccountStacks } from '../common/account-stacks';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
@@ -37,11 +32,7 @@ import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
-
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
+import { PhaseInput } from './shared';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -64,32 +55,14 @@ export interface IamPolicyArtifactsOutput {
  *   - Gateway endpoints
  *   - Flow logs
  */
-async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
-  const limits = await loadLimits();
-  const limiter = new Limiter(limits);
-
-  const globalOptions = acceleratorConfig['global-options'];
-
+export async function phase1({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
-  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
-
-  const app = new cdk.App();
 
   const transitGateways = new Map<string, TransitGateway>();
 
   const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
-
-  const accountStacks = new AccountStacks(app, {
-    phase: 1,
-    accounts,
-    context,
-  });
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
@@ -476,6 +449,3 @@ async function main() {
     config: acceleratorConfig,
   });
 }
-
-// tslint:disable-next-line: no-floating-promises
-main();

@@ -1,16 +1,8 @@
 import * as path from 'path';
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
-import { createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { AccountStacks } from '../common/account-stacks';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
 import { AccessAnalyzer } from '../common/access-analyzer';
@@ -19,11 +11,7 @@ import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as mad from '../deployments/mad';
-
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
+import { PhaseInput } from './shared';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -32,19 +20,7 @@ process.on('unhandledRejection', (reason, _) => {
  *   - Log archive bucket
  *   - Copy of the central bucket
  */
-async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-
-  const app = new cdk.App();
-
-  const accountStacks = new AccountStacks(app, {
-    phase: 0,
-    accounts,
-    context,
-  });
-
+export async function phase0({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
     acceleratorPrefix: context.acceleratorPrefix,
@@ -185,6 +161,3 @@ async function main() {
     value: logArchiveBucket.encryptionKey!.keyArn,
   });
 }
-
-// tslint:disable-next-line: no-floating-promises
-main();
