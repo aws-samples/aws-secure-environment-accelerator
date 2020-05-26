@@ -52,14 +52,15 @@ export class ADUsersAndGroups extends cdk.Construct {
     } = props;
 
     // Creating AD Users command
-    const adUsers: string[] = madDeploymentConfig['ad-users'].map(a => a.user);
-    const adUsersCommand: string[] = adUsers.map(
-      user =>
-        `C:\\cfn\\scripts\\AD-user-setup.ps1 -UserName ${user} -Password ((Get-SECSecretValue -SecretId ${
-          userSecrets.find(x => x.user === user)?.password.secretArn
+    const adUsersCommand: string[] = madDeploymentConfig['ad-users'].map(
+      adUser =>
+        `C:\\cfn\\scripts\\AD-user-setup.ps1 -UserName ${adUser.user} -Password ((Get-SECSecretValue -SecretId ${
+          userSecrets.find(x => x.user === adUser.user)?.password.secretArn
         }).SecretString) -DomainAdminUser ${
           madDeploymentConfig['netbios-domain']
-        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString) -PasswordNeverExpires Yes`,
+        }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString) -PasswordNeverExpires Yes -UserEmailAddress ${
+          adUser.email
+        }`,
     );
 
     // Creating AD Groups command
