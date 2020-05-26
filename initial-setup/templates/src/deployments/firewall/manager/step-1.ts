@@ -32,7 +32,12 @@ export async function step1(props: FirewallManagerStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
+
     await createFirewallManager({
       scope: accountStack,
       vpc,
@@ -52,8 +57,17 @@ async function createFirewallManager(props: {
   const { scope, vpc, firewallManagerConfig: config } = props;
 
   const subnetConfig = config.subnet;
-  const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
-  const securityGroup = vpc.findSecurityGroupByName(config['security-group']);
+  const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
+  if (!subnet) {
+    console.warn(`Cannot find subnet with name "${subnetConfig.name}" in availability zone "${subnetConfig.az}"`);
+    return;
+  }
+
+  const securityGroup = vpc.tryFindSecurityGroupByName(config['security-group']);
+  if (!securityGroup) {
+    console.warn(`Cannot find security group with name "${config['security-group']}" in VPC "${vpc.name}"`);
+    return;
+  }
 
   let eip;
   if (config['create-eip']) {

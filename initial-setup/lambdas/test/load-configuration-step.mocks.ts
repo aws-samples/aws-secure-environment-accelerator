@@ -2,6 +2,7 @@ import { Account, OrganizationalUnit } from 'aws-sdk/clients/organizations';
 import { LandingZoneConfig } from '@aws-pbmm/common-lambda/lib/landing-zone/config';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
@@ -40,6 +41,12 @@ export function install() {
     .mockImplementation(() => new AcceleratorConfig(values.acceleratorConfig as AcceleratorConfig));
 
   jest.spyOn(Organizations.prototype, 'listOrganizationalUnits').mockImplementation(() => values.organizationalUnits);
+
+  jest.spyOn(SSM.prototype, 'getParameter').mockImplementation(() => ({
+    Parameter: {
+      Value: 'lz@amazon.com',
+    },
+  }));
 
   jest
     .spyOn(Organizations.prototype, 'listAccountsForParent')

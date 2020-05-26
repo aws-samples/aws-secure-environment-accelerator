@@ -42,18 +42,18 @@ export async function step2(props: CentralServicesStep2Props) {
   const centralOperationsServices = config['global-options']['central-operations-services'];
   const monitoringAccountKeys: string[] = [];
   if (centralSecurityServices && centralSecurityServices.cwl) {
-    const accountStack = accountStacks.getOrCreateAccountStack(centralSecurityServices.account);
+    const securityStack = accountStacks.getOrCreateAccountStack(centralSecurityServices.account);
     monitoringAccountKeys.push(centralSecurityServices.account);
     await centralLoggingMonitoringEnable({
-      scope: accountStack,
+      scope: securityStack,
     });
   }
 
   if (centralOperationsServices && centralOperationsServices.cwl) {
-    const accountStack = accountStacks.getOrCreateAccountStack(centralOperationsServices.account);
+    const operationsStack = accountStacks.getOrCreateAccountStack(centralOperationsServices.account);
     monitoringAccountKeys.push(centralOperationsServices.account);
     await centralLoggingMonitoringEnable({
-      scope: accountStack,
+      scope: operationsStack,
     });
   }
 
@@ -63,11 +63,16 @@ export async function step2(props: CentralServicesStep2Props) {
   const accessLevel =
     centralOperationsServices['cwl-access-level'] || centralSecurityServices['cwl-access-level'] || 'full';
   for (const account of accounts) {
-    const accountStack = accountStacks.getOrCreateAccountStack(account.key);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${account.key}`);
+      continue;
+    }
+
     const monitoringAccountIds = monitoringAccountKeys
       .filter(accountKey => accountKey !== account.key)
       .map(a => {
-        return getAccountId(accounts, a);
+        return getAccountId(accounts, a)!;
       });
     await centralLoggingShareDataSettings({
       scope: accountStack,
@@ -103,8 +108,10 @@ async function centralLoggingShareDataSettings(props: {
   );
   const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
   if (!logPermission) {
-    throw new Error('Invalid Log Level Access given for CWL Central logging');
+    console.warn('Invalid Log Level Access given for CWL Central logging');
+    return;
   }
+
   new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
     roleName: 'CloudWatch-CrossAccountSharingRole',
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),

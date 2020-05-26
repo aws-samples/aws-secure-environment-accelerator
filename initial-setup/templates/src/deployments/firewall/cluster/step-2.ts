@@ -53,7 +53,8 @@ export async function step2(props: FirewallStep2Props) {
     });
     const firewallPorts = firewallPortOutputs.flatMap(array => array);
     if (firewallPorts.length === 0) {
-      throw new Error(`Cannot find firewall port outputs in account "${accountKey}"`);
+      console.warn(`Cannot find firewall port outputs in account "${accountKey}"`);
+      continue;
     }
 
     const tgwAttach = firewallConfig['tgw-attach'];
@@ -63,10 +64,15 @@ export async function step2(props: FirewallStep2Props) {
     // TODO Validate account
     const transitGateway = transitGateways.get(tgwName);
     if (!transitGateway) {
-      throw new Error(`Cannot find transit gateway "${tgwName}" in account "${tgwAccountKey}"`);
+      console.warn(`Cannot find transit gateway "${tgwName}" in account "${tgwAccountKey}"`);
+      continue;
     }
 
-    const tgwAccountStack = accountStacks.getOrCreateAccountStack(tgwAccountKey);
+    const tgwAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAccountKey);
+    if (!tgwAccountStack) {
+      console.warn(`Cannot find account stack ${tgwAccountKey}`);
+      continue;
+    }
 
     await createCustomerGateways({
       scope: tgwAccountStack,

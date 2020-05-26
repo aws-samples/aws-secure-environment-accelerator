@@ -1,7 +1,6 @@
 import { CfnBudget } from '@aws-cdk/aws-budgets';
 import { BudgetConfig, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AccountStacks } from '../../common/account-stacks';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { AccountStacks, AccountStack } from '../../common/account-stacks';
 
 export interface BudgetStep1Props {
   accountStacks: AccountStacks;
@@ -39,7 +38,7 @@ async function convertCostTypes(budgetConfig: BudgetConfig) {
   };
 }
 
-async function createBudget(accountStack: AcceleratorStack, budgetConfig: BudgetConfig): Promise<void> {
+async function createBudget(accountStack: AccountStack, budgetConfig: BudgetConfig): Promise<void> {
   if (budgetConfig) {
     const notifications = [];
     for (const notification of budgetConfig.alerts) {
@@ -75,19 +74,30 @@ async function createBudget(accountStack: AcceleratorStack, budgetConfig: Budget
 
 export async function step1(props: BudgetStep1Props) {
   const accountsAlreadyHaveBudget = [];
+
   // Create dependency on Master account since budget requires Payer account deploy first
-  const masterAccountStack = props.accountStacks.getOrCreateAccountStack('master');
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    if (accountKey !== 'master') {
-      const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
+  const masterAccountKey = props.config.getMandatoryAccountKey('master');
+  const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey);
+  for (const [accountKey, _] of props.config.getAccountConfigs()) {
+    if (accountKey !== masterAccountKey) {
+      const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
       accountStack.addDependency(masterAccountStack);
     }
   }
+
   // Create Budgets for mandatory accounts
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     const budgetConfig = accountConfig.budget;
     if (budgetConfig) {
-      const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
+      const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
       await createBudget(accountStack, budgetConfig);
 
       accountsAlreadyHaveBudget.push(accountKey);
@@ -97,10 +107,14 @@ export async function step1(props: BudgetStep1Props) {
   for (const [ouKey, ouConfig] of props.config.getOrganizationalUnits()) {
     const budgetConfig = ouConfig['default-budgets'];
     if (budgetConfig) {
-      for (const [accountKey, accountConfig] of props.config.getAccountConfigsForOu(ouKey)) {
+      for (const [accountKey, _] of props.config.getAccountConfigsForOu(ouKey)) {
         // only create if Budgets has not been created yet
         if (!accountsAlreadyHaveBudget.includes(accountKey)) {
-          const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey);
+          const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
+          if (!accountStack) {
+            console.warn(`Cannot find account stack ${accountKey}`);
+            continue;
+          }
           await createBudget(accountStack, budgetConfig);
         }
       }

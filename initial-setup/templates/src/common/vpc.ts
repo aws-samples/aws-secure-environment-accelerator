@@ -220,9 +220,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
         const subnetCidr = subnetDefinition.cidr?.toCidrString() || subnetDefinition.cidr2?.toCidrString();
         if (!subnetCidr) {
-          throw new Error(
-            `Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`,
-          );
+          console.warn(`Subnet with name "${subnetName}" and AZ "${subnetDefinition.az}" does not have a CIDR block`);
+          continue;
         }
 
         const subnetId = `${subnetName}_${vpcName}_az${subnetDefinition.az}`;
@@ -252,7 +251,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         // Find the route table ID for the route table name
         const routeTableId = this.routeTableNameToIdMap[routeTableName];
         if (!routeTableId) {
-          throw new Error(`Cannot find route table with name "${routeTableName}"`);
+          console.warn(`Cannot find route table with name "${routeTableName}"`);
+          continue;
         }
 
         // Associate the route table with the subnet
@@ -281,27 +281,30 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       const tgwName = tgwAttach['associate-to-tgw'];
       const tgw = props.transitGateways.get(tgwName);
       if (!tgw) {
-        throw new Error(`Cannot find transit gateway with name "${tgwName}"`);
+        console.warn(`Cannot find transit gateway with name "${tgwName}"`);
+      } else {
+        const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
+        const associateConfig = tgwAttach['tgw-rt-associate'] || [];
+        const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+
+        const subnetIds = attachSubnetsConfig.flatMap(
+          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+
+        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+
+        // Attach VPC To TGW
+        tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
+          vpcId: this.vpcId,
+          subnetIds,
+          transitGatewayId: tgw.tgwId,
+          tgwRouteAssociates,
+          tgwRoutePropagates,
+        });
+        // Add name tag
+        cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
       }
-
-      const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
-      const associateConfig = tgwAttach['tgw-rt-associate'] || [];
-      const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
-
-      const subnetIds = attachSubnetsConfig.flatMap(subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || []);
-      const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-      const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-
-      // Attach VPC To TGW
-      tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
-        vpcId: this.vpcId,
-        subnetIds,
-        transitGatewayId: tgw.tgwId,
-        tgwRouteAssociates,
-        tgwRoutePropagates,
-      });
-      // Add name tag
-      cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
     }
 
     // Add Routes to Route Tables

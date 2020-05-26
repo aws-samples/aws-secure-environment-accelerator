@@ -61,12 +61,14 @@ export class Nacl extends cdk.Construct {
           const ruleVpcConfig = vpcConfigs.find(x => x.vpcConfig.name === cidr.vpc && x.accountKey === vpcAccountKey)
             ?.vpcConfig;
           if (!ruleVpcConfig) {
-            throw new Error(`VPC Not Found in Config "${cidr.vpc}"`);
+            console.warn(`VPC Not Found in Config "${cidr.vpc}"`);
+            continue;
           }
           for (const [id, subnetName] of cidr.subnet.entries()) {
             const cidrSubnet = ruleVpcConfig.subnets?.find(s => s.name === subnetName);
             if (!cidrSubnet) {
-              throw new Error(`Subnet config for "${subnetName}" is not found in Accelerator Config`);
+              console.warn(`Subnet config for "${subnetName}" is not found in Accelerator Config`);
+              continue;
             }
             for (const subnetDefinition of cidrSubnet.definitions) {
               if (subnetDefinition.disabled) {

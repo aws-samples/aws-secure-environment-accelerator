@@ -12,18 +12,20 @@ export interface Account {
   type?: LandingZoneAccountType;
 }
 
-export function getAccountId(accounts: Account[], accountKey: string): string {
+export function getAccountId(accounts: Account[], accountKey: string): string | undefined {
   const account = accounts.find(a => a.key === accountKey);
   if (!account) {
-    throw new Error(`Cannot find account with key "${accountKey}"`);
+    console.warn(`Cannot find account with key "${accountKey}"`);
+    return;
   }
   return account.id;
 }
 
-export function getAccountArn(accounts: Account[], accountKey: string): string {
+export function getAccountArn(accounts: Account[], accountKey: string): string | undefined {
   const account = accounts.find(a => a.arn === accountKey);
   if (!account) {
-    throw new Error(`Cannot find account with key "${accountKey}"`);
+    console.warn(`Cannot find account with key "${accountKey}"`);
+    return;
   }
   return account.id;
 }

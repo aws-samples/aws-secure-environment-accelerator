@@ -50,12 +50,7 @@ async function main() {
     context,
   });
 
-  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
-  if (!masterAccount) {
-    throw new Error(`Cannot find primary account`);
-  }
-
-  const [masterAccountKey, _] = masterAccount;
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
   const secretsStack = new SecretsContainer(masterStack, 'Secrets');
@@ -73,7 +68,8 @@ async function main() {
       type: MadAutoScalingRoleOutputType,
     });
     if (madAutoScalingRoleOutputs.length !== 1) {
-      throw new Error(`Cannot find required service-linked auto scaling role in account "${accountKey}"`);
+      console.warn(`Cannot find required service-linked auto scaling role in account "${accountKey}"`);
+      continue;
     }
     const madAutoScalingRoleOutput = madAutoScalingRoleOutputs[0];
 
@@ -82,7 +78,11 @@ async function main() {
     const ec2KeyPairName = 'rdgw-key-pair';
     const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
 
-    const stack = accountStacks.getOrCreateAccountStack(accountKey);
+    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!stack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
 
     const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
 
@@ -113,12 +113,13 @@ async function main() {
     );
 
     const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
-      accountKey: 'master',
+      accountKey: masterAccountKey,
       outputType: 'RdgwArtifactsOutput',
     });
 
     if (rdgwScriptsOutput.length === 0) {
-      throw new Error(`Cannot find output with RDGW reference artifacts`);
+      console.warn(`Cannot find output with RDGW reference artifacts`);
+      continue;
     }
 
     const s3BucketName = rdgwScriptsOutput[0].bucketName;
@@ -130,7 +131,8 @@ async function main() {
     });
     const vpcOutput = vpcOutputs.find(output => output.vpcName === madDeploymentConfig['vpc-name']);
     if (!vpcOutput) {
-      throw new Error(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
+      console.warn(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
+      continue;
     }
 
     const vpcId = vpcOutput.vpcId;
@@ -144,7 +146,8 @@ async function main() {
 
     const madOutput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
     if (!madOutput || !madOutput.directoryId) {
-      throw new Error(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
+      console.warn(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
+      continue;
     }
 
     const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
