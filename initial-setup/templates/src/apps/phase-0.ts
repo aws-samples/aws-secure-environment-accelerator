@@ -1,11 +1,11 @@
 import * as path from 'path';
-import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
+import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
-import { AccessAnalyzer } from '../common/access-analyzer';
 import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
@@ -92,7 +92,14 @@ export async function phase0({ acceleratorConfig, accountStacks, accounts, conte
   if (!securityStack) {
     console.warn(`Cannot find security stack`);
   } else {
-    new AccessAnalyzer(securityStack, `Access Analyzer-${pascalCase(securityAccountKey)}`);
+    new accessanalyzer.CfnAnalyzer(securityStack, 'OrgAccessAnalyzer', {
+      analyzerName: createName({
+        name: 'AccessAnalyzer',
+        account: false,
+        region: false,
+      }),
+      type: 'ORGANIZATION',
+    });
   }
 
   const globalOptions = acceleratorConfig['global-options'];
