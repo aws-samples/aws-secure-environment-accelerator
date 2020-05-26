@@ -100,11 +100,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
-state machine should start automatically ~~and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.~~  
-
-**NEW: Manually import config.json, into the master branch of the CodeCommitt repository created by the CFN template.**
-
-From this point forward, you must update your configuration file in CodeCommit.
+state machine should start automatically and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.  From this point forward, you must update your configuration file in CodeCommit.
 
 After the pipline executes, the state machine will execute (Step functions).
 
