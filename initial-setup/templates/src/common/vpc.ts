@@ -128,7 +128,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
-  readonly natgwToNameMap: NameToIdMap = {};
 
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name);
