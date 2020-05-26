@@ -5,6 +5,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
 import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { LogGroup } from '@aws-cdk/aws-logs';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface SSMStep1Props {
   acceleratorPrefix: string;
@@ -14,9 +15,7 @@ export interface SSMStep1Props {
 }
 
 export async function step1(props: SSMStep1Props) {
-  const globalOptionsConfig = props.config['global-options'];
-
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
+  for (const [accountKey, _] of props.config.getAccountConfigs()) {
     const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
@@ -31,7 +30,11 @@ export async function step1(props: SSMStep1Props) {
     ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
 
     new LogGroup(accountStack, 'SSM-LogGroup', {
-      logGroupName: '/PBMMAccel/SSM',
+      logGroupName: createName({
+        name: 'SSM',
+        account: false,
+        region: false,
+      }),
     });
 
     // Save the output so it can be used in the state machine later
