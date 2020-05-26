@@ -1100,13 +1100,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "vpc": [{
@@ -1586,13 +1579,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2059,13 +2045,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2532,13 +2511,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -3005,13 +2977,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "vpc": [{
