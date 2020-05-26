@@ -26,6 +26,7 @@ import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-containe
 import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
+import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
@@ -55,7 +56,7 @@ export interface IamPolicyArtifactsOutput {
  *   - Gateway endpoints
  *   - Flow logs
  */
-export async function phase1({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
@@ -420,6 +421,12 @@ export async function phase1({ acceleratorConfig, accountStacks, accounts, conte
       await createIamAssets(orgAccount.key, orgConfig.iam);
     }
   }
+
+  // Budget creation step 2
+  await budget.step2({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 
   await certificates.step1({
     accountStacks,

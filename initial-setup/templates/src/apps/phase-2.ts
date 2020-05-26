@@ -30,7 +30,7 @@ import { PhaseInput } from './shared';
  *   - Creates Peering Connection
  */
 
-export async function phase2({ acceleratorConfig, accountStacks, accounts, app, context, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, app, context, outputs }: PhaseInput) {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 

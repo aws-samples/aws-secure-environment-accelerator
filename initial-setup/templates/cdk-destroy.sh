@@ -14,4 +14,4 @@ pnpx cdk destroy \
   --asset-metadata false \
   --force \
   --plugin "$(pwd)/../../plugins/assume-role" \
-  --app "pnpx ts-node src/app.ts"
+  --app "pnpx ts-node src/app.ts" "*"

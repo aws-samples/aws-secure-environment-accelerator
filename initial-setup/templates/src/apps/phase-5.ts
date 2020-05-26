@@ -19,7 +19,7 @@ interface MadOutput {
   passwordArn: string;
 }
 
-export async function phase5({ acceleratorConfig, accountStacks, accounts, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
     .getMandatoryAccountConfigs()
     .map(([_, accountConfig]) => accountConfig['account-name']);

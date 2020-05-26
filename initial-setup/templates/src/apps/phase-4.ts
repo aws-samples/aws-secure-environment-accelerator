@@ -16,7 +16,7 @@ export interface RdgwArtifactsOutput {
   keyPrefix: string;
 }
 
-export async function phase4({ acceleratorConfig, accounts, accountStacks, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs }: PhaseInput) {
   // to share the resolver rules
   // get the list of account IDs with which the resolver rules needs to be shared
   const vpcConfigs = acceleratorConfig.getVpcConfigs();

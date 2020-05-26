@@ -4,14 +4,14 @@ interface CodeBuildStartInput {
   codeBuildProjectName: string;
   sourceBucketName: string;
   sourceBucketKey: string;
-  environment: { [name: string]: string };
+  environment?: { [name: string]: string };
 }
 
 export const handler = async (input: CodeBuildStartInput) => {
   console.log(`Starting CodeBuild build...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, environment } = input;
+  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, environment = {} } = input;
 
   // Build environment variables in CodeBuild format
   const environmentVariablesOverride = Object.entries(environment).map(([name, value]) => ({

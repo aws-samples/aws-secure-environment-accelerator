@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import * as apps from './apps';
+import { PhaseDeploy } from './apps/shared';
 import { AccountStacks } from './common/account-stacks';
 import { loadAccounts, getAccountId } from './utils/accounts';
 import { loadAcceleratorConfig } from './utils/config';
@@ -13,46 +13,19 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 const ACCELERATOR_PHASE = process.env.ACCELERATOR_PHASE!;
-const ACCELERATOR_ACCOUNT_KEY = process.env.ACCELERATOR_ACCOUNT_KEY;
-const ACCELERATOR_REGION = process.env.ACCELERATOR_REGION;
 
 interface PhaseInfo {
-  runner: apps.Phase;
+  runner: () => Promise<PhaseDeploy>;
   name: string;
   id: string;
 }
-const phases: PhaseInfo[] = [
-  {
-    runner: apps.phase0,
-    id: 'apps/phase-0.ts',
-    name: '0',
-  },
-  {
-    runner: apps.phase1,
-    id: 'apps/phase-1.ts',
-    name: '1',
-  },
-  {
-    runner: apps.phase2,
-    id: 'apps/phase-2.ts',
-    name: '2',
-  },
-  {
-    runner: apps.phase3,
-    id: 'apps/phase-3.ts',
-    name: '3',
-  },
-  {
-    runner: apps.phase4,
-    id: 'apps/phase-4.ts',
-    name: '4',
-  },
-  {
-    runner: apps.phase5,
-    id: 'apps/phase-5.ts',
-    name: '5',
-  },
-];
+
+// Right now there are only phases 0, 1, 2, 3, 4, 5
+const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
+  runner: () => import(`./apps/phase-${id}`).then(phase => phase.deploy),
+  id: `${id}`,
+  name: `${id}`,
+}));
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -74,6 +47,17 @@ async function main() {
   const limiter = new Limiter(limits);
   const outputs = await loadStackOutputs();
 
+  // If ACCELERATOR_ACCOUNT_KEY is set then we only deploy the stacks for those accounts
+  // TODO Do the same for region
+  const includeAccountKey = process.env.ACCELERATOR_ACCOUNT_KEY;
+  let includeAccountId;
+  if (includeAccountKey) {
+    includeAccountId = getAccountId(accounts, includeAccountKey);
+    if (!includeAccountId) {
+      throw new Error(`Cannot find account ${includeAccountKey}`);
+    }
+  }
+
   const app = new cdk.App();
 
   const accountStacks = new AccountStacks(app, {
@@ -82,7 +66,8 @@ async function main() {
     context,
   });
 
-  await phase.runner({
+  const runner = await phase.runner();
+  await runner({
     acceleratorConfig,
     accountStacks,
     accounts,
@@ -93,21 +78,16 @@ async function main() {
   });
 
   // Only deploy stacks for the given account
-  if (ACCELERATOR_ACCOUNT_KEY) {
-    const accountId = getAccountId(accounts, ACCELERATOR_ACCOUNT_KEY);
+  for (const child of app.node.children) {
+    if (!(child instanceof cdk.Stack)) {
+      continue;
+    }
 
-    const children = app.node.findAll();
-    for (const child of children) {
-      if (!(child instanceof cdk.Stack)) {
-        continue;
-      }
-
-      const stack = child as cdk.Stack;
-      const stackAccountId = stack.account;
-      if (accountId !== stackAccountId) {
-        console.info(`Skipping deployment of stack ${stack.stackName}`);
-        app.node.tryRemoveChild(stack.node.id);
-      }
+    const stack = child as cdk.Stack;
+    const stackAccountId = stack.account;
+    if (includeAccountId && includeAccountId !== stackAccountId) {
+      console.info(`Skipping deployment of stack ${stack.stackName}`);
+      app.node.tryRemoveChild(stack.node.id);
     }
   }
 }

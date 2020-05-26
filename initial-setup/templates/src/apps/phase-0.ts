@@ -20,7 +20,7 @@ import { PhaseInput } from './shared';
  *   - Log archive bucket
  *   - Copy of the central bucket
  */
-export async function phase0({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
     acceleratorPrefix: context.acceleratorPrefix,

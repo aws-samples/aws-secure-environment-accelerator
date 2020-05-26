@@ -143,6 +143,61 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
+      // Define a build specification bootstrap build the initial setup templates
+      const bootstrap = new codebuild.PipelineProject(this, `${props.acceleratorPrefix}Bootstrap_pl`, {
+        projectName: `${props.acceleratorPrefix}Bootstrap_pl`,
+        role: pipelineRole,
+        buildSpec: codebuild.BuildSpec.fromObject({
+          version: '0.2',
+          phases: {
+            install: {
+              'runtime-versions': {
+                nodejs: 12,
+              },
+              // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
+              commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
+            },
+            build: {
+              commands: ['cd initial-setup/templates', 'bash codebuild-bootstrap.sh'],
+            },
+          },
+        }),
+        environment: {
+          buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+          computeType: codebuild.ComputeType.MEDIUM,
+          environmentVariables: {
+            ACCELERATOR_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.acceleratorName,
+            },
+            ACCELERATOR_PREFIX: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.acceleratorPrefix,
+            },
+            ACCOUNTS_SECRET_ID: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: accountsSecret.secretArn,
+            },
+            STACK_OUTPUT_SECRET_ID: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: stackOutputSecret.secretArn,
+            },
+            LIMITS_SECRET_ID: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: limitsSecret.secretArn,
+            },
+            ACCELERATOR_EXECUTION_ROLE_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.stateMachineExecutionRole,
+            },
+            CDK_PLUGIN_ASSUME_ROLE_NAME: {
+              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+              value: props.stateMachineExecutionRole,
+            },
+          },
+        },
+      });
+
       // Define a build specification to build the initial setup templates
       const project = new codebuild.PipelineProject(this, `${props.acceleratorPrefix}Deploy_pl`, {
         projectName: `${props.acceleratorPrefix}Deploy_pl`,
@@ -173,14 +228,6 @@ export namespace InitialSetup {
             ACCELERATOR_PREFIX: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
               value: props.acceleratorPrefix,
-            },
-            CONFIG_FILE_PATH: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.configFilePath,
-            },
-            CONFIG_REPOSITORY_NAME: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.configRepositoryName,
             },
             ACCOUNTS_SECRET_ID: {
               type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
@@ -392,12 +439,30 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}Deploy_sm`,
-        definition: new BuildTask(this, 'Build', {
+      const codeBuildStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}CodeBuild_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}CodeBuild_sm`,
+        definition: new BuildTask(this, 'CodeBuild', {
           lambdaCode,
           role: pipelineRole,
         }),
+      });
+
+      const bootstrapTask = new sfn.Task(this, 'Bootstrap', {
+        task: new tasks.StartExecution(codeBuildStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            codeBuildProjectName: bootstrap.projectName,
+            sourceBucketName: solutionZip.s3BucketName,
+            sourceBucketKey: solutionZip.s3ObjectKey,
+            environment: {
+              ACCELERATOR_PHASE: '0',
+              'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
+              'CONFIG_FILE_PATH.$': '$.configFilePath',
+              'CONFIG_COMMIT_ID.$': '$.configCommitId',
+            },
+          },
+        }),
+        resultPath: 'DISCARD',
       });
 
       const createDeploymentTaskInput = (phase: number) => ({
@@ -405,7 +470,8 @@ export namespace InitialSetup {
         sourceBucketName: solutionZip.s3BucketName,
         sourceBucketKey: solutionZip.s3ObjectKey,
         environment: {
-          APP_PATH: `apps/phase-${phase}.ts`,
+          ACCELERATOR_PHASE: `${phase}`,
+          // 'ACCELERATOR_ACCOUNT_KEY.$': '$.account.key',
           'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
           'CONFIG_FILE_PATH.$': '$.configFilePath',
           'CONFIG_COMMIT_ID.$': '$.configCommitId',
@@ -413,12 +479,25 @@ export namespace InitialSetup {
       });
 
       const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
-        task: new tasks.StartExecution(deployStateMachine, {
+        task: new tasks.StartExecution(codeBuildStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: createDeploymentTaskInput(0),
         }),
         resultPath: 'DISCARD',
       });
+
+      // const deployPhase0Map = new sfn.Map(this, 'Deploy Phase 0 Parallel', {
+      //   itemsPath: '$.accounts',
+      //   parameters: {
+      //     'account.$': '$$.Map.Item.Value',
+      //     'configRepositoryName.$': '$.configRepositoryName',
+      //     'configFilePath.$': '$.configFilePath',
+      //     'configCommitId.$': '$.configCommitId',
+      //   },
+      //   resultPath: 'DISCARD',
+      // });
+
+      // deployPhase0Map.iterator(deployPhase0Task);
 
       const storePhase0Output = new CodeTask(this, 'Store Phase 0 Output', {
         functionProps: {
@@ -436,7 +515,7 @@ export namespace InitialSetup {
       });
 
       const deployPhase1Task = new sfn.Task(this, 'Deploy Phase 1', {
-        task: new tasks.StartExecution(deployStateMachine, {
+        task: new tasks.StartExecution(codeBuildStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: createDeploymentTaskInput(1),
         }),
@@ -507,7 +586,7 @@ export namespace InitialSetup {
       });
 
       const deployPhase2Task = new sfn.Task(this, 'Deploy Phase 2', {
-        task: new tasks.StartExecution(deployStateMachine, {
+        task: new tasks.StartExecution(codeBuildStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: createDeploymentTaskInput(2),
         }),
@@ -530,7 +609,7 @@ export namespace InitialSetup {
       });
 
       const deployPhase3Task = new sfn.Task(this, 'Deploy Phase 3', {
-        task: new tasks.StartExecution(deployStateMachine, {
+        task: new tasks.StartExecution(codeBuildStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: createDeploymentTaskInput(3),
         }),
@@ -593,7 +672,7 @@ export namespace InitialSetup {
       });
 
       const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
-        task: new tasks.StartExecution(deployStateMachine, {
+        task: new tasks.StartExecution(codeBuildStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: createDeploymentTaskInput(4),
         }),
@@ -616,7 +695,7 @@ export namespace InitialSetup {
       });
 
       const deployPhase5Task = new sfn.Task(this, 'Deploy Phase 5', {
-        task: new tasks.StartExecution(deployStateMachine, {
+        task: new tasks.StartExecution(codeBuildStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: createDeploymentTaskInput(5),
         }),
@@ -634,6 +713,7 @@ export namespace InitialSetup {
           .next(loadLimitsTask)
           .next(addScpTask)
           .next(enableTrustedAccessForServicesTask)
+          .next(bootstrapTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)

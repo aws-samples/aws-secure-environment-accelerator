@@ -6,7 +6,7 @@ import { Limiter } from '../utils/limits';
 import { Context } from '../utils/context';
 import { AccountStacks } from '../common/account-stacks';
 
-export type Phase = (input: PhaseInput) => Promise<void>;
+export type PhaseDeploy = (input: PhaseInput) => Promise<void>;
 
 export interface PhaseInput {
   acceleratorConfig: AcceleratorConfig;

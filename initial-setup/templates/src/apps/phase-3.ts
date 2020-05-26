@@ -2,7 +2,7 @@ import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { PhaseInput } from './shared';
 
-export async function phase3({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   /**
    * Code to create Peering Connection Routes in all accounts
    */
