@@ -57,23 +57,46 @@ If using an internal AWS account, to successfully install, you need to enable pr
    
    ***(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)***
 
-3. Create an S3 bucket in your master account with versioning enabled
-~~4. Place your config file, named `config.json`, in your new bucket~~ (S3 auto-load Functionality BROKEN)
+3. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
+   - supply this bucket name in the CFN parameters and in the config file
+4. Place your config file, named `config.json`, in your new bucket
 5. place the firewall license and configuration in the folder and path defined in the config file 
-   (i.e. firewall/license.lic and firewall/fortigate.txt)
+   (i.e. `firewall/license.lic` and `firewall/fortigate.txt`)
+6. Add a bucket policy, replacing `your-bucket-name` and `123456789012` with the perimeter account id:
+   (You can only do this after perimeter account is created, but must be done before Phase 2)
+```
+{
+    "Version": "2012-10-17",
+    "Id": "Policy1590356756537",
+    "Statement": [
+        {
+            "Sid": "Stmt1590356754293",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::123456789012:root"
+            },
+            "Action": "s3:*",
+            "Resource": [
+                "arn:aws:s3:::your-bucket-name",
+                "arn:aws:s3:::your-bucket-name/*"
+            ]
+        }
+    ]
+}
+```
+
 
    
 #### Deploy the Accelerator Installer Stack
 
 1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
-~~1. You can find the latest release v1.0.4b ALPHA found in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/tree/master/reference-artifacts/deployment (master branch) (DEFECT FIXED)~~
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account
 4. Fill out the required parameters - ***LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW***
-5. Specify stack name STARTING with `PBMMAccel-` (case sensitive)
-6. Change `ConfigS3Bucket` to the name of the bucket you created above
+5. Specify stack name STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `Installer`
+6. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
 7. Add an `Email` address to be used for notification of code releases
-8. Change `GithubBranch` to the latest stable branch (currently master, case sensitive)
+8. Change `GithubBranch` to the latest stable branch (currently v1.0.4, case sensitive)
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
