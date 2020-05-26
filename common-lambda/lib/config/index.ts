@@ -23,10 +23,11 @@ export const PeeringConnectionConfig = t.interface({
 export const NatGatewayConfig = t.interface({
   subnet: t.interface({
     name: t.string,
+    az: optional(availabilityZone),
   }),
 });
 
-export const SubnetDefinitionConfigType = t.interface({
+export const SubnetDefinitionConfig = t.interface({
   az: availabilityZone,
   cidr: optional(cidr),
   cidr2: optional(cidr),
@@ -59,12 +60,11 @@ export const SubnetConfigType = t.interface({
   name: NonEmptyString,
   'share-to-ou-accounts': fromNullable(t.boolean, false),
   'share-to-specific-accounts': optional(t.array(t.string)),
-  definitions: t.array(SubnetDefinitionConfigType),
+  definitions: t.array(SubnetDefinitionConfig),
   nacls: optional(t.array(NaclConfigType)),
 });
 
 export type SubnetConfig = t.TypeOf<typeof SubnetConfigType>;
-export type SubnetDefinitionConfig = t.TypeOf<typeof SubnetDefinitionConfigType>;
 
 export const GATEWAY_ENDPOINT_TYPES = ['s3', 'dynamodb'] as const;
 
@@ -278,7 +278,6 @@ export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
 
 export const ADUserConfig = t.interface({
   user: NonEmptyString,
-  email: t.string,
   groups: t.array(t.string),
 });
 

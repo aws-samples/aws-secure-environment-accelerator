@@ -375,44 +375,64 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       });
     }
 
-    // Create NAT Gateway
-    const allSubnetDefinitions: config.SubnetDefinitionConfig[] = [];
-    for (const subnet of subnetsConfig) {
-      allSubnetDefinitions.push(...subnet.definitions);
+    const routeExistsForNatGW = (az: string | undefined, routeTable?: string): boolean => {
+      // Returns True/False based on routes attachement to NATGW
+      let routeExists = false;
+      for (const natRoute of routeTable? [routeTable]: natRouteTables) {
+        const natRouteTableSubnetDef
+         = allSubnetDefinitions.find(subnetDef => subnetDef['route-table'] === natRoute);
+        if (az && natRouteTableSubnetDef?.az === az) {
+          routeExists = true;
+          break;
+        } else if(!az && natRouteTableSubnetDef) {
+          routeExists = true;
+          break;
+        }
+      }
+      return routeExists;
     }
-    const natGateWayNameToIdMap: NameToIdMap = {};
+
+    // Create NAT Gateway
+    const allSubnetDefinitions = subnetsConfig.flatMap(s => s.definitions);
     const natgwProps = vpcConfig.natgw;
     if (config.NatGatewayConfig.is(natgwProps)) {
       const subnetConfig = natgwProps.subnet;
-      const natSubnets = this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name);
+      let natSubnets: AzSubnet[] = [];
+      if (subnetConfig.az) {
+        natSubnets.push(this.azSubnets.getAzSubnetForNameAndAz(subnetConfig.name, subnetConfig.az)!);
+      } else {
+        natSubnets.push(...this.azSubnets.getAzSubnetsForSubnetName(subnetConfig.name));
+      }
       for (const natSubnet of natSubnets) {
-        console.log(`Creating natgw for az: ${natSubnet.az}`);
+        if (!routeExistsForNatGW(natSubnet.az)) {
+          // Skipping Creation of NATGW
+          console.log(`Skipping Creation of NAT Gateway "${natSubnet.name}-${natSubnet.az}", as there is no routes associated to it`);
+          continue;
+        }
+        console.log(`Creating natgw for Subnet "${natSubnet.name}" az: "${natSubnet.az}"`);
         const natGWName = `NATGW_${natSubnet.name}_${natSubnet.az}_natgw`;
-        const eip = new ec2.CfnEIP(this, `EIP_shared-network_natgw_${natSubnet.az}`);
+        const eip = new ec2.CfnEIP(this, `EIP_natgw_${natSubnet.az}`);
 
         const natgw = new ec2.CfnNatGateway(this, natGWName, {
           allocationId: eip.attrAllocationId,
           subnetId: natSubnet.id,
         });
-        natGateWayNameToIdMap[natGWName] = natgw.ref;
-      }
-
-      // Attach NatGw Routes to Non IGW Route Tables
-      const natRoutesExistence = new Set();
-      for (const natRoute of natRouteTables) {
-        const natRouteAZ = allSubnetDefinitions.find(subnetDef => subnetDef['route-table'] === natRoute)?.az;
-        const natGWName = `NATGW_${subnetConfig.name}_${natRouteAZ}_natgw`;
-        const routeTableId = this.routeTableNameToIdMap[natRoute];
-        const routeParams: ec2.CfnRouteProps = {
-          routeTableId,
-          destinationCidrBlock: '0.0.0.0/0',
-          natGatewayId: natGateWayNameToIdMap[natGWName],
-        };
-        new ec2.CfnRoute(this, `${natGWName}_route`, routeParams);
-        natRoutesExistence.add(natGWName);
-      }
-      for (const removeNat of Object.keys(natGateWayNameToIdMap).filter(natgw => !natRoutesExistence.has(natgw))) {
-        this.node.tryRemoveChild(removeNat);
+        
+        // Attach NatGw Routes to Non IGW Route Tables
+        for (const natRoute of natRouteTables) {
+          const routeTableId = this.routeTableNameToIdMap[natRoute];
+          if (!routeExistsForNatGW(subnetConfig.az? undefined: natSubnet.az, natRoute)) {
+            // Skipping Route Association of NATGW if no route specified in subnet config
+            console.log(`Skipping NAT Gateway Route association to Route Table "${natRoute}", as there is no subnet is mapped to it`);
+            continue;
+          }
+          const routeParams: ec2.CfnRouteProps = {
+            routeTableId,
+            destinationCidrBlock: '0.0.0.0/0',
+            natGatewayId: natgw.ref,
+          };
+          new ec2.CfnRoute(this, `natgw_${natRoute}_route`, routeParams);
+        }
       }
     }
 
