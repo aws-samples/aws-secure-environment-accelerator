@@ -68,11 +68,18 @@ export namespace PeeringConnection {
           continue;
         }
 
-        const peerVpcOutputs: PcxOutput[] = StructuredOutput.fromOutputs(outputs, {
+        let peerVpcOutputs: PcxOutput[] = StructuredOutput.fromOutputs(outputs, {
           accountKey: pcxRoute.account,
           type: PcxOutputType,
         });
-        const peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
+        let peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
+        if (!peerVpcOutput) {
+          peerVpcOutputs = StructuredOutput.fromOutputs(outputs, {
+            accountKey: accountKey,
+            type: PcxOutputType,
+          });
+          peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === vpcConfig?.name);
+        }
         if (!peerVpcOutput) {
           console.warn(`No VPC PCX created with name "${vpcName}" in "${pcxRoute.account}"`);
           continue;
