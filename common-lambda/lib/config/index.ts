@@ -278,6 +278,7 @@ export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
 
 export const ADUserConfig = t.interface({
   user: NonEmptyString,
+  email: t.string,
   groups: t.array(t.string),
 });
 

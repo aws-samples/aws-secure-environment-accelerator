@@ -359,7 +359,7 @@
           "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
           "rdgw-instance-type": "t2.large",
-		  "rdgw-instance-role": "PBMMAccel-RDGW-Role",
+	        "rdgw-instance-role": "PBMMAccel-RDGW-Role",
           "password-policies": {
             "history": 24,
             "max-age": 90,
@@ -377,14 +377,17 @@
           "ad-users": [
             {
               "user": "adconnector-usr",
+              "email": "myemail+pbmmT-adconnector-usr@myemaildomain.com",
               "groups": ["ADConnector-grp"]
             },
             {
               "user": "Brian",
+              "email": "myemail+pbmmT-Brian@myemaildomain.com",
               "groups": ["Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
             },
             {
               "user": "TestUser",
+              "email": "myemail+pbmmT-TestUser@myemaildomain.com",
               "groups": ["*-View"]
             }
           ],
@@ -1099,13 +1102,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "vpc": [{
@@ -1585,13 +1581,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2059,13 +2048,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2533,13 +2515,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -3007,13 +2982,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "vpc": [{

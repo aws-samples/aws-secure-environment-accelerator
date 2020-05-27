@@ -1,11 +1,12 @@
 import * as path from 'path';
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
+import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
-import { createBucketName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createBucketName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getAccountId, loadAccounts } from '../utils/accounts';
 import { loadAcceleratorConfig } from '../utils/config';
@@ -13,7 +14,6 @@ import { loadContext } from '../utils/context';
 import { AccountStacks } from '../common/account-stacks';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
-import { AccessAnalyzer } from '../common/access-analyzer';
 import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
@@ -111,13 +111,19 @@ async function main() {
     destinationKeyPrefix: 'config/scripts',
   });
 
-  // creating assets for default account settings
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
   const securityStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
   if (!securityStack) {
     console.warn(`Cannot find security stack`);
   } else {
-    new AccessAnalyzer(securityStack, `Access Analyzer`);
+    new accessanalyzer.CfnAnalyzer(securityStack, 'OrgAccessAnalyzer', {
+      analyzerName: createName({
+        name: 'AccessAnalyzer',
+        account: false,
+        region: false,
+      }),
+      type: 'ORGANIZATION',
+    });
   }
 
   const globalOptions = acceleratorConfig['global-options'];

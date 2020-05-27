@@ -13,7 +13,10 @@ param(
     $DomainAdminPassword,
 
     [string]
-    $PasswordNeverExpires
+    $PasswordNeverExpires,
+
+    [string]
+    $UserEmailAddress
 )
 
 # Turned off logging;
@@ -28,7 +31,7 @@ $securePassword = ConvertTo-SecureString $DomainAdminPassword -AsPlainText -Forc
 $credential = New-Object System.Management.Automation.PSCredential $DomainAdminUser, $securePassword
 
 #Create User
-New-ADUser -Name $UserName -EmailAddress "$UserName@$dom" -AccountPassword $pass -Enabled 1 -Credential $credential -SamAccountName $UserName
+New-ADUser -Name $UserName -EmailAddress $UserEmailAddress -AccountPassword $pass -Enabled 1 -Credential $credential -SamAccountName $UserName
 
 #Set the admin & connector user's password never expires flag
 If (-NOT  ($PasswordNeverExpires -eq 'No')) {
