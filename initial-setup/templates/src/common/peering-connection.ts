@@ -75,7 +75,7 @@ export namespace PeeringConnection {
         let peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
         if (!peerVpcOutput) {
           peerVpcOutputs = StructuredOutput.fromOutputs(outputs, {
-            accountKey: accountKey,
+            accountKey,
             type: PcxOutputType,
           });
           peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === vpcConfig?.name);
