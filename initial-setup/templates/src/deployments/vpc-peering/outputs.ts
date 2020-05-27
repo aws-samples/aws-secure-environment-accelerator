@@ -2,9 +2,14 @@ import * as t from 'io-ts';
 
 export const PcxOutputType = t.interface(
   {
-    vpcId: t.string,
-    vpcName: t.string,
     pcxId: t.string,
+    vpcs: t.array(
+      t.interface({
+        accountKey: t.string,
+        vpcId: t.string,
+        vpcName: t.string,
+      }),
+    ),
   },
   'Pcx',
 );
