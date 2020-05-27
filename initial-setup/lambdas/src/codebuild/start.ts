@@ -2,10 +2,12 @@ import * as aws from 'aws-sdk';
 
 interface CodeBuildStartInput {
   codeBuildProjectName: string;
-  sourceBucketName: string;
-  sourceBucketKey: string;
+  sourceBucketName?: string;
+  sourceBucketKey?: string;
   environment?: { [name: string]: string };
 }
+
+const codeBuild = new aws.CodeBuild();
 
 export const handler = async (input: CodeBuildStartInput) => {
   console.log(`Starting CodeBuild build...`);
@@ -20,19 +22,19 @@ export const handler = async (input: CodeBuildStartInput) => {
     type: 'PLAINTEXT',
   }));
 
-  const codeBuild = new aws.CodeBuild();
-  const response = await codeBuild
-    .startBuild({
-      projectName: codeBuildProjectName,
-      sourceTypeOverride: 'S3',
-      sourceLocationOverride: `${sourceBucketName}/${sourceBucketKey}`,
-      artifactsOverride: {
-        type: 'NO_ARTIFACTS',
-      },
-      environmentVariablesOverride,
-    })
-    .promise();
+  const request: aws.CodeBuild.Types.StartBuildInput = {
+    projectName: codeBuildProjectName,
+    environmentVariablesOverride,
+    artifactsOverride: {
+      type: 'NO_ARTIFACTS',
+    },
+  };
+  if (sourceBucketName && sourceBucketKey) {
+    request.sourceTypeOverride = 'S3';
+    request.sourceLocationOverride = `${sourceBucketName}/${sourceBucketKey}`;
+  }
 
+  const response = await codeBuild.startBuild(request).promise();
   const build = response.build;
   if (!build) {
     return {
