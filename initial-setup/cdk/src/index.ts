@@ -155,7 +155,9 @@ export namespace InitialSetup {
                 nodejs: 12,
               },
               // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-              commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
+              // The flag '--ignore-scripts' prevents from building custom resources all over while they were already
+              // by the installer
+              commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm --ignore-scripts'],
             },
             build: {
               commands: ['cd initial-setup/templates', 'bash codebuild-bootstrap.sh'],
