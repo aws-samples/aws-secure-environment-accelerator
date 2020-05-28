@@ -80,6 +80,22 @@ async function main() {
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
   });
 
+  // Allow creation of ECR repositories
+  installerProjectRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['ecr:*'],
+      resources: [`arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/aws-cdk/*`],
+    }),
+  );
+
+  // Allow getting authorization tokens for ECR
+  installerProjectRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['ecr:GetAuthorizationToken'],
+      resources: [`*`],
+    }),
+  );
+
   // Allow all CloudFormation permissions
   installerProjectRole.addToPolicy(
     new iam.PolicyStatement({
@@ -121,7 +137,8 @@ async function main() {
             nodejs: 12,
           },
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
+          // The flag '--ignore-scripts' skips the compilation of custom resources
+          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm --ignore-scripts'],
         },
         build: {
           commands: [
@@ -134,6 +151,7 @@ async function main() {
     }),
     environment: {
       buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+      privileged: true, // Allow access to the Docker daemon
       computeType: codebuild.ComputeType.MEDIUM,
       environmentVariables: {
         ACCELERATOR_NAME: {

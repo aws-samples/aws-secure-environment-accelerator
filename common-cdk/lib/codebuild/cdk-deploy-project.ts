@@ -12,11 +12,12 @@ export type PackageManager = 'pnpm';
 export interface CdkDeployProjectProps {
   projectName: string;
   role: iam.Role;
+  prebuilt: boolean;
   packageManager: PackageManager;
   projectRoot: string;
   commands: string[];
-  prebuilt: boolean;
   computeType?: codebuild.ComputeType;
+  timeout?: cdk.Duration;
   environment?: { [key: string]: string };
 }
 
@@ -26,7 +27,7 @@ export class CdkDeployProject extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
     super(scope, id);
 
-    const { role, projectName, packageManager, commands, computeType, environment, prebuilt } = props;
+    const { role, projectName, packageManager, commands, computeType, timeout, environment, prebuilt } = props;
 
     this.projectName = projectName;
 
@@ -71,6 +72,7 @@ export class CdkDeployProject extends cdk.Construct {
         packageManager,
         commands,
         computeType,
+        timeout,
         environmentVariables,
       });
     } else {
@@ -81,6 +83,7 @@ export class CdkDeployProject extends cdk.Construct {
         packageManager,
         commands,
         computeType,
+        timeout,
         environmentVariables,
       });
     }
@@ -94,6 +97,7 @@ interface ProjectProps {
   packageManager: PackageManager;
   commands: string[];
   computeType?: codebuild.ComputeType;
+  timeout?: cdk.Duration;
   environmentVariables?: { [key: string]: codebuild.BuildEnvironmentVariable };
 }
 
@@ -106,7 +110,7 @@ class DefaultProject extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: ProjectProps) {
     super(scope, id);
 
-    const { role, projectName, projectTmpDir, commands, computeType, environmentVariables } = props;
+    const { role, projectName, projectTmpDir, commands, computeType, timeout, environmentVariables } = props;
 
     // Upload the templates ZIP as an asset to S3
     const projectAsset = new s3assets.Asset(this, 'Asset', {
@@ -117,6 +121,7 @@ class DefaultProject extends cdk.Construct {
     this.resource = new codebuild.Project(this, 'Resource', {
       projectName,
       role,
+      timeout,
       buildSpec: codebuild.BuildSpec.fromObject({
         version: '0.2',
         phases: {
@@ -154,7 +159,7 @@ class PrebuiltProject extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: ProjectProps) {
     super(scope, id);
 
-    const { role, projectName, projectTmpDir, commands, computeType, environmentVariables } = props;
+    const { role, projectName, projectTmpDir, commands, computeType, timeout, environmentVariables } = props;
 
     // Create docker-entrypoint.sh
     const entrypointFileName = 'docker-entrypoint.sh';
@@ -185,6 +190,7 @@ class PrebuiltProject extends cdk.Construct {
     this.resource = new codebuild.Project(this, 'Resource', {
       projectName,
       role,
+      timeout,
       buildSpec: codebuild.BuildSpec.fromObject({
         version: '0.2',
         phases: {

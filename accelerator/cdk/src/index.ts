@@ -23,6 +23,7 @@ async function main() {
   const configS3FileName = env.CONFIG_S3_KEY || `config.json`;
   const configS3Bucket =
     env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
+  const enablePrebuiltProject = !('DISABLE_DOCKER' in env);
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
@@ -46,6 +47,7 @@ async function main() {
     stateMachineName,
     stateMachineExecutionRole,
     terminationProtection: true,
+    enablePrebuiltProject,
   });
 }
 

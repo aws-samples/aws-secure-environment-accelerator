@@ -7,13 +7,6 @@ import { loadContext } from './utils/context';
 import { loadStackOutputs } from './utils/outputs';
 import { loadLimits, Limiter } from './utils/limits';
 
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
-
-const ACCELERATOR_PHASE = process.env.ACCELERATOR_PHASE!;
-
 interface PhaseInfo {
   runner: () => Promise<PhaseDeploy>;
   name: string;
@@ -27,6 +20,12 @@ const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
   name: `${id}`,
 }));
 
+export interface AppProps {
+  phase: string;
+  region?: string;
+  accountKey?: string;
+}
+
 /**
  * This is the main entry point to deploy phase 0.
  *
@@ -34,10 +33,10 @@ const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
  *   - Log archive bucket
  *   - Copy of the central bucket
  */
-async function main() {
-  const phase = phases.find(p => p.id === ACCELERATOR_PHASE);
+export async function app(props: AppProps) {
+  const phase = phases.find(p => p.id === props.phase);
   if (!phase) {
-    throw new Error(`Cannot find phase ${ACCELERATOR_PHASE}`);
+    throw new Error(`Cannot find phase ${props.phase}`);
   }
 
   const acceleratorConfig = await loadAcceleratorConfig();
@@ -47,9 +46,8 @@ async function main() {
   const limiter = new Limiter(limits);
   const outputs = await loadStackOutputs();
 
-  // If ACCELERATOR_ACCOUNT_KEY is set then we only deploy the stacks for those accounts
-  // TODO Do the same for region
-  const includeAccountKey = process.env.ACCELERATOR_ACCOUNT_KEY;
+  const includeRegion = props.region;
+  const includeAccountKey = props.accountKey;
   let includeAccountId;
   if (includeAccountKey) {
     includeAccountId = getAccountId(accounts, includeAccountKey);
@@ -84,13 +82,23 @@ async function main() {
     }
 
     const stack = child as cdk.Stack;
+
     const stackAccountId = stack.account;
+    // If the stack is not for the given account, then we remove it from the app
     if (includeAccountId && includeAccountId !== stackAccountId) {
       console.info(`Skipping deployment of stack ${stack.stackName}`);
+      // Remove the stack from the app
+      app.node.tryRemoveChild(stack.node.id);
+    }
+
+    const stackRegion = stack.region;
+    // If the stack is not for the given region, then we remove it from the app
+    if (includeRegion && includeRegion !== stackRegion) {
+      console.info(`Skipping deployment of stack ${stack.stackName}`);
+      // Remove the stack from the app
       app.node.tryRemoveChild(stack.node.id);
     }
   }
-}
 
-// tslint:disable-next-line: no-floating-promises
-main();
+  return app;
+}

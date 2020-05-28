@@ -37,6 +37,10 @@ export namespace InitialSetup {
     configS3Bucket: string;
     configS3FileName: string;
     configBranchName: string;
+    /**
+     * Prebuild Docker image that contains the project with its dependencies already installed.
+     */
+    enablePrebuiltProject?: boolean;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -78,7 +82,7 @@ export namespace InitialSetup {
     constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
       super(scope, id);
 
-      const { lambdaCode } = props;
+      const { enablePrebuiltProject, lambdaCode } = props;
 
       const stack = cdk.Stack.of(this);
 
@@ -108,13 +112,14 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      const project = new CdkDeployProject(this, 'Deploy', {
-        projectName: `${props.acceleratorPrefix}Cdk_pl`,
+      const project = new CdkDeployProject(this, 'CdkDeploy', {
+        projectName: `${props.acceleratorPrefix}CdkDeploy_pl`,
         role: pipelineRole,
-        prebuilt: true,
+        prebuilt: enablePrebuiltProject ?? true,
         projectRoot: props.solutionRoot,
         packageManager: 'pnpm',
         commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
+        timeout: cdk.Duration.hours(4),
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
           ACCELERATOR_PREFIX: props.acceleratorPrefix,
@@ -320,75 +325,68 @@ export namespace InitialSetup {
         }),
       });
 
-      const createDeploymentTaskInput = (phase: number) => ({
-        codeBuildProjectName: project.projectName,
-        environment: {
-          ACCELERATOR_PHASE: `${phase}`,
-          'ACCELERATOR_ACCOUNT_KEY.$': '$.account.key',
-          'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
-          'CONFIG_FILE_PATH.$': '$.configFilePath',
-          'CONFIG_COMMIT_ID.$': '$.configCommitId',
-        },
-      });
+      // TODO Move this to a separate state machine, including store output task
+      const createDeploymentTask = (phase: number) => {
+        const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
+          task: new tasks.StartExecution(codeBuildStateMachine, {
+            integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+            input: {
+              codeBuildProjectName: project.projectName,
+              environment: {
+                ACCELERATOR_PHASE: `${phase}`,
+                'ACCELERATOR_ACCOUNT_KEY.$': '$.account.key',
+                'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
+                'CONFIG_FILE_PATH.$': '$.configFilePath',
+                'CONFIG_COMMIT_ID.$': '$.configCommitId',
+              },
+            },
+          }),
+          resultPath: 'DISCARD',
+        });
 
-      const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
-        task: new tasks.StartExecution(codeBuildStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: createDeploymentTaskInput(0),
-        }),
-        resultPath: 'DISCARD',
-      });
+        const mapTask = new sfn.Map(this, `Deploy Phase ${phase} Map`, {
+          itemsPath: '$.accounts',
+          parameters: {
+            'account.$': '$$.Map.Item.Value',
+            'configRepositoryName.$': '$.configRepositoryName',
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
+          },
+          resultPath: 'DISCARD',
+        });
 
-      const deployPhase0Map = new sfn.Map(this, 'Deploy Phase 0 Parallel', {
-        itemsPath: '$.accounts',
-        parameters: {
-          'account.$': '$$.Map.Item.Value',
-          'configRepositoryName.$': '$.configRepositoryName',
-          'configFilePath.$': '$.configFilePath',
-          'configCommitId.$': '$.configCommitId',
-        },
-        resultPath: 'DISCARD',
-      });
+        mapTask.iterator(deployTask);
+        return mapTask;
+      };
 
-      deployPhase0Map.iterator(deployPhase0Task);
+      const createStoreOutputTask = (phase: number) =>
+        new CodeTask(this, `Store Phase ${phase} Output`, {
+          functionProps: {
+            code: lambdaCode,
+            handler: 'index.storeStackOutputStep',
+            role: pipelineRole,
+          },
+          functionPayload: {
+            acceleratorPrefix: props.acceleratorPrefix,
+            stackOutputSecretId: stackOutputSecret.secretArn,
+            assumeRoleName: props.stateMachineExecutionRole,
+            'accounts.$': '$.accounts',
+          },
+          resultPath: 'DISCARD',
+        });
 
-      const storePhase0Output = new CodeTask(this, 'Store Phase 0 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const deployPhase1Task = new sfn.Task(this, 'Deploy Phase 1', {
-        task: new tasks.StartExecution(codeBuildStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: createDeploymentTaskInput(1),
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase1Output = new CodeTask(this, 'Store Phase 1 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
+      // TODO Create separate state machine for deployment
+      const deployPhase0Task = createDeploymentTask(0);
+      const storePhase0Output = createStoreOutputTask(0);
+      const deployPhase1Task = createDeploymentTask(1);
+      const storePhase1Output = createStoreOutputTask(1);
+      const deployPhase2Task = createDeploymentTask(2);
+      const storePhase2Output = createStoreOutputTask(2);
+      const deployPhase3Task = createDeploymentTask(3);
+      const storePhase3Output = createStoreOutputTask(3);
+      const deployPhase4Task = createDeploymentTask(4);
+      const storePhase4Output = createStoreOutputTask(4);
+      const deployPhase5Task = createDeploymentTask(5);
 
       // TODO We could put this task in a map task and apply to all accounts individually
       const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
@@ -438,52 +436,6 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const deployPhase2Task = new sfn.Task(this, 'Deploy Phase 2', {
-        task: new tasks.StartExecution(codeBuildStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: createDeploymentTaskInput(2),
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase2Output = new CodeTask(this, 'Store Phase 2 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const deployPhase3Task = new sfn.Task(this, 'Deploy Phase 3', {
-        task: new tasks.StartExecution(codeBuildStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: createDeploymentTaskInput(3),
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase3Output = new CodeTask(this, 'Store Phase 3 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
           code: lambdaCode,
@@ -524,49 +476,18 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
-        task: new tasks.StartExecution(codeBuildStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: createDeploymentTaskInput(4),
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase4Output = new CodeTask(this, 'Store Phase 4 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const deployPhase5Task = new sfn.Task(this, 'Deploy Phase 5', {
-        task: new tasks.StartExecution(codeBuildStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: createDeploymentTaskInput(5),
-        }),
-        resultPath: 'DISCARD',
-      });
-
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
           .next(loadConfigurationTask)
-          // .next(addRoleToServiceCatalog)
+          .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)
-          // .next(installRolesTask)
-          // .next(loadLimitsTask)
-          // .next(addScpTask)
-          // .next(enableTrustedAccessForServicesTask)
-          .next(deployPhase0Map)
+          .next(installRolesTask)
+          .next(loadLimitsTask)
+          .next(addScpTask)
+          .next(enableTrustedAccessForServicesTask)
+          .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)
           .next(storePhase1Output)

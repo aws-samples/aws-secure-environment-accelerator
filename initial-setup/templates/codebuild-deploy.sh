@@ -1,25 +1,23 @@
 #!/bin/bash
 
-ASSUME_ROLE_PLUGIN_PATH="$(pwd)/../../plugins/assume-role"
-
 if [[ -z "${ACCELERATOR_PHASE}" ]]; then
   echo "The environment variable ACCELERATOR_PHASE has to be set to the path of the app you want to deploy."
   exit 1
+else
+  phase_arg="--phase \"${ACCELERATOR_PHASE}\""
+fi
+
+if [[ -n "${ACCELERATOR_REGION}" ]]; then
+  region_arg="--region \"${ACCELERATOR_REGION}\""
+fi
+if [[ -n "${ACCELERATOR_ACCOUNT_KEY}" ]]; then
+  account_arg="--arccount-key \"${ACCELERATOR_ACCOUNT_KEY}\""
 fi
 
 echo "Bootstrapping..."
 
-pnpx cdk bootstrap \
-  --plugin "$ASSUME_ROLE_PLUGIN_PATH" \
-  --app "pnpx ts-node --transpile-only src/app.ts"
+pnpx ts-node --transpile-only cdk.ts bootstrap ${phase_arg} ${region_arg} ${account_arg}
 
 echo "Deploying phase $ACCELERATOR_PHASE..."
 
-pnpx cdk deploy "*" \
-  --require-approval never \
-  --version-reporting false \
-  --path-metadata false \
-  --asset-metadata false \
-  --force \
-  --plugin "$ASSUME_ROLE_PLUGIN_PATH" \
-  --app "pnpx ts-node --transpile-only src/app.ts"
+pnpx ts-node --transpile-only cdk.ts deploy ${phase_arg} ${region_arg} ${account_arg}
