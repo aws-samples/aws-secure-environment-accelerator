@@ -1,17 +1,20 @@
 # EC2 Image Finder
 
-This is a custom resource that makes it possible to add a delay after resource creation.
+This is a custom resource that makes ec2.runInstances and returns status to check subscription status for Market Place AMI
+
 
 ## Usage
 
-    import { CfnSleep } from '@custom-resources/cfn-sleep';
+    import { CfnMarketPlaceSubscriptionCheck } from '@custom-resources/ec2-marketplace-subscription-validation';
 
     const resource = ...
 
-    const sleep = new CfnSleep(scope, 'Sleep', {
-      sleep: 2000,
-    });
-    sleep.node.addDependency(resource);
+    const subscritionCheckResponse = new CfnMarketPlaceSubscriptionCheck(scope, id, {
+    imageId,
+    subnetId,
+  });
+  return subscritionCheckResponse.getAttString('Status');
 
-    const dependency = ...
-    dependency.node.addDependency(sleep);
+### Possible Output
+
+  Subscribed | OptInRequired
