@@ -4,6 +4,7 @@ import * as iam from '@aws-cdk/aws-iam';
 
 export interface VpnAttachmentsProps {
   vpnConnectionId: string;
+  tgwId: string;
 }
 
 /**
@@ -27,6 +28,10 @@ export class VpnAttachments extends cdk.Construct {
             Name: 'resource-id',
             Values: [props.vpnConnectionId],
           },
+          {
+            Name: 'transit-gateway-id',
+            Vaules: [props.tgwId],
+          }
         ],
       },
     };

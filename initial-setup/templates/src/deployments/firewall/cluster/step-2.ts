@@ -140,6 +140,7 @@ async function createCustomerGateways(props: {
       // Creating VPN connection route table association and propagation
       const attachments = new VpnAttachments(scope, `VpnAttachments${index}`, {
         vpnConnectionId: vpnConnection.ref,
+        tgwId: transitGateway.tgwId,
       });
 
       const associateConfig = tgwAttach['rt-associate'] || [];
