@@ -12,8 +12,7 @@ export interface CfnMarketPlaceSubscriptionCheckProps {
   instanceType?: string;
 }
 
-export type Attribute =
-  | 'Status';
+export type Attribute = 'Status';
 
 /**
  * Custom resource that has an image ID attribute for the image with the given properties.
@@ -68,12 +67,7 @@ export class CfnMarketPlaceSubscriptionCheck extends cdk.Construct {
 
     role.addToPolicy(
       new iam.PolicyStatement({
-        actions: [
-          'logs:CreateLogGroup', 
-          'logs:CreateLogStream', 
-          'logs:PutLogEvents', 
-          'ec2:RunInstances'
-        ],
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents', 'ec2:RunInstances'],
         resources: ['*'],
       }),
     );

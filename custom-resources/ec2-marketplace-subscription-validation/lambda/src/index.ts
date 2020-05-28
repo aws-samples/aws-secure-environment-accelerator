@@ -33,13 +33,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     SubnetId: properties.imageId,
     InstanceType: properties.instanceType || 't2.micro',
     MinCount: 1,
-    MaxCount: 1
+    MaxCount: 1,
   };
   let status = 'LaunchInstance';
-  try{
-    console.log("Creating Firewall Instance");
+  try {
+    console.log('Creating Firewall Instance');
     await ec2.runInstances(instanceParams).promise();
-    console.log("Create Firewall Instance Success");
+    console.log('Create Firewall Instance Success');
   } catch (error) {
     status = error.code;
   }
