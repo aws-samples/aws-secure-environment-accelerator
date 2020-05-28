@@ -25,9 +25,7 @@ export class VpnAttachments extends cdk.Construct {
         Filters: [
           {
             Name: 'resource-id',
-            Values: [
-              props.vpnConnectionId,
-            ]
+            Values: [props.vpnConnectionId],
           },
         ],
       },

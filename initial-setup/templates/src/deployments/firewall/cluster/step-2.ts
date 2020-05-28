@@ -102,7 +102,7 @@ async function createCustomerGateways(props: {
 
   const firewallCgwName = firewallConfig['fw-cgw-name'];
   const firewallCgwAsn = firewallConfig['fw-cgw-asn'];
-  const tgwAttach = firewallConfig["tgw-attach"];
+  const tgwAttach = firewallConfig['tgw-attach'];
 
   for (const [index, port] of Object.entries(firewallPorts)) {
     let customerGateway;
@@ -154,7 +154,7 @@ async function createCustomerGateways(props: {
           transitGatewayRouteTableId: route,
         });
       }
-  
+
       for (const [routeIndex, route] of tgwRoutePropagates?.entries()) {
         new ec2.CfnTransitGatewayRouteTablePropagation(scope, `tgw_propagate_${index}_${routeIndex}`, {
           transitGatewayAttachmentId: attachments.getTransitGatewayAttachmentId(0), // one vpn connection should only have one attachment
