@@ -334,7 +334,6 @@ export namespace InitialSetup {
               codeBuildProjectName: project.projectName,
               environment: {
                 ACCELERATOR_PHASE: `${phase}`,
-                'ACCELERATOR_ACCOUNT_KEY.$': '$.account.key',
                 'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
                 'CONFIG_FILE_PATH.$': '$.configFilePath',
                 'CONFIG_COMMIT_ID.$': '$.configCommitId',
@@ -343,20 +342,7 @@ export namespace InitialSetup {
           }),
           resultPath: 'DISCARD',
         });
-
-        const mapTask = new sfn.Map(this, `Deploy Phase ${phase} Map`, {
-          itemsPath: '$.accounts',
-          parameters: {
-            'account.$': '$$.Map.Item.Value',
-            'configRepositoryName.$': '$.configRepositoryName',
-            'configFilePath.$': '$.configFilePath',
-            'configCommitId.$': '$.configCommitId',
-          },
-          resultPath: 'DISCARD',
-        });
-
-        mapTask.iterator(deployTask);
-        return mapTask;
+        return deployTask;
       };
 
       const createStoreOutputTask = (phase: number) =>

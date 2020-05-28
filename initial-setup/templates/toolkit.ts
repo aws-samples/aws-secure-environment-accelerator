@@ -17,6 +17,10 @@ export interface ToolkitFactoryProps {
   sdkProvider: SdkProvider;
 }
 
+/**
+ * Auxiliary class that wraps around the CdkToolkit class. Use the static method ToolkitFactory.initialize to get an
+ * instance of this factory. Then call `createToolkit` to get an instance of the toolkit class for the given app.
+ */
 export class ToolkitFactory {
   private readonly cloudFormation: CloudFormationDeployments;
 
@@ -54,11 +58,11 @@ export class ToolkitFactory {
   }
 
   static async initialize() {
-    const configuration = new Configuration({});
-    // Disable path and asset metadata and version reporting
-    configuration.settings.set(['pathMetadata'], false);
-    configuration.settings.set(['assetMetadata'], false);
-    configuration.settings.set(['versionReporting'], false);
+    const configuration = new Configuration({
+      'pathMetadata': false,
+      'assetMetadata': false,
+      'versionReporting': false,
+    });
     await configuration.load();
 
     const sdkProvider = await SdkProvider.withAwsCliCompatibleDefaults({
@@ -118,6 +122,7 @@ export class ToolkitWrapper {
     const trustedAccounts: string[] = [];
     const cloudFormationExecutionPolicies: string[] = [];
 
+    // TODO Drop the usage of the toolkit
     return await this.toolkit.bootstrap(environmentPaths, toolkitStackName, roleArn, useNewBootstrap, force, {
       bucketName: toolkitBucketName,
       kmsKeyId: toolkitKmsKey,
@@ -139,6 +144,7 @@ export class ToolkitWrapper {
       return {};
     }
 
+    // TODO Drop the usage of the toolkit
     await this.toolkit.synth(
       stacks.map(s => s.stackName),
       false,
@@ -149,20 +155,25 @@ export class ToolkitWrapper {
    * Auxiliary method that wraps CdkToolkit.deploy.
    * @return The stack outputs.
    */
-  async deployAllStacks(): Promise<StackOutputs> {
+  async deployAllStacks({ parallel }: { parallel: boolean }): Promise<StackOutputs> {
     const stacks = this.assembly.stacks;
     if (stacks.length === 0) {
       console.log(`There are no stacks to be deployed`);
       return {};
     }
 
-    // Deploy all stacks in parallel
-    // const stackDeployPromises = stacks.map(stack => this.deployStack(stack));
-    // const stackOutputsList = await Promise.all(stackDeployPromises);
-    const stackOutputsList = [];
-    for (const stack of stacks) {
-      const stackOutputs = await this.deployStack(stack);
-      stackOutputsList.push(stackOutputs);
+    let stackOutputsList;
+    if (parallel) {
+      // Deploy all stacks in parallel
+      const promises = stacks.map(stack => this.deployStack(stack));
+      stackOutputsList = await Promise.allSettled(promises);
+    } else {
+      // Deploy all stacks sequentially
+      stackOutputsList = [];
+      for (const stack of stacks) {
+        const stackOutputs = await this.deployStack(stack);
+        stackOutputsList.push(stackOutputs);
+      }
     }
 
     // Merge all stack outputs
@@ -171,15 +182,22 @@ export class ToolkitWrapper {
   }
 
   async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutputs> {
+    // Create a temporary file where the outputs will be stored
     const outputsFile = tempy.file({
       extension: 'json',
     });
+
+    // Use the toolkit to deploy the stack
+    // TODO Drop the usage of the toolkit and deploy the stack using CloudFormationDeployments
+    // TODO Handle stack creation failed
     await this.toolkit.deploy({
       stackNames: [stack.stackName],
       requireApproval: RequireApproval.Never,
       force: true,
       outputsFile: outputsFile,
     });
+
+    // Load the outputs from the temporary file
     const contents = fs.readFileSync(outputsFile);
     const parsed = JSON.parse(contents.toString());
     return parsed;
