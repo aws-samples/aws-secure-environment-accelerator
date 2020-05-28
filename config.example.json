@@ -116,7 +116,10 @@
         "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
         "policy": "Quarantine-Deny-All.json"
       }
-    ]
+    ],
+    "on-prem": {
+      "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
+    }
   },
   "mandatory-account-configs": {
     "shared-network": {
