@@ -44,18 +44,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
     if (!PeeringConnectionConfig.is(pcxConfig)) {
       continue;
     }
-    const pcxSourceVpc = pcxConfig['source-vpc'];
-    // TODO store role name in outputs
-    // Get the exact same role name as in phase 1
-    const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
-    const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
+
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
     }
 
+    // TODO store role name in outputs
+    // Get the exact same role name as in phase 1
+    const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
+    const peerRoleArn = `arn:aws:iam::${getAccountId(accounts, pcxConfig.source)}:role/${roleName}`;
+
     // Get Peer VPC Configuration
+    const pcxSourceVpc = pcxConfig['source-vpc'];
     const peerVpcConfig = getVpcConfig(vpcConfigs, pcxConfig.source, pcxSourceVpc);
     if (!VpcConfigType.is(peerVpcConfig)) {
       console.warn(`No configuration found for Peer VPC "${pcxSourceVpc}"`);
@@ -74,8 +76,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
       accountKey: pcxConfig.source,
       outputType: 'VpcOutput',
     });
-    const peerVpcOutout = peerVpcOutputs.find(x => x.vpcName === pcxSourceVpc);
-    if (!peerVpcOutout) {
+    const peerVpcOutput = peerVpcOutputs.find(x => x.vpcName === pcxSourceVpc);
+    if (!peerVpcOutput) {
       console.warn(`No VPC Found in outputs for VPC name "${pcxSourceVpc}"`);
       continue;
     }
@@ -83,7 +85,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
 
     const pcx = new ec2.CfnVPCPeeringConnection(accountStack, `${vpcConfig.name}-${pcxSourceVpc}_pcx`, {
       vpcId: vpcOutput.vpcId,
-      peerVpcId: peerVpcOutout.vpcId,
+      peerVpcId: peerVpcOutput.vpcId,
       peerRoleArn,
       peerOwnerId,
     });
@@ -91,9 +93,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
     new StructuredOutput<PcxOutput>(accountStack, `PcxOutput${vpcConfig.name}`, {
       type: PcxOutputType,
       value: {
-        vpcId: vpcOutput.vpcId,
-        vpcName: vpcOutput.vpcName,
         pcxId: pcx.ref,
+        vpcs: [
+          {
+            accountKey: accountKey,
+            vpcId: vpcOutput.vpcId,
+            vpcName: vpcOutput.vpcName,
+          },
+          {
+            accountKey: pcxConfig.source,
+            vpcId: peerVpcOutput.vpcId,
+            vpcName: peerVpcOutput.vpcName,
+          },
+        ],
       },
     });
   }

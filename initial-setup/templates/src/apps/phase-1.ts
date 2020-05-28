@@ -132,7 +132,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       return;
     }
     const accountBucket = accountBuckets[accountKey];
-    if (accountBucket) {
+    if (!accountBucket) {
       console.warn(`Cannot find account bucket ${accountKey}`);
       return;
     }

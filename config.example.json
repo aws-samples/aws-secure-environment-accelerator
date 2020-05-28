@@ -116,10 +116,7 @@
         "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
         "policy": "Quarantine-Deny-All.json"
       }
-    ],
-    "on-prem": {
-      "cidr": ["7.0.0.0/8", "10.0.0.0/8"]
-    }
+    ]
   },
   "mandatory-account-configs": {
     "shared-network": {
@@ -280,6 +277,7 @@
         "tgw": {
           "name": "Main",
           "asn": 64512,
+          "region": "ca-central-1",
           "features": {
             "DNS-support": true,
             "VPN-ECMP-support": true,
@@ -356,7 +354,7 @@
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "PBMMAccel-MAD-brian-local-LG",
           "share-to-account": "master",
-          "restrict_srcips": ["100.96.252.0/23", "100.96.100.0/23", "7.0.0.0/8", "10.0.0.0/8"],
+          "restrict_srcips": ["100.96.252.0/23", "100.96.250.0/23", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
           "rdgw-instance-type": "t2.large",
 	        "rdgw-instance-role": "PBMMAccel-RDGW-Role",
@@ -371,7 +369,7 @@
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
-          "ad-groups": ["Provisioning"],
+          "ad-groups": ["aws-Provisioning"],
           "ad-per-account-groups": ["*-Admin", "*-PowerUser", "*-View"],
           "adc-group": "ADConnector-grp",
           "ad-users": [
@@ -419,7 +417,7 @@
         },
         "rdweb-pwd": {
           "deploy": true,
-          "restrict_srcips": ["7.0.0.0/8", "10.0.0.0/8"]
+          "restrict_srcips": ["10.0.0.0/8","100.96.252.0/23","100.96.250.0/23"]
         }
       }
     },
@@ -1100,13 +1098,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "vpc": [{
@@ -1357,38 +1348,6 @@
         ],
         "security-groups": [
           {
-            "name": "SampleComplexSecurityGroup",
-            "inbound-rules": [
-              {
-                "description": "Allow Inbound Domain Traffic",
-                "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
-                "udp-ports": [445, 138, 464, 53, 389, 123, 88],
-                "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Allow Inbound RDSH",
-                "type": ["TCP"],
-                "toPort": 3269,
-                "fromPort": 3268,
-                "source": ["0.0.0.0/0"]
-              },
-              {
-                "description": "Allow Inbound High Ports",
-                "type": ["TCP"],
-                "toPort": 65535,
-                "fromPort": 1024,
-                "source": ["0.0.0.0/0"]
-              }
-            ],
-            "outbound-rules": [
-              {
-                "description": "All Outbound",
-                "type": ["ALL"],
-                "source": ["0.0.0.0/0", "0::/0"]
-              }
-            ]
-          },
-          {
             "name": "Mgmt",
             "inbound-rules": [
               {
@@ -1586,13 +1545,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2059,13 +2011,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -2532,13 +2477,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "alb": [
@@ -3005,13 +2943,6 @@
           "type": "import",
           "priv-key": "certs/domain1.key",
           "cert": "certs/domain1.crt"
-        },
-        {
-          "name": "PublicCert",
-          "type": "request",
-          "domain": "*.example.com",
-          "validation": "DNS",
-          "san": ["*.example1.com"]
         }
       ],
       "vpc": [{
