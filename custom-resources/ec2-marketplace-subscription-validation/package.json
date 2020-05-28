@@ -1,10 +1,10 @@
 {
-  "name": "@custom-resources/ec2-subscription-validation",
+  "name": "@custom-resources/ec2-marketplace-subscription-validation",
   "version": "0.0.1",
   "private": true,
   "main": "lib/index.ts",
   "devDependencies": {
-    "@custom-resources/ec2-subscription-validation-lambda": "workspace:^0.0.1",
+    "@custom-resources/ec2-marketplace-subscription-validation-lambda": "workspace:^0.0.1",
     "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
     "jest": "25.2.4",

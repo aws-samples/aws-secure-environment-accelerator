@@ -2,30 +2,45 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { HandlerProperties } from '@custom-resources/cfn-sleep-lambda';
+import { HandlerProperties } from '@custom-resources/ec2-marketplace-subscription-validation-lambda';
 
-const resourceType = 'Custom::Sleep';
+const resourceType = 'Custom::MarketPlaceSubscriptionCheck';
 
-export interface CfnSleepProps {
-  sleep: number;
+export interface CfnMarketPlaceSubscriptionCheckProps {
+  imageId: string;
+  subnetId: string;
+  instanceType?: string;
 }
+
+export type Attribute =
+  | 'Status';
 
 /**
  * Custom resource that has an image ID attribute for the image with the given properties.
  */
-export class CfnSleep extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: CfnSleepProps) {
+export class CfnMarketPlaceSubscriptionCheck extends cdk.Construct {
+  private readonly resource: cdk.CustomResource;
+  constructor(scope: cdk.Construct, id: string, props: CfnMarketPlaceSubscriptionCheckProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {
-      sleep: props.sleep,
+      imageId: props.imageId,
+      subnetId: props.subnetId,
+      instanceType: props.instanceType,
     };
 
-    new cdk.CustomResource(this, 'Resource', {
+    this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
       properties: handlerProperties,
     });
+  }
+
+  /**
+   * Returns the given CloudFormation attribute.
+   */
+  getAttString(attribute: Attribute) {
+    return this.resource.getAttString(attribute);
   }
 
   get lambdaFunction(): lambda.Function {
@@ -44,16 +59,21 @@ export class CfnSleep extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@custom-resources/cfn-sleep-lambda');
+    const lambdaPath = require.resolve('@custom-resources/ec2-marketplace-subscription-validation-lambda');
     const lambdaDir = path.dirname(lambdaPath);
 
-    const role = new iam.Role(stack, 'Role', {
+    const role = new iam.Role(stack, `${resourceType}Role`, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
     role.addToPolicy(
       new iam.PolicyStatement({
-        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        actions: [
+          'logs:CreateLogGroup', 
+          'logs:CreateLogStream', 
+          'logs:PutLogEvents', 
+          'ec2:RunInstances'
+        ],
         resources: ['*'],
       }),
     );

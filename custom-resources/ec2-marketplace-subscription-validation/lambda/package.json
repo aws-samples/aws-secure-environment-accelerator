@@ -1,5 +1,5 @@
 {
-  "name": "@custom-resources/ec2-subscription-validation-lambda",
+  "name": "@custom-resources/ec2-marketplace-subscription-validation-lambda",
   "version": "0.0.1",
   "private": true,
   "scripts": {
