@@ -6,6 +6,11 @@ import { loadStackOutputs } from '../utils/outputs';
 import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { AccountStacks } from '../common/account-stacks';
+import * as firewallCluster from '../deployments/firewall/cluster';
+import * as firewallManagement from '../deployments/firewall/manager';
+import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
+import { VpcOutput, ImportedVpc } from '../deployments/vpc';
+import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -67,6 +72,46 @@ async function main() {
       acceleratorConfig,
     });
   }
+
+  // TODO Find a better way to get VPCs
+  // Import all VPCs from all outputs
+  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    outputType: 'VpcOutput',
+  });
+  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
+
+  // Find the account buckets in the outputs
+  const accountBuckets = AccountBucketOutput.getAccountBuckets({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accounts,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await firewallCluster.step4({
+    accountBuckets,
+    accountStacks,
+    centralBucket,
+    config: acceleratorConfig,
+    outputs,
+    vpcs: allVpcs,
+  });
+  
+  await firewallManagement.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    vpcs: allVpcs,
+    outputs
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises

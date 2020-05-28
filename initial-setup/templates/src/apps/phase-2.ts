@@ -239,45 +239,6 @@ async function main() {
     }
   }
 
-  // TODO Find a better way to get VPCs
-  // Import all VPCs from all outputs
-  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-    outputType: 'VpcOutput',
-  });
-  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
-
-  // Find the account buckets in the outputs
-  const accountBuckets = AccountBucketOutput.getAccountBuckets({
-    acceleratorPrefix: context.acceleratorPrefix,
-    accounts,
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
-
-  // Find the central bucket in the outputs
-  const centralBucket = CentralBucketOutput.getBucket({
-    acceleratorPrefix: context.acceleratorPrefix,
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
-
-  await firewallCluster.step3({
-    accountBuckets,
-    accountStacks,
-    centralBucket,
-    config: acceleratorConfig,
-    outputs,
-    vpcs: allVpcs,
-  });
-
-  await firewallManagement.step1({
-    accountStacks,
-    config: acceleratorConfig,
-    vpcs: allVpcs,
-  });
-
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
   const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
@@ -297,6 +258,20 @@ async function main() {
       masterAccountId: securityMasterAccount?.id,
     });
   }
+
+  // TODO Find a better way to get VPCs
+  // Import all VPCs from all outputs
+  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    outputType: 'VpcOutput',
+  });
+  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
+
+  // Validates subscription for Firewall images
+  await firewallCluster.validateSubscription({
+    accountStacks,
+    config: acceleratorConfig,
+    vpcs: allVpcs,
+  });
 }
 
 // tslint:disable-next-line: no-floating-promises

@@ -30,21 +30,22 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   var instanceParams = {
     ImageId: properties.imageId,
-    SubnetId: properties.imageId,
+    SubnetId: properties.subnetId,
     InstanceType: properties.instanceType || 't2.micro',
     MinCount: 1,
     MaxCount: 1,
   };
-  let status = 'LaunchInstance';
+  let status = 'Subscribed';
   try {
-    console.log('Creating Firewall Instance');
     await ec2.runInstances(instanceParams).promise();
     console.log('Create Firewall Instance Success');
   } catch (error) {
-    status = error.code;
+    if (error.code === 'OptInRequired') {
+      status = error.code;
+    }
   }
   return {
-    physicalResourceId: 'SubscriptionCheck',
+    physicalResourceId: `SubscriptionCheck-${properties.imageId}`,
     data: {
       Status: status,
     },
