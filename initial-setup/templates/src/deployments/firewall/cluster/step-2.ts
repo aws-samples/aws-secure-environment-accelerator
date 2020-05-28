@@ -4,6 +4,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { VpnTunnelOptions } from '@custom-resources/ec2-vpn-tunnel-options';
+import { VpnAttachments } from '@custom-resources/ec2-vpn-attachment';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { TransitGateway } from '../../../common/transit-gateway';
@@ -79,7 +80,7 @@ export async function step2(props: FirewallStep2Props) {
       firewallAccountKey: accountKey,
       firewallConfig,
       firewallPorts,
-      transitGatewayId: transitGateway.tgwId,
+      transitGateway,
     });
   }
 }
@@ -92,15 +93,16 @@ async function createCustomerGateways(props: {
   firewallAccountKey: string;
   firewallConfig: c.FirewallConfig;
   firewallPorts: FirewallPort[];
-  transitGatewayId: string;
+  transitGateway: TransitGateway;
 }) {
-  const { scope, firewallAccountKey, firewallConfig, firewallPorts, transitGatewayId } = props;
+  const { scope, firewallAccountKey, firewallConfig, firewallPorts, transitGateway } = props;
 
   // Keep track of the created VPN connection so we can use them in the next steps
   const vpnConnections: FirewallVpnConnection[] = [];
 
   const firewallCgwName = firewallConfig['fw-cgw-name'];
   const firewallCgwAsn = firewallConfig['fw-cgw-asn'];
+  const tgwAttach = firewallConfig['tgw-attach'];
 
   for (const [index, port] of Object.entries(firewallPorts)) {
     let customerGateway;
@@ -117,7 +119,7 @@ async function createCustomerGateways(props: {
 
       vpnConnection = new ec2.CfnVPNConnection(scope, `${prefix}_vpn`, {
         type: 'ipsec.1',
-        transitGatewayId,
+        transitGatewayId: transitGateway.tgwId,
         customerGatewayId: customerGateway.ref,
       });
 
@@ -134,12 +136,38 @@ async function createCustomerGateways(props: {
         vpnBgpAsn1: options.getAttString('VpnBgpAsn1'),
         preSharedSecret1: options.getAttString('PreSharedKey1'),
       };
+
+      // Creating VPN connection route table association and propagation
+      const attachments = new VpnAttachments(scope, `VpnAttachments${index}`, {
+        vpnConnectionId: vpnConnection.ref,
+        tgwId: transitGateway.tgwId,
+      });
+
+      const associateConfig = tgwAttach['rt-associate'] || [];
+      const propagateConfig = tgwAttach['rt-propagate'] || [];
+
+      const tgwRouteAssociates = associateConfig.map(route => transitGateway.getRouteTableIdByName(route)!);
+      const tgwRoutePropagates = propagateConfig.map(route => transitGateway.getRouteTableIdByName(route)!);
+
+      for (const [routeIndex, route] of tgwRouteAssociates?.entries()) {
+        new ec2.CfnTransitGatewayRouteTableAssociation(scope, `tgw_associate_${index}_${routeIndex}`, {
+          transitGatewayAttachmentId: attachments.getTransitGatewayAttachmentId(0), // one vpn connection should only have one attachment
+          transitGatewayRouteTableId: route,
+        });
+      }
+
+      for (const [routeIndex, route] of tgwRoutePropagates?.entries()) {
+        new ec2.CfnTransitGatewayRouteTablePropagation(scope, `tgw_propagate_${index}_${routeIndex}`, {
+          transitGatewayAttachmentId: attachments.getTransitGatewayAttachmentId(0), // one vpn connection should only have one attachment
+          transitGatewayRouteTableId: route,
+        });
+      }
     }
 
     vpnConnections.push({
       ...port,
       firewallAccountKey,
-      transitGatewayId,
+      transitGatewayId: transitGateway.tgwId,
       customerGatewayId: customerGateway?.ref,
       vpnConnectionId: vpnConnection?.ref,
       vpnTunnelOptions,

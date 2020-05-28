@@ -1,0 +1,20 @@
+{
+  "name": "@custom-resources/s3-public-access-block",
+  "version": "0.0.1",
+  "private": true,
+  "main": "lib/index.ts",
+  "devDependencies": {
+    "@types/node": "12.12.6",
+    "typescript": "3.8.3"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-iam": "1.38.0",
+    "@aws-cdk/core": "1.38.0",
+    "@aws-cdk/custom-resources": "1.38.0"
+  },
+  "peerDependencies": {
+    "@aws-cdk/aws-iam": "^1.38.0",
+    "@aws-cdk/core": "^1.38.0",
+    "@aws-cdk/custom-resources": "^1.38.0"
+  }
+}
