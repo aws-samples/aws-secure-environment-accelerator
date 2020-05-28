@@ -1,6 +1,6 @@
 import path from 'path';
 import mri from 'mri';
-import { ToolkitFactory } from './toolkit';
+import { CdkToolkit } from './toolkit';
 import * as app from './src/app';
 
 process.on('unhandledRejection', (reason, _) => {
@@ -41,8 +41,7 @@ async function main() {
     accountKey: args['account-key'],
   });
 
-  const toolkitFactory = await ToolkitFactory.initialize();
-  const toolkit = toolkitFactory.createToolkit(cdkApp);
+  const toolkit = await CdkToolkit.create(cdkApp);
 
   if (command === 'bootstrap') {
     await toolkit.bootstrap();
