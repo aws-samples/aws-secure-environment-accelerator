@@ -1,3 +1,4 @@
+import path from 'path';
 import mri from 'mri';
 import { ToolkitFactory } from './toolkit';
 import * as app from './src/app';
@@ -34,6 +35,7 @@ async function main() {
   }
 
   const cdkApp = await app.deploy({
+    outdir: path.join(__dirname, 'cdk.out'),
     phase: `${phase}`,
     region: args.region,
     accountKey: args['account-key'],
@@ -44,12 +46,13 @@ async function main() {
 
   if (command === 'bootstrap') {
     await toolkit.bootstrap();
-  } else if (command === 'deploy') {
-    await toolkit.deployAllStacks({
-      parallel: args.parallel,
-    });
   } else if (command === 'synth') {
     await toolkit.synth();
+  } else if (command === 'deploy') {
+    const outputs = await toolkit.deployAllStacks({
+      parallel: args.parallel,
+    });
+    console.log(outputs);
   }
 }
 

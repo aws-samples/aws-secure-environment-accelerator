@@ -21,6 +21,7 @@ const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
 }));
 
 export interface AppProps {
+  outdir?: string;
   phase: string;
   region?: string;
   accountKey?: string;
@@ -56,7 +57,9 @@ export async function deploy(props: AppProps) {
     }
   }
 
-  const app = new cdk.App();
+  const app = new cdk.App({
+    outdir: props.outdir,
+  });
 
   const accountStacks = new AccountStacks(app, {
     phase: phase.name,

@@ -1,14 +1,10 @@
-import * as fs from 'fs';
-import * as tempy from 'tempy';
 import * as cdk from '@aws-cdk/core';
-import { CloudAssembly, CloudFormationStackArtifact, EnvironmentUtils } from '@aws-cdk/cx-api';
+import { CloudAssembly, CloudFormationStackArtifact, Environment, OUTDIR_ENV } from '@aws-cdk/cx-api';
 import { ToolkitInfo } from 'aws-cdk';
-import { CdkToolkit } from 'aws-cdk/lib/cdk-toolkit';
-import { RequireApproval } from 'aws-cdk/lib/diff';
+import { bootstrapEnvironment2 } from 'aws-cdk/lib/api/bootstrap';
 import { Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
-import { CloudExecutable } from 'aws-cdk/lib/api/cxapp/cloud-executable';
 import { PluginHost } from 'aws-cdk/lib/plugin';
 import { AssumeProfilePlugin } from '@aws-pbmm/plugin-assume-role/lib/assume-role-plugin';
 
@@ -36,23 +32,12 @@ export class ToolkitFactory {
 
   createToolkit(app: cdk.App) {
     const assembly = app.synth();
-    const cloudExecutable = new CloudExecutable({
-      configuration: this.props.configuration,
-      sdkProvider: this.props.sdkProvider,
-      synthesizer: async () => assembly,
-    });
 
     // https://github.com/aws/aws-cdk/blob/master/packages/aws-cdk/lib/cdk-toolkit.ts
-    const toolkit = new CdkToolkit({
-      cloudExecutable,
+    return new ToolkitWrapper({
       cloudFormation: this.cloudFormation,
       configuration: this.props.configuration,
       sdkProvider: this.props.sdkProvider,
-    });
-    return new ToolkitWrapper({
-      configuration: this.props.configuration,
-      sdkProvider: this.props.sdkProvider,
-      toolkit,
       assembly,
     });
   }
@@ -76,60 +61,50 @@ export class ToolkitFactory {
 }
 
 export interface ToolkitWrapperProps {
+  cloudFormation: CloudFormationDeployments;
   configuration: Configuration;
   sdkProvider: SdkProvider;
-  toolkit: CdkToolkit;
   assembly: CloudAssembly;
 }
 
-export type StackOutput = any;
-export type StackOutputs = { [stackName: string]: StackOutput };
+export type StackOutput = { stack: string; name: string; value: string };
+export type StackOutputs = StackOutput[];
 
 export class ToolkitWrapper {
-  private readonly configuration: Configuration;
-  private readonly sdkProvider: SdkProvider;
-  private readonly toolkit: CdkToolkit;
-  private readonly assembly: CloudAssembly;
-
-  constructor(props: ToolkitWrapperProps) {
-    this.configuration = props.configuration;
-    this.sdkProvider = props.sdkProvider;
-    this.toolkit = props.toolkit;
-    this.assembly = props.assembly;
-  }
+  constructor(private props: ToolkitWrapperProps) {}
 
   /**
    * Auxiliary method that wraps CdkToolkit.bootstrap.
    */
   async bootstrap() {
-    // Find environments for stacks in the form of
-    //   aws://account-id/region
-    //   e.g. aws://0123456789/ca-central-1
-    const stacks = this.assembly.stacks;
-    const environments = await Promise.all(stacks.map(stack => this.sdkProvider.resolveEnvironment(stack.environment)));
-    const environmentPaths = environments.map(env => EnvironmentUtils.format(env.account, env.region));
+    const stacks = this.props.assembly.stacks;
+    const promises = stacks.map(async s => this.bootstrapEnvironment(s.environment));
+    await Promise.all(promises);
+  }
 
+  async bootstrapEnvironment(environment: Environment) {
     // Get defaults from settings
-    const toolkitStackName: string = ToolkitInfo.determineName(this.configuration.settings.get(['toolkitStackName']));
-    const toolkitBucketName: string = this.configuration.settings.get(['toolkitBucket', 'bucketName']);
-    const toolkitKmsKey: string = this.configuration.settings.get(['toolkitBucket', 'kmsKeyId']);
-    const tags = this.configuration.settings.get(['tags']);
+    const settings = this.props.configuration.settings;
+    const toolkitStackName: string = ToolkitInfo.determineName(settings.get(['toolkitStackName']));
+    const toolkitBucketName: string = settings.get(['toolkitBucket', 'bucketName']);
+    const toolkitKmsKey: string = settings.get(['toolkitBucket', 'kmsKeyId']);
+    const tags = settings.get(['tags']);
 
-    // And some more defaults
-    const roleArn: string | undefined = undefined;
-    const useNewBootstrap = false;
-    const force = true;
     const trustedAccounts: string[] = [];
     const cloudFormationExecutionPolicies: string[] = [];
 
-    // TODO Drop the usage of the toolkit
-    return await this.toolkit.bootstrap(environmentPaths, toolkitStackName, roleArn, useNewBootstrap, force, {
-      bucketName: toolkitBucketName,
-      kmsKeyId: toolkitKmsKey,
-      tags,
-      execute: true,
-      trustedAccounts,
-      cloudFormationExecutionPolicies,
+    await bootstrapEnvironment2(environment, this.props.sdkProvider, {
+      toolkitStackName: toolkitStackName,
+      roleArn: undefined,
+      force: true,
+      parameters: {
+        bucketName: toolkitBucketName,
+        kmsKeyId: toolkitKmsKey,
+        tags,
+        execute: true,
+        trustedAccounts,
+        cloudFormationExecutionPolicies,
+      },
     });
   }
 
@@ -138,68 +113,86 @@ export class ToolkitWrapper {
    * @return The stack outputs.
    */
   async synth() {
-    const stacks = this.assembly.stacks;
-    if (stacks.length === 0) {
-      console.log(`There are no stacks to be synthesized`);
-      return {};
-    }
-
-    // TODO Drop the usage of the toolkit
-    await this.toolkit.synth(
-      stacks.map(s => s.stackName),
-      false,
-    );
+    this.props.assembly.stacks.map(s => console.log(s.assembly.directory, s.templateFile));
+    this.props.assembly.stacks.map(s => s.template);
   }
 
   /**
-   * Auxiliary method that wraps CdkToolkit.deploy.
+   * Deploys all stacks of the assembly.
+   *
    * @return The stack outputs.
    */
   async deployAllStacks({ parallel }: { parallel: boolean }): Promise<StackOutputs> {
-    const stacks = this.assembly.stacks;
+    const stacks = this.props.assembly.stacks;
     if (stacks.length === 0) {
       console.log(`There are no stacks to be deployed`);
-      return {};
+      return [];
     }
 
-    let stackOutputsList;
+    let combinedOutputs: StackOutputs;
     if (parallel) {
       // Deploy all stacks in parallel
       const promises = stacks.map(stack => this.deployStack(stack));
-      stackOutputsList = await Promise.allSettled(promises);
+      const outputsList = await Promise.all(promises);
+      combinedOutputs = outputsList.reduce((result, output) => [...result, ...output]);
     } else {
       // Deploy all stacks sequentially
-      stackOutputsList = [];
+      combinedOutputs = [];
       for (const stack of stacks) {
-        const stackOutputs = await this.deployStack(stack);
-        stackOutputsList.push(stackOutputs);
+        const output = await this.deployStack(stack);
+        combinedOutputs.push(...output);
       }
     }
 
     // Merge all stack outputs
-    const stackOutputs = stackOutputsList.reduce((result, output) => ({ ...result, ...output }));
-    return stackOutputs;
+    return combinedOutputs;
   }
 
   async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutputs> {
-    // Create a temporary file where the outputs will be stored
-    const outputsFile = tempy.file({
-      extension: 'json',
-    });
+    const resources = Object.keys(stack.template.Resources || {});
+    if (resources.length === 0) {
+      if (!(await this.props.cloudFormation.stackExists({ stack }))) {
+        console.warn(`${stack.displayName}: stack has no resources, skipping deployment.`);
+      } else {
+        console.warn(`${stack.displayName}: stack has no resources, deleting existing stack.`);
+        await this.props.cloudFormation.deployStack({
+          stack,
+          deployName: stack.stackName,
+          roleArn: undefined,
+        });
+      }
+      return;
+    }
 
-    // Use the toolkit to deploy the stack
-    // TODO Drop the usage of the toolkit and deploy the stack using CloudFormationDeployments
-    // TODO Handle stack creation failed
-    await this.toolkit.deploy({
-      stackNames: [stack.stackName],
-      requireApproval: RequireApproval.Never,
+    const settings = this.props.configuration.settings;
+    const toolkitStackName = ToolkitInfo.determineName(settings.get(['toolkitStackName']));
+    const tags = settings.get(['tags']);
+
+    const result = await this.props.cloudFormation.deployStack({
+      stack,
+      deployName: stack.stackName,
+      execute: true,
       force: true,
-      outputsFile: outputsFile,
+      notificationArns: undefined,
+      reuseAssets: [],
+      roleArn: undefined,
+      tags: tags,
+      toolkitStackName: toolkitStackName,
+      usePreviousParameters: false,
     });
 
-    // Load the outputs from the temporary file
-    const contents = fs.readFileSync(outputsFile);
-    const parsed = JSON.parse(contents.toString());
-    return parsed;
+    if (result.noOp) {
+      console.log(`${stack.displayName}: no changes`);
+    } else {
+      console.log(`${stack.displayName}: success`);
+    }
+
+    return Object.entries(result.outputs).map(([name, value]) => ({
+      stack: stack.stackName,
+      account: stack.environment.account,
+      region: stack.environment.region,
+      name,
+      value,
+    }));
   }
 }
