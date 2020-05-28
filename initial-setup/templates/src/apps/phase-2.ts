@@ -266,7 +266,7 @@ async function main() {
   });
   const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
 
-  // Validates subscription for Firewall images
+  // Validate subscription for Firewall images
   await firewallCluster.validateSubscription({
     accountStacks,
     config: acceleratorConfig,
