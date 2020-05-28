@@ -23,7 +23,7 @@ export const PeeringConnectionConfig = t.interface({
 export const NatGatewayConfig = t.interface({
   subnet: t.interface({
     name: t.string,
-    az: t.string,
+    az: optional(availabilityZone),
   }),
 });
 

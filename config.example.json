@@ -3513,8 +3513,7 @@
           "pcx": false,
           "natgw": {
             "subnet": {
-              "name": "Web",
-              "az": "a"
+              "name": "Web"
             }
           },
           "subnets": [
