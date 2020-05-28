@@ -68,23 +68,19 @@ export namespace PeeringConnection {
           continue;
         }
 
-        let peerVpcOutputs: PcxOutput[] = StructuredOutput.fromOutputs(outputs, {
-          accountKey: pcxRoute.account,
+        const peerVpcOutputs: PcxOutput[] = StructuredOutput.fromOutputs(outputs, {
           type: PcxOutputType,
         });
-        let peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === pcxRoute.vpc);
-        if (!peerVpcOutput) {
-          peerVpcOutputs = StructuredOutput.fromOutputs(outputs, {
-            accountKey,
-            type: PcxOutputType,
-          });
-          peerVpcOutput = peerVpcOutputs.find(output => output.vpcName === vpcConfig?.name);
-        }
-        if (!peerVpcOutput) {
-          console.warn(`No VPC PCX created with name "${vpcName}" in "${pcxRoute.account}"`);
+        // Find the PCX output that contains the PCX route's VPC
+        const peerVpcOutput = peerVpcOutputs.find(output => {
+          const pcxVpc = output.vpcs.find(vpc => vpc.accountKey === pcxRoute.account && vpc.vpcName === pcxRoute.vpc);
+          return !!pcxVpc;
+        });
+        const pcxId = peerVpcOutput?.pcxId;
+        if (!pcxId) {
+          console.warn(`No PCX found for for VPC "${vpcName}"`);
           continue;
         }
-        const pcxId = peerVpcOutput.pcxId;
         // Add Route to RouteTable
         for (const [index, subnet] of targetSubnet.definitions.entries()) {
           if (subnet.disabled) {
