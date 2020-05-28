@@ -178,6 +178,10 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: acceleratorConfigS3Bucket.valueAsString,
         },
+        ENABLE_PREBUILT_PROJECT: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: 'true', // Enable Docker prebuilt project
+        },
       },
     },
   });
