@@ -158,7 +158,7 @@ async function main() {
       return;
     }
     const accountBucket = accountBuckets[accountKey];
-    if (accountBucket) {
+    if (!accountBucket) {
       console.warn(`Cannot find account bucket ${accountKey}`);
       return;
     }
