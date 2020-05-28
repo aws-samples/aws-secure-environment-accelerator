@@ -1,4 +1,5 @@
 import * as cdk from '@aws-cdk/core';
+import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
 import { ToolkitInfo } from 'aws-cdk';
 import { bootstrapEnvironment } from 'aws-cdk/lib/api/bootstrap';
@@ -143,7 +144,8 @@ export class CdkToolkit {
   async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutput[]> {
     const resources = Object.keys(stack.template.Resources || {});
     if (resources.length === 0) {
-      if (!(await this.cloudFormation.stackExists({ stack }))) {
+      const stackExists = await this.cloudFormation.stackExists({ stack });
+      if (!stackExists) {
         console.warn(`${stack.displayName}: stack has no resources, skipping deployment.`);
       } else {
         console.warn(`${stack.displayName}: stack has no resources, deleting existing stack.`);
@@ -153,10 +155,14 @@ export class CdkToolkit {
           roleArn: undefined,
         });
       }
-      return;
+      return [];
     }
 
     try {
+      // Add stack tags to the tags list
+      const tags = this.tags || [];
+      tags.push(...tagsForStack(stack));
+
       const result = await this.cloudFormation.deployStack({
         stack,
         deployName: stack.stackName,
@@ -165,7 +171,7 @@ export class CdkToolkit {
         notificationArns: undefined,
         reuseAssets: [],
         roleArn: undefined,
-        tags: this.tags,
+        tags,
         toolkitStackName: this.toolkitStackName,
         usePreviousParameters: false,
       });
@@ -173,7 +179,7 @@ export class CdkToolkit {
       if (result.noOp) {
         console.log(`${stack.displayName}: no changes`);
       } else {
-        console.log(`${stack.displayName}: success`);
+        console.log(`${stack.displayName}: deploy successful`);
       }
 
       return Object.entries(result.outputs).map(([name, value]) => ({
@@ -188,4 +194,30 @@ export class CdkToolkit {
       throw e;
     }
   }
+}
+
+/**
+ * See https://github.com/aws/aws-cdk/blob/master/packages/aws-cdk/lib/cdk-toolkit.ts
+ *
+ * @returns an array with the tags available in the stack metadata.
+ */
+function tagsForStack(stack: CloudFormationStackArtifact): Tag[] {
+  const tagLists = stack.findMetadataByType(cxschema.ArtifactMetadataEntryType.STACK_TAGS).map(
+    // the tags in the cloud assembly are stored differently
+    // unfortunately.
+    x => toCloudFormationTags(x.data as cxschema.Tag[]),
+  );
+  return Array.prototype.concat([], ...tagLists);
+}
+
+/**
+ * See https://github.com/aws/aws-cdk/blob/master/packages/aws-cdk/lib/cdk-toolkit.ts
+ *
+ * Transform tags as they are retrieved from the cloud assembly,
+ * to the way that CloudFormation expects them. (Different casing).
+ */
+function toCloudFormationTags(tags: cxschema.Tag[]): Tag[] {
+  return tags.map(t => {
+    return { Key: t.key, Value: t.value };
+  });
 }
