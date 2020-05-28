@@ -33,7 +33,7 @@ export interface AppProps {
  *   - Log archive bucket
  *   - Copy of the central bucket
  */
-export async function app(props: AppProps) {
+export async function deploy(props: AppProps) {
   const phase = phases.find(p => p.id === props.phase);
   if (!phase) {
     throw new Error(`Cannot find phase ${props.phase}`);
@@ -81,22 +81,20 @@ export async function app(props: AppProps) {
       continue;
     }
 
-    const stack = child as cdk.Stack;
-
-    const stackAccountId = stack.account;
+    const stackAccountId = child.account;
     // If the stack is not for the given account, then we remove it from the app
     if (includeAccountId && includeAccountId !== stackAccountId) {
-      console.info(`Skipping deployment of stack ${stack.stackName}`);
+      console.info(`Skipping deployment of stack ${child.stackName}`);
       // Remove the stack from the app
-      app.node.tryRemoveChild(stack.node.id);
+      app.node.tryRemoveChild(child.node.id);
     }
 
-    const stackRegion = stack.region;
+    const stackRegion = child.region;
     // If the stack is not for the given region, then we remove it from the app
     if (includeRegion && includeRegion !== stackRegion) {
-      console.info(`Skipping deployment of stack ${stack.stackName}`);
+      console.info(`Skipping deployment of stack ${child.stackName}`);
       // Remove the stack from the app
-      app.node.tryRemoveChild(stack.node.id);
+      app.node.tryRemoveChild(child.node.id);
     }
   }
 

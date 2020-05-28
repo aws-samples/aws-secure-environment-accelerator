@@ -1,6 +1,6 @@
 import mri from 'mri';
 import { ToolkitFactory } from './toolkit';
-import { app as mainApp } from './src/app';
+import * as app from './src/app';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -33,14 +33,14 @@ async function main() {
     return;
   }
 
-  const app = await mainApp({
+  const cdkApp = await app.deploy({
     phase: `${phase}`,
     region: args.region,
     accountKey: args['account-key'],
   });
 
   const toolkitFactory = await ToolkitFactory.initialize();
-  const toolkit = toolkitFactory.createToolkit(app);
+  const toolkit = toolkitFactory.createToolkit(cdkApp);
 
   if (command === 'bootstrap') {
     await toolkit.bootstrap();

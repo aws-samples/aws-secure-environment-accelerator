@@ -59,9 +59,9 @@ export class ToolkitFactory {
 
   static async initialize() {
     const configuration = new Configuration({
-      'pathMetadata': false,
-      'assetMetadata': false,
-      'versionReporting': false,
+      pathMetadata: false,
+      assetMetadata: false,
+      versionReporting: false,
     });
     await configuration.load();
 

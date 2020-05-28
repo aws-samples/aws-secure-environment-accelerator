@@ -96,7 +96,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
         pcxId: pcx.ref,
         vpcs: [
           {
-            accountKey: accountKey,
+            accountKey,
             vpcId: vpcOutput.vpcId,
             vpcName: vpcOutput.vpcName,
           },
