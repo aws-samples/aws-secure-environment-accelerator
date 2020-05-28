@@ -30,7 +30,7 @@ export class VpnAttachments extends cdk.Construct {
           },
           {
             Name: 'transit-gateway-id',
-            Vaules: [props.tgwId],
+            Values: [props.tgwId],
           },
         ],
       },
