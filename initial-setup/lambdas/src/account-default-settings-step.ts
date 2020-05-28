@@ -41,26 +41,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
   const sts = new STS();
 
-  const putPublicAccessBlock = async (
-    accountId: string,
-    accountKey: string,
-    blockPublicAccess: boolean,
-  ): Promise<void> => {
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    const s3control = new S3Control(credentials);
-    const putPublicAccessBlockRequest: PutPublicAccessBlockRequest = {
-      AccountId: accountId,
-      PublicAccessBlockConfiguration: {
-        BlockPublicAcls: blockPublicAccess,
-        BlockPublicPolicy: blockPublicAccess,
-        IgnorePublicAcls: blockPublicAccess,
-        RestrictPublicBuckets: blockPublicAccess,
-      },
-    };
-    await s3control.putPublicAccessBlock(putPublicAccessBlockRequest);
-    console.log(`Block S3 public access turned ON for account - ${accountKey}`);
-  };
-
   const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
@@ -233,10 +213,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.warn(`Cannot find account with key "${accountKey}"`);
       continue;
     }
-
-    // if flag is undefined or false, turn ON s3 block public access
-    const blockPublicAccess = !accountConfig['enable-s3-public-access'];
-    await putPublicAccessBlock(account.id, account.key, blockPublicAccess);
 
     try {
       // enable default encryption for EBS
