@@ -75,12 +75,12 @@ export async function step4(props: FirewallStep4Props) {
     }
     const subscriptionOutputs = getStackJsonOutput(outputs, {
       outputType: 'AmiSubscriptionStatus',
-      accountKey
+      accountKey,
     });
-  
-    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig["image-id"]);
+
+    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig['image-id']);
     if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REGUIRED) {
-      console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig["image-id"]}`);
+      console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig['image-id']}`);
       return;
     }
     await createFirewallCluster({

@@ -105,12 +105,12 @@ async function main() {
     outputs,
     vpcs: allVpcs,
   });
-  
+
   await firewallManagement.step1({
     accountStacks,
     config: acceleratorConfig,
     vpcs: allVpcs,
-    outputs
+    outputs,
   });
 }
 

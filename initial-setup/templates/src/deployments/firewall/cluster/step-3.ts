@@ -15,7 +15,7 @@ export interface FirewallStep3Props {
 }
 
 /**
- * Validates Marketplace image Supscription 
+ * Validates Marketplace image Supscription
  *
  * This step outputs the following:
  *   - MarketPlace image subscription status per account
@@ -43,21 +43,21 @@ export async function step3(props: FirewallStep3Props) {
     }
 
     const subnetId = vpc.subnets[0].id;
-    const firewallImageId = firewallConfig["image-id"];
+    const firewallImageId = firewallConfig['image-id'];
 
-    const firewallAmiSubOutput:AmiSubscriptionOutput = {
+    const firewallAmiSubOutput: AmiSubscriptionOutput = {
       imageId: firewallImageId,
-      status: checkStatus(accountStack, firewallImageId, subnetId, 'FirewallAmiSubCheck')
-    }
+      status: checkStatus(accountStack, firewallImageId, subnetId, 'FirewallAmiSubCheck'),
+    };
     new JsonOutputValue(accountStack, `FirewallSubscriptionsOutput`, {
       type: 'AmiSubscriptionStatus',
       value: firewallAmiSubOutput,
     });
 
     if (managerConfig) {
-      const firewallManagerAmiSubOutput:AmiSubscriptionOutput = {
-        imageId: managerConfig["image-id"],
-        status: checkStatus(accountStack, managerConfig["image-id"], subnetId, 'ManagerAmiSubCheck')
+      const firewallManagerAmiSubOutput: AmiSubscriptionOutput = {
+        imageId: managerConfig['image-id'],
+        status: checkStatus(accountStack, managerConfig['image-id'], subnetId, 'ManagerAmiSubCheck'),
       };
       new JsonOutputValue(accountStack, `FirewallManagerSubscriptionsOutput`, {
         type: 'AmiSubscriptionStatus',
@@ -70,7 +70,7 @@ export async function step3(props: FirewallStep3Props) {
 const checkStatus = (scope: cdk.Construct, imageId: string, subnetId: string, id: string): string => {
   const subscritionCheckResponse = new CfnMarketPlaceSubscriptionCheck(scope, id, {
     imageId,
-    subnetId
+    subnetId,
   });
   return subscritionCheckResponse.getAttString('Status');
-}
+};

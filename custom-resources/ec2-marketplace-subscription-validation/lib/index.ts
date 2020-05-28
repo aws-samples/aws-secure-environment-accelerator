@@ -34,9 +34,8 @@ export class CfnMarketPlaceSubscriptionCheck extends cdk.Construct {
       properties: {
         ...handlerProperties,
         // Add a dummy value that is a random number to update the resource every time
-       forceUpdate: Math.round(Math.random() * 1000000),
+        forceUpdate: Math.round(Math.random() * 1000000),
       },
-      
     });
   }
 

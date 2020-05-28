@@ -42,12 +42,12 @@ export async function step1(props: FirewallManagerStep1Props) {
     }
     const subscriptionOutputs = getStackJsonOutput(outputs, {
       outputType: 'AmiSubscriptionStatus',
-      accountKey
+      accountKey,
     });
-  
-    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === managerConfig["image-id"]);
+
+    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === managerConfig['image-id']);
     if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REGUIRED) {
-      console.log(`AMI Marketplace subscription required for ImageId: ${managerConfig["image-id"]}`);
+      console.log(`AMI Marketplace subscription required for ImageId: ${managerConfig['image-id']}`);
       return;
     }
 

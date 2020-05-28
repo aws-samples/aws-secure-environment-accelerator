@@ -10,7 +10,6 @@ export const OUTPUT_LOG_ARCHIVE_BUCKET_ARN = 'LogArchiveBucketArn';
 export const OUTPUT_LOG_ARCHIVE_BUCKET_NAME = 'LogArchiveBucketName';
 export const OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN = 'LogArchiveEncryptionKey';
 
-
 // AMI Market place Subscription check
 export const OUTPUT_SUBSCRIPTION_REGUIRED = 'OptInRequired';
 export const OUTPUT_SUBSCRIPTION_DONE = 'Subscribed';
