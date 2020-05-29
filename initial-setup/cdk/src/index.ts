@@ -112,7 +112,7 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      // Add a suffix to the c
+      // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
       const projectNameSuffix = enablePrebuiltProject ? 'Prebuilt' : '';
       const projectConstructor = enablePrebuiltProject ? PrebuiltCdkDeployProject : CdkDeployProject;
       const project = new projectConstructor(this, `CdkDeploy${projectNameSuffix}`, {
