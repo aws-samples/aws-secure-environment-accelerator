@@ -146,14 +146,24 @@ export class CdkToolkit {
     if (resources.length === 0) {
       const stackExists = await this.cloudFormation.stackExists({ stack });
       if (!stackExists) {
-        console.warn(`${stack.displayName}: stack has no resources, skipping deployment.`);
-      } else {
-        console.warn(`${stack.displayName}: stack has no resources, deleting existing stack.`);
-        await this.cloudFormation.deployStack({
+        console.warn(`${stack.displayName}: stack has no resources, skipping deployment`);
+        return [];
+      }
+
+      console.warn(`${stack.displayName}: stack has no resources, deleting existing stack`);
+      try {
+        await this.cloudFormation.destroyStack({
           stack,
           deployName: stack.stackName,
           roleArn: undefined,
+          force: true,
         });
+      } catch (e) {
+        const errorMessage = `${e}`;
+        if (!errorMessage.includes('cannot be deleted while TerminationProtection is enabled')) {
+          throw e;
+        }
+        console.warn(`${stack.displayName}: cannot delete existing stack with stack termination on`);
       }
       return [];
     }
