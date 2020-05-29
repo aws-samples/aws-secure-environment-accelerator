@@ -54,8 +54,8 @@
         "auto-remediation": true,
         "monitoring": true,
         "frequency": 24
-      }]
-    },
+      }
+    }],
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
