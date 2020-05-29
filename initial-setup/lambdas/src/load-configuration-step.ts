@@ -111,6 +111,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   // First load mandatory accounts configuration
+  const mandatoryAccounts = config.getMandatoryAccountConfigs();
+  const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
+
   const accountConfigs = config.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const accountConfigName = accountConfig['account-name'];
@@ -151,7 +154,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       accountName: accountConfigName,
       emailAddress: accountConfig.email,
       organizationalUnit: organizationalUnitName,
-      isMandatoryAccount: organizationalUnitName === 'core' ? true : false,
+      isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
       landingZoneAccountType,
     });
   }

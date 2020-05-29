@@ -43,7 +43,6 @@ export const handler = async (input: CreateMasterExecutionRoleInput): Promise<Cr
         statusReason: `Skipping failure of non mandatory account creation "${account.accountKey}"`,
       };
     }
-    return createAccountOutput;
   }
   return createAccountOutput;
 };

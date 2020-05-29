@@ -24,7 +24,6 @@ export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAv
         statusReason: `Skipping failure of non mandatory account validation "${account.accountKey}"`,
       };
     }
-    return verifyAccountOutput;
   }
   return verifyAccountOutput;
 };
