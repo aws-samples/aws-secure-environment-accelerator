@@ -4,6 +4,7 @@ import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { S3CopyFiles } from '@custom-resources/s3-copy-files';
+import { S3PublicAccessBlock } from '@custom-resources/s3-public-access-block';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import {
   createEncryptionKeyName,
@@ -31,6 +32,8 @@ export interface DefaultsStep1Result {
 }
 
 export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Result> {
+  blockS3PublicAccess(props);
+
   const centralBucketCopy = createCentralBucketCopy(props);
   const centralLogBucket = createCentralLogBucket(props);
   const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
@@ -39,6 +42,26 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
     centralLogBucket,
     accountEbsEncryptionKeys,
   };
+}
+
+function blockS3PublicAccess(props: DefaultsStep1Props) {
+  const { accountStacks, config } = props;
+
+  for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+
+    const blockPublicAccess = !accountConfig['enable-s3-public-access'];
+    new S3PublicAccessBlock(accountStack, 'PublicAccessBlock', {
+      blockPublicAcls: blockPublicAccess,
+      blockPublicPolicy: blockPublicAccess,
+      ignorePublicAcls: blockPublicAccess,
+      restrictPublicBuckets: blockPublicAccess,
+    });
+  }
 }
 
 /**

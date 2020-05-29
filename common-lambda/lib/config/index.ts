@@ -23,7 +23,7 @@ export const PeeringConnectionConfig = t.interface({
 export const NatGatewayConfig = t.interface({
   subnet: t.interface({
     name: t.string,
-    az: t.string,
+    az: optional(availabilityZone),
   }),
 });
 
@@ -387,6 +387,8 @@ export const FirewallConfigType = t.interface({
     name: t.string,
     account: t.string,
     'associate-to-tgw': t.string,
+    'rt-associate': optional(t.array(t.string)),
+    'rt-propagate': optional(t.array(t.string)),
   }),
 });
 
