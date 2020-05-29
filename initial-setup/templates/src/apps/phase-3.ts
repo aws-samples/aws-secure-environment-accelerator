@@ -82,7 +82,6 @@ async function main() {
     config: acceleratorConfig,
     outputs,
     vpcOutputs: allVpcs,
-    accounts,
   });
 }
 
