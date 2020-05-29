@@ -61,8 +61,8 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       KeyName: response.Name,
       ARN: response.ARN,
       DeletionDate: response.DeletionDate,
-    }
-  }
+    },
+  };
 }
 
 async function generateKeypair(
@@ -73,9 +73,11 @@ async function generateKeypair(
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   try {
-    const response = await ec2.createKeyPair({
-      KeyName: `${properties.secretPrefix}/${properties.keyName}`,
-    }).promise();
+    const response = await ec2
+      .createKeyPair({
+        KeyName: `${properties.secretPrefix}/${properties.keyName}`,
+      })
+      .promise();
 
     const params = {
       Name: properties.keyName,
@@ -92,10 +94,10 @@ async function generateKeypair(
 async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-  try{
+  try {
     const params = {
       SecretId: `${properties.secretPrefix}/${properties.keyName}`,
-    }
+    };
 
     return await secretsManager.deleteSecret(params).promise();
   } catch (e) {

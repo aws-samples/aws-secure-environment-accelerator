@@ -37,7 +37,7 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
   get arn(): string {
     return cdk.Lazy.stringValue({
       produce: () => this.resource!.getAttString('ARN'),
-    })
+    });
   }
 
   get role(): iam.IRole {
