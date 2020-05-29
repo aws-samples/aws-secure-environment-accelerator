@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
-import { KeyPair } from 'cdk-ec2-key-pair';
+import { Keypair } from '@custom-resources/ec2-keypair';
 import { FirewallInstance, FirewallConfigurationProps } from './instance';
 
 export type FirewallClusterConfigurationProps = Omit<FirewallConfigurationProps, 'configPath'>;
@@ -20,7 +20,7 @@ export class FirewallCluster extends cdk.Construct {
   readonly instanceRole: iam.Role;
   readonly instanceProfile: iam.CfnInstanceProfile;
   readonly keyPairName: string;
-  readonly keyPair: KeyPair;
+  readonly keyPair: Keypair;
 
   constructor(scope: cdk.Construct, id: string, props: FirewallClusterProps) {
     super(scope, id);
@@ -49,7 +49,7 @@ export class FirewallCluster extends cdk.Construct {
     });
 
     this.keyPairName = 'Firewall';
-    this.keyPair = new KeyPair(this, 'KeyPair', {
+    this.keyPair = new Keypair(this, 'KeyPair', {
       name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs',
     });

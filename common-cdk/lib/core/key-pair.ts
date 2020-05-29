@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
-import { KeyPair, KeyPairProps } from 'cdk-ec2-key-pair';
+import { Keypair, KeypairProps } from '@custom-resources/ec2-keypair';
 import { createKeyPairName } from './accelerator-name-generator';
 
 /**
@@ -49,11 +49,8 @@ export class KeyPairContainer extends cdk.Construct {
   /**
    * Create a secret in the stack with the given ID and the given props.
    */
-  createKeyPair(id: string, props: KeyPairProps & { principal: iam.IPrincipal }) {
-    const keyPair = new KeyPair(this, id, {
-      ...props,
-      kms: this.encryptionKey,
-    });
+  createKeyPair(id: string, props: KeypairProps & { principal: iam.IPrincipal }) {
+    const keyPair = new Keypair(this, id, props);
     this.principals.push(props.principal);
     return keyPair;
   }

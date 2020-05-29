@@ -1,5 +1,5 @@
 import { IPv4CidrRange } from 'ip-num';
-import { KeyPair } from 'cdk-ec2-key-pair';
+import { Keypair } from '@custom-resources/ec2-keypair';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
@@ -39,7 +39,7 @@ export interface FirewallInstanceProps {
   imageId: string;
   instanceType: string;
   iamInstanceProfile: iam.CfnInstanceProfile;
-  keyPair: KeyPair | string;
+  keyPair: Keypair | string;
   configuration: FirewallConfigurationProps;
 }
 
@@ -186,9 +186,9 @@ export class FirewallInstance extends cdk.Construct {
   }
 }
 
-function getKeyPairName(keyPairOrName: KeyPair | string) {
+function getKeyPairName(keyPairOrName: Keypair | string) {
   if (typeof keyPairOrName === 'string') {
     return keyPairOrName;
   }
-  return keyPairOrName.name;
+  return keyPairOrName.keyName;
 }

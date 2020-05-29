@@ -26,6 +26,7 @@
     "typescript": "3.8.3"
   },
   "dependencies": {
+    "@custom-resources/ec2-keypair": "workspace:^0.0.1",
     "@aws-cdk/aws-cloudformation": "1.38.0",
     "@aws-cdk/aws-ec2": "1.38.0",
     "@aws-cdk/aws-elasticloadbalancingv2": "1.38.0",
@@ -42,7 +43,6 @@
     "@aws-cdk/aws-stepfunctions-tasks": "1.38.0",
     "@aws-cdk/core": "1.38.0",
     "@types/js-yaml": "3.12.3",
-    "cdk-ec2-key-pair": "1.2.1",
     "js-yaml": "3.13.1",
     "tempy": "0.5.0"
   },

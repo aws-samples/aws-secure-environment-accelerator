@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { KeyPair } from 'cdk-ec2-key-pair';
+import { Keypair } from '@custom-resources/ec2-keypair';
 import { SecurityGroup, Subnet } from '../vpc';
 
 export interface FirewallManagerProps {
@@ -13,7 +13,7 @@ export interface FirewallManagerProps {
 
 export class FirewallManager extends cdk.Construct {
   private readonly props: FirewallManagerProps;
-  private readonly keyPair: KeyPair;
+  private readonly keyPair: Keypair;
   private readonly keyPairName: string;
   private readonly networkInterfaces: ec2.CfnNetworkInterface[] = [];
 
@@ -23,7 +23,7 @@ export class FirewallManager extends cdk.Construct {
     this.props = props;
 
     this.keyPairName = 'FirewallManagement';
-    this.keyPair = new KeyPair(this, 'KeyPair', {
+    this.keyPair = new Keypair(this, 'KeyPair', {
       name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs/',
     });
