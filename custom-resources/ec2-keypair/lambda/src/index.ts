@@ -75,12 +75,12 @@ async function generateKeypair(
   try {
     const response = await ec2
       .createKeyPair({
-        KeyName: `${properties.secretPrefix}/${properties.keyName}`,
+        KeyName: properties.keyName,
       })
       .promise();
 
     const params = {
-      Name: properties.keyName,
+      Name: `${properties.secretPrefix}/${properties.keyName}`,
       SecretString: response.KeyMaterial,
     };
     const smResponse = await secretsManager.createSecret(params).promise();
