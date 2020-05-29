@@ -1,3 +1,4 @@
+import path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
@@ -78,7 +79,7 @@ export class CdkToolkit {
    */
   async bootstrap() {
     const stacks = this.props.assembly.stacks;
-    const promises = stacks.map(async s => this.bootstrapEnvironment(s.environment));
+    const promises = stacks.map(s => this.bootstrapEnvironment(s.environment));
     await Promise.all(promises);
   }
 
@@ -106,8 +107,12 @@ export class CdkToolkit {
    * @return The stack outputs.
    */
   async synth() {
-    this.props.assembly.stacks.map(s => console.log(s.assembly.directory, s.templateFile));
     this.props.assembly.stacks.map(s => s.template);
+    this.props.assembly.stacks.map(stack => {
+      const _ = stack.template; // Force synthesizing the template
+      const templatePath = path.join(stack.assembly.directory, stack.templateFile);
+      console.warn(`${stack.displayName}: synthesized to ${templatePath}`);
+    });
   }
 
   /**
@@ -142,29 +147,17 @@ export class CdkToolkit {
   }
 
   async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutput[]> {
+    const stackExists = await this.cloudFormation.stackExists({ stack });
+
     const resources = Object.keys(stack.template.Resources || {});
     if (resources.length === 0) {
-      const stackExists = await this.cloudFormation.stackExists({ stack });
       if (!stackExists) {
         console.warn(`${stack.displayName}: stack has no resources, skipping deployment`);
         return [];
       }
 
       console.warn(`${stack.displayName}: stack has no resources, deleting existing stack`);
-      try {
-        await this.cloudFormation.destroyStack({
-          stack,
-          deployName: stack.stackName,
-          roleArn: undefined,
-          force: true,
-        });
-      } catch (e) {
-        const errorMessage = `${e}`;
-        if (!errorMessage.includes('cannot be deleted while TerminationProtection is enabled')) {
-          throw e;
-        }
-        console.warn(`${stack.displayName}: cannot delete existing stack with stack termination on`);
-      }
+      this.destroyStack(stack);
       return [];
     }
 
@@ -201,6 +194,35 @@ export class CdkToolkit {
       }));
     } catch (e) {
       console.log(`${stack.displayName}: failed to deploy`);
+      if (!stackExists) {
+        console.warn(`${stack.displayName}: deleting newly created failed stack`);
+        await this.destroyStack(stack);
+        console.warn(`${stack.displayName}: deleted newly created failed stack`);
+      }
+      throw e;
+    }
+  }
+
+  /**
+   * Destroy the given stack. It skips deletion when stack termination is turned on.
+   */
+  private async destroyStack(stack: CloudFormationStackArtifact): Promise<void> {
+    try {
+      await this.cloudFormation.destroyStack({
+        stack,
+        deployName: stack.stackName,
+        roleArn: undefined,
+        force: true,
+      });
+    } catch (e) {
+      const errorMessage = `${e}`;
+      if (errorMessage.includes('cannot be deleted while TerminationProtection is enabled')) {
+        console.warn(`${stack.displayName}: cannot delete existing stack with stack termination on`);
+        return;
+      } else if (errorMessage.includes('it may need to be manually deleted')) {
+        console.warn(`${stack.displayName}: ${e}`);
+        return;
+      }
       throw e;
     }
   }
@@ -227,7 +249,5 @@ function tagsForStack(stack: CloudFormationStackArtifact): Tag[] {
  * to the way that CloudFormation expects them. (Different casing).
  */
 function toCloudFormationTags(tags: cxschema.Tag[]): Tag[] {
-  return tags.map(t => {
-    return { Key: t.key, Value: t.value };
-  });
+  return tags.map(t => ({ Key: t.key, Value: t.value }));
 }
