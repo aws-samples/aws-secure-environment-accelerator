@@ -1,26 +1,19 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
-import * as path from 'path';
-import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
-import { AcceleratorConfig, AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AccountStacks } from '../../common/account-stacks';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { Alb } from '../../common/alb';
-import { pascalCase } from 'pascal-case';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import * as fs from 'fs';
+import * as s3 from '@aws-cdk/aws-s3';
+import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
+import { AcceleratorConfig, AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { AccountStacks } from '../../common/account-stacks';
+import { Alb } from '../../common/alb';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createCertificateSecretName } from '../certificates';
-import {
-  createAlbName,
-  createTargetGroupName,
-  getEc2Instances,
-  getVpc,
-  getSubnetIds,
-  getAesLogArchiveBucket,
-  getSecurityGroup,
-} from './outputs';
+import { AesBucketOutput } from '../defaults';
+import { createAlbName, createTargetGroupName, getEc2Instances } from './outputs';
 
 export interface AlbStep1Props {
   accountStacks: AccountStacks;
@@ -32,11 +25,11 @@ export interface AlbStep1Props {
 export async function step1(props: AlbStep1Props) {
   const { accountStacks, config, vpcOutputs, outputs } = props;
 
-  const logArchiveAccountKey = config['global-options']['central-log-services'].account;
-  const aesLogArchiveBucketName = getAesLogArchiveBucket(outputs, logArchiveAccountKey);
-  if (!aesLogArchiveBucketName) {
-    return;
-  }
+  const aesLogArchiveBucket = AesBucketOutput.getBucket({
+    accountStacks,
+    config,
+    outputs,
+  });
 
   for (const { accountKey, albs } of config.getAlbConfigs()) {
     if (albs.length === 0) {
@@ -52,65 +45,74 @@ export async function step1(props: AlbStep1Props) {
     for (const alb of albs) {
       const certificateName = createCertificateSecretName(alb['cert-name']);
       const secretValue = cdk.SecretValue.secretsManager(certificateName);
-      await createAlb(
-        accountKey,
-        alb,
-        accountStack,
-        vpcOutputs,
-        outputs,
-        secretValue.toString(),
-        aesLogArchiveBucketName,
-      );
+      await createAlb(accountKey, alb, accountStack, vpcOutputs, outputs, secretValue.toString(), aesLogArchiveBucket);
     }
   }
 }
 
 export async function createAlb(
   accountKey: string,
-  alb: AlbConfig,
+  albConfig: AlbConfig,
   accountStack: AcceleratorStack,
   vpcOutputs: Vpc[],
   outputs: StackOutput[],
   certificateArn: string,
-  aesLogArchiveBucketName: string,
+  aesLogArchiveBucket: s3.IBucket,
 ) {
-  const vpc = getVpc(vpcOutputs, alb.vpc);
+  const vpc = vpcOutputs.find(v => v.name === albConfig.vpc);
   if (!vpc) {
+    console.warn(`Cannot find output with vpc name ${albConfig.vpc}`);
     return;
   }
 
-  const subnetIds = getSubnetIds(vpc, alb.subnets);
+  const subnetIds = vpc.tryFindSubnetIdsByName(albConfig.subnets);
+  if (subnetIds.length === 0) {
+    console.warn(`Cannot find output with subnet name ${albConfig.subnets}`);
+    return;
+  }
   if (!subnetIds) {
     return;
   }
 
-  const securityGroup = getSecurityGroup(alb['security-group'], vpc);
+  const securityGroup = vpc.tryFindSecurityGroupByName(albConfig['security-group']);
+  if (!securityGroup) {
+    console.warn(`Cannot find output with security name ${albConfig['security-group']}`);
+    return;
+  }
   if (!securityGroup) {
     return;
   }
 
   let targetGroups: string[];
-  const isTargetLambda = alb.targets.find(t => t['lambda-filename'] !== undefined);
+  const isTargetLambda = albConfig.targets.find(t => t['lambda-filename'] !== undefined);
   if (isTargetLambda) {
-    targetGroups = await getTargetGroupArnsForLambda(accountStack, accountKey, alb);
+    targetGroups = await getTargetGroupArnsForLambda(accountStack, accountKey, albConfig);
   } else {
-    targetGroups = await getTargetGroupArnsForInstance(accountStack, accountKey, alb, outputs, vpc.id);
+    targetGroups = await getTargetGroupArnsForInstance(accountStack, accountKey, albConfig, outputs, vpc.id);
   }
 
-  new Alb(accountStack, `Alb${pascalCase(accountKey)}${alb.name}`, {
-    albName: createAlbName(accountKey, alb.name),
-    scheme: alb.scheme,
+  const alb = new Alb(accountStack, `Alb${albConfig.name}`, {
+    albName: createAlbName(accountKey, albConfig.name),
+    scheme: albConfig.scheme,
     subnetIds,
     securityGroupIds: [securityGroup.id],
-    bucketName: aesLogArchiveBucketName,
-    certificateArn,
     targetGroupArns: targetGroups,
-    hasAccessLogs: alb['access-logs'] ? true : false,
-    port: alb.ports,
-    protocol: alb.listeners,
-    actionType: alb['action-type'],
-    ipType: alb['ip-type'],
-    securityPolicy: alb['security-policy'],
+    ipType: albConfig['ip-type'],
+  });
+
+  // Enable logging to the default AES bucket
+  if (albConfig['access-logs']) {
+    alb.logToBucket(aesLogArchiveBucket);
+  }
+
+  // Add default listener
+  alb.addListener({
+    ports: albConfig.ports,
+    protocol: albConfig.listeners,
+    sslPolicy: albConfig['security-policy'],
+    certificateArn,
+    actionType: albConfig['action-type'],
+    targetGroupArns: targetGroups,
   });
 }
 

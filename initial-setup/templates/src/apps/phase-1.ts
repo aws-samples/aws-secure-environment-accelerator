@@ -72,12 +72,9 @@ async function main() {
   const limits = await loadLimits();
   const limiter = new Limiter(limits);
 
-  const globalOptions = acceleratorConfig['global-options'];
-
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
-  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
 
   const app = new cdk.App();
 
@@ -93,14 +90,12 @@ async function main() {
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
     outputs,
   });
 
   const logBucket = LogBucketOutput.getBucket({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
     outputs,

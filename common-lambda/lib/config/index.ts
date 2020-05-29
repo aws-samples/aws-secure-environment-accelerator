@@ -328,7 +328,7 @@ export const AlbConfigType = t.interface({
   'action-type': t.string,
   'ip-type': t.string,
   listeners: t.string,
-  ports: t.string,
+  ports: t.number,
   vpc: t.string,
   subnets: t.string,
   'cert-name': t.string,

@@ -273,7 +273,6 @@ async function main() {
 
   // Find the account buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({
-    acceleratorPrefix: context.acceleratorPrefix,
     accounts,
     accountStacks,
     config: acceleratorConfig,
@@ -282,7 +281,6 @@ async function main() {
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
     outputs,

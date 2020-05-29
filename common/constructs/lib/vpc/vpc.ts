@@ -24,7 +24,7 @@ export interface Vpc {
   tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet | undefined;
 
   findSubnetIdsByName(name: string): string[];
-  tryFindSubnetIdsByName(name: string): string[] | undefined;
+  tryFindSubnetIdsByName(name: string): string[];
 
   findSecurityGroupByName(name: string): SecurityGroup;
   tryFindSecurityGroupByName(name: string): SecurityGroup | undefined;

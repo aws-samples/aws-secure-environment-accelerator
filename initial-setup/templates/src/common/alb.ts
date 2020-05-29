@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { AlbConfig } from '@aws-pbmm/common-lambda/lib/config';
+import * as s3 from '@aws-cdk/aws-s3';
 import { CfnLoadBalancer, CfnListener } from '@aws-cdk/aws-elasticloadbalancingv2';
 
 export interface AlbProps extends cdk.StackProps {
@@ -7,108 +7,77 @@ export interface AlbProps extends cdk.StackProps {
   scheme: string;
   subnetIds: string[];
   securityGroupIds: string[];
-  bucketName: string;
-  certificateArn: string;
   targetGroupArns: string[];
-  hasAccessLogs: boolean;
-  port: string;
-  protocol: string;
-  actionType: string;
   ipType: string;
-  securityPolicy: string;
 }
 
 export class Alb extends cdk.Construct {
+  private readonly resource: CfnLoadBalancer;
+  private readonly listeners: CfnListener[] = [];
+
   constructor(scope: cdk.Construct, id: string, props: AlbProps) {
     super(scope, id);
 
-    const {
-      albName,
-      scheme,
-      hasAccessLogs,
-      subnetIds,
-      securityGroupIds,
-      bucketName,
-      certificateArn,
-      port,
-      protocol,
-      actionType,
-      ipType,
-      securityPolicy,
-      targetGroupArns,
-    } = props;
+    const { albName, scheme, subnetIds, securityGroupIds, ipType } = props;
 
-    const applicationLoadBalancer = new CfnLoadBalancer(this, 'Alb', {
+    this.resource = new CfnLoadBalancer(this, 'Alb', {
       name: albName,
       ipAddressType: ipType,
       scheme: scheme,
       subnets: subnetIds,
       securityGroups: securityGroupIds,
     });
-
-    if (hasAccessLogs) {
-      applicationLoadBalancer.loadBalancerAttributes = [
-        {
-          key: 'access_logs.s3.enabled',
-          value: 'true',
-        },
-        {
-          key: 'access_logs.s3.bucket',
-          value: bucketName,
-        },
-        {
-          key: 'access_logs.s3.prefix',
-          value: 'elb',
-        },
-      ];
-    }
-
-    this.createAlbListener(
-      `AlbListener${albName}`,
-      port,
-      applicationLoadBalancer.ref,
-      protocol,
-      securityPolicy,
-      certificateArn,
-      actionType,
-      targetGroupArns,
-    );
   }
 
-  createAlbListener(
-    listenerName: string,
-    ports: string,
-    loadBalancerArn: string,
-    protocol: string,
-    sslPolicy: string,
-    certificateArn: string,
-    actionType: string,
-    targetGroupArns: string[],
-  ): void {
-    const albListener = new CfnListener(this, `${listenerName}`, {
-      port: Number(ports),
-      loadBalancerArn,
-      protocol,
-      defaultActions: [],
-      sslPolicy,
-      certificates: [{ certificateArn }],
-    });
+  logToBucket(bucket: s3.IBucket) {
+    this.resource.loadBalancerAttributes = [
+      {
+        key: 'access_logs.s3.enabled',
+        value: 'true',
+      },
+      {
+        key: 'access_logs.s3.bucket',
+        value: bucket.bucketName,
+      },
+      {
+        key: 'access_logs.s3.prefix',
+        value: 'elb',
+      },
+    ];
+  }
 
+  addListener(props: {
+    ports: number;
+    protocol: string;
+    sslPolicy: string;
+    certificateArn: string;
+    actionType: string;
+    targetGroupArns: string[];
+  }) {
+    const { ports, protocol, sslPolicy, certificateArn, actionType, targetGroupArns } = props;
     const targetGroups = targetGroupArns.map(arn => ({
       targetGroupArn: arn,
       weight: 1,
     }));
-    albListener.defaultActions = [
-      {
-        type: actionType,
-        forwardConfig: {
-          targetGroups,
-          targetGroupStickinessConfig: {
-            enabled: true,
-            durationSeconds: 3600,
+    const listener = new CfnListener(this, `Listener${this.listeners.length}`, {
+      port: ports,
+      loadBalancerArn: this.resource.ref,
+      protocol,
+      sslPolicy,
+      certificates: [{ certificateArn }],
+      defaultActions: [
+        {
+          type: actionType,
+          forwardConfig: {
+            targetGroups,
+            targetGroupStickinessConfig: {
+              enabled: true,
+              durationSeconds: 3600,
+            },
           },
         },
-      },
-    ];
+      ],
+    });
+    this.listeners.push(listener);
   }
 }
