@@ -23,7 +23,7 @@ export class ApplicationLoadBalancer extends cdk.Construct {
     this.resource = new elb.CfnLoadBalancer(this, 'Alb', {
       name: albName,
       ipAddressType: ipType,
-      scheme: scheme,
+      scheme,
       subnets: subnetIds,
       securityGroups: securityGroupIds,
     });
