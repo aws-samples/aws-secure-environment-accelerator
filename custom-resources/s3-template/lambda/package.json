@@ -1,5 +1,5 @@
 {
-  "name": "@custom-resources/s3-template",
+  "name": "@custom-resources/s3-template-lambda",
   "version": "0.0.1",
   "private": true,
   "scripts": {
