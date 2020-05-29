@@ -9,9 +9,10 @@ import { AmiSubscriptionOutput } from '@aws-pbmm/common-outputs/lib/stack-output
 import * as cdk from '@aws-cdk/core';
 
 export interface FirewallStep3Props {
+  accountKey: string;
+  deployments: c.DeploymentConfig;
+  vpc: Vpc;
   accountStacks: AccountStacks;
-  config: c.AcceleratorConfig;
-  vpcs: Vpc[];
 }
 
 /**
@@ -21,49 +22,46 @@ export interface FirewallStep3Props {
  *   - MarketPlace image subscription status per account
  */
 export async function step3(props: FirewallStep3Props) {
-  const { accountStacks, config, vpcs } = props;
+  const { accountKey, deployments, vpc, accountStacks } = props;
 
-  for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
-    const managerConfig = accountConfig.deployments?.['firewall-manager'];
-    const firewallConfig = accountConfig.deployments?.firewall;
-    if (!firewallConfig) {
-      continue;
-    }
+  const managerConfig = deployments?.['firewall-manager'];
+  const firewallConfig = deployments?.firewall;
+  if (!firewallConfig) {
+    return;
+  }
+  if (!vpc) {
+    console.log(
+      `Skipping firewall marketplace image subscription check because of missing VPC "${firewallConfig.vpc}"`,
+    );
+    return;
+  }
+  const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+  if (!accountStack) {
+    console.warn(`Cannot find account stack ${accountStack}`);
+    return;
+  }
 
-    const vpc = vpcs.find(v => v.name === firewallConfig.vpc);
-    if (!vpc) {
-      console.log(`Skipping firewall deployment because of missing VPC "${firewallConfig.vpc}"`);
-      continue;
-    }
+  const subnetId = vpc.subnets[0].id;
+  const firewallImageId = firewallConfig['image-id'];
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountStack}`);
-      continue;
-    }
+  const firewallAmiSubOutput: AmiSubscriptionOutput = {
+    imageId: firewallImageId,
+    status: checkStatus(accountStack, firewallImageId, subnetId, 'FirewallAmiSubCheck'),
+  };
+  new JsonOutputValue(accountStack, `FirewallSubscriptionsOutput${accountKey}`, {
+    type: 'AmiSubscriptionStatus',
+    value: firewallAmiSubOutput,
+  });
 
-    const subnetId = vpc.subnets[0].id;
-    const firewallImageId = firewallConfig['image-id'];
-
-    const firewallAmiSubOutput: AmiSubscriptionOutput = {
-      imageId: firewallImageId,
-      status: checkStatus(accountStack, firewallImageId, subnetId, 'FirewallAmiSubCheck'),
+  if (managerConfig) {
+    const firewallManagerAmiSubOutput: AmiSubscriptionOutput = {
+      imageId: managerConfig['image-id'],
+      status: checkStatus(accountStack, managerConfig['image-id'], subnetId, 'ManagerAmiSubCheck'),
     };
-    new JsonOutputValue(accountStack, `FirewallSubscriptionsOutput`, {
+    new JsonOutputValue(accountStack, `FirewallManagerSubscriptionsOutput${accountKey}`, {
       type: 'AmiSubscriptionStatus',
-      value: firewallAmiSubOutput,
+      value: firewallManagerAmiSubOutput,
     });
-
-    if (managerConfig) {
-      const firewallManagerAmiSubOutput: AmiSubscriptionOutput = {
-        imageId: managerConfig['image-id'],
-        status: checkStatus(accountStack, managerConfig['image-id'], subnetId, 'ManagerAmiSubCheck'),
-      };
-      new JsonOutputValue(accountStack, `FirewallManagerSubscriptionsOutput`, {
-        type: 'AmiSubscriptionStatus',
-        value: firewallManagerAmiSubOutput,
-      });
-    }
   }
 }
 

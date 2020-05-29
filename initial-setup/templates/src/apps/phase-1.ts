@@ -271,6 +271,7 @@ async function main() {
     return vpcStack.vpc;
   };
 
+  const subscriptionCheckDone:string[] =[];
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
@@ -294,7 +295,6 @@ async function main() {
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
     });
-    
 
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
@@ -302,14 +302,18 @@ async function main() {
       const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
     }
-    
-    // Validate subscription for Firewall images
-    // await firewallCluster.validateSubscription({
-    //   accountKey,
-    //   deployments: deployments!,
-    //   vpc: vpc!,
-    //   accountStacks,
-    // });
+
+    // Validate subscription for Firewall imagesonly once per account
+    if (!subscriptionCheckDone.includes(accountKey)) {
+      console.log(`Checking Subscription for ${accountKey}`);
+      await firewallCluster.validateSubscription({
+        accountKey,
+        deployments: deployments!,
+        vpc: vpc!,
+        accountStacks,
+      });
+      subscriptionCheckDone.push(accountKey);
+    }
   }
 
   // Create the firewall
