@@ -29,6 +29,7 @@ export interface ConfigurationAccount {
   accountName: string;
   emailAddress: string;
   organizationalUnit: string;
+  isMandatoryAccount: boolean;
   landingZoneAccountType?: LandingZoneAccountType;
 }
 
@@ -110,17 +111,20 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   // First load mandatory accounts configuration
-  const mandatoryAccountConfigs = config.getAccountConfigs();
-  for (const [accountKey, mandatoryAccountConfig] of mandatoryAccountConfigs) {
-    const accountConfigName = mandatoryAccountConfig['account-name'];
-    const accountConfigEmail = mandatoryAccountConfig.email;
-    const landingZoneAccountType = mandatoryAccountConfig['landing-zone-account-type'];
+  const mandatoryAccounts = config.getMandatoryAccountConfigs();
+  const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
+
+  const accountConfigs = config.getAccountConfigs();
+  for (const [accountKey, accountConfig] of accountConfigs) {
+    const accountConfigName = accountConfig['account-name'];
+    const accountConfigEmail = accountConfig.email;
+    const landingZoneAccountType = accountConfig['landing-zone-account-type'];
 
     // Find the organizational account used by this
-    const organizationalUnitName = mandatoryAccountConfig.ou;
+    const organizationalUnitName = accountConfig.ou;
     const organizationalUnit = awsOus.find(ou => ou.Name === organizationalUnitName);
     if (!organizationalUnit) {
-      errors.push(`Cannot find organizational unit "${mandatoryAccountConfig.ou}" that is used by Accelerator`);
+      errors.push(`Cannot find organizational unit "${accountConfig.ou}" that is used by Accelerator`);
       continue;
     }
 
@@ -148,8 +152,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       accountId: account?.Id,
       accountKey,
       accountName: accountConfigName,
-      emailAddress: mandatoryAccountConfig.email,
-      organizationalUnit: mandatoryAccountConfig.ou,
+      emailAddress: accountConfig.email,
+      organizationalUnit: organizationalUnitName,
+      isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
       landingZoneAccountType,
     });
   }
