@@ -38,6 +38,7 @@
     "@aws-cdk/aws-config": "1.38.0",
     "@aws-cdk/aws-directoryservice": "1.38.0",
     "@aws-cdk/aws-ec2": "1.38.0",
+    "@aws-cdk/aws-elasticloadbalancingv2": "1.38.0",
     "@aws-cdk/aws-iam": "1.38.0",
     "@aws-cdk/aws-kms": "1.38.0",
     "@aws-cdk/aws-lambda": "1.38.0",

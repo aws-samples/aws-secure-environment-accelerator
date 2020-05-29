@@ -67,14 +67,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
     outputs,
   });
 
   const logBucket = LogBucketOutput.getBucket({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
     outputs,

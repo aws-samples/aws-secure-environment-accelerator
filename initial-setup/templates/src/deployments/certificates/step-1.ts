@@ -6,6 +6,7 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AcmImportCertificate } from '@custom-resources/acm-import-certificate';
 import { AccountStacks } from '../../common/account-stacks';
 import { pascalCase } from 'pascal-case';
+import { createCertificateSecretName } from './outputs';
 
 export interface CertificatesStep1Props {
   accountStacks: AccountStacks;
@@ -73,7 +74,7 @@ function createCertificate(props: {
   // Store the certificate ARN in secrets manager
   if (resource) {
     new secrets.CfnSecret(scope, `Cert${certificatePrettyName}Secret`, {
-      name: `accelerator/certificates/${certificate.name}`,
+      name: createCertificateSecretName(certificate.name),
       description: `Certificate ARN for certificate ${certificate.name}`,
       secretString: resource.certificateArn,
     });
