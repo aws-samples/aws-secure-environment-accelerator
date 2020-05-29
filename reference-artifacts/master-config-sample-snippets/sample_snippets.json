@@ -1,0 +1,323 @@
+
+************************************cert REQUEST format
+      "certificates": [
+        {
+          "name": "PublicCert",
+          "type": "request",
+          "domain": "*.example.com",
+          "validation": "DNS",
+          "san": ["*.example1.com"]
+        }
+      ]
+************************************budget include fields
+      "default-budgets": {
+        "name": "Default Core Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Refunds",
+          "Credits",
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+************************************Cross Account Role
+          {
+            "role": "Test-Role",
+            "type": "account",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy",
+            "source-account": "security",
+            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
+            "trust-policy": "role-trust-policy.txt"
+          }
+************************************
+          {
+            "name": "SampleComplexSecurityGroup",
+            "inbound-rules": [
+              {
+                "description": "Allow Inbound Domain Traffic",
+                "tcp-ports": [464, 389, 3389, 445, 88, 135, 636, 53],
+                "udp-ports": [445, 138, 464, 53, 389, 123, 88],
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound RDSH",
+                "type": ["TCP"],
+                "toPort": 3269,
+                "fromPort": 3268,
+                "source": ["0.0.0.0/0"]
+              },
+              {
+                "description": "Allow Inbound High Ports",
+                "type": ["TCP"],
+                "toPort": 65535,
+                "fromPort": 1024,
+                "source": ["0.0.0.0/0"]
+              }
+            ],
+            "outbound-rules": [
+              {
+                "description": "All Outbound",
+                "type": ["ALL"],
+                "source": ["0.0.0.0/0", "0::/0"]
+              }
+            ]
+          },
+************************************One NATGW
+"natgw": {
+    "subnet": {
+      "name": "Web",
+      "az": "a"
+    }
+  },
+  "subnets": [
+    {
+      "name": "Web",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_IGW",
+          "cidr": "10.6.32.0/20"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_IGW",
+          "cidr": "10.6.128.0/20"
+        }
+      ]
+    },
+    {
+      "name": "App",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.0.0/19"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.96.0/19"
+        }
+      ]
+    },
+    {
+      "name": "Data",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.48.0/20"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.144.0/20"
+        }
+      ]
+    }
+  ],
+  "route-tables": [
+    {
+      "name": "SandboxVPC_IGW",
+      "routes": [
+        {
+          "destination": "0.0.0.0/0",
+          "target": "IGW"
+        }
+      ]
+    },
+    {
+      "name": "SandboxVPC_Common",
+      "routes": [
+        {
+          "destination": "0.0.0.0/0",
+          "target": "NATGW_Web_azA"
+        }
+      ]
+    }
+  ]
+************************************PER AZ NATGW
+"natgw": {
+    "subnet": {
+      "name": "Web"
+    }
+  },
+  "subnets": [
+    {
+      "name": "Web",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_IGW",
+          "cidr": "10.6.32.0/20"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_IGW",
+          "cidr": "10.6.128.0/20"
+        }
+      ]
+    },
+    {
+      "name": "App",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_a",
+          "cidr": "10.6.0.0/19"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_b",
+          "cidr": "10.6.96.0/19"
+        }
+      ]
+    },
+    {
+      "name": "Data",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_a",
+          "cidr": "10.6.48.0/20"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_b",
+          "cidr": "10.6.144.0/20"
+        }
+      ]
+    }
+  ],
+  "route-tables": [
+    {
+      "name": "SandboxVPC_IGW",
+      "routes": [
+        {
+          "destination": "0.0.0.0/0",
+          "target": "IGW"
+        }
+      ]
+    },
+    {
+      "name": "SandboxVPC_a"
+    },
+    {
+      "name": "SandboxVPC_b"
+    }
+  ]
+************************************NOT PERFERED, but works: (uses first AZ)
+"natgw": {
+    "subnet": {
+      "name": "Web"
+    }
+  },
+  "subnets": [
+    {
+      "name": "Web",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_IGW",
+          "cidr": "10.6.32.0/20"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_IGW",
+          "cidr": "10.6.128.0/20"
+        }
+      ]
+    },
+    {
+      "name": "App",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.0.0/19"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.96.0/19"
+        }
+      ]
+    },
+    {
+      "name": "Data",
+      "share-to-ou-accounts": false,
+      "share-to-specific-accounts": [],
+      "definitions": [
+        {
+          "az": "a",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.48.0/20"
+        },
+        {
+          "az": "b",
+          "route-table": "SandboxVPC_Common",
+          "cidr": "10.6.144.0/20"
+        }
+      ]
+    }
+  ],
+  "route-tables": [
+    {
+      "name": "SandboxVPC_IGW",
+      "routes": [
+        {
+          "destination": "0.0.0.0/0",
+          "target": "IGW"
+        }
+      ]
+    },
+    {
+      "name": "SandboxVPC_Common",
+      "routes": [
+        {
+          "destination": "0.0.0.0/0",
+          "target": "NATGW_Web_azA"
+        }
+      ]
+    }
+  ]
+************************************Very basic workload and per account exceptions
+  "workload-account-configs": {
+    "fun-acct": {
+      "account-name": "TheFunAccount",
+      "email": "myemail+pbmmT-funacct@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Sandbox"
+    },
+    "mydevacct1": {
+      "account-name": "MyDev1",
+      "email": "myemail+pbmmT-dev1@myemaildomain.com---------------------REPLACE----------------------",
+      "ou": "Dev",
+      "share-mad-from": "operations",
+      "enable-s3-public-access": true
+    }
+  },
+************************************
+************************************
+************************************
+
+  

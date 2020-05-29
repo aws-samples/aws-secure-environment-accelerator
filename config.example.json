@@ -28,10 +28,10 @@
       "account": "log-archive",
       "region": "ca-central-1",
       "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],
-      "cwl-exclusions": {
+      "cwl-exclusions": [{
         "account": "fun-acct",
         "exclusions": ["def/*"]
-      },
+      }],
       "ssm-to-s3": true,
       "ssm-to-cwl": true
     },
@@ -48,14 +48,14 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "conformance-packs": {
+    "conformance-packs": [{
       "gc-pack": {
         "install": true,
         "auto-remediation": true,
         "monitoring": true,
         "frequency": 24
       }
-    },
+    }],
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -330,15 +330,6 @@
               "PBMMAccel-RDGW-Custom-Policy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
           }
         ]
       },
@@ -398,7 +389,7 @@
                 {
                   "description": "Allow RDP Traffic Inbound",
                   "type": ["RDP"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
@@ -809,7 +800,7 @@
                   "description": "Allow Mgmt Traffic Inbound",
                   "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080, 80, 22],
                   "udp-ports": [9443],
-                  "source": ["10.0.0.0/8"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
@@ -879,7 +870,7 @@
             }
           ],
           "license": "firewall/license.lic",
-          "config": "firewall/config.template.txt",
+          "config": "firewall/fortigate.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
           "fw-cgw-routing": "Dynamic",
@@ -917,6 +908,41 @@
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
+      "budget": {
+        "name": "Perimeter Budget",
+        "period": "Monthly",
+        "amount": 10000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+          }
+        ]
+      },
       "log-retention": 180,
       "limits": {
         "AWS Organizations/Maximum accounts": 20,
@@ -1011,59 +1037,44 @@
     },
     "log-archive": {
       "account-name": "log-archive",
-      "share-mad-from": "",
       "ou": "core",
       "email": "myemail+pbmmT-log@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
-      "share-mad-from": "",
       "ou": "core",
       "email": "myemail+pbmmT-sec@myemaildomain.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
-      "share-mad-from": "",
       "ou": "core",
       "email": "myemail+pbmmT-ss@myemaildomain.com---------------------REPLACE----------------------",
-      "landing-zone-account-type": "shared-services",
-      "enable-s3-public-access": true
+      "landing-zone-account-type": "shared-services"
     }
   },
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
       "email": "myemail+pbmmT-funacct@myemaildomain.com---------------------REPLACE----------------------",
-      "ou": "Sandbox",
-      "share-mad-from": ""
+      "ou": "Sandbox"
     },
     "mydevacct1": {
       "account-name": "MyDev1",
       "email": "myemail+pbmmT-dev1@myemaildomain.com---------------------REPLACE----------------------",
-      "ou": "Dev",
-      "share-mad-from": ""
-    },
-    "my-dev-acct2": {
-      "account-name": "MyDev2",
-      "email": "myemail+pbmmT-dev2@myemaildomain.com---------------------REPLACE----------------------",
-      "ou": "Dev",
-      "share-mad-from": ""
+      "ou": "Dev"
     }
   },
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "share-mad-from": "",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
         "amount": 1000,
         "include": [
-          "Refunds",
-          "Credits",
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
           "Other-subscription-costs",
@@ -1104,8 +1115,6 @@
         "period": "Monthly",
         "amount": 100,
         "include": [
-          "Refunds",
-          "Credits",
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
           "Other-subscription-costs",
@@ -1235,7 +1244,7 @@
             {
               "name": "Data",
               "share-to-ou-accounts": true,
-              "share-to-specific-accounts": [],
+              "share-to-specific-accounts": ["operations"],
               "definitions": [
                 {
                   "az": "a",
@@ -1545,15 +1554,6 @@
               "CloudWatchAgentServerPolicy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -1567,8 +1567,6 @@
         "period": "Monthly",
         "amount": 2000,
         "include": [
-          "Refunds",
-          "Credits",
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
           "Other-subscription-costs",
@@ -2028,15 +2026,6 @@
               "CloudWatchAgentServerPolicy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -2050,8 +2039,6 @@
         "period": "Monthly",
         "amount": 200,
         "include": [
-          "Refunds",
-          "Credits",
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
           "Other-subscription-costs",
@@ -2511,15 +2498,6 @@
               "CloudWatchAgentServerPolicy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -2533,8 +2511,6 @@
         "period": "Monthly",
         "amount": 1000,
         "include": [
-          "Refunds",
-          "Credits",
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
           "Other-subscription-costs",
@@ -2994,15 +2970,6 @@
               "CloudWatchAgentServerPolicy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -3016,8 +2983,6 @@
         "period": "Monthly",
         "amount": 1000,
         "include": [
-          "Refunds",
-          "Credits",
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
           "Other-subscription-costs",
@@ -3451,15 +3416,6 @@
               "CloudWatchAgentServerPolicy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
@@ -3473,8 +3429,6 @@
         "period": "Monthly",
         "amount": 200,
         "include": [
-          "Refunds",
-          "Credits",
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
           "Other-subscription-costs",
@@ -3518,7 +3472,8 @@
           "pcx": false,
           "natgw": {
             "subnet": {
-              "name": "Web"
+              "name": "Web",
+              "az": "a"
             }
           },
           "subnets": [
@@ -3835,15 +3790,6 @@
               "CloudWatchAgentServerPolicy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
-          },
-          {
-            "role": "Test-Role",
-            "type": "account",
-            "policies": ["AdministratorAccess"],
-            "boundary-policy": "Default-Boundary-Policy",
-            "source-account": "security",
-            "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
-            "trust-policy": "role-trust-policy.txt"
           }
         ]
       }
