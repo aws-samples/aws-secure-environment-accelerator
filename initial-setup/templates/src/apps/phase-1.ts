@@ -37,7 +37,6 @@ import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
-import * as firewallCluster from '../deployments/firewall/cluster';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -306,7 +305,7 @@ async function main() {
     // Validate subscription for Firewall imagesonly once per account
     if (!subscriptionCheckDone.includes(accountKey)) {
       console.log(`Checking Subscription for ${accountKey}`);
-      await firewallCluster.validateSubscription({
+      await firewall.validateSubscription({
         accountKey,
         deployments: deployments!,
         vpc: vpc!,

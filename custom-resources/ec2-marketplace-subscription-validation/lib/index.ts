@@ -6,7 +6,7 @@ import { HandlerProperties } from '@custom-resources/ec2-marketplace-subscriptio
 
 const resourceType = 'Custom::MarketPlaceSubscriptionCheck';
 
-export interface CfnMarketPlaceSubscriptionCheckProps {
+export interface Ec2MarketPlaceSubscriptionCheckProps {
   imageId: string;
   subnetId: string;
   instanceType?: string;
@@ -17,9 +17,9 @@ export type Attribute = 'Status';
 /**
  * Custom resource that has an image ID attribute for the image with the given properties.
  */
-export class CfnMarketPlaceSubscriptionCheck extends cdk.Construct {
+export class Ec2MarketPlaceSubscriptionCheck extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
-  constructor(scope: cdk.Construct, id: string, props: CfnMarketPlaceSubscriptionCheckProps) {
+  constructor(scope: cdk.Construct, id: string, props: Ec2MarketPlaceSubscriptionCheckProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {
@@ -42,8 +42,8 @@ export class CfnMarketPlaceSubscriptionCheck extends cdk.Construct {
   /**
    * Returns the given CloudFormation attribute.
    */
-  getAttString(attribute: Attribute) {
-    return this.resource.getAttString(attribute);
+  get status(): string {
+    return this.resource.getAttString('Status');
   }
 
   get lambdaFunction(): lambda.Function {

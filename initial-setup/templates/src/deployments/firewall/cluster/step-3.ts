@@ -3,7 +3,7 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../../../common/account-stacks';
-import { CfnMarketPlaceSubscriptionCheck } from '@custom-resources/ec2-marketplace-subscription-validation';
+import { Ec2MarketPlaceSubscriptionCheck } from '@custom-resources/ec2-marketplace-subscription-validation';
 import { JsonOutputValue } from '../../../common/json-output';
 import { AmiSubscriptionOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import * as cdk from '@aws-cdk/core';
@@ -66,9 +66,9 @@ export async function step3(props: FirewallStep3Props) {
 }
 
 const checkStatus = (scope: cdk.Construct, imageId: string, subnetId: string, id: string): string => {
-  const subscritionCheckResponse = new CfnMarketPlaceSubscriptionCheck(scope, id, {
+  const subscritionCheckResponse = new Ec2MarketPlaceSubscriptionCheck(scope, id, {
     imageId,
     subnetId,
   });
-  return subscritionCheckResponse.getAttString('Status');
+  return subscritionCheckResponse.status;
 };

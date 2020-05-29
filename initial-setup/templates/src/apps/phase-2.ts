@@ -117,7 +117,7 @@ async function main() {
         pcxId: pcx.ref,
         vpcs: [
           {
-            accountKey: accountKey,
+            accountKey,
             vpcId: vpcOutput.vpcId,
             vpcName: vpcOutput.vpcName,
           },

@@ -1,4 +1,4 @@
-# EC2 Image Finder
+# EC2 Market Place Image SubscriptionCheck
 
 This is a custom resource that makes ec2.runInstances and returns status to check subscription status for Market Place AMI
 
