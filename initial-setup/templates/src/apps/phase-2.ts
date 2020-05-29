@@ -17,8 +17,8 @@ import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
-import * as firewallCluster from '../deployments/firewall/cluster';
 import * as firewallManagement from '../deployments/firewall/manager';
+import * as firewallCluster from '../deployments/firewall/cluster';
 import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
@@ -278,11 +278,37 @@ async function main() {
   });
   const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
 
-  // Validate subscription for Firewall images
-  await firewallCluster.validateSubscription({
+  // Find the account buckets in the outputs
+  const accountBuckets = AccountBucketOutput.getAccountBuckets({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accounts,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await firewallCluster.step4({
+    accountBuckets,
+    accountStacks,
+    centralBucket,
+    config: acceleratorConfig,
+    outputs,
+    vpcs: allVpcs,
+  });
+
+  await firewallManagement.step1({
     accountStacks,
     config: acceleratorConfig,
     vpcs: allVpcs,
+    outputs,
   });
 }
 

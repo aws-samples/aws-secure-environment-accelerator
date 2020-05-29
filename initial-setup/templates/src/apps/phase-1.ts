@@ -37,6 +37,7 @@ import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
+import * as firewallCluster from '../deployments/firewall/cluster';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -284,7 +285,7 @@ async function main() {
         ouKey ? ` and organizational unit "${ouKey}"` : ''
       }`,
     );
-    createVpc(accountKey, {
+    const vpc = createVpc(accountKey, {
       accountKey,
       limiter,
       accounts,
@@ -293,6 +294,7 @@ async function main() {
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
     });
+    
 
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
@@ -300,6 +302,14 @@ async function main() {
       const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
     }
+    
+    // Validate subscription for Firewall images
+    // await firewallCluster.validateSubscription({
+    //   accountKey,
+    //   deployments: deployments!,
+    //   vpc: vpc!,
+    //   accountStacks,
+    // });
   }
 
   // Create the firewall
