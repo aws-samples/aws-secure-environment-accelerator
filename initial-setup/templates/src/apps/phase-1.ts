@@ -271,7 +271,7 @@ async function main() {
     return vpcStack.vpc;
   };
 
-  const subscriptionCheckDone:string[] =[];
+  const subscriptionCheckDone: string[] = [];
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
