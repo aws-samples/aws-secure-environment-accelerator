@@ -7,7 +7,6 @@ export interface ApplicationLoadBalancerProps extends cdk.StackProps {
   scheme: string;
   subnetIds: string[];
   securityGroupIds: string[];
-  targetGroupArns: string[];
   ipType: string;
 }
 

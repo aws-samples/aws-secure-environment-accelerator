@@ -4,6 +4,7 @@ import { KeyPair } from 'cdk-ec2-key-pair';
 import { SecurityGroup, Subnet } from '../vpc';
 
 export interface FirewallManagerProps {
+  name: string;
   /**
    * Image ID of firewall.
    */
@@ -13,9 +14,10 @@ export interface FirewallManagerProps {
 
 export class FirewallManager extends cdk.Construct {
   private readonly props: FirewallManagerProps;
+  private readonly resource: ec2.CfnInstance;
   private readonly keyPair: KeyPair;
   private readonly keyPairName: string;
-  private readonly networkInterfaces: ec2.CfnNetworkInterface[] = [];
+  private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
   constructor(scope: cdk.Construct, id: string, props: FirewallManagerProps) {
     super(scope, id);
@@ -27,18 +29,31 @@ export class FirewallManager extends cdk.Construct {
       name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs/',
     });
+
+    this.resource = new ec2.CfnInstance(this, 'Resource', {
+      imageId: this.props.imageId,
+      instanceType: this.props.instanceType,
+      keyName: this.keyPairName,
+      networkInterfaces: this.networkInterfacesProps,
+    });
+    cdk.Tag.add(this.resource, 'Name', this.props.name);
+
+    this.resource.node.addDependency(this.keyPair);
   }
 
   addNetworkInterface(props: { securityGroup: SecurityGroup; subnet: Subnet; eipAllocationId?: string }) {
     const { securityGroup, subnet, eipAllocationId } = props;
-    const index = this.networkInterfaces.length;
+    const index = this.networkInterfacesProps.length;
 
     // Create network interface
     const networkInterface = new ec2.CfnNetworkInterface(this, `Eni${index}`, {
       groupSet: [securityGroup.id],
       subnetId: subnet.id,
     });
-    this.networkInterfaces.push(networkInterface);
+    this.networkInterfacesProps.push({
+      deviceIndex: `${index}`,
+      networkInterfaceId: networkInterface.ref,
+    });
 
     // Create EIP if needed
     if (eipAllocationId) {
@@ -49,16 +64,7 @@ export class FirewallManager extends cdk.Construct {
     }
   }
 
-  protected onPrepare() {
-    const instance = new ec2.CfnInstance(this, 'Resource', {
-      imageId: this.props.imageId,
-      instanceType: this.props.instanceType,
-      keyName: this.keyPairName,
-      networkInterfaces: this.networkInterfaces.map((eni, index) => ({
-        deviceIndex: `${index}`,
-        networkInterfaceId: eni.ref,
-      })),
-    });
-    instance.node.addDependency(this.keyPair);
+  get instanceId() {
+    return this.resource.ref;
   }
 }

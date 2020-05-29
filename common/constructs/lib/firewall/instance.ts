@@ -31,6 +31,7 @@ export interface FirewallConfigurationProps {
 }
 
 export interface FirewallInstanceProps {
+  name: string;
   hostname: string;
   vpcCidrBlock: string;
   /**
@@ -47,7 +48,6 @@ export class FirewallInstance extends cdk.Construct {
   private readonly props: FirewallInstanceProps;
   private readonly resource: ec2.CfnInstance;
   private readonly template: S3Template;
-  private readonly networkInterfaces: ec2.CfnNetworkInterface[] = [];
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
   constructor(scope: cdk.Construct, id: string, props: FirewallInstanceProps) {
@@ -97,6 +97,7 @@ export class FirewallInstance extends cdk.Construct {
         ),
       ),
     });
+    cdk.Tag.add(this.resource, 'Name', this.props.name);
 
     this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
@@ -114,7 +115,7 @@ export class FirewallInstance extends cdk.Construct {
     vpnTunnelOptions?: FirewallVpnTunnelOptions;
   }): ec2.CfnNetworkInterface {
     const { name, securityGroup, subnet, eipAllocationId, vpnTunnelOptions } = props;
-    const index = this.networkInterfaces.length;
+    const index = this.networkInterfacesProps.length;
 
     // Create network interface
     const networkInterface = new ec2.CfnNetworkInterface(this, `Eni${index}`, {
@@ -122,8 +123,6 @@ export class FirewallInstance extends cdk.Construct {
       subnetId: subnet.id,
       sourceDestCheck: false,
     });
-    this.networkInterfaces.push(networkInterface);
-
     this.networkInterfacesProps.push({
       deviceIndex: `${index}`,
       networkInterfaceId: networkInterface.ref,
