@@ -11,7 +11,12 @@ export interface CreateAccountInput {
   organizationalUnit: string;
 }
 
-export type CreateAccountOutputStatus = 'SUCCESS' | 'FAILURE' | 'ALREADY_EXISTS' | 'NOT_RELEVANT';
+export type CreateAccountOutputStatus =
+  | 'SUCCESS'
+  | 'FAILURE'
+  | 'ALREADY_EXISTS'
+  | 'NOT_RELEVANT'
+  | 'NON_MANDATORY_ACCOUNT_FAILURE';
 
 export interface CreateAccountOutput {
   status?: CreateAccountOutputStatus;
@@ -20,7 +25,7 @@ export interface CreateAccountOutput {
   provisionToken?: string;
 }
 
-export type AccountAvailableStatus = 'SUCCESS' | 'FAILURE' | 'IN_PROGRESS';
+export type AccountAvailableStatus = 'SUCCESS' | 'FAILURE' | 'IN_PROGRESS' | 'NON_MANDATORY_ACCOUNT_FAILURE';
 
 export interface AccountAvailableOutput {
   status?: AccountAvailableStatus;

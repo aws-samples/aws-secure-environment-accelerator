@@ -1,22 +1,26 @@
-const aws = require('aws-sdk');
-const { green } = require('colors/safe');
+import * as aws from 'aws-sdk';
+import { CredentialProviderSource, Mode } from 'aws-cdk/lib/api/aws-auth/credentials';
+import { green } from 'colors/safe';
 
-class AssumeRoleProviderSource {
-  constructor(name, assumeRoleName) {
+export class AssumeRoleProviderSource implements CredentialProviderSource {
+  readonly name: string;
+  private readonly assumeRoleName: string;
+  private readonly cache: { [accountId: string]: aws.Credentials } = {};
+
+  constructor(name: string, assumeRoleName: string) {
     this.name = name;
     this.assumeRoleName = assumeRoleName;
-    this.cache = {};
   }
 
-  async isAvailable() {
+  async isAvailable(): Promise<boolean> {
     return true;
   }
 
-  async canProvideCredentials(accountId) {
+  async canProvideCredentials(accountId: string): Promise<boolean> {
     return true;
   }
 
-  async getProvider(accountId, mode) {
+  async getProvider(accountId: string, mode: Mode): Promise<aws.Credentials> {
     if (this.cache[accountId]) {
       return this.cache[accountId];
     }
@@ -33,7 +37,7 @@ class AssumeRoleProviderSource {
       })
       .promise();
 
-    const result = response.Credentials;
+    const result = response.Credentials!;
     return (this.cache[accountId] = new aws.Credentials({
       accessKeyId: result.AccessKeyId,
       secretAccessKey: result.SecretAccessKey,
@@ -41,5 +45,3 @@ class AssumeRoleProviderSource {
     }));
   }
 }
-
-module.exports = { AssumeRoleProviderSource };

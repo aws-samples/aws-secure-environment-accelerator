@@ -14,5 +14,16 @@ export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAv
   const avm = new AccountVendingMachine();
 
   // Check the status of the provisioned account.
-  return avm.isAccountAvailable(account?.accountName!);
+  const verifyAccountOutput = await avm.isAccountAvailable(account?.accountName!);
+
+  if (account && !account.isMandatoryAccount) {
+    const status = verifyAccountOutput.status;
+    if (status && status === 'FAILURE') {
+      return {
+        status: 'NON_MANDATORY_ACCOUNT_FAILURE',
+        statusReason: `Skipping failure of non mandatory account validation "${account.accountKey}"`,
+      };
+    }
+  }
+  return verifyAccountOutput;
 };

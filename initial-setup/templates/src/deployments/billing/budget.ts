@@ -72,22 +72,26 @@ async function createBudget(accountStack: AccountStack, budgetConfig: BudgetConf
   }
 }
 
+/**
+ * This step creates the budgets for the master stack. The master budgets need to be created first.
+ */
 export async function step1(props: BudgetStep1Props) {
-  const accountsAlreadyHaveBudget = [];
-
-  // Create dependency on Master account since budget requires Payer account deploy first
   const masterAccountKey = props.config.getMandatoryAccountKey('master');
-  const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey);
-  for (const [accountKey, _] of props.config.getAccountConfigs()) {
-    if (accountKey !== masterAccountKey) {
-      const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
-      if (!accountStack) {
-        console.warn(`Cannot find account stack ${accountKey}`);
-        continue;
-      }
-      accountStack.addDependency(masterAccountStack);
-    }
+  const masterConfig = props.config.getAccountByKey(masterAccountKey);
+
+  const budgetConfig = masterConfig.budget;
+  if (budgetConfig) {
+    const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey);
+    await createBudget(masterAccountStack, budgetConfig);
   }
+}
+
+/**
+ * This step creates the additional budgets for the account stacks.
+ */
+export async function step2(props: BudgetStep1Props) {
+  const masterAccountKey = props.config.getMandatoryAccountKey('master');
+  const accountsAlreadyHaveBudget = [masterAccountKey];
 
   // Create Budgets for mandatory accounts
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
@@ -103,6 +107,7 @@ export async function step1(props: BudgetStep1Props) {
       accountsAlreadyHaveBudget.push(accountKey);
     }
   }
+
   // Create Budgets for rest accounts in OU
   for (const [ouKey, ouConfig] of props.config.getOrganizationalUnits()) {
     const budgetConfig = ouConfig['default-budgets'];

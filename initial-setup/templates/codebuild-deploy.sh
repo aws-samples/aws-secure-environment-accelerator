@@ -1,24 +1,23 @@
-#!/bin/bash
+#!/bin/sh
 
-if [[ -z "${APP_PATH}" ]]; then
-  echo "The environment variable APP_PATH has to be set to the path of the app you want to deploy."
+if [ -z "${ACCELERATOR_PHASE}" ]; then
+  echo "The environment variable ACCELERATOR_PHASE has to be set to the path of the app you want to deploy."
   exit 1
+else
+  phase_arg="--phase ${ACCELERATOR_PHASE}"
 fi
 
-echo "Deploying app $APP_PATH..."
+if [ -n "${ACCELERATOR_REGION}" ]; then
+  region_arg="--region ${ACCELERATOR_REGION}"
+fi
+if [ -n "${ACCELERATOR_ACCOUNT_KEY}" ]; then
+  account_arg="--account-key ${ACCELERATOR_ACCOUNT_KEY}"
+fi
 
-ASSUME_ROLE_PLUGIN_PATH="$(pwd)/../../plugins/assume-role"
+echo "Bootstrapping..."
 
-pnpx cdk bootstrap \
-  --plugin "$ASSUME_ROLE_PLUGIN_PATH" \
-  --app "pnpx ts-node src/$APP_PATH"
+pnpx ts-node --transpile-only cdk.ts bootstrap ${phase_arg} ${region_arg} ${account_arg}
 
-# Deploy all stacks for the given app
-pnpx cdk deploy "*" \
-  --require-approval never \
-  --version-reporting false \
-  --path-metadata false \
-  --asset-metadata false \
-  --force \
-  --plugin "$ASSUME_ROLE_PLUGIN_PATH" \
-  --app "pnpx ts-node src/$APP_PATH"
+echo "Deploying phase $ACCELERATOR_PHASE..."
+
+pnpx ts-node --transpile-only cdk.ts deploy --parallel ${phase_arg} ${region_arg} ${account_arg}
