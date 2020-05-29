@@ -29,9 +29,20 @@ export const handler = async (input: CreateMasterExecutionRoleInput): Promise<Cr
   const avm = new AccountVendingMachine();
 
   // create account using account-vending-machine
-  return avm.createAccount({
+  const createAccountOutput = await avm.createAccount({
     avmPortfolioName,
     avmProductName,
     ...account,
   });
+
+  if (!account.isMandatoryAccount) {
+    const status = createAccountOutput.status;
+    if (status && status === 'FAILURE') {
+      return {
+        status: 'NON_MANDATORY_ACCOUNT_FAILURE',
+        statusReason: `Skipping failure of non mandatory account creation "${account.accountKey}"`,
+      };
+    }
+  }
+  return createAccountOutput;
 };

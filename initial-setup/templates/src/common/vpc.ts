@@ -433,7 +433,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             destinationCidrBlock: '0.0.0.0/0',
             natGatewayId: natgw.ref,
           };
-          new ec2.CfnRoute(this, `natgw_${natRoute}_route`, routeParams);
+          new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
         }
       }
     }

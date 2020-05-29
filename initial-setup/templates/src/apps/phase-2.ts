@@ -1,11 +1,8 @@
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as cfn from '@aws-cdk/aws-cloudformation';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
+import { getAccountId } from '../utils/accounts';
 import * as iam from '@aws-cdk/aws-iam';
-import { loadStackOutputs } from '../utils/outputs';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput, ImportedVpc } from '../deployments/vpc';
@@ -19,17 +16,12 @@ import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as firewallManagement from '../deployments/firewall/manager';
-import { AccountStacks } from '../common/account-stacks';
 import { SecurityHubStack } from '../common/security-hub';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
-
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
+import { PhaseInput } from './shared';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -38,20 +30,7 @@ process.on('unhandledRejection', (reason, _) => {
  *   - Creates Peering Connection
  */
 
-async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
-
-  const app = new cdk.App();
-
-  const accountStacks = new AccountStacks(app, {
-    phase: 2,
-    accounts,
-    context,
-  });
-
+export async function deploy({ acceleratorConfig, accountStacks, accounts, app, context, outputs }: PhaseInput) {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
@@ -321,6 +300,3 @@ async function main() {
     });
   }
 }
-
-// tslint:disable-next-line: no-floating-promises
-main();

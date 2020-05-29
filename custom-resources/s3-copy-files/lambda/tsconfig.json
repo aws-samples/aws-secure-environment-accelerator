@@ -1,22 +1,16 @@
 {
   "compilerOptions": {
-    "strict": true,
-    "declaration": true,
     "outDir": "dist",
     "target": "es2019",
-    "lib": [
-      "es2019"
-    ],
+    "lib": ["es2019"],
     "module": "commonjs",
     "moduleResolution": "node",
+    "strict": true,
+    "declaration": true,
     "esModuleInterop": true,
     "noImplicitAny": true,
+    "resolveJsonModule": true
   },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "**/*.spec.ts"
-  ]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
 }
