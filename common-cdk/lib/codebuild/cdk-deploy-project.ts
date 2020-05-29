@@ -12,7 +12,6 @@ export type PackageManager = 'pnpm';
 export interface CdkDeployProjectProps {
   projectName: string;
   role: iam.Role;
-  prebuilt: boolean;
   packageManager: PackageManager;
   projectRoot: string;
   commands: string[];
@@ -21,27 +20,28 @@ export interface CdkDeployProjectProps {
   environment?: { [key: string]: string };
 }
 
-export class CdkDeployProject extends cdk.Construct {
+export class CdkDeployProjectBase extends cdk.Construct {
   readonly projectName: string;
+  readonly projectTmpDir = tempy.directory();
+  readonly environmentVariables: { [key: string]: codebuild.BuildEnvironmentVariable };
 
   constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
     super(scope, id);
 
-    const { role, projectName, packageManager, commands, computeType, timeout, environment, prebuilt } = props;
+    const { projectName, environment } = props;
 
     this.projectName = projectName;
 
     // Prepare environment variables in CodeBuild format
-    const environmentVariables: { [key: string]: codebuild.BuildEnvironmentVariable } = {};
+    this.environmentVariables = {};
     for (const [name, value] of Object.entries(environment || {})) {
-      environmentVariables[name] = {
+      this.environmentVariables[name] = {
         type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
         value,
       };
     }
 
     // Copy project files to a temporary directory
-    const projectTmpDir = tempy.directory();
     const projectFiles = glob.sync('**/*', {
       cwd: props.projectRoot,
       nodir: true,
@@ -49,7 +49,7 @@ export class CdkDeployProject extends cdk.Construct {
     });
     for (const projectFile of projectFiles) {
       const source = path.join(props.projectRoot, projectFile);
-      const destination = path.join(projectTmpDir, projectFile);
+      const destination = path.join(this.projectTmpDir, projectFile);
 
       // Create the directory in the temp folder
       const destinationDir = path.dirname(destination);
@@ -62,59 +62,20 @@ export class CdkDeployProject extends cdk.Construct {
       // And copy over the file
       fs.copyFileSync(source, destination);
     }
-
-    // Create relevant resource depending on the 'prebuilt' flag
-    if (prebuilt) {
-      new PrebuiltProject(this, 'Resource', {
-        role,
-        projectName,
-        projectTmpDir,
-        packageManager,
-        commands,
-        computeType,
-        timeout,
-        environmentVariables,
-      });
-    } else {
-      new DefaultProject(this, 'Resource', {
-        role,
-        projectName,
-        projectTmpDir,
-        packageManager,
-        commands,
-        computeType,
-        timeout,
-        environmentVariables,
-      });
-    }
   }
 }
 
-interface ProjectProps {
-  role: iam.Role;
-  projectName: string;
-  projectTmpDir: string;
-  packageManager: PackageManager;
-  commands: string[];
-  computeType?: codebuild.ComputeType;
-  timeout?: cdk.Duration;
-  environmentVariables?: { [key: string]: codebuild.BuildEnvironmentVariable };
-}
-
-/**
- * Represents a project that contains a the given project. Dependencies will be installed when running this project
- */
-class DefaultProject extends cdk.Construct {
+export class CdkDeployProject extends CdkDeployProjectBase {
   private readonly resource: codebuild.PipelineProject;
 
-  constructor(scope: cdk.Construct, id: string, props: ProjectProps) {
-    super(scope, id);
+  constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
+    super(scope, id, props);
 
-    const { role, projectName, projectTmpDir, commands, computeType, timeout, environmentVariables } = props;
+    const { role, projectName, commands, computeType, timeout } = props;
 
     // Upload the templates ZIP as an asset to S3
     const projectAsset = new s3assets.Asset(this, 'Asset', {
-      path: projectTmpDir,
+      path: this.projectTmpDir,
     });
 
     // Define a build specification to build the initial setup templates
@@ -141,9 +102,9 @@ class DefaultProject extends cdk.Construct {
         path: projectAsset.s3ObjectKey,
       }),
       environment: {
-        buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+        buildImage: codebuild.LinuxBuildImage.STANDARD_4_0,
         computeType: computeType ?? codebuild.ComputeType.MEDIUM,
-        environmentVariables,
+        environmentVariables: this.environmentVariables,
       },
     });
   }
@@ -153,22 +114,22 @@ class DefaultProject extends cdk.Construct {
  * Represents a project that contains a the given project with its dependencies preinstalled. When running this
  * project, the dependencies will not have to be installed anymore.
  */
-class PrebuiltProject extends cdk.Construct {
+export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
   private readonly resource: codebuild.PipelineProject;
 
-  constructor(scope: cdk.Construct, id: string, props: ProjectProps) {
-    super(scope, id);
+  constructor(scope: cdk.Construct, id: string, props: CdkDeployProjectProps) {
+    super(scope, id, props);
 
-    const { role, projectName, projectTmpDir, commands, computeType, timeout, environmentVariables } = props;
+    const { role, projectName, commands, computeType, timeout } = props;
 
     // Create docker-entrypoint.sh
     const entrypointFileName = 'docker-entrypoint.sh';
-    fs.writeFileSync(path.join(projectTmpDir, entrypointFileName), commands.join('\n'));
+    fs.writeFileSync(path.join(this.projectTmpDir, entrypointFileName), commands.join('\n'));
 
     // Create Dockerfile
     const appDir = '/app';
     fs.writeFileSync(
-      path.join(projectTmpDir, 'Dockerfile'),
+      path.join(this.projectTmpDir, 'Dockerfile'),
       [
         'FROM node:12-alpine3.11',
         // Install the package manager
@@ -183,7 +144,7 @@ class PrebuiltProject extends cdk.Construct {
     );
 
     const buildImage = codebuild.LinuxBuildImage.fromAsset(scope, 'SolutionImage', {
-      directory: projectTmpDir,
+      directory: this.projectTmpDir,
     });
 
     // Define a build specification to build the initial setup templates
@@ -202,7 +163,7 @@ class PrebuiltProject extends cdk.Construct {
       environment: {
         buildImage,
         computeType: computeType ?? codebuild.ComputeType.MEDIUM,
-        environmentVariables,
+        environmentVariables: this.environmentVariables,
       },
     });
   }

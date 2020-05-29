@@ -9,9 +9,9 @@ import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
-import { CdkDeployProject } from '@aws-pbmm/common-cdk/lib/codebuild';
+import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-pbmm/common-cdk/lib/codebuild';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
@@ -112,10 +112,16 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      const project = new CdkDeployProject(this, 'CdkDeploy', {
-        projectName: `${props.acceleratorPrefix}CdkDeploy_pl`,
+      // Add a suffix to the c
+      const projectNameSuffix = enablePrebuiltProject ? 'Prebuilt' : '';
+      const projectConstructor = enablePrebuiltProject ? PrebuiltCdkDeployProject : CdkDeployProject;
+      const project = new projectConstructor(this, `CdkDeploy${projectNameSuffix}`, {
+        projectName: createName({
+          name: `Deploy${projectNameSuffix}`,
+          region: false,
+          account: false,
+        }),
         role: pipelineRole,
-        prebuilt: enablePrebuiltProject ?? true,
         projectRoot: props.solutionRoot,
         packageManager: 'pnpm',
         commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
