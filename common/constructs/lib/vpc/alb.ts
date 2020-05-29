@@ -1,8 +1,8 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
-import { CfnLoadBalancer, CfnListener } from '@aws-cdk/aws-elasticloadbalancingv2';
+import * as elb from '@aws-cdk/aws-elasticloadbalancingv2';
 
-export interface AlbProps extends cdk.StackProps {
+export interface ApplicationLoadBalancerProps extends cdk.StackProps {
   albName: string;
   scheme: string;
   subnetIds: string[];
@@ -11,16 +11,16 @@ export interface AlbProps extends cdk.StackProps {
   ipType: string;
 }
 
-export class Alb extends cdk.Construct {
-  private readonly resource: CfnLoadBalancer;
-  private readonly listeners: CfnListener[] = [];
+export class ApplicationLoadBalancer extends cdk.Construct {
+  private readonly resource: elb.CfnLoadBalancer;
+  private readonly listeners: elb.CfnListener[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: AlbProps) {
+  constructor(scope: cdk.Construct, id: string, props: ApplicationLoadBalancerProps) {
     super(scope, id);
 
     const { albName, scheme, subnetIds, securityGroupIds, ipType } = props;
 
-    this.resource = new CfnLoadBalancer(this, 'Alb', {
+    this.resource = new elb.CfnLoadBalancer(this, 'Alb', {
       name: albName,
       ipAddressType: ipType,
       scheme: scheme,
@@ -59,7 +59,7 @@ export class Alb extends cdk.Construct {
       targetGroupArn: arn,
       weight: 1,
     }));
-    const listener = new CfnListener(this, `Listener${this.listeners.length}`, {
+    const listener = new elb.CfnListener(this, `Listener${this.listeners.length}`, {
       port: ports,
       loadBalancerArn: this.resource.ref,
       protocol,

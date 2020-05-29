@@ -8,8 +8,8 @@ import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
 import { AcceleratorConfig, AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { ApplicationLoadBalancer } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../../common/account-stacks';
-import { Alb } from '../../common/alb';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createCertificateSecretName } from '../certificates';
 import { AesBucketOutput } from '../defaults';
@@ -91,7 +91,7 @@ export async function createAlb(
     targetGroups = await getTargetGroupArnsForInstance(accountStack, accountKey, albConfig, outputs, vpc.id);
   }
 
-  const alb = new Alb(accountStack, `Alb${albConfig.name}`, {
+  const alb = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
     albName: createAlbName(accountKey, albConfig.name),
     scheme: albConfig.scheme,
     subnetIds,
