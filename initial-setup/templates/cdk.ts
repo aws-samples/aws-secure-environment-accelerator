@@ -12,7 +12,7 @@ process.on('unhandledRejection', (reason, _) => {
  * Entrypoint for bootstrapping, deploying and synthesizing CDK apps.
  */
 async function main() {
-  const usage = `Usage: cdk.ts <command> --phase PHASE [--region REGION] [--account-key ACCOUNT_KEY]`;
+  const usage = `Usage: cdk.ts <command> --phase PHASE [--region REGION] [--account-key ACCOUNT_KEY] [--parallel]`;
   const args = mri(process.argv.slice(2), {
     boolean: ['parallel'],
     alias: {
