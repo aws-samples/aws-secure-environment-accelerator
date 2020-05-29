@@ -487,7 +487,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security-group": "Prod-ALB",
+          "security-group": "Perimeter-Prod-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -536,7 +536,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security-group": "DevTest-ALB",
+          "security-group": "Perimeter-DevTest-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -1609,7 +1609,7 @@
       ],
       "alb": [
         {
-          "name": "Core-",
+          "name": "Core",
           "scheme": "internal",
           "action-type": "forward",
           "ip-type": "ipv4",
@@ -2092,7 +2092,7 @@
       ],
       "alb": [
         {
-          "name": "Core-",
+          "name": "Core",
           "scheme": "internal",
           "action-type": "forward",
           "ip-type": "ipv4",
@@ -2575,7 +2575,7 @@
       ],
       "alb": [
         {
-          "name": "Core-",
+          "name": "Core",
           "scheme": "internal",
           "action-type": "forward",
           "ip-type": "ipv4",

@@ -606,6 +606,14 @@ export interface ResolvedCertificateConfig extends ResolvedConfigBase {
    */
   certificates: CertificateConfig[];
 }
+
+export interface ResolvedAlbConfig extends ResolvedConfigBase {
+  /**
+   * The albs config to be deployed.
+   */
+  albs: AlbConfig[];
+}
+
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
   readonly 'global-options': GlobalOptionsConfig;
   readonly 'mandatory-account-configs': AccountsConfig;
@@ -815,6 +823,34 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
             ouKey: key,
             accountKey,
             certificates,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find all alb configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getAlbConfigs(): ResolvedAlbConfig[] {
+    const result: ResolvedAlbConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const albs = config.alb;
+      if (!albs || albs.length === 0) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          albs,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            albs,
           });
         }
       }

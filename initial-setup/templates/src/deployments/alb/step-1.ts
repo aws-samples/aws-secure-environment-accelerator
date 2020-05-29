@@ -2,93 +2,65 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as path from 'path';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
-import { AcceleratorConfig, AlbConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
-import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Alb } from '../../common/alb';
 import { pascalCase } from 'pascal-case';
-import { Account } from '../../utils/accounts';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import * as fs from 'fs';
+import { CfnTargetGroup } from '@aws-cdk/aws-elasticloadbalancingv2';
+import { createCertificateSecretName } from '../certificates';
+import {
+  createAlbName,
+  createTargetGroupName,
+  getEc2Instances,
+  getVpc,
+  getSubnetIds,
+  getAesLogArchiveBucket,
+  getSecurityGroup,
+} from './outputs';
 
 export interface AlbStep1Props {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   vpcOutputs: Vpc[];
   outputs: StackOutput[];
-  accounts: Account[];
-}
-
-interface LogArchiveBucketProps {
-  bucketName: string;
-  bucketArn: string;
-  region: string;
 }
 
 export async function step1(props: AlbStep1Props) {
-  const { accountStacks, config, vpcOutputs, outputs, accounts } = props;
+  const { accountStacks, config, vpcOutputs, outputs } = props;
 
-  const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
-    const accountsPerOu: Account[] = [];
-    for (const account of accounts) {
-      if (account.ou === ouName && !mandatoryAccKeys.includes(account.key)) {
-        accountsPerOu.push(account);
-      }
-    }
-    return accountsPerOu;
-  };
-
-  // creating Albs for account configs
-  const mandatoryAccountKeys: string[] = [];
-  for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
-    mandatoryAccountKeys.push(accountKey);
-    const albConfig = accountConfig.alb;
-    if (!albConfig) {
-      continue;
-    }
-
-    // TODO get the account specific certificate arn
-    const certificates = getStackJsonOutput(outputs, {
-      outputType: 'Certificates',
-      accountKey,
-    });
-    if (!certificates) {
-      continue;
-    }
-    const certificateArn = certificates[0].arn;
-
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-    for (const alb of Object.values(albConfig)) {
-      await createAlb(accountKey, alb, accountStack, vpcOutputs, outputs, certificateArn, false);
-    }
+  const logArchiveAccountKey = config['global-options']['central-log-services'].account;
+  const aesLogArchiveBucketName = getAesLogArchiveBucket(outputs, logArchiveAccountKey);
+  if (!aesLogArchiveBucketName) {
+    return;
   }
 
-  // creating Albs for org unit accounts
-  const orgUnits = config.getOrganizationalUnits();
-  for (const [orgName, orgConfig] of orgUnits) {
-    const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
-    for (const orgAccount of orgAccounts) {
-      const albConfig = orgConfig.alb;
-      if (!albConfig) {
-        continue;
-      }
-      const accountKey = orgAccount.key;
+  for (const { accountKey, albs } of config.getAlbConfigs()) {
+    if (albs.length === 0) {
+      continue;
+    }
 
-      // TODO get the account specific certificate arn
-      const certificates = getStackJsonOutput(outputs, {
-        outputType: 'Certificates',
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
+
+    for (const alb of albs) {
+      const certificateName = createCertificateSecretName(alb['cert-name']);
+      const secretValue = cdk.SecretValue.secretsManager(certificateName);
+      await createAlb(
         accountKey,
-      });
-      if (!certificates) {
-        continue;
-      }
-      const certificateArn = certificates[0].arn;
-
-      const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
-      for (const alb of Object.values(albConfig)) {
-        await createAlb(orgAccount.key, alb, accountStack, vpcOutputs, outputs, certificateArn, true);
-      }
+        alb,
+        accountStack,
+        vpcOutputs,
+        outputs,
+        secretValue.toString(),
+        aesLogArchiveBucketName,
+      );
     }
   }
 }
@@ -100,78 +72,86 @@ export async function createAlb(
   vpcOutputs: Vpc[],
   outputs: StackOutput[],
   certificateArn: string,
-  isOu: boolean,
+  aesLogArchiveBucketName: string,
 ) {
-  const ec2Instances: { [instanceName: string]: string } = {};
-  const lambdaSources: { [lambdaFileName: string]: string } = {};
-  // let certificateArn: string;
-
-  const vpc = vpcOutputs.find(v => v.name === alb.vpc);
+  const vpc = getVpc(vpcOutputs, alb.vpc);
   if (!vpc) {
-    throw new Error(`Cannot find output with vpc name ${alb.vpc}`);
+    return;
   }
 
-  const vpcId = vpc.id;
-  const subnetIds = vpc.tryFindSubnetIdsByName(alb.subnets);
+  const subnetIds = getSubnetIds(vpc, alb.subnets);
   if (!subnetIds) {
-    throw new Error(`Cannot find output with subnet name ${alb.subnets}`);
+    return;
   }
 
-  const logArchiveBuckets: LogArchiveBucketProps[] = getStackJsonOutput(outputs, {
-    outputType: 'AccountBucket',
-    accountKey: 'log-archive',
-  });
-  if (logArchiveBuckets.length === 0) {
-    throw new Error(`Cannot find output with log-archive AccountBucket`);
-  }
-
-  const securityGroup = vpc.tryFindSecurityGroupByName(alb.vpc.concat('-').concat(alb['security-group']));
+  const securityGroup = getSecurityGroup(alb['security-group'], vpc);
   if (!securityGroup) {
-    throw new Error(`Cannot find output with security name ${alb['security-group']}`);
+    return;
   }
 
-  if (isOu) {
-    const role = await createLambdaRole(accountStack, accountKey);
-    for (const target of alb.targets) {
-      if (!target['lambda-filename']) {
-        continue;
-      }
-      const fileName = target['lambda-filename'];
-      const lambdaArn = await getLambdaFunctionArn(accountStack, fileName, role, alb.name, target['target-name']);
-      lambdaSources[fileName] = lambdaArn;
-    }
-    // certificateArn = 'arn:aws:acm:ca-central-1:722248117416:certificate/ba655f2a-3f53-413b-93c2-b40cd8ff335d';
+  let targetGroups: string[];
+  const isTargetLambda = alb.targets.find(t => t['lambda-filename'] !== undefined);
+  if (isTargetLambda) {
+    targetGroups = await getTargetGroupArnsForLambda(accountStack, accountKey, alb);
   } else {
-    for (const target of alb.targets) {
-      if (!target['target-instances']) {
-        continue;
-      }
-      const instanceName = target['target-instances'][0];
-      const instanceOutputs = getStackJsonOutput(outputs, {
-        accountKey,
-        outputType: 'FirewallInstanceOutputType',
-      });
-      const instance = instanceOutputs.find(i => i.name === instanceName);
-      if (!instance) {
-        throw new Error(`Cannot find output with ALB instance name ${instanceName}`);
-      }
-      ec2Instances[instanceName] = instance.id;
-    }
-    // certificateArn = 'arn:aws:acm:ca-central-1:275283254872:certificate/ab542357-1187-46d9-a7a1-259e08a174e0';
+    targetGroups = await getTargetGroupArnsForInstance(accountStack, accountKey, alb, outputs, vpc.id);
   }
 
   new Alb(accountStack, `Alb${pascalCase(accountKey)}${alb.name}`, {
-    albConfig: alb,
-    vpcId,
+    albName: createAlbName(accountKey, alb.name),
+    scheme: alb.scheme,
     subnetIds,
     securityGroupIds: [securityGroup.id],
-    bucketName: logArchiveBuckets[0].bucketName,
-    ec2Instances,
-    lambdaSources,
-    isOu,
-    accountKey,
+    bucketName: aesLogArchiveBucketName,
     certificateArn,
+    targetGroupArns: targetGroups,
+    hasAccessLogs: alb['access-logs'] ? true : false,
+    port: alb.ports,
+    protocol: alb.listeners,
+    actionType: alb['action-type'],
+    ipType: alb['ip-type'],
+    securityPolicy: alb['security-policy'],
   });
+}
+
+export async function getTargetGroupArnsForLambda(accountStack: AcceleratorStack, accountKey: string, alb: AlbConfig) {
+  const targetGroups: string[] = [];
+  const role = await createLambdaRole(accountStack, accountKey);
+  for (const target of alb.targets) {
+    if (!target['lambda-filename']) {
+      continue;
+    }
+    const fileName = target['lambda-filename'];
+    const lambdaArn = await getLambdaFunctionArn(accountStack, fileName, role, alb.name, target['target-name']);
+
+    const targetGroupName = createTargetGroupName(alb.name, target['target-name']);
+    const targetGroup = await createTargetGroupForLambda(accountStack, target, targetGroupName, lambdaArn);
+    targetGroups.push(targetGroup.ref);
+  }
+  return targetGroups;
+}
+
+export async function getTargetGroupArnsForInstance(
+  accountStack: AcceleratorStack,
+  accountKey: string,
+  alb: AlbConfig,
+  outputs: StackOutput[],
+  vpcId: string,
+) {
+  const targetGroups: string[] = [];
+  for (const target of alb.targets) {
+    if (!target['target-instances'] || target['target-instances'].length === 0) {
+      continue;
+    }
+    const ec2Instances = getEc2Instances(accountKey, outputs, target['target-instances']);
+    if (!ec2Instances) {
+      continue;
+    }
+    const targetGroupName = createTargetGroupName(alb.name, target['target-name']);
+    const targetGroup = await createTargetGroupForInstance(accountStack, target, targetGroupName, vpcId, ec2Instances);
+    targetGroups.push(targetGroup.ref);
+  }
+  return targetGroups;
 }
 
 export async function createLambdaRole(scope: cdk.Construct, ouAccount: string) {
@@ -180,7 +160,7 @@ export async function createLambdaRole(scope: cdk.Construct, ouAccount: string) 
     assumedBy: new iam.CompositePrincipal(
       new iam.ServicePrincipal('elasticloadbalancing.amazonaws.com'),
       new iam.ServicePrincipal('lambda.amazonaws.com'),
-      new iam.AccountPrincipal(`${cdk.Aws.ACCOUNT_ID}`),
+      new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID),
     ),
     managedPolicies: [
       iam.ManagedPolicy.fromManagedPolicyArn(
@@ -222,4 +202,53 @@ export async function getLambdaFunctionArn(
   });
 
   return elbLambdaFunction.functionArn;
+}
+
+export async function createTargetGroupForInstance(
+  scope: cdk.Construct,
+  target: AlbTargetConfig,
+  targetGroupName: string,
+  vpcId: string,
+  instances: { [instanceName: string]: string },
+) {
+  const targetGroup = new CfnTargetGroup(scope, `AlbTargetGroup${targetGroupName}`, {
+    name: targetGroupName,
+    targetType: target['target-type'],
+    protocol: target.protocol,
+    port: target.port,
+    vpcId,
+    healthCheckProtocol: target['health-check-protocol'],
+    healthCheckPath: target['health-check-path'],
+    healthCheckPort: String(target['health-check-port']),
+  });
+  if (target['target-instances']) {
+    const targets = target['target-instances'].map(instance => ({
+      id: instances[instance],
+      port: target.port,
+    }));
+    targetGroup.targets = targets;
+  }
+  return targetGroup;
+}
+
+export async function createTargetGroupForLambda(
+  scope: cdk.Construct,
+  target: AlbTargetConfig,
+  targetGroupName: string,
+  lambdaFunctionArn: string,
+) {
+  const targetGroup = new CfnTargetGroup(scope, `AlbTargetGroup${targetGroupName}`, {
+    name: targetGroupName,
+    targetType: target['target-type'],
+    healthCheckPath: target['health-check-path'],
+    healthCheckEnabled: true,
+  });
+  if (target['lambda-filename']) {
+    targetGroup.targets = [
+      {
+        id: lambdaFunctionArn,
+      },
+    ];
+  }
+  return targetGroup;
 }

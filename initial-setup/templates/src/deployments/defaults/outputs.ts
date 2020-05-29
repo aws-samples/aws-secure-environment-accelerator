@@ -43,6 +43,16 @@ export const CentralBucketOutputType = t.interface(
 
 export type CentralBucketOutput = t.TypeOf<typeof CentralBucketOutputType>;
 
+export const AesBucketOutputType = t.interface(
+  {
+    bucketName: t.string,
+    bucketArn: t.string,
+  },
+  'AesBucket',
+);
+
+export type AesBucketOutput = t.TypeOf<typeof AesBucketOutputType>;
+
 export namespace AccountBucketOutput {
   /**
    * Helper method to import the account buckets from different phases. It includes the log bucket.

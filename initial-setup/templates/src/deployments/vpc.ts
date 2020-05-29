@@ -69,13 +69,13 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
 
   findSubnetIdsByName(name: string): string[] {
     const subnets = this.tryFindSubnetIdsByName(name);
-    if (!subnets) {
+    if (subnets.length === 0) {
       throw new Error(`Cannot find subnet with name "${name}"`);
     }
     return subnets;
   }
 
-  tryFindSubnetIdsByName(name: string): string[] | undefined {
+  tryFindSubnetIdsByName(name: string): string[] {
     return this.subnets.filter(s => s.name === name).map(s => s.id);
   }
 
