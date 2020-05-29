@@ -47,6 +47,7 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
   protected onPrepare() {
     const handlerProperties: HandlerProperties = {
       keyName: this.props.name,
+      secretPrefix: this.props.secretPrefix,
     };
 
     // Create the resource in the onPrepare phase to make the renderTags() work properly

@@ -6,6 +6,10 @@ This is a custom resource to generate a Keypair.
 
     import { Keypair } from '@custom-resources/ec2-keypair';
 
-    new Keypair(scope, `Keypair`, {
+    const keypair = new Keypair(scope, `Keypair`, {
       name: 'MyKeypair',
+      secretPrefix: '/my/prefix',
     });
+
+    // Use key name to get the private key stored in secret manager
+    keypair.keyName();
