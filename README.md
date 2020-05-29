@@ -98,13 +98,14 @@ If using an internal AWS account, to successfully install, you need to enable pr
 7. Add an `Email` address to be used for notification of code releases
 8. Change `GithubBranch` to the latest stable branch (currently v1.0.4, case sensitive)
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
+10. ENABLED STACK TERMINATION PROTECTION
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
 state machine should start automatically and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.  From this point forward, you must update your configuration file in CodeCommit.
 
 After the pipline executes, the state machine will execute (Step functions).
 
-10. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI.
+11. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI.
 
 ***STOP HERE, YOU ARE DONE***
 
