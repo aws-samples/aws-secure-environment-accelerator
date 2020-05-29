@@ -37,6 +37,12 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       });
     }
     if (!organizationAccount) {
+      if (!accountConfig.isMandatoryAccount) {
+        console.warn(
+          `Cannot find non mandatory account with name "${accountConfig.accountName}" and email "${accountConfig.emailAddress}"`,
+        );
+        continue;
+      }
       throw new Error(
         `Cannot find account with name "${accountConfig.accountName}" and email "${accountConfig.emailAddress}"`,
       );

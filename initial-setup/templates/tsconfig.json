@@ -9,7 +9,8 @@
     "esModuleInterop": true,
     "noImplicitAny": true,
     "preserveSymlinks": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "downlevelIteration": true,
   },
   "include": ["src/**/*"],
   "exclude": ["test/**/*"]

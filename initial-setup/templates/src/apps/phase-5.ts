@@ -1,8 +1,4 @@
-import * as cdk from '@aws-cdk/core';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
+import { getAccountId } from '../utils/accounts';
 import * as iam from '@aws-cdk/aws-iam';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { VpcOutput } from '../deployments/vpc';
@@ -10,20 +6,10 @@ import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import * as ssm from '@aws-cdk/aws-ssm';
 import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
-import { AccountStacks } from '../common/account-stacks';
 import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType } from '../deployments/mad';
-
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
-
-export interface RdgwArtifactsOutput {
-  bucketArn: string;
-  bucketName: string;
-  keyPrefix: string;
-}
+import { PhaseInput } from './shared';
+import { RdgwArtifactsOutput } from './phase-4';
 
 interface MadOutput {
   id: number;
@@ -33,22 +19,10 @@ interface MadOutput {
   passwordArn: string;
 }
 
-async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
+export async function deploy({ acceleratorConfig, accountStacks, accounts, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
     .getMandatoryAccountConfigs()
     .map(([_, accountConfig]) => accountConfig['account-name']);
-
-  const app = new cdk.App();
-
-  const accountStacks = new AccountStacks(app, {
-    phase: 5,
-    accounts,
-    context,
-  });
 
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
@@ -170,6 +144,3 @@ async function main() {
     adUsersAndGroups.node.addDependency(keyPair);
   }
 }
-
-// tslint:disable-next-line: no-floating-promises
-main();
