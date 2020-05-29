@@ -78,11 +78,14 @@ async function generateKeypair(
         KeyName: properties.keyName,
       })
       .promise();
+    console.log('Create Keypair: ', response);
 
     const params = {
       Name: `${properties.secretPrefix}/${properties.keyName}`,
       SecretString: response.KeyMaterial,
     };
+
+    console.log('Create Secret: ', params);
     const smResponse = await secretsManager.createSecret(params).promise();
 
     return smResponse;
@@ -97,8 +100,10 @@ async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
   try {
     const params = {
       SecretId: `${properties.secretPrefix}/${properties.keyName}`,
+      ForceDeleteWithoutRecovery: true,
     };
 
+    console.log('Delete Secret:', params);
     return await secretsManager.deleteSecret(params).promise();
   } catch (e) {
     throw e;
