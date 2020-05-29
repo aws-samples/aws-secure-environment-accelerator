@@ -77,8 +77,14 @@ export class InterfaceEndpoint extends cdk.Construct {
       hostedZoneId: hostedZone.ref,
       aliasTarget: {
         // https://github.com/aws/aws-cdk/blob/master/packages/%40aws-cdk/aws-route53-targets/lib/interface-vpc-endpoint-target.ts
-        dnsName: cdk.Fn.select(1, cdk.Fn.split(':', cdk.Fn.select(0, endpoint.attrDnsEntries))),
-        hostedZoneId: cdk.Fn.select(0, cdk.Fn.split(':', cdk.Fn.select(0, endpoint.attrDnsEntries))),
+        dnsName: cdk.Fn.select(
+          1,
+          cdk.Fn.split(':', cdk.Fn.select(getZoneAliasTargetIndex(serviceName), endpoint.attrDnsEntries)),
+        ),
+        hostedZoneId: cdk.Fn.select(
+          0,
+          cdk.Fn.split(':', cdk.Fn.select(getZoneAliasTargetIndex(serviceName), endpoint.attrDnsEntries)),
+        ),
       },
     });
     recordSet.addDependsOn(hostedZone);
@@ -97,4 +103,13 @@ function zoneNameForRegionAndEndpointName(region: string, name: string) {
     return `notebook.${region}.sagemaker.aws.`;
   }
   return `${name}.${region}.amazonaws.com.`;
+}
+
+function getZoneAliasTargetIndex(name: string): number {
+  if (name === 'notebook') {
+    // TODO Top 3 dns names are not valid so selecting the 4th dns
+    // need to find a better way to identify the valid dns for PHZ
+    return 4;
+  }
+  return 0;
 }

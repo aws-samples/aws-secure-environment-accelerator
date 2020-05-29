@@ -201,10 +201,7 @@ async function main() {
       let endpointStackIndex = 0;
       let endpointStack;
       for (const endpoint of endpointConfig.endpoints) {
-        if (endpoint === 'notebook') {
-          console.log(`Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Endpoint not supported`);
-          continue;
-        } else if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
+        if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
           console.log(
             `Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Reached maximum interface endpoints per VPC`,
           );
