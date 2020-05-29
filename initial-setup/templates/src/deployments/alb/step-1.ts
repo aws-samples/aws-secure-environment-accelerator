@@ -12,7 +12,6 @@ import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createCertificateSecretName } from '../certificates';
 import { AesBucketOutput } from '../defaults';
-import { ServicePrincipal } from '@aws-cdk/aws-iam';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { FirewallInstanceOutputType } from '../firewall/cluster/outputs';
 import { StructuredOutput } from '../../common/structured-output';
@@ -33,8 +32,8 @@ export async function step1(props: AlbStep1Props) {
     outputs,
   });
 
-  for (const { accountKey, albs } of config.getAlbConfigs()) {
-    if (albs.length === 0) {
+  for (const { accountKey, albs: albConfigs } of config.getAlbConfigs()) {
+    if (albConfigs.length === 0) {
       continue;
     }
 
@@ -44,8 +43,8 @@ export async function step1(props: AlbStep1Props) {
       continue;
     }
 
-    for (const alb of albs) {
-      createAlb(accountKey, alb, accountStack, vpcOutputs, outputs, aesLogArchiveBucket);
+    for (const albConfig of albConfigs) {
+      createAlb(accountKey, albConfig, accountStack, vpcOutputs, outputs, aesLogArchiveBucket);
     }
   }
 }
@@ -79,7 +78,7 @@ export function createAlb(
     return;
   }
 
-  let targetGroupIds = [];
+  const targetGroupIds = [];
   for (const targetConfig of albConfig.targets) {
     const targetGroup = getTargetGroupArn({
       accountStack,
@@ -94,7 +93,7 @@ export function createAlb(
     }
   }
 
-  const alb = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
+  const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
     albName: `${albConfig.name}_alb`,
     scheme: albConfig.scheme,
     subnetIds,
@@ -104,11 +103,11 @@ export function createAlb(
 
   // Enable logging to the default AES bucket
   if (albConfig['access-logs']) {
-    alb.logToBucket(aesLogArchiveBucket);
+    balancer.logToBucket(aesLogArchiveBucket);
   }
 
   // Add default listener
-  alb.addListener({
+  balancer.addListener({
     ports: albConfig.ports,
     protocol: albConfig.listeners,
     sslPolicy: albConfig['security-policy'],
@@ -196,7 +195,7 @@ export function getLambdaFunctionArn(
   });
   elbLambdaFunction.addPermission(`InvokePermission${albName}${targetName}`, {
     action: 'lambda:InvokeFunction',
-    principal: new ServicePrincipal('elasticloadbalancing.amazonaws.com'),
+    principal: new iam.ServicePrincipal('elasticloadbalancing.amazonaws.com'),
   });
   return elbLambdaFunction.functionArn;
 }

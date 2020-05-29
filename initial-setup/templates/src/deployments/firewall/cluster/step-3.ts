@@ -139,7 +139,10 @@ async function createFirewallCluster(props: {
     let instance = instancePerAz[az];
     if (!instance) {
       const instanceName = `Fgt${pascalCase(az)}`;
-      instance = cluster.createInstance(instanceName);
+      instance = cluster.createInstance({
+        name: instanceName,
+        hostname: instanceName,
+      });
       instancePerAz[az] = instance;
 
       new StructuredOutput<FirewallInstanceOutput>(scope, `Fgt${pascalCase(az)}Output`, {
