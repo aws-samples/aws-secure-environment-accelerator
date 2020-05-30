@@ -102,9 +102,10 @@ export async function step2(props: BudgetStep1Props) {
         console.warn(`Cannot find account stack ${accountKey}`);
         continue;
       }
-      await createBudget(accountStack, budgetConfig);
-
-      accountsAlreadyHaveBudget.push(accountKey);
+      if (!accountsAlreadyHaveBudget.includes(accountKey)) {
+        await createBudget(accountStack, budgetConfig);
+        accountsAlreadyHaveBudget.push(accountKey);
+      }
     }
   }
 
