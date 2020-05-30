@@ -90,7 +90,7 @@ export function createAlb(
       albConfig,
       targetConfig,
       outputs,
-      vpcId: vpc.id,
+      vpcId: vpc.vpcId,
     });
     if (targetGroup) {
       targetGroupIds.push(targetGroup.ref);
