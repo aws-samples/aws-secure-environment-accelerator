@@ -870,7 +870,7 @@
             }
           ],
           "license": "firewall/license.lic",
-          "config": "firewall/fortigate.txt",
+          "config": "firewall/firewall-example.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
           "fw-cgw-routing": "Dynamic",
