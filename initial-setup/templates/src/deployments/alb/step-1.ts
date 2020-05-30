@@ -94,7 +94,7 @@ export function createAlb(
   }
 
   const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
-    albName: `${albConfig.name}_alb`,
+    albName: `${albConfig.name}-alb`,
     scheme: albConfig.scheme,
     subnetIds,
     securityGroupIds: [securityGroup.id],
