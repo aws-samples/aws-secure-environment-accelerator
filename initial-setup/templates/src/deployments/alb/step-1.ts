@@ -7,7 +7,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import { Vpc, ApplicationLoadBalancer } from '@aws-pbmm/constructs/lib/vpc';
 import { AcceleratorConfig, AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createCertificateSecretName } from '../certificates';
@@ -15,16 +15,16 @@ import { AesBucketOutput } from '../defaults';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { FirewallInstanceOutputType } from '../firewall/cluster/outputs';
 import { StructuredOutput } from '../../common/structured-output';
+import { VpcOutput, ImportedVpc } from '../vpc';
 
 export interface AlbStep1Props {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
-  vpcOutputs: Vpc[];
   outputs: StackOutput[];
 }
 
 export async function step1(props: AlbStep1Props) {
-  const { accountStacks, config, vpcOutputs, outputs } = props;
+  const { accountStacks, config, outputs } = props;
 
   const aesLogArchiveBucket = AesBucketOutput.getBucket({
     accountStacks,
@@ -44,7 +44,7 @@ export async function step1(props: AlbStep1Props) {
     }
 
     for (const albConfig of albConfigs) {
-      createAlb(accountKey, albConfig, accountStack, vpcOutputs, outputs, aesLogArchiveBucket);
+      createAlb(accountKey, albConfig, accountStack, outputs, aesLogArchiveBucket);
     }
   }
 }
@@ -53,26 +53,30 @@ export function createAlb(
   accountKey: string,
   albConfig: AlbConfig,
   accountStack: AcceleratorStack,
-  vpcOutputs: Vpc[],
   outputs: StackOutput[],
   aesLogArchiveBucket: s3.IBucket,
 ) {
   const certificateSecretName = createCertificateSecretName(albConfig['cert-name']);
   const certificateSecret = cdk.SecretValue.secretsManager(certificateSecretName);
 
-  const vpc = vpcOutputs.find(v => v.name === albConfig.vpc);
+  // Import all VPCs from all outputs
+  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    accountKey,
+    outputType: 'VpcOutput',
+  });
+  const vpc = allVpcOutputs.find(v => v.vpcName === albConfig.vpc);
   if (!vpc) {
     console.warn(`Cannot find output with vpc name ${albConfig.vpc}`);
     return;
   }
 
-  const subnetIds = vpc.tryFindSubnetIdsByName(albConfig.subnets);
-  if (subnetIds.length === 0) {
+  const subnets = vpc.subnets.filter(s => s.subnetName === albConfig.subnets);
+  if (subnets.length === 0) {
     console.warn(`Cannot find output with subnet name ${albConfig.subnets}`);
     return;
   }
 
-  const securityGroup = vpc.tryFindSecurityGroupByName(albConfig['security-group']);
+  const securityGroup = vpc.securityGroups.find(sg => sg.securityGroupName === albConfig['security-group']);
   if (!securityGroup) {
     console.warn(`Cannot find output with security name ${albConfig['security-group']}`);
     return;
@@ -96,8 +100,8 @@ export function createAlb(
   const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
     albName: `${albConfig.name}-alb`,
     scheme: albConfig.scheme,
-    subnetIds,
-    securityGroupIds: [securityGroup.id],
+    subnetIds: subnets.map(s => s.subnetId),
+    securityGroupIds: [securityGroup.securityGroupId],
     ipType: albConfig['ip-type'],
   });
 

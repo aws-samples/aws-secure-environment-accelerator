@@ -48,16 +48,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
     });
   }
 
-  // Import all VPCs from all outputs
-  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-    outputType: 'VpcOutput',
-  });
-  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
-
   await alb.step1({
     accountStacks,
     config: acceleratorConfig,
     outputs,
-    vpcOutputs: allVpcs,
   });
 }
