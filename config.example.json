@@ -478,7 +478,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security-group": "Perimeter-Prod-ALB",
+          "security-group": "Public-Prod-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -527,7 +527,7 @@
           "cert-name": "PerimSelf-SignedCert",
           "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
-          "security-group": "Perimeter-DevTest-ALB",
+          "security-group": "Public-DevTest-ALB",
           "tg-stickiness": "1 hour",
           "target-alarms-notify": "AWS-Landing-Zone-Security-Notification",
           "target-alarms-when": "Minimum",
@@ -760,7 +760,7 @@
           ],
           "security-groups": [
             {
-              "name": "Perimeter-Prod-ALB",
+              "name": "Public-Prod-ALB",
               "inbound-rules": [
                 {
                   "description": "TLS Traffic Inbound",
@@ -777,7 +777,7 @@
               ]
             },
             {
-              "name": "Perimeter-DevTest-ALB",
+              "name": "Public-DevTest-ALB",
               "inbound-rules": [
                 {
                   "description": "TLS Traffic Inbound",
@@ -909,7 +909,7 @@
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
       "budget": {
-        "name": "Perimeter Budget",
+        "name": "Organization Budget",
         "period": "Monthly",
         "amount": 10000,
         "include": [
