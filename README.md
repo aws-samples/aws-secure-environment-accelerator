@@ -29,7 +29,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 1. Login to the Organization **master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
 2. Set the region to `ca-central-1`.
 3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
-   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`,
+   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your ***master*** account id.
 
 #### Create a GitHub Personal Access Token.
 
@@ -58,7 +58,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 
 3. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
    - supply this bucket name in the CFN parameters and in the config file
-4. ~~Place your config file, named `config.json`, in your new bucket~~ `Still valid? -Dave`
+4. Place your config file, named `config.json`, in your new bucket
 5. place the firewall license and configuration in the folder and path defined in the config file
    (i.e. `firewall/license.lic` and `firewall/fortigate.txt`)
    - Note: see `./reference-artifacts/Third-Party/firewall-example.txt`
@@ -112,13 +112,18 @@ After the pipeline executes, the state machine will execute (Step functions).
 
 ![marketplace](img/marketplace.png)
 
-**Note:** The following failure may be observed in CloudFormation (in the Perimeter account) when deploying the Phase2 step (specifically the Firewall instances):
+**Note:** In v1.0.4, Phase 2 is ***likely to fail*** in the `perimeter` account for one of several reasons:
+  - You were unable to set the bucket policy with the perimeter account id before phase 2  
+  - You were unable to activate the marketplace AMI's in the perimeter account before phase 2
+  - You failed to put a non-empty license file (does not need to be valid) and a valid firewall config file in your bucket
+  - New AWS accounts are uninitialized and do not have any limits established which can result in the following CloudFormation error in Phase 2 when attempting to deploy the firewall instances:
 
 ```
 Your request for accessing resources in this region is being validated, and you will not be able to launch additional resources in this region until the validation is complete. We will notify you by email once your request has been validated. While normally resolved within minutes, please allow up to 4 hours for this process to complete. If the issue still persists, please let us know by writing to aws-verification@amazon.com for further assistance.
 ```
 
-Within the prescribed timeframe, an email should arrive to the perimeter account email specifying that the request is validated. A subsequent run of the Step Function should work.
+To proceed, please complete the first 3 tasks and then to resolve item 4, please launch and run a t2.micro instance in the perimeter account for 15 minutes, at which time it can be terminated, and then re-run the state machine.
+
 
 **STOP HERE, YOU ARE DONE**
 
