@@ -110,7 +110,7 @@ After the pipeline executes, the state machine will execute (Step functions).
     - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
     - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
 
-![](img/marketplace.png)
+![marketplace](img/marketplace.png)
 
 **Note:** The following failure may be observed in CloudFormation (in the Perimeter account) when deploying the Phase2 step (specifically the Firewall instances):
 
