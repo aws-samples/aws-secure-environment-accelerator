@@ -122,7 +122,7 @@ After the pipeline executes, the state machine will execute (Step functions).
 Your request for accessing resources in this region is being validated, and you will not be able to launch additional resources in this region until the validation is complete. We will notify you by email once your request has been validated. While normally resolved within minutes, please allow up to 4 hours for this process to complete. If the issue still persists, please let us know by writing to aws-verification@amazon.com for further assistance.
 ```
 
-To proceed, please complete the first 3 tasks and then to resolve item 4, please launch and run a t2.micro instance in the perimeter account for 15 minutes, at which time it can be terminated, and then re-run the state machine.
+***To proceed, please complete the first 3 tasks and then to resolve item 4, please launch and run a t2.micro instance in the perimeter account for 15 minutes, at which time it can be terminated, and then re-run the state machine.***
 
 
 **STOP HERE, YOU ARE DONE**
