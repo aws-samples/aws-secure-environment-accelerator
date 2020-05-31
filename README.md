@@ -6,7 +6,7 @@
 
 You need an AWS account with Landing Zone v2.3.1 deployed (v2.4.0 not yet tested).
 
-When deploying ALZ select: 
+When deploying ALZ select:
 1. Set `Lock StackSetExecution Role` to `No`
 2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
 3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,Unclass,Sandbox` (case sensitive)
@@ -19,17 +19,17 @@ If using an internal AWS account, to successfully install, you need to enable pr
 4. Change the name field (i.e. append -PMP) and change the color, so it is clear PMP is enabled for users
 5. Search PrivateMarketplace for Fortinet products
 6. Unselect the `Approved Products` filter and then select:
-   - `Fortinet FortiGate (BYOL) Next-Generation Firewall` 
+   - `Fortinet FortiGate (BYOL) Next-Generation Firewall`
 6. Select "Add to Private Marketplace" in the top right
 7. Wait a couple of minutes while it adds itm to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
-   
+
 ### Using the Installer
 
 1. Login to the Organization **master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
 2. Set the region to `ca-central-1`.
 3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
-   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`,
+   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your ***master*** account id.
 
 #### Create a GitHub Personal Access Token.
 
@@ -44,27 +44,28 @@ If using an internal AWS account, to successfully install, you need to enable pr
       - Select `Disable rotation`
     - Via AWS CLI: `aws secretsmanager create-secret --name accelerator/github-token --secret-string <token>`
 
-#### Create an Accelerator Configuration File
+## Accelerator Configuration
 
 1. You can use the [`config.example.json`](./config.example.json) file as base (from the master branch)
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file to a) match the ones in your AWS Landing Zone and b) reflect the new account you want created.  All new AWS accounts being defined require a unique email address which has never before been used to create an AWS account.  Additional budget notification email addresses also need to be replaced within the sample, but a single email address for all is sufficient.
 
-   ***THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING for a production deployment***
-   
-   ***A Test environment can use the remainder of the values as-is***
-      
-   ***AT THIS TIME, DO NOT include any workload accounts (remove them), as it will slow down the deployment process***
-   
-   ***(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)***
+### Key Things to Note:
+
+  * **THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING for a production deployment**
+  * **A Test environment can use the remainder of the values as-is**
+  * **AT THIS TIME, DO NOT include any workload accounts (remove them), as it will slow down the deployment process**
+  * **(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)**
 
 3. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
    - supply this bucket name in the CFN parameters and in the config file
 4. Place your config file, named `config.json`, in your new bucket
-5. place the firewall license and configuration in the folder and path defined in the config file 
+5. place the firewall license and configuration in the folder and path defined in the config file
    (i.e. `firewall/license.lic` and `firewall/fortigate.txt`)
+   - Note: see `./reference-artifacts/Third-Party/firewall-example.txt`
 6. Add a bucket policy, replacing `your-bucket-name` and `123456789012` with the perimeter account id:
    (You can only do this after perimeter account is created, but must be done before Phase 2)
-```
+
+```json
 {
     "Version": "2012-10-17",
     "Id": "Policy1590356756537",
@@ -86,8 +87,8 @@ If using an internal AWS account, to successfully install, you need to enable pr
 ```
 
 
-   
-#### Deploy the Accelerator Installer Stack
+
+### Deploy the Accelerator Installer Stack
 
 1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
@@ -98,18 +99,37 @@ If using an internal AWS account, to successfully install, you need to enable pr
 7. Add an `Email` address to be used for notification of code releases
 8. Change `GithubBranch` to the latest stable branch (currently v1.0.4, case sensitive)
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
-10. ENABLED STACK TERMINATION PROTECTION
+10. **ENABLE STACK TERMINATION PROTECTION**
 
 You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
 state machine should start automatically and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.  From this point forward, you must update your configuration file in CodeCommit.
 
-After the pipline executes, the state machine will execute (Step functions).
+After the pipeline executes, the state machine will execute (Step functions).
 
-11. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI.
+11. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the **perimeter** sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
+    - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
+    - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
 
-***STOP HERE, YOU ARE DONE***
+![marketplace](img/marketplace.png)
 
-***BELOW IS OUTDATED/INCORRECT***
+**Note:** In v1.0.4, Phase 2 is ***likely to fail*** in the `perimeter` account for one of several reasons:
+  - You were unable to set the bucket policy with the perimeter account id before phase 2  
+  - You were unable to activate the marketplace AMI's in the perimeter account before phase 2
+  - You failed to put a non-empty license file (does not need to be valid) and a valid firewall config file in your bucket
+  - New AWS accounts are uninitialized and do not have any limits established which can result in the following CloudFormation error in Phase 2 when attempting to deploy the firewall instances:
+
+```
+Your request for accessing resources in this region is being validated, and you will not be able to launch additional resources in this region until the validation is complete. We will notify you by email once your request has been validated. While normally resolved within minutes, please allow up to 4 hours for this process to complete. If the issue still persists, please let us know by writing to aws-verification@amazon.com for further assistance.
+```
+
+***To proceed, please complete the first 3 tasks and then to resolve item 4, please launch and run a t2.micro instance in the perimeter account for 15 minutes, at which time it can be terminated, and then re-run the state machine.***
+
+
+**STOP HERE, YOU ARE DONE**
+
+
+
+## BELOW IS OUTDATED/INCORRECT
 
 ### Using the Command-Line (Not required if followed above process)
 
