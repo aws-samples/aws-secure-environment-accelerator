@@ -37,11 +37,11 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
           resources: ['*'],
         }).toJSON(),
         new iam.PolicyStatement({
-          actions: ['ec2:createKeyPair'],
+          actions: ['ec2:CreateKeyPair'],
           resources: ['*'],
         }).toJSON(),
         new iam.PolicyStatement({
-          actions: ['secretsmanager:createSecret', 'secretsmanager:deleteSecret'],
+          actions: ['secretsmanager:CreateSecret', 'secretsmanager:DeleteSecret'],
           resources: ['*'],
         }).toJSON(),
       ],

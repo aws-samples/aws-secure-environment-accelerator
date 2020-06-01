@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+import * as custom from '@aws-cdk/custom-resources';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -29,10 +30,16 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
   }
 };
 
+async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<void> {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+
+  return custom.PhysicalResourceId.of(`${properties.secretPrefix}/${properties.keyName}`);
+}
+
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const response = await generateKeypair(event);
   return {
-    physicalResourceId: response,
+    physicalResourceId: await getPhysicalId(event),
     data: {
       KeyName: response.Name,
       ARN: response.ARN,
@@ -44,7 +51,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const response = await generateKeypair(event);
   return {
-    physicalResourceId: response,
+    physicalResourceId: await getPhysicalId(event),
     data: {
       KeyName: response.Name,
       ARN: response.ARN,
@@ -56,7 +63,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const response = await deleteKeypair(event);
   return {
-    physicalResourceId: response,
+    physicalResourceId: await getPhysicalId(event),
     data: {
       KeyName: response.Name,
       ARN: response.ARN,
@@ -100,7 +107,6 @@ async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
   try {
     const params = {
       SecretId: `${properties.secretPrefix}/${properties.keyName}`,
-      ForceDeleteWithoutRecovery: true,
     };
 
     console.log('Delete Secret:', params);
