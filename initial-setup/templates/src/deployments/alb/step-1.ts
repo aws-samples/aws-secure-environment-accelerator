@@ -86,7 +86,9 @@ export function createAlb(
   if (deploy === 'local') {
     const securityGroup = vpc.securityGroups.find(sg => sg.securityGroupName === albConfig['security-group']);
     if (!securityGroup) {
-      console.warn(`Cannot find output of vpc ${albConfig.vpc} with security group name ${albConfig['security-group']}`);
+      console.warn(
+        `Cannot find output of vpc ${albConfig.vpc} with security group name ${albConfig['security-group']}`,
+      );
       return;
     }
     securityGroupId = securityGroup.securityGroupId;
