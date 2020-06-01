@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
-import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createName, createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
@@ -12,7 +12,10 @@ import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as mad from '../deployments/mad';
 import { PhaseInput } from './shared';
-
+import * as logs from '@aws-cdk/aws-logs';
+import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
+import * as iam from '@aws-cdk/aws-iam';
+import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 /**
  * This is the main entry point to deploy phase 0.
  *
@@ -152,6 +155,32 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+
+  /**
+   * Code to create LogGroups required for DNS Logging
+   */
+  const globalOptionsConfig = acceleratorConfig['global-options'];
+  const zonesConfig = globalOptionsConfig.zones;
+  const zonesAccountKey = zonesConfig.account;
+
+  const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
+  for (const phz of zonesConfig.names.public) {
+    new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
+      logGroupName: createLogGroupName(phz, 'r53')
+    });
+  }
+  // Allow r53 services to write to the log group
+  new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
+    policyName: 'R53LogGroupPolicy',
+    policyStatements: [
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+        principals: [new iam.ServicePrincipal('route53.amazonaws.com')],
+        resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${createLogGroupName('r53')}/*`],
+      }),
+    ],
   });
 
   // TODO Deprecate these outputs
