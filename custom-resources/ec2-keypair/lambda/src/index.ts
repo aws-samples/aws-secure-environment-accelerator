@@ -6,6 +6,7 @@ import {
   CloudFormationCustomResourceUpdateEvent,
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
+import { errorHandler } from '@custom-resources/cfn-response';
 
 const ec2 = new AWS.EC2();
 const secretsManager = new AWS.SecretsManager();
@@ -15,7 +16,9 @@ export interface HandlerProperties {
   secretPrefix: string;
 }
 
-export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+export const handler = errorHandler(onEvent);
+
+async function onEvent (event: CloudFormationCustomResourceEvent) {
   console.log(`Generating keypair...`);
   console.log(JSON.stringify(event, null, 2));
 
