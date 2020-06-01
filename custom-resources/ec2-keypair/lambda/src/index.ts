@@ -18,7 +18,7 @@ export interface HandlerProperties {
 
 export const handler = errorHandler(onEvent);
 
-async function onEvent (event: CloudFormationCustomResourceEvent) {
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Generating keypair...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -31,7 +31,7 @@ async function onEvent (event: CloudFormationCustomResourceEvent) {
     case 'Delete':
       return onDelete(event);
   }
-};
+}
 
 async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<custom.PhysicalResourceId> {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
