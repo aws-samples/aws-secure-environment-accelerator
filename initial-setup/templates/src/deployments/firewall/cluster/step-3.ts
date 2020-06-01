@@ -114,7 +114,6 @@ async function createFirewallCluster(props: {
       bucket: accountBucket,
       bucketRegion: cdk.Aws.REGION,
       licenseBucket: centralBucket,
-      licensePath: firewallConfig.license,
       templateBucket: centralBucket,
       templateConfigPath: firewallConfig.config,
     },
@@ -125,6 +124,7 @@ async function createFirewallCluster(props: {
 
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
+  let licenseIndex: number = 0;
 
   for (const vpnConnection of firewallVpnConnections) {
     const az = vpnConnection.az;
@@ -137,13 +137,19 @@ async function createFirewallCluster(props: {
     }
 
     let instance = instancePerAz[az];
+    let licensePath: string | undefined;
     if (!instance) {
+      if (firewallConfig.license) {
+        licensePath = firewallConfig.license[licenseIndex];
+      }
       const instanceName = `Fgt${pascalCase(az)}`;
       instance = cluster.createInstance({
         name: instanceName,
         hostname: instanceName,
+        licensePath,
       });
       instancePerAz[az] = instance;
+      licenseIndex++;
 
       new StructuredOutput<FirewallInstanceOutput>(scope, `Fgt${pascalCase(az)}Output`, {
         type: FirewallInstanceOutputType,

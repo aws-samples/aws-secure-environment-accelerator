@@ -378,7 +378,7 @@ export const FirewallConfigType = t.interface({
   vpc: t.string,
   'security-group': t.string,
   ports: t.array(FirewallPortConfigType),
-  license: optional(t.string),
+  license: optional(t.array(t.string)),
   config: t.string,
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,

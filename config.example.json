@@ -869,7 +869,7 @@
               "create-cgw": false
             }
           ],
-          "license": "firewall/license.lic",
+          "license": ["firewall/license.lic","firewall/license.lic"],
           "config": "firewall/firewall-example.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 63000,
