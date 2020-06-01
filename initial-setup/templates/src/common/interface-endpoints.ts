@@ -75,14 +75,19 @@ export class InterfaceEndpoint extends cdk.Construct {
       type: 'A',
       name: hostedZoneName,
       hostedZoneId: hostedZone.ref,
-      aliasTarget: {
-        // https://github.com/aws/aws-cdk/blob/master/packages/%40aws-cdk/aws-route53-targets/lib/interface-vpc-endpoint-target.ts
-        dnsName: cdk.Fn.select(1, cdk.Fn.split(':', cdk.Fn.select(0, endpoint.attrDnsEntries))),
-        hostedZoneId: cdk.Fn.select(0, cdk.Fn.split(':', cdk.Fn.select(0, endpoint.attrDnsEntries))),
-      },
+      aliasTarget: aliasTargetForServiceNameAndEndpoint(serviceName, endpoint),
     });
     recordSet.addDependsOn(hostedZone);
   }
+}
+
+function aliasTargetForServiceNameAndEndpoint(serviceName: string, endpoint: ec2.CfnVPCEndpoint) {
+  const dnsEntriesIndex = getZoneAliasTargetIndex(serviceName);
+  return {
+    // https://github.com/aws/aws-cdk/blob/master/packages/%40aws-cdk/aws-route53-targets/lib/interface-vpc-endpoint-target.ts
+    dnsName: cdk.Fn.select(1, cdk.Fn.split(':', cdk.Fn.select(dnsEntriesIndex, endpoint.attrDnsEntries))),
+    hostedZoneId: cdk.Fn.select(0, cdk.Fn.split(':', cdk.Fn.select(dnsEntriesIndex, endpoint.attrDnsEntries))),
+  };
 }
 
 function interfaceVpcEndpointForRegionAndEndpointName(region: string, name: string): string {
@@ -97,4 +102,13 @@ function zoneNameForRegionAndEndpointName(region: string, name: string) {
     return `notebook.${region}.sagemaker.aws.`;
   }
   return `${name}.${region}.amazonaws.com.`;
+}
+
+function getZoneAliasTargetIndex(name: string): number {
+  if (name === 'notebook') {
+    // TODO Top 3 DNS names are not valid so selecting the 4th DNS
+    // need to find a better way to identify the valid DNS for PHZ
+    return 4;
+  }
+  return 0;
 }
