@@ -85,6 +85,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
       .next(
         new sfn.Choice(scope, 'Account Creation Done?')
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
           .otherwise(fail)
           .afterwards(),
@@ -93,6 +94,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
     createTask.next(
       new sfn.Choice(scope, 'Account Creation Started?')
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), waitTask)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NOT_RELEVANT'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'IN_PROGRESS'), waitTask)

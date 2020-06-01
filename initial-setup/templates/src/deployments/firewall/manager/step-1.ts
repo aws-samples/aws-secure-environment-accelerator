@@ -90,6 +90,7 @@ async function createFirewallManager(props: {
   }
 
   const manager = new FirewallManager(scope, 'FirewallManager', {
+    name: config.name,
     imageId: config['image-id'],
     instanceType: config['instance-sizes'],
   });

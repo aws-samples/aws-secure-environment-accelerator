@@ -1,31 +1,11 @@
-import * as cdk from '@aws-cdk/core';
-import { loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
 import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
-import { AccountStacks } from '../common/account-stacks';
+import { VpcOutput, ImportedVpc } from '../deployments/vpc';
+import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { PhaseInput } from './shared';
+import * as alb from '../deployments/alb';
 
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
-
-async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
-
-  const app = new cdk.App();
-
-  const accountStacks = new AccountStacks(app, {
-    phase: 3,
-    accounts,
-    context,
-  });
-
+export async function deploy({ acceleratorConfig, accountStacks, accounts, app, context, outputs }: PhaseInput) {
   /**
    * Code to create Peering Connection Routes in all accounts
    */
@@ -67,7 +47,10 @@ async function main() {
       acceleratorConfig,
     });
   }
-}
 
-// tslint:disable-next-line: no-floating-promises
-main();
+  await alb.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+}

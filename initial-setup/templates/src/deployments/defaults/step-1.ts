@@ -11,7 +11,14 @@ import {
   createRoleName,
   createBucketName,
 } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { CentralBucketOutput, CentralBucketOutputType, LogBucketOutput, LogBucketOutputType } from './outputs';
+import {
+  CentralBucketOutput,
+  CentralBucketOutputType,
+  LogBucketOutput,
+  LogBucketOutputType,
+  AesBucketOutputType,
+  AesBucketOutput,
+} from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { StructuredOutput } from '../../common/structured-output';
@@ -37,6 +44,7 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
   const centralBucketCopy = createCentralBucketCopy(props);
   const centralLogBucket = createCentralLogBucket(props);
   const accountEbsEncryptionKeys = createDefaultEbsEncryptionKey(props);
+  const aesLogBucket = createAesLogBucket(props);
   return {
     centralBucketCopy,
     centralLogBucket,
@@ -146,8 +154,39 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     config,
   });
 
+  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
+
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(accounts.map(account => account.id));
+  logBucket.replicateFrom(accountPrincipals);
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: accountPrincipals,
+      actions: ['s3:PutObject'],
+      resources: [`${logBucket.bucketArn}/*`],
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      actions: ['s3:PutObject'],
+      resources: [`${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          's3:x-amz-acl': 'bucket-owner-full-control',
+        },
+      },
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      actions: ['s3:GetBucketAcl'],
+      resources: [`${logBucket.bucketArn}`],
+    }),
+  );
 
   new StructuredOutput<LogBucketOutput>(logAccountStack, 'LogBucketOutput', {
     type: LogBucketOutputType,
@@ -155,6 +194,64 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
       bucketArn: logBucket.bucketArn,
       bucketName: logBucket.bucketName,
       encryptionKeyArn: logBucket.encryptionKey!.keyArn,
+    },
+  });
+
+  return logBucket;
+}
+
+/**
+ * Creates a bucket that will be used to store ALB access logs.
+ */
+function createAesLogBucket(props: DefaultsStep1Props) {
+  const { accountStacks, accounts, config } = props;
+
+  const logAccountConfig = config['global-options']['central-log-services'];
+  const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
+
+  const logBucket = new s3.Bucket(logAccountStack, 'AesBucket', {
+    bucketName: createBucketName('aes'),
+    versioned: true,
+    blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    encryption: s3.BucketEncryption.S3_MANAGED,
+  });
+  accounts.map(a => logBucket.grantRead(new iam.AccountPrincipal(a.id)));
+
+  // TODO remove hard coded ELB ca-central-1 region account id
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.AccountPrincipal('985666609251')],
+      actions: ['s3:PutObject'],
+      resources: [`${logBucket.bucketArn}/*`],
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      actions: ['s3:PutObject'],
+      resources: [`${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          's3:x-amz-acl': 'bucket-owner-full-control',
+        },
+      },
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      actions: ['s3:GetBucketAcl'],
+      resources: [`${logBucket.bucketArn}`],
+    }),
+  );
+
+  new StructuredOutput<AesBucketOutput>(logAccountStack, 'AesLogBucketOutput', {
+    type: AesBucketOutputType,
+    value: {
+      bucketArn: logBucket.bucketArn,
+      bucketName: logBucket.bucketName,
     },
   });
 

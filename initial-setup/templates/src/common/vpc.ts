@@ -433,7 +433,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             destinationCidrBlock: '0.0.0.0/0',
             natGatewayId: natgw.ref,
           };
-          new ec2.CfnRoute(this, `natgw_${natRoute}_route`, routeParams);
+          new ec2.CfnRoute(this, `${natRoute}_natgw_route`, routeParams);
         }
       }
     }
@@ -483,6 +483,18 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet | undefined {
     return this.subnets.find(s => s.name === name && s.az === az);
+  }
+
+  findSubnetIdsByName(name: string): string[] {
+    const subnets = this.tryFindSubnetIdsByName(name);
+    if (subnets.length === 0) {
+      throw new Error(`Cannot find subnet with name "${name}"`);
+    }
+    return subnets;
+  }
+
+  tryFindSubnetIdsByName(name: string): string[] {
+    return this.subnets.filter(s => s.name === name).map(s => s.id);
   }
 
   findSecurityGroupByName(name: string): constructs.SecurityGroup {

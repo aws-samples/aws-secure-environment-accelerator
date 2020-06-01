@@ -30,7 +30,7 @@ export class AccountStack extends AcceleratorStack {
 }
 
 export interface AccountStacksProps {
-  phase: number;
+  phase: string;
   accounts: Account[];
   context: Context;
 }

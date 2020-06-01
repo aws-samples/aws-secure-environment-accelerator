@@ -307,6 +307,46 @@ export const MadConfigType = t.interface({
   'security-groups': t.array(SecurityGroupConfigType),
 });
 
+export const AlbTargetConfigType = t.interface({
+  'target-name': t.string,
+  'target-type': t.string,
+  protocol: optional(t.string),
+  port: optional(t.number),
+  'health-check-protocol': optional(t.string),
+  'health-check-path': t.string,
+  'health-check-port': optional(t.number),
+  'lambda-filename': optional(t.string),
+  'target-instances': optional(t.array(t.string)),
+  'tg-weight': optional(t.number),
+});
+
+export type AlbTargetConfig = t.TypeOf<typeof AlbTargetConfigType>;
+
+export const AlbConfigType = t.interface({
+  name: t.string,
+  scheme: t.string,
+  'action-type': t.string,
+  'ip-type': t.string,
+  listeners: t.string,
+  ports: t.number,
+  vpc: t.string,
+  subnets: t.string,
+  'cert-name': t.string,
+  'cert-arn': optional(t.string),
+  'security-policy': t.string,
+  'security-group': t.string,
+  'tg-stickiness': t.string,
+  'target-alarms-notify': optional(t.string),
+  'target-alarms-when': optional(t.string),
+  'target-alarms-of': optional(t.string),
+  'target-alarms-is': optional(t.string),
+  'target-alarms-Count': optional(t.string),
+  'target-alarms-for': optional(t.string),
+  'target-alarms-periods-of': optional(t.string),
+  'access-logs': t.boolean,
+  targets: t.array(AlbTargetConfigType),
+});
+
 export const AccountConfigType = t.interface({
   // 'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
@@ -416,6 +456,7 @@ export const MandatoryAccountConfigType = t.interface({
   certificates: optional(t.array(CertificateConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),
+  alb: optional(t.array(AlbConfigType)),
   'log-retention': optional(t.number),
   budget: optional(BudgetConfigType),
 });
@@ -434,6 +475,7 @@ export const OrganizationalUnitConfigType = t.interface({
   'share-mad-from': optional(t.string),
   certificates: optional(t.array(CertificateConfigType)),
   iam: optional(IamConfigType),
+  alb: optional(t.array(AlbConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   'default-budgets': optional(BudgetConfigType),
 });
@@ -534,6 +576,8 @@ export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
+export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
+
 export interface ResolvedConfigBase {
   /**
    * The organizational unit to which this VPC belongs.
@@ -562,6 +606,14 @@ export interface ResolvedCertificateConfig extends ResolvedConfigBase {
    */
   certificates: CertificateConfig[];
 }
+
+export interface ResolvedAlbConfig extends ResolvedConfigBase {
+  /**
+   * The albs config to be deployed.
+   */
+  albs: AlbConfig[];
+}
+
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
   readonly 'global-options': GlobalOptionsConfig;
   readonly 'mandatory-account-configs': AccountsConfig;
@@ -771,6 +823,34 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
             ouKey: key,
             accountKey,
             certificates,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find all alb configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getAlbConfigs(): ResolvedAlbConfig[] {
+    const result: ResolvedAlbConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const albs = config.alb;
+      if (!albs || albs.length === 0) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          albs,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            albs,
           });
         }
       }
