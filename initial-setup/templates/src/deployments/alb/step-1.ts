@@ -86,7 +86,7 @@ export function createAlb(
   if (deploy === 'local') {
     const securityGroup = vpc.securityGroups.find(sg => sg.securityGroupName === albConfig['security-group']);
     if (!securityGroup) {
-      console.warn(`Cannot find output with security name ${albConfig['security-group']}`);
+      console.warn(`Cannot find output of vpc ${albConfig.vpc} with security group name ${albConfig['security-group']}`);
       return;
     }
     securityGroupId = securityGroup.securityGroupId;
@@ -97,7 +97,7 @@ export function createAlb(
     });
     const securityGroupOutput = securityGroupsOutput.find(s => s.vpcName === albConfig.vpc);
     if (!securityGroupOutput) {
-      console.warn(`Cannot find security output for account ${accountKey} with vpc name ${albConfig.vpc}`);
+      console.warn(`Cannot find security group output for account ${accountKey} with vpc name ${albConfig.vpc}`);
       return;
     }
     const securityGroup = securityGroupOutput.securityGroupIds.find(
@@ -105,7 +105,7 @@ export function createAlb(
     );
     if (!securityGroup) {
       console.warn(
-        `Cannot find security output for account ${accountKey} with security name ${albConfig['security-group']}`,
+        `Cannot find security group output for account ${accountKey} with security name ${albConfig['security-group']}`,
       );
       return;
     }
