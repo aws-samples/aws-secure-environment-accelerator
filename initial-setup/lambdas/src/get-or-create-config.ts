@@ -16,6 +16,12 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   console.log(JSON.stringify(input, null, 2));
 
   const { repositoryName, filePath, s3Bucket, s3FileName, branchName } = input;
+  const configRepository = await codecommit.batchGetRepositories([repositoryName]);
+  if (!configRepository.repositories || configRepository.repositories?.length === 0) {
+    console.log(`Creating repository "${repositoryName}" for Config file`);
+    await codecommit.createRepository(repositoryName, 'This repository contains configuration');
+    console.log(`Creation of repository "${repositoryName}" is done for Config file`);
+  }
 
   console.log(`Retrieving config file from config Repo`);
   try {
