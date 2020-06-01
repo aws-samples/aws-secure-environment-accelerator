@@ -7,7 +7,7 @@ import { Account, getAccountId } from '../utils/accounts';
 export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountId: string;
   accountKey: string;
-  region?: string
+  region?: string;
 }
 
 /**
@@ -22,7 +22,7 @@ export class AccountStack extends AcceleratorStack {
       ...props,
       env: {
         account: props.accountId,
-        region: props.region
+        region: props.region,
       },
     });
 
@@ -62,7 +62,7 @@ export class AccountStacks {
   /**
    * Get the existing stack for the given account or create a new stack if no such stack exists yet.
    */
-  tryGetOrCreateAccountStack(accountKey: string, region?:string): AccountStack | undefined {
+  tryGetOrCreateAccountStack(accountKey: string, region?: string): AccountStack | undefined {
     let existingStack;
     if (region) {
       existingStack = this.stacks.find(s => s.accountKey === accountKey && s.region === region);

@@ -157,7 +157,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
   });
 
-
   /**
    * Code to create LogGroups required for DNS Logging
    */
@@ -168,7 +167,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
   for (const phz of zonesConfig.names.public) {
     new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
-      logGroupName: createLogGroupName(phz, 'r53')
+      logGroupName: createLogGroupName(phz, 'r53'),
     });
   }
   // Allow r53 services to write to the log group
