@@ -1,1 +1,1 @@
-export { step1 as validate}  from './step-1';
+export { step1 as validate } from './step-1';

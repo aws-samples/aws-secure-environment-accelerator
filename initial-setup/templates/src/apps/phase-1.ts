@@ -31,7 +31,7 @@ import * as centralServices from '../deployments/central-services';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
-import * as firewallSubscription from '../deployments/firewall/subscription'
+import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
 import { PhaseInput } from './shared';
