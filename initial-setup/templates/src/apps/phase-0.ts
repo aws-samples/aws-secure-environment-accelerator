@@ -172,7 +172,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }
   // Allow r53 services to write to the log group
   new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
-    policyName: 'R53LogGroupPolicy',
+    policyName: createName({
+      name: 'query-logging-pol'
+    }),
     policyStatements: [
       new iam.PolicyStatement({
         actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
