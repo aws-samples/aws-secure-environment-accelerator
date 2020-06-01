@@ -33,6 +33,7 @@
   "dependencies": {
     "@custom-resources/cfn-response": "workspace:^0.0.1",
     "@custom-resources/cfn-tags": "workspace:^0.0.1",
+    "@aws-cdk/custom-resources": "1.38.0",
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.668.0"
   },
