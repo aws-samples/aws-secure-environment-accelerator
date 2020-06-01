@@ -285,7 +285,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
     outputs,
   });
 
-  await firewallCluster.step4({
+  await firewallCluster.step3({
     accountBuckets,
     accountStacks,
     centralBucket,
