@@ -1,5 +1,4 @@
 import * as AWS from 'aws-sdk';
-import * as custom from '@aws-cdk/custom-resources';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -36,7 +35,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<string> {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-  return custom.PhysicalResourceId.of(`${properties.secretPrefix}/${properties.keyName}`);
+  return `${properties.secretPrefix}/${properties.keyName}`;
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
