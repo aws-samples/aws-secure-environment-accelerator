@@ -217,6 +217,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
 
       // Add Tags Output
       const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
+
+      new JsonOutputValue(securityGroupStack, `SecurityGroupOutput${vpcConfig.name}-${index}`, {
+        type: 'SecurityGroupOutputType',
+        value: {
+          vpcId: vpcOutput.vpcId,
+          vpcName: vpcConfig.name,
+          securityGroupIds: securityGroups.securityGroups.map(securityGroup => ({
+            id: securityGroup.id,
+            name: securityGroup.name,
+          })),
+        },
+      });
+
       new AddTagsToResourcesOutput(securityGroupStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
         dependencies: securityGroupsResources,
         produceResources: () =>
@@ -239,7 +252,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
 
   // Find the account buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({
-    acceleratorPrefix: context.acceleratorPrefix,
     accounts,
     accountStacks,
     config: acceleratorConfig,
@@ -248,7 +260,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
     outputs,

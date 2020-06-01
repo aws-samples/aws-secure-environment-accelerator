@@ -43,12 +43,21 @@ export const CentralBucketOutputType = t.interface(
 
 export type CentralBucketOutput = t.TypeOf<typeof CentralBucketOutputType>;
 
+export const AesBucketOutputType = t.interface(
+  {
+    bucketName: t.string,
+    bucketArn: t.string,
+  },
+  'AesBucket',
+);
+
+export type AesBucketOutput = t.TypeOf<typeof AesBucketOutputType>;
+
 export namespace AccountBucketOutput {
   /**
    * Helper method to import the account buckets from different phases. It includes the log bucket.
    */
   export function getAccountBuckets(props: {
-    acceleratorPrefix: string;
     accounts: Account[];
     accountStacks: AccountStacks;
     config: AcceleratorConfig;
@@ -91,7 +100,6 @@ export namespace LogBucketOutput {
    * Helper method to import the log bucket from different phases.
    */
   export function getBucket(props: {
-    acceleratorPrefix: string;
     accountStacks: AccountStacks;
     config: AcceleratorConfig;
     outputs: StackOutput[];
@@ -117,12 +125,39 @@ export namespace LogBucketOutput {
   }
 }
 
+export namespace AesBucketOutput {
+  /**
+   * Helper method to import the log bucket from different phases.
+   */
+  export function getBucket(props: {
+    accountStacks: AccountStacks;
+    config: AcceleratorConfig;
+    outputs: StackOutput[];
+  }) {
+    const logAccountConfig = props.config['global-options']['central-log-services'];
+    const logAccountKey = logAccountConfig.account;
+    const logAccountStack = props.accountStacks.getOrCreateAccountStack(logAccountKey);
+
+    const aesBucketOutputs = StructuredOutput.fromOutputs(props.outputs, {
+      accountKey: logAccountKey,
+      type: AesBucketOutputType,
+    });
+    const aesBucketOutput = aesBucketOutputs?.[0];
+    if (!aesBucketOutput) {
+      throw new Error(`Cannot find central AES bucket for log account ${logAccountKey}`);
+    }
+
+    return s3.Bucket.fromBucketAttributes(logAccountStack, 'LogBucket', {
+      bucketName: aesBucketOutput.bucketName,
+    });
+  }
+}
+
 export namespace CentralBucketOutput {
   /**
    * Helper method to import the central bucket from different phases.
    */
   export function getBucket(props: {
-    acceleratorPrefix: string;
     accountStacks: AccountStacks;
     config: AcceleratorConfig;
     outputs: StackOutput[];

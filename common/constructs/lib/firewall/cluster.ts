@@ -57,9 +57,12 @@ export class FirewallCluster extends cdk.Construct {
     this.props.configuration.bucket.grantRead(this.instanceRole);
   }
 
-  createInstance(hostname: string): FirewallInstance {
+  createInstance(props: { name: string; hostname: string }): FirewallInstance {
+    const { name, hostname } = props;
+
     const index = this.instances.length;
     const instance = new FirewallInstance(this, `Instance${index}`, {
+      name,
       hostname,
       vpcCidrBlock: this.props.vpcCidrBlock,
       imageId: this.props.imageId,

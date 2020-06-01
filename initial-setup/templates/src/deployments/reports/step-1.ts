@@ -21,7 +21,7 @@ export async function step1(props: ReportsStep1Props) {
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
   const masterBucket = accountBuckets[masterAccountKey];
 
-  new CurReportDefinition(masterStack, 'CurReportDefinition', {
+  const report = new CurReportDefinition(masterStack, 'CurReportDefinition', {
     roleName: createRoleName('Reports'),
     bucket: masterBucket,
     bucketPrefix: `${cdk.Aws.ACCOUNT_ID}/${curConfig['s3-prefix']}`,
@@ -35,4 +35,5 @@ export async function step1(props: ReportsStep1Props) {
     reportVersioning: curConfig['report-versioning'],
     timeUnit: curConfig['time-unit'],
   });
+  report.node.addDependency(masterBucket);
 }

@@ -44,9 +44,7 @@ export class Bucket extends s3.Bucket {
     this.resource = this.node.findChild('Resource') as s3.CfnBucket;
   }
 
-  replicateFrom(accountIds: string[]) {
-    const accountPrincipals = accountIds.map(id => new iam.AccountPrincipal(id));
-
+  replicateFrom(principals: iam.IPrincipal[]) {
     this.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -59,7 +57,7 @@ export class Bucket extends s3.Bucket {
           's3:ReplicateTags',
           's3:List*',
         ],
-        principals: accountPrincipals,
+        principals,
         resources: [this.bucketArn, this.arnForObjects('*')],
       }),
     );
@@ -71,7 +69,7 @@ export class Bucket extends s3.Bucket {
         new iam.PolicyStatement({
           sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
           actions: ['kms:Encrypt'],
-          principals: accountPrincipals,
+          principals,
           resources: ['*'],
         }),
       );

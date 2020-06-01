@@ -20,7 +20,13 @@ export async function loadStackOutputs(): Promise<StackOutput[]> {
   const secrets = new SecretsManager();
   const secret = await secrets.getSecret(secretId);
   if (!secret) {
-    throw new Error(`Cannot find secret with ID "${secretId}"`);
+    console.warn(`Cannot find output secret with ID "${secretId}"`);
+    return [];
   }
-  return JSON.parse(secret.SecretString!);
+  try {
+    return JSON.parse(secret.SecretString!);
+  } catch (e) {
+    console.warn(`Cannot parse output secret with ID "${secretId}"`);
+    return [];
+  }
 }
