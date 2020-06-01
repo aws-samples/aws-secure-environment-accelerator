@@ -47,3 +47,9 @@ export interface VpcOutput {
   routeTables: { [key: string]: string };
   securityGroups: VpcSecurityGroupOutput[];
 }
+
+export interface SecurityGroupsOutput {
+  vpcId: string;
+  vpcName: string;
+  securityGroupIds: VpcSecurityGroupOutput[];
+}

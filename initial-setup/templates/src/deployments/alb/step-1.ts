@@ -5,7 +5,7 @@ import * as alb from '@aws-cdk/aws-elasticloadbalancingv2';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
-import { Vpc, ApplicationLoadBalancer } from '@aws-pbmm/constructs/lib/vpc';
+import { ApplicationLoadBalancer } from '@aws-pbmm/constructs/lib/vpc';
 import { AcceleratorConfig, AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../../common/account-stacks';
@@ -15,7 +15,7 @@ import { AesBucketOutput } from '../defaults';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { FirewallInstanceOutputType } from '../firewall/cluster/outputs';
 import { StructuredOutput } from '../../common/structured-output';
-import { VpcOutput, ImportedVpc } from '../vpc';
+import { VpcOutput, SecurityGroupsOutput } from '../vpc';
 
 export interface AlbStep1Props {
   accountStacks: AccountStacks;
@@ -32,6 +32,7 @@ export async function step1(props: AlbStep1Props) {
     outputs,
   });
 
+  const vpcConfigs = config.getVpcConfigs();
   for (const { accountKey, albs: albConfigs } of config.getAlbConfigs()) {
     if (albConfigs.length === 0) {
       continue;
@@ -44,7 +45,12 @@ export async function step1(props: AlbStep1Props) {
     }
 
     for (const albConfig of albConfigs) {
-      createAlb(accountKey, albConfig, accountStack, outputs, aesLogArchiveBucket);
+      const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === albConfig.vpc)?.vpcConfig;
+      if (!vpcConfig) {
+        console.warn(`Cannot find vpc config with name ${albConfig.vpc}`);
+        continue;
+      }
+      createAlb(accountKey, albConfig, accountStack, outputs, aesLogArchiveBucket, vpcConfig.deploy);
     }
   }
 }
@@ -55,13 +61,13 @@ export function createAlb(
   accountStack: AcceleratorStack,
   outputs: StackOutput[],
   aesLogArchiveBucket: s3.IBucket,
+  deploy: string,
 ) {
   const certificateSecretName = createCertificateSecretName(albConfig['cert-name']);
   const certificateSecret = cdk.SecretValue.secretsManager(certificateSecretName);
 
   // Import all VPCs from all outputs
   const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-    accountKey,
     outputType: 'VpcOutput',
   });
   const vpc = allVpcOutputs.find(v => v.vpcName === albConfig.vpc);
@@ -76,10 +82,34 @@ export function createAlb(
     return;
   }
 
-  const securityGroup = vpc.securityGroups.find(sg => sg.securityGroupName === albConfig['security-group']);
-  if (!securityGroup) {
-    console.warn(`Cannot find output with security name ${albConfig['security-group']}`);
-    return;
+  let securityGroupId: string;
+  if (deploy === 'local') {
+    const securityGroup = vpc.securityGroups.find(sg => sg.securityGroupName === albConfig['security-group']);
+    if (!securityGroup) {
+      console.warn(`Cannot find output with security name ${albConfig['security-group']}`);
+      return;
+    }
+    securityGroupId = securityGroup.securityGroupId;
+  } else {
+    const securityGroupsOutput: SecurityGroupsOutput[] = getStackJsonOutput(outputs, {
+      accountKey,
+      outputType: 'SecurityGroupsOutput',
+    });
+    const securityGroupOutput = securityGroupsOutput.find(s => s.vpcName === albConfig.vpc);
+    if (!securityGroupOutput) {
+      console.warn(`Cannot find security output for account ${accountKey} with vpc name ${albConfig.vpc}`);
+      return;
+    }
+    const securityGroup = securityGroupOutput.securityGroupIds.find(
+      i => i.securityGroupName === albConfig['security-group'],
+    );
+    if (!securityGroup) {
+      console.warn(
+        `Cannot find security output for account ${accountKey} with security name ${albConfig['security-group']}`,
+      );
+      return;
+    }
+    securityGroupId = securityGroup.securityGroupId;
   }
 
   const targetGroupIds = [];
@@ -98,10 +128,10 @@ export function createAlb(
   }
 
   const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
-    albName: `${albConfig.name}-alb`,
+    albName: `${albConfig.name}-${accountKey}-alb`,
     scheme: albConfig.scheme,
     subnetIds: subnets.map(s => s.subnetId),
-    securityGroupIds: [securityGroup.securityGroupId],
+    securityGroupIds: [securityGroupId],
     ipType: albConfig['ip-type'],
   });
 
