@@ -33,7 +33,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   }
 }
 
-async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<custom.PhysicalResourceId> {
+async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<string> {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   return custom.PhysicalResourceId.of(`${properties.secretPrefix}/${properties.keyName}`);
