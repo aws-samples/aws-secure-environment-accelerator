@@ -6,6 +6,8 @@ import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/uti
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from '../load-configuration-step';
 
+const VALID_STATUSES: string[] = ['Requested', 'Creating', 'Created', 'Active', 'Inoperable', 'Impaired', 'Restoring'];
+
 interface AdConnectorInput extends LoadConfigurationInput {
   accounts: Account[];
   assumeRoleName: string;
@@ -131,7 +133,9 @@ export const handler = async (input: AdConnectorInput) => {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const directoryService = new DirectoryService(credentials);
     const adConnectors = await directoryService.getADConnectors();
-    const adConnector = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
+    const adConnector = adConnectors.find(
+      o => o.domain === madConfig['dns-domain'] && VALID_STATUSES.includes(o.status),
+    );
     console.log('Active AD Connector', adConnector);
 
     // Creating AD Connector if there are no active AD Connector with the given dns-domain

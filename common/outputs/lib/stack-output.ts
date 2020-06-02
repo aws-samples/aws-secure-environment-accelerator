@@ -56,3 +56,9 @@ export interface AmiSubscriptionOutput {
   imageId: string;
   status: string;
 }
+
+export interface SecurityGroupsOutput {
+  vpcId: string;
+  vpcName: string;
+  securityGroupIds: VpcSecurityGroupOutput[];
+}

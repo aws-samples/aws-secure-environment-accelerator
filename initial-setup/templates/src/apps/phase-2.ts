@@ -219,13 +219,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
       const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
 
       new JsonOutputValue(securityGroupStack, `SecurityGroupOutput${vpcConfig.name}-${index}`, {
-        type: 'SecurityGroupOutputType',
+        type: 'SecurityGroupsOutput',
         value: {
           vpcId: vpcOutput.vpcId,
           vpcName: vpcConfig.name,
           securityGroupIds: securityGroups.securityGroups.map(securityGroup => ({
-            id: securityGroup.id,
-            name: securityGroup.name,
+            securityGroupId: securityGroup.id,
+            securityGroupName: securityGroup.name,
           })),
         },
       });
