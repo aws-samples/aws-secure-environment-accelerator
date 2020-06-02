@@ -27,7 +27,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
     case 'Delete':
       return onDelete(event);
   }
-}
+};
 
 async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<string> {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
