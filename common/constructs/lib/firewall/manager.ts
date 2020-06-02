@@ -15,7 +15,7 @@ export interface FirewallManagerProps {
 export class FirewallManager extends cdk.Construct {
   private readonly props: FirewallManagerProps;
   private readonly resource: ec2.CfnInstance;
-  private readonly keyPair: KeyPair;
+  private readonly keyPair: Keypair;
   private readonly keyPairName: string;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
@@ -27,7 +27,7 @@ export class FirewallManager extends cdk.Construct {
     this.keyPairName = 'FirewallManagement';
     this.keyPair = new Keypair(this, 'KeyPair', {
       name: this.keyPairName,
-      secretPrefix: 'accelerator/keypairs/',
+      secretPrefix: 'accelerator/keypairs',
     });
 
     this.resource = new ec2.CfnInstance(this, 'Resource', {
