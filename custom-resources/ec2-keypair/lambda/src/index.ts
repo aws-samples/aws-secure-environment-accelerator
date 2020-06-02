@@ -101,7 +101,6 @@ async function generateKeypair(
 }
 
 async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
-  const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   try {
@@ -113,7 +112,7 @@ async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
     console.log('Delete Keypair: ', response);
 
     const params = {
-      SecretId: physicalResourceId || `${properties.secretPrefix}${properties.keyName}`,
+      SecretId: `${properties.secretPrefix}${properties.keyName}`,
     };
 
     console.log('Delete Secret:', params);
