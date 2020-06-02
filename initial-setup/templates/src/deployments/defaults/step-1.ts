@@ -35,6 +35,7 @@ export interface DefaultsStep1Props {
 export interface DefaultsStep1Result {
   centralBucketCopy: s3.Bucket;
   centralLogBucket: s3.Bucket;
+  aesLogBucket: s3.Bucket;
   accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
 }
 
@@ -48,6 +49,7 @@ export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Res
   return {
     centralBucketCopy,
     centralLogBucket,
+    aesLogBucket,
     accountEbsEncryptionKeys,
   };
 }
@@ -93,7 +95,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   });
 
   const bucket = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
-    bucketName: createBucketName('central'),
+    bucketName: createBucketName('config'),
     encryptionKey,
     versioned: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -125,6 +127,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
     roleName: createRoleName('S3CopyFiles'),
     sourceBucket: centralBucket,
     destinationBucket: bucket,
+    deleteSourceObjects: true,
   });
   copyFiles.node.addDependency(bucket);
 

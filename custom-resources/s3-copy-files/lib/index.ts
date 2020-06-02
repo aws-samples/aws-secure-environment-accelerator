@@ -10,6 +10,10 @@ const resourceType = 'Custom::S3CopyFiles';
 export interface S3CopyFilesProps {
   sourceBucket: s3.IBucket;
   destinationBucket: s3.IBucket;
+  /**
+   * @default false
+   */
+  deleteSourceObjects?: boolean;
   roleName?: string;
 }
 
@@ -24,12 +28,19 @@ export class S3CopyFiles extends cdk.Construct {
 
     this.props = props;
 
-    props.sourceBucket.grantRead(this.role);
+    // Only grant write to the source when we need to delete the source object
+    const deleteSourceObjects = props.deleteSourceObjects ?? false;
+    if (deleteSourceObjects) {
+      props.sourceBucket.grantReadWrite(this.role);
+    } else {
+      props.sourceBucket.grantRead(this.role);
+    }
     props.destinationBucket.grantReadWrite(this.role);
 
     const handlerProperties: HandlerProperties = {
       sourceBucketName: props.sourceBucket.bucketName,
       destinationBucketName: props.destinationBucket.bucketName,
+      deleteSourceObjects,
     };
 
     new cdk.CustomResource(this, 'Resource', {
@@ -65,13 +76,7 @@ export class S3CopyFiles extends cdk.Construct {
 
     role.addToPolicy(
       new iam.PolicyStatement({
-        actions: [
-          'cloudformation:DescribeStackResource',
-          'kms:Decrypt',
-          'logs:CreateLogGroup',
-          'logs:CreateLogStream',
-          'logs:PutLogEvents',
-        ],
+        actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         resources: ['*'],
       }),
     );

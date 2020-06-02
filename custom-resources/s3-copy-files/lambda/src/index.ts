@@ -5,9 +5,9 @@ import { errorHandler } from '@custom-resources/cfn-response';
 export interface HandlerProperties {
   sourceBucketName: string;
   destinationBucketName: string;
+  deleteSourceObjects: boolean;
 }
 
-const cfn = new AWS.CloudFormation();
 const s3 = new AWS.S3();
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
@@ -32,6 +32,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   await copyFiles({
     sourceBucketName: properties.sourceBucketName,
     destinationBucketName: properties.destinationBucketName,
+    deleteSourceObjects: properties.deleteSourceObjects,
   });
   return {
     physicalResourceId: properties.destinationBucketName,
@@ -39,22 +40,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
-  // Find resource last updated timestamp
-  const describeStackResource = await cfn
-    .describeStackResource({
-      StackName: event.StackId,
-      LogicalResourceId: event.LogicalResourceId,
-    })
-    .promise();
-  const lastUpdatedTimestamp = describeStackResource.StackResourceDetail?.LastUpdatedTimestamp;
-  console.debug(`Resource last updated timestamp ${lastUpdatedTimestamp}`);
-
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  return copyFiles({
-    sourceBucketName: properties.sourceBucketName,
-    destinationBucketName: properties.destinationBucketName,
-    resourceLastModified: lastUpdatedTimestamp,
-  });
+  return onCreate(event);
 }
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {
@@ -64,24 +50,18 @@ async function onDelete(_: CloudFormationCustomResourceEvent) {
 async function copyFiles(props: {
   sourceBucketName: string;
   destinationBucketName: string;
-  resourceLastModified?: Date;
+  deleteSourceObjects: boolean;
 }) {
-  const { sourceBucketName, destinationBucketName, resourceLastModified } = props;
+  const { sourceBucketName, destinationBucketName, deleteSourceObjects } = props;
 
   const copyObjectPromises = [];
   for await (const object of listObjects(sourceBucketName)) {
-    const objectLastModified = object.LastModified!;
-    if (resourceLastModified && resourceLastModified.getTime() < objectLastModified.getTime()) {
-      console.debug(`Skipping object ${object.Key}`);
-      console.debug(`  Object last modified ${objectLastModified} is before resource ${resourceLastModified}`);
-      continue;
-    }
-
-    console.debug(`Copying object ${object.Key}, last modified at ${objectLastModified}`);
+    console.debug(`Copying object ${object.Key}`);
     copyObjectPromises.push(
       copyObject({
         sourceBucketName,
         destinationBucketName,
+        deleteSourceObjects,
         key: object.Key!,
       }),
     );
@@ -105,8 +85,13 @@ async function* listObjects(bucketName: string): AsyncIterableIterator<AWS.S3.Ob
   } while (nextMarker);
 }
 
-async function copyObject(props: { sourceBucketName: string; destinationBucketName: string; key: string }) {
-  const { sourceBucketName, destinationBucketName, key } = props;
+async function copyObject(props: {
+  sourceBucketName: string;
+  destinationBucketName: string;
+  deleteSourceObjects: boolean;
+  key: string;
+}) {
+  const { sourceBucketName, destinationBucketName, deleteSourceObjects, key } = props;
 
   let object;
   try {
@@ -130,5 +115,18 @@ async function copyObject(props: { sourceBucketName: string; destinationBucketNa
       .promise();
   } catch (e) {
     throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${key}: ${e}`);
+  }
+
+  if (deleteSourceObjects) {
+    try {
+      await s3
+        .deleteObject({
+          Bucket: sourceBucketName,
+          Key: key,
+        })
+        .promise();
+    } catch (e) {
+      throw new Error(`Unable to delete S3 object s3://${sourceBucketName}/${key}: ${e}`);
+    }
   }
 }
