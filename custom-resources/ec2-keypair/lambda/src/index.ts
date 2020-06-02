@@ -108,9 +108,11 @@ async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   try {
-    const response = await ec2.deleteKeyPair({
-      KeyName: properties.keyName,
-    }).promise();
+    const response = await ec2
+      .deleteKeyPair({
+        KeyName: properties.keyName,
+      })
+      .promise();
     console.log('Delete Keypair: ', response);
 
     const params = {

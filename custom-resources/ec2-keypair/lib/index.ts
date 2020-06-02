@@ -64,6 +64,6 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
   }
 
   get arn(): string {
-      return this.resource.getAttString('ARN');
+    return this.resource.getAttString('ARN');
   }
 }
