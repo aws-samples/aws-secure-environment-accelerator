@@ -37,7 +37,7 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
           resources: ['*'],
         }).toJSON(),
         new iam.PolicyStatement({
-          actions: ['ec2:CreateKeyPair'],
+          actions: ['ec2:CreateKeyPair', 'ec2:DeleteKeyPair'],
           resources: ['*'],
         }).toJSON(),
         new iam.PolicyStatement({
