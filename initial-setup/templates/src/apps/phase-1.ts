@@ -1,3 +1,4 @@
+import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
@@ -12,7 +13,6 @@ import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
   InterfaceEndpointConfig,
   PeeringConnectionConfig,
-  IamUserConfigType,
   IamConfig,
   IamConfigType,
   IamPolicyConfigType,
@@ -22,8 +22,6 @@ import { VpcOutput } from '../deployments/vpc';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
-import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
 import * as budget from '../deployments/billing/budget';
@@ -34,6 +32,7 @@ import * as firewall from '../deployments/firewall/cluster';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
 import { PhaseInput } from './shared';
+import { getIamUserPasswordSecretValue } from '../deployments/iam';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -60,6 +59,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
+  if (!masterAccountId) {
+    throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
+  }
 
   const transitGateways = new Map<string, TransitGateway>();
 
@@ -333,44 +336,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     return iamPoliciesDef;
   };
 
-  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-  const secretsStack = new SecretsContainer(masterAccountStack, 'Secrets');
-
   const iamPoliciesDefinition = await getIamPoliciesDefinition();
-
-  const getUserPasswords = async (accountKey: string, iamConfig?: IamConfig): Promise<{ [userId: string]: Secret }> => {
-    const userPasswords: { [userId: string]: Secret } = {};
-    const accountId = getAccountId(accounts, accountKey);
-
-    const iamUsers = iamConfig?.users;
-    if (iamUsers && iamUsers?.length >= 1) {
-      for (const iamUser of iamUsers) {
-        if (!IamUserConfigType.is(iamUser)) {
-          console.log(
-            `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
-          );
-        } else {
-          for (const userId of iamUser['user-ids']) {
-            const password = secretsStack.createSecret(`${userId}-UserPswd`, {
-              secretName: `accelerator/${accountKey}/user/password/${userId}`,
-              description: `Password for IAM User - ${userId}.`,
-              generateSecretString: {
-                passwordLength: 16,
-              },
-              principals: [new iam.AccountPrincipal(accountId)],
-            });
-            userPasswords[userId] = password;
-          }
-        }
-      }
-    } else {
-      console.log(
-        `IAM config - users is not defined for account with key - ${accountKey}. Skipping Passwords creation.`,
-      );
-    }
-
-    return userPasswords;
-  };
 
   const createIamAssets = async (accountKey: string, iamConfig?: IamConfig): Promise<void> => {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
@@ -379,7 +345,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       return;
     }
 
-    const userPasswords = await getUserPasswords(accountKey, iamConfig);
+    const userPasswords: { [userId: string]: cdk.SecretValue } = {};
+
+    const users = iamConfig?.users || [];
+    const userIds = users.flatMap(u => u['user-ids']);
+    for (const userId of userIds) {
+      userPasswords[userId] = getIamUserPasswordSecretValue({
+        acceleratorPrefix: context.acceleratorPrefix,
+        accountKey,
+        userId,
+        secretAccountId: masterAccountId,
+      });
+    }
 
     if (iamPoliciesDefinition) {
       const iamAssets = new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
