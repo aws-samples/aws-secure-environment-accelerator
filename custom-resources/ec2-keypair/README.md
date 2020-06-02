@@ -8,7 +8,7 @@ This is a custom resource to generate a Keypair.
 
     const keypair = new Keypair(scope, `Keypair`, {
       name: 'MyKeypair',
-      secretPrefix: '/my/prefix',
+      secretPrefix: '/my/prefix/',
     });
 
     // Use key name to get the private key stored in secret manager

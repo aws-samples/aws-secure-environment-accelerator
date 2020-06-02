@@ -60,15 +60,10 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
   }
 
   get keyName(): string {
-    // Return a lazy value as the resource only gets created in the onPrepare phase
-    return cdk.Lazy.stringValue({
-      produce: () => this.resource.getAttString('KeyName'),
-    });
+    return this.resource.getAttString('KeyName');
   }
 
   get arn(): string {
-    return cdk.Lazy.stringValue({
-      produce: () => this.resource.getAttString('ARN'),
-    });
+      return this.resource.getAttString('ARN');
   }
 }

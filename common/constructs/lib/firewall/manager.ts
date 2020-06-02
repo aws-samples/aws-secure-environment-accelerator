@@ -27,7 +27,7 @@ export class FirewallManager extends cdk.Construct {
     this.keyPairName = 'FirewallManagement';
     this.keyPair = new Keypair(this, 'KeyPair', {
       name: this.keyPairName,
-      secretPrefix: 'accelerator/keypairs',
+      secretPrefix: 'accelerator/keypairs/',
     });
 
     this.resource = new ec2.CfnInstance(this, 'Resource', {

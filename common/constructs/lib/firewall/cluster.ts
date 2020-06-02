@@ -51,7 +51,7 @@ export class FirewallCluster extends cdk.Construct {
     this.keyPairName = 'Firewall';
     this.keyPair = new Keypair(this, 'KeyPair', {
       name: this.keyPairName,
-      secretPrefix: 'accelerator/keypairs',
+      secretPrefix: 'accelerator/keypairs/',
     });
 
     this.props.configuration.bucket.grantRead(this.instanceRole);

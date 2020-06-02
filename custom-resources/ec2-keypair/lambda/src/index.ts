@@ -35,7 +35,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<string> {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-  return `${properties.secretPrefix}/${properties.keyName}`;
+  return `${properties.secretPrefix}${properties.keyName}`;
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
@@ -90,7 +90,7 @@ async function generateKeypair(
     console.log('Create Keypair: ', response);
 
     const params = {
-      Name: physicalResourceId || `${properties.secretPrefix}/${properties.keyName}`,
+      Name: physicalResourceId || `${properties.secretPrefix}${properties.keyName}`,
       SecretString: response.KeyMaterial,
     };
 
@@ -108,8 +108,13 @@ async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   try {
+    const response = await ec2.deleteKeyPair({
+      KeyName: properties.keyName,
+    }).promise();
+    console.log('Delete Keypair: ', response);
+
     const params = {
-      SecretId: physicalResourceId || `${properties.secretPrefix}/${properties.keyName}`,
+      SecretId: physicalResourceId || `${properties.secretPrefix}${properties.keyName}`,
     };
 
     console.log('Delete Secret:', params);
