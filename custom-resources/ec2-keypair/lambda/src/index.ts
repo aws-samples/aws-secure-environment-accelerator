@@ -36,7 +36,8 @@ async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
-  const response = await generateKeypair(event);
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const response = await generateKeypair(properties);
   return {
     physicalResourceId: await getPhysicalId(event),
     data: {
@@ -48,7 +49,12 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const response = await generateKeypair(event);
+  // delete old keypair
+  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
+  await deleteKeypair(oldProperties);
+  // create nenw keypair
+  const newProperties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const response = await generateKeypair(newProperties);
   return {
     physicalResourceId: await getPhysicalId(event),
     data: {
@@ -60,7 +66,8 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  const response = await deleteKeypair(event);
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const response = await deleteKeypair(properties);
   return {
     physicalResourceId: await getPhysicalId(event),
     data: {
@@ -71,13 +78,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   };
 }
 
-async function generateKeypair(
-  event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
-) {
-  const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
-
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-
+async function generateKeypair(properties: HandlerProperties) {
   try {
     const response = await ec2
       .createKeyPair({
@@ -87,7 +88,7 @@ async function generateKeypair(
     console.log('Create Keypair: ', response);
 
     const params = {
-      Name: physicalResourceId || `${properties.secretPrefix}${properties.keyName}`,
+      Name: `${properties.secretPrefix}${properties.keyName}`,
       SecretString: response.KeyMaterial,
     };
 
@@ -100,9 +101,7 @@ async function generateKeypair(
   }
 }
 
-async function deleteKeypair(event: CloudFormationCustomResourceDeleteEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-
+async function deleteKeypair(properties: HandlerProperties) {
   try {
     const response = await ec2
       .deleteKeyPair({
