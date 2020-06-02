@@ -74,8 +74,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         accountKey,
         secretAccountId: masterAccountId,
         userId: adUser.user,
-      })
-      userSecrets.push({ user: adUser.user, passwordSecretArn: passwordSecretArn });
+      });
+      userSecrets.push({ user: adUser.user, passwordSecretArn });
     }
 
     const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(

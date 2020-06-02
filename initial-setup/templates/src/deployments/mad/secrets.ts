@@ -14,7 +14,7 @@ export interface MadSecretsProps {
 /**
  * Create secrets that will later be used for MAD user creation.
  */
-export function createSecrets(props: MadSecretsProps) {
+export async function createSecrets(props: MadSecretsProps) {
   const { acceleratorPrefix, accounts, config, secretsContainer } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {

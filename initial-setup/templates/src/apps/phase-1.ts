@@ -285,12 +285,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {
     const iamPoliciesDef: { [policyName: string]: string } = {};
 
-    const masterAccountId = getAccountId(accounts, masterAccountKey);
-    if (!masterAccountId) {
-      console.warn('Cannot find account with accountKey master');
-      return;
-    }
-
     const sts = new STS();
     const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
       masterAccountId,

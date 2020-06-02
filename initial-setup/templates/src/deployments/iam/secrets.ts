@@ -17,7 +17,7 @@ export type IamSecretsResult = { [userId: string]: secrets.Secret };
 /**
  * Create secrets that will later be used for IAM user creation.
  */
-export function createSecrets(props: IamSecretsProps): IamSecretsResult {
+export async function createSecrets(props: IamSecretsProps): Promise<IamSecretsResult> {
   const { acceleratorPrefix, accounts, config, secretsContainer } = props;
 
   const userPasswords: IamSecretsResult = {};
