@@ -3,7 +3,7 @@ import * as r53 from '@aws-cdk/aws-route53';
 
 import { GlobalOptionsZonesConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
-import { AccountStack } from './account-stacks';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { trimSpecialCharacters } from '@aws-pbmm/common-outputs/lib/secrets';
 
 export interface Route53ZonesProps {
@@ -19,7 +19,7 @@ export class Route53Zones extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: Route53ZonesProps) {
     super(parent, name);
 
-    const accountStack = AccountStack.of(this) as AccountStack;
+    const stack = AcceleratorStack.of(this);
 
     const zoneConfig = props.zonesConfig;
     const publicHostedZoneProps = zoneConfig.names.public;
@@ -28,7 +28,7 @@ export class Route53Zones extends cdk.Construct {
     // Create Public Hosted Zones
     for (const domain of publicHostedZoneProps) {
       const logGroupName = createR53LogGroupName({
-        acceleratorPrefix: accountStack.acceleratorPrefix,
+        acceleratorPrefix: stack.acceleratorPrefix,
         domain,
       });
       const logGroupArn = `arn:aws:logs:${DNS_LOGGING_LOG_GROUP_REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${logGroupName}`;

@@ -3,8 +3,8 @@ import * as ssm from '@aws-cdk/aws-ssm';
 import { getAccountId } from '../utils/accounts';
 import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
-import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
 import { PhaseInput } from './shared';
@@ -58,9 +58,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       continue;
     }
 
-    const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
-
-    const keyPair = keyPairContainer.createKeyPair('RDGWEc2KeyPair', {
+    const keyPair = new AcceleratorKeypair(stack, 'RDGWEc2KeyPair', {
       name: ec2KeyPairName,
       description: 'This is a Key Pair for RDGW host instance',
       secretPrefix: ec2KeyPairPrefix,

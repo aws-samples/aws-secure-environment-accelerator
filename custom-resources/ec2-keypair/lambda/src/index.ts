@@ -5,6 +5,7 @@ import {
   CloudFormationCustomResourceUpdateEvent,
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
+import { errorHandler } from '@custom-resources/cfn-response';
 
 const ec2 = new AWS.EC2();
 const secretsManager = new AWS.SecretsManager();
@@ -14,7 +15,9 @@ export interface HandlerProperties {
   secretPrefix: string;
 }
 
-export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+export const handler = errorHandler(onEvent);
+
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Generating keypair...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -29,7 +32,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
   }
 };
 
-async function getPhysicalId(event: CloudFormationCustomResourceEvent): Promise<string> {
+function getPhysicalId(event: CloudFormationCustomResourceEvent): string{
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   return `${properties.secretPrefix}${properties.keyName}`;
@@ -39,84 +42,87 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const response = await generateKeypair(properties);
   return {
-    physicalResourceId: await getPhysicalId(event),
+    physicalResourceId: getPhysicalId(event),
     data: {
-      KeyName: response.Name,
-      ARN: response.ARN,
-      VersionId: response.VersionId,
+      KeyName: response.KeyName,
     },
   };
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   // delete old keypair
+  // TODO Do not delete the old keypair if the name did not change
+  //      This could happen when the `secretPrefix` changes
   const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
   await deleteKeypair(oldProperties);
-  // create nenw keypair
+
+  // create new keypair
   const newProperties = (event.ResourceProperties as unknown) as HandlerProperties;
   const response = await generateKeypair(newProperties);
   return {
-    physicalResourceId: await getPhysicalId(event),
+    physicalResourceId: getPhysicalId(event),
     data: {
-      KeyName: response.Name,
-      ARN: response.ARN,
-      VersionId: response.VersionId,
+      KeyName: response.KeyName,
     },
   };
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await deleteKeypair(properties);
+  await deleteKeypair(properties);
   return {
-    physicalResourceId: await getPhysicalId(event),
-    data: {
-      KeyName: response.Name,
-      ARN: response.ARN,
-      DeletionDate: response.DeletionDate,
-    },
+    physicalResourceId: getPhysicalId(event),
   };
 }
 
 async function generateKeypair(properties: HandlerProperties) {
+  const createKeyPair = await ec2
+    .createKeyPair({
+      KeyName: properties.keyName,
+    })
+    .promise();
+
+  const secretName = `${properties.secretPrefix}${properties.keyName}`;
   try {
-    const response = await ec2
-      .createKeyPair({
-        KeyName: properties.keyName,
+    await secretsManager
+      .createSecret({
+        Name: secretName,
+        SecretString: createKeyPair.KeyMaterial,
       })
       .promise();
-    console.log('Create Keypair: ', response);
-
-    const params = {
-      Name: `${properties.secretPrefix}${properties.keyName}`,
-      SecretString: response.KeyMaterial,
-    };
-
-    console.log('Create Secret: ', params);
-    const smResponse = await secretsManager.createSecret(params).promise();
-
-    return smResponse;
   } catch (e) {
-    throw e;
+    const message = `${e}`;
+    if (!message.includes(`already scheduled for deletion`)) {
+      throw e;
+    }
+
+    // Restore the deleted secret and put the key material in
+    await secretsManager
+      .restoreSecret({
+        SecretId: secretName,
+      })
+      .promise();
+    await secretsManager
+      .putSecretValue({
+        SecretId: secretName,
+        SecretString: createKeyPair.KeyMaterial,
+      })
+      .promise();
   }
+  return createKeyPair;
 }
 
 async function deleteKeypair(properties: HandlerProperties) {
-  try {
-    const response = await ec2
-      .deleteKeyPair({
-        KeyName: properties.keyName,
-      })
-      .promise();
-    console.log('Delete Keypair: ', response);
+  await ec2
+    .deleteKeyPair({
+      KeyName: properties.keyName,
+    })
+    .promise();
 
-    const params = {
-      SecretId: `${properties.secretPrefix}${properties.keyName}`,
-    };
-
-    console.log('Delete Secret:', params);
-    return await secretsManager.deleteSecret(params).promise();
-  } catch (e) {
-    throw e;
-  }
+  const secretName = `${properties.secretPrefix}${properties.keyName}`;
+  await secretsManager
+    .deleteSecret({
+      SecretId: secretName,
+    })
+    .promise();
 }

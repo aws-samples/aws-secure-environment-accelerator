@@ -82,11 +82,7 @@ export function createName(props: CreateNameProps = {}): string {
       const { name, account, region, suffixLength, separator = DEFAULT_SEPARATOR } = props;
 
       // Find the AcceleratorStack in the parents.
-      const parents = scope.node.scopes;
-      const stack = parents.find((p: cdk.IConstruct): p is AcceleratorStack => p instanceof AcceleratorStack);
-      if (!stack) {
-        throw new Error(`The AcceleratorNameGenerator should only be used with constructs in AcceleratorStack`);
-      }
+      const stack = AcceleratorStack.of(scope);
 
       // Use the AcceleratorStack prefix
       const prefix = stack.acceleratorPrefix;
@@ -103,6 +99,7 @@ export function createName(props: CreateNameProps = {}): string {
       }
       if (suffixLength && suffixLength > 0) {
         // Create a suffix that is based on the path of the component
+        const parents = scope.node.scopes;
         const path = parents.map(p => p.node.id);
         const suffix = hashPath(path, suffixLength);
         pieces.push(prepareString(suffix, props));

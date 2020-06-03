@@ -40,7 +40,7 @@ export interface FirewallInstanceProps {
   imageId: string;
   instanceType: string;
   iamInstanceProfile: iam.CfnInstanceProfile;
-  keyPair: Keypair | string;
+  keyPairName?: string;
   configuration: FirewallConfigurationProps;
 }
 
@@ -81,7 +81,7 @@ export class FirewallInstance extends cdk.Construct {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
       iamInstanceProfile: this.props.iamInstanceProfile.ref,
-      keyName: getKeyPairName(this.props.keyPair),
+      keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
       userData: cdk.Fn.base64(
         JSON.stringify(
@@ -100,10 +100,6 @@ export class FirewallInstance extends cdk.Construct {
 
     this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
-
-    if (this.props.keyPair instanceof cdk.DependableTrait) {
-      this.resource.node.addDependency(this.props.keyPair);
-    }
   }
 
   addNetworkInterface(props: {
@@ -182,11 +178,4 @@ export class FirewallInstance extends cdk.Construct {
   get instanceId() {
     return this.resource.ref;
   }
-}
-
-function getKeyPairName(keyPairOrName: Keypair | string) {
-  if (typeof keyPairOrName === 'string') {
-    return keyPairOrName;
-  }
-  return keyPairOrName.keyName;
 }
