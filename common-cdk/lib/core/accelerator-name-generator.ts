@@ -104,6 +104,8 @@ export function createName(props: CreateNameProps = {}): string {
       // Use the AcceleratorStack prefix
       let prefix: string;
       if (separator && separator !== DEFAULT_SEPARATOR && stack.acceleratorPrefix.endsWith(DEFAULT_SEPARATOR)) {
+        // if separator != DEFAULT_SEPARATOR then remove DEFAULT_SEPARATOR from prefix if that ends with DEFAULT_SEPARATOR and append new seperator
+        // eg. Prefix- turns to be Prefix/ considering separator = / and DEFAULT_SEPARATOR = -
         prefix = `${stack.acceleratorPrefix.slice(0, -1)}${separator}`;
       } else {
         prefix = stack.acceleratorPrefix;

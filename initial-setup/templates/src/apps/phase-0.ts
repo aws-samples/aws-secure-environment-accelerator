@@ -181,23 +181,25 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const zonesAccountKey = zonesConfig.account;
 
   const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
-  for (const phz of zonesConfig.names.public) {
-    new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
+  zonesConfig.names.public.forEach((phz, index) => {
+    const logGroup = new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
       logGroupName: createLogGroupName(phz, 'r53'),
     });
-  }
-  // Allow r53 services to write to the log group
-  new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
-    policyName: createName({
-      name: 'query-logging-pol',
-    }),
-    policyStatements: [
-      new awsIam.PolicyStatement({
-        actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
-        principals: [new awsIam.ServicePrincipal('route53.amazonaws.com')],
-        resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${createLogGroupName('r53')}/*`],
-      }),
-    ],
+    if (index === 0) {
+      // Allow r53 services to write to the log group
+      new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
+        policyName: createName({
+          name: 'query-logging-pol',
+        }),
+        policyStatements: [
+          new awsIam.PolicyStatement({
+            actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+            principals: [new awsIam.ServicePrincipal('route53.amazonaws.com')],
+            resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${createLogGroupName('r53')}/*`],
+          }),
+        ],
+      }).node.addDependency(logGroup);
+    }
   });
 
   // TODO Deprecate these outputs
