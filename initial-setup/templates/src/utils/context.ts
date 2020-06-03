@@ -5,11 +5,11 @@ export interface Context {
   acceleratorName: string;
   acceleratorPrefix: string;
   acceleratorExecutionRoleName: string;
+  defaultRegion: string;
 }
 
 export function loadContext(): Context {
   if (process.env.CONFIG_MODE === 'development') {
-    // TODO Move to environment.json
     const configPath = path.join(__dirname, '..', '..', 'context.json');
     if (!fs.existsSync(configPath)) {
       throw new Error(`Cannot find local config.json at "${configPath}"`);
@@ -22,5 +22,6 @@ export function loadContext(): Context {
     acceleratorName: process.env.ACCELERATOR_NAME!,
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
+    defaultRegion: process.env.AWS_REGION!,
   };
 }

@@ -7,7 +7,7 @@ import { Account, getAccountId } from '../utils/accounts';
 export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountId: string;
   accountKey: string;
-  region?: string;
+  region: string;
 }
 
 /**
@@ -42,14 +42,9 @@ export interface AccountStacksProps {
  * phase and this class helps managing the stacks.
  */
 export class AccountStacks {
-  readonly app: cdk.App;
-  readonly props: AccountStacksProps;
   readonly stacks: AccountStack[] = [];
 
-  constructor(app: cdk.App, props: AccountStacksProps) {
-    this.app = app;
-    this.props = props;
-  }
+  constructor(private readonly app: cdk.App, private readonly props: AccountStacksProps) {}
 
   getOrCreateAccountStack(accountKey: string, region?: string): AccountStack {
     const accountStack = this.tryGetOrCreateAccountStack(accountKey, region);
@@ -63,12 +58,8 @@ export class AccountStacks {
    * Get the existing stack for the given account or create a new stack if no such stack exists yet.
    */
   tryGetOrCreateAccountStack(accountKey: string, region?: string): AccountStack | undefined {
-    let existingStack;
-    if (region) {
-      existingStack = this.stacks.find(s => s.accountKey === accountKey && s.region === region);
-    } else {
-      existingStack = this.stacks.find(s => s.accountKey === accountKey);
-    }
+    const regionOrDefault = region ?? this.props.context.defaultRegion;
+    const existingStack = this.stacks.find(s => s.accountKey === accountKey && s.region === regionOrDefault);
     if (existingStack) {
       return existingStack;
     }
@@ -80,15 +71,18 @@ export class AccountStacks {
 
     const accountPrettyName = pascalCase(accountKey);
     const stackName = `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
+    // BE CAREFUL CHANGING THE STACK CONSTRUCT ID
+    // When changed, it will create a new stack and delete the old one
+    const stackConstructId = `${accountPrettyName}Phase${this.props.phase}${region ?? ''}`;
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
-    const stack = new AccountStack(this.app, `${accountPrettyName}Phase${this.props.phase}${region}`, {
+    const stack = new AccountStack(this.app, stackConstructId, {
       accountId,
       accountKey,
       stackName,
       acceleratorName: this.props.context.acceleratorName,
       acceleratorPrefix: this.props.context.acceleratorPrefix,
       terminationProtection,
-      region: region!,
+      region: regionOrDefault,
     });
     this.stacks.push(stack);
     return stack;

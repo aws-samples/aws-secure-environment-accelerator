@@ -1,8 +1,10 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
+import * as iam from '@aws-cdk/aws-iam';
+import * as logs from '@aws-cdk/aws-logs';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
-import { createName, createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from '../common/json-output';
@@ -11,13 +13,12 @@ import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
-import * as iam from '../deployments/iam';
+import * as iamDeployment from '../deployments/iam';
 import * as mad from '../deployments/mad';
 import { PhaseInput } from './shared';
-import * as logs from '@aws-cdk/aws-logs';
 import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
-import * as awsIam from '@aws-cdk/aws-iam';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
+import { createR53LogGroupName } from '../common/r53-zones';
 /**
  * This is the main entry point to deploy phase 0.
  *
@@ -95,7 +96,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const secretsContainer = new SecretsContainer(masterAccountStack, 'Secrets');
 
   // Create IAM secrets
-  await iam.createSecrets({
+  await iamDeployment.createSecrets({
     acceleratorPrefix: context.acceleratorPrefix,
     accounts,
     config: acceleratorConfig,
@@ -181,28 +182,39 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const zonesAccountKey = zonesConfig.account;
 
   const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
-  zonesConfig.names.public.forEach((phz, index) => {
-    const logGroup = new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
-      logGroupName: createLogGroupName(phz, 'r53'),
+  const logGroups =  zonesConfig.names.public.map((phz, index) => {
+    const logGroupName = createR53LogGroupName({
+      acceleratorPrefix: context.acceleratorPrefix,
+      domain: phz,
     });
-    if (index === 0) {
-      // Allow r53 services to write to the log group
-      new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
-        policyName: createName({
-          name: 'query-logging-pol',
-        }),
-        policyStatements: [
-          new awsIam.PolicyStatement({
-            actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
-            principals: [new awsIam.ServicePrincipal('route53.amazonaws.com')],
-            resources: [
-              `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${createLogGroupName('r53')}/*`,
-            ],
-          }),
-        ],
-      }).node.addDependency(logGroup);
-    }
+    return new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
+      logGroupName,
+    });
   });
+
+  if (logGroups.length > 0) {
+    const wildcardLogGroupName = createR53LogGroupName({
+      acceleratorPrefix: context.acceleratorPrefix,
+      domain: '*',
+    });
+
+    // Allow r53 services to write to the log group
+    const logGroupPolicy = new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
+      policyName: createName({
+        name: 'query-logging-pol',
+      }),
+      policyStatements: [
+        new iam.PolicyStatement({
+          actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+          principals: [new iam.ServicePrincipal('route53.amazonaws.com')],
+          resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${wildcardLogGroupName}`],
+        }),
+      ],
+    });
+    for (const logGroup of logGroups) {
+      logGroupPolicy.node.addDependency(logGroup);
+    }
+  }
 
   // TODO Deprecate these outputs
   const logArchiveAccountKey = acceleratorConfig['global-options']['central-log-services'].account;

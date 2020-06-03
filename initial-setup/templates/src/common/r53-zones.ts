@@ -2,8 +2,9 @@ import * as cdk from '@aws-cdk/core';
 import * as r53 from '@aws-cdk/aws-route53';
 
 import { GlobalOptionsZonesConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
+import { AccountStack } from './account-stacks';
+import { trimSpecialCharacters } from '@aws-pbmm/common-outputs/lib/secrets';
 
 export interface Route53ZonesProps {
   zonesConfig: GlobalOptionsZonesConfig;
@@ -18,22 +19,27 @@ export class Route53Zones extends cdk.Construct {
   constructor(parent: cdk.Construct, name: string, props: Route53ZonesProps) {
     super(parent, name);
 
+    const accountStack = AccountStack.of(this) as AccountStack;
+
     const zoneConfig = props.zonesConfig;
     const publicHostedZoneProps = zoneConfig.names.public;
     const privateHostedZoneProps = zoneConfig.names.private;
 
     // Create Public Hosted Zones
     for (const domain of publicHostedZoneProps) {
-      const cloudWatchLogsLogGroupArn = `arn:aws:logs:${DNS_LOGGING_LOG_GROUP_REGION}:${
-        cdk.Aws.ACCOUNT_ID
-      }:log-group:${createLogGroupName(domain, 'r53')}`;
+      const logGroupName = createR53LogGroupName({
+        acceleratorPrefix: accountStack.acceleratorPrefix,
+        domain,
+      });
+      const logGroupArn = `arn:aws:logs:${DNS_LOGGING_LOG_GROUP_REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${logGroupName}`;
+
       const zone = new r53.CfnHostedZone(this, `${domain.replace('.', '-')}_pz`, {
         name: domain,
         hostedZoneConfig: {
           comment: `PHZ - ${domain}`,
         },
         queryLoggingConfig: {
-          cloudWatchLogsLogGroupArn,
+          cloudWatchLogsLogGroupArn: logGroupArn,
         },
       });
       this.publicZoneToDomainMap.set(domain, zone.ref);
@@ -57,4 +63,10 @@ export class Route53Zones extends cdk.Construct {
       this.privateZoneToDomainMap.set(domain, zone.ref);
     }
   }
+}
+
+export function createR53LogGroupName(props: { acceleratorPrefix: string; domain: string }) {
+  const { acceleratorPrefix, domain } = props;
+  const prefix = trimSpecialCharacters(acceleratorPrefix);
+  return `/${prefix}/r53/${domain}`;
 }
