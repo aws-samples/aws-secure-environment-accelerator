@@ -6,6 +6,7 @@ export interface HandlerProperties {
   sourceBucketName: string;
   destinationBucketName: string;
   deleteSourceObjects: boolean;
+  forceUpdate?: number;
 }
 
 const s3 = new AWS.S3();
@@ -40,7 +41,14 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
-  return onCreate(event);
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  // Only copy over the files when forceUpdate is not set
+  if (properties.forceUpdate !== undefined) {
+    return onCreate(event);
+  }
+  return {
+    physicalResourceId: properties.destinationBucketName,
+  };
 }
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {

@@ -14,6 +14,13 @@ export interface S3CopyFilesProps {
    * @default false
    */
   deleteSourceObjects?: boolean;
+  /**
+   * @default true
+   */
+  forceUpdate?: boolean;
+  /**
+   * The role name that is created for the custom resource Lambda function.
+   */
   roleName?: string;
 }
 
@@ -43,14 +50,16 @@ export class S3CopyFiles extends cdk.Construct {
       deleteSourceObjects,
     };
 
+    const forceUpdate = props.forceUpdate ?? true;
+    if (forceUpdate) {
+      // Add a dummy value that is a random number to update the resource every time
+      handlerProperties.forceUpdate = Math.round(Math.random() * 1000000);
+    }
+
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: {
-        ...handlerProperties,
-        // Add a dummy value that is a random number to update the resource every time
-        forceUpdate: Math.round(Math.random() * 1000000),
-      },
+      properties: handlerProperties,
     });
   }
 
