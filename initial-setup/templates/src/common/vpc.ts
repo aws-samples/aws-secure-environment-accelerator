@@ -285,6 +285,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
         const associateConfig = tgwAttach['tgw-rt-associate'] || [];
         const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+        const blackhole = tgwAttach["blackhole-route"];
 
         const subnetIds = attachSubnetsConfig.flatMap(
           subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
@@ -300,6 +301,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           transitGatewayId: tgw.tgwId,
           tgwRouteAssociates,
           tgwRoutePropagates,
+          blackhole,
         });
         // Add name tag
         cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);

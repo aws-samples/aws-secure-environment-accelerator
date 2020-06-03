@@ -7,6 +7,7 @@ export interface TransitGatewayAttachmentProps {
   vpcId: string;
   tgwRouteAssociates?: string[];
   tgwRoutePropagates?: string[];
+  blackhole?: boolean;
 }
 
 export class TransitGatewayAttachment extends cdk.Construct {
@@ -19,6 +20,12 @@ export class TransitGatewayAttachment extends cdk.Construct {
       new ec2.CfnTransitGatewayRouteTableAssociation(this, `tgw_associate_${index}`, {
         transitGatewayAttachmentId: this.tgwAttach.ref,
         transitGatewayRouteTableId: route,
+      });
+
+      new ec2.CfnTransitGatewayRoute(this, `tgw_tgw_route_${index}`, {
+        transitGatewayRouteTableId: route,
+        transitGatewayAttachmentId: this.tgwAttach.ref,
+        blackhole: props.blackhole,
       });
     }
 
