@@ -182,7 +182,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const zonesAccountKey = zonesConfig.account;
 
   const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
-  const logGroups =  zonesConfig.names.public.map((phz, index) => {
+  const logGroups = zonesConfig.names.public.map(phz => {
     const logGroupName = createR53LogGroupName({
       acceleratorPrefix: context.acceleratorPrefix,
       domain: phz,
