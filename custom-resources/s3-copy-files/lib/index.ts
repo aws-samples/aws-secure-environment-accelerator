@@ -15,6 +15,10 @@ export interface S3CopyFilesProps {
    */
   deleteSourceObjects?: boolean;
   /**
+   * @default false
+   */
+  deleteSourceBucket?: boolean;
+  /**
    * @default true
    */
   forceUpdate?: boolean;
@@ -35,6 +39,8 @@ export class S3CopyFiles extends cdk.Construct {
 
     this.props = props;
 
+    props.destinationBucket.grantReadWrite(this.role);
+
     // Only grant write to the source when we need to delete the source object
     const deleteSourceObjects = props.deleteSourceObjects ?? false;
     if (deleteSourceObjects) {
@@ -42,12 +48,23 @@ export class S3CopyFiles extends cdk.Construct {
     } else {
       props.sourceBucket.grantRead(this.role);
     }
-    props.destinationBucket.grantReadWrite(this.role);
+
+    // Only grant delete bucket when we need to delete the bucket
+    const deleteSourceBucket = props.deleteSourceBucket ?? false;
+    if (deleteSourceBucket) {
+      iam.Grant.addToPrincipalOrResource({
+        grantee: this.role,
+        actions: ['s3:DeleteBucket'],
+        resourceArns: [props.sourceBucket.bucketArn],
+        resource: props.sourceBucket,
+      });
+    }
 
     const handlerProperties: HandlerProperties = {
       sourceBucketName: props.sourceBucket.bucketName,
       destinationBucketName: props.destinationBucket.bucketName,
       deleteSourceObjects,
+      deleteSourceBucket,
     };
 
     const forceUpdate = props.forceUpdate ?? true;

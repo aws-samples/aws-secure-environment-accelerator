@@ -6,6 +6,7 @@ export interface HandlerProperties {
   sourceBucketName: string;
   destinationBucketName: string;
   deleteSourceObjects: boolean;
+  deleteSourceBucket: boolean;
   forceUpdate?: number;
 }
 
@@ -30,13 +31,22 @@ export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  await copyFiles({
-    sourceBucketName: properties.sourceBucketName,
-    destinationBucketName: properties.destinationBucketName,
-    deleteSourceObjects: properties.deleteSourceObjects,
-  });
+  const { sourceBucketName, destinationBucketName, deleteSourceObjects, deleteSourceBucket } = properties;
+
+  const exists = await bucketExists(sourceBucketName);
+  if (exists) {
+    await copyFiles({
+      sourceBucketName: sourceBucketName,
+      destinationBucketName: destinationBucketName,
+      deleteSourceObjects: deleteSourceObjects,
+    });
+    if (deleteSourceBucket) {
+      console.debug(`Deleting bucket ${sourceBucketName}`);
+      await deleteBucket(sourceBucketName);
+    }
+  }
   return {
-    physicalResourceId: properties.destinationBucketName,
+    physicalResourceId: destinationBucketName,
   };
 }
 
@@ -136,5 +146,30 @@ async function copyObject(props: {
     } catch (e) {
       throw new Error(`Unable to delete S3 object s3://${sourceBucketName}/${key}: ${e}`);
     }
+  }
+}
+
+async function bucketExists(bucketName: string): Promise<boolean> {
+  try {
+    await s3
+      .headBucket({
+        Bucket: bucketName,
+      })
+      .promise();
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
+async function deleteBucket(bucketName: string) {
+  try {
+    await s3
+      .deleteBucket({
+        Bucket: bucketName,
+      })
+      .promise();
+  } catch (e) {
+    throw new Error(`Unable to put delete bucket s3://${bucketName}: ${e}`);
   }
 }
