@@ -1,8 +1,11 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
+import * as iam from '@aws-cdk/aws-iam';
+import * as logs from '@aws-cdk/aws-logs';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
@@ -10,9 +13,12 @@ import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
+import * as iamDeployment from '../deployments/iam';
 import * as mad from '../deployments/mad';
 import { PhaseInput } from './shared';
-
+import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
+import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
+import { createR53LogGroupName } from '../common/r53-zones';
 /**
  * This is the main entry point to deploy phase 0.
  *
@@ -32,7 +38,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   const centralBucket = defaultsResult.centralBucketCopy;
 
-  // Master Stack to update Custom Resource Lambda Functions invoke permissions
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
@@ -87,6 +92,25 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     destinationKeyPrefix: 'config/scripts',
   });
 
+  // Create secrets for the different deployments
+  const secretsContainer = new SecretsContainer(masterAccountStack, 'Secrets');
+
+  // Create IAM secrets
+  await iamDeployment.createSecrets({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accounts,
+    config: acceleratorConfig,
+    secretsContainer,
+  });
+
+  // Create MAD secrets
+  await mad.createSecrets({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accounts,
+    config: acceleratorConfig,
+    secretsContainer,
+  });
+
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
   const securityStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
   if (!securityStack) {
@@ -102,21 +126,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     });
   }
 
-  const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(
-    a => a.key === acceleratorConfig.getMandatoryAccountKey('central-security'),
-  );
-  const subAccountIds = accounts.map(account => {
-    return {
-      AccountId: account.id,
-      Email: account.email,
-    };
-  });
-
-  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityMasterAccount?.key!);
+  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
   if (!securityMasterAccountStack) {
     console.warn(`Cannot find security stack`);
   } else {
+    const globalOptions = acceleratorConfig['global-options'];
+    const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
+    const subAccountIds = accounts.map(account => ({
+      AccountId: account.id,
+      Email: account.email,
+    }));
+
     // Create Security Hub stack for Master Account in Security Account
     new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
       account: securityMasterAccount!,
@@ -153,6 +173,48 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
   });
+
+  /**
+   * Code to create LogGroups required for DNS Logging
+   */
+  const globalOptionsConfig = acceleratorConfig['global-options'];
+  const zonesConfig = globalOptionsConfig.zones;
+  const zonesAccountKey = zonesConfig.account;
+
+  const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
+  const logGroups = zonesConfig.names.public.map(phz => {
+    const logGroupName = createR53LogGroupName({
+      acceleratorPrefix: context.acceleratorPrefix,
+      domain: phz,
+    });
+    return new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
+      logGroupName,
+    });
+  });
+
+  if (logGroups.length > 0) {
+    const wildcardLogGroupName = createR53LogGroupName({
+      acceleratorPrefix: context.acceleratorPrefix,
+      domain: '*',
+    });
+
+    // Allow r53 services to write to the log group
+    const logGroupPolicy = new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
+      policyName: createName({
+        name: 'query-logging-pol',
+      }),
+      policyStatements: [
+        new iam.PolicyStatement({
+          actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+          principals: [new iam.ServicePrincipal('route53.amazonaws.com')],
+          resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${wildcardLogGroupName}`],
+        }),
+      ],
+    });
+    for (const logGroup of logGroups) {
+      logGroupPolicy.node.addDependency(logGroup);
+    }
+  }
 
   // TODO Deprecate these outputs
   const logArchiveAccountKey = acceleratorConfig['global-options']['central-log-services'].account;

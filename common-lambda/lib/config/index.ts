@@ -378,7 +378,7 @@ export const FirewallConfigType = t.interface({
   vpc: t.string,
   'security-group': t.string,
   ports: t.array(FirewallPortConfigType),
-  license: optional(t.string),
+  license: optional(t.array(t.string)),
   config: t.string,
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
@@ -607,6 +607,13 @@ export interface ResolvedCertificateConfig extends ResolvedConfigBase {
   certificates: CertificateConfig[];
 }
 
+export interface ResolvedIamConfig extends ResolvedConfigBase {
+  /**
+   * The IAM config to be deployed.
+   */
+  iam: IamConfig;
+}
+
 export interface ResolvedAlbConfig extends ResolvedConfigBase {
   /**
    * The albs config to be deployed.
@@ -823,6 +830,34 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
             ouKey: key,
             accountKey,
             certificates,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find all IAM configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getIamConfigs(): ResolvedIamConfig[] {
+    const result: ResolvedIamConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const iam = config.iam;
+      if (!iam) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          iam,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            iam,
           });
         }
       }

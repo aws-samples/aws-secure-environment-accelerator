@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import * as s3 from '@aws-cdk/aws-s3';
 import { Keypair } from '@custom-resources/ec2-keypair';
 import { FirewallInstance, FirewallConfigurationProps } from './instance';
 
@@ -57,13 +58,20 @@ export class FirewallCluster extends cdk.Construct {
     this.props.configuration.bucket.grantRead(this.instanceRole);
   }
 
-  createInstance(props: { name: string; hostname: string }): FirewallInstance {
-    const { name, hostname } = props;
+  createInstance(props: {
+    name: string;
+    hostname: string;
+    licensePath?: string;
+    licenseBucket?: s3.IBucket;
+  }): FirewallInstance {
+    const { name, hostname, licensePath, licenseBucket } = props;
 
     const index = this.instances.length;
     const instance = new FirewallInstance(this, `Instance${index}`, {
       name,
       hostname,
+      licensePath,
+      licenseBucket,
       vpcCidrBlock: this.props.vpcCidrBlock,
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,

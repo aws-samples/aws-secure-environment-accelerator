@@ -1,0 +1,1 @@
+export const DNS_LOGGING_LOG_GROUP_REGION = 'us-east-1';
