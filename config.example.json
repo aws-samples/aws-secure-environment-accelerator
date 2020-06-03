@@ -891,7 +891,7 @@
             "name": "TGW-to-Perimeter",
             "associate-type": "VPN",
             "rt-associate": ["core"],
-            "rt-propogate": ["core", "segregated", "shared", "standalone"],
+            "rt-propagate": ["core", "segregated", "shared", "standalone"],
             "blackhole-route": false,
             "attach-subnets": [],
             "options": ["DNS-support", "IPv6-support"]
