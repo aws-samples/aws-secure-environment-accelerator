@@ -79,7 +79,7 @@ export class AccountStacks {
     }
 
     const accountPrettyName = pascalCase(accountKey);
-    let stackName = `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
+    const stackName = `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
     const stack = new AccountStack(this.app, `${accountPrettyName}Phase${this.props.phase}${region}`, {
       accountId,
