@@ -12,8 +12,8 @@ import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
-import * as firewallCluster from '../deployments/firewall/cluster';
 import * as firewallManagement from '../deployments/firewall/manager';
+import * as firewallCluster from '../deployments/firewall/cluster';
 import { SecurityHubStack } from '../common/security-hub';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
@@ -239,6 +239,26 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
     }
   }
 
+  // Deploy Security Hub
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
+
+  for (const account of accounts) {
+    if (account.id === securityMasterAccount?.id) {
+      continue;
+    }
+    const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
+    if (!memberAccountStack) {
+      console.warn(`Cannot find account stack ${account.key}`);
+      continue;
+    }
+    new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
+      account,
+      standards: globalOptions['security-hub-frameworks'],
+      masterAccountId: securityMasterAccount?.id,
+    });
+  }
+
   // TODO Find a better way to get VPCs
   // Import all VPCs from all outputs
   const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
@@ -274,25 +294,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
     accountStacks,
     config: acceleratorConfig,
     vpcs: allVpcs,
+    outputs,
   });
-
-  // Deploy Security Hub
-  const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
-
-  for (const account of accounts) {
-    if (account.id === securityMasterAccount?.id) {
-      continue;
-    }
-    const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
-    if (!memberAccountStack) {
-      console.warn(`Cannot find account stack ${account.key}`);
-      continue;
-    }
-    new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
-      account,
-      standards: globalOptions['security-hub-frameworks'],
-      masterAccountId: securityMasterAccount?.id,
-    });
-  }
 }
