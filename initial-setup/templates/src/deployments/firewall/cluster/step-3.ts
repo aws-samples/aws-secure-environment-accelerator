@@ -2,7 +2,7 @@ import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks } from '../../../common/account-stacks';
@@ -14,6 +14,7 @@ import {
   FirewallInstanceOutputType,
 } from './outputs';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { OUTPUT_SUBSCRIPTION_REGUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: s3.IBucket };
@@ -72,7 +73,16 @@ export async function step3(props: FirewallStep3Props) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;
     }
+    const subscriptionOutputs = getStackJsonOutput(outputs, {
+      outputType: 'AmiSubscriptionStatus',
+      accountKey,
+    });
 
+    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig['image-id']);
+    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REGUIRED) {
+      console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig['image-id']}`);
+      return;
+    }
     await createFirewallCluster({
       accountBucket,
       centralBucket,

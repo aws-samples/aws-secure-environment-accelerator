@@ -29,6 +29,7 @@ import * as centralServices from '../deployments/central-services';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
+import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
 import { PhaseInput } from './shared';
@@ -242,6 +243,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     return vpcStack.vpc;
   };
 
+  const subscriptionCheckDone: string[] = [];
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
     if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
@@ -256,7 +258,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         ouKey ? ` and organizational unit "${ouKey}"` : ''
       }`,
     );
-    createVpc(accountKey, {
+    const vpc = createVpc(accountKey, {
       accountKey,
       limiter,
       accounts,
@@ -271,6 +273,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       // Create Accepter Role for Peering Connection **WITHOUT** random suffix
       const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
+    }
+
+    // Validate subscription for Firewall imagesonly once per account
+    if (!subscriptionCheckDone.includes(accountKey)) {
+      console.log(`Checking Subscription for ${accountKey}`);
+      await firewallSubscription.validate({
+        accountKey,
+        deployments: deployments!,
+        vpc: vpc!,
+        accountStacks,
+      });
+      subscriptionCheckDone.push(accountKey);
     }
   }
 
