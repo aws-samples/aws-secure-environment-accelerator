@@ -2,6 +2,8 @@ import * as cdk from '@aws-cdk/core';
 import * as r53 from '@aws-cdk/aws-route53';
 
 import { GlobalOptionsZonesConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 
 export interface Route53ZonesProps {
   zonesConfig: GlobalOptionsZonesConfig;
@@ -22,10 +24,16 @@ export class Route53Zones extends cdk.Construct {
 
     // Create Public Hosted Zones
     for (const domain of publicHostedZoneProps) {
+      const cloudWatchLogsLogGroupArn = `arn:aws:logs:${DNS_LOGGING_LOG_GROUP_REGION}:${
+        cdk.Aws.ACCOUNT_ID
+      }:log-group:${createLogGroupName(domain, 'r53')}`;
       const zone = new r53.CfnHostedZone(this, `${domain.replace('.', '-')}_pz`, {
         name: domain,
         hostedZoneConfig: {
           comment: `PHZ - ${domain}`,
+        },
+        queryLoggingConfig: {
+          cloudWatchLogsLogGroupArn,
         },
       });
       this.publicZoneToDomainMap.set(domain, zone.ref);
