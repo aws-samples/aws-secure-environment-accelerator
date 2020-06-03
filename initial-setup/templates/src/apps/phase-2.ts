@@ -2,13 +2,11 @@ import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId } from '../utils/accounts';
-import * as iam from '@aws-cdk/aws-iam';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput, ImportedVpc } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { ActiveDirectory } from '../common/active-directory';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
@@ -22,6 +20,7 @@ import { CentralBucketOutput, AccountBucketOutput } from '../deployments/default
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
+import { getMadRootPasswordSecretArn } from '../deployments/mad';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -111,7 +110,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
   }
 
   const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-  const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
@@ -131,14 +129,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
       continue;
     }
 
-    const madPassword = secretsStack.createSecret('MadPassword', {
-      secretName: `accelerator/${accountKey}/mad/password`,
-      description: 'Password for Managed Active Directory.',
-      generateSecretString: {
-        passwordLength: 16,
-      },
-      principals: [new iam.AccountPrincipal(accountId)],
+    const madPasswordSecretArn = getMadRootPasswordSecretArn({
+      acceleratorPrefix: context.acceleratorPrefix,
+      accountKey,
+      secretAccountId: masterStack.accountId,
     });
+    const madPasswordSecret = cdk.SecretValue.secretsManager(madPasswordSecretArn);
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       outputType: 'VpcOutput',
@@ -158,7 +154,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
         vpcId,
         subnetIds,
       },
-      password: madPassword,
+      password: madPasswordSecret,
     });
 
     new JsonOutputValue(stack, 'MadOutput', {
@@ -168,7 +164,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
         vpcName: madDeploymentConfig['vpc-name'],
         directoryId: activeDirectory.directoryId,
         dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
-        passwordArn: madPassword.secretArn,
+        passwordArn: madPasswordSecretArn,
       },
     });
   }
@@ -219,13 +215,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
       const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
 
       new JsonOutputValue(securityGroupStack, `SecurityGroupOutput${vpcConfig.name}-${index}`, {
-        type: 'SecurityGroupOutputType',
+        type: 'SecurityGroupsOutput',
         value: {
           vpcId: vpcOutput.vpcId,
           vpcName: vpcConfig.name,
           securityGroupIds: securityGroups.securityGroups.map(securityGroup => ({
-            id: securityGroup.id,
-            name: securityGroup.name,
+            securityGroupId: securityGroup.id,
+            securityGroupName: securityGroup.name,
           })),
         },
       });

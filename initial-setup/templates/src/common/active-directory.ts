@@ -1,7 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import { CfnMicrosoftAD } from '@aws-cdk/aws-directoryservice';
 import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
 import * as logs from '@aws-cdk/aws-logs';
 import * as iam from '@aws-cdk/aws-iam';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
@@ -14,7 +13,7 @@ export interface ActiveDirectoryProps extends cdk.StackProps {
     vpcId: string;
     subnetIds: string[];
   };
-  password: Secret;
+  password: cdk.SecretValue;
 }
 
 export class ActiveDirectory extends cdk.Construct {
@@ -44,7 +43,7 @@ export class ActiveDirectory extends cdk.Construct {
 
     const microsoftAD = new CfnMicrosoftAD(this, 'MicrosoftAD', {
       name: madDeploymentConfig['dns-domain'],
-      password: password.secretValue.toString(),
+      password: password.toString(),
       vpcSettings: {
         subnetIds: subnetInfo.subnetIds,
         vpcId: subnetInfo.vpcId,

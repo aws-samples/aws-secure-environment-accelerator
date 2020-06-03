@@ -255,7 +255,18 @@
               "ecr.api",
               "kinesis-firehose",
               "ssmmessages",
-              "states"
+              "states",
+              "acm-pca",
+              "cassandra",
+              "ebs",
+              "elasticbeanstalk",
+              "elasticbeanstalk-health",
+              "email-smtp",
+              "license-manager",
+              "macie2",
+              "notebook",
+              "synthetics",
+              "transfer.server"
             ]
           },
           "resolvers": {

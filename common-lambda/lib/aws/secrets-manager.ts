@@ -45,7 +45,12 @@ export class SecretsManager {
   }
 
   async getSecret(secretId: string): Promise<smn.GetSecretValueResponse> {
-    return this.client.getSecretValue({ SecretId: secretId }).promise();
+    try {
+      // Make sure to have await here to catch the exception
+      return await this.client.getSecretValue({ SecretId: secretId }).promise();
+    } catch (e) {
+      throw new Error(`Cannot get secret ${secretId}: ${e}`);
+    }
   }
 
   async getSecrets(secretIds: string[]): Promise<smn.GetSecretValueResponse[]> {
