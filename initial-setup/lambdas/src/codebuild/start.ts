@@ -2,36 +2,39 @@ import * as aws from 'aws-sdk';
 
 interface CodeBuildStartInput {
   codeBuildProjectName: string;
-  sourceBucketName: string;
-  sourceBucketKey: string;
-  appPath: string;
+  sourceBucketName?: string;
+  sourceBucketKey?: string;
+  environment?: { [name: string]: string };
 }
+
+const codeBuild = new aws.CodeBuild();
 
 export const handler = async (input: CodeBuildStartInput) => {
   console.log(`Starting CodeBuild build...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, appPath } = input;
+  const { codeBuildProjectName, sourceBucketName, sourceBucketKey, environment = {} } = input;
 
-  const codeBuild = new aws.CodeBuild();
-  const response = await codeBuild
-    .startBuild({
-      projectName: codeBuildProjectName,
-      sourceTypeOverride: 'S3',
-      sourceLocationOverride: `${sourceBucketName}/${sourceBucketKey}`,
-      artifactsOverride: {
-        type: 'NO_ARTIFACTS',
-      },
-      environmentVariablesOverride: [
-        {
-          name: 'APP_PATH',
-          value: appPath,
-          type: 'PLAINTEXT',
-        },
-      ],
-    })
-    .promise();
+  // Build environment variables in CodeBuild format
+  const environmentVariablesOverride = Object.entries(environment).map(([name, value]) => ({
+    name,
+    value,
+    type: 'PLAINTEXT',
+  }));
 
+  const request: aws.CodeBuild.Types.StartBuildInput = {
+    projectName: codeBuildProjectName,
+    environmentVariablesOverride,
+    artifactsOverride: {
+      type: 'NO_ARTIFACTS',
+    },
+  };
+  if (sourceBucketName && sourceBucketKey) {
+    request.sourceTypeOverride = 'S3';
+    request.sourceLocationOverride = `${sourceBucketName}/${sourceBucketKey}`;
+  }
+
+  const response = await codeBuild.startBuild(request).promise();
   const build = response.build;
   if (!build) {
     return {

@@ -1,19 +1,11 @@
 import * as cdk from '@aws-cdk/core';
 import { ResolversOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
+import { getAccountId } from '../utils/accounts';
 import { pascalCase } from 'pascal-case';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
-import { AccountStacks } from '../common/account-stacks';
-
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
+import { PhaseInput } from './shared';
 
 type ResolversOutputs = ResolversOutput[];
 
@@ -24,25 +16,12 @@ export interface RdgwArtifactsOutput {
   keyPrefix: string;
 }
 
-async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
-
-  const app = new cdk.App();
-
-  const accountStacks = new AccountStacks(app, {
-    phase: 4,
-    accounts,
-    context,
-  });
-
+export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs }: PhaseInput) {
   // to share the resolver rules
   // get the list of account IDs with which the resolver rules needs to be shared
   const vpcConfigs = acceleratorConfig.getVpcConfigs();
   const sharedAccountIds: string[] = [];
-  let hostedZonesAccountId: string = '';
+  let hostedZonesAccountId: string | undefined;
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     if (InterfaceEndpointConfig.is(vpcConfig['interface-endpoints'])) {
       hostedZonesAccountId = getAccountId(accounts, accountKey);
@@ -50,7 +29,7 @@ async function main() {
 
     if (vpcConfig['use-central-endpoints']) {
       const accountId = getAccountId(accounts, accountKey);
-      if (accountId !== hostedZonesAccountId) {
+      if (accountId && hostedZonesAccountId && accountId !== hostedZonesAccountId) {
         sharedAccountIds.push(accountId);
       }
     }
@@ -69,9 +48,10 @@ async function main() {
       for (const resolversOutput of resolversOutputs) {
         const resolverOutput = resolversOutput.find(x => x.vpcName === vpcConfig.name);
         if (!resolverOutput) {
-          throw new Error(
+          console.warn(
             `No Resolver Rules found in outputs for account key ${accountKey} and VPC name ${vpcConfig.name}`,
           );
+          continue;
         }
 
         resolverRuleArns.push(
@@ -82,7 +62,11 @@ async function main() {
         );
       }
 
-      const r53ResolverRulesSharingStack = accountStacks.getOrCreateAccountStack(accountKey);
+      const r53ResolverRulesSharingStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+      if (!r53ResolverRulesSharingStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
 
       const route53ResolverRuleSharing = new Route53ResolverRuleSharing(
         r53ResolverRulesSharingStack,
@@ -97,6 +81,3 @@ async function main() {
     }
   }
 }
-
-// tslint:disable-next-line: no-floating-promises
-main();

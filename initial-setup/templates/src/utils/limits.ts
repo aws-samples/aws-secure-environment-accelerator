@@ -1,25 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
+import { Limit, LimitOutput } from '@aws-pbmm/common-outputs/lib/limits';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 
-// TODO Move to common as soon as Mani has added the new common folder
-export interface LimitOutput {
-  accountKey: string;
-  limitKey: string;
-  serviceCode: string;
-  quotaCode: string;
-  value: number;
-}
-
-// TODO Move to common as soon as Mani has added the new common folder
-export enum Limit {
-  Ec2Eips = 'Amazon EC2/Number of EIPs',
-  VpcPerRegion = 'Amazon VPC/VPCs per Region',
-  VpcInterfaceEndpointsPerVpc = 'Amazon VPC/Interface VPC endpoints per VPC',
-  CloudFormationStackCount = 'AWS CloudFormation/Stack count',
-  CloudFormationStackSetPerAdmin = 'AWS CloudFormation/Stack sets per administrator account',
-  OrganizationsMaximumAccounts = 'AWS Organizations/Maximum accounts',
-}
+export { Limit, LimitOutput } from '@aws-pbmm/common-outputs/lib/limits';
 
 export type LimitOutputs = LimitOutput[];
 
@@ -62,12 +46,12 @@ export class Limiter {
     this.limits = limits;
   }
 
-  create(accountKey: string, limit: Limit, additionalIndex?: string): boolean {
+  create(accountKey: string, limit: Limit, suffix?: string): boolean {
     const quota = tryGetQuotaByAccountAndLimit(this.limits, accountKey, limit);
     if (!quota) {
       return true;
     }
-    const index = `${accountKey}/${limit}/${additionalIndex}`;
+    const index = `${accountKey}/${limit}/${suffix}`;
     const count = this.counts[index] ?? 0;
     if (count < quota) {
       this.counts[index] = count + 1;

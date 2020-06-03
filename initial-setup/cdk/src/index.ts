@@ -1,39 +1,46 @@
-import * as codebuild from '@aws-cdk/aws-codebuild';
+import * as path from 'path';
+import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
+import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
+import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
-import * as cdk from '@aws-cdk/core';
 import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
+import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-pbmm/common-cdk/lib/codebuild';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
-import { zipFiles } from '@aws-pbmm/common-lambda/lib/util/zip';
-import { Archiver } from 'archiver';
-import * as path from 'path';
-import * as tempy from 'tempy';
-import { BuildTask } from './tasks/build-task';
 import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
-import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import { BuildTask } from './tasks/build-task';
 
 interface BuildProps {
   lambdaCode: lambda.Code;
-  solutionZipPath: string;
 }
 
 export namespace InitialSetup {
   export interface CommonProps {
-    configSecretName: string;
     acceleratorPrefix: string;
     acceleratorName: string;
     solutionRoot: string;
     stateMachineName: string;
     stateMachineExecutionRole: string;
+    /**
+     * Parameters for configuration file
+     */
+    configFilePath: string;
+    configRepositoryName: string;
+    configS3Bucket: string;
+    configS3FileName: string;
+    configBranchName: string;
+    /**
+     * Prebuild Docker image that contains the project with its dependencies already installed.
+     */
+    enablePrebuiltProject?: boolean;
   }
 
   export interface Props extends AcceleratorStackProps, CommonProps {}
@@ -59,33 +66,9 @@ export class InitialSetup extends AcceleratorStack {
     // All lambdas are bundled into index.js
     const lambdaCode = lambdas.codeForEntry();
 
-    const solutionZipPath = tempy.file({
-      extension: 'zip',
-    });
-
-    // TODO This should be the repo containing our code in the future
-    // We want to ZIP the the initial setup ourselves to make sure the ZIP file is valid
-    console.log(`Zipping solution directory "${props.solutionRoot} to "${solutionZipPath}"`);
-
-    await zipFiles(solutionZipPath, (archive: Archiver) => {
-      archive.glob('**/*', {
-        cwd: props.solutionRoot,
-        ignore: [
-          '**/accounts.json',
-          '**/cdk.out/**',
-          '**/cdk.json',
-          '**/config.json',
-          '**/node_modules/**',
-          '**/pnpm-lock.yaml',
-          '**/.prettierrc',
-        ],
-      });
-    });
-
     return new InitialSetup(scope, id, {
       ...props,
       lambdaCode,
-      solutionZipPath,
     });
   }
 }
@@ -93,14 +76,13 @@ export class InitialSetup extends AcceleratorStack {
 export namespace InitialSetup {
   export interface PipelineProps extends CommonProps {
     lambdaCode: lambda.Code;
-    solutionZipPath: string;
   }
 
   export class Pipeline extends cdk.Construct {
     constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
       super(scope, id);
 
-      const { lambdaCode } = props;
+      const { enablePrebuiltProject, lambdaCode } = props;
 
       const stack = cdk.Stack.of(this);
 
@@ -114,30 +96,9 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
       });
 
-      const configSecretInProgress = new secrets.Secret(this, 'ConfigSecretInProgress', {
-        secretName: 'accelerator/config/in-progress',
-        description: 'This is a copy of the config while the deployment of the Accelerator is in progress.',
-      });
-
       const limitsSecret = new secrets.Secret(this, 'Limits', {
         secretName: 'accelerator/limits',
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
-      });
-
-      // TODO Copy the configSecretInProgress to configSecretLive when deployment is complete.
-      //  const configSecretLive = new secrets.Secret(this, 'ConfigSecretLive', {
-      //    description: 'This is the config that was used to deploy the current accelerator.',
-      //  });
-
-      // TODO This should be the repo containing our code in the future
-      // Upload the templates ZIP as an asset to S3
-      const solutionZip = new s3assets.Asset(this, 'SolutionZip', {
-        path: props.solutionZipPath,
-      });
-
-      const cfnCustomResourceRole = new iam.Role(this, 'CfnCustomResourceRole', {
-        roleName: createRoleName('L-CFN-CustomResource'),
-        assumedBy: new iam.CompositePrincipal(new iam.ServicePrincipal('lambda.amazonaws.com')),
       });
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
@@ -151,133 +112,45 @@ export namespace InitialSetup {
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
 
-      cfnCustomResourceRole.addToPolicy(
-        new iam.PolicyStatement({
-          resources: ['*'],
-          actions: ['sts:AssumeRole', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
+      const projectNameSuffix = enablePrebuiltProject ? 'Prebuilt' : '';
+      const projectConstructor = enablePrebuiltProject ? PrebuiltCdkDeployProject : CdkDeployProject;
+      const project = new projectConstructor(this, `CdkDeploy${projectNameSuffix}`, {
+        projectName: createName({
+          name: `Deploy${projectNameSuffix}`,
+          region: false,
+          account: false,
         }),
-      );
-
-      const dnsEndpointIpPollerLambda = new lambda.Function(this, 'DnsEndpointIpPoller', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.getDnsEndpointIps',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceR53EndpointIPPooler',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-      });
-
-      const enableSecurityHubLambda = new lambda.Function(this, 'EnableSecurityHub', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.enableSecurityHub',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceEnableSecurityHub',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-        timeout: cdk.Duration.seconds(900),
-      });
-
-      const inviteMembersSecurityHub = new lambda.Function(this, 'InviteMembersSecurityHub', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.inviteMembersSecurityHub',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceInviteMembersSecurityHub',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-        timeout: cdk.Duration.seconds(900),
-      });
-
-      const acceptInviteSecurityHub = new lambda.Function(this, 'AcceptInviteSecurityHub', {
-        runtime: lambda.Runtime.NODEJS_12_X,
-        code: lambdaCode,
-        handler: 'index.acceptInviteSecurityHub',
-        role: cfnCustomResourceRole,
-        functionName: 'CfnCustomResourceAcceptInviteSecurityHub',
-        environment: {
-          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
-        },
-        timeout: cdk.Duration.seconds(900),
-      });
-
-      // Define a build specification to build the initial setup templates
-      const project = new codebuild.PipelineProject(this, `${props.acceleratorPrefix}Deploy_pl`, {
-        projectName: `${props.acceleratorPrefix}Deploy_pl`,
         role: pipelineRole,
-        buildSpec: codebuild.BuildSpec.fromObject({
-          version: '0.2',
-          phases: {
-            install: {
-              'runtime-versions': {
-                nodejs: 12,
-              },
-              // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-              commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
-            },
-            build: {
-              commands: ['cd initial-setup/templates', 'bash codebuild-deploy.sh'],
-            },
-          },
-        }),
+        projectRoot: props.solutionRoot,
+        packageManager: 'pnpm',
+        commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
+        timeout: cdk.Duration.hours(4),
         environment: {
-          buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
-          computeType: codebuild.ComputeType.MEDIUM,
-          environmentVariables: {
-            ACCELERATOR_NAME: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.acceleratorName,
-            },
-            ACCELERATOR_PREFIX: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.acceleratorPrefix,
-            },
-            CONFIG_SECRET_ID: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: configSecretInProgress.secretArn,
-            },
-            ACCOUNTS_SECRET_ID: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: accountsSecret.secretArn,
-            },
-            STACK_OUTPUT_SECRET_ID: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: stackOutputSecret.secretArn,
-            },
-            LIMITS_SECRET_ID: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: limitsSecret.secretArn,
-            },
-            ACCELERATOR_EXECUTION_ROLE_NAME: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.stateMachineExecutionRole,
-            },
-            CDK_PLUGIN_ASSUME_ROLE_NAME: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: props.stateMachineExecutionRole,
-            },
-            CFN_DNS_ENDPOINT_IPS_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: dnsEndpointIpPollerLambda.functionArn,
-            },
-            CFN_ENABLE_SECURITY_HUB_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: enableSecurityHubLambda.functionArn,
-            },
-            CFN_INVITE_MEMBERS_SECURITY_HUB_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: inviteMembersSecurityHub.functionArn,
-            },
-            CFN_ACCEPT_INVITE_SECURITY_HUB_LAMBDA_ARN: {
-              type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-              value: acceptInviteSecurityHub.functionArn,
-            },
-          },
+          ACCELERATOR_NAME: props.acceleratorName,
+          ACCELERATOR_PREFIX: props.acceleratorPrefix,
+          ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
+          CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
+          ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
+          STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
+          LIMITS_SECRET_ID: limitsSecret.secretArn,
         },
+      });
+
+      const getOrCreateConfigurationTask = new CodeTask(this, 'Get or Create Configuration from S3', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.getOrCreateConfig',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          repositoryName: props.configRepositoryName,
+          filePath: props.configFilePath,
+          s3Bucket: props.configS3Bucket,
+          s3FileName: props.configS3FileName,
+          branchName: props.configBranchName,
+        },
+        resultPath: '$.configuration',
       });
 
       const loadConfigurationTask = new CodeTask(this, 'Load Configuration', {
@@ -287,8 +160,9 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          configSecretSourceId: props.configSecretName,
-          configSecretInProgressId: configSecretInProgress.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
         },
         resultPath: '$.configuration',
       });
@@ -395,7 +269,9 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          configSecretId: configSecretInProgress.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
           limitsSecretId: limitsSecret.secretArn,
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
@@ -424,7 +300,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           acceleratorPrefix: props.acceleratorPrefix,
-          configSecretId: configSecretInProgress.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
           scpBucketName: scpArtifactBucket.bucketName,
           scpBucketPrefix: 'scp',
           'organizationalUnits.$': '$.organizationalUnits',
@@ -445,77 +323,62 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      // const preDeployParallelTask = new sfn.Parallel(this, 'PreDeploy', {
-      // });
-      // preDeployParallelTask.branch(loadLimitsTask);
-      // preDeployParallelTask.branch(addScpTask);
-      // preDeployParallelTask.branch(enableResourceSharingTask);
-
-      const deployStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}Deploy_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}Deploy_sm`,
-        definition: new BuildTask(this, 'Build', {
+      const codeBuildStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}CodeBuild_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}CodeBuild_sm`,
+        definition: new BuildTask(this, 'CodeBuild', {
           lambdaCode,
           role: pipelineRole,
         }),
       });
 
-      const deployTaskCommonInput = {
-        codeBuildProjectName: project.projectName,
-        sourceBucketName: solutionZip.s3BucketName,
-        sourceBucketKey: solutionZip.s3ObjectKey,
+      // TODO Move this to a separate state machine, including store output task
+      const createDeploymentTask = (phase: number) => {
+        const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
+          task: new tasks.StartExecution(codeBuildStateMachine, {
+            integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+            input: {
+              codeBuildProjectName: project.projectName,
+              environment: {
+                ACCELERATOR_PHASE: `${phase}`,
+                'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
+                'CONFIG_FILE_PATH.$': '$.configFilePath',
+                'CONFIG_COMMIT_ID.$': '$.configCommitId',
+              },
+            },
+          }),
+          resultPath: 'DISCARD',
+        });
+        return deployTask;
       };
 
-      const deployPhase0Task = new sfn.Task(this, 'Deploy Phase 0', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-0.ts',
+      const createStoreOutputTask = (phase: number) =>
+        new CodeTask(this, `Store Phase ${phase} Output`, {
+          functionProps: {
+            code: lambdaCode,
+            handler: 'index.storeStackOutputStep',
+            role: pipelineRole,
           },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase0Output = new CodeTask(this, 'Store Phase 0 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const deployPhase1Task = new sfn.Task(this, 'Deploy Phase 1', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-1.ts',
+          functionPayload: {
+            acceleratorPrefix: props.acceleratorPrefix,
+            stackOutputSecretId: stackOutputSecret.secretArn,
+            assumeRoleName: props.stateMachineExecutionRole,
+            'accounts.$': '$.accounts',
           },
-        }),
-        resultPath: 'DISCARD',
-      });
+          resultPath: 'DISCARD',
+        });
 
-      const storePhase1Output = new CodeTask(this, 'Store Phase 1 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
+      // TODO Create separate state machine for deployment
+      const deployPhase0Task = createDeploymentTask(0);
+      const storePhase0Output = createStoreOutputTask(0);
+      const deployPhase1Task = createDeploymentTask(1);
+      const storePhase1Output = createStoreOutputTask(1);
+      const deployPhase2Task = createDeploymentTask(2);
+      const storePhase2Output = createStoreOutputTask(2);
+      const deployPhase3Task = createDeploymentTask(3);
+      const storePhase3Output = createStoreOutputTask(3);
+      const deployPhase4Task = createDeploymentTask(4);
+      const storePhase4Output = createStoreOutputTask(4);
+      const deployPhase5Task = createDeploymentTask(5);
 
       // TODO We could put this task in a map task and apply to all accounts individually
       const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
@@ -527,8 +390,10 @@ export namespace InitialSetup {
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
-          configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         },
         resultPath: 'DISCARD',
       });
@@ -542,8 +407,10 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: configSecretInProgress.secretArn,
           stackOutputSecretId: stackOutputSecret.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         },
         resultPath: 'DISCARD',
       });
@@ -561,58 +428,6 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const deployPhase2Task = new sfn.Task(this, 'Deploy Phase 2', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-2.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase2Output = new CodeTask(this, 'Store Phase 2 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const deployPhase3Task = new sfn.Task(this, 'Deploy Phase 3', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-3.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase3Output = new CodeTask(this, 'Store Phase 3 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
       const enableDirectorySharingTask = new CodeTask(this, 'Enable Directory Sharing', {
         functionProps: {
           code: lambdaCode,
@@ -622,7 +437,9 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
-          configSecretSourceId: configSecretInProgress.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
           stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
@@ -640,47 +457,13 @@ export namespace InitialSetup {
         task: new tasks.StartExecution(createAdConnectorStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
+            acceleratorPrefix: props.acceleratorPrefix,
             'accounts.$': '$.accounts',
             assumeRoleName: props.stateMachineExecutionRole,
-            configSecretSourceId: configSecretInProgress.secretArn,
+            'configRepositoryName.$': '$.configRepositoryName',
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
             stackOutputSecretId: stackOutputSecret.secretArn,
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const deployPhase4Task = new sfn.Task(this, 'Deploy Phase 4', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-4.ts',
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
-
-      const storePhase4Output = new CodeTask(this, 'Store Phase 4 Output', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeStackOutputStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          acceleratorPrefix: props.acceleratorPrefix,
-          stackOutputSecretId: stackOutputSecret.secretArn,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
-        },
-        resultPath: 'DISCARD',
-      });
-
-      const deployPhase5Task = new sfn.Task(this, 'Deploy Phase 5', {
-        task: new tasks.StartExecution(deployStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            ...deployTaskCommonInput,
-            appPath: 'apps/phase-5.ts',
           },
         }),
         resultPath: 'DISCARD',
@@ -688,7 +471,8 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
-        definition: sfn.Chain.start(loadConfigurationTask)
+        definition: sfn.Chain.start(getOrCreateConfigurationTask)
+          .next(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)

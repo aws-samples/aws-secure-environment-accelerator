@@ -9,6 +9,7 @@ export interface FirewallClusterProps {
   vpcCidrBlock: string;
   imageId: string;
   instanceType: string;
+  roleName?: string;
   configuration: FirewallClusterConfigurationProps;
 }
 
@@ -27,6 +28,7 @@ export class FirewallCluster extends cdk.Construct {
     this.props = props;
 
     this.instanceRole = new iam.Role(this, 'InstanceRole', {
+      roleName: props.roleName,
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
     });
     this.instanceRole.addToPolicy(
@@ -51,11 +53,16 @@ export class FirewallCluster extends cdk.Construct {
       name: this.keyPairName,
       secretPrefix: 'accelerator/keypairs',
     });
+
+    this.props.configuration.bucket.grantRead(this.instanceRole);
   }
 
-  createInstance(hostname: string): FirewallInstance {
+  createInstance(props: { name: string; hostname: string }): FirewallInstance {
+    const { name, hostname } = props;
+
     const index = this.instances.length;
     const instance = new FirewallInstance(this, `Instance${index}`, {
+      name,
       hostname,
       vpcCidrBlock: this.props.vpcCidrBlock,
       imageId: this.props.imageId,

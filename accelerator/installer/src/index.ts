@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
+import * as codecommit from '@aws-cdk/aws-codecommit';
 import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
@@ -18,21 +19,25 @@ async function main() {
 
   const stack = new cdk.Stack(app, 'InstallerStack', {
     stackName: 'AcceleratorInstaller',
+    terminationProtection: true,
   });
 
-  const acceleratorName = new cdk.CfnParameter(stack, 'AcceleratorName', {
-    default: 'PBMM',
-    description: 'The name of the Accelerator. The name will used as value for the Accelerator tag.',
+  const acceleratorName = 'PBMM';
+  const acceleratorPrefix = 'PBMMAccel-';
+
+  const acceleratorConfigS3Bucket = new cdk.CfnParameter(stack, 'ConfigS3Bucket', {
+    default: 'pbmmaccel-config',
+    description: 'The S3 bucket name that contains the initial Accelerator configuration.',
   });
 
-  const acceleratorPrefix = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
-    default: 'PBMMAccel-',
-    description: 'The prefix that will be used by the Accelerator when creating resources.',
+  const configRepositoryName = new cdk.CfnParameter(stack, 'ConfigRepositoryName', {
+    default: 'PBMMAccel-Config-Repo',
+    description: 'The Code Commit repository name that contains the Accelerator configuration.',
   });
 
-  const acceleratorConfigSecretId = new cdk.CfnParameter(stack, 'AcceleratorSecretId', {
-    default: 'accelerator/config',
-    description: 'The ID of the secret that contains the Accelerator configuration.',
+  const configBranchName = new cdk.CfnParameter(stack, 'ConfigBranchName', {
+    default: 'master',
+    description: 'The Code Commit branch name that contains the Accelerator configuration',
   });
 
   const githubOauthSecretId = new cdk.CfnParameter(stack, 'GithubSecretId', {
@@ -57,12 +62,11 @@ async function main() {
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
 
-  const email = new cdk.CfnParameter(stack, 'Email', {
-    default: '',
+  const notificationEmail = new cdk.CfnParameter(stack, 'Email', {
     description: 'The notification email that will get Code Release notifications.',
   });
 
-  const stateMachineName = `${acceleratorPrefix.valueAsString}MainStateMachine_sm`;
+  const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
 
   // The state machine name has to match the name of the state machine in initial setup
   const stateMachineArn = `arn:aws:states:${stack.region}:${stack.account}:stateMachine:${stateMachineName}`;
@@ -72,9 +76,25 @@ async function main() {
 
   // Role that is used by the CodeBuild project
   const installerProjectRole = new iam.Role(stack, 'InstallerRole', {
-    roleName: `${acceleratorPrefix.valueAsString}L-CPL-Installer`,
+    roleName: `${acceleratorPrefix}L-CPL-Installer`,
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
   });
+
+  // Allow creation of ECR repositories
+  installerProjectRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['ecr:*'],
+      resources: [`arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/aws-cdk/*`],
+    }),
+  );
+
+  // Allow getting authorization tokens for ECR
+  installerProjectRole.addToPolicy(
+    new iam.PolicyStatement({
+      actions: ['ecr:GetAuthorizationToken'],
+      resources: [`*`],
+    }),
+  );
 
   // Allow all CloudFormation permissions
   installerProjectRole.addToPolicy(
@@ -107,7 +127,7 @@ async function main() {
 
   // Define a build specification to build the initial setup templates
   const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
-    projectName: `${acceleratorPrefix.valueAsString}InstallerProject_pl`,
+    projectName: `${acceleratorPrefix}InstallerProject_pl`,
     role: installerProjectRole,
     buildSpec: codebuild.BuildSpec.fromObject({
       version: '0.2',
@@ -117,7 +137,8 @@ async function main() {
             nodejs: 12,
           },
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
+          // The flag '--ignore-scripts' skips the compilation of custom resources
+          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm --ignore-scripts'],
         },
         build: {
           commands: [
@@ -130,23 +151,36 @@ async function main() {
     }),
     environment: {
       buildImage: codebuild.LinuxBuildImage.STANDARD_3_0,
+      privileged: true, // Allow access to the Docker daemon
       computeType: codebuild.ComputeType.MEDIUM,
       environmentVariables: {
         ACCELERATOR_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorName.valueAsString,
+          value: acceleratorName,
         },
         ACCELERATOR_PREFIX: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorPrefix.valueAsString,
-        },
-        ACCELERATOR_CONFIG_SECRET_ID: {
-          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: acceleratorConfigSecretId.valueAsString,
+          value: acceleratorPrefix,
         },
         ACCELERATOR_STATE_MACHINE_NAME: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: stateMachineName,
+        },
+        CONFIG_REPOSITORY_NAME: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: configRepositoryName.valueAsString,
+        },
+        CONFIG_BRANCH_NAME: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: configBranchName.valueAsString,
+        },
+        CONFIG_S3_BUCKET: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: acceleratorConfigS3Bucket.valueAsString,
+        },
+        ENABLE_PREBUILT_PROJECT: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: 'true', // Enable Docker prebuilt project
         },
       },
     },
@@ -154,7 +188,7 @@ async function main() {
 
   // The role that will be used to start the state machine
   const stateMachineExecutionRole = new iam.Role(stack, 'ExecutionRoleName', {
-    roleName: `${acceleratorPrefix.valueAsString}L-SFN-Execution`,
+    roleName: `${acceleratorPrefix}L-SFN-Execution`,
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 
@@ -188,8 +222,12 @@ async function main() {
   // This artifact is used as output for the Github code and as input for the build step
   const sourceArtifact = new codepipeline.Artifact();
 
+  // This artifact is used as output for the configuration code
+  // It is not used as an input
+  const configArtifact = new codepipeline.Artifact();
+
   new codepipeline.Pipeline(stack, 'Pipeline', {
-    pipelineName: `${acceleratorPrefix.valueAsString}InstallerPipeline`,
+    pipelineName: `${acceleratorPrefix}InstallerPipeline`,
     // The default bucket is encrypted
     // That is not necessary for this pipeline so we create a custom unencrypted bucket.
     artifactBucket: new s3.Bucket(stack, 'ArtifactsBucket'),
@@ -212,7 +250,7 @@ async function main() {
         actions: [
           new actions.ManualApprovalAction({
             actionName: 'Approval',
-            notifyEmails: [email.valueAsString],
+            notifyEmails: [notificationEmail.valueAsString],
           }),
         ],
       },
@@ -238,7 +276,7 @@ async function main() {
     ],
   });
 
-  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName.valueAsString));
+  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName));
 }
 
 // tslint:disable-next-line: no-floating-promises

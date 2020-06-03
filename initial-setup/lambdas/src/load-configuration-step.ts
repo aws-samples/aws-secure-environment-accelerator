@@ -1,23 +1,26 @@
 import * as org from 'aws-sdk/clients/organizations';
 import {
-  AcceleratorConfig,
   LandingZoneAccountType,
   LANDING_ZONE_ACCOUNT_TYPES,
+  AccountConfigType,
 } from '@aws-pbmm/common-lambda/lib/config';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
 export interface LoadConfigurationInput {
-  configSecretSourceId: string;
-  configSecretInProgressId: string;
+  configFilePath: string;
+  configRepositoryName: string;
+  configCommitId: string;
 }
 
 export interface LoadConfigurationOutput {
   organizationalUnits: ConfigurationOrganizationalUnit[];
   accounts: ConfigurationAccount[];
   warnings: string[];
+  configCommitId: string;
 }
 
 export interface ConfigurationAccount {
@@ -26,6 +29,7 @@ export interface ConfigurationAccount {
   accountName: string;
   emailAddress: string;
   organizationalUnit: string;
+  isMandatoryAccount: boolean;
   landingZoneAccountType?: LandingZoneAccountType;
 }
 
@@ -46,19 +50,13 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
   console.log(`Detected Landing Zone stack with version "${landingZoneStack.version}"`);
 
-  const { configSecretSourceId, configSecretInProgressId } = input;
+  const { configFilePath, configRepositoryName, configCommitId } = input;
 
-  const secrets = new SecretsManager();
-  const source = await secrets.getSecret(configSecretSourceId);
-
-  // Load the configuration from Secrets Manager
-  const configString = source.SecretString!;
-  const config = AcceleratorConfig.fromString(configString);
-
-  // Store a copy of the secret
-  await secrets.putSecretValue({
-    SecretId: configSecretInProgressId,
-    SecretString: configString,
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
   });
 
   const organizations = new Organizations();
@@ -113,17 +111,20 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   // First load mandatory accounts configuration
-  const mandatoryAccountConfigs = config.getAccountConfigs();
-  for (const [accountKey, mandatoryAccountConfig] of mandatoryAccountConfigs) {
-    const accountConfigName = mandatoryAccountConfig['account-name'];
-    const accountConfigEmail = mandatoryAccountConfig.email;
-    const landingZoneAccountType = mandatoryAccountConfig['landing-zone-account-type'];
+  const mandatoryAccounts = config.getMandatoryAccountConfigs();
+  const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
+
+  const accountConfigs = config.getAccountConfigs();
+  for (const [accountKey, accountConfig] of accountConfigs) {
+    const accountConfigName = accountConfig['account-name'];
+    const accountConfigEmail = accountConfig.email;
+    const landingZoneAccountType = accountConfig['landing-zone-account-type'];
 
     // Find the organizational account used by this
-    const organizationalUnitName = mandatoryAccountConfig.ou;
+    const organizationalUnitName = accountConfig.ou;
     const organizationalUnit = awsOus.find(ou => ou.Name === organizationalUnitName);
     if (!organizationalUnit) {
-      errors.push(`Cannot find organizational unit "${mandatoryAccountConfig.ou}" that is used by Accelerator`);
+      errors.push(`Cannot find organizational unit "${accountConfig.ou}" that is used by Accelerator`);
       continue;
     }
 
@@ -151,8 +152,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       accountId: account?.Id,
       accountKey,
       accountName: accountConfigName,
-      emailAddress: mandatoryAccountConfig.email,
-      organizationalUnit: mandatoryAccountConfig.ou,
+      emailAddress: accountConfig.email,
+      organizationalUnit: organizationalUnitName,
+      isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
       landingZoneAccountType,
     });
   }
@@ -229,28 +231,31 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
         continue;
       }
 
-      // When we find configuration for this account in the Accelerator config, then verify if properties match
-      if (acceleratorAccount.accountName !== lzAccount.name) {
+      const lzAccountEmail =
+        lzAccount.email || (await getLandingZoneAccountEmailBySsmParameters(lzAccount.ssm_parameters));
+      // When we find configuration for this account in the Accelerator config, then verify if properties match for non-primary accounts
+      if (
+        acceleratorAccount.accountName !== lzAccount.name &&
+        acceleratorAccount.landingZoneAccountType !== 'primary'
+      ) {
         errors.push(
           `The Acceleror account name and Landing Zone account name for account type "${lzAccountType}" do not match.\n` +
             `"${acceleratorAccount.accountName}" != "${lzAccount.name}"`,
         );
       }
 
-      // Only validate email address and OU for non-primary accounts
-      if (lzAccountType !== 'primary') {
-        if (acceleratorAccount.emailAddress !== lzAccount.email) {
-          errors.push(
-            `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
-              `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
-          );
-        }
-        if (acceleratorAccount.organizationalUnit !== lzOrganizationalUnitName) {
-          errors.push(
-            `The Acceleror account OU and Landing Zone OU email for account type "${lzAccountType}" do not match.\n` +
-              `"${acceleratorAccount.organizationalUnit}" != "${lzOrganizationalUnitName}"`,
-          );
-        }
+      // Only validate email address and OU for mandatory accounts
+      if (acceleratorAccount.emailAddress !== lzAccountEmail) {
+        errors.push(
+          `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
+            `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
+        );
+      }
+      if (acceleratorAccount.organizationalUnit !== lzOrganizationalUnitName) {
+        errors.push(
+          `The Acceleror account OU and Landing Zone OU email for account type "${lzAccountType}" do not match.\n` +
+            `"${acceleratorAccount.organizationalUnit}" != "${lzOrganizationalUnitName}"`,
+        );
       }
     }
   }
@@ -285,6 +290,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   }
 
   return {
+    ...input,
     organizationalUnits: configurationOus,
     accounts: configurationAccounts,
     warnings,
@@ -309,4 +315,16 @@ function getLandingZoneAccountTypeBySsmParameters(
     return 'shared-services';
   }
   return undefined;
+}
+
+async function getLandingZoneAccountEmailBySsmParameters(
+  ssmParameters: { name: string; value: string }[],
+): Promise<string | undefined> {
+  const accountEmailParameter = ssmParameters.find(p => p.value === '$[AccountEmail]');
+  if (!accountEmailParameter) {
+    return undefined;
+  }
+  const ssm = new SSM();
+  const response = await ssm.getParameter(accountEmailParameter.name);
+  return response.Parameter?.Value;
 }

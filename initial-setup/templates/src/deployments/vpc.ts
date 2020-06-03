@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import { Vpc, SecurityGroup, Subnet } from '@aws-pbmm/constructs/lib/vpc';
 import { VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
-export { VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+export { VpcOutput, SecurityGroupsOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface ImportedVpcProps {
   readonly id: string;
@@ -67,6 +67,18 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
     return securityGroup;
   }
 
+  findSubnetIdsByName(name: string): string[] {
+    const subnets = this.tryFindSubnetIdsByName(name);
+    if (subnets.length === 0) {
+      throw new Error(`Cannot find subnet with name "${name}"`);
+    }
+    return subnets;
+  }
+
+  tryFindSubnetIdsByName(name: string): string[] {
+    return this.subnets.filter(s => s.name === name).map(s => s.id);
+  }
+
   tryFindSecurityGroupByName(name: string): SecurityGroup | undefined {
     return this.securityGroups.find(sg => sg.name === name);
   }
@@ -83,7 +95,7 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
         az: s.az,
         cidrBlock: s.cidrBlock,
       })),
-      securityGroups: output.securityGroups.map(sg => ({
+      securityGroups: (output.securityGroups || []).map(sg => ({
         id: sg.securityGroupId,
         name: sg.securityGroupName,
       })),

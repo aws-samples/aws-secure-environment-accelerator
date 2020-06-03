@@ -4,11 +4,14 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallManager } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks } from '../../../common/account-stacks';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { OUTPUT_SUBSCRIPTION_REGUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface FirewallManagerStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   vpcs: Vpc[];
+  outputs: StackOutput[];
 }
 
 /**
@@ -18,7 +21,7 @@ export interface FirewallManagerStep1Props {
  *   - VPC with the name equals firewallManagementConfig.vpc and with the necessary subnets and security group
  */
 export async function step1(props: FirewallManagerStep1Props) {
-  const { accountStacks, config, vpcs } = props;
+  const { accountStacks, config, vpcs, outputs } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const managerConfig = accountConfig.deployments?.['firewall-manager'];
@@ -32,7 +35,22 @@ export async function step1(props: FirewallManagerStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
+    const subscriptionOutputs = getStackJsonOutput(outputs, {
+      outputType: 'AmiSubscriptionStatus',
+      accountKey,
+    });
+
+    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === managerConfig['image-id']);
+    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REGUIRED) {
+      console.log(`AMI Marketplace subscription required for ImageId: ${managerConfig['image-id']}`);
+      return;
+    }
+
     await createFirewallManager({
       scope: accountStack,
       vpc,
@@ -52,8 +70,17 @@ async function createFirewallManager(props: {
   const { scope, vpc, firewallManagerConfig: config } = props;
 
   const subnetConfig = config.subnet;
-  const subnet = vpc.findSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
-  const securityGroup = vpc.findSecurityGroupByName(config['security-group']);
+  const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
+  if (!subnet) {
+    console.warn(`Cannot find subnet with name "${subnetConfig.name}" in availability zone "${subnetConfig.az}"`);
+    return;
+  }
+
+  const securityGroup = vpc.tryFindSecurityGroupByName(config['security-group']);
+  if (!securityGroup) {
+    console.warn(`Cannot find security group with name "${config['security-group']}" in VPC "${vpc.name}"`);
+    return;
+  }
 
   let eip;
   if (config['create-eip']) {
@@ -63,6 +90,7 @@ async function createFirewallManager(props: {
   }
 
   const manager = new FirewallManager(scope, 'FirewallManager', {
+    name: config.name,
     imageId: config['image-id'],
     instanceType: config['instance-sizes'],
   });

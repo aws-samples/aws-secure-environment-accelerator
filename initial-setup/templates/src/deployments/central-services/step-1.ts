@@ -45,23 +45,19 @@ async function centralServicesSettingsInMaster(props: {
 
   const accountIds: string[] = [];
   if (config['central-security-services'] && config['central-security-services'].cwl) {
-    accountIds.push(getAccountId(accounts, config['central-security-services'].account));
+    accountIds.push(getAccountId(accounts, config['central-security-services'].account)!);
   }
   if (config['central-operations-services'] && config['central-operations-services'].cwl) {
-    accountIds.push(getAccountId(accounts, config['central-operations-services'].account));
+    accountIds.push(getAccountId(accounts, config['central-operations-services'].account)!);
   }
   if (config['central-log-services'] && config['central-log-services'].cwl) {
-    accountIds.push(getAccountId(accounts, config['central-log-services'].account));
+    accountIds.push(getAccountId(accounts, config['central-log-services'].account)!);
   }
 
   // Enable Cross-Account CloudWatch access in Master account fot sub accounts
-  const masterAccount = accounts.find(account => account.type === 'primary');
-  if (!masterAccount) {
-    throw new Error('Landing Zone Master Account Not found');
-  }
-  const accountStack = accountStacks.getOrCreateAccountStack(masterAccount.key);
+  const masterStack = accountStacks.getOrCreateAccountStack(config['aws-org-master'].account);
   await cloudWatchSettingsInMaster({
-    scope: accountStack,
+    scope: masterStack,
     accountIds,
   });
 

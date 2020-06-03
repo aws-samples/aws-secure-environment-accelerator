@@ -1,18 +1,18 @@
 import * as r53 from 'aws-sdk/clients/route53';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { ResolversOutput, VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 import { throttlingBackOff } from '@aws-pbmm/common-lambda/lib/aws/backoff';
 
-interface AssociateHostedZonesInput {
+interface AssociateHostedZonesInput extends LoadConfigurationInput {
   accounts: Account[];
   assumeRoleName: string;
-  configSecretSourceId: string;
   stackOutputSecretId: string;
 }
 
@@ -41,17 +41,21 @@ interface AccountRule {
 }
 
 const sts = new STS();
-const secrets = new SecretsManager();
 
 export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configSecretSourceId, accounts, assumeRoleName, stackOutputSecretId } = input;
+  const { configRepositoryName, accounts, assumeRoleName, stackOutputSecretId, configCommitId, configFilePath } = input;
 
-  const configSecret = await secrets.getSecret(configSecretSourceId);
-  const config = AcceleratorConfig.fromString(configSecret.SecretString!);
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
+  const secrets = new SecretsManager();
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
@@ -63,6 +67,12 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const accountRules: AccountRule[] = [];
   for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
     const accountId = getAccountId(accounts, accountKey);
+
+    if (!accountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
+    }
+
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
     // Find the VPC in the outputs from previous phases
@@ -169,6 +179,12 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     }
 
     const accountId = getAccountId(accounts, accountKey);
+
+    if (!accountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
+    }
+
     const vpcName = vpcConfig.name;
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       accountKey,

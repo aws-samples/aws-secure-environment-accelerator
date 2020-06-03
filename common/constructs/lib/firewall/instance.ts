@@ -18,15 +18,20 @@ export interface FirewallVpnTunnelOptions {
 }
 
 export interface FirewallConfigurationProps {
+  licenseBucket?: s3.IBucket;
+  licensePath?: string;
   templateBucket: s3.IBucket;
   templateConfigPath: string;
+  /**
+   * Account bucket where the template and license will be copied to.
+   */
   bucket: s3.IBucket;
   bucketRegion: string;
   configPath: string;
-  licensePath: string;
 }
 
 export interface FirewallInstanceProps {
+  name: string;
   hostname: string;
   vpcCidrBlock: string;
   /**
@@ -43,7 +48,6 @@ export class FirewallInstance extends cdk.Construct {
   private readonly props: FirewallInstanceProps;
   private readonly resource: ec2.CfnInstance;
   private readonly template: S3Template;
-  private readonly networkInterfaces: ec2.CfnNetworkInterface[] = [];
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
   constructor(scope: cdk.Construct, id: string, props: FirewallInstanceProps) {
@@ -53,8 +57,20 @@ export class FirewallInstance extends cdk.Construct {
 
     const { configuration } = props;
 
+    // Copy license without replacing anything
+    // TODO Should we create another custom resource for this?
+    const licensePath = 'license.lic';
+    if (configuration.licenseBucket && configuration.licensePath) {
+      new S3Template(this, 'License', {
+        templateBucket: configuration.licenseBucket,
+        templatePath: configuration.licensePath,
+        outputBucket: configuration.bucket,
+        outputPath: licensePath,
+      });
+    }
+
     this.template = new S3Template(this, 'Config', {
-      templateBucket: configuration.bucket,
+      templateBucket: configuration.templateBucket,
       templatePath: configuration.templateConfigPath,
       outputBucket: configuration.bucket,
       outputPath: configuration.configPath,
@@ -74,15 +90,18 @@ export class FirewallInstance extends cdk.Construct {
             bucket: configuration.bucket.bucketName,
             region: configuration.bucketRegion,
             config: `/${configuration.configPath}`,
-            license: `/${configuration.licensePath}`,
+            license: `/${licensePath}`,
           },
           null,
           2,
         ),
       ),
     });
+    cdk.Tag.add(this.resource, 'Name', this.props.name);
+
     this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
+
     if (this.props.keyPair instanceof cdk.DependableTrait) {
       this.resource.node.addDependency(this.props.keyPair);
     }
@@ -96,7 +115,7 @@ export class FirewallInstance extends cdk.Construct {
     vpnTunnelOptions?: FirewallVpnTunnelOptions;
   }): ec2.CfnNetworkInterface {
     const { name, securityGroup, subnet, eipAllocationId, vpnTunnelOptions } = props;
-    const index = this.networkInterfaces.length;
+    const index = this.networkInterfacesProps.length;
 
     // Create network interface
     const networkInterface = new ec2.CfnNetworkInterface(this, `Eni${index}`, {
@@ -104,8 +123,6 @@ export class FirewallInstance extends cdk.Construct {
       subnetId: subnet.id,
       sourceDestCheck: false,
     });
-    this.networkInterfaces.push(networkInterface);
-
     this.networkInterfacesProps.push({
       deviceIndex: `${index}`,
       networkInterfaceId: networkInterface.ref,

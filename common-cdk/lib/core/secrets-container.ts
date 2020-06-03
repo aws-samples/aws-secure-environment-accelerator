@@ -85,8 +85,6 @@ export class SecretsContainer extends cdk.Construct {
   }
 
   protected onPrepare(): void {
-    console.debug(`Adding decrypt access to secrets key for principals ${this.principals.join(', ')}`);
-
     this.encryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: ['kms:Decrypt'],

@@ -8,14 +8,13 @@ import {
   IamRoleConfigType,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '../utils/accounts';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
 
 export interface IamAssetsProps {
   accountKey: string;
   iamConfig?: IamConfig;
   iamPoliciesDefinition: { [policyName: string]: string };
   accounts: Account[];
-  userPasswords: { [userId: string]: Secret };
+  userPasswords: { [userId: string]: cdk.SecretValue };
 }
 
 export class IamAssets extends cdk.Construct {
@@ -39,8 +38,8 @@ export class IamAssets extends cdk.Construct {
         iamPolicy.addStatements(
           new iam.PolicyStatement({
             effect: statement.Effect === 'Allow' ? iam.Effect.ALLOW : iam.Effect.DENY,
-            actions: statement.Action,
-            resources: statement.Resource,
+            actions: typeof statement.Action === 'string' ? [statement.Action] : statement.Action,
+            resources: typeof statement.Resource === 'string' ? [statement.Resource] : statement.Resource,
           }),
         );
       }
@@ -57,7 +56,7 @@ export class IamAssets extends cdk.Construct {
       for (const userId of userIds) {
         const iamUser = new iam.User(this, `IAM-User-${userId}-${accountKey}`, {
           userName: userId,
-          password: userPasswords[userId].secretValue,
+          password: userPasswords[userId],
           groups: [iamGroup],
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
         });

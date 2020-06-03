@@ -2,14 +2,21 @@ import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-serv
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { createMadUserPasswordSecretName } from '@aws-pbmm/common-outputs/lib/mad';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from '../load-configuration-step';
 
-interface AdConnectorInput {
+const VALID_STATUSES: string[] = ['Requested', 'Creating', 'Created', 'Active', 'Inoperable', 'Impaired', 'Restoring'];
+
+interface AdConnectorInput extends LoadConfigurationInput {
+  acceleratorPrefix: string;
   accounts: Account[];
   assumeRoleName: string;
+  configRepositoryName: string;
+  configFilePath: string;
+  configCommitId: string;
   stackOutputSecretId: string;
-  configSecretSourceId: string;
 }
 
 interface MadOutput {
@@ -43,18 +50,30 @@ export const handler = async (input: AdConnectorInput) => {
   console.log(`Creating AD Connector in account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, assumeRoleName, stackOutputSecretId, configSecretSourceId: configSecretId } = input;
+  const {
+    acceleratorPrefix,
+    accounts,
+    assumeRoleName,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+    stackOutputSecretId,
+  } = input;
+
+  // Retrieve Configuration from Code Commit with specific commitId
+  const acceleratorConfig = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
   const secrets = new SecretsManager();
-  const configString = await secrets.getSecret(configSecretId);
   const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const adConnectorOutputs: AdConnectorOutput[] = [];
-
-  const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
 
+  const adConnectorOutputs: AdConnectorOutput[] = [];
   for (const [accountKey, mandatoryConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {
     const adcConfig = mandatoryConfig.deployments?.adc;
     if (!adcConfig || !adcConfig.deploy) {
@@ -70,7 +89,8 @@ export const handler = async (input: AdConnectorInput) => {
     // Finding the MAD output based on connect-dir-id
     const madOutput = madOutputs.find(output => output.id === adcConfig['connect-dir-id']);
     if (!madOutput) {
-      throw new Error(`Cannot find madOutput with account ${adcConfig['connect-account-key']}`);
+      console.warn(`Cannot find madOutput with account ${adcConfig['connect-account-key']}`);
+      continue;
     }
 
     // Finding the account specific MAD configuration based on dir-id and connect-dir-id
@@ -79,18 +99,21 @@ export const handler = async (input: AdConnectorInput) => {
       .map(([_, accountConfig]) => accountConfig)
       .find(accountConfig => accountConfig.deployments?.mad?.['dir-id'] === adcConfig['connect-dir-id']);
     if (!madDeployConfig) {
-      throw new Error(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
+      console.warn(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
+      continue;
     }
 
     const madConfig = madDeployConfig.deployments?.mad;
     if (!madConfig) {
-      throw new Error(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
+      console.warn(`Cannot find MAD Config with account ${adcConfig['connect-account-key']}`);
+      continue;
     }
 
     const adConnectorGroup = madConfig['adc-group'];
     const adConnectorUser = madConfig['ad-users'].find(u => u.groups.includes(adConnectorGroup));
     if (!adConnectorUser) {
-      throw new Error(`Cannot find AD Connector user in account ${adcConfig['connect-account-key']}`);
+      console.warn(`Cannot find AD Connector user in account ${adcConfig['connect-account-key']}`);
+      continue;
     }
 
     // Getting VPC outputs by account name
@@ -102,21 +125,33 @@ export const handler = async (input: AdConnectorInput) => {
     // Finding the VPC based on vpc-name from stacks output
     const vpc = vpcOutputs.find(output => output.vpcName === adcConfig['vpc-name']);
     if (!vpc) {
-      throw new Error(`Cannot find VPC with name "${adcConfig['vpc-name']}"`);
+      console.warn(`Cannot find VPC with name "${adcConfig['vpc-name']}"`);
+      continue;
     }
 
     // Find subnets based on ADC Config subnet name
     const subnetIds = vpc.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
 
     const accountId = getAccountId(accounts, accountKey);
+    if (!accountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
+    }
+
     // TODO Getting admin password, update with user specific password after creating AD Users and Groups
-    const madPassword = await secrets.getSecret(
-      `accelerator/${adcConfig['connect-account-key']}/mad/${adConnectorUser.user}/password`,
-    );
+    const madPasswordSecretArn = createMadUserPasswordSecretName({
+      acceleratorPrefix,
+      accountKey: adcConfig['connect-account-key'],
+      userId: adConnectorUser.user,
+    });
+    const madPassword = await secrets.getSecret(madPasswordSecretArn);
+
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const directoryService = new DirectoryService(credentials);
     const adConnectors = await directoryService.getADConnectors();
-    const adConnector = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
+    const adConnector = adConnectors.find(
+      o => o.domain === madConfig['dns-domain'] && VALID_STATUSES.includes(o.status),
+    );
     console.log('Active AD Connector', adConnector);
 
     // Creating AD Connector if there are no active AD Connector with the given dns-domain

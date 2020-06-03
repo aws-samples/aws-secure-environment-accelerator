@@ -5,6 +5,10 @@ import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import { isLeft } from 'fp-ts/lib/Either';
 
+export const MANDATORY_ACCOUNT_TYPES = ['master', 'central-security', 'central-log', 'central-operations'] as const;
+
+export type MandatoryAccountType = typeof MANDATORY_ACCOUNT_TYPES[number];
+
 export const VirtualPrivateGatewayConfig = t.interface({
   asn: optional(t.number),
 });
@@ -19,7 +23,7 @@ export const PeeringConnectionConfig = t.interface({
 export const NatGatewayConfig = t.interface({
   subnet: t.interface({
     name: t.string,
-    az: t.string,
+    az: optional(availabilityZone),
   }),
 });
 
@@ -36,6 +40,7 @@ export const NaclRuleCidrSourceConfig = t.interface({
 });
 
 export const NaclRuleSubnetSourceConfig = t.interface({
+  account: optional(t.string),
   vpc: NonEmptyString,
   subnet: t.array(NonEmptyString),
 });
@@ -121,6 +126,7 @@ export const SecurityGroupRuleCidrSourceConfig = t.interface({
 });
 
 export const SecurityGroupRuleSubnetSourceConfig = t.interface({
+  account: optional(t.string),
   vpc: NonEmptyString,
   subnet: t.array(NonEmptyString),
 });
@@ -208,6 +214,39 @@ export const IamConfigType = t.interface({
 
 export type IamConfig = t.TypeOf<typeof IamConfigType>;
 
+export const ImportCertificateConfigType = t.interface({
+  name: t.string,
+  type: t.literal('import'),
+  'priv-key': t.string,
+  cert: t.string,
+  chain: optional(t.string),
+});
+
+export type ImportCertificateConfig = t.TypeOf<typeof ImportCertificateConfigType>;
+
+export const CERTIFICATE_VALIDATION = ['DNS', 'EMAIL'] as const;
+
+export const CertificateValidationType = enumType<typeof CERTIFICATE_VALIDATION[number]>(
+  CERTIFICATE_VALIDATION,
+  'CertificateValidation',
+);
+
+export type CertificateValidation = t.TypeOf<typeof CertificateValidationType>;
+
+export const RequestCertificateConfigType = t.interface({
+  name: t.string,
+  type: t.literal('request'),
+  domain: t.string,
+  validation: CertificateValidationType,
+  san: optional(t.array(NonEmptyString)),
+});
+
+export type RequestCertificateConfig = t.TypeOf<typeof RequestCertificateConfigType>;
+
+export const CertificateConfigType = t.union([ImportCertificateConfigType, RequestCertificateConfigType]);
+
+export type CertificateConfig = t.TypeOf<typeof CertificateConfigType>;
+
 export const TgwDeploymentConfigType = t.interface({
   name: t.string,
   asn: optional(t.number),
@@ -239,6 +278,7 @@ export type TgwDeploymentConfig = t.TypeOf<typeof TgwDeploymentConfigType>;
 
 export const ADUserConfig = t.interface({
   user: NonEmptyString,
+  email: t.string,
   groups: t.array(t.string),
 });
 
@@ -257,6 +297,7 @@ export const MadConfigType = t.interface({
   'share-to-account': optional(t.string),
   restrict_srcips: t.array(cidr),
   'rdgw-instance-type': t.string,
+  'rdgw-instance-role': t.string,
   'num-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
@@ -264,6 +305,46 @@ export const MadConfigType = t.interface({
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
   'security-groups': t.array(SecurityGroupConfigType),
+});
+
+export const AlbTargetConfigType = t.interface({
+  'target-name': t.string,
+  'target-type': t.string,
+  protocol: optional(t.string),
+  port: optional(t.number),
+  'health-check-protocol': optional(t.string),
+  'health-check-path': t.string,
+  'health-check-port': optional(t.number),
+  'lambda-filename': optional(t.string),
+  'target-instances': optional(t.array(t.string)),
+  'tg-weight': optional(t.number),
+});
+
+export type AlbTargetConfig = t.TypeOf<typeof AlbTargetConfigType>;
+
+export const AlbConfigType = t.interface({
+  name: t.string,
+  scheme: t.string,
+  'action-type': t.string,
+  'ip-type': t.string,
+  listeners: t.string,
+  ports: t.number,
+  vpc: t.string,
+  subnets: t.string,
+  'cert-name': t.string,
+  'cert-arn': optional(t.string),
+  'security-policy': t.string,
+  'security-group': t.string,
+  'tg-stickiness': t.string,
+  'target-alarms-notify': optional(t.string),
+  'target-alarms-when': optional(t.string),
+  'target-alarms-of': optional(t.string),
+  'target-alarms-is': optional(t.string),
+  'target-alarms-Count': optional(t.string),
+  'target-alarms-for': optional(t.string),
+  'target-alarms-periods-of': optional(t.string),
+  'access-logs': t.boolean,
+  targets: t.array(AlbTargetConfigType),
 });
 
 export const AccountConfigType = t.interface({
@@ -297,6 +378,8 @@ export const FirewallConfigType = t.interface({
   vpc: t.string,
   'security-group': t.string,
   ports: t.array(FirewallPortConfigType),
+  license: optional(t.string),
+  config: t.string,
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.string,
@@ -304,6 +387,8 @@ export const FirewallConfigType = t.interface({
     name: t.string,
     account: t.string,
     'associate-to-tgw': t.string,
+    'rt-associate': optional(t.array(t.string)),
+    'rt-propagate': optional(t.array(t.string)),
   }),
 });
 
@@ -343,6 +428,22 @@ export const DeploymentConfigType = t.interface({
 
 export type DeploymentConfig = t.TypeOf<typeof DeploymentConfigType>;
 
+export const BudgetNotificationType = t.interface({
+  type: t.string,
+  'threshold-percent': t.number,
+  emails: t.array(t.string),
+});
+
+export type BudgetConfig = t.TypeOf<typeof BudgetConfigType>;
+
+export const BudgetConfigType = t.interface({
+  name: t.string,
+  period: t.string,
+  amount: t.number,
+  include: t.array(t.string),
+  alerts: t.array(BudgetNotificationType),
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -352,10 +453,15 @@ export const MandatoryAccountConfigType = t.interface({
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
   limits: fromNullable(t.record(t.string, t.number), {}),
-  vpc: optional(VpcConfigType),
+  certificates: optional(t.array(CertificateConfigType)),
+  vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),
+  alb: optional(t.array(AlbConfigType)),
   'log-retention': optional(t.number),
+  budget: optional(BudgetConfigType),
 });
+
+export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
 
 export type AccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
 
@@ -367,8 +473,11 @@ export const OrganizationalUnitConfigType = t.interface({
   type: t.string,
   scps: t.array(t.string),
   'share-mad-from': optional(t.string),
+  certificates: optional(t.array(CertificateConfigType)),
   iam: optional(IamConfigType),
-  vpc: optional(VpcConfigType),
+  alb: optional(t.array(AlbConfigType)),
+  vpc: optional(t.array(VpcConfigType)),
+  'default-budgets': optional(BudgetConfigType),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
@@ -393,16 +502,14 @@ export const GlobalOptionsZonesConfigType = t.interface({
 
 export const CostAndUsageReportConfigType = t.interface({
   'additional-schema-elements': t.array(t.string),
-  compression: NonEmptyString,
-  format: NonEmptyString,
-  'report-name': NonEmptyString,
-  's3-bucket': NonEmptyString,
-  's3-prefix': NonEmptyString,
-  's3-region': NonEmptyString,
-  'time-unit': NonEmptyString,
+  compression: t.string,
+  format: t.string,
+  'report-name': t.string,
+  's3-prefix': t.string,
+  'time-unit': t.string,
   'additional-artifacts': t.array(t.string),
   'refresh-closed-reports': t.boolean,
-  'report-versioning': NonEmptyString,
+  'report-versioning': t.string,
 });
 
 export const ReportsConfigType = t.interface({
@@ -427,6 +534,9 @@ export const CentralServicesConfigType = t.interface({
   cwl: fromNullable(t.boolean, false),
   'access-analyzer': fromNullable(t.boolean, false),
   'cwl-access-level': optional(t.string),
+  'cwl-glbl-exclusions': optional(t.array(t.string)),
+  'ssm-to-s3': optional(t.boolean),
+  'ssm-to-cwl': optional(t.boolean),
 });
 
 export const ScpsConfigType = t.interface({
@@ -447,6 +557,7 @@ export const GlobalOptionsConfigType = t.interface({
   'central-security-services': CentralServicesConfigType,
   'central-operations-services': CentralServicesConfigType,
   'central-log-services': CentralServicesConfigType,
+  'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
 });
 
@@ -465,7 +576,9 @@ export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
-export interface ResolvedVpcConfig {
+export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
+
+export interface ResolvedConfigBase {
   /**
    * The organizational unit to which this VPC belongs.
    */
@@ -474,6 +587,9 @@ export interface ResolvedVpcConfig {
    * The resolved account key where the VPC should be deployed.
    */
   accountKey: string;
+}
+
+export interface ResolvedVpcConfig extends ResolvedConfigBase {
   /**
    * The VPC config to be deployed.
    */
@@ -482,6 +598,27 @@ export interface ResolvedVpcConfig {
    * Deployment config
    */
   deployments?: DeploymentConfig;
+}
+
+export interface ResolvedCertificateConfig extends ResolvedConfigBase {
+  /**
+   * The certificates config to be deployed.
+   */
+  certificates: CertificateConfig[];
+}
+
+export interface ResolvedIamConfig extends ResolvedConfigBase {
+  /**
+   * The IAM config to be deployed.
+   */
+  iam: IamConfig;
+}
+
+export interface ResolvedAlbConfig extends ResolvedConfigBase {
+  /**
+   * The albs config to be deployed.
+   */
+  albs: AlbConfig[];
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
@@ -548,6 +685,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
   }
 
   /**
+   * @return string // Account Key for Mandatory accounts
+   */
+  getMandatoryAccountKey(accountName: MandatoryAccountType): string {
+    if (accountName === 'master') {
+      return this['global-options']['aws-org-master'].account;
+    } else if (accountName === 'central-security') {
+      return this['global-options']['central-security-services'].account;
+    } else if (accountName === 'central-operations') {
+      return this['global-options']['central-operations-services'].account;
+    } else if (accountName === 'central-log') {
+      return this['global-options']['central-log-services'].account;
+    } else {
+      // Invalid account name
+      throw new Error(`Invalid Account Type sent to "getMandatoryAccountKey"`);
+    }
+  }
+
+  /**
    * Find all VPC configurations in mandatory accounts, workload accounts and organizational units. VPC configuration in
    * organizational units will have the correct `accountKey` based on the `deploy` value of the VPC configuration.
    */
@@ -556,10 +711,10 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
     // Add mandatory account VPC configuration first
     for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
-      if (accountConfig.vpc) {
+      for (const vpcConfig of accountConfig.vpc || []) {
         vpcConfigs.push({
           accountKey,
-          vpcConfig: accountConfig.vpc,
+          vpcConfig,
           deployments: accountConfig.deployments,
         });
       }
@@ -571,26 +726,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
     prioritizedOus.sort(([_, ou1], [__, ou2]) => priorityByOuType(ou1, ou2));
 
     for (const [ouKey, ouConfig] of prioritizedOus) {
-      if (ouConfig.vpc) {
-        const destinationAccountKey = ouConfig.vpc.deploy;
+      for (const vpcConfig of ouConfig.vpc || []) {
+        const destinationAccountKey = vpcConfig.deploy;
         if (destinationAccountKey === 'local') {
           // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
           for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(ouKey)) {
-            if (accountConfig.vpc) {
-              vpcConfigs.push({
-                ouKey,
-                accountKey,
-                vpcConfig: accountConfig.vpc,
-                deployments: accountConfig.deployments,
-              });
-            }
+            vpcConfigs.push({
+              ouKey,
+              accountKey,
+              vpcConfig,
+              deployments: accountConfig.deployments,
+            });
           }
         } else {
           // When deploy is not 'local' then the VPC should only be deployed in the given account
           vpcConfigs.push({
             ouKey,
             accountKey: destinationAccountKey,
-            vpcConfig: ouConfig.vpc,
+            vpcConfig,
           });
         }
       }
@@ -598,16 +751,170 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
 
     // Add workload accounts as they are lower priority
     for (const [accountKey, accountConfig] of this.getWorkloadAccountConfigs()) {
-      if (accountConfig.vpc) {
+      for (const vpcConfig of accountConfig.vpc || []) {
         vpcConfigs.push({
           accountKey,
-          vpcConfig: accountConfig.vpc,
+          vpcConfig,
           deployments: accountConfig.deployments,
         });
       }
     }
 
     return vpcConfigs;
+  }
+
+  /**
+   * Find all VPC configurations in mandatory accounts, workload accounts and organizational units. VPC configuration in
+   * organizational units will have the correct `accountKey` based on the `deploy` value of the VPC configuration.
+   */
+  getVpcConfigs2(): ResolvedVpcConfig[] {
+    const result: ResolvedVpcConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const vpcConfigs = config.vpc;
+      if (!vpcConfigs || vpcConfigs.length === 0) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        for (const vpcConfig of vpcConfigs) {
+          result.push({
+            accountKey: key,
+            vpcConfig,
+            deployments: config.deployments,
+          });
+        }
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const vpcConfig of vpcConfigs) {
+          const destinationAccountKey = vpcConfig.deploy;
+          if (destinationAccountKey === 'local') {
+            // When deploy is 'local' then the VPC should be deployed in all accounts in the OU
+            for (const [accountKey, accountConfig] of this.getAccountConfigsForOu(key)) {
+              result.push({
+                ouKey: key,
+                accountKey,
+                vpcConfig,
+                deployments: accountConfig.deployments,
+              });
+            }
+          } else {
+            // When deploy is not 'local' then the VPC should only be deployed in the given account
+            result.push({
+              ouKey: key,
+              accountKey: destinationAccountKey,
+              vpcConfig,
+            });
+          }
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find all certificate configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getCertificateConfigs(): ResolvedCertificateConfig[] {
+    const result: ResolvedCertificateConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const certificates = config.certificates;
+      if (!certificates || certificates.length === 0) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          certificates,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            certificates,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find all IAM configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getIamConfigs(): ResolvedIamConfig[] {
+    const result: ResolvedIamConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const iam = config.iam;
+      if (!iam) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          iam,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            iam,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find all alb configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getAlbConfigs(): ResolvedAlbConfig[] {
+    const result: ResolvedAlbConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const albs = config.alb;
+      if (!albs || albs.length === 0) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          albs,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            albs,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Iterate all account configs and organizational unit configs in order.
+   */
+  private *getAccountAndOuConfigs(): IterableIterator<[string, MandatoryAccountConfig | OrganizationalUnitConfig]> {
+    // Add mandatory account VPC configuration first
+    for (const [accountKey, accountConfig] of this.getMandatoryAccountConfigs()) {
+      yield [accountKey, accountConfig];
+    }
+
+    const prioritizedOus = this.getOrganizationalUnits();
+    // Sort OUs by OU priority
+    // Config for mandatory OUs should be first in the list
+    prioritizedOus.sort(([_, ou1], [__, ou2]) => priorityByOuType(ou1, ou2));
+
+    for (const [ouKey, ouConfig] of prioritizedOus) {
+      yield [ouKey, ouConfig];
+    }
+
+    // Add workload accounts as they are lower priority
+    for (const [accountKey, accountConfig] of this.getWorkloadAccountConfigs()) {
+      yield [accountKey, accountConfig];
+    }
   }
 
   static fromBuffer(content: Buffer): AcceleratorConfig {

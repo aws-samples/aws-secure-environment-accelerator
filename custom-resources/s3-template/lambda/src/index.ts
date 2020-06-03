@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
-import { CloudFormationCustomResourceEvent, Context } from 'aws-lambda';
-import { send, SUCCESS, FAILED } from 'cfn-response-async';
+import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { errorHandler } from '@custom-resources/cfn-response';
 
 export type TemplateParameters = { [key: string]: string };
 
@@ -14,23 +14,10 @@ export interface HandlerProperties {
 
 const s3 = new AWS.S3();
 
-export const handler = async (event: CloudFormationCustomResourceEvent, context: Context) => {
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating S3 object from template...`);
   console.log(JSON.stringify(event, null, 2));
 
-  try {
-    const data = await onEvent(event);
-    console.debug('Sending successful response');
-    console.debug(JSON.stringify(data, null, 2));
-    await send(event, context, SUCCESS, data);
-  } catch (e) {
-    console.error('Sending failure response');
-    console.error(e);
-    await send(event, context, FAILED);
-  }
-};
-
-export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   // tslint:disable-next-line: switch-default
   switch (event.RequestType) {
     case 'Create':
@@ -40,21 +27,29 @@ export const onEvent = async (event: CloudFormationCustomResourceEvent): Promise
     case 'Delete':
       return onDelete(event);
   }
-};
+}
+
+export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { templateBucketName, templatePath, outputBucketName, outputPath } = properties;
 
   // Load template
-  console.debug(`Loading template ${properties.templateBucketName}/${properties.templatePath}`);
-  const object = await s3
-    .getObject({
-      Bucket: properties.templateBucketName,
-      Key: properties.templatePath,
-    })
-    .promise();
-  const body = object.Body!;
-  const bodyString = body.toString();
+  console.debug(`Loading template ${templateBucketName}/${templatePath}`);
+  let bodyString;
+  try {
+    const object = await s3
+      .getObject({
+        Bucket: properties.templateBucketName,
+        Key: properties.templatePath,
+      })
+      .promise();
+    const body = object.Body!;
+    bodyString = body.toString();
+  } catch (e) {
+    throw new Error(`Unable to get S3 object s3://${templateBucketName}/${templatePath}: ${e}`);
+  }
 
   // Replace variables
   let replaced = bodyString;
@@ -62,15 +57,19 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     replaced = replaceAll(replaced, key, value);
   }
 
-  // Save the template with replacements to S3
-  console.debug(`Saving output ${properties.outputBucketName}/${properties.outputPath}`);
-  await s3
-    .putObject({
-      Bucket: properties.outputBucketName,
-      Key: properties.outputPath,
-      Body: Buffer.from(replaced),
-    })
-    .promise();
+  try {
+    // Save the template with replacements to S3
+    console.debug(`Saving output ${outputBucketName}/${outputPath}`);
+    await s3
+      .putObject({
+        Bucket: outputBucketName,
+        Key: outputPath,
+        Body: Buffer.from(replaced),
+      })
+      .promise();
+  } catch (e) {
+    throw new Error(`Unable to put S3 object s3://${outputBucketName}/${outputPath}: ${e}`);
+  }
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {

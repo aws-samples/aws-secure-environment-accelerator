@@ -2,14 +2,14 @@ import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-serv
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-interface ShareDirectoryInput {
+interface ShareDirectoryInput extends LoadConfigurationInput {
   accounts: Account[];
   stackOutputSecretId: string;
   assumeRoleName: string;
-  configSecretSourceId: string;
 }
 
 // TODO Move to common outputs
@@ -25,13 +25,17 @@ export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD to another account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, assumeRoleName, stackOutputSecretId, configSecretSourceId: configSecretId } = input;
+  const { accounts, assumeRoleName, stackOutputSecretId, configRepositoryName, configFilePath, configCommitId } = input;
+
+  // Retrieve Configuration from Code Commit with specific commitId
+  const acceleratorConfig = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
 
   const secrets = new SecretsManager();
-  const configString = await secrets.getSecret(configSecretId);
   const outputsString = await secrets.getSecret(stackOutputSecretId);
-
-  const acceleratorConfig = AcceleratorConfig.fromString(configString.SecretString!);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
@@ -80,12 +84,18 @@ export const handler = async (input: ShareDirectoryInput) => {
 
     const madOutput = madOutputs.find(output => output.id === madConfig['dir-id']);
     if (!madOutput || !madOutput.directoryId) {
-      throw new Error(`Cannot find madOutput with vpc name ${madConfig['vpc-name']}`);
+      console.warn(`Cannot find madOutput with vpc name ${madConfig['vpc-name']}`);
+      continue;
     }
 
     const directoryId = madOutput.directoryId;
 
     const accountId = getAccountId(accounts, accountKey);
+
+    if (!accountId) {
+      console.warn(`Cannot find account with key ${accountKey}`);
+      continue;
+    }
 
     if (madConfig['share-to-account']) {
       const shareToAccountId = getAccountId(accounts, madConfig['share-to-account']);
@@ -127,12 +137,14 @@ export const handler = async (input: ShareDirectoryInput) => {
 
     const ownerAccountConfig = accountConfigs.find(([key]) => key === ownerAccountKey);
     if (!ownerAccountConfig) {
-      throw new Error(`Cannot find Owner account config with key ${ownerAccountKey}`);
+      console.warn(`Cannot find Owner account config with key ${ownerAccountKey}`);
+      continue;
     }
 
     const madDirId = ownerAccountConfig[1].deployments?.mad?.['dir-id'];
     if (!madDirId) {
-      throw new Error(`Cannot find dir-id for Owner account with key ${ownerAccountKey}`);
+      console.warn(`Cannot find dir-id for Owner account with key ${ownerAccountKey}`);
+      continue;
     }
 
     const madOutputs: MadOutput[] = getStackJsonOutput(outputs, {
@@ -142,16 +154,28 @@ export const handler = async (input: ShareDirectoryInput) => {
 
     const madOutput = madOutputs.find(output => output.id === madDirId);
     if (!madOutput || !madOutput.directoryId) {
-      throw new Error(`Cannot find madOutput with dir-id ${madDirId}`);
+      console.warn(`Cannot find madOutput with dir-id ${madDirId}`);
+      continue;
     }
 
     const directoryId = madOutput.directoryId;
     let sharedAccountId;
     const ownerAccountId = getAccountId(accounts, ownerAccountKey);
+
+    if (!ownerAccountId) {
+      console.warn(`Cannot find account with accountKey ${ownerAccountKey}`);
+      continue;
+    }
+
     try {
       sharedAccountId = getAccountId(accounts, accountKey);
     } catch (e) {
       console.warn(`Cannot find account with key ${accountKey}`);
+    }
+
+    if (!sharedAccountId) {
+      console.warn(`Cannot find account with accountKey ${accountKey}`);
+      continue;
     }
 
     await shareDirectory(ownerAccountId, directoryId, sharedAccountId);

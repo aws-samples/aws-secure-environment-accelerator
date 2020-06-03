@@ -1,29 +1,14 @@
-import * as cdk from '@aws-cdk/core';
-import { getAccountId, loadAccounts } from '../utils/accounts';
-import { loadAcceleratorConfig } from '../utils/config';
-import { loadContext } from '../utils/context';
-import { loadStackOutputs } from '../utils/outputs';
 import * as iam from '@aws-cdk/aws-iam';
-import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
+import * as ssm from '@aws-cdk/aws-ssm';
+import { getAccountId } from '../utils/accounts';
 import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
-import * as ssm from '@aws-cdk/aws-ssm';
 import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
-import { AccountStacks } from '../common/account-stacks';
 import { StructuredOutput } from '../common/structured-output';
-import { MadAutoScalingRoleOutputType } from '../deployments/mad';
-
-process.on('unhandledRejection', (reason, _) => {
-  console.error(reason);
-  process.exit(1);
-});
-
-export interface RdgwArtifactsOutput {
-  bucketArn: string;
-  bucketName: string;
-  keyPrefix: string;
-}
+import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
+import { PhaseInput } from './shared';
+import { RdgwArtifactsOutput } from './phase-4';
 
 interface MadOutput {
   id: number;
@@ -33,32 +18,16 @@ interface MadOutput {
   passwordArn: string;
 }
 
-async function main() {
-  const context = loadContext();
-  const acceleratorConfig = await loadAcceleratorConfig();
-  const accounts = await loadAccounts();
-  const outputs = await loadStackOutputs();
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
     .getMandatoryAccountConfigs()
     .map(([_, accountConfig]) => accountConfig['account-name']);
 
-  const app = new cdk.App();
-
-  const accountStacks = new AccountStacks(app, {
-    phase: 5,
-    accounts,
-    context,
-  });
-
-  const masterAccount = acceleratorConfig.getAccountByLandingZoneAccountType('primary');
-  if (!masterAccount) {
-    throw new Error(`Cannot find primary account`);
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
+  if (!masterAccountId) {
+    throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
-
-  const [masterAccountKey, _] = masterAccount;
-  const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-
-  const secretsStack = new SecretsContainer(masterStack, 'Secrets');
 
   // TODO Move to deployments/mad/step-x.ts
   type UserSecrets = UserSecret[];
@@ -73,7 +42,8 @@ async function main() {
       type: MadAutoScalingRoleOutputType,
     });
     if (madAutoScalingRoleOutputs.length !== 1) {
-      throw new Error(`Cannot find required service-linked auto scaling role in account "${accountKey}"`);
+      console.warn(`Cannot find required service-linked auto scaling role in account "${accountKey}"`);
+      continue;
     }
     const madAutoScalingRoleOutput = madAutoScalingRoleOutputs[0];
 
@@ -82,7 +52,11 @@ async function main() {
     const ec2KeyPairName = 'rdgw-key-pair';
     const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
 
-    const stack = accountStacks.getOrCreateAccountStack(accountKey);
+    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!stack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      continue;
+    }
 
     const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
 
@@ -95,15 +69,13 @@ async function main() {
 
     const userSecrets: UserSecrets = [];
     for (const adUser of madDeploymentConfig['ad-users']) {
-      const madUserPassword = secretsStack.createSecret(`MadPassword${adUser.user}`, {
-        secretName: `accelerator/${accountKey}/mad/${adUser.user}/password`,
-        description: 'Password for Managed Active Directory.',
-        generateSecretString: {
-          passwordLength: madDeploymentConfig['password-policies']['min-len'],
-        },
-        principals: [new iam.AccountPrincipal(accountId)],
+      const passwordSecretArn = getMadUserPasswordSecretArn({
+        acceleratorPrefix: context.acceleratorPrefix,
+        accountKey,
+        secretAccountId: masterAccountId,
+        userId: adUser.user,
       });
-      userSecrets.push({ user: adUser.user, password: madUserPassword });
+      userSecrets.push({ user: adUser.user, passwordSecretArn });
     }
 
     const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
@@ -113,12 +85,13 @@ async function main() {
     );
 
     const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
-      accountKey: 'master',
+      accountKey: masterAccountKey,
       outputType: 'RdgwArtifactsOutput',
     });
 
     if (rdgwScriptsOutput.length === 0) {
-      throw new Error(`Cannot find output with RDGW reference artifacts`);
+      console.warn(`Cannot find output with RDGW reference artifacts`);
+      continue;
     }
 
     const s3BucketName = rdgwScriptsOutput[0].bucketName;
@@ -130,7 +103,8 @@ async function main() {
     });
     const vpcOutput = vpcOutputs.find(output => output.vpcName === madDeploymentConfig['vpc-name']);
     if (!vpcOutput) {
-      throw new Error(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
+      console.warn(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
+      continue;
     }
 
     const vpcId = vpcOutput.vpcId;
@@ -144,7 +118,8 @@ async function main() {
 
     const madOutput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
     if (!madOutput || !madOutput.directoryId) {
-      throw new Error(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
+      console.warn(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
+      continue;
     }
 
     const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
@@ -167,6 +142,3 @@ async function main() {
     adUsersAndGroups.node.addDependency(keyPair);
   }
 }
-
-// tslint:disable-next-line: no-floating-promises
-main();
