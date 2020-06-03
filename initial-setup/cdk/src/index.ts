@@ -457,6 +457,7 @@ export namespace InitialSetup {
         task: new tasks.StartExecution(createAdConnectorStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
+            acceleratorPrefix: props.acceleratorPrefix,
             'accounts.$': '$.accounts',
             assumeRoleName: props.stateMachineExecutionRole,
             'configRepositoryName.$': '$.configRepositoryName',

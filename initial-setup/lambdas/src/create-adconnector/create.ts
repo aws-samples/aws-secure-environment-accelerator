@@ -3,12 +3,19 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { createMadUserPasswordSecretName } from '@aws-pbmm/common-outputs/lib/mad';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from '../load-configuration-step';
 
+const VALID_STATUSES: string[] = ['Requested', 'Creating', 'Created', 'Active', 'Inoperable', 'Impaired', 'Restoring'];
+
 interface AdConnectorInput extends LoadConfigurationInput {
+  acceleratorPrefix: string;
   accounts: Account[];
   assumeRoleName: string;
+  configRepositoryName: string;
+  configFilePath: string;
+  configCommitId: string;
   stackOutputSecretId: string;
 }
 
@@ -43,7 +50,15 @@ export const handler = async (input: AdConnectorInput) => {
   console.log(`Creating AD Connector in account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, assumeRoleName, stackOutputSecretId, configRepositoryName, configFilePath, configCommitId } = input;
+  const {
+    acceleratorPrefix,
+    accounts,
+    assumeRoleName,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+    stackOutputSecretId,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -118,20 +133,25 @@ export const handler = async (input: AdConnectorInput) => {
     const subnetIds = vpc.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
 
     const accountId = getAccountId(accounts, accountKey);
-
     if (!accountId) {
       console.warn(`Cannot find account with accountKey ${accountKey}`);
       continue;
     }
 
     // TODO Getting admin password, update with user specific password after creating AD Users and Groups
-    const madPassword = await secrets.getSecret(
-      `accelerator/${adcConfig['connect-account-key']}/mad/${adConnectorUser.user}/password`,
-    );
+    const madPasswordSecretArn = createMadUserPasswordSecretName({
+      acceleratorPrefix,
+      accountKey: adcConfig['connect-account-key'],
+      userId: adConnectorUser.user,
+    });
+    const madPassword = await secrets.getSecret(madPasswordSecretArn);
+
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     const directoryService = new DirectoryService(credentials);
     const adConnectors = await directoryService.getADConnectors();
-    const adConnector = adConnectors.find(o => o.domain === madConfig['dns-domain'] && o.status === 'Active');
+    const adConnector = adConnectors.find(
+      o => o.domain === madConfig['dns-domain'] && VALID_STATUSES.includes(o.status),
+    );
     console.log('Active AD Connector', adConnector);
 
     // Creating AD Connector if there are no active AD Connector with the given dns-domain
