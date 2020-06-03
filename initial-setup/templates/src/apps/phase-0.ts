@@ -195,7 +195,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           new awsIam.PolicyStatement({
             actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
             principals: [new awsIam.ServicePrincipal('route53.amazonaws.com')],
-            resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${createLogGroupName('r53')}/*`],
+            resources: [
+              `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${createLogGroupName('r53')}/*`,
+            ],
           }),
         ],
       }).node.addDependency(logGroup);
