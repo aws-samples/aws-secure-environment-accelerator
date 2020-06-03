@@ -16,15 +16,6 @@ export function createBucketName(name?: string): string {
   });
 }
 
-export function createLogGroupName(name: string, service?: string): string {
-  const groupName = createName({
-    name,
-    service,
-    separator: '/',
-  });
-  return `/${groupName}`;
-}
-
 export function createRoleName(name: string, suffixLength: number = 8): string {
   return createName({
     name,
@@ -73,10 +64,6 @@ export interface CreateNameProps {
    * @default false
    */
   lowercase?: boolean;
-  /**
-   * @default undefined
-   */
-  service?: string;
 }
 
 /**
@@ -92,8 +79,8 @@ export function createName(props: CreateNameProps = {}): string {
   return cdk.Lazy.stringValue({
     produce: (context: cdk.IResolveContext) => {
       const { scope } = context;
-      const { name, account, region, suffixLength, service } = props;
-      const separator = props.separator || DEFAULT_SEPARATOR;
+      const { name, account, region, suffixLength, separator = DEFAULT_SEPARATOR } = props;
+
       // Find the AcceleratorStack in the parents.
       const parents = scope.node.scopes;
       const stack = parents.find((p: cdk.IConstruct): p is AcceleratorStack => p instanceof AcceleratorStack);
@@ -102,14 +89,7 @@ export function createName(props: CreateNameProps = {}): string {
       }
 
       // Use the AcceleratorStack prefix
-      let prefix: string;
-      if (separator && separator !== DEFAULT_SEPARATOR && stack.acceleratorPrefix.endsWith(DEFAULT_SEPARATOR)) {
-        // if separator != DEFAULT_SEPARATOR then remove DEFAULT_SEPARATOR from prefix if that ends with DEFAULT_SEPARATOR and append new seperator
-        // eg. Prefix- turns to be Prefix/ considering separator = / and DEFAULT_SEPARATOR = -
-        prefix = `${stack.acceleratorPrefix.slice(0, -1)}${separator}`;
-      } else {
-        prefix = stack.acceleratorPrefix;
-      }
+      const prefix = stack.acceleratorPrefix;
 
       const pieces = [];
       if (account) {
@@ -117,9 +97,6 @@ export function createName(props: CreateNameProps = {}): string {
       }
       if (region) {
         pieces.push(cdk.Aws.REGION);
-      }
-      if (service) {
-        pieces.push(prepareString(service, props));
       }
       if (name) {
         pieces.push(prepareString(name, props));
