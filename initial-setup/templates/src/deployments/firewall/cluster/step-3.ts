@@ -14,7 +14,7 @@ import {
   FirewallInstanceOutputType,
 } from './outputs';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { OUTPUT_SUBSCRIPTION_REGUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: s3.IBucket };
@@ -79,7 +79,7 @@ export async function step3(props: FirewallStep3Props) {
     });
 
     const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig['image-id']);
-    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REGUIRED) {
+    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REQUIRED) {
       console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig['image-id']}`);
       return;
     }
@@ -123,7 +123,6 @@ async function createFirewallCluster(props: {
     configuration: {
       bucket: accountBucket,
       bucketRegion: cdk.Aws.REGION,
-      licenseBucket: centralBucket,
       templateBucket: centralBucket,
       templateConfigPath: firewallConfig.config,
     },
@@ -148,15 +147,18 @@ async function createFirewallCluster(props: {
 
     let instance = instancePerAz[az];
     let licensePath: string | undefined;
+    let licenseBucket: s3.IBucket | undefined;
     if (!instance) {
-      if (firewallConfig.license) {
+      if (firewallConfig.license && licenseIndex < firewallConfig.license.length) {
         licensePath = firewallConfig.license[licenseIndex];
+        licenseBucket = centralBucket;
       }
       const instanceName = `Fgt${pascalCase(az)}`;
       instance = cluster.createInstance({
         name: instanceName,
         hostname: instanceName,
         licensePath,
+        licenseBucket,
       });
       instancePerAz[az] = instance;
       licenseIndex++;

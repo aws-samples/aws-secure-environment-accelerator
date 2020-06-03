@@ -18,7 +18,6 @@ export interface FirewallVpnTunnelOptions {
 }
 
 export interface FirewallConfigurationProps {
-  licenseBucket?: s3.IBucket;
   templateBucket: s3.IBucket;
   templateConfigPath: string;
   /**
@@ -34,6 +33,7 @@ export interface FirewallInstanceProps {
   hostname: string;
   vpcCidrBlock: string;
   licensePath?: string;
+  licenseBucket?: s3.IBucket;
   /**
    * Image ID of firewall.
    */
@@ -55,16 +55,16 @@ export class FirewallInstance extends cdk.Construct {
 
     this.props = props;
 
-    const { configuration, licensePath } = props;
+    const { configuration } = props;
 
     // Copy license without replacing anything
     // TODO Should we create another custom resource for this?
-    if (configuration.licenseBucket && licensePath) {
+    if (props.licenseBucket && props.licensePath) {
       new S3Template(this, 'License', {
-        templateBucket: configuration.licenseBucket,
-        templatePath: licensePath,
+        templateBucket: props.licenseBucket,
+        templatePath: props.licensePath,
         outputBucket: configuration.bucket,
-        outputPath: licensePath,
+        outputPath: props.licensePath,
       });
     }
 
@@ -89,7 +89,7 @@ export class FirewallInstance extends cdk.Construct {
             bucket: configuration.bucket.bucketName,
             region: configuration.bucketRegion,
             config: `/${configuration.configPath}`,
-            license: `/${licensePath}`,
+            license: `/${props.licensePath}`,
           },
           null,
           2,
