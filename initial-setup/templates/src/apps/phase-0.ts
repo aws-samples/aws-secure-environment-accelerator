@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from '../common/json-output';
@@ -10,6 +11,7 @@ import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
+import * as iam from '../deployments/iam';
 import * as mad from '../deployments/mad';
 import { PhaseInput } from './shared';
 
@@ -32,7 +34,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   const centralBucket = defaultsResult.centralBucketCopy;
 
-  // Master Stack to update Custom Resource Lambda Functions invoke permissions
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
@@ -87,6 +88,25 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     destinationKeyPrefix: 'config/scripts',
   });
 
+  // Create secrets for the different deployments
+  const secretsContainer = new SecretsContainer(masterAccountStack, 'Secrets');
+
+  // Create IAM secrets
+  await iam.createSecrets({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accounts,
+    config: acceleratorConfig,
+    secretsContainer,
+  });
+
+  // Create MAD secrets
+  await mad.createSecrets({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accounts,
+    config: acceleratorConfig,
+    secretsContainer,
+  });
+
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
   const securityStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
   if (!securityStack) {
@@ -102,21 +122,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     });
   }
 
-  const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(
-    a => a.key === acceleratorConfig.getMandatoryAccountKey('central-security'),
-  );
-  const subAccountIds = accounts.map(account => {
-    return {
-      AccountId: account.id,
-      Email: account.email,
-    };
-  });
-
-  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityMasterAccount?.key!);
+  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
   if (!securityMasterAccountStack) {
     console.warn(`Cannot find security stack`);
   } else {
+    const globalOptions = acceleratorConfig['global-options'];
+    const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
+    const subAccountIds = accounts.map(account => ({
+      AccountId: account.id,
+      Email: account.email,
+    }));
+
     // Create Security Hub stack for Master Account in Security Account
     new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
       account: securityMasterAccount!,

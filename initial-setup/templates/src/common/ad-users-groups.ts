@@ -26,7 +26,7 @@ export interface ADUsersAndGroupsProps extends cdk.StackProps {
 
 export interface UserSecret {
   user: string;
-  password: Secret;
+  passwordSecretArn: string;
 }
 
 export class ADUsersAndGroups extends cdk.Construct {
@@ -55,7 +55,7 @@ export class ADUsersAndGroups extends cdk.Construct {
     const adUsersCommand: string[] = madDeploymentConfig['ad-users'].map(
       adUser =>
         `C:\\cfn\\scripts\\AD-user-setup.ps1 -UserName ${adUser.user} -Password ((Get-SECSecretValue -SecretId ${
-          userSecrets.find(x => x.user === adUser.user)?.password.secretArn
+          userSecrets.find(x => x.user === adUser.user)?.passwordSecretArn
         }).SecretString) -DomainAdminUser ${
           madDeploymentConfig['netbios-domain']
         }\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString) -PasswordNeverExpires Yes -UserEmailAddress ${
