@@ -433,8 +433,9 @@
       "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {
-        "AWS Organizations/Maximum accounts": {
-          "value": 20
+        "Amazon EC2/Number of EIPs": {
+          "value": 10,
+          "customer-confirm-inplace": false
         }
       },
       "share-mad-from": "",
