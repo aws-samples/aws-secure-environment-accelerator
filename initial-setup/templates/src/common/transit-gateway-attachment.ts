@@ -8,6 +8,7 @@ export interface TransitGatewayAttachmentProps {
   tgwRouteAssociates?: string[];
   tgwRoutePropagates?: string[];
   blackhole?: boolean;
+  cidr?: string;
 }
 
 export class TransitGatewayAttachment extends cdk.Construct {
@@ -26,6 +27,7 @@ export class TransitGatewayAttachment extends cdk.Construct {
         transitGatewayRouteTableId: route,
         transitGatewayAttachmentId: this.tgwAttach.ref,
         blackhole: props.blackhole,
+        destinationCidrBlock: props.cidr,
       });
     }
 

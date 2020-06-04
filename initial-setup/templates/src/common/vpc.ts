@@ -302,6 +302,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           tgwRouteAssociates,
           tgwRoutePropagates,
           blackhole,
+          cidr: this.cidrBlock,
         });
         // Add name tag
         cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
