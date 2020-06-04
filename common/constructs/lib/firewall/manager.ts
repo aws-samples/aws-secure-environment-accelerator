@@ -1,6 +1,5 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { KeyPair } from 'cdk-ec2-key-pair';
 import { SecurityGroup, Subnet } from '../vpc';
 
 export interface FirewallManagerProps {
@@ -10,13 +9,12 @@ export interface FirewallManagerProps {
    */
   imageId: string;
   instanceType: string;
+  keyPairName?: string;
 }
 
 export class FirewallManager extends cdk.Construct {
   private readonly props: FirewallManagerProps;
   private readonly resource: ec2.CfnInstance;
-  private readonly keyPair: KeyPair;
-  private readonly keyPairName: string;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
   constructor(scope: cdk.Construct, id: string, props: FirewallManagerProps) {
@@ -24,21 +22,13 @@ export class FirewallManager extends cdk.Construct {
 
     this.props = props;
 
-    this.keyPairName = 'FirewallManagement';
-    this.keyPair = new KeyPair(this, 'KeyPair', {
-      name: this.keyPairName,
-      secretPrefix: 'accelerator/keypairs/',
-    });
-
     this.resource = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
-      keyName: this.keyPairName,
+      keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
     });
     cdk.Tag.add(this.resource, 'Name', this.props.name);
-
-    this.resource.node.addDependency(this.keyPair);
   }
 
   addNetworkInterface(props: { securityGroup: SecurityGroup; subnet: Subnet; eipAllocationId?: string }) {
