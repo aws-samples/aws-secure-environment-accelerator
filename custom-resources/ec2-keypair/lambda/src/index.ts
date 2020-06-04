@@ -30,9 +30,9 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
     case 'Delete':
       return onDelete(event);
   }
-};
+}
 
-function getPhysicalId(event: CloudFormationCustomResourceEvent): string{
+function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   return `${properties.secretPrefix}${properties.keyName}`;
