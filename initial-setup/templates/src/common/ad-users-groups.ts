@@ -1,11 +1,9 @@
 import * as cdk from '@aws-cdk/core';
-import { Secret } from '@aws-cdk/aws-secretsmanager';
-import * as iam from '@aws-cdk/aws-iam';
 import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnAutoScalingGroup, CfnLaunchConfiguration, AutoScalingGroup } from '@aws-cdk/aws-autoscaling';
 import { pascalCase } from 'pascal-case';
 import { SecurityGroup } from './security-group';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createIamInstanceProfileName } from './iam-assets';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -98,16 +96,11 @@ export class ADUsersAndGroups extends cdk.Construct {
       vpcName,
     });
 
-    const RDGWHostProfile = new iam.CfnInstanceProfile(this, 'RDGWHostProfile', {
-      roles: [madDeploymentConfig['rdgw-instance-role']],
-      instanceProfileName: 'PBMM-RDGWHostProfile',
-    });
-
     const launchConfig = new CfnLaunchConfiguration(this, 'RDGWLaunchConfiguration', {
       associatePublicIpAddress: false,
       imageId: latestRdgwAmiId,
       securityGroups: [securityGroup.securityGroups[0].id],
-      iamInstanceProfile: RDGWHostProfile.instanceProfileName,
+      iamInstanceProfile: createIamInstanceProfileName(madDeploymentConfig['rdgw-instance-role']),
       instanceType: madDeploymentConfig['rdgw-instance-type'],
       launchConfigurationName: 'RDGWLaunchConfiguration',
       blockDeviceMappings: [
