@@ -5,7 +5,7 @@ import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallManager } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { OUTPUT_SUBSCRIPTION_REGUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface FirewallManagerStep1Props {
   accountStacks: AccountStacks;
@@ -46,7 +46,7 @@ export async function step1(props: FirewallManagerStep1Props) {
     });
 
     const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === managerConfig['image-id']);
-    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REGUIRED) {
+    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REQUIRED) {
       console.log(`AMI Marketplace subscription required for ImageId: ${managerConfig['image-id']}`);
       return;
     }
