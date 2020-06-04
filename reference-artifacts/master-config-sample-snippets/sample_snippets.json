@@ -316,7 +316,13 @@
       "enable-s3-public-access": true
     }
   },
-************************************
+************************************Sample limit increases supported 
+      "limits": {
+        "Amazon VPC/Interface VPC endpoints per VPC": 90,
+        "Amazon VPC/VPCs per Region": 15,
+        "AWS CloudFormation/Stack count": 400,
+        "AWS CloudFormation/Stack sets per administrator account": 400
+      },
 ************************************
 ************************************
 

@@ -101,7 +101,11 @@ export const handler = async (input: LoadLimitsInput) => {
         ServiceCode: limitCode.serviceCode,
         QuotaCode: limitCode.quotaCode,
       });
-      const value = quota.Value!;
+      let value = quota.Value!;
+      const accountLimitConfig = limitConfig[limitKey];
+      if (accountLimitConfig && accountLimitConfig['customer-confirm-inplace']) {
+        value = accountLimitConfig.value;
+      }
 
       // Keep track of limits so we can return them at the end of this function
       limits.push({
@@ -112,11 +116,13 @@ export const handler = async (input: LoadLimitsInput) => {
         value,
       });
 
-      const desiredValue = limitConfig[limitKey];
-      if (!desiredValue) {
+      if (!accountLimitConfig) {
         console.debug(`Quota "${limitKey}" has no desired value for account "${accountKey}"`);
         continue;
       }
+
+      const desiredValue = accountLimitConfig.value;
+
       if (value >= desiredValue) {
         console.debug(`Quota "${limitKey}" already has a value equal or larger than the desired value`);
         continue;

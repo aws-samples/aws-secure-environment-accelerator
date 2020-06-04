@@ -146,10 +146,13 @@
         ]
       },
       "limits": {
-        "Amazon VPC/Interface VPC endpoints per VPC": 90,
-        "Amazon VPC/VPCs per Region": 15,
-        "AWS CloudFormation/Stack count": 400,
-        "AWS CloudFormation/Stack sets per administrator account": 400
+        "Amazon VPC/Interface VPC endpoints per VPC": {
+          "value": 90,
+          "customer-confirm-inplace": false
+        },
+        "Amazon VPC/VPCs per Region": {
+          "value": 15
+        }
       },
       "vpc": [
         {
@@ -430,7 +433,9 @@
       "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {
-        "Amazon EC2/Number of EIPs": 10
+        "AWS Organizations/Maximum accounts": {
+          "value": 20
+        }
       },
       "share-mad-from": "",
       "budget": {
@@ -956,8 +961,9 @@
       },
       "log-retention": 180,
       "limits": {
-        "AWS Organizations/Maximum accounts": 20,
-        "AWS CloudFormation/Stack count": 400
+        "AWS Organizations/Maximum accounts": {
+          "value": 20
+        }
       },
       "iam": {
         "users": [
