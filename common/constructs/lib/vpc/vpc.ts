@@ -10,6 +10,10 @@ export interface SecurityGroup {
   name: string;
 }
 
+export interface RouteTables {
+  [key: string]: string;
+}
+
 export interface Vpc {
   id: string;
   name: string;
@@ -28,4 +32,7 @@ export interface Vpc {
 
   findSecurityGroupByName(name: string): SecurityGroup;
   tryFindSecurityGroupByName(name: string): SecurityGroup | undefined;
+
+  findRouteTableByName(name: string): string;
+  tryFindRouteTableByName(name: string): string | undefined;
 }
