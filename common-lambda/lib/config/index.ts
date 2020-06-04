@@ -446,8 +446,8 @@ export const BudgetConfigType = t.interface({
 
 export const LimitConfig = t.interface({
   value: t.number,
-  'customer-confirm-inplace': fromNullable(t.boolean, false)
-})
+  'customer-confirm-inplace': fromNullable(t.boolean, false),
+});
 
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),

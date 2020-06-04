@@ -103,10 +103,10 @@ export const handler = async (input: LoadLimitsInput) => {
       });
       let value = quota.Value!;
       const accountLimitConfig = limitConfig[limitKey];
-      if (accountLimitConfig && accountLimitConfig["customer-confirm-inplace"]) {
+      if (accountLimitConfig && accountLimitConfig['customer-confirm-inplace']) {
         value = accountLimitConfig.value;
       }
-      
+
       // Keep track of limits so we can return them at the end of this function
       limits.push({
         accountKey,
