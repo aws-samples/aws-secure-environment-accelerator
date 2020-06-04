@@ -152,9 +152,6 @@
         },
         "Amazon VPC/VPCs per Region": {
           "value": 15
-        },
-        "AWS CloudFormation/Stack sets per administrator account": {
-          "value": 400
         }
       },
       "vpc": [
