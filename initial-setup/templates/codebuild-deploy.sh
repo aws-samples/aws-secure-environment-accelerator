@@ -14,10 +14,6 @@ if [ -n "${ACCELERATOR_ACCOUNT_KEY}" ]; then
   account_arg="--account-key ${ACCELERATOR_ACCOUNT_KEY}"
 fi
 
-echo "Bootstrapping..."
-
-pnpx ts-node --transpile-only cdk.ts bootstrap ${phase_arg} ${region_arg} ${account_arg}
-
 echo "Deploying phase $ACCELERATOR_PHASE..."
 
-pnpx ts-node --transpile-only cdk.ts deploy --parallel ${phase_arg} ${region_arg} ${account_arg}
+pnpx ts-node --transpile-only cdk.ts bootstrap deploy --parallel ${phase_arg} ${region_arg} ${account_arg}
