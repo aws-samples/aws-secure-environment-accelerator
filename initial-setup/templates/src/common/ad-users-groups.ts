@@ -4,6 +4,8 @@ import { CfnAutoScalingGroup, CfnLaunchConfiguration, AutoScalingGroup } from '@
 import { pascalCase } from 'pascal-case';
 import { SecurityGroup } from './security-group';
 import { createIamInstanceProfileName } from './iam-assets';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { trimSpecialCharacters } from '@aws-pbmm/common-outputs/lib/secrets';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -96,13 +98,16 @@ export class ADUsersAndGroups extends cdk.Construct {
       vpcName,
     });
 
+    const stack = AcceleratorStack.of(this);
+    const prefix = trimSpecialCharacters(stack.acceleratorPrefix);
+
     const launchConfig = new CfnLaunchConfiguration(this, 'RDGWLaunchConfiguration', {
       associatePublicIpAddress: false,
       imageId: latestRdgwAmiId,
       securityGroups: [securityGroup.securityGroups[0].id],
       iamInstanceProfile: createIamInstanceProfileName(madDeploymentConfig['rdgw-instance-role']),
       instanceType: madDeploymentConfig['rdgw-instance-type'],
-      launchConfigurationName: 'RDGWLaunchConfiguration',
+      launchConfigurationName: `${prefix}-RDGWLaunchConfiguration`,
       blockDeviceMappings: [
         {
           deviceName: '/dev/sda1',
