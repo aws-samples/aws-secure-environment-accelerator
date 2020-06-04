@@ -7,6 +7,7 @@ import { Account, getAccountId } from '../utils/accounts';
 export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountId: string;
   accountKey: string;
+  region: string;
 }
 
 /**
@@ -21,6 +22,7 @@ export class AccountStack extends AcceleratorStack {
       ...props,
       env: {
         account: props.accountId,
+        region: props.region,
       },
     });
 
@@ -40,17 +42,12 @@ export interface AccountStacksProps {
  * phase and this class helps managing the stacks.
  */
 export class AccountStacks {
-  readonly app: cdk.App;
-  readonly props: AccountStacksProps;
-  readonly stacks: { [accountKey: string]: AccountStack } = {};
+  readonly stacks: AccountStack[] = [];
 
-  constructor(app: cdk.App, props: AccountStacksProps) {
-    this.app = app;
-    this.props = props;
-  }
+  constructor(private readonly app: cdk.App, private readonly props: AccountStacksProps) {}
 
-  getOrCreateAccountStack(accountKey: string): AccountStack {
-    const accountStack = this.tryGetOrCreateAccountStack(accountKey);
+  getOrCreateAccountStack(accountKey: string, region?: string): AccountStack {
+    const accountStack = this.tryGetOrCreateAccountStack(accountKey, region);
     if (!accountStack) {
       throw new Error(`Cannot find account stack for account ${accountKey}`);
     }
@@ -60,26 +57,34 @@ export class AccountStacks {
   /**
    * Get the existing stack for the given account or create a new stack if no such stack exists yet.
    */
-  tryGetOrCreateAccountStack(accountKey: string): AccountStack | undefined {
-    if (this.stacks[accountKey]) {
-      return this.stacks[accountKey];
+  tryGetOrCreateAccountStack(accountKey: string, region?: string): AccountStack | undefined {
+    const regionOrDefault = region ?? this.props.context.defaultRegion;
+    const existingStack = this.stacks.find(s => s.accountKey === accountKey && s.region === regionOrDefault);
+    if (existingStack) {
+      return existingStack;
     }
+
     const accountId = getAccountId(this.props.accounts, accountKey);
     if (!accountId) {
       return undefined;
     }
 
     const accountPrettyName = pascalCase(accountKey);
+    const stackName = `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
+    // BE CAREFUL CHANGING THE STACK CONSTRUCT ID
+    // When changed, it will create a new stack and delete the old one
+    const stackConstructId = `${accountPrettyName}Phase${this.props.phase}${region ?? ''}`;
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
-    const stack = new AccountStack(this.app, `${accountPrettyName}Phase${this.props.phase}`, {
+    const stack = new AccountStack(this.app, stackConstructId, {
       accountId,
       accountKey,
-      stackName: `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`,
+      stackName,
       acceleratorName: this.props.context.acceleratorName,
       acceleratorPrefix: this.props.context.acceleratorPrefix,
       terminationProtection,
+      region: regionOrDefault,
     });
-    this.stacks[accountKey] = stack;
+    this.stacks.push(stack);
     return stack;
   }
 }

@@ -128,49 +128,6 @@
           ]
         }
       }
-    },
-    {
-      "Sid":"ForceS3KMSEncryption",
-      "Effect":"Deny",
-      "Action":[
-        "s3:PutObject"
-      ],
-      "Resource":[
-        "*"
-      ],
-      "Condition":{
-        "StringNotEquals":{
-          "s3:x-amz-server-side-encryption":[
-            "aws:kms",
-            "AES256"
-          ]
-        },
-        "ForAnyValue:StringNotEquals":{
-          "aws:CalledVia":[
-            "cloudformation.amazonaws.com"
-          ]
-        }
-      }
-    },
-    {
-      "Sid":"ForceS3UploadEncryption",
-      "Effect":"Deny",
-      "Action":[
-        "s3:PutObject"
-      ],
-      "Resource":[
-        "*"
-      ],
-      "Condition":{
-        "Null":{
-          "s3:x-amz-server-side-encryption":true
-        },
-        "ForAnyValue:StringNotEquals":{
-          "aws:CalledVia":[
-            "cloudformation.amazonaws.com"
-          ]
-        }
-      }
     }
   ]
 }
