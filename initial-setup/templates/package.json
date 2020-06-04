@@ -65,6 +65,7 @@
     "@custom-resources/ec2-image-finder": "workspace:^0.0.1",
     "@custom-resources/ec2-vpn-attachment": "workspace:^0.0.1",
     "@custom-resources/ec2-vpn-tunnel-options": "workspace:^0.0.1",
+    "@custom-resources/ec2-keypair": "workspace:^0.0.1",
     "@custom-resources/logs-resource-policy": "workspace:^0.0.1",
     "@custom-resources/r53-dns-endpoint-ips": "workspace:^0.0.1",
     "@custom-resources/s3-copy-files": "workspace:^0.0.1",
