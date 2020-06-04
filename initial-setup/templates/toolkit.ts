@@ -1,7 +1,7 @@
 import path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
-import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
+import { CloudAssembly, CloudFormationStackArtifact, Environment, EnvironmentUtils } from '@aws-cdk/cx-api';
 import { ToolkitInfo } from 'aws-cdk';
 import { bootstrapEnvironment } from 'aws-cdk/lib/api/bootstrap';
 import { Configuration } from 'aws-cdk/lib/settings';
@@ -84,6 +84,8 @@ export class CdkToolkit {
   }
 
   async bootstrapEnvironment(environment: Environment) {
+    console.log(`Bootstrapping environment in account ${environment.account} and region ${environment.region}`);
+
     const trustedAccounts: string[] = [];
     const cloudFormationExecutionPolicies: string[] = [];
 

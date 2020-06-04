@@ -1,13 +1,12 @@
-import { getAccountId } from '../utils/accounts';
 import * as iam from '@aws-cdk/aws-iam';
-import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
+import * as ssm from '@aws-cdk/aws-ssm';
+import { getAccountId } from '../utils/accounts';
 import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
-import * as ssm from '@aws-cdk/aws-ssm';
-import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { StructuredOutput } from '../common/structured-output';
-import { MadAutoScalingRoleOutputType } from '../deployments/mad';
+import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
 
@@ -19,15 +18,16 @@ interface MadOutput {
   passwordArn: string;
 }
 
-export async function deploy({ acceleratorConfig, accountStacks, accounts, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
     .getMandatoryAccountConfigs()
     .map(([_, accountConfig]) => accountConfig['account-name']);
 
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
-  const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-
-  const secretsStack = new SecretsContainer(masterStack, 'Secrets');
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
+  if (!masterAccountId) {
+    throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
+  }
 
   // TODO Move to deployments/mad/step-x.ts
   type UserSecrets = UserSecret[];
@@ -47,37 +47,25 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, outpu
     }
     const madAutoScalingRoleOutput = madAutoScalingRoleOutputs[0];
 
-    const accountId = getAccountId(accounts, accountKey);
-
-    const ec2KeyPairName = 'rdgw-key-pair';
-    const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
-
     const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!stack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
     }
 
-    const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
-
-    const keyPair = keyPairContainer.createKeyPair('RDGWEc2KeyPair', {
-      name: ec2KeyPairName,
-      description: 'This is a Key Pair for RDGW host instance',
-      secretPrefix: ec2KeyPairPrefix,
-      principal: new iam.AccountPrincipal(accountId),
+    const keyPair = new AcceleratorKeypair(stack, 'RDGWEc2KeyPair', {
+      name: 'rdgw-key-pair',
     });
 
     const userSecrets: UserSecrets = [];
     for (const adUser of madDeploymentConfig['ad-users']) {
-      const madUserPassword = secretsStack.createSecret(`MadPassword${adUser.user}`, {
-        secretName: `accelerator/${accountKey}/mad/${adUser.user}/password`,
-        description: 'Password for Managed Active Directory.',
-        generateSecretString: {
-          passwordLength: madDeploymentConfig['password-policies']['min-len'],
-        },
-        principals: [new iam.AccountPrincipal(accountId)],
+      const passwordSecretArn = getMadUserPasswordSecretArn({
+        acceleratorPrefix: context.acceleratorPrefix,
+        accountKey,
+        secretAccountId: masterAccountId,
+        userId: adUser.user,
       });
-      userSecrets.push({ user: adUser.user, password: madUserPassword });
+      userSecrets.push({ user: adUser.user, passwordSecretArn });
     }
 
     const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
@@ -129,7 +117,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, outpu
       latestRdgwAmiId,
       vpcId,
       vpcName,
-      keyPairName: ec2KeyPairName,
+      keyPairName: keyPair.keyName,
       subnetIds,
       adminPasswordArn: madOutput.passwordArn,
       s3BucketName,

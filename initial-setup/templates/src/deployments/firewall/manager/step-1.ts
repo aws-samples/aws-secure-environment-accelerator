@@ -3,12 +3,16 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallManager } from '@aws-pbmm/constructs/lib/firewall';
+import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { AccountStacks } from '../../../common/account-stacks';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface FirewallManagerStep1Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   vpcs: Vpc[];
+  outputs: StackOutput[];
 }
 
 /**
@@ -18,7 +22,7 @@ export interface FirewallManagerStep1Props {
  *   - VPC with the name equals firewallManagementConfig.vpc and with the necessary subnets and security group
  */
 export async function step1(props: FirewallManagerStep1Props) {
-  const { accountStacks, config, vpcs } = props;
+  const { accountStacks, config, vpcs, outputs } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const managerConfig = accountConfig.deployments?.['firewall-manager'];
@@ -36,6 +40,16 @@ export async function step1(props: FirewallManagerStep1Props) {
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;
+    }
+    const subscriptionOutputs = getStackJsonOutput(outputs, {
+      outputType: 'AmiSubscriptionStatus',
+      accountKey,
+    });
+
+    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === managerConfig['image-id']);
+    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REQUIRED) {
+      console.log(`AMI Marketplace subscription required for ImageId: ${managerConfig['image-id']}`);
+      return;
     }
 
     await createFirewallManager({

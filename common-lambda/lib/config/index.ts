@@ -378,7 +378,7 @@ export const FirewallConfigType = t.interface({
   vpc: t.string,
   'security-group': t.string,
   ports: t.array(FirewallPortConfigType),
-  license: optional(t.string),
+  license: optional(t.array(t.string)),
   config: t.string,
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
@@ -444,6 +444,11 @@ export const BudgetConfigType = t.interface({
   alerts: t.array(BudgetNotificationType),
 });
 
+export const LimitConfig = t.interface({
+  value: t.number,
+  'customer-confirm-inplace': fromNullable(t.boolean, false),
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -452,7 +457,7 @@ export const MandatoryAccountConfigType = t.interface({
   'share-mad-from': optional(t.string),
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
-  limits: fromNullable(t.record(t.string, t.number), {}),
+  limits: fromNullable(t.record(t.string, LimitConfig), {}),
   certificates: optional(t.array(CertificateConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),
@@ -605,6 +610,13 @@ export interface ResolvedCertificateConfig extends ResolvedConfigBase {
    * The certificates config to be deployed.
    */
   certificates: CertificateConfig[];
+}
+
+export interface ResolvedIamConfig extends ResolvedConfigBase {
+  /**
+   * The IAM config to be deployed.
+   */
+  iam: IamConfig;
 }
 
 export interface ResolvedAlbConfig extends ResolvedConfigBase {
@@ -823,6 +835,34 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
             ouKey: key,
             accountKey,
             certificates,
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Find all IAM configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getIamConfigs(): ResolvedIamConfig[] {
+    const result: ResolvedIamConfig[] = [];
+    for (const [key, config] of this.getAccountAndOuConfigs()) {
+      const iam = config.iam;
+      if (!iam) {
+        continue;
+      }
+      if (MandatoryAccountConfigType.is(config)) {
+        result.push({
+          accountKey: key,
+          iam,
+        });
+      } else if (OrganizationalUnitConfigType.is(config)) {
+        for (const [accountKey, _] of this.getAccountConfigsForOu(key)) {
+          result.push({
+            ouKey: key,
+            accountKey,
+            iam,
           });
         }
       }

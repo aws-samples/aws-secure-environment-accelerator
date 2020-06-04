@@ -1,5 +1,5 @@
 import { IPv4CidrRange } from 'ip-num';
-import { KeyPair } from 'cdk-ec2-key-pair';
+import { Keypair } from '@custom-resources/ec2-keypair';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
@@ -18,8 +18,6 @@ export interface FirewallVpnTunnelOptions {
 }
 
 export interface FirewallConfigurationProps {
-  licenseBucket?: s3.IBucket;
-  licensePath?: string;
   templateBucket: s3.IBucket;
   templateConfigPath: string;
   /**
@@ -34,13 +32,15 @@ export interface FirewallInstanceProps {
   name: string;
   hostname: string;
   vpcCidrBlock: string;
+  licensePath?: string;
+  licenseBucket?: s3.IBucket;
   /**
    * Image ID of firewall.
    */
   imageId: string;
   instanceType: string;
   iamInstanceProfile: iam.CfnInstanceProfile;
-  keyPair: KeyPair | string;
+  keyPairName?: string;
   configuration: FirewallConfigurationProps;
 }
 
@@ -59,13 +59,12 @@ export class FirewallInstance extends cdk.Construct {
 
     // Copy license without replacing anything
     // TODO Should we create another custom resource for this?
-    const licensePath = 'license.lic';
-    if (configuration.licenseBucket && configuration.licensePath) {
+    if (props.licenseBucket && props.licensePath) {
       new S3Template(this, 'License', {
-        templateBucket: configuration.licenseBucket,
-        templatePath: configuration.licensePath,
+        templateBucket: props.licenseBucket,
+        templatePath: props.licensePath,
         outputBucket: configuration.bucket,
-        outputPath: licensePath,
+        outputPath: props.licensePath,
       });
     }
 
@@ -82,7 +81,7 @@ export class FirewallInstance extends cdk.Construct {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
       iamInstanceProfile: this.props.iamInstanceProfile.ref,
-      keyName: getKeyPairName(this.props.keyPair),
+      keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
       userData: cdk.Fn.base64(
         JSON.stringify(
@@ -90,7 +89,7 @@ export class FirewallInstance extends cdk.Construct {
             bucket: configuration.bucket.bucketName,
             region: configuration.bucketRegion,
             config: `/${configuration.configPath}`,
-            license: `/${licensePath}`,
+            license: `/${props.licensePath}`,
           },
           null,
           2,
@@ -101,10 +100,6 @@ export class FirewallInstance extends cdk.Construct {
 
     this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
-
-    if (this.props.keyPair instanceof cdk.DependableTrait) {
-      this.resource.node.addDependency(this.props.keyPair);
-    }
   }
 
   addNetworkInterface(props: {
@@ -183,11 +178,4 @@ export class FirewallInstance extends cdk.Construct {
   get instanceId() {
     return this.resource.ref;
   }
-}
-
-function getKeyPairName(keyPairOrName: KeyPair | string) {
-  if (typeof keyPairOrName === 'string') {
-    return keyPairOrName;
-  }
-  return keyPairOrName.name;
 }

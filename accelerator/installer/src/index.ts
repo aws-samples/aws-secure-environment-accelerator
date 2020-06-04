@@ -219,12 +219,6 @@ async function main() {
     },
   });
 
-  // Create the repository that contains the configuration
-  const configRepository = new codecommit.Repository(stack, 'ConfigRepository', {
-    repositoryName: configRepositoryName.valueAsString,
-    description: `Repository containing configuration for ${acceleratorName} Accelerator.`,
-  });
-
   // This artifact is used as output for the Github code and as input for the build step
   const sourceArtifact = new codepipeline.Artifact();
 

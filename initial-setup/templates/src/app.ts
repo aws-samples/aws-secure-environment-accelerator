@@ -27,13 +27,6 @@ export interface AppProps {
   accountKey?: string;
 }
 
-/**
- * This is the main entry point to deploy phase 0.
- *
- * The following resources are deployed in phase 0:
- *   - Log archive bucket
- *   - Copy of the central bucket
- */
 export async function deploy(props: AppProps) {
   const phase = phases.find(p => p.id === props.phase);
   if (!phase) {

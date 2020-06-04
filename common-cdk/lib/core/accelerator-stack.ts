@@ -19,4 +19,13 @@ export class AcceleratorStack extends cdk.Stack {
     this.node.applyAspect(new cdk.Tag('Accelerator', this.acceleratorName));
     this.node.applyAspect(new AcceleratorNameTagger());
   }
+
+  static of(construct: cdk.IConstruct): AcceleratorStack {
+    const parents = construct.node.scopes;
+    const stack = parents.find((p: cdk.IConstruct): p is AcceleratorStack => p instanceof AcceleratorStack);
+    if (!stack) {
+      throw new Error(`The construct should only be used inside an AcceleratorStack`);
+    }
+    return stack;
+  }
 }

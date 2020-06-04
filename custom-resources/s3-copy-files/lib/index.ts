@@ -10,6 +10,21 @@ const resourceType = 'Custom::S3CopyFiles';
 export interface S3CopyFilesProps {
   sourceBucket: s3.IBucket;
   destinationBucket: s3.IBucket;
+  /**
+   * @default false
+   */
+  deleteSourceObjects?: boolean;
+  /**
+   * @default false
+   */
+  deleteSourceBucket?: boolean;
+  /**
+   * @default true
+   */
+  forceUpdate?: boolean;
+  /**
+   * The role name that is created for the custom resource Lambda function.
+   */
   roleName?: string;
 }
 
@@ -24,22 +39,44 @@ export class S3CopyFiles extends cdk.Construct {
 
     this.props = props;
 
-    props.sourceBucket.grantRead(this.role);
     props.destinationBucket.grantReadWrite(this.role);
+
+    // Only grant write to the source when we need to delete the source object
+    const deleteSourceObjects = props.deleteSourceObjects ?? false;
+    if (deleteSourceObjects) {
+      props.sourceBucket.grantReadWrite(this.role);
+    } else {
+      props.sourceBucket.grantRead(this.role);
+    }
+
+    // Only grant delete bucket when we need to delete the bucket
+    const deleteSourceBucket = props.deleteSourceBucket ?? false;
+    if (deleteSourceBucket) {
+      iam.Grant.addToPrincipalOrResource({
+        grantee: this.role,
+        actions: ['s3:DeleteBucket'],
+        resourceArns: [props.sourceBucket.bucketArn],
+        resource: props.sourceBucket,
+      });
+    }
 
     const handlerProperties: HandlerProperties = {
       sourceBucketName: props.sourceBucket.bucketName,
       destinationBucketName: props.destinationBucket.bucketName,
+      deleteSourceObjects,
+      deleteSourceBucket,
     };
+
+    const forceUpdate = props.forceUpdate ?? true;
+    if (forceUpdate) {
+      // Add a dummy value that is a random number to update the resource every time
+      handlerProperties.forceUpdate = Math.round(Math.random() * 1000000);
+    }
 
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: {
-        ...handlerProperties,
-        // Add a dummy value that is a random number to update the resource every time
-        forceUpdate: Math.round(Math.random() * 1000000),
-      },
+      properties: handlerProperties,
     });
   }
 
@@ -65,13 +102,7 @@ export class S3CopyFiles extends cdk.Construct {
 
     role.addToPolicy(
       new iam.PolicyStatement({
-        actions: [
-          'cloudformation:DescribeStackResource',
-          'kms:Decrypt',
-          'logs:CreateLogGroup',
-          'logs:CreateLogStream',
-          'logs:PutLogEvents',
-        ],
+        actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         resources: ['*'],
       }),
     );
