@@ -330,11 +330,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
             if (IamPolicyConfigType.is(iamPolicy)) {
               const iamPolicyName = iamPolicy['policy-name'];
               const iamPolicyFileName = iamPolicy.policy;
-              const policyContent = await iamPolicyS3.getObjectBodyAsString({
-                Bucket: iamPoliciesBucketName,
-                Key: `${iamPoliciesBucketPrefix}${iamPolicyFileName}`,
-              });
-              iamPoliciesDef[iamPolicyName] = policyContent;
+              const iamPolicyKey = `${iamPoliciesBucketPrefix}${iamPolicyFileName}`;
+              try {
+                const policyContent = await iamPolicyS3.getObjectBodyAsString({
+                  Bucket: iamPoliciesBucketName,
+                  Key: iamPolicyKey,
+                });
+                iamPoliciesDef[iamPolicyName] = policyContent;
+              } catch (e) {
+                console.warn(`Cannot load IAM policy s3://${iamPoliciesBucketName}/${iamPolicyKey}`);
+                throw e;
+              }
             }
           }
         }
