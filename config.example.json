@@ -153,9 +153,6 @@
         "Amazon VPC/VPCs per Region": {
           "value": 15
         },
-        "AWS CloudFormation/Stack count": {
-          "value": 400
-        },
         "AWS CloudFormation/Stack sets per administrator account": {
           "value": 400
         }
@@ -441,9 +438,6 @@
       "limits": {
         "AWS Organizations/Maximum accounts": {
           "value": 20
-        },
-        "AWS CloudFormation/Stack count": {
-          "value": 400
         }
       },
       "share-mad-from": "",
@@ -972,9 +966,6 @@
       "limits": {
         "AWS Organizations/Maximum accounts": {
           "value": 20
-        },
-        "AWS CloudFormation/Stack count": {
-          "value": 400
         }
       },
       "iam": {
