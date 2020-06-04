@@ -101,8 +101,12 @@ export const handler = async (input: LoadLimitsInput) => {
         ServiceCode: limitCode.serviceCode,
         QuotaCode: limitCode.quotaCode,
       });
-      const value = quota.Value!;
-
+      let value = quota.Value!;
+      const accountLimitConfig = limitConfig[limitKey];
+      if (accountLimitConfig && accountLimitConfig["customer-confirm-inplace"]) {
+        value = accountLimitConfig.value;
+      }
+      
       // Keep track of limits so we can return them at the end of this function
       limits.push({
         accountKey,
@@ -111,27 +115,20 @@ export const handler = async (input: LoadLimitsInput) => {
         quotaCode: limitCode.quotaCode,
         value,
       });
-      const desiredValue = limitConfig[limitKey];
-      if (!desiredValue) {
+
+      if (!accountLimitConfig) {
         console.debug(`Quota "${limitKey}" has no desired value for account "${accountKey}"`);
         continue;
       }
+
+      const desiredValue = accountLimitConfig.value;
+
       if (value >= desiredValue) {
         console.debug(`Quota "${limitKey}" already has a value equal or larger than the desired value`);
         continue;
       }
       if (!quota.Adjustable) {
         console.warn(`Quota "${limitKey}" is not adjustable`);
-        continue;
-      }
-      // Check previous quota desired value in case quota value is not updated
-      const previousCloedRequests = await quotas.listRequestedServiceQuotaChangeHistoryByQuota(({
-        ServiceCode: limitCode.serviceCode,
-        QuotaCode: limitCode.quotaCode,
-        Status: 'CASE_CLOSED',
-      }));
-      if (previousCloedRequests.length > 0 && previousCloedRequests[0].DesiredValue === desiredValue) {
-        console.warn(`Quota "${limitKey}" already has a value equal or larger than the desired value but not directly showing in desired value, retrived from moset recent closed ticket`);
         continue;
       }
 
