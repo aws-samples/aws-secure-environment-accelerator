@@ -113,7 +113,7 @@ async function createFirewallCluster(props: {
   firewallVpnConnections: FirewallVpnConnection[];
   scope: cdk.Construct;
   vpc: Vpc;
-  vpcConfig?: c.VpcConfig;
+  vpcConfig: c.VpcConfig;
 }) {
   const { accountBucket, centralBucket, firewallConfig, firewallVpnConnections, scope, vpc, vpcConfig } = props;
 
@@ -194,7 +194,7 @@ async function createFirewallCluster(props: {
       vpnTunnelOptions: vpnConnection.vpnTunnelOptions,
     });
 
-    const routeTables = vpcConfig?.['route-tables'] || [];
+    const routeTables = vpcConfig['route-tables'] || [];
     for (const routeTable of routeTables) {
       const name: string = routeTable.name;
       const routes = routeTable.routes || [];
