@@ -44,6 +44,10 @@ export async function step3(props: FirewallStep3Props) {
     }
 
     const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === firewallConfig.vpc)?.vpcConfig;
+    if (!vpcConfig) {
+      console.log(`Skipping firewall deployment because of missing VPC config "${firewallConfig.vpc}"`);
+      continue;
+    }
 
     const vpc = vpcs.find(v => v.name === firewallConfig.vpc);
     if (!vpc) {
@@ -140,7 +144,6 @@ async function createFirewallCluster(props: {
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
   let licenseIndex: number = 0;
-  const firewallTargetRoutes = vpcConfig?.['route-tables']?.filter(r => r.routes?.find(t => t.target === 'firewall'));
 
   for (const vpnConnection of firewallVpnConnections) {
     const az = vpnConnection.az;
@@ -156,10 +159,13 @@ async function createFirewallCluster(props: {
     let licensePath: string | undefined;
     let licenseBucket: s3.IBucket | undefined;
     if (!instance) {
+      // Find the next available license in the firewall config license list
       if (firewallConfig.license && licenseIndex < firewallConfig.license.length) {
         licensePath = firewallConfig.license[licenseIndex];
         licenseBucket = centralBucket;
       }
+
+      // Create an instance for this AZ
       const instanceName = `Fgt${pascalCase(az)}`;
       instance = cluster.createInstance({
         name: instanceName,
@@ -188,27 +194,23 @@ async function createFirewallCluster(props: {
       vpnTunnelOptions: vpnConnection.vpnTunnelOptions,
     });
 
-    if (!firewallTargetRoutes) {
-      console.warn(`Cannot find route table config with target type firewall for account ${cdk.Aws.ACCOUNT_ID}`);
-      continue;
-    }
-
-    for (const route of firewallTargetRoutes) {
-      const name: string = route.name;
-      const firewallRoutes = route.routes?.filter(r => r.target === 'firewall');
-      if (!firewallRoutes) {
-        continue;
-      }
-      for (const firewallRoute of firewallRoutes) {
-        if (firewallRoute.port === vpnConnection.name && firewallRoute.az === az) {
+    const routeTables = vpcConfig?.['route-tables'] || [];
+    for (const routeTable of routeTables) {
+      const name: string = routeTable.name;
+      const routes = routeTable.routes || [];
+      for (const route of routes) {
+        if (route.target !== 'firewall') {
+          continue;
+        }
+        if (route.port === vpnConnection.name && route.az === az) {
           const routeTableId = vpc.tryFindRouteTableIdByName(name);
           if (!routeTableId) {
-            console.warn(`Cannot find route table with name "${name}" for account ${cdk.Aws.ACCOUNT_ID}`);
+            console.warn(`Cannot find route table with name "${name}" in VPC ${vpc.name}`);
             continue;
           }
           new ec2.CfnRoute(scope, `${name}_eni_${vpnConnection.name}_${az}`, {
             routeTableId,
-            destinationCidrBlock: firewallRoute.destination as string,
+            destinationCidrBlock: route.destination as string,
             networkInterfaceId: networkInterface.ref,
           });
         }
