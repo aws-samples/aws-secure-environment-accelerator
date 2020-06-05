@@ -1,6 +1,6 @@
 import * as aws from 'aws-sdk';
 import {
-  ListHostedZonesRequest,
+  GetHostedZoneResponse,
   ListHostedZonesResponse,
   AssociateVPCWithHostedZoneRequest,
   AssociateVPCWithHostedZoneResponse,
@@ -19,24 +19,26 @@ export class Route53 {
     });
   }
 
+  async getHostedZone(hostedZoneId: string): Promise<GetHostedZoneResponse> {
+    return this.client
+      .getHostedZone({
+        Id: hostedZoneId,
+      })
+      .promise();
+  }
+
   /**
    * to list the hosted zones
    * @param maxItems
    * @param nextMarker
    */
   async listHostedZones(maxItems?: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
-    let params: ListHostedZonesRequest = {};
-    if (nextMarker) {
-      params = {
+    return this.client
+      .listHostedZones({
         MaxItems: maxItems,
         Marker: nextMarker,
-      };
-    } else {
-      params = {
-        MaxItems: maxItems,
-      };
-    }
-    return this.client.listHostedZones(params).promise();
+      })
+      .promise();
   }
 
   /**
