@@ -11,6 +11,7 @@ import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
 import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
+import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as iamDeployment from '../deployments/iam';
@@ -169,6 +170,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Central Services step 1
   await centralServices.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+  });
+
+  // Central Services step 1
+  await cwlCentralLoggingToS3.step1({
     accountStacks,
     config: acceleratorConfig,
     accounts,
