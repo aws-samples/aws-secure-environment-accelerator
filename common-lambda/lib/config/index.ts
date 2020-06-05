@@ -446,6 +446,11 @@ export const BudgetConfigType = t.interface({
   alerts: t.array(BudgetNotificationType),
 });
 
+export const LimitConfig = t.interface({
+  value: t.number,
+  'customer-confirm-inplace': fromNullable(t.boolean, false),
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -454,7 +459,7 @@ export const MandatoryAccountConfigType = t.interface({
   'share-mad-from': optional(t.string),
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
-  limits: fromNullable(t.record(t.string, t.number), {}),
+  limits: fromNullable(t.record(t.string, LimitConfig), {}),
   certificates: optional(t.array(CertificateConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),

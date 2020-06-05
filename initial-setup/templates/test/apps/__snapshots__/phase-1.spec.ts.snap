@@ -1,0 +1,113 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-LogArchive-Phase1-bucket-ids 1`] = `Array []`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-LogArchive-Phase1-bucket-names 1`] = `Array []`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-Master-Phase1-bucket-ids 1`] = `
+Array [
+  "DefaultBucketEEDD2DB7",
+]
+`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-Master-Phase1-bucket-names 1`] = `
+Array [
+  Object {
+    "Fn::Join": Array [
+      "",
+      Array [
+        "pbmmaccel-",
+        Object {
+          "Ref": "AWS::AccountId",
+        },
+        "-",
+        Object {
+          "Ref": "AWS::Region",
+        },
+        "-2f1b477b",
+      ],
+    ],
+  },
+]
+`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-Operations-Phase1-bucket-ids 1`] = `
+Array [
+  "DefaultBucketEEDD2DB7",
+]
+`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-Operations-Phase1-bucket-names 1`] = `
+Array [
+  Object {
+    "Fn::Join": Array [
+      "",
+      Array [
+        "pbmmaccel-",
+        Object {
+          "Ref": "AWS::AccountId",
+        },
+        "-",
+        Object {
+          "Ref": "AWS::Region",
+        },
+        "-8912d1e1",
+      ],
+    ],
+  },
+]
+`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-Security-Phase1-bucket-ids 1`] = `
+Array [
+  "DefaultBucketEEDD2DB7",
+]
+`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-Security-Phase1-bucket-names 1`] = `
+Array [
+  Object {
+    "Fn::Join": Array [
+      "",
+      Array [
+        "pbmmaccel-",
+        Object {
+          "Ref": "AWS::AccountId",
+        },
+        "-",
+        Object {
+          "Ref": "AWS::Region",
+        },
+        "-8a511edd",
+      ],
+    ],
+  },
+]
+`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-SharedNetwork-Phase1-bucket-ids 1`] = `
+Array [
+  "DefaultBucketEEDD2DB7",
+]
+`;
+
+exports[`the bucket names and IDs in phase 1 should not change: PBMMAccel-SharedNetwork-Phase1-bucket-names 1`] = `
+Array [
+  Object {
+    "Fn::Join": Array [
+      "",
+      Array [
+        "pbmmaccel-",
+        Object {
+          "Ref": "AWS::AccountId",
+        },
+        "-",
+        Object {
+          "Ref": "AWS::Region",
+        },
+        "-6975b689",
+      ],
+    ],
+  },
+]
+`;
