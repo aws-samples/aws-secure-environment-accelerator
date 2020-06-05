@@ -7,6 +7,8 @@ export interface TransitGatewayAttachmentProps {
   vpcId: string;
   tgwRouteAssociates?: string[];
   tgwRoutePropagates?: string[];
+  blackhole?: boolean;
+  cidr?: string;
 }
 
 export class TransitGatewayAttachment extends cdk.Construct {
@@ -20,6 +22,15 @@ export class TransitGatewayAttachment extends cdk.Construct {
         transitGatewayAttachmentId: this.tgwAttach.ref,
         transitGatewayRouteTableId: route,
       });
+
+      // some validation logic need to satisfy here: https://code.amazon.com/packages/AwsHubApiService/blobs/7817ec705ee0488995fc126c81c7cb86b82e2970/--/src/awshub/apiservice/validation/InputValidator.scala#L784
+      if (props.blackhole) {
+        new ec2.CfnTransitGatewayRoute(this, `tgw_tgw_route_${index}`, {
+          transitGatewayRouteTableId: route,
+          blackhole: props.blackhole,
+          destinationCidrBlock: props.cidr,
+        });
+      }
     }
 
     for (const [index, route] of props.tgwRoutePropagates?.entries() || []) {
