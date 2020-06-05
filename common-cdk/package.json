@@ -44,6 +44,7 @@
     "@aws-cdk/aws-stepfunctions": "1.38.0",
     "@aws-cdk/aws-stepfunctions-tasks": "1.38.0",
     "@aws-cdk/core": "1.38.0",
+    "@aws-cdk/aws-guardduty": "1.38.0",
     "@types/js-yaml": "3.12.3",
     "glob": "^7.1.6",
     "js-yaml": "3.13.1",
