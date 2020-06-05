@@ -44,12 +44,6 @@ export async function step3(props: FirewallStep3Props) {
     }
 
     const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === firewallConfig.vpc)?.vpcConfig;
-    if (!vpcConfig) {
-      console.warn(
-        `Skipping firewall deployment because of missing VPC Config ${firewallConfig.vpc} for account ${accountKey}`,
-      );
-      continue;
-    }
 
     const vpc = vpcs.find(v => v.name === firewallConfig.vpc);
     if (!vpc) {
@@ -115,7 +109,7 @@ async function createFirewallCluster(props: {
   firewallVpnConnections: FirewallVpnConnection[];
   scope: cdk.Construct;
   vpc: Vpc;
-  vpcConfig: c.VpcConfig;
+  vpcConfig?: c.VpcConfig;
 }) {
   const { accountBucket, centralBucket, firewallConfig, firewallVpnConnections, scope, vpc, vpcConfig } = props;
 
@@ -146,7 +140,7 @@ async function createFirewallCluster(props: {
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
   let licenseIndex: number = 0;
-  const firewallTargetRoutes = vpcConfig['route-tables']?.filter(r => r.routes?.find(t => t.target === 'firewall'));
+  const firewallTargetRoutes = vpcConfig?.['route-tables']?.filter(r => r.routes?.find(t => t.target === 'firewall'));
 
   for (const vpnConnection of firewallVpnConnections) {
     const az = vpnConnection.az;
