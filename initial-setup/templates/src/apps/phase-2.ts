@@ -129,11 +129,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
       continue;
     }
 
-    const madPasswordSecretArn = getMadRootPasswordSecretArn({
-      acceleratorPrefix: context.acceleratorPrefix,
-      accountKey,
-      secretAccountId: masterStack.accountId,
-    });
+    const madPasswordSecretName = madDeploymentConfig['password-secret-name'];
+    let madPasswordSecretArn;
+    if (madPasswordSecretName) {
+      madPasswordSecretArn = `arn:${cdk.Aws.PARTITION}:secretsmanager:${cdk.Aws.REGION}:${masterStack.accountId}:secret:${madPasswordSecretName}`;
+    } else {
+      madPasswordSecretArn = getMadRootPasswordSecretArn({
+        acceleratorPrefix: context.acceleratorPrefix,
+        accountKey,
+        secretAccountId: masterStack.accountId,
+      });
+    }
+
     const madPasswordSecret = cdk.SecretValue.secretsManager(madPasswordSecretArn);
 
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
