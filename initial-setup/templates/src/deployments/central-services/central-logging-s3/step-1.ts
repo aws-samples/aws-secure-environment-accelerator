@@ -165,12 +165,12 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds
   });
   kinesisDeliveryStream.node.addDependency(kinesisStreamPolicy);
   kinesisDeliveryStream.node.addDependency(logsRolePolicy);
-  
+
   // Store LogDestination ARN in output so that subsequent phases can access the output
   new JsonOutputValue(scope, `CloudWatchCentralLoggingOutput`, {
     type: 'CloudWatchCentralLogging',
     value: {
-      logDestination: logDestination.attrArn
+      logDestination: logDestination.attrArn,
     },
   });
 }
