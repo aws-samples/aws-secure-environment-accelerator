@@ -128,7 +128,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
     sourceBucket: centralBucket,
     destinationBucket: bucket,
     deleteSourceObjects: true,
-    deleteSourceBucket: true,
+    deleteSourceBucket: false,
     forceUpdate: false,
   });
   copyFiles.node.addDependency(bucket);
