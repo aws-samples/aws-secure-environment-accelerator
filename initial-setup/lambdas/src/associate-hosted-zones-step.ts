@@ -316,8 +316,10 @@ async function associateHostedZone(props: {
  * Returns true if the given hosted zone is in the given private zones or if is an interface or gateway endpoint.
  */
 function isPrivateHostedZone(privateZones: string[], hostedZoned: r53.HostedZone): boolean {
-  // TODO
+  // TODO need good logic to validate associatoin with hosted zones, can be depricated if we move to custom resources
   if (hostedZoned.Name.includes('ca-central-1.amazonaws.com')) {
+    return true;
+  } else if (hostedZoned.Name.includes('notebook.ca-central-1.sagemaker.aws')) {
     return true;
   } else {
     for (const privateZone of privateZones) {
