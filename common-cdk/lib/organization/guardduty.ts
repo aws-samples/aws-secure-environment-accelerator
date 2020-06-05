@@ -1,8 +1,7 @@
 import { Construct } from '@aws-cdk/core';
 import { CfnDetector, CfnMember, CfnMemberProps, CfnMaster, CfnMasterProps } from '@aws-cdk/aws-guardduty';
 
-
-export interface GuardDutyMasterProps{
+export interface GuardDutyMasterProps {
   /**
    * All member account IDs used in the organization
    */
@@ -28,12 +27,11 @@ export class GuardDutyMaster extends Construct {
         email: memberProps.email,
         memberId: memberProps.memberId,
         status: 'Invited',
-        ...memberProps
+        ...memberProps,
       });
     });
   }
 }
-
 
 /**
  * Organization GuardDuty Construct, need to deployed to AWS Member Account of the Organization
@@ -41,7 +39,7 @@ export class GuardDutyMaster extends Construct {
  *
  */
 export class GuardDutyMember extends Construct {
-  constructor(scope: Construct, id:string, props: CfnMasterProps) {
+  constructor(scope: Construct, id: string, props: CfnMasterProps) {
     super(scope, id);
 
     new CfnMaster(this, `GuardDuty_Master_${props.masterId}`, props);
