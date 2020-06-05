@@ -89,15 +89,15 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
     return this.securityGroups.find(sg => sg.name === name);
   }
 
-  findRouteTableByName(name: string): string {
-    const routeTable = this.tryFindRouteTableByName(name);
+  findRouteTableIdByName(name: string): string {
+    const routeTable = this.tryFindRouteTableIdByName(name);
     if (!routeTable) {
       throw new Error(`Cannot find route table with name "${name}" in VPC "${this.name}"`);
     }
     return routeTable;
   }
 
-  tryFindRouteTableByName(name: string): string | undefined {
+  tryFindRouteTableIdByName(name: string): string | undefined {
     return this.routeTables[name];
   }
 

@@ -33,6 +33,6 @@ export interface Vpc {
   findSecurityGroupByName(name: string): SecurityGroup;
   tryFindSecurityGroupByName(name: string): SecurityGroup | undefined;
 
-  findRouteTableByName(name: string): string;
-  tryFindRouteTableByName(name: string): string | undefined;
+  findRouteTableIdByName(name: string): string;
+  tryFindRouteTableIdByName(name: string): string | undefined;
 }
