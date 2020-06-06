@@ -4,7 +4,9 @@
 
 ### Prerequisites
 
-You need an AWS account with Landing Zone v2.3.1 deployed (v2.4.0 not yet tested).
+You need an AWS account with Landing Zone v2.3.1 or or v2.4.0 deployed.  
+
+NOTE: If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
 
 When deploying ALZ select:
 1. Set `Lock StackSetExecution Role` to `No`
