@@ -60,7 +60,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 
 ### Key Things to Note:
 
-  * **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING **
+  * **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
   * **A Test environment can use the remainder of the values as-is**
   * **AT THIS TIME, DO NOT include any workload accounts (remove them), as it will slow down the deployment process**
   * **(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)**
