@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-You need an AWS account with Landing Zone v2.3.1 or or v2.4.0 deployed.  
+You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed.  
 
 NOTE: If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
 
@@ -44,28 +44,41 @@ If using an internal AWS account, to successfully install, you need to enable pr
       - Select `DefaultEncryptionKey`,
       - Set the secret name to `accelerator/github-token`
       - Select `Disable rotation`
-    - Via AWS CLI: `aws secretsmanager create-secret --name accelerator/github-token --secret-string <token>`
+    - Via AWS CLI: 
+      - `aws secretsmanager create-secret --name accelerator/github-token --secret-string <token>`
 
 ## Accelerator Configuration
 
-1. You can use the [`config.example.json`](./config.example.json) file as base (from the master branch)
-2. At minimum, you MUST update the AWS account names and email addresses in the sample file to a) match the ones in your AWS Landing Zone and b) reflect the new account you want created.  All new AWS accounts being defined require a unique email address which has never before been used to create an AWS account.  Additional budget notification email addresses also need to be replaced within the sample, but a single email address for all is sufficient.
+1. You can use the [`config.example.json`](./config.example.json) file as base 
+   - Use the version from the branch you are deploying from as some parameters have changed over time
+   - This configuration file can be used with minor modification to successfully deploy the standard architecture
+2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
+   1. For existing accounts, they must match identically to the ones defined in your AWS Landing Zone;
+   2. For new accounts, they must reflect the new account you want created;
+   3. All new AWS accounts require a unique email address which has never before been used to create an AWS account;
+   4. When updating the budget notification email addresses within the example, a single email address for all is sufficient.
 
 ### Key Things to Note:
 
-  * **THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING for a production deployment**
+  * **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING **
   * **A Test environment can use the remainder of the values as-is**
   * **AT THIS TIME, DO NOT include any workload accounts (remove them), as it will slow down the deployment process**
   * **(The ALZ AVM takes 42 minutes per sub-account.  You can add additional AWS workload accounts at a later time)**
 
 3. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
-   - supply this bucket name in the CFN parameters and in the config file
+   - supply this bucket name in the CFN parameters and in the config file (must be the same bucket in both spots)
 4. Place your config file, named `config.json`, in your new bucket
-5. place the firewall license and configuration in the folder and path defined in the config file
-   (i.e. `firewall/license.lic` and `firewall/fortigate.txt`)
-   - Note: see `./reference-artifacts/Third-Party/firewall-example.txt`
-6. Add a bucket policy, replacing `your-bucket-name` and `123456789012` with the perimeter account id:
-   (You can only do this after perimeter account is created, but must be done before Phase 2)
+5. Place the firewwall configuration and license files in the folder and path defined in the config file
+   - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
+   - Sample available here: `./reference-artifacts/Third-Party/firewall-example.txt`
+   - If you don't have a license file, update the config file with an empty array []
+   - v1.0.4 is a string/single mandatory config file, later versions require an array
+6. Place any defined certificate files in the folder and path defined in the config file
+   - i.e. `certs/domain1.key`, `certs/domain1.crt`
+   - Sample available here: `./reference-artifacts/Certs-Sample/*`
+   - Not used in v1.0.4
+7. (v1.0.4 only) Add a bucket policy, replacing `your-bucket-name` and `123456789012` with the perimeter account id:
+   (You can only do this after perimeter account is created, but must be done before Phase 2, so prepare it now)
 
 ```json
 {
@@ -96,21 +109,24 @@ If using an internal AWS account, to successfully install, you need to enable pr
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account
 4. Fill out the required parameters - ***LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW***
-5. Specify stack name STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `Installer`
+5. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
 6. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
 7. Add an `Email` address to be used for notification of code releases
-8. Change `GithubBranch` to the latest stable branch (currently v1.0.4, case sensitive)
+8. The `GithubBranch` should point to the release you selected
+   - if upgrading, change it to point to the desired release
+   - the latest stable branch is currently v1.0.4, case sensitive
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 10. **ENABLE STACK TERMINATION PROTECTION**
-
-You should now see a CodePipline project in your account that deploys the Accelerator state machine. The Accelerator
-state machine should start automatically and deploy the Accelerator in your account.  The configuration file should be moved into Code Commit.  From this point forward, you must update your configuration file in CodeCommit.
-
-After the pipeline executes, the state machine will execute (Step functions).
-
-11. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes login to the **perimeter** sub-account and activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
-    - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
-    - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
+11. Once the stack deploys, you should see a CodePipline project in your account that deploys the Accelerator state machine. You will need to approve the pipeline to start the Accelerator code deployment or upgrade.  Once complete, the Accelerator state machine should start automatically and deploy the Accelerator in your account.
+12. After the pipeline executes, the state machine will execute (Step functions).  The configuration file should be automatically moved into Code Commit (and deleted from S3).  From this point forward, you must update your configuration file in CodeCommit.
+13. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes:
+   1. (v1.0.4 only) Apply the bucket policy to `your-bucket-name` in the master account, as defined in step 7 (above), making sure you update ir with the peirmeter `account id`
+   2. login to the **perimeter** sub-account 
+   3. create a small /24 VPC, create a small /24 subnet, start a AL2 t2.micro instance
+   4. activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
+      - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
+      - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
+   5. After 15 minutes, delete the t2.micro instance, delete the vpc and subnet
 
 ![marketplace](img/marketplace.png)
 
@@ -118,7 +134,7 @@ After the pipeline executes, the state machine will execute (Step functions).
   - You were unable to set the bucket policy with the perimeter account id before phase 2  
   - You were unable to activate the marketplace AMI's in the perimeter account before phase 2
   - You failed to put a non-empty license file (does not need to be valid) and a valid firewall config file in your bucket
-  - New AWS accounts are uninitialized and do not have any limits established which can result in the following CloudFormation error in Phase 2 when attempting to deploy the firewall instances:
+  - You did not start the t2.micro instance early enough.  New AWS accounts are uninitialized and do not have any limits established which can result in the following CloudFormation error in Phase 2 when attempting to deploy the firewall instances:
 
 ```
 Your request for accessing resources in this region is being validated, and you will not be able to launch additional resources in this region until the validation is complete. We will notify you by email once your request has been validated. While normally resolved within minutes, please allow up to 4 hours for this process to complete. If the issue still persists, please let us know by writing to aws-verification@amazon.com for further assistance.
