@@ -120,21 +120,22 @@ If using an internal AWS account, to successfully install, you need to enable pr
 11. Once the stack deploys, you should see a CodePipline project in your account that deploys the Accelerator state machine. You will need to approve the pipeline to start the Accelerator code deployment or upgrade.  Once complete, the Accelerator state machine should start automatically and deploy the Accelerator in your account.
 12. After the pipeline executes, the state machine will execute (Step functions).  The configuration file should be automatically moved into Code Commit (and deleted from S3).  From this point forward, you must update your configuration file in CodeCommit.
 13. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes:
-   1. (v1.0.4 only) Apply the bucket policy to `your-bucket-name` in the master account, as defined in step 7 (above), making sure you update ir with the peirmeter `account id`
-   2. login to the **perimeter** sub-account 
-   3. create a small /24 VPC, create a small /24 subnet, start a AL2 t2.micro instance
-   4. activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
-      - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
-      - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
-   5. After 15 minutes, delete the t2.micro instance, delete the vpc and subnet
+    1. (v1.0.4 only) Apply the bucket policy to `your-bucket-name` in the master account, as defined in step 7 (above), making sure you update ir with the peirmeter `account id`
+    2. login to the **perimeter** sub-account 
+    3. create a small /24 VPC, create a small /24 subnet, start a AL2 t2.micro instance
+    4. activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
+       - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
+       - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
+    5. After 15 minutes, delete the t2.micro instance, delete the vpc and subnet
 
 ![marketplace](img/marketplace.png)
 
 **Note:** In v1.0.4, Phase 2 is ***likely to fail*** in the `perimeter` account for one of several reasons:
-  - You were unable to set the bucket policy with the perimeter account id before phase 2  
-  - You were unable to activate the marketplace AMI's in the perimeter account before phase 2
+  - You were unable to set the bucket policy with the perimeter account id before phase 2 (not req'd in v1.0.5)
+  - You were unable to activate the marketplace AMI's in the perimeter account before phase 2 (skipped if not activated in v1.0.5)
   - You failed to put a non-empty license file (does not need to be valid) and a valid firewall config file in your bucket
-  - You did not start the t2.micro instance early enough.  New AWS accounts are uninitialized and do not have any limits established which can result in the following CloudFormation error in Phase 2 when attempting to deploy the firewall instances:
+  - You failed to provide the defined certificate files in your bucket (in v1.0.5+ only)
+  - You did not start the t2.micro instance early enough (fix planned).  New AWS accounts are uninitialized and do not have any limits established which can result in the following CloudFormation error in Phase 2 when attempting to deploy the firewall instances:
 
 ```
 Your request for accessing resources in this region is being validated, and you will not be able to launch additional resources in this region until the validation is complete. We will notify you by email once your request has been validated. While normally resolved within minutes, please allow up to 4 hours for this process to complete. If the issue still persists, please let us know by writing to aws-verification@amazon.com for further assistance.
@@ -143,8 +144,8 @@ Your request for accessing resources in this region is being validated, and you 
 ***To proceed, please complete the first 3 tasks and then to resolve item 4, please launch and run a t2.micro instance in the perimeter account for 15 minutes, at which time it can be terminated, and then re-run the state machine.***
 
 
-**STOP HERE, YOU ARE DONE**
 
+**STOP HERE, YOU ARE DONE**
 
 
 ## BELOW IS OUTDATED/INCORRECT
