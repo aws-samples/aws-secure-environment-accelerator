@@ -69,13 +69,10 @@ export class AccountStacks {
       return undefined;
     }
 
-    const accountPrettyName = pascalCase(accountKey);
-    const stackName = `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
-    // BE CAREFUL CHANGING THE STACK CONSTRUCT ID
-    // When changed, it will create a new stack and delete the old one
-    const stackConstructId = `${accountPrettyName}Phase${this.props.phase}${region ?? ''}`;
+    const stackName = this.createStackName(accountKey, regionOrDefault);
+    const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
-    const stack = new AccountStack(this.app, stackConstructId, {
+    const stack = new AccountStack(this.app, stackLogicalId, {
       accountId,
       accountKey,
       stackName,
@@ -86,5 +83,21 @@ export class AccountStacks {
     });
     this.stacks.push(stack);
     return stack;
+  }
+
+  protected createStackName(accountKey: string, region: string) {
+    // BE CAREFUL CHANGING THE STACK NAME
+    // When changed, it will create a new stack and delete the old one!
+    const accountPrettyName = pascalCase(accountKey);
+    return `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
+  }
+
+  protected createStackLogicalId(accountKey: string, region: string) {
+    // BE CAREFUL CHANGING THE STACK LOGICAL ID
+    // When changed, it will generate new logical IDs for all resources in this stack and recreate all resources!
+    const accountPrettyName = pascalCase(accountKey);
+    const regionPrettyName = region === this.props.context.defaultRegion ? '' : pascalCase(region);
+    const stackConstructId = `${accountPrettyName}Phase${this.props.phase}${regionPrettyName}`;
+    return stackConstructId;
   }
 }
