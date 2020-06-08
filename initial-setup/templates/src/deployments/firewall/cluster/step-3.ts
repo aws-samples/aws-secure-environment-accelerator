@@ -1,8 +1,8 @@
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
@@ -36,10 +36,17 @@ export interface FirewallStep3Props {
  */
 export async function step3(props: FirewallStep3Props) {
   const { accountBuckets, accountStacks, centralBucket, config, outputs, vpcs } = props;
+  const vpcConfigs = config.getVpcConfigs();
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const firewallConfig = accountConfig.deployments?.firewall;
     if (!firewallConfig) {
+      continue;
+    }
+
+    const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === firewallConfig.vpc)?.vpcConfig;
+    if (!vpcConfig) {
+      console.log(`Skipping firewall deployment because of missing VPC config "${firewallConfig.vpc}"`);
       continue;
     }
 
@@ -109,6 +116,7 @@ export async function step3(props: FirewallStep3Props) {
       firewallVpnConnections,
       scope: accountStack,
       vpc,
+      vpcConfig,
     });
   }
 }
@@ -123,8 +131,9 @@ async function createFirewallCluster(props: {
   firewallVpnConnections: FirewallVpnConnection[];
   scope: cdk.Construct;
   vpc: Vpc;
+  vpcConfig: c.VpcConfig;
 }) {
-  const { accountBucket, centralBucket, firewallConfig, firewallVpnConnections, scope, vpc } = props;
+  const { accountBucket, centralBucket, firewallConfig, firewallVpnConnections, scope, vpc, vpcConfig } = props;
 
   const securityGroup = vpc.tryFindSecurityGroupByName(firewallConfig['security-group']);
   if (!securityGroup) {
@@ -168,10 +177,13 @@ async function createFirewallCluster(props: {
     let licensePath: string | undefined;
     let licenseBucket: s3.IBucket | undefined;
     if (!instance) {
+      // Find the next available license in the firewall config license list
       if (firewallConfig.license && licenseIndex < firewallConfig.license.length) {
         licensePath = firewallConfig.license[licenseIndex];
         licenseBucket = centralBucket;
       }
+
+      // Create an instance for this AZ
       const instanceName = `Fgt${pascalCase(az)}`;
       instance = cluster.createInstance({
         name: instanceName,
@@ -192,13 +204,36 @@ async function createFirewallCluster(props: {
       });
     }
 
-    instance.addNetworkInterface({
+    const networkInterface = instance.addNetworkInterface({
       name: vpnConnection.name,
       subnet,
       securityGroup,
       eipAllocationId: vpnConnection.eipAllocationId,
       vpnTunnelOptions: vpnConnection.vpnTunnelOptions,
     });
+
+    const routeTables = vpcConfig['route-tables'] || [];
+    for (const routeTable of routeTables) {
+      const name: string = routeTable.name;
+      const routes = routeTable.routes || [];
+      for (const route of routes) {
+        if (route.target !== 'firewall') {
+          continue;
+        }
+        if (route.port === vpnConnection.name && route.az === az) {
+          const routeTableId = vpc.tryFindRouteTableIdByName(name);
+          if (!routeTableId) {
+            console.warn(`Cannot find route table with name "${name}" in VPC ${vpc.name}`);
+            continue;
+          }
+          new ec2.CfnRoute(scope, `${name}_eni_${vpnConnection.name}_${az}`, {
+            routeTableId,
+            destinationCidrBlock: route.destination as string,
+            networkInterfaceId: networkInterface.ref,
+          });
+        }
+      }
+    }
   }
   return cluster;
 }

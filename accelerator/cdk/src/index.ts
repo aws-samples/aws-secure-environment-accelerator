@@ -37,7 +37,7 @@ async function main() {
   const solutionRoot = path.join(__dirname, '..', '..', '..');
 
   // Create the initial setup pipeline stack
-  await InitialSetup.create(app, `${acceleratorPrefix}InitialSetup`, {
+  new InitialSetup(app, `${acceleratorPrefix}InitialSetup`, {
     configFilePath,
     configRepositoryName,
     configBranchName,
