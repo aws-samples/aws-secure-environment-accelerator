@@ -152,12 +152,6 @@
         },
         "Amazon VPC/VPCs per Region": {
           "value": 15
-        },
-        "AWS CloudFormation/Stack count": {
-          "value": 400
-        },
-        "AWS CloudFormation/Stack sets per administrator account": {
-          "value": 400
         }
       },
       "vpc": [
@@ -439,11 +433,9 @@
       "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {
-        "AWS Organizations/Maximum accounts": {
-          "value": 20
-        },
-        "AWS CloudFormation/Stack count": {
-          "value": 400
+        "Amazon EC2/Number of EIPs": {
+          "value": 10,
+          "customer-confirm-inplace": false
         }
       },
       "share-mad-from": "",
@@ -736,7 +728,9 @@
                 },
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azA-p2}"
+                  "target": "firewall",
+                  "az": "a",
+                  "port": "Public"
                 },
                 {
                   "destination": "s3",
@@ -753,7 +747,9 @@
                 },
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azB-p2}"
+                  "target": "firewall",
+                  "az": "b",
+                  "port": "Public"
                 },
                 {
                   "destination": "s3",
@@ -766,7 +762,9 @@
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azA-p4}"
+                  "target": "firewall",
+                  "az": "a",
+                  "port": "Proxy"
                 }
               ]
             },
@@ -775,7 +773,9 @@
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azB-p4}"
+                  "target": "firewall",
+                  "az": "b",
+                  "port": "Proxy"
                 }
               ]
             },
@@ -972,9 +972,6 @@
       "limits": {
         "AWS Organizations/Maximum accounts": {
           "value": 20
-        },
-        "AWS CloudFormation/Stack count": {
-          "value": 400
         }
       },
       "iam": {

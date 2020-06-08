@@ -3,8 +3,8 @@ import * as ssm from '@aws-cdk/aws-ssm';
 import { getAccountId } from '../utils/accounts';
 import { VpcOutput } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
-import { KeyPairContainer } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
 import { PhaseInput } from './shared';
@@ -49,24 +49,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
     const madAutoScalingRoleOutput = madAutoScalingRoleOutputs[0];
 
-    const accountId = getAccountId(accounts, accountKey);
-
-    const ec2KeyPairName = 'rdgw-key-pair';
-    const ec2KeyPairPrefix = `accelerator/${accountKey}/mad/ec2-private-key/`;
-
     const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!stack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
     }
 
-    const keyPairContainer = new KeyPairContainer(stack, 'Ec2KeyPair');
-
-    const keyPair = keyPairContainer.createKeyPair('RDGWEc2KeyPair', {
-      name: ec2KeyPairName,
-      description: 'This is a Key Pair for RDGW host instance',
-      secretPrefix: ec2KeyPairPrefix,
-      principal: new iam.AccountPrincipal(accountId),
+    const keyPair = new AcceleratorKeypair(stack, 'RDGWEc2KeyPair', {
+      name: 'rdgw-key-pair',
     });
 
     const userSecrets: UserSecrets = [];
@@ -129,7 +119,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       latestRdgwAmiId,
       vpcId,
       vpcName,
-      keyPairName: ec2KeyPairName,
+      keyPairName: keyPair.keyName,
       subnetIds,
       adminPasswordArn: madOutput.passwordArn,
       s3BucketName,

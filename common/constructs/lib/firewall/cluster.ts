@@ -1,7 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
-import { KeyPair } from 'cdk-ec2-key-pair';
 import { FirewallInstance, FirewallConfigurationProps } from './instance';
 
 export type FirewallClusterConfigurationProps = Omit<FirewallConfigurationProps, 'configPath'>;
@@ -11,6 +10,7 @@ export interface FirewallClusterProps {
   imageId: string;
   instanceType: string;
   roleName?: string;
+  keyPairName?: string;
   configuration: FirewallClusterConfigurationProps;
 }
 
@@ -20,8 +20,6 @@ export class FirewallCluster extends cdk.Construct {
   readonly instances: FirewallInstance[] = [];
   readonly instanceRole: iam.Role;
   readonly instanceProfile: iam.CfnInstanceProfile;
-  readonly keyPairName: string;
-  readonly keyPair: KeyPair;
 
   constructor(scope: cdk.Construct, id: string, props: FirewallClusterProps) {
     super(scope, id);
@@ -49,12 +47,6 @@ export class FirewallCluster extends cdk.Construct {
       roles: [this.instanceRole.roleName],
     });
 
-    this.keyPairName = 'Firewall';
-    this.keyPair = new KeyPair(this, 'KeyPair', {
-      name: this.keyPairName,
-      secretPrefix: 'accelerator/keypairs',
-    });
-
     this.props.configuration.bucket.grantRead(this.instanceRole);
   }
 
@@ -76,13 +68,12 @@ export class FirewallCluster extends cdk.Construct {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
       iamInstanceProfile: this.instanceProfile,
-      keyPair: this.keyPairName,
+      keyPairName: this.props.keyPairName,
       configuration: {
         ...this.props.configuration,
         configPath: `fgtconfig-init-${hostname}-${index}.txt`,
       },
     });
-    instance.node.addDependency(this.keyPair);
 
     this.instances.push(instance);
     return instance;

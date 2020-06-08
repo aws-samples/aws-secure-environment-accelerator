@@ -137,8 +137,7 @@ async function main() {
             nodejs: 12,
           },
           // The flag '--unsafe-perm' is necessary to run pnpm scripts in Docker
-          // The flag '--ignore-scripts' skips the compilation of custom resources
-          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm --ignore-scripts'],
+          commands: ['npm install --global pnpm', 'pnpm install --unsafe-perm'],
         },
         build: {
           commands: [

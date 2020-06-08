@@ -141,8 +141,20 @@ export class IamAssets extends cdk.Construct {
             iamRole['source-account-role'],
             iamRole['trust-policy'],
           );
+
+          if (iamRole.type === 'ec2') {
+            new iam.CfnInstanceProfile(this, `IAM-Instance-Profile-${iamRole.role}-${accountKey}`, {
+              path: '/',
+              roles: [iamRole.role],
+              instanceProfileName: createIamInstanceProfileName(iamRole.role),
+            });
+          }
         }
       }
     }
   }
+}
+
+export function createIamInstanceProfileName(iamRoleName: string) {
+  return `${iamRoleName}-ip`;
 }

@@ -142,6 +142,11 @@ export function createAlb(
     balancer.logToBucket(aesLogArchiveBucket);
   }
 
+  if (targetGroupIds.length === 0) {
+    console.warn(`cannot find output for target group instances of account ${accountKey} and Alb ${albConfig.name}`);
+    return;
+  }
+
   // Add default listener
   balancer.addListener({
     ports: albConfig.ports,

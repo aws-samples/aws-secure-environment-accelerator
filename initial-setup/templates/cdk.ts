@@ -12,7 +12,7 @@ process.on('unhandledRejection', (reason, _) => {
  * Entrypoint for bootstrapping, deploying and synthesizing CDK apps.
  */
 async function main() {
-  const usage = `Usage: cdk.ts <command> --phase PHASE [--region REGION] [--account-key ACCOUNT_KEY] [--parallel]`;
+  const usage = `Usage: cdk.ts <command> [<command>] --phase PHASE [--region REGION] [--account-key ACCOUNT_KEY] [--parallel]`;
   const args = mri(process.argv.slice(2), {
     boolean: ['parallel'],
     alias: {
@@ -27,9 +27,8 @@ async function main() {
   });
 
   const commands = args['_'];
-  const command = commands?.[0];
   const phase = args.phase;
-  if (phase === undefined || command === undefined) {
+  if (phase === undefined || commands.length === 0) {
     console.log(usage);
     return;
   }
@@ -43,11 +42,13 @@ async function main() {
 
   const toolkit = await CdkToolkit.create(cdkApp);
 
-  if (command === 'bootstrap') {
+  if (commands.includes('bootstrap')) {
     await toolkit.bootstrap();
-  } else if (command === 'synth') {
+  }
+  if (commands.includes('synth')) {
     await toolkit.synth();
-  } else if (command === 'deploy') {
+  }
+  if (commands.includes('deploy')) {
     const outputs = await toolkit.deployAllStacks({
       parallel: args.parallel,
     });

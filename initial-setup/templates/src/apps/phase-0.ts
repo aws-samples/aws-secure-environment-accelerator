@@ -234,6 +234,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_ARN, {
     value: logArchiveBucket.bucketArn,
   });
+  new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME, {
+    value: logArchiveBucket.bucketName,
+  });
   new cdk.CfnOutput(logArchiveStack, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN, {
     value: logArchiveBucket.encryptionKey!.keyArn,
   });
