@@ -127,7 +127,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
     roleName: createRoleName('S3CopyFiles'),
     sourceBucket: centralBucket,
     destinationBucket: bucket,
-    deleteSourceObjects: true,
+    deleteSourceObjects: false,
     deleteSourceBucket: false,
     forceUpdate: false,
   });
