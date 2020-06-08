@@ -9,6 +9,8 @@ import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
+import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-subscription-filter';
+import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 
 interface MadOutput {
   id: number;
@@ -141,4 +143,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     });
     adUsersAndGroups.node.addDependency(keyPair);
   }
+
+  /**
+   * Central Logging Services step 2
+   * Creating Subscription Filters for handling CloudWatch Celtral Logging to S3 in log-archive account
+   * Good to have in last phase, since we add subscription filter to all log groups
+   * TODO - Create CloudWatch Event in all account for create LogGroup
+   */
+  await cwlCentralLoggingToS3.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+    outputs,
+  });
 }
