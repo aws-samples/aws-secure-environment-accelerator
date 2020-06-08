@@ -14,7 +14,7 @@ export class ApplicationLoadBalancer extends cdk.Construct {
   private readonly resource: elb.CfnLoadBalancer;
   private readonly listeners: elb.CfnListener[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: ApplicationLoadBalancerProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: ApplicationLoadBalancerProps) {
     super(scope, id);
 
     const { albName, scheme, subnetIds, securityGroupIds, ipType } = props;
@@ -40,7 +40,7 @@ export class ApplicationLoadBalancer extends cdk.Construct {
       },
       {
         key: 'access_logs.s3.prefix',
-        value: 'elb',
+        value: `${cdk.Aws.ACCOUNT_ID}/elb-${this.props.albName}`,
       },
     ];
   }
