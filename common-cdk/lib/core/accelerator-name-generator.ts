@@ -2,20 +2,6 @@ import * as crypto from 'crypto';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack } from './accelerator-stack';
 
-/**
- * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
- * resources in a customer's account. Please take this into account!
- */
-export function createBucketName(name?: string): string {
-  return createName({
-    name,
-    account: true,
-    region: true,
-    suffixLength: 8,
-    lowercase: true,
-  });
-}
-
 export function createRoleName(name: string, suffixLength: number = 8): string {
   return createName({
     name,
