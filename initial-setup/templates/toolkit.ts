@@ -1,7 +1,7 @@
 import path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
-import { CloudAssembly, CloudFormationStackArtifact, Environment, EnvironmentUtils } from '@aws-cdk/cx-api';
+import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
 import { ToolkitInfo } from 'aws-cdk';
 import { bootstrapEnvironment } from 'aws-cdk/lib/api/bootstrap';
 import { Configuration } from 'aws-cdk/lib/settings';
@@ -9,6 +9,7 @@ import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
 import { PluginHost } from 'aws-cdk/lib/plugin';
 import { AssumeProfilePlugin } from '@aws-pbmm/plugin-assume-role/lib/assume-role-plugin';
+import { fulfillAll } from './promise';
 
 // Register the assume role plugin
 const assumeRolePlugin = new AssumeProfilePlugin();
@@ -80,7 +81,7 @@ export class CdkToolkit {
   async bootstrap() {
     const stacks = this.props.assembly.stacks;
     const promises = stacks.map(s => this.bootstrapEnvironment(s.environment));
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
   }
 
   async bootstrapEnvironment(environment: Environment) {
@@ -133,7 +134,8 @@ export class CdkToolkit {
     if (parallel) {
       // Deploy all stacks in parallel
       const promises = stacks.map(stack => this.deployStack(stack));
-      const outputsList = await Promise.all(promises);
+      // Wait for all promises to be fulfilled
+      const outputsList = await fulfillAll(promises);
       combinedOutputs = outputsList.reduce((result, output) => [...result, ...output]);
     } else {
       // Deploy all stacks sequentially
