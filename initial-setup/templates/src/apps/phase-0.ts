@@ -199,7 +199,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       acceleratorPrefix: context.acceleratorPrefix,
       domain: phz,
     });
-    return new LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
+    return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
       logGroupName,
     });
   });
