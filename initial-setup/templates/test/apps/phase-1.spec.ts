@@ -45,11 +45,16 @@ test('the bucket names and IDs in phase 1 should not change', async () => {
     const template = stackToCloudFormation(stack);
     const resources = resourcesToList(template.Resources);
 
-    const buckets = resources.filter(r => r.Type === 'AWS::S3::Bucket');
-    const bucketIds = buckets.map(b => b.LogicalId);
-    const bucketNames = buckets.map(b => b.Properties.BucketName);
+    // Only take a snapshot of buckets and LogicalId and BucketName
+    const expected = resources
+      .filter(r => r.Type === 'AWS::S3::Bucket')
+      .map(b => ({
+        LogicalId: b.LogicalId,
+        Properties: {
+          BucketName: b.Properties.BucketName,
+        },
+      }));
 
-    expect(bucketIds).toMatchSnapshot(`${stack.stackName}-bucket-ids`);
-    expect(bucketNames).toMatchSnapshot(`${stack.stackName}-bucket-names`);
+    expect(expected).toMatchSnapshot(stack.stackName);
   }
 });

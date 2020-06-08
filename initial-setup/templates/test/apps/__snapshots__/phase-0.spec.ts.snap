@@ -1,88 +1,37 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-LogArchive-Phase0-bucket-ids 1`] = `
-Array [
-  "DefaultBucketEEDD2DB7",
-  "AesBucket0FF6308D",
-]
-`;
-
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-LogArchive-Phase0-bucket-names 1`] = `
+exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-LogArchive-Phase0 1`] = `
 Array [
   Object {
-    "Fn::Join": Array [
-      "",
-      Array [
-        "pbmmaccel-",
-        Object {
-          "Ref": "AWS::AccountId",
-        },
-        "-",
-        Object {
-          "Ref": "AWS::Region",
-        },
-        "-c25e0f50",
-      ],
-    ],
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
   },
   Object {
-    "Fn::Join": Array [
-      "",
-      Array [
-        "pbmmaccel-",
-        Object {
-          "Ref": "AWS::AccountId",
-        },
-        "-",
-        Object {
-          "Ref": "AWS::Region",
-        },
-        "-aes-c25e0f50",
-      ],
-    ],
+    "LogicalId": "aescacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
   },
 ]
 `;
 
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Master-Phase0-bucket-ids 1`] = `
-Array [
-  "CentralBucketCopyDB3C4877",
-]
-`;
-
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Master-Phase0-bucket-names 1`] = `
+exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Master-Phase0 1`] = `
 Array [
   Object {
-    "Fn::Join": Array [
-      "",
-      Array [
-        "pbmmaccel-",
-        Object {
-          "Ref": "AWS::AccountId",
-        },
-        "-",
-        Object {
-          "Ref": "AWS::Region",
-        },
-        "-config-1210e7d1",
-      ],
-    ],
+    "LogicalId": "configcacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
   },
 ]
 `;
 
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Operations-Phase0-bucket-ids 1`] = `Array []`;
+exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Operations-Phase0 1`] = `Array []`;
 
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Operations-Phase0-bucket-names 1`] = `Array []`;
+exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Security-Phase0 1`] = `Array []`;
 
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Security-Phase0-bucket-ids 1`] = `Array []`;
+exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
 
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-Security-Phase0-bucket-names 1`] = `Array []`;
-
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-SharedNetwork-Phase0-bucket-ids 1`] = `Array []`;
-
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-SharedNetwork-Phase0-bucket-ids 2`] = `Array []`;
-
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-SharedNetwork-Phase0-bucket-names 1`] = `Array []`;
-
-exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-SharedNetwork-Phase0-bucket-names 2`] = `Array []`;
+exports[`the bucket names and IDs in phase 0 should not change: PBMMAccel-SharedNetwork-Phase0 2`] = `Array []`;
