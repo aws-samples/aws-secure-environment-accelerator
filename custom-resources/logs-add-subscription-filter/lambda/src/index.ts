@@ -58,7 +58,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       if (error.code === 'ResourceNotFoundException') {
         // No Subscription filter for this logGroup
       } else {
-        throw error;
+        console.warn(error.message);
       }
     }
   }
@@ -88,7 +88,7 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
       if (error.code === 'ResourceNotFoundException') {
         // No Subscription filter for this logGroup
       } else {
-        throw error;
+        console.warn(error.message);
       }
     }
   }

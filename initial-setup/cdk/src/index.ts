@@ -456,24 +456,24 @@ export namespace InitialSetup {
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(loadLimitsTask)
-          // .next(addScpTask)
-          // .next(enableTrustedAccessForServicesTask)
+          .next(addScpTask)
+          .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
           .next(deployPhase1Task)
           .next(storePhase1Output)
-          .next(accountDefaultSettingsTask),
-        // .next(deployPhase2Task)
-        // .next(storePhase2Output)
-        // .next(deployPhase3Task)
-        // .next(storePhase3Output)
-        // .next(deployPhase4Task)
-        // .next(storePhase4Output)
-        // .next(associateHostedZonesTask)
-        // .next(addTagsToSharedResourcesTask)
-        // .next(enableDirectorySharingTask)
-        // .next(deployPhase5Task)
-        // .next(createAdConnectorTask),
+          .next(accountDefaultSettingsTask)
+          .next(deployPhase2Task)
+          .next(storePhase2Output)
+          .next(deployPhase3Task)
+          .next(storePhase3Output)
+          .next(deployPhase4Task)
+          .next(storePhase4Output)
+          .next(associateHostedZonesTask)
+          .next(addTagsToSharedResourcesTask)
+          .next(enableDirectorySharingTask)
+          .next(deployPhase5Task)
+          .next(createAdConnectorTask),
       });
     }
   }
