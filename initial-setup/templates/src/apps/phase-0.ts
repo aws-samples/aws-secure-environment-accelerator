@@ -56,6 +56,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }): void => {
     const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
 
+    // TODO Leave existing files in the folder
+    // TODO Do not override existing files
+    // See https://github.com/aws/aws-cdk/issues/953
     new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
       sources: [s3deployment.Source.asset(artifactsFolderPath)],
       destinationBucket: centralBucket,
@@ -82,6 +85,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountKey: masterAccountKey,
     destinationKeyPrefix: 'iam-policy',
   });
+
+  // upload firewall
+  // uploadArtifacts({
+  //   artifactName: 'Firewall',
+  //   artifactFolderName: 'Third-Party',
+  //   artifactKeyPrefix: 'Third-Party/',
+  //   accountKey: masterAccountKey,
+  //   destinationKeyPrefix: 'firewall',
+  // });
 
   // upload RDGW Artifacts
   uploadArtifacts({

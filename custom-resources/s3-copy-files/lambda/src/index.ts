@@ -30,7 +30,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = getPropertiesFromEvent(event);
   const { sourceBucketName, destinationBucketName, deleteSourceObjects, deleteSourceBucket } = properties;
 
   const exists = await bucketExists(sourceBucketName);
@@ -38,7 +38,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     await copyFiles({
       sourceBucketName: sourceBucketName,
       destinationBucketName: destinationBucketName,
-      deleteSourceObjects: deleteSourceObjects,
+      deleteSourceObjects,
     });
     if (deleteSourceBucket) {
       console.debug(`Deleting bucket ${sourceBucketName}`);
@@ -51,7 +51,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = getPropertiesFromEvent(event);
   // Only copy over the files when forceUpdate is not set
   if (properties.forceUpdate !== undefined) {
     return onCreate(event);
@@ -63,6 +63,17 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {
   console.log(`Nothing to do for delete...`);
+}
+
+function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  if (typeof properties.deleteSourceObjects === 'string') {
+    properties.deleteSourceObjects = properties.deleteSourceObjects === 'true';
+  }
+  if (typeof properties.deleteSourceBucket === 'string') {
+    properties.deleteSourceBucket = properties.deleteSourceBucket === 'true';
+  }
+  return properties;
 }
 
 async function copyFiles(props: {
@@ -135,7 +146,7 @@ async function copyObject(props: {
     throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${key}: ${e}`);
   }
 
-  if (deleteSourceObjects) {
+  if (deleteSourceObjects === false) {
     try {
       await s3
         .deleteObject({
