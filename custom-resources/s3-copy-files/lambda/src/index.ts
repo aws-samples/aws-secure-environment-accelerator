@@ -170,6 +170,6 @@ async function deleteBucket(bucketName: string) {
       })
       .promise();
   } catch (e) {
-    throw new Error(`Unable to put delete bucket s3://${bucketName}: ${e}`);
+    console.warn(`Unable to delete bucket s3://${bucketName}: ${e}`);
   }
 }
