@@ -163,7 +163,11 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.warn(`Cannot find output ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER}`);
       return;
     }
-    const logGroupName = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER);
+    const logGroupName = getStackOutput(
+      outputs,
+      accountKey,
+      outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER,
+    );
     if (!logGroupName) {
       console.warn(`Cannot find output ${outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER}`);
       return;
