@@ -43,11 +43,10 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
     if (!accountStack) {
       console.warn(`Cannot find account stack ${account.key}`);
     } else {
-      const accountSpecificExclusions = [...(logConfig['cwl-exclusions']?.find(e => e.account === account.key)?.exclusions || [])];
-      const globalExclusions = [
-        ...logConfig['cwl-glbl-exclusions'] || [],
-        ...accountSpecificExclusions
+      const accountSpecificExclusions = [
+        ...(logConfig['cwl-exclusions']?.find(e => e.account === account.key)?.exclusions || []),
       ];
+      const globalExclusions = [...(logConfig['cwl-glbl-exclusions'] || []), ...accountSpecificExclusions];
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${account.key}`, {
         logDestinationArn,
         globalExclusions,
