@@ -535,7 +535,7 @@ export const SecurityHubFrameworksConfigType = t.interface({
 export const CwlExclusions = t.interface({
   account: t.string,
   exclusions: t.array(t.string),
-})
+});
 
 export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,

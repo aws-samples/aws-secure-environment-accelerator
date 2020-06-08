@@ -23,8 +23,8 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
       properties: {
-        ...props
-      }
+        ...props,
+      },
     });
   }
 

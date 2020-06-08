@@ -50,7 +50,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   // Remove Subscription that are added
   const logGroups = await getLogGroups();
-  for ( const logGroup of logGroups) {
+  for (const logGroup of logGroups) {
     // Delete Subscription filter from logGroup
     try {
       await removeSubscriptionFilter(logGroup.logGroupName!);
@@ -71,21 +71,19 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
     }
   }
   return false;
-}
+};
 
-async function centralLoggingSubscription (
-  event: CloudFormationCustomResourceEvent,
-): Promise<string> {
+async function centralLoggingSubscription(event: CloudFormationCustomResourceEvent): Promise<string> {
   const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   console.log(`Creating Log Subscription Filter for Central Logging...`);
   console.log(JSON.stringify(properties, null, 2));
   const { logDestinationArn } = properties;
-  const globalExclusions = properties.globalExclusions?.map(ex => ex.endsWith('*')? ex.slice(0, -1): ex);
+  const globalExclusions = properties.globalExclusions?.map(ex => (ex.endsWith('*') ? ex.slice(0, -1) : ex));
   console.log(globalExclusions);
   const logGroups = await getLogGroups();
   const excludedLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions || [], lg.logGroupName!));
-  for ( const logGroup of excludedLogGroups) {
+  for (const logGroup of excludedLogGroups) {
     if (isExcluded(globalExclusions || [], logGroup.logGroupName!)) {
       // Ignore logGroup as it is specified in exclusion list
       continue;
@@ -101,7 +99,7 @@ async function centralLoggingSubscription (
       }
     }
   }
-  for ( const logGroup of excludedLogGroups) {
+  for (const logGroup of excludedLogGroups) {
     if (isExcluded(globalExclusions || [], logGroup.logGroupName!)) {
       // Ignore logGroup as it is specified in exclusion list
       continue;
@@ -113,25 +111,29 @@ async function centralLoggingSubscription (
   return physicalResourceId!;
 }
 
-async function removeSubscriptionFilter (logGroupName: string) {
+async function removeSubscriptionFilter(logGroupName: string) {
   // Remove existing subscription filter
   await throttlingBackOff(() =>
-    logs.deleteSubscriptionFilter({
-      logGroupName,
-      filterName: `CentralLogging${logGroupName}`,
-    }).promise()
+    logs
+      .deleteSubscriptionFilter({
+        logGroupName,
+        filterName: `CentralLogging${logGroupName}`,
+      })
+      .promise(),
   );
 }
 
-async function addSubscriptionFilter (logGroupName: string, destinationArn: string) {
+async function addSubscriptionFilter(logGroupName: string, destinationArn: string) {
   // Adding subscription filter
   await throttlingBackOff(() =>
-    logs.putSubscriptionFilter({
-      destinationArn,
-      logGroupName,
-      filterName: `CentralLogging${logGroupName}`,
-      filterPattern: '',
-    }).promise()
+    logs
+      .putSubscriptionFilter({
+        destinationArn,
+        logGroupName,
+        filterName: `CentralLogging${logGroupName}`,
+        filterPattern: '',
+      })
+      .promise(),
   );
 }
 
@@ -144,13 +146,15 @@ async function getLogGroups(): Promise<LogGroup[]> {
       await delay(1000);
     }
     const response = await throttlingBackOff(() =>
-      logs.describeLogGroups({
-        nextToken: token
-      }).promise(),
+      logs
+        .describeLogGroups({
+          nextToken: token,
+        })
+        .promise(),
     );
     token = response.nextToken;
     logGroups.push(...response.logGroups!);
-  } while(token);
+  } while (token);
   return logGroups;
 }
 
