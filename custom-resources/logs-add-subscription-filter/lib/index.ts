@@ -17,7 +17,6 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
   constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);
-    console.log(props.logDestinationArn);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,

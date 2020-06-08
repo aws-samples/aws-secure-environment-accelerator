@@ -7,7 +7,7 @@ import {
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
-import { throttlingBackOff } from '@custom-resources/cfn-utils';
+import { throttlingBackOff, delay } from '@custom-resources/cfn-utils';
 
 export interface HandlerProperties {
   logDestinationArn: string;
@@ -19,7 +19,7 @@ export const handler = errorHandler(onEvent);
 const logs = new AWS.CloudWatchLogs();
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  console.log(`Retriving Log Groups...`);
+  console.log(`Add Subscription to point LogDestination in log-archive account...`);
   console.log(JSON.stringify(event, null, 2));
 
   // tslint:disable-next-line: switch-default
@@ -76,8 +76,6 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
 async function centralLoggingSubscription(event: CloudFormationCustomResourceEvent): Promise<string> {
   const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  console.log(`Creating Log Subscription Filter for Central Logging...`);
-  console.log(JSON.stringify(properties, null, 2));
   const { logDestinationArn } = properties;
   const globalExclusions = properties.globalExclusions?.map(ex => (ex.endsWith('*') ? ex.slice(0, -1) : ex));
   const logGroups = await getLogGroups();
@@ -147,8 +145,4 @@ async function getLogGroups(): Promise<LogGroup[]> {
     logGroups.push(...response.logGroups!);
   } while (token);
   return logGroups;
-}
-
-export async function delay(ms: number) {
-  return new Promise((resolve, reject) => setTimeout(resolve, ms));
 }

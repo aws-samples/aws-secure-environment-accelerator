@@ -8,7 +8,6 @@ import * as logs from '@aws-cdk/aws-logs';
 import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
 import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
-import { JsonOutputValue } from '../../../common/json-output';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-subscription-filter';
 
@@ -44,9 +43,12 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
     if (!accountStack) {
       console.warn(`Cannot find account stack ${account.key}`);
     } else {
-      const globalExclusions = logConfig['cwl-glbl-exclusions'];
-      globalExclusions?.push(...(logConfig['cwl-exclusions']?.find(e => e.account === account.key)?.exclusions || []));
-      new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter`, {
+      const accountSpecificExclusions = [...(logConfig['cwl-exclusions']?.find(e => e.account === account.key)?.exclusions || [])];
+      const globalExclusions = [
+        ...logConfig['cwl-glbl-exclusions'] || [],
+        ...accountSpecificExclusions
+      ];
+      new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${account.key}`, {
         logDestinationArn,
         globalExclusions,
       });

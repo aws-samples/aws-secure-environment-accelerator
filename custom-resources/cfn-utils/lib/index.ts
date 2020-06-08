@@ -21,3 +21,7 @@ export const isThrottlingError = (e: any) =>
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
   e.retryable === true;
+
+export async function delay(ms: number) {
+  return new Promise((resolve, reject) => setTimeout(resolve, ms));
+}
