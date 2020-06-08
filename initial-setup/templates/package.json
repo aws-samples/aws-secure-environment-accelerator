@@ -75,6 +75,7 @@
     "@custom-resources/security-hub-enable": "workspace:^0.0.1",
     "@custom-resources/security-hub-send-invites": "workspace:^0.0.1",
     "@custom-resources/ec2-marketplace-subscription-validation": "workspace:^0.0.1",
+    "@custom-resources/ec2-launch-time": "workspace:^0.0.1",
     "@types/cfn-response": "^1.0.3",
     "colors": "1.4.0",
     "constructs": "2.0.1",
