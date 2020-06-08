@@ -80,14 +80,9 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
   console.log(JSON.stringify(properties, null, 2));
   const { logDestinationArn } = properties;
   const globalExclusions = properties.globalExclusions?.map(ex => (ex.endsWith('*') ? ex.slice(0, -1) : ex));
-  console.log(globalExclusions);
   const logGroups = await getLogGroups();
   const excludedLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions || [], lg.logGroupName!));
   for (const logGroup of excludedLogGroups) {
-    if (isExcluded(globalExclusions || [], logGroup.logGroupName!)) {
-      // Ignore logGroup as it is specified in exclusion list
-      continue;
-    }
     // Delete Subscription filter from logGroup
     try {
       await removeSubscriptionFilter(logGroup.logGroupName!);
@@ -100,10 +95,6 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
     }
   }
   for (const logGroup of excludedLogGroups) {
-    if (isExcluded(globalExclusions || [], logGroup.logGroupName!)) {
-      // Ignore logGroup as it is specified in exclusion list
-      continue;
-    }
     // Add Subscription filter to logGroup
     console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
     await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn);

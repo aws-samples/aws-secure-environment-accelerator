@@ -29,7 +29,6 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
 
   const globalOptionsConfig = config['global-options'];
   const logConfig = globalOptionsConfig['central-log-services'];
-  const globalExclusions = logConfig['cwl-glbl-exclusions'];
   const logArchiveAccountKey = logConfig.account;
   const LogDestinationOutput = getStackJsonOutput(outputs, {
     accountKey: logArchiveAccountKey,
@@ -45,9 +44,8 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
     if (!accountStack) {
       console.warn(`Cannot find account stack ${account.key}`);
     } else {
-      console.log(globalExclusions);
+      const globalExclusions = logConfig['cwl-glbl-exclusions'];
       globalExclusions?.push(...(logConfig['cwl-exclusions']?.find(e => e.account === account.key)?.exclusions || []));
-      console.log(globalExclusions);
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter`, {
         logDestinationArn,
         globalExclusions,
