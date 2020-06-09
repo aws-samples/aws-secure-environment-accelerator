@@ -55,11 +55,29 @@
       }
     },
     {
+      "Sid": "ScopeSpecificGlobalActionsToCanadaUSE1",
+      "Effect": "Deny",
+      "Action": ["acm:*"],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["ca-central-1", "us-east-1"]
+        },
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "DenyAllOutsideCanadaPBMMONLY",
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
         "access-analyzer:*",
+        "acm:*",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
