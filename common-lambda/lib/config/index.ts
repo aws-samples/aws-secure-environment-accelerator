@@ -553,6 +553,8 @@ export const ScpsConfigType = t.interface({
 export type ScpConfig = t.TypeOf<typeof ScpsConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
+  'alz-baseline': t.boolean,
+  'ct-baseline': t.boolean,
   'central-log-retention': t.number,
   'default-log-retention': t.number,
   'central-bucket': NonEmptyString,
