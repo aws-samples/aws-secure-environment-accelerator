@@ -7,14 +7,14 @@ import { loadContext } from './utils/context';
 import { loadStackOutputs } from './utils/outputs';
 import { loadLimits, Limiter } from './utils/limits';
 
-interface PhaseInfo {
-  runner: () => Promise<PhaseDeploy>;
-  name: string;
-  id: string;
+export interface PhaseInfo {
+  readonly runner: () => Promise<PhaseDeploy>;
+  readonly name: string;
+  readonly id: string;
 }
 
 // Right now there are only phases 0, 1, 2, 3, 4, 5
-const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
+export const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
   runner: () => import(`./apps/phase-${id}`).then(phase => phase.deploy),
   id: `${id}`,
   name: `${id}`,

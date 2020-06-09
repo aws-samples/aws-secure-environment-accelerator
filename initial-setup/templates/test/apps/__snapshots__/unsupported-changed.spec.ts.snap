@@ -1,0 +1,515 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase2 1`] = `
+Array [
+  Object {
+    "LogicalId": "MicrosoftADMicrosoftADFC7F6466",
+    "Properties": Object {
+      "Edition": "Enterprise",
+      "Name": "brian.local",
+      "Password": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "{{resolve:secretsmanager:arn:",
+            Object {
+              "Ref": "AWS::Partition",
+            },
+            ":secretsmanager:",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ":111111111111:secret:PBMMAccel/operations/mad/password:SecretString:::}}",
+          ],
+        ],
+      },
+      "ShortName": "brian",
+      "VpcSettings": Object {
+        "SubnetIds": Array [
+          "subnet-02809ab1988c1ec82",
+          "subnet-0f4514137baa07759",
+        ],
+        "VpcId": "vpc-0d0b4cd029857165a",
+      },
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase2 1`] = `
+Array [
+  Object {
+    "LogicalId": "FirewallInstance047ED1D8C",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": "ami-047aac44951feb9fb",
+      "InstanceType": "c5n.2xlarge",
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": Array [
+        Object {
+          "DeviceIndex": "0",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni08F98C237",
+          },
+        },
+        Object {
+          "DeviceIndex": "1",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni10A6A7290",
+          },
+        },
+        Object {
+          "DeviceIndex": "2",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni2D5DFF8E9",
+          },
+        },
+        Object {
+          "DeviceIndex": "3",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni33A70E7D8",
+          },
+        },
+      ],
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": undefined,
+    },
+  },
+  Object {
+    "LogicalId": "FirewallInstance14FE67CEF",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": "ami-047aac44951feb9fb",
+      "InstanceType": "c5n.2xlarge",
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": Array [
+        Object {
+          "DeviceIndex": "0",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni0030B2EA0",
+          },
+        },
+        Object {
+          "DeviceIndex": "1",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni1C35979EF",
+          },
+        },
+        Object {
+          "DeviceIndex": "2",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni208BA0551",
+          },
+        },
+        Object {
+          "DeviceIndex": "3",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni31E1A4BA3",
+          },
+        },
+      ],
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": undefined,
+    },
+  },
+  Object {
+    "LogicalId": "FirewallManagerCCB568C3",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": "ami-06fa2a9e6f8fae9f2",
+      "InstanceType": "c5.large",
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": Array [
+        Object {
+          "DeviceIndex": "0",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallManagerEni044173916",
+          },
+        },
+      ],
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+  Object {
+    "LogicalId": "aescacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "configcacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Security-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedServices-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "SecretsbgUser1UserPswdF10CD199",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/bgUser1",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsbgUser2UserPswd08D94AA3",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/bgUser2",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser1UserPswdD5EAD264",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/OpsUser1",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser2UserPswdD05A1573",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/OpsUser2",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPassword5CC78627",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordadconnectorusrB8347327",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/adconnector-usr/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordBrian143D82EE",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/Brian/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordTestUserE6516806",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/TestUser/password",
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "CertPerimSelfSignedCertSecret",
+    "Properties": Object {
+      "Name": "accelerator/certificates/PerimSelf-SignedCert",
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;

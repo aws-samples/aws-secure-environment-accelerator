@@ -4,7 +4,8 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
 import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
-import { LogGroup } from '@aws-cdk/aws-logs';
+import { LogGroup } from '@custom-resources/logs-log-group';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface SSMStep1Props {
   acceleratorPrefix: string;
@@ -28,7 +29,13 @@ export async function step1(props: SSMStep1Props) {
     ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
     ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
 
-    const logGroup = new LogGroup(accountStack, 'SSM-LogGroup');
+    const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
+      logGroupName: createName({
+        name: 'SSM',
+        account: false,
+        region: false,
+      }),
+    });
 
     // Save the output so it can be used in the state machine later
     new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER, {
