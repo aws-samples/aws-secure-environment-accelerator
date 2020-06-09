@@ -146,7 +146,7 @@ async function copyObject(props: {
     throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${key}: ${e}`);
   }
 
-  if (deleteSourceObjects === false) {
+  if (deleteSourceObjects) {
     try {
       await s3
         .deleteObject({
