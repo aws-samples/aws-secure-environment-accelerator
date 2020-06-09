@@ -64,6 +64,7 @@
     "@custom-resources/ds-log-subscription": "workspace:^0.0.1",
     "@custom-resources/ec2-image-finder": "workspace:^0.0.1",
     "@custom-resources/ec2-keypair": "workspace:^0.0.1",
+    "@custom-resources/ec2-launch-time": "workspace:^0.0.1",
     "@custom-resources/ec2-marketplace-subscription-validation": "workspace:^0.0.1",
     "@custom-resources/ec2-vpn-attachment": "workspace:^0.0.1",
     "@custom-resources/ec2-vpn-tunnel-options": "workspace:^0.0.1",

@@ -29,7 +29,7 @@ export async function step1(props: SSMStep1Props) {
     ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
     ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
 
-    new LogGroup(accountStack, 'SSMLogGroup', {
+    const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
       logGroupName: createName({
         name: 'SSM',
         account: false,
@@ -40,6 +40,9 @@ export async function step1(props: SSMStep1Props) {
     // Save the output so it can be used in the state machine later
     new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER, {
       value: ssmKey.keyId,
+    });
+    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER, {
+      value: logGroup.logGroupName,
     });
 
     // Due to CfnDocument is not able to update SSM-SessionManagerRunShell, have to use SDK to update

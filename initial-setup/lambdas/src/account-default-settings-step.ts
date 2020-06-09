@@ -1,8 +1,6 @@
 import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
-import { S3Control } from '@aws-pbmm/common-lambda/lib/aws/s3-control';
-import { PutPublicAccessBlockRequest } from 'aws-sdk/clients/s3control';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
@@ -165,6 +163,15 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.warn(`Cannot find output ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER}`);
       return;
     }
+    const logGroupName = getStackOutput(
+      outputs,
+      accountKey,
+      outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER,
+    );
+    if (!logGroupName) {
+      console.warn(`Cannot find output ${outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER}`);
+      return;
+    }
 
     // Encrypt CWL doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
     const kmsParams = {
@@ -175,10 +182,10 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
     const cwlParams = {
       kmsKeyId: ssmKey.KeyMetadata?.Arn || ssmKeyId,
-      logGroupName: '/PBMMAccel/SSM',
+      logGroupName,
     };
-    const cwlResponse = await cloudwatchlogs.associateKmsKey(cwlParams).promise();
-    console.log('CWL encrypt: ', cwlResponse);
+    console.log('CWL encrypt: ', cwlParams);
+    await cloudwatchlogs.associateKmsKey(cwlParams).promise();
 
     // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
     const settings = {
@@ -189,7 +196,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
         s3BucketName: bucketName,
         s3KeyPrefix: '',
         s3EncryptionEnabled: useS3,
-        cloudWatchLogGroupName: '/PBMMAccel/SSM',
+        cloudWatchLogGroupName: logGroupName,
         cloudWatchEncryptionEnabled: useCWL,
         kmsKeyId: ssmKeyId,
         runAsEnabled: false,
@@ -200,6 +207,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     const updateDocumentRequest: UpdateDocumentRequest = {
       Content: JSON.stringify(settings),
       Name: 'SSM-SessionManagerRunShell',
+      DocumentVersion: '$LATEST',
     };
     console.log('Update SSM Request: ', updateDocumentRequest);
     const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
