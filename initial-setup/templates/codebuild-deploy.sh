@@ -16,4 +16,4 @@ fi
 
 echo "Deploying phase $ACCELERATOR_PHASE..."
 
-pnpx ts-node --transpile-only cdk.ts bootstrap deploy ${phase_arg} ${region_arg} ${account_arg}
+pnpx ts-node --transpile-only cdk.ts bootstrap deploy --parallel ${phase_arg} ${region_arg} ${account_arg}
