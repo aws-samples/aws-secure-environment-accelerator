@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@custom-resources/ec2-keypair": "workspace:^0.0.1",
+    "@custom-resources/guardduty-list-detector": "workspace:^0.0.1",
     "@aws-cdk/aws-cloudformation": "1.38.0",
     "@aws-cdk/aws-codebuild": "1.38.0",
     "@aws-cdk/aws-ec2": "1.38.0",
