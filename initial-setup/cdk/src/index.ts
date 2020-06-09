@@ -153,10 +153,38 @@ export namespace InitialSetup {
         resultPath: '$.configuration',
       });
 
-      const loadConfigurationTask = new CodeTask(this, 'Load Configuration', {
+      const getBaseLineTask = new CodeTask(this, 'Get Baseline From Configuration', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.loadConfigurationStep',
+          handler: 'index.getBaseline',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+        },
+        resultPath: '$.baseline',
+      });
+
+      const loadAlzConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadAlzConfigurationStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+        },
+        resultPath: '$.configuration',
+      });
+
+      const loadOrgConfigurationTask = new CodeTask(this, 'Load Organization Configuration', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadAlzConfigurationStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -469,33 +497,55 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      // const landingZoneAccountsSetupSM = new sfn.StateMachine(this, `${props.acceleratorPrefix}LandingZoneAccountsSetup_sm`, {
+      //   stateMachineName: `${props.acceleratorPrefix}LandingZoneAccountsSetup_sm`,
+      //   definition: sfn.Chain.start(loadAlzConfigurationTask)
+      //     .next(addRoleToServiceCatalog),
+      // });
+
+      // const orgAccountsSetupSM = new sfn.StateMachine(this, `${props.acceleratorPrefix}orgAccountsSetup_sm`, {
+      //   stateMachineName: `${props.acceleratorPrefix}orgAccountsSetup_sm`,
+      //   definition: sfn.Chain.start(loadAlzConfigurationTask)
+      // });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
-          .next(loadConfigurationTask)
-          .next(addRoleToServiceCatalog)
-          .next(createAccountsTask)
-          .next(loadAccountsTask)
-          .next(installRolesTask)
-          .next(loadLimitsTask)
-          .next(addScpTask)
-          .next(enableTrustedAccessForServicesTask)
-          .next(deployPhase0Task)
-          .next(storePhase0Output)
-          .next(deployPhase1Task)
-          .next(storePhase1Output)
-          .next(accountDefaultSettingsTask)
-          .next(deployPhase2Task)
-          .next(storePhase2Output)
-          .next(deployPhase3Task)
-          .next(storePhase3Output)
-          .next(deployPhase4Task)
-          .next(storePhase4Output)
-          .next(associateHostedZonesTask)
-          .next(addTagsToSharedResourcesTask)
-          .next(enableDirectorySharingTask)
-          .next(deployPhase5Task)
-          .next(createAdConnectorTask),
+          .next(getBaseLineTask)
+          .next(new sfn.Choice(this, 'Baseline?')
+            .when(sfn.Condition.stringEquals('$.baseline', 'LANDING_ZONE'), loadAlzConfigurationTask
+              .next(addRoleToServiceCatalog)
+              .next(createAccountsTask)
+            )
+            .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), loadOrgConfigurationTask
+              .next(createAccountsTask)
+            )
+            .when(sfn.Condition.stringEquals('$.baseline', 'CONTROL_TOWER'), loadAlzConfigurationTask)
+          )
+          // .next(loadAlzConfigurationTask)
+          // .next(addRoleToServiceCatalog)
+          // .next(createAccountsTask)
+          // .next(loadAccountsTask)
+          // .next(installRolesTask)
+          // .next(loadLimitsTask)
+          // .next(addScpTask)
+          // .next(enableTrustedAccessForServicesTask)
+          // .next(deployPhase0Task)
+          // .next(storePhase0Output)
+          // .next(deployPhase1Task)
+          // .next(storePhase1Output)
+          // .next(accountDefaultSettingsTask)
+          // .next(deployPhase2Task)
+          // .next(storePhase2Output)
+          // .next(deployPhase3Task)
+          // .next(storePhase3Output)
+          // .next(deployPhase4Task)
+          // .next(storePhase4Output)
+          // .next(associateHostedZonesTask)
+          // .next(addTagsToSharedResourcesTask)
+          // .next(enableDirectorySharingTask)
+          // .next(deployPhase5Task)
+          // .next(createAdConnectorTask),
       });
     }
   }

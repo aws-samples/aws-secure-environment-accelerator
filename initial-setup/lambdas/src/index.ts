@@ -5,7 +5,7 @@ export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-re
 export { handler as enableTrustedAccessForServicesStep } from './enable-trusted-access-for-services-step';
 export { handler as getDnsEndpointIps } from './get-dns-endpoint-ips';
 export { handler as loadAccountsStep } from './load-accounts-step';
-export { handler as loadConfigurationStep } from './load-configuration-step';
+export { handler as loadAlzConfigurationStep } from './load-configuration-step';
 export { handler as loadLimitsStep } from './load-limits-step';
 export { handler as associateHostedZonesStep } from './associate-hosted-zones-step';
 export { handler as accountDefaultSettingsStep } from './account-default-settings-step';
@@ -15,6 +15,7 @@ export { handler as enableSecurityHub } from './enable-security-hub';
 export { handler as inviteMembersSecurityHub } from './send-security-hub-invite';
 export { handler as acceptInviteSecurityHub } from './accept-security-hub-invite';
 export { handler as getOrCreateConfig } from './get-or-create-config';
+export { handler as getBaseline } from './get-baseline-step';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';
