@@ -1,3 +1,5 @@
+import path from 'path';
+import tempy from 'tempy';
 import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
@@ -17,8 +19,8 @@ export class AccountStack extends AcceleratorStack {
   readonly accountId: string;
   readonly accountKey: string;
 
-  constructor(scope: cdk.Construct, id: string, props: AccountStackProps) {
-    super(scope, id, {
+  constructor(readonly app: cdk.App, id: string, props: AccountStackProps) {
+    super(app, id, {
       ...props,
       env: {
         account: props.accountId,
@@ -31,10 +33,39 @@ export class AccountStack extends AcceleratorStack {
   }
 }
 
+export interface AccountAppProps {
+  outDir?: string;
+  stackProps: AccountStackProps;
+}
+
+export class AccountApp extends cdk.App {
+  readonly stack: AccountStack;
+
+  constructor(stackLogicalId: string, props: AccountAppProps) {
+    super({
+      outdir: props.outDir ?? path.resolve('cdk.out'),
+    });
+    this.stack = new AccountStack(this, stackLogicalId, props.stackProps);
+  }
+
+  get accountId() {
+    return this.stack.accountId;
+  }
+
+  get accountKey() {
+    return this.stack.accountKey;
+  }
+
+  get region() {
+    return this.stack.region;
+  }
+}
+
 export interface AccountStacksProps {
   phase: string;
   accounts: Account[];
   context: Context;
+  useTempOutputDir?: boolean;
 }
 
 /**
@@ -42,9 +73,9 @@ export interface AccountStacksProps {
  * phase and this class helps managing the stacks.
  */
 export class AccountStacks {
-  readonly stacks: AccountStack[] = [];
+  readonly apps: AccountApp[] = [];
 
-  constructor(private readonly app: cdk.App, private readonly props: AccountStacksProps) {}
+  constructor(private readonly props: AccountStacksProps) {}
 
   getOrCreateAccountStack(accountKey: string, region?: string): AccountStack {
     const accountStack = this.tryGetOrCreateAccountStack(accountKey, region);
@@ -59,9 +90,9 @@ export class AccountStacks {
    */
   tryGetOrCreateAccountStack(accountKey: string, region?: string): AccountStack | undefined {
     const regionOrDefault = region ?? this.props.context.defaultRegion;
-    const existingStack = this.stacks.find(s => s.accountKey === accountKey && s.region === regionOrDefault);
-    if (existingStack) {
-      return existingStack;
+    const existingApp = this.apps.find(s => s.accountKey === accountKey && s.region === regionOrDefault);
+    if (existingApp) {
+      return existingApp.stack;
     }
 
     const accountId = getAccountId(this.props.accounts, accountKey);
@@ -72,17 +103,22 @@ export class AccountStacks {
     const stackName = this.createStackName(accountKey, regionOrDefault);
     const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
-    const stack = new AccountStack(this.app, stackLogicalId, {
-      accountId,
-      accountKey,
-      stackName,
-      acceleratorName: this.props.context.acceleratorName,
-      acceleratorPrefix: this.props.context.acceleratorPrefix,
-      terminationProtection,
-      region: regionOrDefault,
+
+    const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
+    const app = new AccountApp(stackLogicalId, {
+      outDir,
+      stackProps: {
+        accountId,
+        accountKey,
+        stackName,
+        acceleratorName: this.props.context.acceleratorName,
+        acceleratorPrefix: this.props.context.acceleratorPrefix,
+        terminationProtection,
+        region: regionOrDefault,
+      },
     });
-    this.stacks.push(stack);
-    return stack;
+    this.apps.push(app);
+    return app.stack;
   }
 
   protected createStackName(accountKey: string, region: string) {

@@ -16,7 +16,7 @@ const assumeRolePlugin = new AssumeProfilePlugin();
 assumeRolePlugin.init(PluginHost.instance);
 
 export interface CdkToolkitProps {
-  assembly: CloudAssembly;
+  assemblies: CloudAssembly[];
   configuration: Configuration;
   sdkProvider: SdkProvider;
 }
@@ -55,8 +55,8 @@ export class CdkToolkit {
     this.tags = settings.get(['tags']);
   }
 
-  static async create(app: cdk.App) {
-    const assembly = app.synth();
+  static async create(apps: cdk.App[]) {
+    const assemblies = apps.map(app => app.synth());
 
     const configuration = new Configuration({
       pathMetadata: false,
@@ -69,7 +69,7 @@ export class CdkToolkit {
       profile: configuration.settings.get(['profile']),
     });
     return new CdkToolkit({
-      assembly,
+      assemblies,
       configuration,
       sdkProvider,
     });
@@ -79,9 +79,9 @@ export class CdkToolkit {
    * Auxiliary method that wraps CdkToolkit.bootstrap.
    */
   async bootstrap() {
-    const stacks = this.props.assembly.stacks;
+    const stacks = this.props.assemblies.flatMap(assembly => assembly.stacks);
     const promises = stacks.map(s => this.bootstrapEnvironment(s.environment));
-    await Promise.allSettled(promises);
+    await fulfillAll(promises);
   }
 
   async bootstrapEnvironment(environment: Environment) {
@@ -110,8 +110,9 @@ export class CdkToolkit {
    * @return The stack outputs.
    */
   async synth() {
-    this.props.assembly.stacks.map(s => s.template);
-    this.props.assembly.stacks.map(stack => {
+    const stacks = this.props.assemblies.flatMap(assembly => assembly.stacks);
+    stacks.map(s => s.template);
+    stacks.map(stack => {
       const _ = stack.template; // Force synthesizing the template
       const templatePath = path.join(stack.assembly.directory, stack.templateFile);
       console.warn(`${stack.displayName}: synthesized to ${templatePath}`);
@@ -124,7 +125,7 @@ export class CdkToolkit {
    * @return The stack outputs.
    */
   async deployAllStacks({ parallel }: { parallel: boolean }): Promise<StackOutput[]> {
-    const stacks = this.props.assembly.stacks;
+    const stacks = this.props.assemblies.flatMap(assembly => assembly.stacks);
     if (stacks.length === 0) {
       console.log(`There are no stacks to be deployed`);
       return [];

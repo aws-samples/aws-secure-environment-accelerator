@@ -29,7 +29,7 @@ import { getMadRootPasswordSecretArn } from '../deployments/mad';
  *   - Creates Peering Connection
  */
 
-export async function deploy({ acceleratorConfig, accountStacks, accounts, app, context, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
@@ -271,7 +271,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, app, 
   const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
     outputType: 'VpcOutput',
   });
-  const allVpcs = allVpcOutputs.map((o, index) => ImportedVpc.fromOutput(app, `Vpc${index}`, o));
+  const allVpcs = allVpcOutputs.map(ImportedVpc.fromOutput);
 
   // Find the account buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({
