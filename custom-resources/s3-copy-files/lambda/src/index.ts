@@ -85,13 +85,18 @@ async function copyFiles(props: {
 
   const copyObjectPromises = [];
   for await (const object of listObjects(sourceBucketName)) {
+    if (object.Key!.endsWith('/')) {
+      console.debug(`Skipping directory ${object.Key}`);
+      continue;
+    }
+
     console.debug(`Copying object ${object.Key}`);
     copyObjectPromises.push(
       copyObject({
         sourceBucketName,
         destinationBucketName,
         deleteSourceObjects,
-        key: object.Key!,
+        sourceObject: object,
       }),
     );
   }
@@ -99,63 +104,85 @@ async function copyFiles(props: {
 }
 
 async function* listObjects(bucketName: string): AsyncIterableIterator<AWS.S3.Object> {
-  let nextMarker;
+  let nextContinuationToken;
   do {
-    const listObjects: AWS.S3.ListObjectsOutput = await s3
-      .listObjects({
+    const listObjects: AWS.S3.ListObjectsV2Output = await s3
+      .listObjectsV2({
         Bucket: bucketName,
-        Marker: nextMarker,
+        ContinuationToken: nextContinuationToken
       })
       .promise();
-    nextMarker = listObjects.NextMarker;
+    nextContinuationToken = listObjects.NextContinuationToken;
     if (listObjects.Contents) {
       yield* listObjects.Contents;
     }
-  } while (nextMarker);
+  } while (nextContinuationToken);
 }
 
 async function copyObject(props: {
   sourceBucketName: string;
   destinationBucketName: string;
   deleteSourceObjects: boolean;
-  key: string;
+  sourceObject: AWS.S3.Object;
 }) {
-  const { sourceBucketName, destinationBucketName, deleteSourceObjects, key } = props;
+  const { sourceBucketName, destinationBucketName, deleteSourceObjects, sourceObject } = props;
+  const sourceKey = sourceObject.Key!;
 
-  let object;
+  let destinationLastModified;
   try {
-    object = await s3
-      .getObject({
-        Bucket: sourceBucketName,
-        Key: key,
-      })
-      .promise();
-  } catch (e) {
-    throw new Error(`Unable to get S3 object s3://${sourceBucketName}/${key}: ${e}`);
-  }
-
-  try {
-    await s3
-      .putObject({
+    const headObject = await s3
+      .headObject({
         Bucket: destinationBucketName,
-        Key: key,
-        Body: object.Body,
+        Key: sourceKey,
       })
       .promise();
+    destinationLastModified = headObject.LastModified;
   } catch (e) {
-    throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${key}: ${e}`);
+    console.debug(`Unable to head S3 object s3://${destinationBucketName}/${sourceKey}: ${e}`);
   }
 
-  if (deleteSourceObjects === false) {
+  if (
+    !destinationLastModified ||
+    !sourceObject.LastModified ||
+    compareDate(destinationLastModified, sourceObject.LastModified) < 0
+  ) {
+    let object;
+    try {
+      object = await s3
+        .getObject({
+          Bucket: sourceBucketName,
+          Key: sourceKey,
+        })
+        .promise();
+    } catch (e) {
+      throw new Error(`Unable to get S3 object s3://${sourceBucketName}/${sourceKey}: ${e}`);
+    }
+
+    try {
+      await s3
+        .putObject({
+          Bucket: destinationBucketName,
+          Key: sourceKey,
+          Body: object.Body,
+        })
+        .promise();
+    } catch (e) {
+      throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${sourceKey}: ${e}`);
+    }
+  } else {
+    console.debug(`Skipping copy of s3://${sourceBucketName}/${sourceKey}`);
+  }
+
+  if (deleteSourceObjects) {
     try {
       await s3
         .deleteObject({
           Bucket: sourceBucketName,
-          Key: key,
+          Key: sourceKey,
         })
         .promise();
     } catch (e) {
-      throw new Error(`Unable to delete S3 object s3://${sourceBucketName}/${key}: ${e}`);
+      throw new Error(`Unable to delete S3 object s3://${sourceBucketName}/${sourceKey}: ${e}`);
     }
   }
 }
@@ -183,4 +210,8 @@ async function deleteBucket(bucketName: string) {
   } catch (e) {
     console.warn(`Unable to delete bucket s3://${bucketName}: ${e}`);
   }
+}
+
+function compareDate(a: Date, b: Date) {
+  return a.getTime() - b.getTime();
 }
