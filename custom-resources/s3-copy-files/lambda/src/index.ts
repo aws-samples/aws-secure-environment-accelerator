@@ -109,7 +109,7 @@ async function* listObjects(bucketName: string): AsyncIterableIterator<AWS.S3.Ob
     const listObjects: AWS.S3.ListObjectsV2Output = await s3
       .listObjectsV2({
         Bucket: bucketName,
-        ContinuationToken: nextContinuationToken
+        ContinuationToken: nextContinuationToken,
       })
       .promise();
     nextContinuationToken = listObjects.NextContinuationToken;
