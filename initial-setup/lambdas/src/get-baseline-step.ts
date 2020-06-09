@@ -12,7 +12,6 @@ export interface LoadConfigurationOutput {
   baseline: string;
 }
 
-
 export interface ConfigurationOrganizationalUnit {
   ouId: string;
   ouKey: string;
@@ -31,19 +30,19 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     filePath: configFilePath,
     commitId: configCommitId,
   });
-  const globalOptionsConfig = config["global-options"];
+  const globalOptionsConfig = config['global-options'];
   let baseline: string = 'LANDING_ZONE';
-  if (!globalOptionsConfig["alz-baseline"] && !globalOptionsConfig["ct-baseline"]) {
+  if (!globalOptionsConfig['alz-baseline'] && !globalOptionsConfig['ct-baseline']) {
     baseline = 'ORGANIZATIONS';
-  } else if (globalOptionsConfig["alz-baseline"] && !globalOptionsConfig["ct-baseline"]) {
+  } else if (globalOptionsConfig['alz-baseline'] && !globalOptionsConfig['ct-baseline']) {
     baseline = 'LANDING_ZONE';
-  } else if (!globalOptionsConfig["alz-baseline"] && globalOptionsConfig["ct-baseline"]) {
+  } else if (!globalOptionsConfig['alz-baseline'] && globalOptionsConfig['ct-baseline']) {
     baseline = 'CONTROL_TOWER';
   } else {
     throw new Error(`Both "alz-baseline" and "ct-baseline" can't be true`);
   }
   return {
     ...input,
-    baseline
+    baseline,
   };
 };

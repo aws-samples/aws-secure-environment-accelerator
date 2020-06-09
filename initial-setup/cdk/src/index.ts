@@ -512,40 +512,42 @@ export namespace InitialSetup {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
           .next(getBaseLineTask)
-          .next(new sfn.Choice(this, 'Baseline?')
-            .when(sfn.Condition.stringEquals('$.baseline', 'LANDING_ZONE'), loadAlzConfigurationTask
-              .next(addRoleToServiceCatalog)
-              .next(createAccountsTask)
-            )
-            .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), loadOrgConfigurationTask
-              .next(createAccountsTask)
-            )
-            .when(sfn.Condition.stringEquals('$.baseline', 'CONTROL_TOWER'), loadAlzConfigurationTask)
-          )
-          // .next(loadAlzConfigurationTask)
-          // .next(addRoleToServiceCatalog)
-          // .next(createAccountsTask)
-          // .next(loadAccountsTask)
-          // .next(installRolesTask)
-          // .next(loadLimitsTask)
-          // .next(addScpTask)
-          // .next(enableTrustedAccessForServicesTask)
-          // .next(deployPhase0Task)
-          // .next(storePhase0Output)
-          // .next(deployPhase1Task)
-          // .next(storePhase1Output)
-          // .next(accountDefaultSettingsTask)
-          // .next(deployPhase2Task)
-          // .next(storePhase2Output)
-          // .next(deployPhase3Task)
-          // .next(storePhase3Output)
-          // .next(deployPhase4Task)
-          // .next(storePhase4Output)
-          // .next(associateHostedZonesTask)
-          // .next(addTagsToSharedResourcesTask)
-          // .next(enableDirectorySharingTask)
-          // .next(deployPhase5Task)
-          // .next(createAdConnectorTask),
+          .next(
+            new sfn.Choice(this, 'Baseline?')
+              .when(
+                sfn.Condition.stringEquals('$.baseline', 'LANDING_ZONE'),
+                loadAlzConfigurationTask.next(addRoleToServiceCatalog).next(createAccountsTask),
+              )
+              .when(
+                sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'),
+                loadOrgConfigurationTask.next(createAccountsTask),
+              )
+              .when(sfn.Condition.stringEquals('$.baseline', 'CONTROL_TOWER'), loadAlzConfigurationTask),
+          ),
+        // .next(loadAlzConfigurationTask)
+        // .next(addRoleToServiceCatalog)
+        // .next(createAccountsTask)
+        // .next(loadAccountsTask)
+        // .next(installRolesTask)
+        // .next(loadLimitsTask)
+        // .next(addScpTask)
+        // .next(enableTrustedAccessForServicesTask)
+        // .next(deployPhase0Task)
+        // .next(storePhase0Output)
+        // .next(deployPhase1Task)
+        // .next(storePhase1Output)
+        // .next(accountDefaultSettingsTask)
+        // .next(deployPhase2Task)
+        // .next(storePhase2Output)
+        // .next(deployPhase3Task)
+        // .next(storePhase3Output)
+        // .next(deployPhase4Task)
+        // .next(storePhase4Output)
+        // .next(associateHostedZonesTask)
+        // .next(addTagsToSharedResourcesTask)
+        // .next(enableDirectorySharingTask)
+        // .next(deployPhase5Task)
+        // .next(createAdConnectorTask),
       });
     }
   }
