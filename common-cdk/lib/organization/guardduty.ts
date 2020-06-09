@@ -36,7 +36,6 @@ export interface GuardDutyMasterProps {
  * Organization GuardDuty Construct, need to deployed to AWS Master Account of the Organization
  */
 export class GuardDutyMaster extends Construct {
-
   constructor(scope: Construct, id: string, props: GuardDutyMasterProps) {
     super(scope, id);
 
@@ -79,7 +78,7 @@ export class GuardDutyMember extends Construct {
 
     new CfnMaster(this, `GuardDuty_Master_${props.masterId}`, {
       detectorId: guardDutyDetector.getDetectorId(),
-      ...props
+      ...props,
     });
   }
 }

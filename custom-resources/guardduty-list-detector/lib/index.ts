@@ -16,8 +16,7 @@ export class GuardDutyDetector extends cdk.Construct {
       service: 'GuardDuty',
       action: 'listDetectors',
       physicalResourceId,
-      parameters: {
-      },
+      parameters: {},
     };
 
     this.resource = new custom.AwsCustomResource(this, 'Resource', {
