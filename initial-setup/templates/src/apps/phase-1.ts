@@ -34,7 +34,7 @@ import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
-import * as createInstance from '../deployments/ec2';
+import * as accountWarming from '../deployments/account-warming';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -287,7 +287,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       });
 
       // verify and create ec2 instance to increase account limits
-      await createInstance.step1({
+      await accountWarming.step1({
         accountKey,
         vpc: vpc!,
         accountStacks,

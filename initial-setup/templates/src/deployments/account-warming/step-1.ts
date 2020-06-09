@@ -1,7 +1,6 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
-import { Ec2Instance } from '@aws-pbmm/constructs/lib/ec2';
 import { AccountStacks } from '../../common/account-stacks';
 import * as cdk from '@aws-cdk/core';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
@@ -51,11 +50,11 @@ export async function step1(props: InstanceStep1Props) {
   if (!instanceCreationTime || getTimeDiffInMinutes(instanceCreationTime) < 15) {
     // create an ec2 instance and write the instance details output
     const instance = createInstance(accountStack, vpc.subnets[0].id, accountKey);
-    const launchTime = getLaunchTime(accountStack, instance.instanceId, accountKey);
+    const launchTime = getLaunchTime(accountStack, instance.ref, accountKey);
     new StructuredOutput<InstanceStatusOutput>(accountStack, `InstanceOutput${accountKey}`, {
       type: InstanceTimeOutputType,
       value: {
-        instanceId: instance.instanceId,
+        instanceId: instance.ref,
         time: launchTime.launchTime,
       },
     });
@@ -70,8 +69,8 @@ export async function step1(props: InstanceStep1Props) {
   }
 }
 
-const createInstance = (scope: cdk.Construct, subnetId: string, accountKey: string): Ec2Instance => {
-  const instance = new Ec2Instance(scope, `Ec2Instance${accountKey}`, {
+const createInstance = (scope: cdk.Construct, subnetId: string, accountKey: string): ec2.CfnInstance => {
+  const instance = new ec2.CfnInstance(scope, `Ec2Instance${accountKey}`, {
     imageId: new ec2.AmazonLinuxImage().getImage(scope).imageId,
     instanceType: ec2.InstanceType.of(ec2.InstanceClass.T2, ec2.InstanceSize.MICRO).toString(),
     subnetId,

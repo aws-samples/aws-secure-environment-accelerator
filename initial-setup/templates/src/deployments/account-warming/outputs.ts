@@ -1,4 +1,6 @@
 import * as t from 'io-ts';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StructuredOutput } from '../../common/structured-output';
 
 export const InstanceTimeOutputType = t.interface(
   {
@@ -23,4 +25,21 @@ export function getTimeDiffInMinutes(instanceLaunchTime: string): number {
   // calculating the time in minutes
   const minutes = Math.floor((utcCurrentTimeInMill - instanceLaunchTimeInMill) / (1000 * 60));
   return minutes;
+}
+
+export function checkAccountWarming(accountKey: string, outputs: StackOutput[]): boolean {
+  const instanceTimeOutputs = StructuredOutput.fromOutputs(outputs, {
+    type: InstanceTimeOutputType,
+    accountKey,
+  });
+  if (!instanceTimeOutputs || instanceTimeOutputs.length === 0) {
+    console.warn(`Cannot find InstanceOutput for account ${accountKey}`);
+    return false;
+  } else {
+    if (getTimeDiffInMinutes(instanceTimeOutputs[0].time) < 15) {
+      console.warn(`Minimum 15 minutes of account warming required for account ${accountKey}`);
+      return false;
+    }
+  }
+  return true;
 }

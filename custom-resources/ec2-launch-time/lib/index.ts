@@ -29,7 +29,7 @@ export class InstanceLaunchTime extends cdk.Construct {
           resources: ['*'],
         }).toJSON(),
         new iam.PolicyStatement({
-          actions: ['ec2:Describe*'],
+          actions: ['ec2:DescribeInstances'],
           resources: ['*'],
         }).toJSON(),
       ],

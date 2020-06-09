@@ -16,7 +16,7 @@ import {
 } from './outputs';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
-import { InstanceTimeOutputType, getTimeDiffInMinutes } from '../../ec2/outputs';
+import { InstanceTimeOutputType, getTimeDiffInMinutes, checkAccountWarming } from '../../account-warming/outputs';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: s3.IBucket };
@@ -93,20 +93,8 @@ export async function step3(props: FirewallStep3Props) {
       continue;
     }
 
-    if (accountConfig['account-warming-required']) {
-      const instanceTimeOutputs = StructuredOutput.fromOutputs(outputs, {
-        type: InstanceTimeOutputType,
-        accountKey,
-      });
-      if (!instanceTimeOutputs || instanceTimeOutputs.length === 0) {
-        console.warn(`Cannot find InstanceOutput for account ${accountKey}`);
-        continue;
-      } else {
-        if (getTimeDiffInMinutes(instanceTimeOutputs[0].time) < 15) {
-          console.warn(`Minimum 15 minutes of account warming required for account ${accountKey}`);
-          continue;
-        }
-      }
+    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
+      continue;
     }
 
     await createFirewallCluster({
