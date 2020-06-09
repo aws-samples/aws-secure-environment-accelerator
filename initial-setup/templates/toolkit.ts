@@ -81,7 +81,7 @@ export class CdkToolkit {
   async bootstrap() {
     const stacks = this.props.assembly.stacks;
     const promises = stacks.map(s => this.bootstrapEnvironment(s.environment));
-    await Promise.allSettled(promises);
+    await fulfillAll(promises);
   }
 
   async bootstrapEnvironment(environment: Environment) {

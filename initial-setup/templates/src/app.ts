@@ -21,16 +21,17 @@ export const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
 }));
 
 export interface AppProps {
-  outdir?: string;
-  phase: string;
+  app: cdk.App;
+  phaseId: string;
   region?: string;
   accountKey?: string;
 }
 
 export async function deploy(props: AppProps) {
-  const phase = phases.find(p => p.id === props.phase);
+  const { app, phaseId, region, accountKey } = props;
+  const phase = phases.find(p => p.id === phaseId);
   if (!phase) {
-    throw new Error(`Cannot find phase ${props.phase}`);
+    throw new Error(`Cannot find phase with ID ${phaseId}`);
   }
 
   const acceleratorConfig = await loadAcceleratorConfig();
@@ -40,8 +41,8 @@ export async function deploy(props: AppProps) {
   const limiter = new Limiter(limits);
   const outputs = await loadStackOutputs();
 
-  const includeRegion = props.region;
-  const includeAccountKey = props.accountKey;
+  const includeRegion = region;
+  const includeAccountKey = accountKey;
   let includeAccountId;
   if (includeAccountKey) {
     includeAccountId = getAccountId(accounts, includeAccountKey);
@@ -49,10 +50,6 @@ export async function deploy(props: AppProps) {
       throw new Error(`Cannot find account ${includeAccountKey}`);
     }
   }
-
-  const app = new cdk.App({
-    outdir: props.outdir,
-  });
 
   const accountStacks = new AccountStacks(app, {
     phase: phase.name,
@@ -93,6 +90,4 @@ export async function deploy(props: AppProps) {
       app.node.tryRemoveChild(child.node.id);
     }
   }
-
-  return app;
 }
