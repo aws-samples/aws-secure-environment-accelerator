@@ -41,7 +41,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const response = await centralLoggingSubscription(event);
+  const response = await centralLoggingSubscriptionUpdate(event);
   return {
     physicalResourceId: response,
   };
@@ -74,6 +74,25 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
   const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
+  for (const logGroup of filterLogGroups) {
+    // Add Subscription filter to logGroup
+    console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
+    await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn);
+  }
+  return physicalResourceId!;
+}
+
+async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResourceEvent): Promise<string> {
+  const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { logDestinationArn } = properties;
+  const globalExclusions = properties.globalExclusions || [];
+  const logGroups = await getLogGroups();
+  const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
+  for (const logGroup of filterLogGroups) {
+    // Delete Subscription filter from logGroup
+    await removeSubscriptionFilter(logGroup.logGroupName!);
+  }
   for (const logGroup of filterLogGroups) {
     // Add Subscription filter to logGroup
     console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
