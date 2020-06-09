@@ -1,7 +1,4 @@
-import path from 'path';
 import mri from 'mri';
-import tempy from 'tempy';
-import * as cdk from '@aws-cdk/core';
 import { CdkToolkit } from './toolkit';
 import * as app from './src/app';
 
@@ -36,20 +33,15 @@ async function main() {
     return;
   }
 
-  // Make sure assets do not build in to the same directory when running in parallel
-  const outdir = parallel ? tempy.directory() : 'cdk.out';
-  const cdkApp = new cdk.App({
-    outdir,
-  });
-
-  await app.deploy({
-    app: cdkApp,
+  const apps = await app.deploy({
     phaseId: `${phase}`,
     region: args.region,
     accountKey: args['account-key'],
+    // Make sure assets do not build in to the same directory when running in parallel
+    useTempOutputDir: parallel,
   });
 
-  const toolkit = await CdkToolkit.create(cdkApp);
+  const toolkit = await CdkToolkit.create(apps);
 
   if (commands.includes('bootstrap')) {
     await toolkit.bootstrap();

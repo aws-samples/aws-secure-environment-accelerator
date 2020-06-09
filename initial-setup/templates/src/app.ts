@@ -21,14 +21,14 @@ export const phases: PhaseInfo[] = [0, 1, 2, 3, 4, 5].map(id => ({
 }));
 
 export interface AppProps {
-  app: cdk.App;
   phaseId: string;
   region?: string;
   accountKey?: string;
+  useTempOutputDir?: boolean;
 }
 
-export async function deploy(props: AppProps) {
-  const { app, phaseId, region, accountKey } = props;
+export async function deploy(props: AppProps): Promise<cdk.App[]> {
+  const { accountKey, phaseId, region, useTempOutputDir } = props;
   const phase = phases.find(p => p.id === phaseId);
   if (!phase) {
     throw new Error(`Cannot find phase with ID ${phaseId}`);
@@ -43,7 +43,7 @@ export async function deploy(props: AppProps) {
 
   const includeRegion = region;
   const includeAccountKey = accountKey;
-  let includeAccountId;
+  let includeAccountId: string | undefined;
   if (includeAccountKey) {
     includeAccountId = getAccountId(accounts, includeAccountKey);
     if (!includeAccountId) {
@@ -51,10 +51,11 @@ export async function deploy(props: AppProps) {
     }
   }
 
-  const accountStacks = new AccountStacks(app, {
+  const accountStacks = new AccountStacks({
     phase: phase.name,
     accounts,
     context,
+    useTempOutputDir,
   });
 
   const runner = await phase.runner();
@@ -62,32 +63,21 @@ export async function deploy(props: AppProps) {
     acceleratorConfig,
     accountStacks,
     accounts,
-    app,
     context,
     limiter,
     outputs,
   });
 
-  // Only deploy stacks for the given account
-  for (const child of app.node.children) {
-    if (!(child instanceof cdk.Stack)) {
-      continue;
+  const apps = accountStacks.apps.filter(app => {
+    if (includeAccountId && includeAccountId !== app.accountId) {
+      console.log(`Skipping app deployment for account ${app.accountKey} and region ${app.region}`);
+      return false;
     }
-
-    const stackAccountId = child.account;
-    // If the stack is not for the given account, then we remove it from the app
-    if (includeAccountId && includeAccountId !== stackAccountId) {
-      console.info(`Skipping deployment of stack ${child.stackName}`);
-      // Remove the stack from the app
-      app.node.tryRemoveChild(child.node.id);
+    if (includeRegion && includeRegion !== app.region) {
+      console.log(`Skipping app deployment for account ${app.accountKey} and region ${app.region}`);
+      return false;
     }
-
-    const stackRegion = child.region;
-    // If the stack is not for the given region, then we remove it from the app
-    if (includeRegion && includeRegion !== stackRegion) {
-      console.info(`Skipping deployment of stack ${child.stackName}`);
-      // Remove the stack from the app
-      app.node.tryRemoveChild(child.node.id);
-    }
-  }
+    return true;
+  });
+  return apps;
 }
