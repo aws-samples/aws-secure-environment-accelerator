@@ -1,5 +1,7 @@
 import { backOff, IBackOffOptions } from 'exponential-backoff';
 
+// Constants to use accross custom resources
+export const CloudWatchRulePrefix = 'CentralLogging';
 /**
  * Auxiliary function to retry AWS SDK calls when a throttling error occurs.
  */

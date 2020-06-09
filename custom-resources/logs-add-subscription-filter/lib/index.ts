@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
+import * as events from '@aws-cdk/aws-events';
 
 const resourceType = 'Custom::CentralLoggingSubscriptionFilter';
 
@@ -15,9 +16,13 @@ export interface CentralLoggingSubscriptionFilterProps {
  */
 export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
+  private readonly cloudWatchEnventLambdaPath = '@custom-resources/logs-add-subscription-filter-cloudwatch-event-lambda';
+  private readonly cloudFormationCustomLambaPath = '@custom-resources/logs-add-subscription-filter-lambda';
+
   constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);
 
+    // Custom Resource to add subscriptin filter to existing logGroups
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
@@ -25,28 +30,65 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
         ...props,
       },
     });
+
+    // Creating new CloudWatch event Rule which adds Subscription filter to newly created LogGroup
+    const envVariables = {
+      EXCLUSIONS: JSON.stringify(props.globalExclusions),
+      LOG_DESTINATION: props.logDestinationArn,
+    }
+    const addSubscriptionLambda = this.ensureLambdaFunction(
+      this.cloudWatchEnventLambdaPath, 
+      `AddSubscriptionFilter`, 
+      envVariables);
+    const eventPattern = {
+      source: ['aws.logs'],
+      'detail-type': ['AWS API Call via CloudTrail'],
+      detail: {
+        eventSource: ['logs.amazonaws.com'],
+        eventName: ['CreateLogGroup']
+      }
+    }
+
+    const ruleTarget: events.CfnRule.TargetProperty = {
+      arn: addSubscriptionLambda.functionArn,
+      id: 'AddSubscriptionFilterRule'
+    } 
+
+    new events.CfnRule(this, 'NewLogGroupsCwlRule', {
+      description: 'Adds CWL Central Logging Destination as Subscription filter to newly created Log Group',
+      state: 'ENABLED',
+      name: 'NewLogGroup_rule',
+      eventPattern,
+      targets: [ruleTarget]
+    });
+
+    // Adding permissions to invoke Lambda function from cloudwatch event
+    addSubscriptionLambda.addPermission(`InvokePermission-NewLogGroup_rule`, {
+      action: 'lambda:InvokeFunction',
+      principal: new iam.ServicePrincipal('events.amazonaws.com'),
+    });
   }
 
   get lambdaFunction(): lambda.Function {
-    return this.ensureLambdaFunction();
+    return this.ensureLambdaFunction(this.cloudFormationCustomLambaPath, resourceType);
   }
 
   get role(): iam.IRole {
     return this.lambdaFunction.role!;
   }
 
-  private ensureLambdaFunction(): lambda.Function {
-    const constructName = `${resourceType}Lambda`;
+  private ensureLambdaFunction(lambdaLocation: string, name: string, environment?: {[key: string]: string;}): lambda.Function {
+    const constructName = `${name}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
     if (existing) {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@custom-resources/logs-add-subscription-filter-lambda');
+    const lambdaPath = require.resolve(lambdaLocation);
     const lambdaDir = path.dirname(lambdaPath);
 
-    const role = new iam.Role(stack, `${resourceType}Role`, {
+    const role = new iam.Role(stack, `${name}Role`, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
@@ -62,6 +104,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
+      environment: environment!,
       // Set timeout to maximum timeout
       timeout: cdk.Duration.minutes(15),
     });

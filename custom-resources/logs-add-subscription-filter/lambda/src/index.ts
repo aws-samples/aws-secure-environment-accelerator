@@ -7,7 +7,7 @@ import {
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
-import { throttlingBackOff } from '@custom-resources/cfn-utils';
+import { throttlingBackOff, CloudWatchRulePrefix } from '@custom-resources/cfn-utils';
 
 export interface HandlerProperties {
   logDestinationArn: string;
@@ -89,7 +89,7 @@ async function removeSubscriptionFilter(logGroupName: string) {
       logs
         .deleteSubscriptionFilter({
           logGroupName,
-          filterName: `CentralLogging${logGroupName}`,
+          filterName: `${CloudWatchRulePrefix}${logGroupName}`,
         })
         .promise(),
     );
@@ -109,7 +109,7 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
       .putSubscriptionFilter({
         destinationArn,
         logGroupName,
-        filterName: `CentralLogging${logGroupName}`,
+        filterName: `${CloudWatchRulePrefix}${logGroupName}`,
         filterPattern: '',
       })
       .promise(),
