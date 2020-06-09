@@ -9,6 +9,7 @@
     "lint": "tslint --project tsconfig.json 'src/**/*.ts'"
   },
   "devDependencies": {
+    "@aws-pbmm/initial-setup-lambdas": "workspace:^0.0.1",
     "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
     "aws-cdk": "1.38.0",

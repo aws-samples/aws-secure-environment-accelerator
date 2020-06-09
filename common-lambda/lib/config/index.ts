@@ -79,6 +79,8 @@ export const PcxRouteConfigType = t.interface({
 export const RouteConfig = t.interface({
   destination: t.union([t.string, PcxRouteConfigType]), // TODO Can be string or destination in another account
   target: NonEmptyString,
+  az: optional(t.string),
+  port: optional(t.string),
 });
 
 export const RouteTableConfigType = t.interface({
@@ -464,6 +466,7 @@ export const MandatoryAccountConfigType = t.interface({
   alb: optional(t.array(AlbConfigType)),
   'log-retention': optional(t.number),
   budget: optional(BudgetConfigType),
+  'account-warming-required': optional(t.boolean),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;

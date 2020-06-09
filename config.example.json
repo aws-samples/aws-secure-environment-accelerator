@@ -432,6 +432,7 @@
       "account-name": "Perimeter",
       "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
+      "account-warming-required": false,
       "limits": {
         "Amazon EC2/Number of EIPs": {
           "value": 10,
@@ -728,7 +729,9 @@
                 },
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azA-p2}"
+                  "target": "firewall",
+                  "az": "a",
+                  "port": "Public"
                 },
                 {
                   "destination": "s3",
@@ -745,7 +748,9 @@
                 },
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azB-p2}"
+                  "target": "firewall",
+                  "az": "b",
+                  "port": "Public"
                 },
                 {
                   "destination": "s3",
@@ -758,7 +763,9 @@
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azA-p4}"
+                  "target": "firewall",
+                  "az": "a",
+                  "port": "Proxy"
                 }
               ]
             },
@@ -767,7 +774,9 @@
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
-                  "target": "{ENI-FW-azB-p4}"
+                  "target": "firewall",
+                  "az": "b",
+                  "port": "Proxy"
                 }
               ]
             },

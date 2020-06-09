@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "build": "pnpx webpack-cli --config webpack.config.ts",
+    "prepare": "pnpx webpack-cli --config webpack.config.ts",
     "test": "pnpx jest",
     "lint": "tslint --project tsconfig.json 'src/**/*.ts'"
   },
+  "main": "dist/index.js",
   "devDependencies": {
     "@babel/core": "7.9.0",
     "@babel/plugin-proposal-class-properties": "7.8.3",
