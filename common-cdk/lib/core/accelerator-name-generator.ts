@@ -1,6 +1,7 @@
 import * as crypto from 'crypto';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack } from './accelerator-stack';
+import { trimSpecialCharacters } from './utils';
 
 export function createRoleName(name: string, suffixLength: number = 8): string {
   return createName({
@@ -20,6 +21,15 @@ export function createKeyPairName(name: string): string {
   return createName({
     name,
     suffixLength: 8,
+  });
+}
+
+export function createLogGroupName(name: string): string {
+  return '/' + createName({
+    name,
+    account: false,
+    region: false,
+    separator: '/',
   });
 }
 
@@ -71,9 +81,9 @@ export function createName(props: CreateNameProps = {}): string {
       const stack = AcceleratorStack.of(scope);
 
       // Use the AcceleratorStack prefix
-      const prefix = stack.acceleratorPrefix;
+      const prefix = trimSpecialCharacters(stack.acceleratorPrefix);
 
-      const pieces = [];
+      const pieces = [prepareString(prefix, props)];
       if (account) {
         pieces.push(cdk.Aws.ACCOUNT_ID);
       }
@@ -90,8 +100,7 @@ export function createName(props: CreateNameProps = {}): string {
         const suffix = hashPath(path, suffixLength);
         pieces.push(prepareString(suffix, props));
       }
-
-      return prepareString(prefix, props) + pieces.join(separator);
+      return pieces.join(separator);
     },
   });
 }

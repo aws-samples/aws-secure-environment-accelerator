@@ -121,3 +121,10 @@ test.each(UNSUPPORTED_CHANGES)(
     }
   },
 );
+
+// test('templates should stay exactly the same', () => {
+//   for (const [stackName, resources] of Object.entries(stackResources)) {
+//     // Compare the relevant properties to the snapshot
+//     expect(resources).toMatchSnapshot(stackName);
+//   }
+// });
