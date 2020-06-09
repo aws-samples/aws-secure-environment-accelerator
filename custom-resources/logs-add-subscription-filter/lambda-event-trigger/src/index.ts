@@ -15,10 +15,10 @@ export const handler = async (input: any): Promise<string> => {
   }
   let exclusions: string[] = [];
   if (process.env.EXCLUSIONS) {
-    try{
+    try {
       exclusions = JSON.parse(process.env.EXCLUSIONS);
     } catch (error) {
-      console.warn(error.message)
+      console.warn(error.message);
     }
   }
   if (isExcluded(exclusions, logGroupName)) {
@@ -26,7 +26,7 @@ export const handler = async (input: any): Promise<string> => {
   }
   await addSubscriptionFilter(logGroupName, logDestinationArn);
   return 'SUCCESS';
-}
+};
 
 async function addSubscriptionFilter(logGroupName: string, destinationArn: string) {
   // Adding subscription filter

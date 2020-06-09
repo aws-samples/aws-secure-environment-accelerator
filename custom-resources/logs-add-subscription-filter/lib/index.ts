@@ -16,7 +16,8 @@ export interface CentralLoggingSubscriptionFilterProps {
  */
 export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
-  private readonly cloudWatchEnventLambdaPath = '@custom-resources/logs-add-subscription-filter-cloudwatch-event-lambda';
+  private readonly cloudWatchEnventLambdaPath =
+    '@custom-resources/logs-add-subscription-filter-cloudwatch-event-lambda';
   private readonly cloudFormationCustomLambaPath = '@custom-resources/logs-add-subscription-filter-lambda';
 
   constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
@@ -35,31 +36,32 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     const envVariables = {
       EXCLUSIONS: JSON.stringify(props.globalExclusions),
       LOG_DESTINATION: props.logDestinationArn,
-    }
+    };
     const addSubscriptionLambda = this.ensureLambdaFunction(
-      this.cloudWatchEnventLambdaPath, 
-      `AddSubscriptionFilter`, 
-      envVariables);
+      this.cloudWatchEnventLambdaPath,
+      `AddSubscriptionFilter`,
+      envVariables,
+    );
     const eventPattern = {
       source: ['aws.logs'],
       'detail-type': ['AWS API Call via CloudTrail'],
       detail: {
         eventSource: ['logs.amazonaws.com'],
-        eventName: ['CreateLogGroup']
-      }
-    }
+        eventName: ['CreateLogGroup'],
+      },
+    };
 
     const ruleTarget: events.CfnRule.TargetProperty = {
       arn: addSubscriptionLambda.functionArn,
-      id: 'AddSubscriptionFilterRule'
-    } 
+      id: 'AddSubscriptionFilterRule',
+    };
 
     new events.CfnRule(this, 'NewLogGroupsCwlRule', {
       description: 'Adds CWL Central Logging Destination as Subscription filter to newly created Log Group',
       state: 'ENABLED',
       name: 'NewLogGroup_rule',
       eventPattern,
-      targets: [ruleTarget]
+      targets: [ruleTarget],
     });
 
     // Adding permissions to invoke Lambda function from cloudwatch event
@@ -77,7 +79,11 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     return this.lambdaFunction.role!;
   }
 
-  private ensureLambdaFunction(lambdaLocation: string, name: string, environment?: {[key: string]: string;}): lambda.Function {
+  private ensureLambdaFunction(
+    lambdaLocation: string,
+    name: string,
+    environment?: { [key: string]: string },
+  ): lambda.Function {
     const constructName = `${name}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
