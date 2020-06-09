@@ -7,7 +7,7 @@ import {
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
-import { throttlingBackOff, delay } from '@custom-resources/cfn-utils';
+import { throttlingBackOff } from '@custom-resources/cfn-utils';
 
 export interface HandlerProperties {
   logDestinationArn: string;
@@ -52,21 +52,15 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const logGroups = await getLogGroups();
   for (const logGroup of logGroups) {
     // Delete Subscription filter from logGroup
-    try {
-      await removeSubscriptionFilter(logGroup.logGroupName!);
-    } catch (error) {
-      if (error.code === 'ResourceNotFoundException') {
-        // No Subscription filter for this logGroup
-      } else {
-        console.warn(error.message);
-      }
-    }
+    await removeSubscriptionFilter(logGroup.logGroupName!);
   }
 }
 
 const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
   for (const exclusion of exclusions || []) {
-    if (logGroupName.startsWith(exclusion)) {
+    if (exclusion.endsWith('*') && logGroupName.startsWith(exclusion.slice(0, -1))) {
+      return true;
+    } else if (logGroupName === exclusion) {
       return true;
     }
   }
@@ -77,22 +71,10 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
   const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { logDestinationArn } = properties;
-  const globalExclusions = properties.globalExclusions?.map(ex => (ex.endsWith('*') ? ex.slice(0, -1) : ex));
+  const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
-  const excludedLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions || [], lg.logGroupName!));
-  for (const logGroup of excludedLogGroups) {
-    // Delete Subscription filter from logGroup
-    try {
-      await removeSubscriptionFilter(logGroup.logGroupName!);
-    } catch (error) {
-      if (error.code === 'ResourceNotFoundException') {
-        // No Subscription filter for this logGroup
-      } else {
-        console.warn(error.message);
-      }
-    }
-  }
-  for (const logGroup of excludedLogGroups) {
+  const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
+  for (const logGroup of filterLogGroups) {
     // Add Subscription filter to logGroup
     console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
     await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn);
@@ -102,14 +84,22 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
 
 async function removeSubscriptionFilter(logGroupName: string) {
   // Remove existing subscription filter
-  await throttlingBackOff(() =>
-    logs
-      .deleteSubscriptionFilter({
-        logGroupName,
-        filterName: `CentralLogging${logGroupName}`,
-      })
-      .promise(),
-  );
+  try {
+    await throttlingBackOff(() =>
+      logs
+        .deleteSubscriptionFilter({
+          logGroupName,
+          filterName: `CentralLogging${logGroupName}`,
+        })
+        .promise(),
+    );
+  } catch (error) {
+    if (error.code === 'ResourceNotFoundException') {
+      // No Subscription filter for this logGroup
+    } else {
+      console.warn(error.message);
+    }
+  }
 }
 
 async function addSubscriptionFilter(logGroupName: string, destinationArn: string) {
@@ -130,10 +120,6 @@ async function getLogGroups(): Promise<LogGroup[]> {
   const logGroups: LogGroup[] = [];
   let token: string | undefined;
   do {
-    if (token) {
-      // Throttle requests
-      await delay(1000);
-    }
     const response = await throttlingBackOff(() =>
       logs
         .describeLogGroups({

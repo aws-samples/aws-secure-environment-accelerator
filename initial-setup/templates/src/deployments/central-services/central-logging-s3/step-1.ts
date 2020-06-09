@@ -27,12 +27,8 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
   if (globalOptions) {
     // Setup for CloudWatch logs storing in logs account
     const logConfig = globalOptions['central-log-services'];
-    const logsAccount = accounts.find(account => account.type === 'log-archive');
-    if (!logsAccount) {
-      throw new Error('Landing Zone "log-archive" Account Not found');
-    }
     const allAccountIds = accounts.map(account => account.id);
-    const logsAccountStack = accountStacks.getOrCreateAccountStack(logsAccount.key);
+    const logsAccountStack = accountStacks.getOrCreateAccountStack(logConfig.account);
     await cwlSettingsInLogArchive({
       scope: logsAccountStack,
       accountIds: allAccountIds,
@@ -47,6 +43,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
 async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds: string[] }) {
   const { scope, accountIds } = props;
   // Creating Central Log Bucket
+  // TODO Need to move to initial phases and retrive bucket ARN from outputs
   const logsBucket = new s3.Bucket(scope, `CWL-Centralized-logging-Bucket`, {
     bucketName: createBucketName('cwl-logs'),
   });
