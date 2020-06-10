@@ -57,7 +57,7 @@
     {
       "Sid": "ScopeSpecificGlobalActionsToCanadaUSE1",
       "Effect": "Deny",
-      "Action": ["acm:*"],
+      "Action": ["acm:*", "kms:*"],
       "Resource": "*",
       "Condition": {
         "StringNotEquals": {
@@ -94,6 +94,7 @@
         "health:*",
         "iam:*",
         "importexport:*",
+        "kms:*",
         "mobileanalytics:*",
         "organizations:*",
         "pricing:*",
