@@ -418,6 +418,12 @@ export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
 
+export const BASELINE_TYPES = ['LANDING_ZONE', 'ORGANIZATIONS', 'CONTROL_TOWER'] as const;
+export const BaseLineConfigType = enumType<typeof BASELINE_TYPES[number]>(
+  BASELINE_TYPES,
+);
+export type BaseLineType = t.TypeOf<typeof BaseLineConfigType>;
+
 export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),

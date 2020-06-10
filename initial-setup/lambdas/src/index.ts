@@ -5,7 +5,9 @@ export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-re
 export { handler as enableTrustedAccessForServicesStep } from './enable-trusted-access-for-services-step';
 export { handler as getDnsEndpointIps } from './get-dns-endpoint-ips';
 export { handler as loadAccountsStep } from './load-accounts-step';
-export { handler as loadAlzConfigurationStep } from './load-configuration-step';
+// export { handler as loadConfigurationStep } from './load-configuration-step';
+export { handler as loadLandingZoneConfigurationStep } from './configuration/load-landing-zone-config';
+export { handler as loadOrganizationConfigurationStep } from './configuration/load-organizations-config';
 export { handler as loadLimitsStep } from './load-limits-step';
 export { handler as associateHostedZonesStep } from './associate-hosted-zones-step';
 export { handler as accountDefaultSettingsStep } from './account-default-settings-step';
@@ -22,7 +24,8 @@ export { handler as getBaseline } from './get-baseline-step';
 // when babel-loader supports it
 import * as codebuild from './codebuild';
 import * as createAccount from './create-account';
+import * as createOrganizationAccount from './create-organization-account';
 import * as createStack from './create-stack';
 import * as createStackSet from './create-stack-set';
 import * as createAdConnector from './create-adconnector';
-export { codebuild, createAccount, createStack, createStackSet, createAdConnector };
+export { codebuild, createAccount, createStack, createStackSet, createAdConnector, createOrganizationAccount};

@@ -13,7 +13,8 @@ import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-pbmm/common-cdk
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
-import { CreateAccountTask } from './tasks/create-account-task';
+import { CreateLandingZoneAccountTask } from './tasks/create-landing-zone-account-task';
+import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
@@ -164,19 +165,19 @@ export namespace InitialSetup {
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
         },
-        resultPath: '$.baseline',
+        resultPath: '$.configuration',
       });
 
-      const loadAlzConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
+      const loadLandingZoneConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.loadAlzConfigurationStep',
           role: pipelineRole,
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
+          'baseline.$': '$.configuration.baseline'
         },
         resultPath: '$.configuration',
       });
@@ -184,7 +185,7 @@ export namespace InitialSetup {
       const loadOrgConfigurationTask = new CodeTask(this, 'Load Organization Configuration', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.loadAlzConfigurationStep',
+          handler: 'index.loadOrganizationConfigurationStep',
           role: pipelineRole,
         },
         functionPayload: {
@@ -213,16 +214,16 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}CreateAccount_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}CreateAccount_sm`,
-        definition: new CreateAccountTask(scope, 'Create', {
+      const createLandingZoneAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}ALZCreateAccount_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}ALZCreateAccount_sm`,
+        definition: new CreateLandingZoneAccountTask(scope, 'Create ALZ Account', {
           lambdaCode,
           role: pipelineRole,
         }),
       });
 
-      const createAccountTask = new sfn.Task(this, 'Create Account', {
-        task: new tasks.StartExecution(createAccountStateMachine, {
+      const createLandingZoneAccountTask = new sfn.Task(this, 'Create Landing Zone Account', {
+        task: new tasks.StartExecution(createLandingZoneAccountStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             avmProductName,
@@ -232,13 +233,41 @@ export namespace InitialSetup {
         }),
       });
 
-      const createAccountsTask = new sfn.Map(this, 'Create Accounts', {
+      const createLandingZoneAccountsTask = new sfn.Map(this, 'Create Landing Zone Accounts', {
         itemsPath: '$.configuration.accounts',
         resultPath: 'DISCARD',
         maxConcurrency: 1,
       });
 
-      createAccountsTask.iterator(createAccountTask);
+      createLandingZoneAccountsTask.iterator(createLandingZoneAccountTask);
+
+
+      const createOrganizationAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}OrgCreateAccount_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}OrgCreateAccount_sm`,
+        definition: new CreateOrganizationAccountTask(scope, 'Create Org Account', {
+          lambdaCode,
+          role: pipelineRole,
+        }),
+      });
+
+
+      const createOrganizationAccountsTask = new sfn.Map(this, 'Create Organization Accounts', {
+        itemsPath: '$.configuration.accounts',
+        resultPath: 'DISCARD',
+        maxConcurrency: 1,
+      });
+
+      const createOrganizationAccountTask = new sfn.Task(this, 'Create Organization Account', {
+        task: new tasks.StartExecution(createOrganizationAccountStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'account.$': '$',
+          },
+        }),
+      });
+
+      createOrganizationAccountsTask.iterator(createOrganizationAccountTask);
+
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
@@ -497,57 +526,56 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      // const landingZoneAccountsSetupSM = new sfn.StateMachine(this, `${props.acceleratorPrefix}LandingZoneAccountsSetup_sm`, {
-      //   stateMachineName: `${props.acceleratorPrefix}LandingZoneAccountsSetup_sm`,
-      //   definition: sfn.Chain.start(loadAlzConfigurationTask)
-      //     .next(addRoleToServiceCatalog),
-      // });
+      const commonDefinition = loadAccountsTask.startState
+        .next(installRolesTask)
+        .next(loadLimitsTask)
+        .next(addScpTask)
+        .next(enableTrustedAccessForServicesTask)
+        .next(deployPhase0Task)
+        .next(storePhase0Output)
+        .next(deployPhase1Task)
+        .next(storePhase1Output)
+        .next(accountDefaultSettingsTask)
+        .next(deployPhase2Task)
+        .next(storePhase2Output)
+        .next(deployPhase3Task)
+        .next(storePhase3Output)
+        .next(deployPhase4Task)
+        .next(storePhase4Output)
+        .next(associateHostedZonesTask)
+        .next(addTagsToSharedResourcesTask)
+        .next(enableDirectorySharingTask)
+        .next(deployPhase5Task)
+        .next(createAdConnectorTask);
 
-      // const orgAccountsSetupSM = new sfn.StateMachine(this, `${props.acceleratorPrefix}orgAccountsSetup_sm`, {
-      //   stateMachineName: `${props.acceleratorPrefix}orgAccountsSetup_sm`,
-      //   definition: sfn.Chain.start(loadAlzConfigurationTask)
-      // });
+      // Landing Zone Config Setup
+      const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
+        .next(addRoleToServiceCatalog)
+        .next(createLandingZoneAccountsTask)
+        .next(commonDefinition);
+      
+      // // Organizations Config Setup
+      const orgConfigDefinition = loadOrgConfigurationTask.startState
+        .next(createOrganizationAccountsTask)
+        .next(commonDefinition);
+
+      const baseLineChoice = new sfn.Choice(this, 'Baseline?')
+        .when(
+          sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'),
+          alzConfigDefinition)
+        .when(
+          sfn.Condition.stringEquals('$.configuration.baseline', 'ORGANIZATIONS'),
+          orgConfigDefinition)
+        .otherwise(new sfn.Fail(this,  'Fail', {
+          cause: 'Invalid Baseline supplied'
+        }))
+        .afterwards();
 
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
           .next(getBaseLineTask)
-          .next(
-            new sfn.Choice(this, 'Baseline?')
-              .when(
-                sfn.Condition.stringEquals('$.baseline', 'LANDING_ZONE'),
-                loadAlzConfigurationTask.next(addRoleToServiceCatalog).next(createAccountsTask),
-              )
-              .when(
-                sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'),
-                loadOrgConfigurationTask.next(createAccountsTask),
-              )
-              .when(sfn.Condition.stringEquals('$.baseline', 'CONTROL_TOWER'), loadAlzConfigurationTask),
-          ),
-        // .next(loadAlzConfigurationTask)
-        // .next(addRoleToServiceCatalog)
-        // .next(createAccountsTask)
-        // .next(loadAccountsTask)
-        // .next(installRolesTask)
-        // .next(loadLimitsTask)
-        // .next(addScpTask)
-        // .next(enableTrustedAccessForServicesTask)
-        // .next(deployPhase0Task)
-        // .next(storePhase0Output)
-        // .next(deployPhase1Task)
-        // .next(storePhase1Output)
-        // .next(accountDefaultSettingsTask)
-        // .next(deployPhase2Task)
-        // .next(storePhase2Output)
-        // .next(deployPhase3Task)
-        // .next(storePhase3Output)
-        // .next(deployPhase4Task)
-        // .next(storePhase4Output)
-        // .next(associateHostedZonesTask)
-        // .next(addTagsToSharedResourcesTask)
-        // .next(enableDirectorySharingTask)
-        // .next(deployPhase5Task)
-        // .next(createAdConnectorTask),
+          .next(baseLineChoice)
       });
     }
   }
