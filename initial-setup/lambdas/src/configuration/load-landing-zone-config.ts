@@ -1,14 +1,16 @@
 import * as org from 'aws-sdk/clients/organizations';
-import {
-  LandingZoneAccountType,
-  LANDING_ZONE_ACCOUNT_TYPES,
-} from '@aws-pbmm/common-lambda/lib/config';
+import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES } from '@aws-pbmm/common-lambda/lib/config';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
-import { LoadConfigurationInput, ConfigurationAccount, ConfigurationOrganizationalUnit, LoadConfigurationOutput } from '../load-configuration-step';
+import {
+  LoadConfigurationInput,
+  ConfigurationAccount,
+  ConfigurationOrganizationalUnit,
+  LoadConfigurationOutput,
+} from '../load-configuration-step';
 
 export const handler = async (input: LoadConfigurationInput): Promise<LoadConfigurationOutput> => {
   console.log(`Loading configuration...`);

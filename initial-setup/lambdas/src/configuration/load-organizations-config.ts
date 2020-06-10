@@ -1,7 +1,12 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
-import { LoadConfigurationInput, ConfigurationAccount, ConfigurationOrganizationalUnit, LoadConfigurationOutput } from '../load-configuration-step';
+import {
+  LoadConfigurationInput,
+  ConfigurationAccount,
+  ConfigurationOrganizationalUnit,
+  LoadConfigurationOutput,
+} from '../load-configuration-step';
 
 export const handler = async (input: LoadConfigurationInput): Promise<LoadConfigurationOutput> => {
   console.log(`Loading Organization baseline configuration...`);
@@ -100,7 +105,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       accountName: accountConfigName,
       emailAddress: accountConfig.email,
       organizationalUnit: organizationalUnitName,
-      isMandatoryAccount: mandatoryAccountKeys.includes(accountKey)
+      isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
     });
   }
 

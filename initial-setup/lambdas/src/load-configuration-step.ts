@@ -1,7 +1,4 @@
-import {
-  LandingZoneAccountType,
-  BaseLineType,
-} from '@aws-pbmm/common-lambda/lib/config';
+import { LandingZoneAccountType, BaseLineType } from '@aws-pbmm/common-lambda/lib/config';
 
 export interface LoadConfigurationInput {
   configFilePath: string;

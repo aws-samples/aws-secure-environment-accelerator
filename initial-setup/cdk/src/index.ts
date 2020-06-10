@@ -171,13 +171,14 @@ export namespace InitialSetup {
       const loadLandingZoneConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
         functionProps: {
           code: lambdaCode,
+          handler: 'index.loadLandingZoneConfigurationStep',
           role: pipelineRole,
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
-          'baseline.$': '$.configuration.baseline'
+          'baseline.$': '$.configuration.baseline',
         },
         resultPath: '$.configuration',
       });
@@ -214,13 +215,17 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createLandingZoneAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}ALZCreateAccount_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}ALZCreateAccount_sm`,
-        definition: new CreateLandingZoneAccountTask(scope, 'Create ALZ Account', {
-          lambdaCode,
-          role: pipelineRole,
-        }),
-      });
+      const createLandingZoneAccountStateMachine = new sfn.StateMachine(
+        scope,
+        `${props.acceleratorPrefix}ALZCreateAccount_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}ALZCreateAccount_sm`,
+          definition: new CreateLandingZoneAccountTask(scope, 'Create ALZ Account', {
+            lambdaCode,
+            role: pipelineRole,
+          }),
+        },
+      );
 
       const createLandingZoneAccountTask = new sfn.Task(this, 'Create Landing Zone Account', {
         task: new tasks.StartExecution(createLandingZoneAccountStateMachine, {
@@ -241,15 +246,17 @@ export namespace InitialSetup {
 
       createLandingZoneAccountsTask.iterator(createLandingZoneAccountTask);
 
-
-      const createOrganizationAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}OrgCreateAccount_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}OrgCreateAccount_sm`,
-        definition: new CreateOrganizationAccountTask(scope, 'Create Org Account', {
-          lambdaCode,
-          role: pipelineRole,
-        }),
-      });
-
+      const createOrganizationAccountStateMachine = new sfn.StateMachine(
+        scope,
+        `${props.acceleratorPrefix}OrgCreateAccount_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}OrgCreateAccount_sm`,
+          definition: new CreateOrganizationAccountTask(scope, 'Create Org Account', {
+            lambdaCode,
+            role: pipelineRole,
+          }),
+        },
+      );
 
       const createOrganizationAccountsTask = new sfn.Map(this, 'Create Organization Accounts', {
         itemsPath: '$.configuration.accounts',
@@ -267,7 +274,6 @@ export namespace InitialSetup {
       });
 
       createOrganizationAccountsTask.iterator(createOrganizationAccountTask);
-
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
@@ -553,29 +559,25 @@ export namespace InitialSetup {
         .next(addRoleToServiceCatalog)
         .next(createLandingZoneAccountsTask)
         .next(commonDefinition);
-      
+
       // // Organizations Config Setup
       const orgConfigDefinition = loadOrgConfigurationTask.startState
         .next(createOrganizationAccountsTask)
         .next(commonDefinition);
 
       const baseLineChoice = new sfn.Choice(this, 'Baseline?')
-        .when(
-          sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'),
-          alzConfigDefinition)
-        .when(
-          sfn.Condition.stringEquals('$.configuration.baseline', 'ORGANIZATIONS'),
-          orgConfigDefinition)
-        .otherwise(new sfn.Fail(this,  'Fail', {
-          cause: 'Invalid Baseline supplied'
-        }))
+        .when(sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'), alzConfigDefinition)
+        .when(sfn.Condition.stringEquals('$.configuration.baseline', 'ORGANIZATIONS'), orgConfigDefinition)
+        .otherwise(
+          new sfn.Fail(this, 'Fail', {
+            cause: 'Invalid Baseline supplied',
+          }),
+        )
         .afterwards();
 
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
-        definition: sfn.Chain.start(getOrCreateConfigurationTask)
-          .next(getBaseLineTask)
-          .next(baseLineChoice)
+        definition: sfn.Chain.start(getOrCreateConfigurationTask).next(getBaseLineTask).next(baseLineChoice),
       });
     }
   }
