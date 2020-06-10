@@ -1,11 +1,9 @@
 import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
-import { VpcOutput, ImportedVpc } from '../deployments/vpc';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { PhaseInput } from './shared';
 import * as alb from '../deployments/alb';
 
-export async function deploy({ acceleratorConfig, accountStacks, accounts, app, context, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   /**
    * Code to create Peering Connection Routes in all accounts
    */

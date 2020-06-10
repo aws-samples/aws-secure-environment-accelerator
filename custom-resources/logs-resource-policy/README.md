@@ -1,6 +1,6 @@
 # CloudWatch Resource Policy
 
-This is a custom resource to creating a log resource policy using the CloudWatch `PutResourcePolicy` API call.
+This is a custom resource to create a log resource policy using the CloudWatch `PutResourcePolicy` API call.
 
 ## Usage
 

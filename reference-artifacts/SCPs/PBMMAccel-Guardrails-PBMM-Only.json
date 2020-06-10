@@ -46,20 +46,38 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalArn": [
-              "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-              "arn:aws:iam::*:role/StackSet-AWS-Landing-Zone*",
-              "arn:aws:iam::*:role/PBMMAccel-*",
-              "arn:aws:iam::*:role/PBMMOps-*"
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/StackSet-AWS-Landing-Zone*",
+            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/PBMMOps-*"
           ]
         }
       }
     },
     {
-      "Sid":"DenyAllOutsideCanadaPBMMONLY",
-      "Effect":"Deny",
-      "NotAction":[
+      "Sid": "ScopeSpecificGlobalActionsToCanadaUSE1",
+      "Effect": "Deny",
+      "Action": ["acm:*"],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["ca-central-1", "us-east-1"]
+        },
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyAllOutsideCanadaPBMMONLY",
+      "Effect": "Deny",
+      "NotAction": [
         "a4b:*",
         "access-analyzer:*",
+        "acm:*",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
@@ -82,6 +100,7 @@
         "route53:*",
         "route53domains:*",
         "s3:GetAccountPublic*",
+        "s3:ListAllMyBuckets",
         "s3:ListBuckets",
         "s3:PutAccountPublic*",
         "shield:*",
@@ -93,15 +112,13 @@
         "wafv2:*",
         "wellarchitected:*"
       ],
-      "Resource":"*",
-      "Condition":{
-        "StringNotEquals":{
-          "aws:RequestedRegion":[
-            "ca-central-1"
-          ]
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["ca-central-1"]
         },
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
