@@ -25,12 +25,13 @@ export function createKeyPairName(name: string): string {
 }
 
 export function createLogGroupName(name: string): string {
-  return '/' + createName({
-    name,
-    account: false,
-    region: false,
-    separator: '/',
-  });
+  return (
+    '/' +
+    createName({
+      name,
+      separator: '/',
+    })
+  );
 }
 
 const DEFAULT_SEPARATOR = '-';
