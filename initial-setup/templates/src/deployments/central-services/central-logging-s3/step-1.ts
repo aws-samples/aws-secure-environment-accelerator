@@ -27,7 +27,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
   await cwlSettingsInLogArchive({
     scope: accountStack,
     accountIds: allAccountIds,
-    bucketArn
+    bucketArn,
   });
 }
 
@@ -106,7 +106,7 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds
     roles: [kinesisStreamRole],
     statements: [
       new iam.PolicyStatement({
-        resources: [bucketArn, `${bucketArn}*`,],
+        resources: [bucketArn, `${bucketArn}*`],
         actions: [
           's3:AbortMultipartUpload',
           's3:GetBucketLocation',
