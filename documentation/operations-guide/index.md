@@ -2,7 +2,7 @@
 
 ## System Overview
 
-## Accelerator Installer
+### Accelerator Installer
 
 The installer stack contains the necessary resources to deploy the Accelerator in the AWS account.
 
@@ -30,8 +30,23 @@ the Accelerator in the AWS account.
 ![CodePipeline Manual Approval Popup](./images/codepipeline-approval-popup.png)
 
 After the administrator approves the change, the `PBMMAccel-InstallerProject_pl` CodeBuild project starts. The CodeBuild
-project uses the GitHub source artifact. Next it installs the Accelerator dependencies and starts the deployment of the
-Accelerator using the AWS Cloud Development Kit (CDK). You can find more information about the CDK here
-https://docs.aws.amazon.com/cdk/latest/guide/home.html.
+project uses the GitHub source artifact. The CodeBuild projects spins up a new Linux instances and installs the
+Accelerator dependencies and starts the deployment of the Accelerator using the AWS Cloud Development Kit (CDK<sup>[1](#cdk)</sup>).
 
-## Accelerator
+CDK bootstraps its environment and creates the `CDKToolkit` stack in the AWS account. It creates the S3 bucket `cdktoolkit-stagingbucket-*`
+and the ECR repository `aws-cdk/assets`.
+
+CDK deploys assets to the bootstrap bucket and bootstrap repository that are used by the Accelerator. The assets that are
+store on S3 include default IAM policies, default SCPs, default firewall configuration. The assets that are pushed to ECR
+include the Accelerator Docker build image.
+
+### Accelerator
+
+### Phases
+
+## Troubleshooting
+
+
+
+
+<a name="cdk">[1]</a>: https://docs.aws.amazon.com/cdk/latest/guide/home.html
