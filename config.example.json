@@ -28,10 +28,12 @@
       "account": "log-archive",
       "region": "ca-central-1",
       "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],
-      "cwl-exclusions": [{
-        "account": "fun-acct",
-        "exclusions": ["def/*"]
-      }],
+      "cwl-exclusions": [
+        {
+          "account": "fun-acct",
+          "exclusions": ["def/*"]
+        }
+      ],
       "ssm-to-s3": true,
       "ssm-to-cwl": true
     },
@@ -48,14 +50,16 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "conformance-packs": [{
-      "gc-pack": {
-        "install": true,
-        "auto-remediation": true,
-        "monitoring": true,
-        "frequency": 24
+    "conformance-packs": [
+      {
+        "gc-pack": {
+          "install": true,
+          "auto-remediation": true,
+          "monitoring": true,
+          "frequency": 24
+        }
       }
-    }],
+    ],
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -516,7 +520,13 @@
               "health-check-path": "/health-check",
               "health-check-port": 7001,
               "lambda-filename": "",
-              "target-instances": ["FgtA"],
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "a"
+                }
+              ],
               "tg-weight": 1
             },
             {
@@ -528,7 +538,13 @@
               "health-check-path": "/health-check",
               "health-check-port": 7001,
               "lambda-filename": "",
-              "target-instances": ["FgtB"],
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "b"
+                }
+              ],
               "tg-weight": 1
             }
           ]
@@ -565,7 +581,13 @@
               "health-check-path": "/health-check",
               "health-check-port": 7002,
               "lambda-filename": "",
-              "target-instances": ["FgtA"],
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "a"
+                }
+              ],
               "tg-weight": 1
             },
             {
@@ -577,7 +599,13 @@
               "health-check-path": "/health-check",
               "health-check-port": 7002,
               "lambda-filename": "",
-              "target-instances": ["FgtB"],
+              "target-instances": [
+                {
+                  "target": "firewall",
+                  "name": "Firewall",
+                  "az": "b"
+                }
+              ],
               "tg-weight": 1
             }
           ]
@@ -730,6 +758,7 @@
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
+                  "name": "Firewall",
                   "az": "a",
                   "port": "Public"
                 },
@@ -749,6 +778,7 @@
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
+                  "name": "Firewall",
                   "az": "b",
                   "port": "Public"
                 },
@@ -764,6 +794,7 @@
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
+                  "name": "Firewall",
                   "az": "a",
                   "port": "Proxy"
                 }
@@ -775,6 +806,7 @@
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
+                  "name": "Firewall",
                   "az": "b",
                   "port": "Proxy"
                 }
@@ -897,7 +929,7 @@
               "create-cgw": false
             }
           ],
-          "license": ["firewall/license1.lic","firewall/license2.lic"],
+          "license": ["firewall/license1.lic", "firewall/license2.lic"],
           "config": "firewall/firewall-example.txt",
           "fw-cgw-name": "Perimeter_fw",
           "fw-cgw-asn": 65523,

@@ -11,10 +11,11 @@ import { phases } from '../../src/app';
  * List of resource types that need to be tested for immutability.
  */
 const resourceTypeNames = [
-  'AWS::S3::Bucket',
+  'AWS::Budgets::Budget',
   'AWS::DirectoryService::MicrosoftAD',
-  'AWS::SecretsManager::Secret',
   'AWS::EC2::Instance',
+  'AWS::S3::Bucket',
+  'AWS::SecretsManager::Secret',
 ];
 
 type PropertySelector = (properties: ResourceProperties) => ResourceProperties;
