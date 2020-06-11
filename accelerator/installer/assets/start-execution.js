@@ -1,13 +1,25 @@
-const aws = require('aws-sdk');
+const AWS = require('aws-sdk');
 
-exports.handler = async function(event, context) {
-  const codepipeline = new aws.CodePipeline();
-  const jobId = event['CodePipeline.job'].id;
+const codepipeline = new AWS.CodePipeline();
+const sfn = new AWS.StepFunctions();
+
+exports.handler = async function (event, context) {
+  console.info(`Starting state machine execution...`);
+  console.info(JSON.stringify(event, null, 2));
+
+  const jobInfo = event['CodePipeline.job'];
+  const jobId = jobInfo.id;
+
   try {
-    const sfn = new aws.StepFunctions();
+    const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;
+    const userParameters = JSON.parse(userParametersString);
+    if (!userParameters.stateMachineArn) {
+      throw new Error(`"stateMachineArn" is missing from user parameters`);
+    }
+
     await sfn
       .startExecution({
-        stateMachineArn: process.env.STATE_MACHINE_ARN,
+        stateMachineArn: userParameters.stateMachineArn,
       })
       .promise();
 
@@ -17,6 +29,8 @@ exports.handler = async function(event, context) {
       })
       .promise();
   } catch (e) {
+    console.info(`Unexpected error while starting execution: ${e}`);
+
     return codepipeline
       .putJobFailureResult({
         jobId,

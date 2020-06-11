@@ -25,6 +25,7 @@ Array [
   Object {
     "LogicalId": "MicrosoftADMicrosoftADFC7F6466",
     "Properties": Object {
+      "CreateAlias": undefined,
       "Edition": "Enterprise",
       "Name": "brian.local",
       "Password": Object {
@@ -128,10 +129,10 @@ Array [
       "HibernationOptions": undefined,
       "HostResourceGroupArn": undefined,
       "ImageId": "ami-047aac44951feb9fb",
-      "InstanceType": "c5n.2xlarge",
       "Ipv6AddressCount": undefined,
       "Ipv6Addresses": undefined,
       "KeyName": undefined,
+      "LaunchTemplate": undefined,
       "LicenseSpecifications": undefined,
       "NetworkInterfaces": Array [
         Object {
@@ -175,10 +176,10 @@ Array [
       "HibernationOptions": undefined,
       "HostResourceGroupArn": undefined,
       "ImageId": "ami-047aac44951feb9fb",
-      "InstanceType": "c5n.2xlarge",
       "Ipv6AddressCount": undefined,
       "Ipv6Addresses": undefined,
       "KeyName": undefined,
+      "LaunchTemplate": undefined,
       "LicenseSpecifications": undefined,
       "NetworkInterfaces": Array [
         Object {
@@ -222,10 +223,10 @@ Array [
       "HibernationOptions": undefined,
       "HostResourceGroupArn": undefined,
       "ImageId": "ami-06fa2a9e6f8fae9f2",
-      "InstanceType": "c5.large",
       "Ipv6AddressCount": undefined,
       "Ipv6Addresses": undefined,
       "KeyName": undefined,
+      "LaunchTemplate": undefined,
       "LicenseSpecifications": undefined,
       "NetworkInterfaces": Array [
         Object {
@@ -274,12 +275,14 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
   Object {
     "LogicalId": "aescacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -297,6 +300,7 @@ Array [
     "LogicalId": "configcacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -308,6 +312,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -325,6 +330,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -342,6 +348,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -359,6 +366,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -374,6 +382,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -393,6 +402,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
