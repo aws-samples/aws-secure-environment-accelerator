@@ -8,6 +8,10 @@ export interface BucketProps {
   encryptionKey?: kms.Key;
   expirationInDays: number;
   replicationRoleName?: string;
+  /**
+   * @default cdk.RemovalPolicy.RETAIN
+   */
+  removalPolicy?: cdk.RemovalPolicy;
 }
 
 /**
@@ -28,6 +32,7 @@ export class Bucket extends s3.Bucket {
       encryptionKey: props.encryptionKey,
       versioned: true,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: props.removalPolicy ?? cdk.RemovalPolicy.RETAIN,
       lifecycleRules: [
         {
           enabled: true,

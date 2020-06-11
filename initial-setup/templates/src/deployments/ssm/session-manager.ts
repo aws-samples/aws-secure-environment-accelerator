@@ -5,7 +5,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
 import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { LogGroup } from '@custom-resources/logs-log-group';
-import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface SSMStep1Props {
   acceleratorPrefix: string;
@@ -30,11 +30,7 @@ export async function step1(props: SSMStep1Props) {
     ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
 
     const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
-      logGroupName: createName({
-        name: 'SSM',
-        account: false,
-        region: false,
-      }),
+      logGroupName: createLogGroupName('SSM'),
     });
 
     // Save the output so it can be used in the state machine later
