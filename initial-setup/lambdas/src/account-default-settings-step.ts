@@ -204,10 +204,12 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       },
     };
 
-    try{
-      const ssmDocument = await ssm.describeDocument({
-        Name: 'SSM-SessionManagerRunShell',
-      }).promise();
+    try {
+      const ssmDocument = await ssm
+        .describeDocument({
+          Name: 'SSM-SessionManagerRunShell',
+        })
+        .promise();
 
       const updateDocumentRequest: UpdateDocumentRequest = {
         Content: JSON.stringify(settings),
@@ -223,7 +225,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
         const createDocumentRequest: CreateDocumentRequest = {
           Content: JSON.stringify(settings),
           Name: 'SSM-SessionManagerRunShell',
-        }
+        };
         console.log('Create SSM Request: ', createDocumentRequest);
         const createSSMResponse = await ssm.createDocument(createDocumentRequest).promise();
         console.log('Create SSM: ', createSSMResponse);
