@@ -5,7 +5,7 @@
     "ct-baseline": false,
     "central-log-retention": 730,
     "default-log-retention": 90,
-    "central-bucket": "pbmmaccel-config-123456789012",
+    "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "aws-org-master": {
       "account": "master",
       "region": "ca-central-1"
@@ -121,7 +121,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "myemail+pbmmT-network@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
       "iam": {
@@ -203,7 +203,7 @@
             "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
             "blackhole-route": false,
             "attach-subnets": ["Endpoint"],
-            "options": ["DNS-support", "IPv6-support"]
+            "options": ["DNS-support"]
           },
           "interface-endpoints": {
             "subnet": "Endpoint",
@@ -250,6 +250,7 @@
               "sns",
               "sqs",
               "ssm",
+              "ssmmessages",
               "storagegateway",
               "sts",
               "transfer",
@@ -257,7 +258,6 @@
               "awsconnector",
               "ecr.api",
               "kinesis-firehose",
-              "ssmmessages",
               "states",
               "acm-pca",
               "cassandra",
@@ -279,12 +279,12 @@
           },
           "on-premise-rules": [
             {
-              "zone": "dept.gc.ca",
-              "outbound-ips": ["7.23.0.1", "7.26.0.2"]
+              "zone": "dept-private.gc.ca",
+              "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             },
             {
-              "zone": "test.ca",
-              "outbound-ips": ["7.23.0.1", "7.26.0.2"]
+              "zone": "private-domain1.example.ca",
+              "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             }
           ]
         }
@@ -292,7 +292,7 @@
       "deployments": {
         "tgw": {
           "name": "Main",
-          "asn": 64512,
+          "asn": 65521,
           "region": "ca-central-1",
           "features": {
             "DNS-support": true,
@@ -307,7 +307,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "myemail+pbmmT-operations@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "limits": {},
       "share-mad-from": "",
@@ -355,11 +355,11 @@
           "region": "ca-central-1",
           "subnet": "GCWide",
           "size": "Enterprise",
-          "dns-domain": "brian.local",
-          "netbios-domain": "brian",
+          "dns-domain": "example.local",
+          "netbios-domain": "example",
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "Endpoint",
-          "log-group-name": "PBMMAccel-MAD-brian-local-LG",
+          "log-group-name": "/PBMMAccel/MAD/example.local",
           "share-to-account": "master",
           "restrict_srcips": ["100.96.252.0/23", "100.96.250.0/23", "10.0.0.0/8"],
           "num-rdgw-hosts": 1,
@@ -382,17 +382,17 @@
           "ad-users": [
             {
               "user": "adconnector-usr",
-              "email": "myemail+pbmmT-adconnector-usr@myemaildomain.com",
+              "email": "myemail+pbmmT-adc-usr@example.com",
               "groups": ["ADConnector-grp"]
             },
             {
-              "user": "Brian",
-              "email": "myemail+pbmmT-Brian@myemaildomain.com",
+              "user": "User1",
+              "email": "myemail+pbmmT-User1@example.com",
               "groups": ["Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
             },
             {
-              "user": "TestUser",
-              "email": "myemail+pbmmT-TestUser@myemaildomain.com",
+              "user": "User2",
+              "email": "myemail+pbmmT-User2@example.com",
               "groups": ["*-View"]
             }
           ],
@@ -430,7 +430,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-perimeter@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "account-warming-required": false,
       "limits": {
@@ -456,22 +456,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
@@ -591,8 +591,8 @@
             "policy": "boundary-policy.txt"
           },
           {
-            "policy-name": "Fortigate-Policy",
-            "policy": "fortigate-policy.txt"
+            "policy-name": "Firewall-Policy",
+            "policy": "firewall-fg-policy.txt"
           }
         ],
         "roles": [
@@ -607,9 +607,9 @@
             "boundary-policy": "Default-Boundary-Policy"
           },
           {
-            "role": "Forigate-Role",
+            "role": "Firewall-Role",
             "type": "ec2",
-            "policies": ["Fortigate-Policy"],
+            "policies": ["Firewall-Policy"],
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
@@ -625,7 +625,7 @@
           "flow-logs": true,
           "igw": true,
           "vgw": {
-            "asn": 65534
+            "asn": 65522
           },
           "pcx": false,
           "natgw": false,
@@ -724,7 +724,7 @@
               "name": "FWMgmt_azA",
               "routes": [
                 {
-                  "destination": "7.0.0.0/8",
+                  "destination": "10.0.0.0/8",
                   "target": "VGW"
                 },
                 {
@@ -743,7 +743,7 @@
               "name": "FWMgmt_azB",
               "routes": [
                 {
-                  "destination": "7.0.0.0/8",
+                  "destination": "10.0.0.0/8",
                   "target": "VGW"
                 },
                 {
@@ -820,7 +820,7 @@
               ]
             },
             {
-              "name": "FortigateMgr",
+              "name": "FirewallMgr",
               "inbound-rules": [
                 {
                   "description": "Allow Mgmt Traffic Inbound",
@@ -838,7 +838,7 @@
               ]
             },
             {
-              "name": "Fortigates",
+              "name": "Firewall",
               "inbound-rules": [
                 {
                   "description": "Web Traffic Inbound",
@@ -864,10 +864,12 @@
       ],
       "deployments": {
         "firewall": {
+          "name": "Firewall",
           "image-id": "ami-047aac44951feb9fb",
           "instance-sizes": "c5n.2xlarge",
           "region": "ca-central-1",
-          "security-group": "Fortigates",
+          "security-group": "Firewall",
+          "fw-instance-role": "Firewall-Role",
           "vpc": "Perimeter",
           "ports": [
             {
@@ -898,7 +900,7 @@
           "license": ["firewall/license1.lic","firewall/license2.lic"],
           "config": "firewall/firewall-example.txt",
           "fw-cgw-name": "Perimeter_fw",
-          "fw-cgw-asn": 63000,
+          "fw-cgw-asn": 65523,
           "fw-cgw-routing": "Dynamic",
           "tgw-attach": {
             "associate-to-tgw": "Main",
@@ -909,17 +911,17 @@
             "rt-propagate": ["core", "segregated", "shared", "standalone"],
             "blackhole-route": false,
             "attach-subnets": [],
-            "options": ["DNS-support", "IPv6-support"]
+            "options": ["DNS-support"]
           }
         },
         "firewall-manager": {
-          "name": "FortigateMgr",
+          "name": "FirewallMgr",
           "image-id": "ami-06fa2a9e6f8fae9f2",
           "instance-sizes": "c5.large",
           "version": "6.2.3",
           "region": "ca-central-1",
           "vpc": "Perimeter",
-          "security-group": "FortigateMgr",
+          "security-group": "FirewallMgr",
           "subnet": {
             "name": "FWMgmt",
             "az": "a"
@@ -930,7 +932,7 @@
     },
     "master": {
       "account-name": "primary",
-      "email": "myemail+pbmmT-master@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
@@ -950,22 +952,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
@@ -1065,31 +1067,31 @@
     "log-archive": {
       "account-name": "log-archive",
       "ou": "core",
-      "email": "myemail+pbmmT-log@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
-      "email": "myemail+pbmmT-sec@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
       "ou": "core",
-      "email": "myemail+pbmmT-ss@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-ss@example.com---------------------REPLACE----------------------",
       "landing-zone-account-type": "shared-services"
     }
   },
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "myemail+pbmmT-funacct@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
       "ou": "Sandbox"
     },
     "mydevacct1": {
       "account-name": "MyDev1",
-      "email": "myemail+pbmmT-dev1@myemaildomain.com---------------------REPLACE----------------------",
+      "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
       "ou": "Dev"
     }
   },
@@ -1113,22 +1115,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       }
@@ -1153,22 +1155,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
@@ -1176,8 +1178,8 @@
         {
           "name": "CentralSelf-SignedCert",
           "type": "import",
-          "priv-key": "certs/domain1.key",
-          "cert": "certs/domain1.crt"
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
         }
       ],
       "vpc": [
@@ -1558,7 +1560,7 @@
             "tgw-rt-propagate": ["core", "shared", "segregated"],
             "blackhole-route": false,
             "attach-subnets": ["TGW"],
-            "options": ["DNS-support", "IPv6-support"]
+            "options": ["DNS-support"]
           },
           "interface-endpoints": false
         }
@@ -1605,22 +1607,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
@@ -1628,8 +1630,8 @@
         {
           "name": "DevSelf-SignedCert",
           "type": "import",
-          "priv-key": "certs/domain1.key",
-          "cert": "certs/domain1.crt"
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
         }
       ],
       "alb": [
@@ -2030,7 +2032,7 @@
             "tgw-rt-propagate": ["core", "shared"],
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
-            "options": ["DNS-support", "IPv6-support"]
+            "options": ["DNS-support"]
           },
           "interface-endpoints": false
         }
@@ -2077,22 +2079,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
@@ -2100,8 +2102,8 @@
         {
           "name": "TestSelf-SignedCert",
           "type": "import",
-          "priv-key": "certs/domain1.key",
-          "cert": "certs/domain1.crt"
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
         }
       ],
       "alb": [
@@ -2502,7 +2504,7 @@
             "tgw-rt-propagate": ["core", "shared"],
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
-            "options": ["DNS-support", "IPv6-support"]
+            "options": ["DNS-support"]
           },
           "interface-endpoints": false
         }
@@ -2549,22 +2551,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
@@ -2572,8 +2574,8 @@
         {
           "name": "ProdSelf-SignedCert",
           "type": "import",
-          "priv-key": "certs/domain1.key",
-          "cert": "certs/domain1.crt"
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
         }
       ],
       "alb": [
@@ -2974,7 +2976,7 @@
             "tgw-rt-propagate": ["core", "shared"],
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
-            "options": ["DNS-support", "IPv6-support"]
+            "options": ["DNS-support"]
           },
           "interface-endpoints": false
         }
@@ -3021,22 +3023,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
@@ -3044,8 +3046,8 @@
         {
           "name": "UnclassSelf-SignedCert",
           "type": "import",
-          "priv-key": "certs/domain1.key",
-          "cert": "certs/domain1.crt"
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
         }
       ],
       "vpc": [
@@ -3420,7 +3422,7 @@
             "tgw-rt-propagate": ["core", "shared"],
             "blackhole-route": true,
             "attach-subnets": ["TGW"],
-            "options": ["DNS-support", "IPv6-support"]
+            "options": ["DNS-support"]
           },
           "interface-endpoints": false
         }
@@ -3467,22 +3469,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@myemaildomain.com"]
+            "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
       },
