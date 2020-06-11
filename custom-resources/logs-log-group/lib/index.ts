@@ -55,13 +55,10 @@ export interface LogGroupProps {
 export class LogGroup extends cdk.Construct implements cdk.ITaggable {
   tags: cdk.TagManager = new cdk.TagManager(cdk.TagType.MAP, 'LogGroup');
 
-  private readonly props: LogGroupProps;
   private resource: cdk.CustomResource | undefined;
 
-  constructor(scope: cdk.Construct, id: string, props: LogGroupProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: LogGroupProps) {
     super(scope, id);
-
-    this.props = props;
   }
 
   protected onPrepare() {

@@ -44,15 +44,12 @@ export interface FirewallInstanceProps {
 }
 
 export class FirewallInstance extends cdk.Construct {
-  private readonly props: FirewallInstanceProps;
   private readonly resource: ec2.CfnInstance;
   private readonly template: S3Template;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: FirewallInstanceProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: FirewallInstanceProps) {
     super(scope, id);
-
-    this.props = props;
 
     const { configuration } = props;
 
