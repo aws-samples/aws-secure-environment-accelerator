@@ -86,7 +86,7 @@ async function cwlCentralLoggingSettings(props: { scope: cdk.Construct; bucketAr
     }),
     deliveryStreamType: 'DirectPut',
     extendedS3DestinationConfiguration: {
-      bucketArn: bucketArn,
+      bucketArn,
       bufferingHints: {
         intervalInSeconds: 60,
         sizeInMBs: 50,

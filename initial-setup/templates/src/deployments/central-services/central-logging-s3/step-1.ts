@@ -141,7 +141,7 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds
       roleArn: kinesisStreamRole.roleArn,
     },
     extendedS3DestinationConfiguration: {
-      bucketArn: bucketArn,
+      bucketArn,
       bufferingHints: {
         intervalInSeconds: 60,
         sizeInMBs: 50,
