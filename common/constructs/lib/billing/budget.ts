@@ -15,7 +15,7 @@ export class Budget extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: BudgetProps) {
     super(scope, id);
 
-    const hash = hashSum(props);
+    const hash = hashSum({ ...props, path: this.node.path });
     const budgetName = props.budget.budgetName ? `${props.budget.budgetName}-${hash}` : undefined;
 
     new budgets.CfnBudget(this, 'Resource', {
