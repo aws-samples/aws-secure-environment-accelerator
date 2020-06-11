@@ -432,6 +432,7 @@
       "account-name": "Perimeter",
       "email": "myemail+pbmmT-perimeter@myemaildomain.com---------------------REPLACE----------------------",
       "ou": "core",
+      "account-warming-required": false,
       "limits": {
         "Amazon EC2/Number of EIPs": {
           "value": 10,
