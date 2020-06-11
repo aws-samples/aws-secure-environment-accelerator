@@ -285,6 +285,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         const attachSubnetsConfig = tgwAttach['attach-subnets'] || [];
         const associateConfig = tgwAttach['tgw-rt-associate'] || [];
         const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
+        const blackhole = tgwAttach['blackhole-route'];
 
         const subnetIds = attachSubnetsConfig.flatMap(
           subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
@@ -300,6 +301,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           transitGatewayId: tgw.tgwId,
           tgwRouteAssociates,
           tgwRoutePropagates,
+          blackhole,
+          cidr: this.cidrBlock,
         });
         // Add name tag
         cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
@@ -507,5 +510,17 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   tryFindSecurityGroupByName(name: string): constructs.SecurityGroup | undefined {
     return this.securityGroups.find(sg => sg.name === name);
+  }
+
+  findRouteTableIdByName(name: string): string {
+    const routeTable = this.tryFindRouteTableIdByName(name);
+    if (!routeTable) {
+      throw new Error(`Cannot find route table with name "${name}"`);
+    }
+    return routeTable;
+  }
+
+  tryFindRouteTableIdByName(name: string): string | undefined {
+    return this.routeTableNameToIdMap[name];
   }
 }

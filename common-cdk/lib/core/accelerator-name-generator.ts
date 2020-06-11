@@ -1,20 +1,7 @@
 import * as crypto from 'crypto';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack } from './accelerator-stack';
-
-/**
- * READ THIS BEFORE MODIFYING THIS FUNCTION: Changes made to this function will most likely create new bucket names for
- * resources in a customer's account. Please take this into account!
- */
-export function createBucketName(name?: string): string {
-  return createName({
-    name,
-    account: true,
-    region: true,
-    suffixLength: 8,
-    lowercase: true,
-  });
-}
+import { trimSpecialCharacters } from './utils';
 
 export function createRoleName(name: string, suffixLength: number = 8): string {
   return createName({
@@ -35,6 +22,16 @@ export function createKeyPairName(name: string): string {
     name,
     suffixLength: 8,
   });
+}
+
+export function createLogGroupName(name: string): string {
+  return (
+    '/' +
+    createName({
+      name,
+      separator: '/',
+    })
+  );
 }
 
 const DEFAULT_SEPARATOR = '-';
@@ -85,9 +82,9 @@ export function createName(props: CreateNameProps = {}): string {
       const stack = AcceleratorStack.of(scope);
 
       // Use the AcceleratorStack prefix
-      const prefix = stack.acceleratorPrefix;
+      const prefix = trimSpecialCharacters(stack.acceleratorPrefix);
 
-      const pieces = [];
+      const pieces = [prepareString(prefix, props)];
       if (account) {
         pieces.push(cdk.Aws.ACCOUNT_ID);
       }
@@ -104,8 +101,7 @@ export function createName(props: CreateNameProps = {}): string {
         const suffix = hashPath(path, suffixLength);
         pieces.push(prepareString(suffix, props));
       }
-
-      return prepareString(prefix, props) + pieces.join(separator);
+      return pieces.join(separator);
     },
   });
 }

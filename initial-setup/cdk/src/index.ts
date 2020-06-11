@@ -8,7 +8,6 @@ import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
-import { WebpackBuild } from '@aws-pbmm/common-cdk/lib';
 import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-pbmm/common-cdk/lib/codebuild';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
@@ -18,10 +17,6 @@ import { CreateOrganizationAccountTask } from './tasks/create-organization-accou
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
-
-interface BuildProps {
-  lambdaCode: lambda.Code;
-}
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -48,42 +43,25 @@ export namespace InitialSetup {
 }
 
 export class InitialSetup extends AcceleratorStack {
-  constructor(scope: cdk.Construct, id: string, props: InitialSetup.Props & BuildProps) {
+  constructor(scope: cdk.Construct, id: string, props: InitialSetup.Props) {
     super(scope, id, props);
 
     new InitialSetup.Pipeline(this, 'Pipeline', props);
   }
-
-  static async create(scope: cdk.Construct, id: string, props: InitialSetup.Props): Promise<InitialSetup> {
-    const initialSetupRoot = path.join(props.solutionRoot, 'initial-setup');
-    const lambdasRoot = path.join(initialSetupRoot, 'lambdas');
-
-    // Build all the Lambda functions using Webpack
-    const lambdas = await WebpackBuild.build({
-      workingDir: lambdasRoot,
-      webpackConfigFile: 'webpack.config.ts',
-    });
-
-    // All lambdas are bundled into index.js
-    const lambdaCode = lambdas.codeForEntry();
-
-    return new InitialSetup(scope, id, {
-      ...props,
-      lambdaCode,
-    });
-  }
 }
 
 export namespace InitialSetup {
-  export interface PipelineProps extends CommonProps {
-    lambdaCode: lambda.Code;
-  }
+  export type PipelineProps = CommonProps;
 
   export class Pipeline extends cdk.Construct {
     constructor(scope: cdk.Construct, id: string, props: PipelineProps) {
       super(scope, id);
 
-      const { enablePrebuiltProject, lambdaCode } = props;
+      const { enablePrebuiltProject } = props;
+
+      const lambdaPath = require.resolve('@aws-pbmm/initial-setup-lambdas');
+      const lambdaDir = path.dirname(lambdaPath);
+      const lambdaCode = lambda.Code.fromAsset(lambdaDir);
 
       const stack = cdk.Stack.of(this);
 
@@ -345,6 +323,7 @@ export namespace InitialSetup {
       // creating a bucket to store SCP artifacts
       const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
         versioned: true,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
       });
 
       const scpArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'SCPs');

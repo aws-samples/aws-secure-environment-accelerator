@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { Vpc, SecurityGroup, Subnet } from '@aws-pbmm/constructs/lib/vpc';
+import { Vpc, SecurityGroup, Subnet, RouteTables } from '@aws-pbmm/constructs/lib/vpc';
 import { VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export { VpcOutput, SecurityGroupsOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
@@ -13,13 +13,14 @@ export interface ImportedVpcProps {
 
   readonly subnets: Subnet[];
   readonly securityGroups: SecurityGroup[];
+
+  readonly routeTables: RouteTables;
 }
 
-export class ImportedVpc extends cdk.Construct implements Vpc {
+export class ImportedVpc implements Vpc {
   readonly props: ImportedVpcProps;
 
-  constructor(scope: cdk.Construct, id: string, props: ImportedVpcProps) {
-    super(scope, id);
+  constructor(props: ImportedVpcProps) {
     this.props = props;
   }
 
@@ -45,6 +46,10 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
 
   get securityGroups(): SecurityGroup[] {
     return this.props.securityGroups;
+  }
+
+  get routeTables(): RouteTables {
+    return this.props.routeTables;
   }
 
   findSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet {
@@ -83,8 +88,20 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
     return this.securityGroups.find(sg => sg.name === name);
   }
 
-  static fromOutput(scope: cdk.Construct, id: string, output: VpcOutput) {
-    return new ImportedVpc(scope, id, {
+  findRouteTableIdByName(name: string): string {
+    const routeTable = this.tryFindRouteTableIdByName(name);
+    if (!routeTable) {
+      throw new Error(`Cannot find route table with name "${name}" in VPC "${this.name}"`);
+    }
+    return routeTable;
+  }
+
+  tryFindRouteTableIdByName(name: string): string | undefined {
+    return this.routeTables[name];
+  }
+
+  static fromOutput(output: VpcOutput) {
+    return new ImportedVpc({
       id: output.vpcId,
       name: output.vpcName,
       cidrBlock: output.cidrBlock,
@@ -99,6 +116,7 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
         id: sg.securityGroupId,
         name: sg.securityGroupName,
       })),
+      routeTables: output.routeTables,
     });
   }
 }

@@ -72,11 +72,11 @@ export class IamAssets extends cdk.Construct {
       sourceAccount?: string,
       sourceAccountRole?: string,
       trustPolicy?: string,
-    ): void => {
+    ): iam.Role => {
       if (sourceAccount && sourceAccountRole && trustPolicy) {
         const sourceAccountId = getAccountId(accounts, sourceAccount);
 
-        const iamRole = new iam.Role(this, `IAM-Role-${role}-${accountKey}`, {
+        return new iam.Role(this, `IAM-Role-${role}-${accountKey}`, {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:role/${sourceAccountRole}`),
@@ -86,7 +86,7 @@ export class IamAssets extends cdk.Construct {
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
         });
       } else {
-        const iamRole = new iam.Role(this, `IAM-Role-${role}`, {
+        return new iam.Role(this, `IAM-Role-${role}`, {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ServicePrincipal(`${type}.amazonaws.com`),
@@ -132,7 +132,7 @@ export class IamAssets extends cdk.Construct {
             `IAM config - roles is not defined for account with key - ${accountKey}. Skipping Roles creation.`,
           );
         } else {
-          createIamRole(
+          const role = createIamRole(
             iamRole.role,
             iamRole.type,
             iamRole.policies,
@@ -145,7 +145,7 @@ export class IamAssets extends cdk.Construct {
           if (iamRole.type === 'ec2') {
             new iam.CfnInstanceProfile(this, `IAM-Instance-Profile-${iamRole.role}-${accountKey}`, {
               path: '/',
-              roles: [iamRole.role],
+              roles: [role.roleName],
               instanceProfileName: createIamInstanceProfileName(iamRole.role),
             });
           }
