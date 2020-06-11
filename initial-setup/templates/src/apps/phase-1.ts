@@ -34,6 +34,7 @@ import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
+import * as accountWarming from '../deployments/account-warming';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -275,7 +276,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
     }
 
-    // Validate subscription for Firewall imagesonly once per account
+    // Validate subscription for Firewall images only once per account
     if (!subscriptionCheckDone.includes(accountKey)) {
       console.log(`Checking Subscription for ${accountKey}`);
       await firewallSubscription.validate({
@@ -284,6 +285,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         vpc: vpc!,
         accountStacks,
       });
+
+      // verify and create ec2 instance to increase account limits
+      await accountWarming.step1({
+        accountKey,
+        vpc: vpc!,
+        accountStacks,
+        config: acceleratorConfig,
+        outputs,
+      });
+
       subscriptionCheckDone.push(accountKey);
     }
   }

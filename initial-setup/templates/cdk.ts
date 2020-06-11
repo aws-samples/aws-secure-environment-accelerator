@@ -1,4 +1,3 @@
-import path from 'path';
 import mri from 'mri';
 import { CdkToolkit } from './toolkit';
 import * as app from './src/app';
@@ -28,19 +27,21 @@ async function main() {
 
   const commands = args['_'];
   const phase = args.phase;
+  const parallel = args.parallel;
   if (phase === undefined || commands.length === 0) {
     console.log(usage);
     return;
   }
 
-  const cdkApp = await app.deploy({
-    outdir: path.join(__dirname, 'cdk.out'),
-    phase: `${phase}`,
+  const apps = await app.deploy({
+    phaseId: `${phase}`,
     region: args.region,
     accountKey: args['account-key'],
+    // Make sure assets do not build in to the same directory when running in parallel
+    useTempOutputDir: parallel,
   });
 
-  const toolkit = await CdkToolkit.create(cdkApp);
+  const toolkit = await CdkToolkit.create(apps);
 
   if (commands.includes('bootstrap')) {
     await toolkit.bootstrap();

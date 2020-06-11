@@ -231,7 +231,7 @@ export function getLambdaFunctionArn(
   const elbLambdaFunction = new lambda.Function(scope, `ElbLambdaFunction${albName}${targetName}`, {
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(artifactsFilePath.toString()),
-    handler: 'index.elb',
+    handler: 'index.handler',
     role,
   });
   elbLambdaFunction.addPermission(`InvokePermission${albName}${targetName}`, {

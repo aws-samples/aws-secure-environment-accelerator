@@ -260,6 +260,7 @@ export namespace InitialSetup {
       // creating a bucket to store SCP artifacts
       const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
         versioned: true,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
       });
 
       const scpArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'SCPs');

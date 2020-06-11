@@ -2,8 +2,9 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import * as iam from '@aws-cdk/aws-iam';
-import * as logs from '@aws-cdk/aws-logs';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import { LogGroup } from '@custom-resources/logs-log-group';
+import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
@@ -16,7 +17,6 @@ import * as firewallCluster from '../deployments/firewall/cluster';
 import * as iamDeployment from '../deployments/iam';
 import * as mad from '../deployments/mad';
 import { PhaseInput } from './shared';
-import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 /**
@@ -56,6 +56,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }): void => {
     const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
 
+    // TODO Leave existing files in the folder
+    // TODO Do not override existing files
+    // See https://github.com/aws/aws-cdk/issues/953
     new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
       sources: [s3deployment.Source.asset(artifactsFolderPath)],
       destinationBucket: centralBucket,
@@ -82,6 +85,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountKey: masterAccountKey,
     destinationKeyPrefix: 'iam-policy',
   });
+
+  // upload firewall
+  // uploadArtifacts({
+  //   artifactName: 'Firewall',
+  //   artifactFolderName: 'Third-Party',
+  //   artifactKeyPrefix: 'Third-Party/',
+  //   accountKey: masterAccountKey,
+  //   destinationKeyPrefix: 'firewall',
+  // });
 
   // upload RDGW Artifacts
   uploadArtifacts({
@@ -187,7 +199,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       acceleratorPrefix: context.acceleratorPrefix,
       domain: phz,
     });
-    return new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
+    return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
       logGroupName,
     });
   });

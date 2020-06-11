@@ -9,12 +9,14 @@ export interface Template {
   Resources: Record<string, Resource>;
 }
 
+export type ResourceProperties = { [key: string]: any };
+
 /**
  * Interface that represents a CloudFormation resource.
  */
 export interface Resource {
   Type: string;
-  Properties: { [key: string]: any };
+  Properties: ResourceProperties;
 }
 
 /**
@@ -59,7 +61,10 @@ export function stackToCloudFormation(stack: cdk.Stack): Template {
  * ]
  * @param object
  */
-export function resourcesToList(object: Record<string, Resource>): ResourceWithLogicalId[] {
+export function resourcesToList(object: Record<string, Resource> | undefined): ResourceWithLogicalId[] {
+  if (!object) {
+    return [];
+  }
   const result = [];
   for (const key of Object.keys(object)) {
     const value = object[key];
