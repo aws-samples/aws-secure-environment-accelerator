@@ -28,6 +28,7 @@ export async function step1(props: SSMStep1Props) {
     });
     ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
     ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
+    ssmKey.grantEncryptDecrypt(new ServicePrincipal('ssm.amazonaws.com'));
 
     const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
       logGroupName: createLogGroupName('SSM'),
