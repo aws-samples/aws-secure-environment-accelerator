@@ -1,10 +1,9 @@
 import { IPv4CidrRange } from 'ip-num';
-import { Keypair } from '@custom-resources/ec2-keypair';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import { S3Template } from '@custom-resources/s3-template';
+import { IInstanceProfile } from '../iam';
 import { Subnet, SecurityGroup } from '../vpc';
 
 export interface FirewallVpnTunnelOptions {
@@ -39,21 +38,18 @@ export interface FirewallInstanceProps {
    */
   imageId: string;
   instanceType: string;
-  iamInstanceProfile: iam.CfnInstanceProfile;
+  instanceProfile: IInstanceProfile;
   keyPairName?: string;
   configuration: FirewallConfigurationProps;
 }
 
 export class FirewallInstance extends cdk.Construct {
-  private readonly props: FirewallInstanceProps;
   private readonly resource: ec2.CfnInstance;
   private readonly template: S3Template;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: FirewallInstanceProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: FirewallInstanceProps) {
     super(scope, id);
-
-    this.props = props;
 
     const { configuration } = props;
 
@@ -80,7 +76,7 @@ export class FirewallInstance extends cdk.Construct {
     this.resource = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
-      iamInstanceProfile: this.props.iamInstanceProfile.ref,
+      iamInstanceProfile: this.props.instanceProfile.instanceProfileName,
       keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
       userData: cdk.Fn.base64(
@@ -98,7 +94,6 @@ export class FirewallInstance extends cdk.Construct {
     });
     cdk.Tag.add(this.resource, 'Name', this.props.name);
 
-    this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
   }
 
