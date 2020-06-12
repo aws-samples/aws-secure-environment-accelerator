@@ -760,7 +760,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "a",
-                  "port": "Public"
+                  "port": "OnPremise"
                 },
                 {
                   "destination": "s3",
@@ -780,7 +780,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "b",
-                  "port": "Public"
+                  "port": "OnPremise"
                 },
                 {
                   "destination": "s3",
@@ -876,6 +876,11 @@
                   "description": "Web Traffic Inbound",
                   "tcp-ports": [22, 443, 541, 3000, 8080],
                   "source": ["0.0.0.0/0"]
+                },
+				{
+                  "description": "Mgmt Traffic and AWS Outbound traffic",
+                  "type": ["ALL"],
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
