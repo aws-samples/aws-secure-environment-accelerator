@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
+import { IInstanceProfile } from '../iam';
 import { FirewallInstance, FirewallConfigurationProps } from './instance';
 
 export type FirewallClusterConfigurationProps = Omit<FirewallConfigurationProps, 'configPath'>;
@@ -9,28 +10,19 @@ export interface FirewallClusterProps {
   vpcCidrBlock: string;
   imageId: string;
   instanceType: string;
-  roleName?: string;
+  instanceRole: iam.IRole;
+  instanceProfile: IInstanceProfile;
   keyPairName?: string;
   configuration: FirewallClusterConfigurationProps;
 }
 
 export class FirewallCluster extends cdk.Construct {
-  private readonly props: FirewallClusterProps;
-
   readonly instances: FirewallInstance[] = [];
-  readonly instanceRole: iam.Role;
-  readonly instanceProfile: iam.CfnInstanceProfile;
 
-  constructor(scope: cdk.Construct, id: string, props: FirewallClusterProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: FirewallClusterProps) {
     super(scope, id);
 
-    this.props = props;
-
-    this.instanceRole = new iam.Role(this, 'InstanceRole', {
-      roleName: props.roleName,
-      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
-    });
-    this.instanceRole.addToPolicy(
+    props.instanceRole.addToPolicy(
       new iam.PolicyStatement({
         actions: [
           'ec2:Describe*',
@@ -42,12 +34,7 @@ export class FirewallCluster extends cdk.Construct {
         resources: ['*'],
       }),
     );
-    this.instanceProfile = new iam.CfnInstanceProfile(this, 'InstanceProfile', {
-      path: '/',
-      roles: [this.instanceRole.roleName],
-    });
-
-    this.props.configuration.bucket.grantRead(this.instanceRole);
+    props.configuration.bucket.grantRead(props.instanceRole);
   }
 
   createInstance(props: {
@@ -67,7 +54,7 @@ export class FirewallCluster extends cdk.Construct {
       vpcCidrBlock: this.props.vpcCidrBlock,
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
-      iamInstanceProfile: this.instanceProfile,
+      instanceProfile: this.props.instanceProfile,
       keyPairName: this.props.keyPairName,
       configuration: {
         ...this.props.configuration,

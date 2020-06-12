@@ -15,10 +15,7 @@
     ],
     "forin": true,
     "indent": false,
-    "interface-name": [
-      true,
-      "never-prefix"
-    ],
+    "interface-name": false,
     "jsdoc-format": true,
     "jsx-no-lambda": false,
     "jsx-no-multiline-js": false,

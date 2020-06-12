@@ -15,13 +15,11 @@ export interface KeypairProps {
 export class Keypair extends cdk.Construct implements cdk.ITaggable {
   tags: cdk.TagManager = new cdk.TagManager(cdk.TagType.KEY_VALUE, 'Keypair');
 
-  private readonly props: KeypairProps;
   private resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: KeypairProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: KeypairProps) {
     super(scope, id);
 
-    this.props = props;
     this.tags.setTag('Name', props.name);
 
     const handlerProperties: HandlerProperties = {
