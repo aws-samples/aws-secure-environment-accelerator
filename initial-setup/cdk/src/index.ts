@@ -79,6 +79,11 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
+      const commitIdSecret = new secrets.Secret(this, 'CommitId', {
+        secretName: 'accelerator/commitId',
+        description: 'This secret contains the commitId of the git repository configuration file',
+      });
+
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: createRoleName('L-SFN-MasterRole'),
@@ -127,6 +132,20 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           s3FileName: props.configS3FileName,
           branchName: props.configBranchName,
+        },
+        resultPath: '$.configuration',
+      });
+
+      const compareConfigurationsTask = new CodeTask(this, 'Compare Configurations', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.compareConfigurationsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'inputConfig.$':'$',
+          commitSecretId: commitIdSecret.secretArn,
+          region: cdk.Aws.REGION,
         },
         resultPath: '$.configuration',
       });
@@ -448,9 +467,25 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storeCommitIdTask = new CodeTask(this, 'Store CommitId', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeCommitIdStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          commitSecretId: commitIdSecret.secretArn,
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
+          .next(compareConfigurationsTask)
           .next(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
@@ -474,7 +509,8 @@ export namespace InitialSetup {
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
           .next(deployPhase5Task)
-          .next(createAdConnectorTask),
+          .next(createAdConnectorTask)
+          .next(storeCommitIdTask),
       });
     }
   }
