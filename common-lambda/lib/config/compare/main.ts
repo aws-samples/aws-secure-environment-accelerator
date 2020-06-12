@@ -25,10 +25,7 @@ export async function compareAcceleratorConfig(props: {
 }): Promise<AcceleratorConfig | undefined> {
   const { repositoryName, filePath, commitId, previousCommitId } = props;
 
-  const validateConfig = async (
-    accountNames: string[],
-    differences: Diff<LHS, RHS>[],
-  ): Promise<void> => {
+  const validateConfig = async (accountNames: string[], differences: Diff<LHS, RHS>[]): Promise<void> => {
     // below functions check whether sub accounts removed from config file
     await compareAccounts.deletedSubAccount(accountNames, differences);
 
