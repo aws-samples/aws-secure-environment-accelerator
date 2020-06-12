@@ -32,8 +32,8 @@ export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAv
   if (response.State === 'FAILED' && ACCOUNT_ALREADY_EXISTS.includes(response.FailureReason!)) {
     return {
       status: 'ALREADY_EXISTS',
-      statusReason: response.FailureReason
-    }
+      statusReason: response.FailureReason,
+    };
   }
   return {
     status: response.State,

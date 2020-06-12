@@ -39,10 +39,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
-        actions: [
-          'organizations:CreateAccount',
-          'organizations:DescribeCreateAccountStatus',
-        ],
+        actions: ['organizations:CreateAccount', 'organizations:DescribeCreateAccountStatus'],
       }),
     );
 
@@ -70,7 +67,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       functionPayload: {
         'account.$': '$.createAccountConfiguration.account',
         'requestId.$': '$.createOutput.provisionToken',
-      }
+      },
     });
 
     const waitTask = new sfn.Wait(scope, 'Wait for Org Account Creation', {
@@ -90,9 +87,9 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       },
       functionPayload: {
         'account.$': '$.createAccountConfiguration.account',
-        'accountId': '$.verifyOutput.accountId',
+        accountId: '$.verifyOutput.accountId',
         'organizationalUnits.$': '$.createAccountConfiguration.organizationalUnits',
-      }
+      },
     });
     moveAccountToOrgTask.next(pass);
 

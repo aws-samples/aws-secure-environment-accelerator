@@ -23,9 +23,7 @@ export class Organizations {
   }
 
   async describeOrganization(): Promise<org.OrganizationalUnit | undefined> {
-    const response = await this.client
-      .describeOrganization()
-      .promise();
+    const response = await this.client.describeOrganization().promise();
     return response.Organization;
   }
 
@@ -271,13 +269,14 @@ export class Organizations {
    * @param email
    * @param accountName
    */
-  async createAccount(email: string, accountName: string) : Promise<org.CreateAccountStatus | undefined> {
+  async createAccount(email: string, accountName: string): Promise<org.CreateAccountStatus | undefined> {
     const accountStatus = await throttlingBackOff(() =>
-      this.client.createAccount({
-        AccountName: accountName,
-        Email: email
-      })
-      .promise()
+      this.client
+        .createAccount({
+          AccountName: accountName,
+          Email: email,
+        })
+        .promise(),
     );
     return accountStatus.CreateAccountStatus;
   }
@@ -286,12 +285,13 @@ export class Organizations {
    * to get create account status
    * @param requestId
    */
-  async createAccountStatus(requestId: string) : Promise<org.CreateAccountStatus | undefined> {
-    const accountStatus =  await throttlingBackOff(() =>
-      this.client.describeCreateAccountStatus({
-        CreateAccountRequestId: requestId
-      })
-      .promise()
+  async createAccountStatus(requestId: string): Promise<org.CreateAccountStatus | undefined> {
+    const accountStatus = await throttlingBackOff(() =>
+      this.client
+        .describeCreateAccountStatus({
+          CreateAccountRequestId: requestId,
+        })
+        .promise(),
     );
     return accountStatus.CreateAccountStatus;
   }
@@ -303,9 +303,6 @@ export class Organizations {
    * @param destinationOuId
    */
   async moveAccount(params: org.MoveAccountRequest): Promise<void> {
-    await throttlingBackOff(() =>
-      this.client.moveAccount(params)
-      .promise()
-    );
+    await throttlingBackOff(() => this.client.moveAccount(params).promise());
   }
 }

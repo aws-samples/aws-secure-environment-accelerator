@@ -243,7 +243,7 @@ export namespace InitialSetup {
         parameters: {
           'account.$': '$$.Map.Item.Value',
           'organizationalUnits.$': '$.configuration.organizationalUnits',
-        }
+        },
       });
 
       const createOrganizationAccountTask = new sfn.Task(this, 'Create Organization Account', {

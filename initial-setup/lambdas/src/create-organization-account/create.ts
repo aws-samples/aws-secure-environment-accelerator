@@ -15,9 +15,9 @@ export const handler = async (account: ConfigurationAccount): Promise<CreateAcco
   }
 
   const { accountName, emailAddress } = account;
-  
+
   const accountResponse = await org.createAccount(emailAddress, accountName);
-  const response =  accountResponse;
+  const response = accountResponse;
   // TODO Handle more failure cases
   if (!response) {
     if (!account.isMandatoryAccount) {

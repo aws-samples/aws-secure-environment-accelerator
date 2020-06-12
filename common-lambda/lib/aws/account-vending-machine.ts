@@ -4,7 +4,7 @@ import { ProductAVMParam, ServiceCatalog } from './service-catalog';
 import { STS } from './sts';
 import { CreateAccountInput, CreateAccountOutput, AccountAvailableOutput } from './types/account';
 
-export interface CreateAvmAccountInput extends   CreateAccountInput {
+export interface CreateAvmAccountInput extends CreateAccountInput {
   avmPortfolioName: string;
   avmProductName: string;
 }
