@@ -1,6 +1,6 @@
 import { CodeCommit } from '../../aws/codecommit';
 import { AcceleratorConfig } from '..';
-import { compareConfiguration } from '../../aws/config-diff';
+import { compareConfiguration, LHS, RHS } from '../../aws/config-diff';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as compareAccounts from './accounts';
@@ -13,7 +13,6 @@ const NACLS = ['vpc', 'subnets', 'nacls'];
 const CIDR = ['vpc', 'subnets', 'definitions', 'cidr', 'ipv4', 'value'];
 const CIDR2 = ['vpc', 'subnets', 'definitions', 'cidr2', 'ipv4', 'value'];
 const TGW = ['vpc', 'tgw-attach'];
-
 
 /**
  * Retrieve and compare previous and the current configuration from CodeCommit
@@ -28,10 +27,8 @@ export async function compareAcceleratorConfig(props: {
 
   const validateConfig = async (
     accountNames: string[],
-    // tslint:disable-next-line:no-any
-    differences: Diff<any, any>[],
+    differences: Diff<LHS, RHS>[],
   ): Promise<void> => {
-
     // below functions check whether sub accounts removed from config file
     await compareAccounts.deletedSubAccount(accountNames, differences);
 
@@ -75,7 +72,7 @@ export async function compareAcceleratorConfig(props: {
 
     // below functions check whether adc related configuration removed from config file
     await vpcConfig.deletedConfigDependency(differences, 'adc');
-  }
+  };
 
   // const codecommit = new CodeCommit();
   try {
@@ -88,7 +85,15 @@ export async function compareAcceleratorConfig(props: {
     // console.log('reading latest committed file as string');
     // const modified = file.fileContent.toString();
 
-    const previousFilePath = path.join(__dirname, '..', '..', '..', '..', 'test-compare-config', 'config-previous.json');
+    const previousFilePath = path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      '..',
+      'test-compare-config',
+      'config-previous.json',
+    );
     const previousFileContent = fs.readFileSync(previousFilePath);
     // console.log('reading previous committed file as string');
     const previousContent = previousFileContent.toString();
@@ -96,27 +101,25 @@ export async function compareAcceleratorConfig(props: {
     // console.log('converting previous committed file into AcceleratorConfig object');
     const previousConfig = AcceleratorConfig.fromString(previousContent);
 
-    const filePath = path.join(__dirname, '..', '..', '..', '..', 'test-compare-config', 'config.json');
-    const fileContent = fs.readFileSync(filePath);
+    const localFilePath = path.join(__dirname, '..', '..', '..', '..', 'test-compare-config', 'config.json');
+    const fileContent = fs.readFileSync(localFilePath);
     // console.log('reading latest committed file as string');
     const modifiedContent = fileContent.toString();
     // console.log('converting latest committed file into AcceleratorConfig object');
     const modifiedConfig = AcceleratorConfig.fromString(modifiedContent);
 
     // compare both the configurations
-    var differences = compareConfiguration(previousConfig, modifiedConfig);
-    console.log(differences);
-    if (!differences) {
+    const configChanges = compareConfiguration(previousConfig, modifiedConfig);
+    console.log(configChanges);
+    if (!configChanges) {
       console.log('no differences found');
       return AcceleratorConfig.fromString(modifiedContent);
     }
 
     // get all the accounts from previous commit
-    const accountNames = previousConfig
-      .getAccountConfigs()
-      .map(([_, accountConfig]) => accountConfig['account-name']);
+    const accountNames = previousConfig.getAccountConfigs().map(([_, accountConfig]) => accountConfig['account-name']);
 
-    await validateConfig(accountNames, differences);
+    await validateConfig(accountNames, configChanges);
 
     return AcceleratorConfig.fromString(modifiedContent);
   } catch (e) {
@@ -124,11 +127,9 @@ export async function compareAcceleratorConfig(props: {
   }
 }
 
-compareAcceleratorConfig(
-  {
-    repositoryName: 'PBMMAccel-Config-Repo',
-    filePath: 'config.json',
-    commitId: '6707bae30a71f82f987b9680ed662681bc5ccbdb',
-    previousCommitId: '28fc52cfdc37e426e96d4ae95f2b00444d2f1fca',
-  }
-);
+// compareAcceleratorConfig({
+//   repositoryName: 'PBMMAccel-Config-Repo',
+//   filePath: 'config.json',
+//   commitId: '6707bae30a71f82f987b9680ed662681bc5ccbdb',
+//   previousCommitId: '28fc52cfdc37e426e96d4ae95f2b00444d2f1fca',
+// });

@@ -143,7 +143,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'inputConfig.$':'$',
+          'inputConfig.$': '$',
           commitSecretId: commitIdSecret.secretArn,
           region: cdk.Aws.REGION,
         },

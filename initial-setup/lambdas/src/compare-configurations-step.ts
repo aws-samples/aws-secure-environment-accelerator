@@ -1,6 +1,7 @@
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 
-const OVERRIDE_KEYS = ['ov-global-options',
+const OVERRIDE_KEYS = [
+  'ov-global-options',
   'ov-del-accts',
   'ov-ren-accts',
   'ov-acct-ou',
@@ -12,13 +13,13 @@ const OVERRIDE_KEYS = ['ov-global-options',
   'ov-ou-subnet',
   'ov-share-to-ou',
   'ov-share-to-accounts',
-  'ov-nacl'
+  'ov-nacl',
 ];
 
 export interface StepInput {
   inputConfig: CompareConfigurationInput;
   commitSecretId: string;
-  region: string,
+  region: string;
 }
 
 export interface CompareConfigurationInput {
@@ -64,14 +65,11 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
       console.log('configOverride', configOverride.name, configOverride.isEnabled);
     }
   } else {
-    console.log('no override configurations found')
+    console.log('no override configurations found');
   }
-
-
 
   // Keep track of errors and warnings instead of failing immediately
   // const errors = [];
-
 
   // Throw all errors at once
   // if (errors.length > 0) {

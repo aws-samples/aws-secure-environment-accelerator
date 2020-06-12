@@ -1,10 +1,7 @@
 import { Diff, DiffEdit, DiffArray, DiffDeleted } from 'deep-diff';
 import { getDiffs, RHS, LHS } from '../../aws/config-diff';
 
-export async function deletedConfig(
-  diffs: Diff<any, any>[],
-  pathValue: string,
-): Promise<void | undefined> {
+export async function deletedConfig(diffs: Diff<LHS, RHS>[], pathValue: string): Promise<void | undefined> {
   const deletedDiffs = getDiffs(diffs, 'D');
   // console.log('deletedDiffs', deletedDiffs);
   if (!deletedDiffs) {
@@ -23,10 +20,7 @@ export async function deletedConfig(
   }
 }
 
-export async function deletedConfigDependency(
-  diffs: Diff<any, any>[],
-  pathValue: string,
-): Promise<void | undefined> {
+export async function deletedConfigDependency(diffs: Diff<LHS, RHS>[], pathValue: string): Promise<void | undefined> {
   const updatedDiffs = getDiffs(diffs, 'E');
   // console.log('deletedDiffs', deletedDiffs);
   const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
@@ -45,7 +39,7 @@ export async function deletedConfigDependency(
 }
 
 export async function deletedConfigDependencyArray(
-  diffs: Diff<any, any>[],
+  diffs: Diff<LHS, RHS>[],
   pathValue: string,
 ): Promise<void | undefined> {
   const arrayDiffs = getDiffs(diffs, 'A');
@@ -61,16 +55,15 @@ export async function deletedConfigDependencyArray(
       // const diffDelete = editedArrayDiff.item as DiffDeleted<LHS>;
       const changedValue = editedArrayDiff.path?.[editedArrayDiff.path?.length - 1];
       if (changedValue === pathValue) {
-        throw new Error(`removed account "${changedValue}" in an array from config path "${editedArrayDiff.path?.join('/')}"`);
+        throw new Error(
+          `removed account "${changedValue}" in an array from config path "${editedArrayDiff.path?.join('/')}"`,
+        );
       }
     }
   }
 }
 
-export async function editedConfigDependency(
-  diffs: Diff<any, any>[],
-  pathValues: string[],
-): Promise<void | undefined> {
+export async function editedConfigDependency(diffs: Diff<LHS, RHS>[], pathValues: string[]): Promise<void | undefined> {
   const updatedDiffs = getDiffs(diffs, 'E');
   // console.log('deletedDiffs', deletedDiffs);
   const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
@@ -89,7 +82,7 @@ export async function editedConfigDependency(
 }
 
 export async function editedConfigDependencyArray(
-  diffs: Diff<any, any>[],
+  diffs: Diff<LHS, RHS>[],
   pathValues: string[],
 ): Promise<void | undefined> {
   const arrayDiffs = getDiffs(diffs, 'A');
@@ -104,7 +97,9 @@ export async function editedConfigDependencyArray(
     if (editedArrayDiff.item.kind === 'D') {
       const found = pathValues.every(r => editedArrayDiff.path?.includes(r));
       if (found) {
-        throw new Error(`removed ${pathValues[pathValues.length - 1]} from config path "${editedArrayDiff.path?.join('/')}"`);
+        throw new Error(
+          `removed ${pathValues[pathValues.length - 1]} from config path "${editedArrayDiff.path?.join('/')}"`,
+        );
       }
     }
   }

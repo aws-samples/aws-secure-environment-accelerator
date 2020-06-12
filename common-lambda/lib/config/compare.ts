@@ -14,7 +14,6 @@ export async function compareAcceleratorConfig(props: {
   const { repositoryName, filePath, commitId, previousCommitId } = props;
   const codecommit = new CodeCommit();
   try {
-
     console.log('started comparison');
     console.log('getting previous file');
     const previousFile = await codecommit.getFile(repositoryName, filePath, previousCommitId);
@@ -29,7 +28,7 @@ export async function compareAcceleratorConfig(props: {
     const modifiedConfig = AcceleratorConfig.fromString(modified);
 
     // TODO compare both the configurations
-    var differences = compareConfiguration(originalConfig, modifiedConfig);
+    const differences = compareConfiguration(originalConfig, modifiedConfig);
     console.log(differences);
 
     return AcceleratorConfig.fromString(modified);
@@ -38,11 +37,9 @@ export async function compareAcceleratorConfig(props: {
   }
 }
 
-compareAcceleratorConfig(
-  {
-    repositoryName: 'PBMMAccel-Config-Repo',
-    filePath: 'config.json',
-    commitId: '6707bae30a71f82f987b9680ed662681bc5ccbdb',
-    previousCommitId: '28fc52cfdc37e426e96d4ae95f2b00444d2f1fca',
-  }
-);
+// compareAcceleratorConfig({
+//   repositoryName: 'PBMMAccel-Config-Repo',
+//   filePath: 'config.json',
+//   commitId: '6707bae30a71f82f987b9680ed662681bc5ccbdb',
+//   previousCommitId: '28fc52cfdc37e426e96d4ae95f2b00444d2f1fca',
+// });

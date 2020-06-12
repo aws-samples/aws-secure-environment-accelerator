@@ -1,27 +1,24 @@
 import { Diff, DiffEdit, DiffArray, DiffDeleted } from 'deep-diff';
 import { getDiffs, RHS, LHS } from '../../aws/config-diff';
 
-export async function deletedSubAccount (
-    accountNames: string[],
-    diffs: Diff<any, any>[],
-  ): Promise<void | undefined> {
-    const deletedDiffs = getDiffs(diffs, 'D');
-    // console.log('deletedDiffs', deletedDiffs);
-    if (!deletedDiffs) {
-      console.log('no deletes detected');
+export async function deletedSubAccount(accountNames: string[], diffs: Diff<LHS, RHS>[]): Promise<void | undefined> {
+  const deletedDiffs = getDiffs(diffs, 'D');
+  // console.log('deletedDiffs', deletedDiffs);
+  if (!deletedDiffs) {
+    console.log('no deletes detected');
+    return;
+  }
+
+  for (const deletedDiff of deletedDiffs) {
+    if (!deletedDiff.path) {
       return;
     }
-
-    for (const deletedDiff of deletedDiffs) {
-      if (!deletedDiff.path) {
-        return;
-      }
-      const accountName = deletedDiff.path[deletedDiff.path.length - 1];
-      if (accountNames.includes(accountName)) {
-        throw new Error(`removed account "${accountName}" from config path "${deletedDiff.path.join('/')}"`);
-      }
+    const accountName = deletedDiff.path[deletedDiff.path.length - 1];
+    if (accountNames.includes(accountName)) {
+      throw new Error(`removed account "${accountName}" from config path "${deletedDiff.path.join('/')}"`);
     }
   }
+}
 
 //   export async function editedAccountDependency (
 //     accountNames: string[],
