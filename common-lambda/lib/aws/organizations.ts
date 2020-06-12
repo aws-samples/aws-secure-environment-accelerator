@@ -22,6 +22,13 @@ export class Organizations {
     return response.OrganizationalUnit;
   }
 
+  async describeOrganization(): Promise<org.OrganizationalUnit | undefined> {
+    const response = await this.client
+      .describeOrganization()
+      .promise();
+    return response.Organization;
+  }
+
   async getPolicyByName(
     input: org.ListPoliciesRequest & { Name: string },
   ): Promise<org.DescribePolicyResponse | undefined> {
@@ -257,5 +264,48 @@ export class Organizations {
         throw e;
       }
     }
+  }
+
+  /**
+   * to create aws account
+   * @param email
+   * @param accountName
+   */
+  async createAccount(email: string, accountName: string) : Promise<org.CreateAccountStatus | undefined> {
+    const accountStatus = await throttlingBackOff(() =>
+      this.client.createAccount({
+        AccountName: accountName,
+        Email: email
+      })
+      .promise()
+    );
+    return accountStatus.CreateAccountStatus;
+  }
+
+  /**
+   * to get create account status
+   * @param requestId
+   */
+  async createAccountStatus(requestId: string) : Promise<org.CreateAccountStatus | undefined> {
+    const accountStatus =  await throttlingBackOff(() =>
+      this.client.describeCreateAccountStatus({
+        CreateAccountRequestId: requestId
+      })
+      .promise()
+    );
+    return accountStatus.CreateAccountStatus;
+  }
+
+  /**
+   * to move account to Organization
+   * @param accountId
+   * @param parentOuId
+   * @param destinationOuId
+   */
+  async moveAccount(params: org.MoveAccountRequest): Promise<void> {
+    await throttlingBackOff(() =>
+      this.client.moveAccount(params)
+      .promise()
+    );
   }
 }

@@ -40,12 +40,8 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
         effect: iam.Effect.ALLOW,
         resources: ['*'],
         actions: [
-          'servicecatalog:ListPortfolios',
-          'servicecatalog:AssociatePrincipalWithPortfolio',
-          'servicecatalog:SearchProducts',
-          'servicecatalog:ListProvisioningArtifacts',
-          'servicecatalog:ProvisionProduct',
-          'servicecatalog:SearchProvisionedProducts',
+          'organizations:CreateAccount',
+          'organizations:DescribeCreateAccountStatus',
         ],
       }),
     );
@@ -59,6 +55,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
         code: lambdaCode,
         handler: 'index.createOrganizationAccount.create',
       },
+      inputPath: '$.createAccountConfiguration.account',
     });
 
     const verifyTaskResultPath = '$.verifyOutput';
@@ -70,6 +67,10 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
         code: lambdaCode,
         handler: 'index.createOrganizationAccount.verify',
       },
+      functionPayload: {
+        'account.$': '$.createAccountConfiguration.account',
+        'requestId.$': '$.createOutput.provisionToken',
+      }
     });
 
     const waitTask = new sfn.Wait(scope, 'Wait for Org Account Creation', {
@@ -80,11 +81,27 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
 
     const fail = new sfn.Fail(this, 'Org Account Creation Failed');
 
+    const moveAccountToOrgTask = new CodeTask(scope, 'Move Account To Organization', {
+      resultPath: 'DISCARD',
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.moveAccountToOrg',
+      },
+      functionPayload: {
+        'account.$': '$.createAccountConfiguration.account',
+        'accountId': '$.verifyOutput.accountId',
+        'organizationalUnits.$': '$.createAccountConfiguration.organizationalUnits',
+      }
+    });
+    moveAccountToOrgTask.next(pass);
+
     waitTask
       .next(verifyTask)
       .next(
         new sfn.Choice(scope, 'Org Account Creation Done?')
-          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCEEDED'), moveAccountToOrgTask)
+          .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'ALREADY_EXISTS'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
           .otherwise(fail)
@@ -93,10 +110,9 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
 
     createTask.next(
       new sfn.Choice(scope, 'Account Creation Started?')
-        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), waitTask)
+        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCEEDED'), waitTask)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), pass)
-        .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NOT_RELEVANT'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'IN_PROGRESS'), waitTask)
         .otherwise(fail)
         .afterwards(),

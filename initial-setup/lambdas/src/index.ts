@@ -18,6 +18,7 @@ export { handler as inviteMembersSecurityHub } from './send-security-hub-invite'
 export { handler as acceptInviteSecurityHub } from './accept-security-hub-invite';
 export { handler as getOrCreateConfig } from './get-or-create-config';
 export { handler as getBaseline } from './get-baseline-step';
+export { handler as moveAccountToOrg } from './move-account-to-org';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

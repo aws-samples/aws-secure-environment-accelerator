@@ -240,13 +240,17 @@ export namespace InitialSetup {
         itemsPath: '$.configuration.accounts',
         resultPath: 'DISCARD',
         maxConcurrency: 1,
+        parameters: {
+          'account.$': '$$.Map.Item.Value',
+          'organizationalUnits.$': '$.configuration.organizationalUnits',
+        }
       });
 
       const createOrganizationAccountTask = new sfn.Task(this, 'Create Organization Account', {
         task: new tasks.StartExecution(createOrganizationAccountStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
-            'account.$': '$',
+            'createAccountConfiguration.$': '$',
           },
         }),
       });
@@ -385,6 +389,7 @@ export namespace InitialSetup {
                 'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
                 'CONFIG_FILE_PATH.$': '$.configFilePath',
                 'CONFIG_COMMIT_ID.$': '$.configCommitId',
+                'CONFIG_BASELINE.$': '$.baseline',
               },
             },
           }),
