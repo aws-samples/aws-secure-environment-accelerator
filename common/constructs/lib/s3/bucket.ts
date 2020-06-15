@@ -49,7 +49,7 @@ export class Bucket extends s3.Bucket {
     this.resource = this.node.findChild('Resource') as s3.CfnBucket;
   }
 
-  replicateFrom(principals: iam.IPrincipal[]) {
+  replicateFrom(organizationId: string) {
     this.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -62,20 +62,33 @@ export class Bucket extends s3.Bucket {
           's3:ReplicateTags',
           's3:List*',
         ],
-        principals,
+        principals: [new iam.AnyPrincipal()],
         resources: [this.bucketArn, this.arnForObjects('*')],
+        conditions: {
+          "StringEquals": {
+            "aws:PrincipalOrgID": organizationId,
+          },
+          "ArnLike": {
+            "aws:PrincipalARN": ["arn:aws:iam::*:role/PBMMAccel-*"],
+          }
+        },
       }),
     );
 
-    // Allow the whole account access to the destination encryption key
+    // Allow the whole oganization access to the destination encryption key
     // The replication role ARN cannot be used here as it would be a cross-account reference
     if (this.encryptionKey) {
       this.encryptionKey.addToResourcePolicy(
         new iam.PolicyStatement({
           sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
           actions: ['kms:Encrypt'],
-          principals,
+          principals: [new iam.AnyPrincipal()],
           resources: ['*'],
+          conditions: {
+            "StringEquals": {
+              "aws:PrincipalOrgID": organizationId,
+            },
+          },
         }),
       );
     }
