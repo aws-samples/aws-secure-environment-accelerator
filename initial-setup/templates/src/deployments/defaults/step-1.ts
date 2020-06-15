@@ -21,7 +21,6 @@ import { Account } from '../../utils/accounts';
 import { StructuredOutput } from '../../common/structured-output';
 import { createDefaultS3Bucket } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
-import { AnyPrincipal } from '@aws-cdk/aws-iam';
 
 export interface DefaultsStep1Props {
   acceleratorPrefix: string;
