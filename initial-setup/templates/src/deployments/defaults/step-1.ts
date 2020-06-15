@@ -157,15 +157,15 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
+  const organizations = new Organizations(logAccountStack, 'Organizations');
+
   const logBucket = createDefaultS3Bucket({
     accountStack: logAccountStack,
     config,
   });
 
-  const organization = new Organizations();
-
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(organization.organizationId());
+  logBucket.replicateFrom(organizations.organizationId);
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
@@ -174,7 +174,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
       resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
       conditions: {
         StringEquals: {
-          'aws:PrincipalOrgID': organization.organizationId(),
+          'aws:PrincipalOrgID': organizations.organizationId,
         },
       },
     }),
@@ -219,6 +219,22 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
       resources: [`${logBucket.bucketArn}`],
     }),
   );
+
+  // Allow cross account encrypt access for logArchive bucket
+  logBucket.encryptionKey?.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
+      actions: ['kms:Encrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+      principals: [new iam.AnyPrincipal()],
+      resources: ['*'],
+      conditions: {
+        'StringEquals': {
+          'aws:PrincipalOrgID': organizations.organizationId,
+      }
+      }
+    }),
+  );
+
 
   new StructuredOutput<LogBucketOutput>(logAccountStack, 'LogBucketOutput', {
     type: LogBucketOutputType,
