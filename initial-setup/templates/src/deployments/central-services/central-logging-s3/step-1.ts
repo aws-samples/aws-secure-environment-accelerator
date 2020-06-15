@@ -14,20 +14,21 @@ import { CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX } from '../../../utils/consta
 export interface CentralLoggingToS3Step1Props {
   accountStack: AccountStack;
   accounts: Account[];
-  bucketArn: string;
+  logBucket: s3.IBucket;
 }
 
 /**
  * Enable Central Logging to S3 in "log-archive" account Step 1
  */
 export async function step1(props: CentralLoggingToS3Step1Props) {
-  const { accountStack, accounts, bucketArn } = props;
+  const { accountStack, accounts, logBucket } = props;
   // Setup for CloudWatch logs storing in logs account
   const allAccountIds = accounts.map(account => account.id);
   await cwlSettingsInLogArchive({
     scope: accountStack,
     accountIds: allAccountIds,
-    bucketArn,
+    bucketArn: logBucket.bucketArn,
+    encryptionKey: logBucket.encryptionKey?.keyArn!,
   });
 }
 
@@ -35,8 +36,8 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
  * Create initial Setup in Log Archive Account for centralized logging for sub accounts in single S3 bucket
  * 5.15b - READY - Centralize CWL - Part 2
  */
-async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds: string[]; bucketArn: string }) {
-  const { scope, accountIds, bucketArn } = props;
+async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds: string[]; bucketArn: string, encryptionKey: string }) {
+  const { scope, accountIds, bucketArn, encryptionKey } = props;
 
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
@@ -106,14 +107,27 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds
     roles: [kinesisStreamRole],
     statements: [
       new iam.PolicyStatement({
-        resources: [bucketArn, `${bucketArn}*`],
+        resources: [encryptionKey],
         actions: [
+          'kms:DescribeKey',
+          'kms:GenerateDataKey*',
+          'kms:Decrypt',
+          'kms:Encrypt',
+          'kms:ReEncrypt*'
+        ],
+      }),
+      new iam.PolicyStatement({
+        resources: [bucketArn, `${bucketArn}/*`],
+        actions: [
+          's3:PutObject',
+          's3:PutObjectAcl',
+          's3:GetEncryptionConfiguration',
           's3:AbortMultipartUpload',
           's3:GetBucketLocation',
           's3:GetObject',
           's3:ListBucket',
           's3:ListBucketMultipartUploads',
-          's3:PutObject',
+          's3:PutObject'
         ],
       }),
       new iam.PolicyStatement({
@@ -122,12 +136,13 @@ async function cwlSettingsInLogArchive(props: { scope: cdk.Construct; accountIds
           'kinesis:DescribeStream',
           'kinesis:GetShardIterator',
           'kinesis:GetRecords',
-          'kms:Decrypt',
-          'logs:PutLogEvents',
-          'lambda:GetFunctionConfiguration',
-          'lambda:InvokeFunction',
-        ],
+          'kinesis:ListShards'
+        ]
       }),
+      new iam.PolicyStatement({
+        resources: ['arn:aws:logs:*:*:*'],
+        actions: ['logs:PutLogEvents']
+      })
     ],
   });
 
