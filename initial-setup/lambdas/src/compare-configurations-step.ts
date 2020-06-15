@@ -1,20 +1,5 @@
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-
-const OVERRIDE_KEYS = [
-  'ov-global-options',
-  'ov-del-accts',
-  'ov-ren-accts',
-  'ov-acct-ou',
-  'ov-acct-vpc',
-  'ov-acct-subnet',
-  'ov-tgw',
-  'ov-mad',
-  'ov-ou-vpc',
-  'ov-ou-subnet',
-  'ov-share-to-ou',
-  'ov-share-to-accounts',
-  'ov-nacl',
-];
+import { compareAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/compare/main';
 
 export interface StepInput {
   inputConfig: CompareConfigurationInput;
@@ -24,18 +9,13 @@ export interface StepInput {
 
 export interface CompareConfigurationInput {
   configuration: ConfigurationInput;
-  configOverrides: ConfigOverride[] | undefined;
+  configOverrides: { [key: string]: boolean } | undefined;
 }
 
 export interface ConfigurationInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
-}
-
-export interface ConfigOverride {
-  name: string;
-  isEnabled: boolean;
 }
 
 export interface CompareConfigurationsOutput {
@@ -47,6 +27,23 @@ export interface CompareConfigurationsOutput {
 export const handler = async (input: StepInput): Promise<CompareConfigurationsOutput> => {
   console.log(`Loading compare configurations...`);
   console.log(JSON.stringify(input, null, 2));
+
+  const overrideConfig: { [name: string]: boolean } = {
+    'ov-global-options': false,
+    'ov-del-accts': false,
+    'ov-ren-accts': false,
+    'ov-acct-email': false,
+    'ov-acct-ou': false,
+    'ov-acct-vpc': false,
+    'ov-acct-subnet': false,
+    'ov-tgw': false,
+    'ov-mad': false,
+    'ov-ou-vpc': false,
+    'ov-ou-subnet': false,
+    'ov-share-to-ou': false,
+    'ov-share-to-accounts': false,
+    'ov-nacl': false,
+  };
 
   const { inputConfig, commitSecretId, region } = input;
 
@@ -60,22 +57,39 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
   const configRepositoryName = inputConfig.configuration.configRepositoryName;
   const configCommitId = inputConfig.configuration.configCommitId;
 
-  if (inputConfig.configOverrides) {
-    for (const configOverride of inputConfig.configOverrides) {
-      console.log('configOverride', configOverride.name, configOverride.isEnabled);
-    }
-  } else {
-    console.log('no override configurations found');
+  if (!previousCommitId || configCommitId === previousCommitId) {
+    console.log('either this is the first run or commitIds are same, so skipping validation of config file updates');
+    return {
+      configRepositoryName,
+      configFilePath,
+      configCommitId,
+    };
   }
 
-  // Keep track of errors and warnings instead of failing immediately
-  // const errors = [];
+  let errors: string[] = [];
+  if (inputConfig.configOverrides) {
+    const keys = Object.keys(overrideConfig);
+    for (const [overrideName, overrideValue] of Object.entries(inputConfig.configOverrides)) {
+      if (overrideValue && keys.includes(overrideName)) {
+        overrideConfig[overrideName] = overrideValue;
+      }
+    }
+  }
+  console.log('passing override configuration to validate changes', overrideConfig);
+
+  errors = await compareAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    configFilePath,
+    commitId: configCommitId,
+    previousCommitId,
+    region,
+    overrideConfig,
+  });
 
   // Throw all errors at once
-  // if (errors.length > 0) {
-  //   throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
-  // }
-  console.log('configRepositoryName', configRepositoryName);
+  if (errors.length > 0) {
+    throw new Error(`There were errors while comparing the configuration changes:\n${errors.join('\n')}`);
+  }
 
   return {
     configRepositoryName,

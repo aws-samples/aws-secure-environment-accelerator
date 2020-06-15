@@ -538,6 +538,7 @@ export const SecurityHubFrameworksConfigType = t.interface({
 
 export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,
+  region: NonEmptyString,
   'security-hub': fromNullable(t.boolean, false),
   'guard-duty': fromNullable(t.boolean, false),
   cwl: fromNullable(t.boolean, false),
