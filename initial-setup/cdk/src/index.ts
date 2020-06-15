@@ -80,7 +80,7 @@ export namespace InitialSetup {
       });
 
       const commitIdSecret = new secrets.Secret(this, 'CommitId', {
-        secretName: 'accelerator/commitId',
+        secretName: 'accelerator/gitrepo-commitId',
         description: 'This secret contains the commitId of the git repository configuration file',
       });
 

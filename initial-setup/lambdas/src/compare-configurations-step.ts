@@ -10,6 +10,7 @@ export interface StepInput {
 export interface CompareConfigurationInput {
   configuration: ConfigurationInput;
   configOverrides: { [key: string]: boolean } | undefined;
+  overrideComparison: boolean | undefined;
 }
 
 export interface ConfigurationInput {
@@ -47,18 +48,18 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
 
   const { inputConfig, commitSecretId, region } = input;
 
-  console.log('commitSecretId', commitSecretId);
-  const secrets = new SecretsManager();
-  const previousCommitIdSecret = await secrets.getSecret(commitSecretId);
-  const previousCommitId = previousCommitIdSecret.SecretString;
-  console.log('previousCommitId', previousCommitId);
-
   const configFilePath = inputConfig.configuration.configFilePath;
   const configRepositoryName = inputConfig.configuration.configRepositoryName;
   const configCommitId = inputConfig.configuration.configCommitId;
 
-  if (!previousCommitId || configCommitId === previousCommitId) {
-    console.log('either this is the first run or commitIds are same, so skipping validation of config file updates');
+  const secrets = new SecretsManager();
+  const previousCommitIdSecret = await secrets.getSecret(commitSecretId);
+  const previousCommitId = previousCommitIdSecret.SecretString;
+
+  if (inputConfig.overrideComparison || !previousCommitId || configCommitId === previousCommitId) {
+    console.log(
+      'either previous git repo commitId not found or "overrideComparison" passed as true, so skipping validation of config file updates',
+    );
     return {
       configRepositoryName,
       configFilePath,
