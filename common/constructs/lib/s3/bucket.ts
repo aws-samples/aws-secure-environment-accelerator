@@ -49,7 +49,7 @@ export class Bucket extends s3.Bucket {
     this.resource = this.node.findChild('Resource') as s3.CfnBucket;
   }
 
-  replicateFrom(organizationId: string) {
+  replicateFrom(principals: iam.IPrincipal[], organizationId: string) {
     this.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -62,7 +62,7 @@ export class Bucket extends s3.Bucket {
           's3:ReplicateTags',
           's3:List*',
         ],
-        principals: [new iam.AnyPrincipal()],
+        principals,
         resources: [this.bucketArn, this.arnForObjects('*')],
         conditions: {
           StringEquals: {
@@ -82,7 +82,7 @@ export class Bucket extends s3.Bucket {
         new iam.PolicyStatement({
           sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
           actions: ['kms:Encrypt'],
-          principals: [new iam.AnyPrincipal()],
+          principals,
           resources: ['*'],
           conditions: {
             StringEquals: {

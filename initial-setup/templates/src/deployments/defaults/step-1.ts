@@ -159,17 +159,19 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   const organizations = new Organizations(logAccountStack, 'Organizations');
 
+  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
+
   const logBucket = createDefaultS3Bucket({
     accountStack: logAccountStack,
     config,
   });
 
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(organizations.organizationId);
+  logBucket.replicateFrom(accountPrincipals, organizations.organizationId);
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: [new AnyPrincipal()],
+      principals: accountPrincipals,
       actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
       resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
       conditions: {
@@ -185,7 +187,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     new iam.PolicyStatement({
       // TODO: principal need to limit to kinesis iam roles
       // "AWS": ["arn:aws:iam::{account-id}:role/{kinesis-iam-role}"]
-      principals: [new AnyPrincipal()],
+      principals: accountPrincipals,
       actions: [
         's3:AbortMultipartUpload',
         's3:GetBucketLocation',
@@ -225,7 +227,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     new iam.PolicyStatement({
       sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
       actions: ['kms:Encrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
-      principals: [new iam.AnyPrincipal()],
+      principals: accountPrincipals,
       resources: ['*'],
       conditions: {
         StringEquals: {
