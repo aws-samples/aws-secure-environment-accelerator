@@ -5,10 +5,9 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
 import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { LogGroup } from '@custom-resources/logs-log-group';
-import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createLogGroupName, createEncryptionKeyName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface SSMStep1Props {
-  acceleratorPrefix: string;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   bucketName: string;
@@ -22,8 +21,8 @@ export async function step1(props: SSMStep1Props) {
       continue;
     }
 
-    const ssmKey = new Key(accountStack, `${props.acceleratorPrefix}SSM-Key`, {
-      alias: `alias/${props.acceleratorPrefix}SSM-Key`,
+    const ssmKey = new Key(accountStack, 'SSM-Key', {
+      alias: 'alias/' + createEncryptionKeyName('SSM-Key'),
       trustAccountIdentities: true,
     });
     ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));

@@ -440,7 +440,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // SSM config step 1
   await ssm.step1({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     bucketName: logBucket.bucketName,
     config: acceleratorConfig,
