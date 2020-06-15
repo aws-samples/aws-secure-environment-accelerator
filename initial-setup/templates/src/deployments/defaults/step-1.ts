@@ -172,7 +172,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     new iam.PolicyStatement({
       principals: accountPrincipals,
       actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
-      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+      resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
       conditions: {
         StringEquals: {
           'aws:PrincipalOrgID': organizations.organizationId,
