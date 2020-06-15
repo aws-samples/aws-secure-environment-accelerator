@@ -157,7 +157,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
-  const organizations = new Organizations(logAccountStack);
+  const organizations = new Organizations(logAccountStack, 'Organizations');
 
   const logBucket = createDefaultS3Bucket({
     accountStack: logAccountStack,
