@@ -65,12 +65,12 @@ export class Bucket extends s3.Bucket {
         principals: [new iam.AnyPrincipal()],
         resources: [this.bucketArn, this.arnForObjects('*')],
         conditions: {
-          "StringEquals": {
-            "aws:PrincipalOrgID": organizationId,
+          StringEquals: {
+            'aws:PrincipalOrgID': organizationId,
           },
-          "ArnLike": {
-            "aws:PrincipalARN": ["arn:aws:iam::*:role/PBMMAccel-*"],
-          }
+          ArnLike: {
+            'aws:PrincipalARN': ['arn:aws:iam::*:role/PBMMAccel-*'],
+          },
         },
       }),
     );
@@ -85,8 +85,8 @@ export class Bucket extends s3.Bucket {
           principals: [new iam.AnyPrincipal()],
           resources: ['*'],
           conditions: {
-            "StringEquals": {
-              "aws:PrincipalOrgID": organizationId,
+            StringEquals: {
+              'aws:PrincipalOrgID': organizationId,
             },
           },
         }),

@@ -170,13 +170,13 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       principals: [new AnyPrincipal()],
-      actions: ['s3:GetEncryptionConfiguration','s3:PutObject'],
-      resources: [logBucket.bucketArn,`${logBucket.bucketArn}/*`],
+      actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
       conditions: {
-        'StringEquals': {
+        StringEquals: {
           'aws:PrincipalOrgID': organization.organizationId(),
-        }
-      }
+        },
+      },
     }),
   );
 
@@ -195,7 +195,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
         's3:PutObject',
         's3:PutObjectAcl',
       ],
-      resources: [logBucket.bucketArn,`${logBucket.bucketArn}/*`],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
     }),
   );
 
