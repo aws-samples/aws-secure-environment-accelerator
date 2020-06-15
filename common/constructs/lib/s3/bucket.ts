@@ -49,7 +49,7 @@ export class Bucket extends s3.Bucket {
     this.resource = this.node.findChild('Resource') as s3.CfnBucket;
   }
 
-  replicateFrom(principals: iam.IPrincipal[], organizationId: string) {
+  replicateFrom(principals: iam.IPrincipal[], organizationId: string, prefix: string) {
     this.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: [
@@ -69,7 +69,7 @@ export class Bucket extends s3.Bucket {
             'aws:PrincipalOrgID': organizationId,
           },
           ArnLike: {
-            'aws:PrincipalARN': ['arn:aws:iam::*:role/PBMMAccel-*'],
+            'aws:PrincipalARN': [`arn:aws:iam::*:role/${prefix}*`],
           },
         },
       }),

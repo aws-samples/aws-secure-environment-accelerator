@@ -13,7 +13,7 @@ This is a custom resource to retrieve Organization using `DescribeOrganization` 
         resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
         conditions: {
           StringEquals: {
-            'aws:PrincipalOrgID': organization.organizationId(),
+            'aws:PrincipalOrgID': organization.organizationId,
           },
         },
       }),

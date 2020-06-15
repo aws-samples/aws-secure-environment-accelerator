@@ -3,7 +3,7 @@ import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
 
 /**
- * Custom resource implementation that retrive IPs for a created DNS Endpoint.
+ * Custom resource implementation that retrive Organization Ids
  */
 export class Organizations extends cdk.Construct {
   private readonly resource: custom.AwsCustomResource;

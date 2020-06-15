@@ -166,7 +166,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   });
 
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(accountPrincipals, organizations.organizationId);
+  logBucket.replicateFrom(accountPrincipals, organizations.organizationId, props.acceleratorPrefix);
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({

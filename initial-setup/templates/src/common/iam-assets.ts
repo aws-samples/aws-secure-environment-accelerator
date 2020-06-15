@@ -177,7 +177,7 @@ export class IamAssets extends cdk.Construct {
             role.addToPolicy(
               new iam.PolicyStatement({
                 actions: ['s3:PutObject', 's3:PutObjectAcl'],
-                resources: [`${logBucket.bucketArn}/*`],
+                resources: [logBucket.arnForObjects('*')],
               }),
             );
           }
