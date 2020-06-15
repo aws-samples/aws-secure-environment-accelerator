@@ -140,6 +140,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -331,6 +332,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -341,6 +343,7 @@
           {
             "role": "PBMMAccel-RDGW-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -436,7 +439,7 @@
       "account-name": "Perimeter",
       "email": "myemail+pbmmT-perimeter@example.com---------------------REPLACE----------------------",
       "ou": "core",
-      "account-warming-required": false,
+      "account-warming-required": true,
       "limits": {
         "Amazon EC2/Number of EIPs": {
           "value": 10,
@@ -627,6 +630,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -704,16 +708,16 @@
               ]
             },
             {
-              "name": "OnPremise",
+              "name": "Private",
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "OnPremise_Shared",
+                  "route-table": "Private_Shared",
                   "cidr": "100.96.251.0/27"
                 },
                 {
                   "az": "b",
-                  "route-table": "OnPremise_Shared",
+                  "route-table": "Private_Shared",
                   "cidr": "100.96.251.128/27"
                 }
               ]
@@ -737,7 +741,7 @@
           "gateway-endpoints": ["s3"],
           "route-tables": [
             {
-              "name": "OnPremise_Shared"
+              "name": "Private_Shared"
             },
             {
               "name": "Public_Shared",
@@ -760,7 +764,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "a",
-                  "port": "OnPremise"
+                  "port": "Private"
                 },
                 {
                   "destination": "s3",
@@ -780,7 +784,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "b",
-                  "port": "OnPremise"
+                  "port": "Private"
                 },
                 {
                   "destination": "s3",
@@ -877,7 +881,7 @@
                   "tcp-ports": [22, 443, 541, 3000, 8080],
                   "source": ["0.0.0.0/0"]
                 },
-				{
+                {
                   "description": "Mgmt Traffic and AWS Outbound traffic",
                   "type": ["ALL"],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
@@ -916,8 +920,8 @@
               "create-cgw": true
             },
             {
-              "name": "OnPremise",
-              "subnet": "OnPremise",
+              "name": "Private",
+              "subnet": "Private",
               "create-eip": false,
               "create-cgw": false
             },
@@ -1614,6 +1618,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -2086,6 +2091,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -2558,6 +2564,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -3030,6 +3037,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -3476,6 +3484,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -3850,6 +3859,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
