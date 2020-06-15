@@ -19,12 +19,11 @@ import {
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { StructuredOutput } from '../../common/structured-output';
-import { createDefaultS3Bucket } from './shared';
+import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
 
 export interface DefaultsStep1Props {
-  acceleratorPrefix: string;
-  acceleratorName: string;
+  acceleratorPrefix: string,
   accountStacks: AccountStacks;
   accounts: Account[];
   config: AcceleratorConfig;
@@ -76,7 +75,7 @@ function blockS3PublicAccess(props: DefaultsStep1Props) {
  * Creates a bucket that contains copies of the files in the central bucket.
  */
 function createCentralBucketCopy(props: DefaultsStep1Props) {
-  const { acceleratorName, accountStacks, accounts, config } = props;
+  const { accountStacks, accounts, config } = props;
 
   const masterAccountConfig = config['global-options']['aws-org-master'];
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
@@ -88,8 +87,8 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   });
 
   const encryptionKey = new kms.Key(masterAccountStack, 'CentralBucketKey', {
-    alias: 'alias/' + createEncryptionKeyName('Central'),
-    description: `${acceleratorName} - Key used to encrypt/decrypt the copy of central S3 bucket`,
+    alias: 'alias/' + createEncryptionKeyName('Config-Key'),
+    description: 'Key used to encrypt/decrypt the copy of central S3 bucket',
   });
 
   const bucket = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
@@ -159,10 +158,14 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   const organizations = new Organizations(logAccountStack, 'Organizations');
 
   const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
+  const logKey = createDefaultS3Key({
+    accountStack: logAccountStack,
+  });
 
   const logBucket = createDefaultS3Bucket({
     accountStack: logAccountStack,
     config,
+    encryptionKey: logKey,
   });
 
   // Allow replication from all Accelerator accounts
@@ -312,7 +315,7 @@ function createAesLogBucket(props: DefaultsStep1Props) {
 }
 
 function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
-  const { accountStacks, config, acceleratorName } = props;
+  const { accountStacks, config } = props;
 
   const accountEbsEncryptionKeys: { [accountKey: string]: kms.Key } = {};
   for (const [accountKey, _] of config.getAccountConfigs()) {
@@ -324,8 +327,8 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
 
     // Default EBS encryption key
     const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
-      alias: 'alias/' + createEncryptionKeyName('EBS-DefaultEncryption'),
-      description: `${acceleratorName} - Key used to encrypt/decrypt EBS by default`,
+      alias: 'alias/' + createEncryptionKeyName('EBS-Key'),
+      description: 'Key used to encrypt/decrypt EBS by default',
     });
 
     key.addToResourcePolicy(

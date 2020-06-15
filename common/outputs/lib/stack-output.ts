@@ -49,6 +49,7 @@ export interface VpcOutput {
   vpcId: string;
   vpcName: string;
   cidrBlock: string;
+  additionalCidrBlocks: string[];
   subnets: VpcSubnetOutput[];
   routeTables: { [key: string]: string };
   securityGroups: VpcSecurityGroupOutput[];
