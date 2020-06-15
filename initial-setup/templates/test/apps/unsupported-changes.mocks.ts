@@ -34,10 +34,10 @@ export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.App>
 export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
   const organizations: Organization[] = [
     {
-      id: "ou-1111111",
-      name: "core",
-      key: "core"
-    }
+      id: 'ou-1111111',
+      name: 'core',
+      key: 'core',
+    },
   ];
   const accounts: Account[] = [
     {
