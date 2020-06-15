@@ -29,8 +29,6 @@ import { createR53LogGroupName } from '../common/r53-zones';
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
-    acceleratorPrefix: context.acceleratorPrefix,
-    acceleratorName: context.acceleratorName,
     accountStacks,
     accounts,
     config: acceleratorConfig,
