@@ -21,20 +21,6 @@ export class FirewallCluster extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, private readonly props: FirewallClusterProps) {
     super(scope, id);
-
-    props.instanceRole.addToPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          'ec2:Describe*',
-          'ec2:AssociateAddress',
-          'ec2:AssignPrivateIpAddresses',
-          'ec2:UnassignPrivateIpAddresses',
-          'ec2:ReplaceRoute',
-        ],
-        resources: ['*'],
-      }),
-    );
-    props.configuration.bucket.grantRead(props.instanceRole);
   }
 
   createInstance(props: {

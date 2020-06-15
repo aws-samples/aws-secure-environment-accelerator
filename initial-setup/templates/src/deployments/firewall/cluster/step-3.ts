@@ -169,9 +169,6 @@ async function createFirewallCluster(props: {
     },
   });
 
-  // Make sure the cluster can read the license and write the configuration template
-  centralBucket.grantRead(instanceRole);
-
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
   let licenseIndex: number = 0;
