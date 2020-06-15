@@ -141,7 +141,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           }
         ]
       },
@@ -332,7 +333,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           },
           {
             "role": "PBMMAccel-RDGW-Role",
@@ -604,7 +606,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           },
           {
             "role": "Forigate-Role",
@@ -1580,7 +1583,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           }
         ]
       }
@@ -2052,7 +2056,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           }
         ]
       }
@@ -2524,7 +2529,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           }
         ]
       }
@@ -2996,7 +3002,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           }
         ]
       }
@@ -3442,7 +3449,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           }
         ]
       }
@@ -3816,7 +3824,8 @@
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy"
+            "boundary-policy": "Default-Boundary-Policy",
+            "ssm-log-archive-access": true
           }
         ]
       }
