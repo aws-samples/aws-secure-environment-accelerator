@@ -155,36 +155,30 @@ export class IamAssets extends cdk.Construct {
           if (iamRole['ssm-log-archive-access']) {
             role.addToPolicy(
               new iam.PolicyStatement({
-                actions: [
-                  'kms:DescribeKey',
-                  'kms:GenerateDataKey*',
-                  'kms:Decrypt',
-                  'kms:Encrypt',
-                  'kms:ReEncrypt*',
-                ],
+                actions: ['kms:DescribeKey', 'kms:GenerateDataKey*', 'kms:Decrypt', 'kms:Encrypt', 'kms:ReEncrypt*'],
                 resources: [logBucket.encryptionKey?.keyArn || '*'],
-              })
+              }),
             );
 
             role.addToPolicy(
               new iam.PolicyStatement({
                 actions: ['kms:Decrypt'],
                 resources: ['*'], // TODO: limit resource to be SSM key only
-              })
-            )
+              }),
+            );
 
             role.addToPolicy(
               new iam.PolicyStatement({
                 actions: ['s3:GetEncryptionConfiguration'],
-                resources: [logBucket.bucketArn]
-              })
+                resources: [logBucket.bucketArn],
+              }),
             );
 
             role.addToPolicy(
               new iam.PolicyStatement({
                 actions: ['s3:PutObject', 's3:PutObjectAcl'],
                 resources: [`${logBucket.bucketArn}/*`],
-              })
+              }),
             );
           }
         }
