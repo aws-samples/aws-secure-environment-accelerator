@@ -311,6 +311,8 @@ export const MadConfigType = t.interface({
   'password-secret-name': optional(t.string),
 });
 
+export type MadConfig = t.TypeOf<typeof MadConfigType>;
+
 export const AlbTargetInstanceFirewallConfigType = t.interface({
   target: t.literal('firewall'),
   name: t.string,

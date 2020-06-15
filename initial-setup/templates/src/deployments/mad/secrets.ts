@@ -5,6 +5,7 @@ import { getAccountId, Account } from '../../utils/accounts';
 import { createMadUserPasswordSecretName, createMadPasswordSecretName } from './outputs';
 
 export interface MadSecretsProps {
+  acceleratorExecutionRoleName: string;
   acceleratorPrefix: string;
   accounts: Account[];
   config: AcceleratorConfig;
@@ -15,16 +16,17 @@ export interface MadSecretsProps {
  * Create secrets that will later be used for MAD user creation.
  */
 export async function createSecrets(props: MadSecretsProps) {
-  const { acceleratorPrefix, accounts, config, secretsContainer } = props;
+  const { acceleratorExecutionRoleName, acceleratorPrefix, accounts, config, secretsContainer } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
-    const madDeploymentConfig = accountConfig.deployments?.mad;
-    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+    const madConfig = accountConfig.deployments?.mad;
+    if (!madConfig || !madConfig.deploy) {
       continue;
     }
 
     const accountId = getAccountId(accounts, accountKey);
-    const accountPrincipal = new iam.AccountPrincipal(accountId);
+    const acceleratorRole = new iam.ArnPrincipal(`arn:aws:iam::${accountId}:role/${acceleratorExecutionRoleName}`);
+    const principals = [acceleratorRole];
 
     // Create the AD password
     secretsContainer.createSecret('MadPassword', {
@@ -36,11 +38,11 @@ export async function createSecrets(props: MadSecretsProps) {
       generateSecretString: {
         passwordLength: 16,
       },
-      principals: [accountPrincipal],
+      principals,
     });
 
     // Create the AD users passwords
-    for (const adUser of madDeploymentConfig['ad-users']) {
+    for (const adUser of madConfig['ad-users']) {
       secretsContainer.createSecret(`MadPassword${adUser.user}`, {
         secretName: createMadUserPasswordSecretName({
           acceleratorPrefix,
@@ -49,9 +51,14 @@ export async function createSecrets(props: MadSecretsProps) {
         }),
         description: 'Password for Managed Active Directory.',
         generateSecretString: {
-          passwordLength: madDeploymentConfig['password-policies']['min-len'],
+          passwordLength: madConfig['password-policies']['min-len'],
         },
-        principals: [accountPrincipal],
+        actions: [
+          'secretsmanager:GetSecretValue',
+          'secretsmanager:PutResourcePolicy',
+          'secretsmanager:DeleteResourcePolicy',
+        ],
+        principals,
       });
     }
   }
