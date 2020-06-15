@@ -228,13 +228,12 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
       principals: [new iam.AnyPrincipal()],
       resources: ['*'],
       conditions: {
-        'StringEquals': {
+        StringEquals: {
           'aws:PrincipalOrgID': organizations.organizationId,
-      }
-      }
+        },
+      },
     }),
   );
-
 
   new StructuredOutput<LogBucketOutput>(logAccountStack, 'LogBucketOutput', {
     type: LogBucketOutputType,
