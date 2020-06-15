@@ -219,6 +219,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   await madDeployment.step2({
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
     acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,

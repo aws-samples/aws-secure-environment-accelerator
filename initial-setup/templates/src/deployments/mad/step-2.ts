@@ -14,6 +14,7 @@ import { ActiveDirectory } from '../../common/active-directory';
 import { VpcOutput } from '../vpc';
 
 export interface MadStep2Props {
+  acceleratorExecutionRoleName: string;
   acceleratorPrefix: string;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
@@ -90,7 +91,7 @@ function createActiveDirectory(props: MadStep2Props) {
 }
 
 function createKeyAndSecretPolicies(props: MadStep2Props) {
-  const { acceleratorPrefix, accountStacks, config, outputs } = props;
+  const { acceleratorExecutionRoleName, acceleratorPrefix, accountStacks, config, outputs } = props;
 
   const masterAccountKey = config.getMandatoryAccountKey('master');
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
@@ -134,6 +135,12 @@ function createKeyAndSecretPolicies(props: MadStep2Props) {
       operations: [GrantOperation.DECRYPT],
     });
 
+    // Grant the Accelerator role access to get secret value
+    // Otherwise CloudFormation will not be able to resolve the secret value cross-account
+    const acceleratorPrincipal = new iam.ArnPrincipal(
+      `arn:aws:iam::${accountStack.accountId}:role/${acceleratorExecutionRoleName}`,
+    );
+
     // Find the MAD root password for this account
     const madPasswordSecretArn = getMadConfigRootPasswordSecretArn({
       acceleratorPrefix,
@@ -144,7 +151,7 @@ function createKeyAndSecretPolicies(props: MadStep2Props) {
     grantGetSecretValue({
       accountStack: masterAccountStack,
       policyName: `${accountKey}-Root`,
-      principals: [madPrincipal],
+      principals: [madPrincipal, acceleratorPrincipal],
       secretId: madPasswordSecretArn,
     });
 

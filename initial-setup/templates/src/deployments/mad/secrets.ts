@@ -25,8 +25,10 @@ export async function createSecrets(props: MadSecretsProps) {
     }
 
     const accountId = getAccountId(accounts, accountKey);
+
+    // Grant the Accelerator role access to get secret value
+    // Otherwise CloudFormation will not be able to resolve the secret value cross-account
     const acceleratorRole = new iam.ArnPrincipal(`arn:aws:iam::${accountId}:role/${acceleratorExecutionRoleName}`);
-    const principals = [acceleratorRole];
 
     // Create the AD password
     secretsContainer.createSecret('MadPassword', {
@@ -38,7 +40,7 @@ export async function createSecrets(props: MadSecretsProps) {
       generateSecretString: {
         passwordLength: 16,
       },
-      principals,
+      principals: [acceleratorRole],
     });
 
     // Create the AD users passwords
@@ -53,12 +55,7 @@ export async function createSecrets(props: MadSecretsProps) {
         generateSecretString: {
           passwordLength: madConfig['password-policies']['min-len'],
         },
-        actions: [
-          'secretsmanager:GetSecretValue',
-          'secretsmanager:PutResourcePolicy',
-          'secretsmanager:DeleteResourcePolicy',
-        ],
-        principals,
+        principals: [acceleratorRole],
       });
     }
   }
