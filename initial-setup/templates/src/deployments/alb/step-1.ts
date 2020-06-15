@@ -6,7 +6,13 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import { ApplicationLoadBalancer } from '@aws-pbmm/constructs/lib/vpc';
-import { AcceleratorConfig, AlbConfig, AlbTargetConfig } from '@aws-pbmm/common-lambda/lib/config';
+import {
+  AcceleratorConfig,
+  AlbConfig,
+  AlbTargetConfig,
+  AlbTargetInstanceConfig,
+  AlbTargetInstanceFirewallConfigType,
+} from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
@@ -176,11 +182,12 @@ export function getTargetGroupArn(props: {
 
     return createTargetGroupForLambda(accountStack, targetConfig, targetGroupName, lambdaArn);
   } else if (targetConfig['target-instances']) {
-    const ec2Instances = getEc2Instances(accountKey, outputs, targetConfig['target-instances']);
-    if (!ec2Instances) {
+    const instanceIds = getEc2InstanceIds(accountKey, outputs, targetConfig['target-instances']);
+    if (instanceIds.length === 0) {
+      console.log('Could not find any target instance IDs');
       return;
     }
-    return createTargetGroupForInstance(accountStack, targetConfig, targetGroupName, vpcId, ec2Instances);
+    return createTargetGroupForInstance(accountStack, targetConfig, targetGroupName, vpcId, instanceIds);
   }
 }
 
@@ -246,7 +253,7 @@ export function createTargetGroupForInstance(
   target: AlbTargetConfig,
   targetGroupName: string,
   vpcId: string,
-  instances: { [instanceName: string]: string },
+  instanceIds: string[],
 ) {
   return new alb.CfnTargetGroup(scope, `AlbTargetGroup${targetGroupName}`, {
     name: targetGroupName,
@@ -257,7 +264,7 @@ export function createTargetGroupForInstance(
     healthCheckProtocol: target['health-check-protocol'],
     healthCheckPath: target['health-check-path'],
     healthCheckPort: String(target['health-check-port']),
-    targets: Object.values(instances).map(instanceId => ({
+    targets: instanceIds.map(instanceId => ({
       id: instanceId,
       port: target.port,
     })),
@@ -279,23 +286,28 @@ export function createTargetGroupForLambda(
   });
 }
 
-export function getEc2Instances(
+export function getEc2InstanceIds(
   accountKey: string,
   outputs: StackOutput[],
-  targetInstances: string[],
-): { [instanceName: string]: string } | undefined {
-  const instanceOutputs = StructuredOutput.fromOutputs(outputs, {
+  targetInstances: AlbTargetInstanceConfig[],
+): string[] {
+  const firewallInstances = StructuredOutput.fromOutputs(outputs, {
     type: FirewallInstanceOutputType,
     accountKey,
   });
-  const ec2Instances: { [instanceName: string]: string } = {};
-  for (const instanceName of targetInstances) {
-    const instance = instanceOutputs.find(i => i.name === instanceName);
-    if (!instance) {
-      console.warn(`Cannot find output with ALB instance name ${instanceName}`);
-      return;
+  const instanceIds = [];
+  for (const target of targetInstances) {
+    if (AlbTargetInstanceFirewallConfigType.is(target)) {
+      const instance = firewallInstances.find(i => i.name === target.name && i.az === target.az);
+      if (!instance) {
+        console.warn(`Cannot find output with ALB instance name ${target.name} and AZ ${target.az}`);
+        continue;
+      }
+      instanceIds.push(instance.id);
+    } else {
+      console.warn(`Unknown target instance type ${JSON.stringify(target)}`);
+      continue;
     }
-    ec2Instances[instanceName] = instance.id;
   }
-  return ec2Instances;
+  return instanceIds;
 }

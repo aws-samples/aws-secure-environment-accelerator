@@ -1,5 +1,521 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "OrganizationBudgetD31584F9",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "PerimeterBudgetA01BBAF8",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Security-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedServices-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
@@ -25,8 +541,9 @@ Array [
   Object {
     "LogicalId": "MicrosoftADMicrosoftADFC7F6466",
     "Properties": Object {
+      "CreateAlias": undefined,
       "Edition": "Enterprise",
-      "Name": "brian.local",
+      "Name": "example.local",
       "Password": Object {
         "Fn::Join": Array [
           "",
@@ -43,7 +560,7 @@ Array [
           ],
         ],
       },
-      "ShortName": "brian",
+      "ShortName": "example",
       "VpcSettings": Object {
         "SubnetIds": Array [
           "subnet-02809ab1988c1ec82",
@@ -128,10 +645,10 @@ Array [
       "HibernationOptions": undefined,
       "HostResourceGroupArn": undefined,
       "ImageId": "ami-047aac44951feb9fb",
-      "InstanceType": "c5n.2xlarge",
       "Ipv6AddressCount": undefined,
       "Ipv6Addresses": undefined,
       "KeyName": undefined,
+      "LaunchTemplate": undefined,
       "LicenseSpecifications": undefined,
       "NetworkInterfaces": Array [
         Object {
@@ -175,10 +692,10 @@ Array [
       "HibernationOptions": undefined,
       "HostResourceGroupArn": undefined,
       "ImageId": "ami-047aac44951feb9fb",
-      "InstanceType": "c5n.2xlarge",
       "Ipv6AddressCount": undefined,
       "Ipv6Addresses": undefined,
       "KeyName": undefined,
+      "LaunchTemplate": undefined,
       "LicenseSpecifications": undefined,
       "NetworkInterfaces": Array [
         Object {
@@ -222,10 +739,10 @@ Array [
       "HibernationOptions": undefined,
       "HostResourceGroupArn": undefined,
       "ImageId": "ami-06fa2a9e6f8fae9f2",
-      "InstanceType": "c5.large",
       "Ipv6AddressCount": undefined,
       "Ipv6Addresses": undefined,
       "KeyName": undefined,
+      "LaunchTemplate": undefined,
       "LicenseSpecifications": undefined,
       "NetworkInterfaces": Array [
         Object {
@@ -274,12 +791,14 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
   Object {
     "LogicalId": "aescacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -297,6 +816,7 @@ Array [
     "LogicalId": "configcacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -308,6 +828,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -325,6 +846,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -342,6 +864,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -359,6 +882,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -374,6 +898,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -393,6 +918,7 @@ Array [
     "LogicalId": "cacentral1",
     "Properties": Object {
       "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
     },
   },
 ]
@@ -447,15 +973,15 @@ Array [
     },
   },
   Object {
-    "LogicalId": "SecretsMadPasswordBrian143D82EE",
+    "LogicalId": "SecretsMadPasswordUser1291E3AF7",
     "Properties": Object {
-      "Name": "PBMMAccel/operations/mad/Brian/password",
+      "Name": "PBMMAccel/operations/mad/User1/password",
     },
   },
   Object {
-    "LogicalId": "SecretsMadPasswordTestUserE6516806",
+    "LogicalId": "SecretsMadPasswordUser29026EDF3",
     "Properties": Object {
-      "Name": "PBMMAccel/operations/mad/TestUser/password",
+      "Name": "PBMMAccel/operations/mad/User2/password",
     },
   },
 ]

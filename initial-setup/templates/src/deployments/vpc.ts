@@ -18,11 +18,7 @@ export interface ImportedVpcProps {
 }
 
 export class ImportedVpc implements Vpc {
-  readonly props: ImportedVpcProps;
-
-  constructor(props: ImportedVpcProps) {
-    this.props = props;
-  }
+  constructor(private readonly props: ImportedVpcProps) {}
 
   get id(): string {
     return this.props.id;

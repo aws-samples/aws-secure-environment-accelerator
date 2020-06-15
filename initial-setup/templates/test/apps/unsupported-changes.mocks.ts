@@ -10,25 +10,27 @@ import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
 
-export async function deployPhases(app: cdk.App, phases: PhaseInfo[]) {
-  const input = createPhaseInput(app);
+export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.App> {
+  const input = createPhaseInput();
   for (const phase of phases) {
+    const accountStacks = new AccountStacks({
+      accounts: input.accounts,
+      context: input.context,
+      phase: phase.id,
+    });
     const runner = await phase.runner();
     await runner({
       ...input,
-      accountStacks: new AccountStacks(input.app, {
-        accounts: input.accounts,
-        context: input.context,
-        phase: phase.id,
-      }),
+      accountStacks,
     });
+    yield* accountStacks.apps;
   }
 }
 
 /**
  * Function that returns mock input for a given phase.
  */
-export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'> {
+export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
   const accounts: Account[] = [
     {
       key: 'master',
@@ -829,8 +831,8 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           securityGroups: [
             { securityGroupId: 'sg-06e305933a4bbd75a', securityGroupName: 'Public-Prod-ALB' },
             { securityGroupId: 'sg-0e1d7c2ce7350c63e', securityGroupName: 'Public-DevTest-ALB' },
-            { securityGroupId: 'sg-03d7fd5e7ead15cdf', securityGroupName: 'FortigateMgr' },
-            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Fortigates' },
+            { securityGroupId: 'sg-03d7fd5e7ead15cdf', securityGroupName: 'FirewallMgr' },
+            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Firewall' },
           ],
         },
       }),
@@ -1065,7 +1067,6 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
   return {
     acceleratorConfig: config,
     accounts,
-    app,
     context,
     limiter,
     outputs,

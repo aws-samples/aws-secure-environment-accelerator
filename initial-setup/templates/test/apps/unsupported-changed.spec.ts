@@ -1,75 +1,44 @@
 import 'jest';
 import * as cdk from '@aws-cdk/core';
+import * as cfnspec from '@aws-cdk/cfnspec';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { resourcesToList, stackToCloudFormation, ResourceWithLogicalId, ResourceProperties } from '../jest';
 import { deployPhases } from './unsupported-changes.mocks';
 import { phases } from '../../src/app';
 
-type ResourcePropertySelector = (resource: ResourceWithLogicalId) => Partial<ResourceWithLogicalId>;
-
-type UnsupportedChangeEntry = [string, ResourcePropertySelector];
-
 /**
- * Returns a ResourceMatcher that matches all properties in a resource.
+ * List of resource types that need to be tested for immutability.
  */
-const matchAllResourceProperties: ResourcePropertySelector = resource => ({
-  LogicalId: resource.LogicalId,
-  Properties: resource.Properties,
-});
-
-/**
- * Returns a ResourceMatcher for the given property names.
- */
-function matchResourceProperties(propertyNames: string[]): ResourcePropertySelector {
-  return resource => ({
-    LogicalId: resource.LogicalId,
-    Properties: selectKeys(resource.Properties, propertyNames),
-  });
-}
-
-/**
- * Returns an object containing all the given properties of the given properties object.
- */
-function selectKeys(properties: ResourceProperties, propertyNames: string[]): ResourceProperties {
-  return propertyNames.reduce((result, propertyName) => {
-    return {
-      ...result,
-      [propertyName]: properties[propertyName],
-    };
-  }, {});
-}
-
-/**
- * List of unsupported changes per resource type.
- */
-const UNSUPPORTED_CHANGES: UnsupportedChangeEntry[] = [
-  ['AWS::S3::Bucket', matchResourceProperties(['BucketName'])],
-  ['AWS::DirectoryService::MicrosoftAD', matchAllResourceProperties],
-  ['AWS::SecretsManager::Secret', matchResourceProperties(['Name'])],
-  [
-    'AWS::EC2::Instance',
-    matchResourceProperties([
-      'AvailabilityZone',
-      'CpuOptions',
-      'ElasticGpuSpecifications',
-      'ElasticInferenceAccelerators',
-      'HibernationOptions',
-      'HostResourceGroupArn',
-      'ImageId',
-      'InstanceType',
-      'Ipv6AddressCount',
-      'Ipv6Addresses',
-      'KeyName',
-      'LicenseSpecifications',
-      'NetworkInterfaces',
-      'PlacementGroupName',
-      'PrivateIpAddress',
-      'SecurityGroups',
-      'SubnetId',
-    ]),
-  ],
+const resourceTypeNames = [
+  'AWS::Budgets::Budget',
+  'AWS::DirectoryService::MicrosoftAD',
+  'AWS::EC2::Instance',
+  'AWS::S3::Bucket',
+  'AWS::SecretsManager::Secret',
 ];
+
+type PropertySelector = (properties: ResourceProperties) => ResourceProperties;
+
+/**
+ * Return a copy of the given properties with only the given property names.
+ */
+function selectProperties(properties: ResourceProperties, propertyNames: string[]): ResourceProperties {
+  return propertyNames.reduce((result, propertyName) => ({ ...result, [propertyName]: properties[propertyName] }), {});
+}
+
+/**
+ * Create property selector that selects immutable properties from the given properties.
+ */
+function createImmutablePropertySelector(type: cfnspec.schema.ResourceType): PropertySelector {
+  // Find all names of immutable properties
+  const immutablePropertyNames: string[] = Object.entries(type.Properties || {})
+    .filter(([_, propertySpec]) => propertySpec.UpdateType === cfnspec.schema.UpdateType.Immutable)
+    .map(([propertyName, _]) => propertyName);
+
+  // Create a closure that selects the immutable properties from the given properties
+  return properties => selectProperties(properties, immutablePropertyNames);
+}
 
 const stackResources: { [stackName: string]: ResourceWithLogicalId[] } = {};
 
@@ -92,35 +61,37 @@ beforeAll(async () => {
     ),
   );
 
-  const app = new cdk.App();
-
   // Deploy all phases that are defined in src/app.ts
-  await deployPhases(app, phases);
+  for await (const app of deployPhases(phases)) {
+    // Convert the stacks to CloudFormation resources
+    const stacks = app.node.children.filter(child => child instanceof cdk.Stack) as cdk.Stack[];
+    for (const stack of stacks) {
+      const template = stackToCloudFormation(stack);
+      const resources = resourcesToList(template.Resources);
 
-  // Convert the stacks to CloudFormation resources
-  const stacks = app.node.children.filter(child => child instanceof cdk.Stack) as cdk.Stack[];
-  for (const stack of stacks) {
-    const template = stackToCloudFormation(stack);
-    const resources = resourcesToList(template.Resources);
-
-    stackResources[stack.stackName] = resources;
+      stackResources[stack.stackName] = resources;
+    }
   }
 });
 
-test.each(UNSUPPORTED_CHANGES)(
-  'there should not be any unsupported resource changes for %s',
-  (resourceType, resourcePropertySelector) => {
-    for (const [stackName, resources] of Object.entries(stackResources)) {
-      // Find all resources with the given type
-      const resourcesOfType = resources.filter(r => r.Type === resourceType);
-      // Select the relevant properties
-      const expected = resourcesOfType.map(resourcePropertySelector);
+test.each(resourceTypeNames)('there should not be any unsupported resource changes for %s', resourceTypeName => {
+  const resourceSpec = cfnspec.resourceSpecification(resourceTypeName);
+  const selectProperties = createImmutablePropertySelector(resourceSpec);
 
-      // Compare the relevant properties to the snapshot
-      expect(expected).toMatchSnapshot(stackName);
-    }
-  },
-);
+  for (const [stackName, resources] of Object.entries(stackResources)) {
+    // Find all resources with the given type
+    const resourcesOfType = resources.filter(r => r.Type === resourceTypeName);
+
+    // Select the relevant properties
+    const expected = resourcesOfType.map(resource => ({
+      LogicalId: resource.LogicalId,
+      Properties: selectProperties(resource.Properties),
+    }));
+
+    // Compare the relevant properties to the snapshot
+    expect(expected).toMatchSnapshot(stackName);
+  }
+});
 
 // test('templates should stay exactly the same', () => {
 //   for (const [stackName, resources] of Object.entries(stackResources)) {

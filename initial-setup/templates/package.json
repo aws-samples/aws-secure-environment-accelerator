@@ -10,6 +10,7 @@
   },
   "devDependencies": {
     "@aws-cdk/assert": "1.38.0",
+    "@aws-cdk/cfnspec": "1.38.0",
     "@aws-cdk/cloud-assembly-schema": "1.38.0",
     "@aws-cdk/cx-api": "1.38.0",
     "@aws-pbmm/plugin-assume-role": "workspace:^0.0.1",
