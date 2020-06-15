@@ -16,6 +16,7 @@ const resourceTypeNames = [
   'AWS::EC2::Instance',
   'AWS::S3::Bucket',
   'AWS::SecretsManager::Secret',
+  'AWS::SecretsManager::ResourcePolicy',
 ];
 
 type PropertySelector = (properties: ResourceProperties) => ResourceProperties;
