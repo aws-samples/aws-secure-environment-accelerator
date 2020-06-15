@@ -8,6 +8,7 @@ export type FirewallClusterConfigurationProps = Omit<FirewallConfigurationProps,
 
 export interface FirewallClusterProps {
   vpcCidrBlock: string;
+  additionalCidrBlocks: string[];
   imageId: string;
   instanceType: string;
   instanceRole: iam.IRole;
@@ -38,6 +39,7 @@ export class FirewallCluster extends cdk.Construct {
       licensePath,
       licenseBucket,
       vpcCidrBlock: this.props.vpcCidrBlock,
+      additionalCidrBlocks: this.props.additionalCidrBlocks,
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
       instanceProfile: this.props.instanceProfile,

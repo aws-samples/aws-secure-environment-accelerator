@@ -157,6 +157,7 @@ async function createFirewallCluster(props: {
 
   const cluster = new FirewallCluster(accountStack, 'Firewall', {
     vpcCidrBlock: vpc.cidrBlock,
+    additionalCidrBlocks: vpc.additionalCidrBlocks,
     imageId,
     instanceType,
     instanceRole,

@@ -220,6 +220,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
+      additionalCidrBlocks: vpc.additionalCidrBlocks,
       subnets: vpc.azSubnets.subnets.map(s => ({
         subnetId: s.subnet.ref,
         subnetName: s.subnetName,
