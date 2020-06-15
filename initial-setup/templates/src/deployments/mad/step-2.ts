@@ -29,6 +29,9 @@ export async function step2(props: MadStep2Props) {
   createKeyAndSecretPolicies(props);
 }
 
+/**
+ * Create Active Directory and a log group.
+ */
 function createActiveDirectory(props: MadStep2Props) {
   const { acceleratorPrefix, accountStacks, config, outputs } = props;
 
@@ -90,6 +93,10 @@ function createActiveDirectory(props: MadStep2Props) {
   }
 }
 
+/**
+ * Grant the Accelerator role and the RDWG role access to the MAD root and user passwords. This function creates KMS
+ * key grants and secret policies.
+ */
 function createKeyAndSecretPolicies(props: MadStep2Props) {
   const { acceleratorExecutionRoleName, acceleratorPrefix, accountStacks, config, outputs } = props;
 
