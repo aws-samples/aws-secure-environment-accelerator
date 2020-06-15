@@ -85,7 +85,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   });
 
   const encryptionKey = new kms.Key(masterAccountStack, 'CentralBucketKey', {
-    alias: 'alias/' + createEncryptionKeyName('Config'),
+    alias: 'alias/' + createEncryptionKeyName('Config-Key'),
     description: 'Key used to encrypt/decrypt the copy of central S3 bucket',
   });
 
