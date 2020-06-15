@@ -17,6 +17,7 @@ import {
 } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
+import { Organization } from '../../utils/organizations';
 import { StructuredOutput } from '../../common/structured-output';
 import { createDefaultS3Bucket } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
@@ -27,6 +28,7 @@ export interface DefaultsStep1Props {
   accountStacks: AccountStacks;
   accounts: Account[];
   config: AcceleratorConfig;
+  organizations: Organization[];
 }
 
 export interface DefaultsStep1Result {

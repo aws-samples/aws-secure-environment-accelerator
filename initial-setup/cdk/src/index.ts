@@ -69,6 +69,11 @@ export namespace InitialSetup {
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
 
+      const organizationsSecret = new secrets.Secret(this, 'Organizations', {
+        secretName: 'accelerator/organizations',
+        description: 'This secret contains the information about the organizations that are used for deployment.',
+      });
+
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
         secretName: 'accelerator/outputs',
         description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
@@ -112,6 +117,7 @@ export namespace InitialSetup {
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
+          ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
       });
 
@@ -189,6 +195,19 @@ export namespace InitialSetup {
       });
 
       createAccountsTask.iterator(createAccountTask);
+
+      const loadOrganizationsTask = new CodeTask(this, 'Load Organizations', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadOrganizationsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          organizationsSecretId: organizationsSecret.secretArn,
+          'configuration.$': '$.configuration',
+        },
+        resultPath: 'DISCARD',
+      });
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
@@ -454,27 +473,28 @@ export namespace InitialSetup {
           .next(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
+          .next(loadOrganizationsTask)
           .next(loadAccountsTask)
-          .next(installRolesTask)
-          .next(loadLimitsTask)
-          .next(addScpTask)
-          .next(enableTrustedAccessForServicesTask)
-          .next(deployPhase0Task)
-          .next(storePhase0Output)
-          .next(deployPhase1Task)
-          .next(storePhase1Output)
-          .next(accountDefaultSettingsTask)
-          .next(deployPhase2Task)
-          .next(storePhase2Output)
-          .next(deployPhase3Task)
-          .next(storePhase3Output)
-          .next(deployPhase4Task)
-          .next(storePhase4Output)
-          .next(associateHostedZonesTask)
-          .next(addTagsToSharedResourcesTask)
-          .next(enableDirectorySharingTask)
-          .next(deployPhase5Task)
-          .next(createAdConnectorTask),
+          // .next(installRolesTask)
+          // .next(loadLimitsTask)
+          // .next(addScpTask)
+          // .next(enableTrustedAccessForServicesTask)
+          // .next(deployPhase0Task)
+          // .next(storePhase0Output)
+          // .next(deployPhase1Task)
+          // .next(storePhase1Output)
+          // .next(accountDefaultSettingsTask)
+          // .next(deployPhase2Task)
+          // .next(storePhase2Output)
+          // .next(deployPhase3Task)
+          // .next(storePhase3Output)
+          // .next(deployPhase4Task)
+          // .next(storePhase4Output)
+          // .next(associateHostedZonesTask)
+          // .next(addTagsToSharedResourcesTask)
+          // .next(enableDirectorySharingTask)
+          // .next(deployPhase5Task)
+          // .next(createAdConnectorTask),
       });
     }
   }

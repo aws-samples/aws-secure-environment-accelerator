@@ -26,7 +26,7 @@ import { createR53LogGroupName } from '../common/r53-zones';
  *   - Log archive bucket
  *   - Copy of the central bucket
  */
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, organizations }: PhaseInput) {
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
     acceleratorPrefix: context.acceleratorPrefix,
@@ -34,6 +34,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
+    organizations,
   });
 
   const centralBucket = defaultsResult.centralBucketCopy;
