@@ -3,7 +3,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import { Grant as KeyGrant, GrantOperation } from '@custom-resources/kms-grant';
-import { AcceleratorConfig, MadConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { getMadUserPasswordSecretArn, getMadRootPasswordSecretArn } from './outputs';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
@@ -63,7 +63,7 @@ function createActiveDirectory(props: MadStep2Props) {
     const madPasswordSecretArn = getMadConfigRootPasswordSecretArn({
       acceleratorPrefix,
       accountKey,
-      madConfig: madConfig,
+      madConfig,
       secretAccountId: masterAccountStack.accountId,
     });
     const madPasswordSecret = cdk.SecretValue.secretsManager(madPasswordSecretArn);
@@ -200,7 +200,7 @@ function grantGetSecretValue(props: {
 function getMadConfigRootPasswordSecretArn(props: {
   acceleratorPrefix: string;
   accountKey: string;
-  madConfig: MadConfig;
+  madConfig: MadDeploymentConfig;
   secretAccountId: string;
 }) {
   const { acceleratorPrefix, accountKey, madConfig, secretAccountId } = props;
