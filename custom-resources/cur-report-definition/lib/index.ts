@@ -37,12 +37,8 @@ const resourceType = 'Custom::CurReportDefinition';
  * Custom resource implementation that creates log subscription for directory service.
  */
 export class CurReportDefinition extends cdk.Construct {
-  private readonly props: CurReportDefinitionProps;
-
-  constructor(scope: cdk.Construct, id: string, props: CurReportDefinitionProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: CurReportDefinitionProps) {
     super(scope, id);
-
-    this.props = props;
 
     const handlerProperties: HandlerProperties = {
       ReportName: this.props.reportName,

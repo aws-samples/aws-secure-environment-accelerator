@@ -29,13 +29,11 @@ export interface AcmImportCertificateProps {
 export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable {
   tags: cdk.TagManager = new cdk.TagManager(cdk.TagType.KEY_VALUE, 'AcmImportCertificate');
 
-  private readonly props: AcmImportCertificateProps;
   private resource: cdk.CustomResource | undefined;
 
-  constructor(scope: cdk.Construct, id: string, props: AcmImportCertificateProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: AcmImportCertificateProps) {
     super(scope, id);
 
-    this.props = props;
     this.tags.setTag('Name', props.name);
 
     props.certificateBucket.grantRead(this.role);

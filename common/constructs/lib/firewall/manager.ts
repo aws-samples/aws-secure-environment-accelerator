@@ -13,14 +13,11 @@ export interface FirewallManagerProps {
 }
 
 export class FirewallManager extends cdk.Construct {
-  private readonly props: FirewallManagerProps;
   private readonly resource: ec2.CfnInstance;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: FirewallManagerProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: FirewallManagerProps) {
     super(scope, id);
-
-    this.props = props;
 
     this.resource = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,

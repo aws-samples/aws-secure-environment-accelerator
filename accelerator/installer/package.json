@@ -31,5 +31,9 @@
     "@aws-cdk/aws-s3": "1.38.0",
     "@aws-cdk/core": "1.38.0",
     "@aws-pbmm/common-cdk": "workspace:^0.0.1"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   }
 }
