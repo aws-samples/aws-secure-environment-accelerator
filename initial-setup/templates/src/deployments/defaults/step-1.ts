@@ -23,7 +23,7 @@ import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
 
 export interface DefaultsStep1Props {
-  acceleratorPrefix: string,
+  acceleratorPrefix: string;
   accountStacks: AccountStacks;
   accounts: Account[];
   config: AcceleratorConfig;
