@@ -1,11 +1,4 @@
-import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import * as iam from '@aws-cdk/aws-iam';
-import { createRoleName, createBucketName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import * as kinesis from '@aws-cdk/aws-kinesis';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as logs from '@aws-cdk/aws-logs';
-import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
 import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
@@ -29,15 +22,15 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
   const globalOptionsConfig = config['global-options'];
   const logConfig = globalOptionsConfig['central-log-services'];
   const logArchiveAccountKey = logConfig.account;
-  const LogDestinationOutput = getStackJsonOutput(outputs, {
+  const logDestinationOutput = getStackJsonOutput(outputs, {
     accountKey: logArchiveAccountKey,
     outputType: 'CloudWatchCentralLogging',
   });
-  if (!LogDestinationOutput) {
+  if (!logDestinationOutput || logDestinationOutput.length === 0) {
     console.log(`Log Dstination not found in outputs ${logArchiveAccountKey}`);
     return;
   }
-  const logDestinationArn = LogDestinationOutput[0].logDestination;
+  const logDestinationArn = logDestinationOutput[0].logDestination;
   for (const account of accounts) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
     if (!accountStack) {
