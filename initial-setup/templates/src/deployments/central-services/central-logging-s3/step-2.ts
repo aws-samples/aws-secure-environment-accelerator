@@ -26,7 +26,7 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
     accountKey: logArchiveAccountKey,
     outputType: 'CloudWatchCentralLogging',
   });
-  if (!LogDestinationOutput) {
+  if (!LogDestinationOutput || LogDestinationOutput.length === 0) {
     console.log(`Log Dstination not found in outputs ${logArchiveAccountKey}`);
     return;
   }
