@@ -21,15 +21,12 @@ export interface Route53ResolverEndpointProps {
 }
 
 export class Route53ResolverEndpoint extends cdk.Construct {
-  private readonly props: Route53ResolverEndpointProps;
-
   private _inboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
   private _outboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
   private _inboundEndpointIps: string[] = [];
 
-  constructor(parent: cdk.Construct, id: string, props: Route53ResolverEndpointProps) {
+  constructor(parent: cdk.Construct, id: string, private readonly props: Route53ResolverEndpointProps) {
     super(parent, id);
-    this.props = props;
   }
 
   /**

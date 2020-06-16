@@ -2,11 +2,13 @@ import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as ec2 from '@aws-cdk/aws-ec2';
+import * as iam from '@aws-cdk/aws-iam';
+import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
+import { InstanceProfile } from '@aws-pbmm/constructs/lib/iam';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
-import { AccountStacks } from '../../../common/account-stacks';
+import { AccountStacks, AccountStack } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import {
   FirewallVpnConnectionOutputType,
@@ -14,9 +16,9 @@ import {
   FirewallInstanceOutput,
   FirewallInstanceOutputType,
 } from './outputs';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
-import { InstanceTimeOutputType, getTimeDiffInMinutes, checkAccountWarming } from '../../account-warming/outputs';
+import { checkAccountWarming } from '../../account-warming/outputs';
+import { createIamInstanceProfileName } from '../../../common/iam-assets';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: s3.IBucket };
@@ -41,6 +43,21 @@ export async function step3(props: FirewallStep3Props) {
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const firewallConfig = accountConfig.deployments?.firewall;
     if (!firewallConfig) {
+      continue;
+    }
+
+    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
+      console.log(`Skipping firewall deployment: account "${accountKey}" is not warmed`);
+      continue;
+    }
+
+    const subscriptionOutputs = getStackJsonOutput(outputs, {
+      outputType: 'AmiSubscriptionStatus',
+      accountKey,
+    });
+    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig['image-id']);
+    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REQUIRED) {
+      console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig['image-id']}`);
       continue;
     }
 
@@ -82,27 +99,13 @@ export async function step3(props: FirewallStep3Props) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;
     }
-    const subscriptionOutputs = getStackJsonOutput(outputs, {
-      outputType: 'AmiSubscriptionStatus',
-      accountKey,
-    });
-
-    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig['image-id']);
-    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REQUIRED) {
-      console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig['image-id']}`);
-      continue;
-    }
-
-    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
-      continue;
-    }
 
     await createFirewallCluster({
       accountBucket,
+      accountStack,
       centralBucket,
       firewallConfig,
       firewallVpnConnections,
-      scope: accountStack,
       vpc,
       vpcConfig,
     });
@@ -114,38 +117,58 @@ export async function step3(props: FirewallStep3Props) {
  */
 async function createFirewallCluster(props: {
   accountBucket: s3.IBucket;
+  accountStack: AccountStack;
   centralBucket: s3.IBucket;
   firewallConfig: c.FirewallConfig;
   firewallVpnConnections: FirewallVpnConnection[];
-  scope: cdk.Construct;
   vpc: Vpc;
   vpcConfig: c.VpcConfig;
 }) {
-  const { accountBucket, centralBucket, firewallConfig, firewallVpnConnections, scope, vpc, vpcConfig } = props;
+  const { accountStack, accountBucket, centralBucket, firewallConfig, firewallVpnConnections, vpc, vpcConfig } = props;
 
-  const securityGroup = vpc.tryFindSecurityGroupByName(firewallConfig['security-group']);
+  const {
+    name: firewallName,
+    config: configFile,
+    license: licenseFiles,
+    'security-group': securityGroupName,
+    'fw-instance-role': instanceRoleName,
+    'image-id': imageId,
+    'instance-sizes': instanceType,
+  } = firewallConfig;
+
+  const securityGroup = vpc.tryFindSecurityGroupByName(securityGroupName);
   if (!securityGroup) {
-    console.warn(`Cannot find security group with name "${firewallConfig['security-group']}" in VPC "${vpc.name}"`);
+    console.warn(`Cannot find security group with name "${securityGroupName}" in VPC "${vpc.name}"`);
     return;
   }
 
+  // Import role from a previous phase
+  const instanceRoleArn = `arn:aws:iam::${accountStack.accountId}:role/${instanceRoleName}`;
+  const instanceRole = iam.Role.fromRoleArn(accountStack, 'FirewallRole', instanceRoleArn, {
+    mutable: true,
+  });
+
+  // Import instance profile from a previous phase
+  const instanceProfile = InstanceProfile.fromInstanceRoleName(accountStack, 'FirewallInstanceProfile', {
+    instanceProfileName: createIamInstanceProfileName(instanceRoleName),
+  });
+
   // TODO Condition to check if `firewallConfig.license` and `firewallConfig.config` exist
 
-  const cluster = new FirewallCluster(scope, 'Firewall', {
+  const cluster = new FirewallCluster(accountStack, 'Firewall', {
     vpcCidrBlock: vpc.cidrBlock,
-    imageId: firewallConfig['image-id'],
-    instanceType: firewallConfig['instance-sizes'],
-    roleName: createRoleName('Firewall'),
+    additionalCidrBlocks: vpc.additionalCidrBlocks,
+    imageId,
+    instanceType,
+    instanceRole,
+    instanceProfile,
     configuration: {
       bucket: accountBucket,
       bucketRegion: cdk.Aws.REGION,
       templateBucket: centralBucket,
-      templateConfigPath: firewallConfig.config,
+      templateConfigPath: configFile,
     },
   });
-
-  // Make sure the cluster can read the license and write the configuration template
-  centralBucket.grantRead(cluster.instanceRole);
 
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
@@ -166,13 +189,13 @@ async function createFirewallCluster(props: {
     let licenseBucket: s3.IBucket | undefined;
     if (!instance) {
       // Find the next available license in the firewall config license list
-      if (firewallConfig.license && licenseIndex < firewallConfig.license.length) {
-        licensePath = firewallConfig.license[licenseIndex];
+      if (licenseFiles && licenseIndex < licenseFiles.length) {
+        licensePath = licenseFiles[licenseIndex];
         licenseBucket = centralBucket;
       }
 
       // Create an instance for this AZ
-      const instanceName = `Fgt${pascalCase(az)}`;
+      const instanceName = `${firewallName}_az${pascalCase(az)}`;
       instance = cluster.createInstance({
         name: instanceName,
         hostname: instanceName,
@@ -182,11 +205,11 @@ async function createFirewallCluster(props: {
       instancePerAz[az] = instance;
       licenseIndex++;
 
-      new StructuredOutput<FirewallInstanceOutput>(scope, `Fgt${pascalCase(az)}Output`, {
+      new StructuredOutput<FirewallInstanceOutput>(accountStack, `Fgt${pascalCase(az)}Output`, {
         type: FirewallInstanceOutputType,
         value: {
           id: instance.instanceId,
-          name: instanceName,
+          name: firewallName,
           az,
         },
       });
@@ -202,24 +225,28 @@ async function createFirewallCluster(props: {
 
     const routeTables = vpcConfig['route-tables'] || [];
     for (const routeTable of routeTables) {
-      const name: string = routeTable.name;
+      const routeTableName: string = routeTable.name;
       const routes = routeTable.routes || [];
       for (const route of routes) {
-        if (route.target !== 'firewall') {
+        if (
+          route.target !== 'firewall' ||
+          route.name !== firewallName ||
+          route.az !== az ||
+          route.port !== vpnConnection.name
+        ) {
           continue;
         }
-        if (route.port === vpnConnection.name && route.az === az) {
-          const routeTableId = vpc.tryFindRouteTableIdByName(name);
-          if (!routeTableId) {
-            console.warn(`Cannot find route table with name "${name}" in VPC ${vpc.name}`);
-            continue;
-          }
-          new ec2.CfnRoute(scope, `${name}_eni_${vpnConnection.name}_${az}`, {
-            routeTableId,
-            destinationCidrBlock: route.destination as string,
-            networkInterfaceId: networkInterface.ref,
-          });
+
+        const routeTableId = vpc.tryFindRouteTableIdByName(routeTableName);
+        if (!routeTableId) {
+          console.warn(`Cannot find route table with name "${routeTableName}" in VPC ${vpc.name}`);
+          continue;
         }
+        new ec2.CfnRoute(accountStack, `${routeTableName}_eni_${vpnConnection.name}_${az}`, {
+          routeTableId,
+          destinationCidrBlock: route.destination as string,
+          networkInterfaceId: networkInterface.ref,
+        });
       }
     }
   }

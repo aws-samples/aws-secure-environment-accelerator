@@ -33,6 +33,35 @@
             "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
             "trust-policy": "role-trust-policy.txt"
           }
+************************************Very basic workload and per account exceptions
+  "workload-account-configs": {
+    "fun-acct": {
+      "account-name": "TheFunAccount",
+      "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
+      "ou": "Sandbox"
+    },
+    "mydevacct1": {
+      "account-name": "MyDev1",
+      "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
+      "ou": "Dev",
+      "share-mad-from": "operations",
+      "enable-s3-public-access": true
+    }
+  },
+************************************Sample limit increases supported 
+      "limits": {
+        "Amazon VPC/Interface VPC endpoints per VPC": 90,
+        "Amazon VPC/VPCs per Region": 15,
+        "AWS CloudFormation/Stack count": 400,
+        "AWS CloudFormation/Stack sets per administrator account": 400
+      },
+************************************v1.0.4_to_v1.0.5 upgrade MAD fix
+      "deployments": {
+        "mad": {
+          "dir-id": 1001,
+          "password-secret-name": "accelerator/operations/mad/password",
+************************************
+
 ************************************
           {
             "name": "SampleComplexSecurityGroup",
@@ -301,29 +330,11 @@
       ]
     }
   ]
-************************************Very basic workload and per account exceptions
-  "workload-account-configs": {
-    "fun-acct": {
-      "account-name": "TheFunAccount",
-      "email": "myemail+pbmmT-funacct@myemaildomain.com---------------------REPLACE----------------------",
-      "ou": "Sandbox"
-    },
-    "mydevacct1": {
-      "account-name": "MyDev1",
-      "email": "myemail+pbmmT-dev1@myemaildomain.com---------------------REPLACE----------------------",
-      "ou": "Dev",
-      "share-mad-from": "operations",
-      "enable-s3-public-access": true
-    }
-  },
-************************************Sample limit increases supported 
-      "limits": {
-        "Amazon VPC/Interface VPC endpoints per VPC": 90,
-        "Amazon VPC/VPCs per Region": 15,
-        "AWS CloudFormation/Stack count": 400,
-        "AWS CloudFormation/Stack sets per administrator account": 400
-      },
-************************************
+
 ************************************
 
-  
+************************************
+
+************************************
+
+************************************

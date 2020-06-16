@@ -18,11 +18,7 @@ export interface ImportedVpcProps {
 }
 
 export class ImportedVpc implements Vpc {
-  readonly props: ImportedVpcProps;
-
-  constructor(props: ImportedVpcProps) {
-    this.props = props;
-  }
+  constructor(private readonly props: ImportedVpcProps) {}
 
   get id(): string {
     return this.props.id;
@@ -105,7 +101,7 @@ export class ImportedVpc implements Vpc {
       id: output.vpcId,
       name: output.vpcName,
       cidrBlock: output.cidrBlock,
-      additionalCidrBlocks: [],
+      additionalCidrBlocks: output.additionalCidrBlocks,
       subnets: output.subnets.map(s => ({
         id: s.subnetId,
         name: s.subnetName,

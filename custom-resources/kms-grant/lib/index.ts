@@ -1,0 +1,111 @@
+import * as path from 'path';
+import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
+import * as kms from '@aws-cdk/aws-kms';
+import * as lambda from '@aws-cdk/aws-lambda';
+import { HandlerProperties } from '@custom-resources/kms-grant-lambda';
+
+const resourceType = 'Custom::KMSGrant';
+
+export enum GrantOperation {
+  DECRYPT = 'Decrypt',
+  ENCRYPT = 'Encrypt',
+  GENERATE_DATA_KEY = 'GenerateDataKey',
+  GENERATE_DATA_KEY_WITHOUT_PLAINTEXT = 'GenerateDataKeyWithoutPlaintext',
+  RE_ENCRYPT_FROM = 'ReEncryptFrom',
+  RE_ENCRYPT_TO = 'ReEncryptTo',
+  SIGN = 'Sign',
+  VERIFY = 'Verify',
+  GET_PUBLIC_KEY = 'GetPublicKey',
+  CREATE_GRANT = 'CreateGrant',
+  RETIRE_GRANT = 'RetireGrant',
+  DESCRIBE_KEY = 'DescribeKey',
+  GENERATE_DATA_KEY_PAIR = 'GenerateDataKeyPair',
+  GENERATE_DATA_KEY_PAIR_WITHOUT_PLAINTEXT = 'GenerateDataKeyPairWithoutPlaintext',
+}
+
+export interface GrantProps {
+  name?: string;
+  key: kms.IKey;
+  granteePrincipal: iam.ArnPrincipal;
+  retiringPrincipal?: iam.ArnPrincipal;
+  operations: GrantOperation[];
+  constraints?: AWS.KMS.GrantConstraints;
+  tokens?: string[];
+  roleName?: string;
+}
+
+export class Grant extends cdk.Construct {
+  private resource: cdk.CustomResource;
+
+  constructor(scope: cdk.Construct, id: string, private readonly props: GrantProps) {
+    super(scope, id);
+
+    const handlerProperties: HandlerProperties = {
+      Name: props.name,
+      KeyId: props.key.keyId,
+      GranteePrincipal: props.granteePrincipal.arn,
+      RetiringPrincipal: props.retiringPrincipal?.arn,
+      Operations: props.operations,
+      Constraints: props.constraints,
+      GrantTokens: props.tokens,
+    };
+
+    this.resource = new cdk.CustomResource(this, 'Resource', {
+      resourceType,
+      serviceToken: this.lambdaFunction.functionArn,
+      properties: handlerProperties,
+    });
+  }
+
+  get grantId(): string {
+    return this.resource.getAttString('GrantId');
+  }
+
+  get grantToken(): string {
+    return this.resource.getAttString('GrantToken');
+  }
+
+  get role(): iam.IRole {
+    return this.lambdaFunction.role!;
+  }
+
+  private get lambdaFunction(): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@custom-resources/kms-grant-lambda');
+    const lambdaDir = path.dirname(lambdaPath);
+
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      roleName: this.props.roleName,
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
+
+    role.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ['kms:CreateGrant', 'kms:RevokeGrant'],
+        resources: [this.props.key.keyArn],
+      }),
+    );
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.seconds(10),
+    });
+  }
+}

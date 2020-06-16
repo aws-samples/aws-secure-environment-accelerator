@@ -2,7 +2,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as codebuild from '@aws-cdk/aws-codebuild';
-import * as codecommit from '@aws-cdk/aws-codecommit';
 import * as codepipeline from '@aws-cdk/aws-codepipeline';
 import * as actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
@@ -75,8 +74,8 @@ async function main() {
   const stateMachineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
   // Role that is used by the CodeBuild project
-  const installerProjectRole = new iam.Role(stack, 'InstallerRole', {
-    roleName: `${acceleratorPrefix}L-CPL-Installer`,
+  const installerProjectRole = new iam.Role(stack, 'InstallerProjectRole', {
+    roleName: `${acceleratorPrefix}CB-Installer`,
     assumedBy: new iam.ServicePrincipal('codebuild.amazonaws.com'),
   });
 
@@ -209,27 +208,38 @@ async function main() {
 
   // Create the Lambda function that is responsible for launching the state machine
   const stateMachineStartExecutionLambda = new lambda.Function(stack, 'ExecutionLambda', {
+    functionName: `${acceleratorPrefix}Installer-StartExecution`,
     role: stateMachineExecutionRole,
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
     handler: 'index.handler',
-    environment: {
-      STATE_MACHINE_ARN: stateMachineArn,
-    },
   });
 
   // This artifact is used as output for the Github code and as input for the build step
   const sourceArtifact = new codepipeline.Artifact();
 
-  // This artifact is used as output for the configuration code
-  // It is not used as an input
-  const configArtifact = new codepipeline.Artifact();
+  // Role that is used by the CodePipeline
+  // Permissions for
+  //   - accessing the artifacts bucket
+  //   - publishing to the manual approval SNS topic
+  //   - running the CodeBuild project
+  //   - running the state machine execution Lambda function
+  // will be added automatically by the CDK Pipeline construct
+  const installerPipelineRole = new iam.Role(stack, 'InstallerPipelineRole', {
+    roleName: `${acceleratorPrefix}CP-Installer`,
+    assumedBy: new iam.ServicePrincipal('codepipeline.amazonaws.com'),
+  });
+
+  // This bucket will be used to store the CodePipeline source
+  // Encryption is not necessary for this pipeline so we create a custom unencrypted bucket
+  const installerArtifactsBucket = new s3.Bucket(stack, 'ArtifactsBucket', {
+    removalPolicy: cdk.RemovalPolicy.DESTROY,
+  });
 
   new codepipeline.Pipeline(stack, 'Pipeline', {
+    role: installerPipelineRole,
     pipelineName: `${acceleratorPrefix}InstallerPipeline`,
-    // The default bucket is encrypted
-    // That is not necessary for this pipeline so we create a custom unencrypted bucket.
-    artifactBucket: new s3.Bucket(stack, 'ArtifactsBucket'),
+    artifactBucket: installerArtifactsBucket,
     stages: [
       {
         stageName: 'Source',
@@ -250,6 +260,7 @@ async function main() {
           new actions.ManualApprovalAction({
             actionName: 'Approval',
             notifyEmails: [notificationEmail.valueAsString],
+            role: installerPipelineRole,
           }),
         ],
       },
@@ -260,6 +271,7 @@ async function main() {
             actionName: 'DeployAccelerator',
             project: installerProject,
             input: sourceArtifact,
+            role: installerPipelineRole,
           }),
         ],
       },
@@ -269,6 +281,10 @@ async function main() {
           new actions.LambdaInvokeAction({
             actionName: 'ExecuteAcceleratorStateMachine',
             lambda: stateMachineStartExecutionLambda,
+            role: installerPipelineRole,
+            userParameters: {
+              stateMachineArn,
+            },
           }),
         ],
       },
