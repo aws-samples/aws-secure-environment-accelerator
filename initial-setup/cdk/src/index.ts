@@ -79,11 +79,6 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
-      const commitIdSecret = new secrets.Secret(this, 'CommitId', {
-        secretName: 'accelerator/gitrepo-commitId',
-        description: 'This secret contains the commitId of the git repository configuration file',
-      });
-
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: createRoleName('L-SFN-MasterRole'),
@@ -144,7 +139,6 @@ export namespace InitialSetup {
         },
         functionPayload: {
           'inputConfig.$': '$',
-          commitSecretId: commitIdSecret.secretArn,
           region: cdk.Aws.REGION,
         },
         resultPath: '$.configuration',
@@ -477,7 +471,6 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          commitSecretId: commitIdSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });

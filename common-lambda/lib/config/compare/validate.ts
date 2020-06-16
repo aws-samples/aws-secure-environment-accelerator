@@ -1,6 +1,6 @@
 import * as validateConfig from './common';
 import { Diff } from 'deep-diff';
-import { LHS, RHS } from '../../aws/config-diff';
+import { LHS, RHS } from './config-diff';
 
 /**
  * config path(s) for global options
@@ -91,40 +91,40 @@ export async function validateGlobalOptions(
   errors: string[],
 ): Promise<void | undefined> {
   // below function to check alz-baseline change
-  const alzBaseline = await validateConfig.matchEditedConfigPath(differences, 'alz-baseline', false);
+  const alzBaseline = validateConfig.matchEditedConfigPath(differences, 'alz-baseline', false);
   if (alzBaseline) {
     errors.push(...alzBaseline);
   }
 
   // below function to check ct-baseline change
-  const ctBaseline = await validateConfig.matchEditedConfigPath(differences, 'ct-baseline', false);
+  const ctBaseline = validateConfig.matchEditedConfigPath(differences, 'ct-baseline', false);
   if (ctBaseline) {
     errors.push(...ctBaseline);
   }
   // below function to check master account name change
-  const account = await validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_AOM_ACCOUNT);
+  const account = validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_AOM_ACCOUNT);
   if (account) {
-    errors.push(account);
+    errors.push(...account);
   }
 
   // below function to check master region name change
   // TODO validate the SM executed in the same region
-  const masterRegion = await validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_AOM_REGION);
+  const masterRegion = validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_AOM_REGION);
   if (masterRegion) {
-    errors.push(masterRegion);
+    errors.push(...masterRegion);
   }
 
   // below function to check master account name change
-  const logAccount = await validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_CLS_ACCOUNT);
+  const logAccount = validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_CLS_ACCOUNT);
   if (logAccount) {
-    errors.push(logAccount);
+    errors.push(...logAccount);
   }
 
   // below function to check master region name change
   // TODO validate the SM executed in the same region
-  const logRegion = await validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_CLS_REGION);
+  const logRegion = validateConfig.matchConfigPath(differences, GLOBAL_OPTIONS_CLS_REGION);
   if (logRegion) {
-    errors.push(logRegion);
+    errors.push(...logRegion);
   }
 }
 
@@ -142,7 +142,7 @@ export async function validateDeleteAccountConfig(
   errors: string[],
 ): Promise<void | undefined> {
   // below functions check whether sub accounts removed from config file
-  const deletedAccount = await validateConfig.deletedSubAccount(accountNames, differences);
+  const deletedAccount = validateConfig.deletedSubAccount(accountNames, differences);
   if (deletedAccount) {
     errors.push(...deletedAccount);
   }
@@ -160,7 +160,7 @@ export async function validateRenameAccountConfig(
   errors: string[],
 ): Promise<void | undefined> {
   // the below function checks renaming of the sub accounts
-  const renameAccount = await validateConfig.matchEditedConfigPath(differences, 'account-name', true);
+  const renameAccount = validateConfig.matchEditedConfigPath(differences, 'account-name', true);
   if (renameAccount) {
     errors.push(...renameAccount);
   }
@@ -175,7 +175,7 @@ export async function validateRenameAccountConfig(
  */
 export async function validateAccountEmail(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void | undefined> {
   // the below function checks sub account email
-  const accountEmail = await validateConfig.matchEditedConfigPath(differences, 'email', true, 3);
+  const accountEmail = validateConfig.matchEditedConfigPath(differences, 'email', true, 3);
   if (accountEmail) {
     errors.push(...accountEmail);
   }
@@ -190,7 +190,7 @@ export async function validateAccountEmail(differences: Diff<LHS, RHS>[], errors
  */
 export async function validateAccountOu(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
   // the below function checks sub account ou
-  const accountOu = await validateConfig.matchEditedConfigPath(differences, 'ou', true, 3);
+  const accountOu = validateConfig.matchEditedConfigPath(differences, 'ou', true, 3);
   if (accountOu) {
     errors.push(...accountOu);
   }
@@ -205,31 +205,31 @@ export async function validateAccountOu(differences: Diff<LHS, RHS>[], errors: s
  */
 export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
   // the below function checks vpc deploy of the account
-  const accountVpcDeploy = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_DEPLOY, 5);
+  const accountVpcDeploy = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_DEPLOY, 5);
   if (accountVpcDeploy) {
     errors.push(...accountVpcDeploy);
   }
 
   // the below function checks vpc name of the account
-  const accountVpcName = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_NAME, 5);
+  const accountVpcName = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_NAME, 5);
   if (accountVpcName) {
     errors.push(...accountVpcName);
   }
 
   // the below function checks vpc cidr of the account
-  const accountVpcCidr = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 8);
+  const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 8);
   if (accountVpcCidr) {
     errors.push(...accountVpcCidr);
   }
 
   // the below function checks vpc cidr2 of the account
-  const accountVpcCidr2 = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR2, 8);
+  const accountVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR2, 8);
   if (accountVpcCidr2) {
     errors.push(...accountVpcCidr2);
   }
 
   // the below function checks vpc region of the account
-  const accountVpcRegion = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_REGION, 5);
+  const accountVpcRegion = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_REGION, 5);
   if (accountVpcRegion) {
     errors.push(...accountVpcRegion);
   }
@@ -243,42 +243,34 @@ export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: 
  * @param errors
  */
 export async function validateAccountSubnets(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  const removeAccountSubnets = await validateConfig.matchConfigDependencyArray(differences, ACCOUNT_SUBNETS, 5);
+  const removeAccountSubnets = validateConfig.matchConfigDependencyArray(differences, ACCOUNT_SUBNETS, 5);
   if (removeAccountSubnets) {
     errors.push(...removeAccountSubnets);
   }
 
-  const updatedAccountSubnetName = await validateConfig.matchEditedConfigDependency(
-    differences,
-    ACCOUNT_SUBNET_NAME,
-    7,
-  );
+  const updatedAccountSubnetName = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_NAME, 7);
   if (updatedAccountSubnetName) {
     errors.push(...updatedAccountSubnetName);
   }
 
-  const updatedAccountSubnetAz = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_AZ, 9);
+  const updatedAccountSubnetAz = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_AZ, 9);
   if (updatedAccountSubnetAz) {
     errors.push(...updatedAccountSubnetAz);
   }
 
   // the below function checks subnet cidr of the account
-  const accountSubnetCidr = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 12);
+  const accountSubnetCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 12);
   if (accountSubnetCidr) {
     errors.push(...accountSubnetCidr);
   }
 
   // the below function checks subnet cidr of the account
-  const accountSubnetCidr2 = await validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR2, 12);
+  const accountSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR2, 12);
   if (accountSubnetCidr2) {
     errors.push(...accountSubnetCidr2);
   }
 
-  const accountSubnetDisabled = await validateConfig.matchEditedConfigPathDisabled(
-    differences,
-    ACCOUNT_SUBNET_DISABLED,
-    9,
-  );
+  const accountSubnetDisabled = validateConfig.matchEditedConfigPathDisabled(differences, ACCOUNT_SUBNET_DISABLED, 9);
   if (accountSubnetDisabled) {
     errors.push(...accountSubnetDisabled);
   }
@@ -292,22 +284,22 @@ export async function validateAccountSubnets(differences: Diff<LHS, RHS>[], erro
  */
 export async function validateTgw(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
   // the below function checks vpc name of the account
-  const tgwName = await validateConfig.matchEditedConfigDependency(differences, TGW_NAME, 5);
+  const tgwName = validateConfig.matchEditedConfigDependency(differences, TGW_NAME, 5);
   if (tgwName) {
     errors.push(...tgwName);
   }
 
-  const tgwAsn = await validateConfig.matchEditedConfigDependency(differences, TGW_ASN, 5);
+  const tgwAsn = validateConfig.matchEditedConfigDependency(differences, TGW_ASN, 5);
   if (tgwAsn) {
     errors.push(...tgwAsn);
   }
 
-  const tgwRegion = await validateConfig.matchEditedConfigDependency(differences, TGW_REGION, 5);
+  const tgwRegion = validateConfig.matchEditedConfigDependency(differences, TGW_REGION, 5);
   if (tgwRegion) {
     errors.push(...tgwRegion);
   }
 
-  const tgwFeatures = await validateConfig.matchEditedConfigPathValues(differences, TGW_FEATURES, false, 6);
+  const tgwFeatures = validateConfig.matchEditedConfigPathValues(differences, TGW_FEATURES, false, 6);
   if (tgwFeatures) {
     errors.push(...tgwFeatures);
   }
@@ -321,42 +313,42 @@ export async function validateTgw(differences: Diff<LHS, RHS>[], errors: string[
  * @param errors
  */
 export async function validateMad(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  const madDirId = await validateConfig.matchEditedConfigPathValues(differences, MAD_DIR_ID, false, 5);
+  const madDirId = validateConfig.matchEditedConfigPathValues(differences, MAD_DIR_ID, false, 5);
   if (madDirId) {
     errors.push(...madDirId);
   }
 
-  const madDeploy = await validateConfig.matchEditedConfigPathValues(differences, MAD_DEPLOY, false, 5);
+  const madDeploy = validateConfig.matchEditedConfigPathValues(differences, MAD_DEPLOY, false, 5);
   if (madDeploy) {
     errors.push(...madDeploy);
   }
 
-  const madVpcName = await validateConfig.matchEditedConfigPathValues(differences, MAD_VPC_NAME, false, 5);
+  const madVpcName = validateConfig.matchEditedConfigPathValues(differences, MAD_VPC_NAME, false, 5);
   if (madVpcName) {
     errors.push(...madVpcName);
   }
 
-  const madRegion = await validateConfig.matchEditedConfigPathValues(differences, MAD_REGION, false, 5);
+  const madRegion = validateConfig.matchEditedConfigPathValues(differences, MAD_REGION, false, 5);
   if (madRegion) {
     errors.push(...madRegion);
   }
 
-  const madSubnet = await validateConfig.matchEditedConfigPathValues(differences, MAD_SUBNET, false, 5);
+  const madSubnet = validateConfig.matchEditedConfigPathValues(differences, MAD_SUBNET, false, 5);
   if (madSubnet) {
     errors.push(...madSubnet);
   }
 
-  const madSize = await validateConfig.matchEditedConfigPathValues(differences, MAD_SIZE, false, 5);
+  const madSize = validateConfig.matchEditedConfigPathValues(differences, MAD_SIZE, false, 5);
   if (madSize) {
     errors.push(...madSize);
   }
 
-  const madDns = await validateConfig.matchEditedConfigPathValues(differences, MAD_DNS, false, 5);
+  const madDns = validateConfig.matchEditedConfigPathValues(differences, MAD_DNS, false, 5);
   if (madDns) {
     errors.push(...madDns);
   }
 
-  const madNetBios = await validateConfig.matchEditedConfigPathValues(differences, MAD_NETBIOS, false, 5);
+  const madNetBios = validateConfig.matchEditedConfigPathValues(differences, MAD_NETBIOS, false, 5);
   if (madNetBios) {
     errors.push(...madNetBios);
   }
@@ -370,7 +362,7 @@ export async function validateMad(differences: Diff<LHS, RHS>[], errors: string[
  * @param errors
  */
 export async function validateVgw(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  const vgwAsn = await validateConfig.matchEditedConfigDependency(differences, VGW_ASN, 6);
+  const vgwAsn = validateConfig.matchEditedConfigDependency(differences, VGW_ASN, 6);
   if (vgwAsn) {
     errors.push(...vgwAsn);
   }
@@ -385,31 +377,31 @@ export async function validateVgw(differences: Diff<LHS, RHS>[], errors: string[
  */
 export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
   // the below function checks vpc deploy of the account
-  const ouVpcDeploy = await validateConfig.matchEditedConfigDependency(differences, OU_VPC_DEPLOY, 5);
+  const ouVpcDeploy = validateConfig.matchEditedConfigDependency(differences, OU_VPC_DEPLOY, 5);
   if (ouVpcDeploy) {
     errors.push(...ouVpcDeploy);
   }
 
   // the below function checks vpc name of the account
-  const ouVpcName = await validateConfig.matchEditedConfigDependency(differences, OU_VPC_NAME, 5);
+  const ouVpcName = validateConfig.matchEditedConfigDependency(differences, OU_VPC_NAME, 5);
   if (ouVpcName) {
     errors.push(...ouVpcName);
   }
 
   // the below function checks vpc cidr of the account
-  const ouVpcCidr = await validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 8);
+  const ouVpcCidr = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 8);
   if (ouVpcCidr) {
     errors.push(...ouVpcCidr);
   }
 
   // the below function checks vpc cidr2 of the account
-  const ouVpcCidr2 = await validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR2, 8);
+  const ouVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR2, 8);
   if (ouVpcCidr2) {
     errors.push(...ouVpcCidr2);
   }
 
   // the below function checks vpc region of the account
-  const ouVpcRegion = await validateConfig.matchEditedConfigDependency(differences, OU_VPC_REGION, 5);
+  const ouVpcRegion = validateConfig.matchEditedConfigDependency(differences, OU_VPC_REGION, 5);
   if (ouVpcRegion) {
     errors.push(...ouVpcRegion);
   }
@@ -423,34 +415,34 @@ export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: strin
  * @param errors
  */
 export async function validateOuSubnets(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  const removeOuSubnets = await validateConfig.matchConfigDependencyArray(differences, OU_SUBNETS, 5);
+  const removeOuSubnets = validateConfig.matchConfigDependencyArray(differences, OU_SUBNETS, 5);
   if (removeOuSubnets) {
     errors.push(...removeOuSubnets);
   }
 
-  const ouSubnetName = await validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_NAME, 7);
+  const ouSubnetName = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_NAME, 7);
   if (ouSubnetName) {
     errors.push(...ouSubnetName);
   }
 
-  const ouSubnetAz = await validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_AZ, 9);
+  const ouSubnetAz = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_AZ, 9);
   if (ouSubnetAz) {
     errors.push(...ouSubnetAz);
   }
 
   // the below function checks subnet cidr of the account
-  const ouSubnetCidr = await validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 12);
+  const ouSubnetCidr = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 12);
   if (ouSubnetCidr) {
     errors.push(...ouSubnetCidr);
   }
 
   // the below function checks subnet cidr of the account
-  const ouSubnetCidr2 = await validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR2, 12);
+  const ouSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR2, 12);
   if (ouSubnetCidr2) {
     errors.push(...ouSubnetCidr2);
   }
 
-  const ouSubnetDisabled = await validateConfig.matchEditedConfigPathDisabled(differences, OU_SUBNET_DISABLED, 9);
+  const ouSubnetDisabled = validateConfig.matchEditedConfigPathDisabled(differences, OU_SUBNET_DISABLED, 9);
   if (ouSubnetDisabled) {
     errors.push(...ouSubnetDisabled);
   }
@@ -464,7 +456,7 @@ export async function validateOuSubnets(differences: Diff<LHS, RHS>[], errors: s
  * @param errors
  */
 export async function validateShareToOu(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  const shareToOu = await validateConfig.matchEditedConfigPath(differences, 'share-to-ou-accounts', true);
+  const shareToOu = validateConfig.matchEditedConfigPath(differences, 'share-to-ou-accounts', true);
   if (shareToOu) {
     errors.push(...shareToOu);
   }
@@ -478,15 +470,12 @@ export async function validateShareToOu(differences: Diff<LHS, RHS>[], errors: s
  * @param errors
  */
 export async function validateShareToAccounts(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  const shareToAccounts = await validateConfig.editedConfigDependency(differences, ['share-to-specific-accounts']);
+  const shareToAccounts = validateConfig.editedConfigDependency(differences, ['share-to-specific-accounts']);
   if (shareToAccounts) {
     errors.push(...shareToAccounts);
   }
 
-  const shareToAccountsArray = await validateConfig.deletedConfigDependencyArray(
-    differences,
-    'share-to-specific-accounts',
-  );
+  const shareToAccountsArray = validateConfig.deletedConfigDependencyArray(differences, 'share-to-specific-accounts');
   if (shareToAccountsArray) {
     errors.push(...shareToAccountsArray);
   }
@@ -500,12 +489,12 @@ export async function validateShareToAccounts(differences: Diff<LHS, RHS>[], err
  * @param errors
  */
 export async function validateNacls(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
-  const naclRules = await validateConfig.editedConfigDependency(differences, OU_NACLS);
+  const naclRules = validateConfig.editedConfigDependency(differences, OU_NACLS);
   if (naclRules) {
     errors.push(...naclRules);
   }
 
-  const naclsSubnet = await validateConfig.editedConfigArray(differences, OU_NACLS_SUBNET);
+  const naclsSubnet = validateConfig.editedConfigArray(differences, OU_NACLS_SUBNET);
   if (naclsSubnet) {
     errors.push(...naclsSubnet);
   }

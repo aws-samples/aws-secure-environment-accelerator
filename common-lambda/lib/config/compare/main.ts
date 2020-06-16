@@ -1,6 +1,5 @@
 import { CodeCommit } from '../../aws/codecommit';
-import { AcceleratorConfig } from '..';
-import { compareConfiguration } from '../../aws/config-diff';
+import { compareConfiguration, getAccountNames } from './config-diff';
 import * as validate from './validate';
 
 /**
@@ -27,8 +26,8 @@ export async function compareAcceleratorConfig(props: {
   console.log('reading latest committed file as string');
   const modifiedContent = updatedConfigFile.fileContent.toString();
 
-  const previousConfig = AcceleratorConfig.fromString(previousContent);
-  const modifiedConfig = AcceleratorConfig.fromString(modifiedContent);
+  const previousConfig = JSON.parse(previousContent);
+  const modifiedConfig = JSON.parse(modifiedContent);
 
   const errors: string[] = [];
 
@@ -41,13 +40,16 @@ export async function compareAcceleratorConfig(props: {
   }
 
   // get all the accounts from previous commit
-  const accountNames = previousConfig.getAccountConfigs().map(([_, accountConfig]) => accountConfig['account-name']);
+  const accountNames = getAccountNames(previousConfig);
+  console.log(accountNames);
 
   if (!overrideConfig['ov-global-options']) {
     await validate.validateGlobalOptions(configChanges, errors);
     const ouMasterRegion = modifiedConfig['global-options']['aws-org-master'].region;
     if (region !== ouMasterRegion) {
-      errors.push(`state machine is running in the region ${region} but "aws-org-master" region has ${ouMasterRegion}`);
+      errors.push(
+        `ConfigCheck: state machine is running in the region ${region} but "aws-org-master" region has ${ouMasterRegion}`,
+      );
     }
   }
 

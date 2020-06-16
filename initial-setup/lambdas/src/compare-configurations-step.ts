@@ -1,9 +1,9 @@
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { compareAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/compare/main';
+import { getCommitIdSecretName } from '@aws-pbmm/common-outputs/lib/commitid-secret';
 
 export interface StepInput {
   inputConfig: CompareConfigurationInput;
-  commitSecretId: string;
   region: string;
 }
 
@@ -46,19 +46,25 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
     'ov-nacl': false,
   };
 
-  const { inputConfig, commitSecretId, region } = input;
+  const { inputConfig, region } = input;
 
   const configFilePath = inputConfig.configuration.configFilePath;
   const configRepositoryName = inputConfig.configuration.configRepositoryName;
   const configCommitId = inputConfig.configuration.configCommitId;
+  const commitSecretId = getCommitIdSecretName();
 
   const secrets = new SecretsManager();
-  const previousCommitIdSecret = await secrets.getSecret(commitSecretId);
-  const previousCommitId = previousCommitIdSecret.SecretString;
+  let previousCommitId;
+  try {
+    const previousCommitIdSecret = await secrets.getSecret(commitSecretId);
+    previousCommitId = previousCommitIdSecret.SecretString;
+  } catch (e) {
+    console.log('previous successful run commitId not found');
+  }
 
   if (inputConfig.overrideComparison || !previousCommitId || configCommitId === previousCommitId) {
     console.log(
-      'either previous git repo commitId not found or "overrideComparison" passed as true, so skipping validation of config file updates',
+      'either previous git repo commitId not found or commitIds are same, so skipping validation of config file updates',
     );
     return {
       configRepositoryName,
