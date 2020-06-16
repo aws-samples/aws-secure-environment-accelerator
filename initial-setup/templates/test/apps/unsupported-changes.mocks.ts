@@ -6,6 +6,7 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../../src/common/account-stacks';
 import { Account } from '../../src/utils/accounts';
+import { Organization } from '../../src/utils/organizations';
 import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
@@ -31,6 +32,13 @@ export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.App>
  * Function that returns mock input for a given phase.
  */
 export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
+  const organizations: Organization[] = [
+    {
+      id: 'ou-1111111',
+      name: 'core',
+      key: 'core',
+    },
+  ];
   const accounts: Account[] = [
     {
       key: 'master',
@@ -1078,5 +1086,6 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     context,
     limiter,
     outputs,
+    organizations,
   };
 }

@@ -69,6 +69,11 @@ export namespace InitialSetup {
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
 
+      const organizationsSecret = new secrets.Secret(this, 'Organizations', {
+        secretName: 'accelerator/organizations',
+        description: 'This secret contains the information about the organizations that are used for deployment.',
+      });
+
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
         secretName: 'accelerator/outputs',
         description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
@@ -112,6 +117,7 @@ export namespace InitialSetup {
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
+          ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
       });
 
@@ -189,6 +195,19 @@ export namespace InitialSetup {
       });
 
       createAccountsTask.iterator(createAccountTask);
+
+      const loadOrganizationsTask = new CodeTask(this, 'Load Organizations', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadOrganizationsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          organizationsSecretId: organizationsSecret.secretArn,
+          'configuration.$': '$.configuration',
+        },
+        resultPath: 'DISCARD',
+      });
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
@@ -454,6 +473,7 @@ export namespace InitialSetup {
           .next(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
+          .next(loadOrganizationsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(loadLimitsTask)

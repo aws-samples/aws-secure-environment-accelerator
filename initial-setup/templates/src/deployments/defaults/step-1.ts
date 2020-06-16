@@ -17,6 +17,7 @@ import {
 } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
+import { Organization } from '../../utils/organizations';
 import { StructuredOutput } from '../../common/structured-output';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
@@ -25,6 +26,7 @@ export interface DefaultsStep1Props {
   accountStacks: AccountStacks;
   accounts: Account[];
   config: AcceleratorConfig;
+  organizations: Organization[];
 }
 
 export interface DefaultsStep1Result {
@@ -148,7 +150,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
  * Creates a bucket that contains copies of the files in the central bucket.
  */
 function createCentralLogBucket(props: DefaultsStep1Props) {
-  const { accountStacks, accounts, config } = props;
+  const { accountStacks, accounts, config, organizations } = props;
 
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
@@ -163,16 +165,46 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     encryptionKey: logKey,
   });
 
-  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
+  // const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
 
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(accountPrincipals);
+  // logBucket.replicateFrom(accountPrincipals);
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: accountPrincipals,
-      actions: ['s3:PutObject'],
-      resources: [`${logBucket.bucketArn}/*`],
+      principals: [new iam.AnyPrincipal()],
+      actions: [
+        's3:GetBucketVersioning',
+        's3:GetObjectVersionTagging',
+        's3:ObjectOwnerOverrideToBucketOwner',
+        's3:PutBucketVersioning',
+        's3:ReplicateDelete',
+        's3:ReplicateObject',
+        's3:ReplicateTags',
+        's3:List*',
+      ],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.map(ou => ou.id),
+        },
+        ArnLike: {
+          'aws:PrincipalARN': 'arn:aws:iam::*:role/PBMMAccel-*',
+        },
+      },
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.AnyPrincipal()],
+      actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.map(ou => ou.id),
+        },
+      },
     }),
   );
 
