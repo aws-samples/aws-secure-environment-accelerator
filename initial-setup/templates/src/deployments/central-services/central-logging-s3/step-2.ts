@@ -1,11 +1,4 @@
-import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import * as iam from '@aws-cdk/aws-iam';
-import { createRoleName, createBucketName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import * as kinesis from '@aws-cdk/aws-kinesis';
-import * as s3 from '@aws-cdk/aws-s3';
-import * as logs from '@aws-cdk/aws-logs';
-import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
 import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
