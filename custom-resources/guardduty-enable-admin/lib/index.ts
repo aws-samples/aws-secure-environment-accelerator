@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
 
-
 export interface GuardDutyAdminProps {
   accountId: string;
 }
