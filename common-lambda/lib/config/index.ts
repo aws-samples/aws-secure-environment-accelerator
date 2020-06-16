@@ -590,6 +590,7 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-services': CentralServicesConfigType,
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
+  'organization-admin-role': NonEmptyString,
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
