@@ -19,6 +19,8 @@ import * as secretsDeployment from '../deployments/secrets';
 import { PhaseInput } from './shared';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
+import * as accountWarming from '../deployments/account-warming';
+
 /**
  * This is the main entry point to deploy phase 0.
  *
@@ -26,7 +28,14 @@ import { createR53LogGroupName } from '../common/r53-zones';
  *   - Log archive bucket
  *   - Copy of the central bucket
  */
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+  // verify and create ec2 instance to increase account limits
+  await accountWarming.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
     accountStacks,
