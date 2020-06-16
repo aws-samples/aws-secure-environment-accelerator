@@ -1,3 +1,4 @@
+// tslint:disable:no-invalid-template-strings
 import { IPv4CidrRange } from 'ip-num';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
@@ -31,6 +32,7 @@ export interface FirewallInstanceProps {
   name: string;
   hostname: string;
   vpcCidrBlock: string;
+  additionalCidrBlocks: string[];
   licensePath?: string;
   licenseBucket?: s3.IBucket;
   /**
@@ -71,7 +73,7 @@ export class FirewallInstance extends cdk.Construct {
       outputPath: configuration.configPath,
     });
 
-    this.addVpcReplacements(props.hostname, props.vpcCidrBlock);
+    this.addVpcReplacements();
 
     this.resource = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,
@@ -152,22 +154,30 @@ export class FirewallInstance extends cdk.Construct {
     return networkInterface;
   }
 
-  private addVpcReplacements(hostname: string, cidrBlock: string) {
-    const vpcCidrBlock = IPv4CidrRange.fromCidr(cidrBlock);
-    const vpcCidrMask = vpcCidrBlock.cidrPrefix.toSubnetMask();
-    const vpcNetworkIp = vpcCidrBlock.getFirst();
-    const vpcRouterIp = vpcNetworkIp.nextIPNumber();
+  private addVpcReplacements() {
+    this.template.addReplacement('${Hostname}', this.props.hostname);
 
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${Hostname}', hostname);
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcMask}', vpcCidrMask.toString());
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcCidr}', vpcCidrBlock.toCidrString());
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcNetworkIp}', vpcNetworkIp.toString());
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcRouterIp}', vpcRouterIp.toString());
+    const addVpcReplacement = (cidrBlock: string, suffix: string) => {
+      const vpcCidrBlock = IPv4CidrRange.fromCidr(cidrBlock);
+      const vpcCidrMask = vpcCidrBlock.cidrPrefix.toSubnetMask();
+      const vpcNetworkIp = vpcCidrBlock.getFirst();
+      const vpcRouterIp = vpcNetworkIp.nextIPNumber();
+
+      this.template.addReplacement(`\${VpcMask${suffix}}`, vpcCidrMask.toString());
+      this.template.addReplacement(`\${VpcCidr${suffix}}`, vpcCidrBlock.toCidrString());
+      this.template.addReplacement(`\${VpcNetworkIp${suffix}}`, vpcNetworkIp.toString());
+      this.template.addReplacement(`\${VpcRouterIp${suffix}}`, vpcRouterIp.toString());
+    };
+
+    // Add default VPC CIDR block replacements
+    addVpcReplacement(this.props.vpcCidrBlock, '');
+
+    // Add additional VPC CIDR block replacements
+    // The first additional CIDR block replacement suffix will start with '2'
+    //    i.e. VpcMask2, VpcCidr2
+    this.props.additionalCidrBlocks.forEach((additionalCidrBlock, index) => {
+      addVpcReplacement(additionalCidrBlock, `${index + 2}`);
+    });
   }
 
   get instanceId() {

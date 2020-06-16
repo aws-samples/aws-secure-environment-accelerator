@@ -101,7 +101,7 @@ export class ImportedVpc implements Vpc {
       id: output.vpcId,
       name: output.vpcName,
       cidrBlock: output.cidrBlock,
-      additionalCidrBlocks: [],
+      additionalCidrBlocks: output.additionalCidrBlocks,
       subnets: output.subnets.map(s => ({
         id: s.subnetId,
         name: s.subnetName,

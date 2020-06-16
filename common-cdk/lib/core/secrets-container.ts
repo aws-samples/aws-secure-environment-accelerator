@@ -35,8 +35,10 @@ export class SecretsContainer extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string) {
     super(scope, name);
 
-    this.encryptionKey = new kms.Key(this, `EncryptionKey`);
-    this.encryptionKey.addAlias('alias/' + createEncryptionKeyName(`EncryptionKey`));
+    this.encryptionKey = new kms.Key(this, `EncryptionKey`, {
+      alias: 'alias/' + createEncryptionKeyName(`Secrets-Key`),
+      description: 'Key used to encrypt/decrypt secrets',
+    });
 
     this.encryptionKey.addToResourcePolicy(
       new iam.PolicyStatement({
