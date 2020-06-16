@@ -7,20 +7,12 @@ import { createEncryptionKeyName } from '@aws-pbmm/common-cdk/lib/core/accelerat
 import { AccountStack } from '../../common/account-stacks';
 import { overrideLogicalId } from '../../utils/cdk';
 
-/**
- * Creates a bucket in the account with given accountKey.
- */
-export function createDefaultS3Bucket(props: { accountStack: AccountStack; config: AcceleratorConfig }): Bucket {
-  const { accountStack, config } = props;
-
-  const defaultLogRetention = config['global-options']['central-log-retention'];
-
-  const accountConfig = config.getAccountByKey(accountStack.accountKey);
-  const logRetention = accountConfig['log-retention'] ?? defaultLogRetention;
+export function createDefaultS3Key(props: { accountStack: AccountStack }): kms.Key {
+  const { accountStack } = props;
 
   const encryptionKey = new kms.Key(accountStack, 'DefaultKey', {
-    alias: 'alias/' + createEncryptionKeyName('Default'),
-    description: `Encryption key used for encrypting the default S3 bucket`,
+    alias: 'alias/' + createEncryptionKeyName('Bucket-Key'),
+    description: `Default bucket encryption key`,
   });
   encryptionKey.addToResourcePolicy(
     new iam.PolicyStatement({
@@ -30,6 +22,23 @@ export function createDefaultS3Bucket(props: { accountStack: AccountStack; confi
       resources: ['*'],
     }),
   );
+  return encryptionKey;
+}
+
+/**
+ * Creates a bucket in the account with given accountKey.
+ */
+export function createDefaultS3Bucket(props: {
+  accountStack: AccountStack;
+  config: AcceleratorConfig;
+  encryptionKey: kms.Key;
+}): Bucket {
+  const { accountStack, config, encryptionKey } = props;
+
+  const defaultLogRetention = config['global-options']['central-log-retention'];
+
+  const accountConfig = config.getAccountByKey(accountStack.accountKey);
+  const logRetention = accountConfig['log-retention'] ?? defaultLogRetention;
 
   // Generate fixed bucket name so we can do initialize cross-account bucket replication
   const bucket = new Bucket(accountStack, 'DefaultBucket', {
