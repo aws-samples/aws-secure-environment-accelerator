@@ -926,6 +926,127 @@ Array [
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "SecretsbgUser1UserPswdPolicyC9835C06",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsbgUser1UserPswdF10CD199",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsbgUser2UserPswdPolicy2131F530",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsbgUser2UserPswd08D94AA3",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser1UserPswdPolicy903155AD",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsOpsUser1UserPswdD5EAD264",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser2UserPswdPolicyAD9B103E",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsOpsUser2UserPswdD05A1573",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordPolicy73965873",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPassword5CC78627",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordadconnectorusrPolicy889AF319",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordadconnectorusrB8347327",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser1Policy18726F39",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordUser1291E3AF7",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser2PolicyEC783CD1",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordUser29026EDF3",
+      },
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;

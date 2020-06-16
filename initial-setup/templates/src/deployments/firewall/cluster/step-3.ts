@@ -157,6 +157,7 @@ async function createFirewallCluster(props: {
 
   const cluster = new FirewallCluster(accountStack, 'Firewall', {
     vpcCidrBlock: vpc.cidrBlock,
+    additionalCidrBlocks: vpc.additionalCidrBlocks,
     imageId,
     instanceType,
     instanceRole,
@@ -168,9 +169,6 @@ async function createFirewallCluster(props: {
       templateConfigPath: configFile,
     },
   });
-
-  // Make sure the cluster can read the license and write the configuration template
-  centralBucket.grantRead(instanceRole);
 
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
