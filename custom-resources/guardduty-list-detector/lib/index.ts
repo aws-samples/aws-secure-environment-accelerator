@@ -32,7 +32,7 @@ export class GuardDutyDetector extends cdk.Construct {
     });
   }
 
-  getDetectorId(): string {
+  get detectorId(): string {
     // based on https://docs.aws.amazon.com/guardduty/latest/APIReference/API_CreateDetector.html
     // you can only have one detector per account per region, so this should always be one result.
     return this.resource.getResponseField(`DetectorIds.0`);
