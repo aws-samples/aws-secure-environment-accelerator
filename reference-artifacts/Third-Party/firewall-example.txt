@@ -59,6 +59,11 @@ config vdom
       set device port2
       set gateway ${OnPremiseRouterIp}
     next
+    edit 3
+      set dst ${FWMgmtNetworkIp} ${FWMgmtMask}
+      set device port2
+      set gateway ${OnPremiseRouterIp}
+    next
   end
   next
   edit root
@@ -104,6 +109,12 @@ config vdom
       set endip ${PublicIp1}
     next
   end
+  config firewall internet-service-group
+    edit "GROUP-Fortinet-ISDB"
+        set direction destination
+        set member 1245187 1245326 1245324 1245325 1245191 1245186 1245193 1245198 1245208 1245199 1245192 1245184 1245188 1245200 1245190 1245185
+    next
+  end
   config firewall policy
     edit 3
       set name "in-vpn"
@@ -142,6 +153,36 @@ config vdom
       set ippool enable
       set poolname "cluster-ippool"
       set nat enable
+    next
+    edit 4
+      set name "Fortinet-activation-traffic"
+      set srcintf "port2"
+      set dstintf "port1"
+      set srcaddr "all"
+      set internet-service enable
+      set internet-service-group "GROUP-Fortinet-ISDB"
+      set action accept
+      set schedule "always"
+      set nat enable
+    next
+    edit 5
+        set name "Outbound Internet"
+        set srcintf "tgw-vpn1"
+        set dstintf "port1"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "g-default"
+        set webfilter-profile "g-default"
+        set dnsfilter-profile "default"
+        set ips-sensor "g-default"
+        set application-list "g-default"
+        set logtraffic all
+        set nat enable
     next
   end
   config router prefix-list
@@ -198,4 +239,5 @@ config vdom
       next
     end
   end
+  
 end

@@ -11,6 +11,7 @@
     "preserveSymlinks": true,
     "skipLibCheck": true,
     "downlevelIteration": true,
+    "resolveJsonModule": true,
   },
   "include": ["src/**/*"],
   "exclude": ["test/**/*"]

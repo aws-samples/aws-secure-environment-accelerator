@@ -5,7 +5,7 @@ import { AccountBuckets, AccountBucketOutputType, AccountBucketOutput } from './
 import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '../../utils/accounts';
 import { StructuredOutput } from '../../common/structured-output';
-import { createDefaultS3Bucket } from './shared';
+import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 
 export interface DefaultsStep2Props {
   accountStacks: AccountStacks;
@@ -43,9 +43,14 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       continue;
     }
 
+    const key = createDefaultS3Key({
+      accountStack,
+    });
+
     const bucket = createDefaultS3Bucket({
       accountStack,
       config,
+      encryptionKey: key,
     });
     bucket.replicateTo({
       destinationBucket: centralLogBucket,
