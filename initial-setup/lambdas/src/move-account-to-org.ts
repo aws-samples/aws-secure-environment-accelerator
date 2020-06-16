@@ -10,7 +10,7 @@ export interface MoveAccountInput {
 
 const org = new Organizations();
 
-export const handler = async (input: MoveAccountInput): Promise<string> => {
+export const handler = async (input: MoveAccountInput): Promise<ConfigurationAccount> => {
   console.log(`Moving account to respective Organization...`);
   console.log(JSON.stringify(input, null, 2));
   const { account, accountId, organizationalUnits } = input;
@@ -22,5 +22,6 @@ export const handler = async (input: MoveAccountInput): Promise<string> => {
     DestinationParentId: destOrgId?.ouId!,
     SourceParentId: parentOrgId!,
   });
-  return 'SUCCESS';
+  account.accountId = accountId;
+  return account;
 };

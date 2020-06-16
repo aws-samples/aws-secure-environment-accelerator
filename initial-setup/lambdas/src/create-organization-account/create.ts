@@ -10,7 +10,7 @@ export const handler = async (account: ConfigurationAccount): Promise<CreateAcco
   if (account.accountId) {
     return {
       status: 'ALREADY_EXISTS',
-      statusReason: `Skipping creation of account "${account.landingZoneAccountType}" with ID "${account.accountId}"`,
+      statusReason: `Skipping creation of account "${account.accountKey}" with ID "${account.accountId}"`,
     };
   }
 
