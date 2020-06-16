@@ -162,10 +162,10 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     config,
   });
 
-  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
+  // const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
 
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(accountPrincipals);
+  // logBucket.replicateFrom(accountPrincipals);
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
@@ -186,33 +186,22 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
           'aws:PrincipalOrgID': organizations.map(ou => ou.id),
         },
         ArnLike: {
-          'aws:PrincipalARN': 'arn:aws:iam::*:role/PBMMAccel-*'
-        }
-      }
+          'aws:PrincipalARN': 'arn:aws:iam::*:role/PBMMAccel-*',
+        },
+      },
     }),
   );
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       principals: [new iam.AnyPrincipal()],
-      actions: [
-        's3:GetEncryptionConfiguration',
-        's3:PutObject',
-      ],
+      actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
       resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
       conditions: {
         StringEquals: {
           'aws:PrincipalOrgID': organizations.map(ou => ou.id),
-        }
-      }
-    }),
-  );
-
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: accountPrincipals,
-      actions: ['s3:PutObject'],
-      resources: [`${logBucket.bucketArn}/*`],
+        },
+      },
     }),
   );
 
