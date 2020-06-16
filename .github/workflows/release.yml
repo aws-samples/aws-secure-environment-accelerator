@@ -2,8 +2,7 @@ name: Release
 on:
   push:
     branches:
-      - 'release'
-      - 'v*'
+      - 'v*-branch'
 jobs:
   release:
     name: Release
@@ -12,14 +11,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          fetch-depth: 0
           persist-credentials: false
       - name: Format Branch Name
         id: format
         env:
           GITHUB_REF: ${{ github.ref }}
         run: |
+          git fetch --tags
           echo ::set-output name=branch_name::$(echo "${GITHUB_REF}" | cut -d/ -f3-)
-          echo ::set-output name=release_name::"Branch $(echo "${GITHUB_REF}" | cut -d/ -f3-)"
+          echo ::set-output name=tag_name::$(echo "${GITHUB_REF}" | cut -d/ -f3- | sed 's/-branch//')
+          echo ::set-output name=release_name::"Release $(echo "${GITHUB_REF}" | cut -d/ -f3- | sed 's/-branch//')"
       - name: Use Node.js
         uses: actions/setup-node@v1
         env:
@@ -43,15 +45,31 @@ jobs:
           pnpx cdk synth --output "${OUTPUT_DIR}" "${INSTALLER_STACK_NAME}"
           echo ::set-output name=template_name::${INSTALLER_STACK_NAME}.template.json
           echo ::set-output name=template_path::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
+      - name: Generate Changelog
+        id: changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
+        run: |
+          previous_tag=$(git describe --tags --abbrev=0)
+          echo "Previous release was: ${previous_tag}"
+          changes=$(git log ${previous_tag}..HEAD --pretty="tformat:* %s (%h)")
+          echo ${changes}
+          changes="${changes//'%'/'%25'}"    # Avoids whitespace removal.
+          changes="${changes//$'\n'/'%0A'}"
+          changes="${changes//$'\r'/'%0D'}"
+          echo ::set-output name=changelog::${changes}
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.format.outputs.branch_name }}
+          tag_name: ${{ steps.format.outputs.tag_name }}
           release_name: ${{ steps.format.outputs.release_name }}
-          draft: false
+          body: |
+            ${{ steps.changelog.outputs.changelog }}
+          draft: true
           prerelease: false
       - name: Upload Release Asset
         id: upload-release-asset

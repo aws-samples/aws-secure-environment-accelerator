@@ -79,6 +79,7 @@ export const PcxRouteConfigType = t.interface({
 export const RouteConfig = t.interface({
   destination: t.union([t.string, PcxRouteConfigType]), // TODO Can be string or destination in another account
   target: NonEmptyString,
+  name: optional(t.string),
   az: optional(t.string),
   port: optional(t.string),
 });
@@ -307,7 +308,21 @@ export const MadConfigType = t.interface({
   'adc-group': t.string,
   'ad-users': t.array(ADUserConfig),
   'security-groups': t.array(SecurityGroupConfigType),
+  'password-secret-name': optional(t.string),
 });
+
+export const AlbTargetInstanceFirewallConfigType = t.interface({
+  target: t.literal('firewall'),
+  name: t.string,
+  az: t.string,
+});
+
+export type AlbTargetInstanceFirewallConfig = t.TypeOf<typeof AlbTargetInstanceFirewallConfigType>;
+
+// Could be a t.union in the future if we allow multiple config types
+export const AlbTargetInstanceConfigType = AlbTargetInstanceFirewallConfigType;
+
+export type AlbTargetInstanceConfig = t.TypeOf<typeof AlbTargetInstanceConfigType>;
 
 export const AlbTargetConfigType = t.interface({
   'target-name': t.string,
@@ -318,7 +333,7 @@ export const AlbTargetConfigType = t.interface({
   'health-check-path': t.string,
   'health-check-port': optional(t.number),
   'lambda-filename': optional(t.string),
-  'target-instances': optional(t.array(t.string)),
+  'target-instances': optional(t.array(AlbTargetInstanceConfigType)),
   'tg-weight': optional(t.number),
 });
 
@@ -374,6 +389,7 @@ export const FirewallPortConfigType = t.interface({
 });
 
 export const FirewallConfigType = t.interface({
+  name: t.string,
   'instance-sizes': t.string,
   'image-id': t.string,
   region: t.string,
@@ -382,6 +398,7 @@ export const FirewallConfigType = t.interface({
   ports: t.array(FirewallPortConfigType),
   license: optional(t.array(t.string)),
   config: t.string,
+  'fw-instance-role': t.string,
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.string,

@@ -2,10 +2,10 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import * as iam from '@aws-cdk/aws-iam';
-import * as logs from '@aws-cdk/aws-logs';
 import * as s3deployment from '@aws-cdk/aws-s3-deployment';
+import { LogGroup } from '@custom-resources/logs-log-group';
+import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
@@ -14,9 +14,9 @@ import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as iamDeployment from '../deployments/iam';
-import * as mad from '../deployments/mad';
+import * as madDeployment from '../deployments/mad';
+import * as secretsDeployment from '../deployments/secrets';
 import { PhaseInput } from './shared';
-import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 /**
@@ -29,8 +29,6 @@ import { createR53LogGroupName } from '../common/r53-zones';
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
-    acceleratorPrefix: context.acceleratorPrefix,
-    acceleratorName: context.acceleratorName,
     accountStacks,
     accounts,
     config: acceleratorConfig,
@@ -56,6 +54,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }): void => {
     const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
 
+    // TODO Leave existing files in the folder
+    // TODO Do not override existing files
+    // See https://github.com/aws/aws-cdk/issues/953
     new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
       sources: [s3deployment.Source.asset(artifactsFolderPath)],
       destinationBucket: centralBucket,
@@ -83,6 +84,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     destinationKeyPrefix: 'iam-policy',
   });
 
+  // upload firewall
+  // uploadArtifacts({
+  //   artifactName: 'Firewall',
+  //   artifactFolderName: 'Third-Party',
+  //   artifactKeyPrefix: 'Third-Party/',
+  //   accountKey: masterAccountKey,
+  //   destinationKeyPrefix: 'firewall',
+  // });
+
   // upload RDGW Artifacts
   uploadArtifacts({
     artifactName: 'Rdgw',
@@ -92,8 +102,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     destinationKeyPrefix: 'config/scripts',
   });
 
-  // Create secrets for the different deployments
-  const secretsContainer = new SecretsContainer(masterAccountStack, 'Secrets');
+  // Create secrets container for the different deployments
+  const { secretsContainer } = await secretsDeployment.step1({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 
   // Create IAM secrets
   await iamDeployment.createSecrets({
@@ -104,7 +117,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   // Create MAD secrets
-  await mad.createSecrets({
+  await madDeployment.createSecrets({
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
     acceleratorPrefix: context.acceleratorPrefix,
     accounts,
     config: acceleratorConfig,
@@ -147,7 +161,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // MAD creation step 1
   // Needs EBS default keys from the EBS default step
-  await mad.step1({
+  await madDeployment.step1({
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
     accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
@@ -187,7 +201,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       acceleratorPrefix: context.acceleratorPrefix,
       domain: phz,
     });
-    return new logs.LogGroup(zonesStack, `Route53HostedZone-LogGroup`, {
+    return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
       logGroupName,
     });
   });

@@ -1,10 +1,10 @@
+// tslint:disable:no-invalid-template-strings
 import { IPv4CidrRange } from 'ip-num';
-import { Keypair } from '@custom-resources/ec2-keypair';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
 import { S3Template } from '@custom-resources/s3-template';
+import { IInstanceProfile } from '../iam';
 import { Subnet, SecurityGroup } from '../vpc';
 
 export interface FirewallVpnTunnelOptions {
@@ -32,6 +32,7 @@ export interface FirewallInstanceProps {
   name: string;
   hostname: string;
   vpcCidrBlock: string;
+  additionalCidrBlocks: string[];
   licensePath?: string;
   licenseBucket?: s3.IBucket;
   /**
@@ -39,21 +40,18 @@ export interface FirewallInstanceProps {
    */
   imageId: string;
   instanceType: string;
-  iamInstanceProfile: iam.CfnInstanceProfile;
+  instanceProfile: IInstanceProfile;
   keyPairName?: string;
   configuration: FirewallConfigurationProps;
 }
 
 export class FirewallInstance extends cdk.Construct {
-  private readonly props: FirewallInstanceProps;
   private readonly resource: ec2.CfnInstance;
   private readonly template: S3Template;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
 
-  constructor(scope: cdk.Construct, id: string, props: FirewallInstanceProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: FirewallInstanceProps) {
     super(scope, id);
-
-    this.props = props;
 
     const { configuration } = props;
 
@@ -75,12 +73,12 @@ export class FirewallInstance extends cdk.Construct {
       outputPath: configuration.configPath,
     });
 
-    this.addVpcReplacements(props.hostname, props.vpcCidrBlock);
+    this.addVpcReplacements();
 
     this.resource = new ec2.CfnInstance(this, 'Resource', {
       imageId: this.props.imageId,
       instanceType: this.props.instanceType,
-      iamInstanceProfile: this.props.iamInstanceProfile.ref,
+      iamInstanceProfile: this.props.instanceProfile.instanceProfileName,
       keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
       userData: cdk.Fn.base64(
@@ -98,7 +96,6 @@ export class FirewallInstance extends cdk.Construct {
     });
     cdk.Tag.add(this.resource, 'Name', this.props.name);
 
-    this.resource.node.addDependency(this.props.iamInstanceProfile);
     this.resource.node.addDependency(this.template);
   }
 
@@ -157,22 +154,30 @@ export class FirewallInstance extends cdk.Construct {
     return networkInterface;
   }
 
-  private addVpcReplacements(hostname: string, cidrBlock: string) {
-    const vpcCidrBlock = IPv4CidrRange.fromCidr(cidrBlock);
-    const vpcCidrMask = vpcCidrBlock.cidrPrefix.toSubnetMask();
-    const vpcNetworkIp = vpcCidrBlock.getFirst();
-    const vpcRouterIp = vpcNetworkIp.nextIPNumber();
+  private addVpcReplacements() {
+    this.template.addReplacement('${Hostname}', this.props.hostname);
 
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${Hostname}', hostname);
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcMask}', vpcCidrMask.toString());
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcCidr}', vpcCidrBlock.toCidrString());
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcNetworkIp}', vpcNetworkIp.toString());
-    // tslint:disable-next-line: no-invalid-template-strings
-    this.template.addReplacement('${VpcRouterIp}', vpcRouterIp.toString());
+    const addVpcReplacement = (cidrBlock: string, suffix: string) => {
+      const vpcCidrBlock = IPv4CidrRange.fromCidr(cidrBlock);
+      const vpcCidrMask = vpcCidrBlock.cidrPrefix.toSubnetMask();
+      const vpcNetworkIp = vpcCidrBlock.getFirst();
+      const vpcRouterIp = vpcNetworkIp.nextIPNumber();
+
+      this.template.addReplacement(`\${VpcMask${suffix}}`, vpcCidrMask.toString());
+      this.template.addReplacement(`\${VpcCidr${suffix}}`, vpcCidrBlock.toCidrString());
+      this.template.addReplacement(`\${VpcNetworkIp${suffix}}`, vpcNetworkIp.toString());
+      this.template.addReplacement(`\${VpcRouterIp${suffix}}`, vpcRouterIp.toString());
+    };
+
+    // Add default VPC CIDR block replacements
+    addVpcReplacement(this.props.vpcCidrBlock, '');
+
+    // Add additional VPC CIDR block replacements
+    // The first additional CIDR block replacement suffix will start with '2'
+    //    i.e. VpcMask2, VpcCidr2
+    this.props.additionalCidrBlocks.forEach((additionalCidrBlock, index) => {
+      addVpcReplacement(additionalCidrBlock, `${index + 2}`);
+    });
   }
 
   get instanceId() {

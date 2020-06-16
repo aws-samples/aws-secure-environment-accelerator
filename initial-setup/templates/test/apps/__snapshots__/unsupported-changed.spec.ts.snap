@@ -1,0 +1,1162 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "OrganizationBudgetD31584F9",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "PerimeterBudgetA01BBAF8",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Security-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedServices-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "DefaultCoreBudget2890563D",
+    "Properties": Object {
+      "NotificationsWithSubscribers": Array [
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 50,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 75,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 90,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+        Object {
+          "Notification": Object {
+            "ComparisonOperator": "GREATER_THAN",
+            "NotificationType": "ACTUAL",
+            "Threshold": 100,
+            "ThresholdType": "PERCENTAGE",
+          },
+          "Subscribers": Array [
+            Object {
+              "Address": "myemail+pbmmT-budg@example.com",
+              "SubscriptionType": "EMAIL",
+            },
+          ],
+        },
+      ],
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase2 1`] = `
+Array [
+  Object {
+    "LogicalId": "MicrosoftADMicrosoftADFC7F6466",
+    "Properties": Object {
+      "CreateAlias": undefined,
+      "Edition": "Enterprise",
+      "Name": "example.local",
+      "Password": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "{{resolve:secretsmanager:arn:",
+            Object {
+              "Ref": "AWS::Partition",
+            },
+            ":secretsmanager:",
+            Object {
+              "Ref": "AWS::Region",
+            },
+            ":111111111111:secret:PBMMAccel/operations/mad/password:SecretString:::}}",
+          ],
+        ],
+      },
+      "ShortName": "example",
+      "VpcSettings": Object {
+        "SubnetIds": Array [
+          "subnet-02809ab1988c1ec82",
+          "subnet-0f4514137baa07759",
+        ],
+        "VpcId": "vpc-0d0b4cd029857165a",
+      },
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase2 1`] = `
+Array [
+  Object {
+    "LogicalId": "FirewallInstance047ED1D8C",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": "ami-047aac44951feb9fb",
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LaunchTemplate": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": Array [
+        Object {
+          "DeviceIndex": "0",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni08F98C237",
+          },
+        },
+        Object {
+          "DeviceIndex": "1",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni10A6A7290",
+          },
+        },
+        Object {
+          "DeviceIndex": "2",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni2D5DFF8E9",
+          },
+        },
+        Object {
+          "DeviceIndex": "3",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance0Eni33A70E7D8",
+          },
+        },
+      ],
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": undefined,
+    },
+  },
+  Object {
+    "LogicalId": "FirewallInstance14FE67CEF",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": "ami-047aac44951feb9fb",
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LaunchTemplate": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": Array [
+        Object {
+          "DeviceIndex": "0",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni0030B2EA0",
+          },
+        },
+        Object {
+          "DeviceIndex": "1",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni1C35979EF",
+          },
+        },
+        Object {
+          "DeviceIndex": "2",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni208BA0551",
+          },
+        },
+        Object {
+          "DeviceIndex": "3",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallInstance1Eni31E1A4BA3",
+          },
+        },
+      ],
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": undefined,
+    },
+  },
+  Object {
+    "LogicalId": "FirewallManagerCCB568C3",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": "ami-06fa2a9e6f8fae9f2",
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LaunchTemplate": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": Array [
+        Object {
+          "DeviceIndex": "0",
+          "NetworkInterfaceId": Object {
+            "Ref": "FirewallManagerEni044173916",
+          },
+        },
+      ],
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+  Object {
+    "LogicalId": "aescacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "configcacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Security-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedServices-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "cacentral1",
+    "Properties": Object {
+      "BucketName": undefined,
+      "ObjectLockEnabled": undefined,
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "SecretsbgUser1UserPswdPolicyC9835C06",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsbgUser1UserPswdF10CD199",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsbgUser2UserPswdPolicy2131F530",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsbgUser2UserPswd08D94AA3",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser1UserPswdPolicy903155AD",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsOpsUser1UserPswdD5EAD264",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser2UserPswdPolicyAD9B103E",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsOpsUser2UserPswdD05A1573",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordPolicy73965873",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPassword5CC78627",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordadconnectorusrPolicy889AF319",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordadconnectorusrB8347327",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser1Policy18726F39",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordUser1291E3AF7",
+      },
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser2PolicyEC783CD1",
+    "Properties": Object {
+      "SecretId": Object {
+        "Ref": "SecretsMadPasswordUser29026EDF3",
+      },
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-LogArchive-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "SecretsbgUser1UserPswdF10CD199",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/bgUser1",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsbgUser2UserPswd08D94AA3",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/bgUser2",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser1UserPswdD5EAD264",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/OpsUser1",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsOpsUser2UserPswdD05A1573",
+    "Properties": Object {
+      "Name": "PBMMAccel/master/user/password/OpsUser2",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPassword5CC78627",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordadconnectorusrB8347327",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/adconnector-usr/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser1291E3AF7",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/User1/password",
+    },
+  },
+  Object {
+    "LogicalId": "SecretsMadPasswordUser29026EDF3",
+    "Properties": Object {
+      "Name": "PBMMAccel/operations/mad/User2/password",
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Master-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Operations-Phase5 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase1 1`] = `
+Array [
+  Object {
+    "LogicalId": "CertPerimSelfSignedCertSecret",
+    "Properties": Object {
+      "Name": "accelerator/certificates/PerimSelf-SignedCert",
+    },
+  },
+]
+`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Perimeter-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Security-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Security-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-Security-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedNetwork-Phase4 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedServices-Phase0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedServices-Phase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PBMMAccel-SharedServices-Phase2 1`] = `Array []`;

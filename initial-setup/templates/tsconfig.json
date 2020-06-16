@@ -3,7 +3,7 @@
     "strict": true,
     "outDir": "dist",
     "target": "es2019",
-    "lib": ["es2019"],
+    "lib": ["es2019", "es2020.promise"],
     "module": "commonjs",
     "moduleResolution": "node",
     "esModuleInterop": true,
@@ -11,6 +11,7 @@
     "preserveSymlinks": true,
     "skipLibCheck": true,
     "downlevelIteration": true,
+    "resolveJsonModule": true,
   },
   "include": ["src/**/*"],
   "exclude": ["test/**/*"]

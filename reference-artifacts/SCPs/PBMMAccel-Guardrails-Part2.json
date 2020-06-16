@@ -2,9 +2,9 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid":"BlockMarketplacePMP",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "BlockMarketplacePMP",
+      "Effect": "Deny",
+      "Action": [
         "aws-marketplace:CreatePrivateMarketplace",
         "aws-marketplace:AssociateProductsWithPrivateMarketplace",
         "aws-marketplace:CreatePrivateMarketplaceProfile",
@@ -17,78 +17,74 @@
         "aws-marketplace:StopPrivateMarketplace",
         "aws-marketplace:UpdatePrivateMarketplaceProfile"
       ],
-      "Resource":"*",
-      "Condition":{
-
-      }
+      "Resource": "*",
+      "Condition": {}
     },
     {
-      "Sid":"DenyRoot",
-      "Effect":"Deny",
-      "Action":"*",
-      "Resource":"*",
-      "Condition":{
-        "ArnLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:root"
-          ]
+      "Sid": "DenyRoot",
+      "Effect": "Deny",
+      "Action": "*",
+      "Resource": "*",
+      "Condition": {
+        "ArnLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:root"]
         }
       }
     },
     {
-      "Sid":"EnforceEbsEncryption",
-      "Effect":"Deny",
-      "Action":"ec2:RunInstances",
-      "Resource":"arn:aws:ec2:*:*:volume/*",
-      "Condition":{
-        "Bool":{
-          "ec2:Encrypted":"false"
+      "Sid": "EnforceEbsEncryption",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
         }
       }
     },
     {
-      "Sid":"EnforceEBSVolumeEncryption",
-      "Effect":"Deny",
-      "Action":"ec2:CreateVolume",
-      "Resource":"*",
-      "Condition":{
-        "Bool":{
-          "ec2:Encrypted":"false"
+      "Sid": "EnforceEBSVolumeEncryption",
+      "Effect": "Deny",
+      "Action": "ec2:CreateVolume",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
         }
       }
     },
     {
-      "Sid":"EnforceRdsEncryption",
-      "Effect":"Deny",
-      "Action":"rds:CreateDBInstance",
-      "Resource":"arn:aws:rds:*:*:db:*",
-      "Condition":{
-        "StringNotLike":{
-          "rds:DatabaseEngine":"aurora*"
+      "Sid": "EnforceRdsEncryption",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBInstance",
+      "Resource": "arn:aws:rds:*:*:db:*",
+      "Condition": {
+        "StringNotLike": {
+          "rds:DatabaseEngine": "aurora*"
         },
-        "Bool":{
-          "rds:StorageEncrypted":"false"
+        "Bool": {
+          "rds:StorageEncrypted": "false"
         }
       }
     },
     {
-      "Sid":"EnforceAuroraEncryption",
-      "Effect":"Deny",
-      "Action":"rds:CreateDBCluster",
-      "Resource":"*",
-      "Condition":{
+      "Sid": "EnforceAuroraEncryption",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBCluster",
+      "Resource": "*",
+      "Condition": {
         "StringLike": {
-          "rds:DatabaseEngine":"aurora*"
+          "rds:DatabaseEngine": "aurora*"
         },
-        "Bool":{
-          "rds:StorageEncrypted":"false"
+        "Bool": {
+          "rds:StorageEncrypted": "false"
         }
       }
     },
     {
-      "Sid":"DenyGDSHFMAAChange",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "DenyGDSHFMAAChange",
+      "Effect": "Deny",
+      "Action": [
         "guardduty:AcceptInvitation",
         "guardduty:DeclineInvitations",
         "guardduty:DeleteDetector",
@@ -117,12 +113,12 @@
         "securityhub:BatchDisableStandards",
         "fms:DisassociateAdminAccount",
         "access-analyzer:DeleteAnalyzer",
-		"ec2:CreateDefaultVpc"
+        "ec2:CreateDefaultVpc"
       ],
-      "Resource":"*",
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]

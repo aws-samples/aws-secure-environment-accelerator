@@ -72,12 +72,8 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 async function importCertificate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
+  const properties = getPropertiesFromEvent(event);
   const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
-
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  if (typeof properties.ignoreLimitExceededException === 'string') {
-    properties.ignoreLimitExceededException = properties.ignoreLimitExceededException === 'true';
-  }
 
   // Tagging is not permitted on re-import
   const tags = physicalResourceId ? undefined : addCustomResourceTags(properties.tags, event);
@@ -107,6 +103,14 @@ async function importCertificate(
       throw e;
     }
   }
+}
+
+function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  if (typeof properties.ignoreLimitExceededException === 'string') {
+    properties.ignoreLimitExceededException = properties.ignoreLimitExceededException === 'true';
+  }
+  return properties;
 }
 
 async function getOptionalS3Body(bucketName?: string, bucketPath?: string) {

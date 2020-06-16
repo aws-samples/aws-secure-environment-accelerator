@@ -1,4 +1,4 @@
-import { CfnBudget } from '@aws-cdk/aws-budgets';
+import { Budget } from '@aws-pbmm/constructs/lib/billing';
 import { BudgetConfig, AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 
@@ -55,7 +55,8 @@ async function createBudget(accountStack: AccountStack, budgetConfig: BudgetConf
         })),
       });
     }
-    const budgetProps = {
+
+    new Budget(accountStack, budgetConfig.name, {
       budget: {
         budgetName: budgetConfig.name,
         budgetLimit: {
@@ -67,8 +68,7 @@ async function createBudget(accountStack: AccountStack, budgetConfig: BudgetConf
         costTypes: await convertCostTypes(budgetConfig),
       },
       notificationsWithSubscribers: notifications,
-    };
-    new CfnBudget(accountStack, budgetConfig.name, budgetProps);
+    });
   }
 }
 

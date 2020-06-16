@@ -17,13 +17,8 @@ export interface ImportedVpcProps {
   readonly routeTables: RouteTables;
 }
 
-export class ImportedVpc extends cdk.Construct implements Vpc {
-  readonly props: ImportedVpcProps;
-
-  constructor(scope: cdk.Construct, id: string, props: ImportedVpcProps) {
-    super(scope, id);
-    this.props = props;
-  }
+export class ImportedVpc implements Vpc {
+  constructor(private readonly props: ImportedVpcProps) {}
 
   get id(): string {
     return this.props.id;
@@ -101,12 +96,12 @@ export class ImportedVpc extends cdk.Construct implements Vpc {
     return this.routeTables[name];
   }
 
-  static fromOutput(scope: cdk.Construct, id: string, output: VpcOutput) {
-    return new ImportedVpc(scope, id, {
+  static fromOutput(output: VpcOutput) {
+    return new ImportedVpc({
       id: output.vpcId,
       name: output.vpcName,
       cidrBlock: output.cidrBlock,
-      additionalCidrBlocks: [],
+      additionalCidrBlocks: output.additionalCidrBlocks,
       subnets: output.subnets.map(s => ({
         id: s.subnetId,
         name: s.subnetName,
