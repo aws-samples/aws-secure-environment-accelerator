@@ -708,16 +708,16 @@
               ]
             },
             {
-              "name": "Private",
+              "name": "OnPremise",
               "definitions": [
                 {
                   "az": "a",
-                  "route-table": "Private_Shared",
+                  "route-table": "OnPremise_Shared",
                   "cidr": "100.96.251.0/27"
                 },
                 {
                   "az": "b",
-                  "route-table": "Private_Shared",
+                  "route-table": "OnPremise_Shared",
                   "cidr": "100.96.251.128/27"
                 }
               ]
@@ -741,7 +741,7 @@
           "gateway-endpoints": ["s3"],
           "route-tables": [
             {
-              "name": "Private_Shared"
+              "name": "OnPremise_Shared"
             },
             {
               "name": "Public_Shared",
@@ -764,7 +764,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "a",
-                  "port": "Private"
+                  "port": "OnPremise"
                 },
                 {
                   "destination": "s3",
@@ -784,7 +784,7 @@
                   "target": "firewall",
                   "name": "Firewall",
                   "az": "b",
-                  "port": "Private"
+                  "port": "OnPremise"
                 },
                 {
                   "destination": "s3",
@@ -920,8 +920,8 @@
               "create-cgw": true
             },
             {
-              "name": "Private",
-              "subnet": "Private",
+              "name": "OnPremise",
+              "subnet": "OnPremise",
               "create-eip": false,
               "create-cgw": false
             },

@@ -2,7 +2,7 @@
 - Variable names change based on subnet names, for example
 
 - Interface 1 is: Public
-- Interface 2 is: Private
+- Interface 2 is: OnPremise
 - Interface 3 is: Mgmt
 - Interface 4 is: Proxy/DMZ
 
