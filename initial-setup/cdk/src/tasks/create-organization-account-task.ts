@@ -87,7 +87,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       },
       functionPayload: {
         'account.$': '$.createAccountConfiguration.account',
-        accountId: '$.verifyOutput.accountId',
+        'accountId.$': '$.verifyOutput.accountId',
         'organizationalUnits.$': '$.createAccountConfiguration.organizationalUnits',
       },
     });
