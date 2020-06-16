@@ -1,5 +1,11 @@
 - Shown variables and values are reflective of the sample configuration file for the first AZ
 - Variable names change based on subnet names, for example
+
+- Interface 1 is: Public
+- Interface 2 is: Private
+- Interface 3 is: Mgmt
+- Interface 4 is: Proxy/DMZ
+
 - templatePath: firewall/firewall-example.txt
 - outputPath: fgtconfig-init-Firewall_azA-0.txt
         "${Hostname}": Firewall_azA
