@@ -460,7 +460,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   await cwlCentralLoggingToS3.step1({
     accountStack: logsAccountStack,
     accounts,
-    bucketArn: logBucket.bucketArn,
+    logBucket,
   });
   // for (const account of accounts) {
   //   const accountStack = accountStacks.getOrCreateAccountStack(account.key);

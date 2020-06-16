@@ -1,12 +1,12 @@
 import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import * as iam from '@aws-cdk/aws-iam';
-import { createRoleName, createBucketName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as kinesis from '@aws-cdk/aws-kinesis';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as logs from '@aws-cdk/aws-logs';
 import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
-import { AccountStacks, AccountStack } from '../../../common/account-stacks';
+import { AccountStack } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
 import { JsonOutputValue } from '../../../common/json-output';
 import { CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX } from '../../../utils/constants';
@@ -157,6 +157,7 @@ async function cwlSettingsInLogArchive(props: {
       },
       compressionFormat: 'UNCOMPRESSED',
       roleArn: kinesisStreamRole.roleArn,
+      prefix: CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX,
     },
   });
   kinesisDeliveryStream.node.addDependency(kinesisStreamPolicy);

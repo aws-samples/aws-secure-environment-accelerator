@@ -198,6 +198,30 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       principals: [new iam.AnyPrincipal()],
+      actions: [
+        's3:AbortMultipartUpload',
+        's3:GetBucketLocation',
+        's3:GetObject',
+        's3:ListBucket',
+        's3:ListBucketMultipartUploads',
+        's3:PutObject',
+        's3:PutObjectAcl',
+      ],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.map(ou => ou.id),
+        },
+        ArnLike: {
+          'aws:PrincipalARN': 'arn:aws:iam::*:role/PBMMAccel-Kinesis-*',
+        },
+      },
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.AnyPrincipal()],
       actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
       resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
       conditions: {
