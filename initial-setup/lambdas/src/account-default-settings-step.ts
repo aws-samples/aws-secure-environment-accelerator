@@ -194,7 +194,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       sessionType: 'Standard_Stream',
       inputs: {
         s3BucketName: bucketName,
-        s3KeyPrefix: '',
+        s3KeyPrefix: `/${accountId}/SSM/`, // TODO: add region when region is available to pass in
         s3EncryptionEnabled: useS3,
         cloudWatchLogGroupName: logGroupName,
         cloudWatchEncryptionEnabled: useCWL,
