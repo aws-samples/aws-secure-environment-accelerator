@@ -1,35 +1,45 @@
-import { DiffNew, DiffEdit, DiffDeleted, DiffArray, diff, Diff } from 'deep-diff';
-// import { AcceleratorConfig } from '..';
+import * as diff from 'deep-diff';
 
 // tslint:disable-next-line:no-any
 export type LHS = any;
 // tslint:disable-next-line:no-any
 export type RHS = any;
 
-export type DiffNewResult = DiffNew<RHS>;
-export type DiffDeletedResult = DiffDeleted<LHS>;
-export type DiffEditResult = DiffEdit<LHS, RHS>;
-export type DiffArrayResult = DiffArray<LHS, RHS>;
+export type Diff = diff.Diff<LHS, RHS>;
+export type DiffNew = diff.DiffNew<RHS>;
+export type DiffDeleted = diff.DiffDeleted<LHS>;
+export type DiffEdit = diff.DiffEdit<LHS, RHS>;
+export type DiffArray = diff.DiffArray<LHS, RHS>;
+
+export type DiffKind = DiffNew['kind'] | DiffDeleted['kind'] | DiffEdit['kind'] | DiffArray['kind'];
 
 /**
  * Auxiliary function to compare configurations
  */
-export function compareConfiguration(original: LHS, modified: RHS): Diff<LHS, RHS>[] | undefined {
-  const changes = diff(original, modified);
-  return changes;
+export function compareConfiguration(original: LHS, modified: RHS): Diff[] | undefined {
+  return diff.diff(original, modified);
 }
 
-export function getDiffs(differences: Diff<LHS, RHS>[], kind: string): Diff<LHS, RHS>[] {
-  return differences.filter(difference => difference.kind === kind);
+export function isDiffNew(diff: Diff): diff is DiffNew {
+  return diff.kind === 'N';
+}
+
+export function isDiffEdit(diff: Diff): diff is DiffEdit {
+  return diff.kind === 'E';
+}
+
+export function isDiffDeleted(diff: Diff): diff is DiffDeleted {
+  return diff.kind === 'D';
+}
+
+export function isDiffArray(diff: Diff): diff is DiffArray {
+  return diff.kind === 'A';
 }
 
 export function getAccountNames(original: LHS): string[] {
-  const accountNames: string[] = [];
   const mandatoryAccountConfigs: [string, LHS][] = Object.entries(original['mandatory-account-configs']);
   const workloadAccountConfigs: [string, LHS][] = Object.entries(original['workload-account-configs']);
   const mandatoryAccountNames = mandatoryAccountConfigs.map(([_, accountConfig]) => accountConfig['account-name']);
-  accountNames.push(...mandatoryAccountNames);
   const workloadAccountNames = workloadAccountConfigs.map(([_, accountConfig]) => accountConfig['account-name']);
-  accountNames.push(...workloadAccountNames);
-  return accountNames;
+  return [...mandatoryAccountNames, ...workloadAccountNames];
 }
