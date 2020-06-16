@@ -16,6 +16,9 @@
     "@types/jest": "25.2.1",
     "@types/node": "12.12.6",
     "babel-jest": "25.2.0",
+    "fp-ts": "2.5.3",
+    "io-ts": "2.1.2",
+    "io-ts-types": "0.5.6",
     "jest": "25.2.4",
     "prettier": "1.19.1",
     "ts-jest": "25.3.0",
@@ -26,6 +29,7 @@
     "typescript": "3.8.3"
   },
   "dependencies": {
+    "@aws-pbmm/common-types": "workspace:^0.0.1"
   },
   "jest": {
     "preset": "ts-jest",
