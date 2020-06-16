@@ -15,6 +15,7 @@ export class Organizations extends cdk.Construct {
     const onCreateOrUpdate: custom.AwsSdkCall = {
       service: 'Organizations',
       action: 'describeOrganization',
+      region: 'us-east-1', // us-east-1 is the only endpoint available
       physicalResourceId,
       parameters: {},
     };
