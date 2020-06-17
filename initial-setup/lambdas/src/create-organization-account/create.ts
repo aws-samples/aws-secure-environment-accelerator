@@ -29,8 +29,7 @@ export const handler = async (input: CreateOrganizationAccountInput): Promise<Cr
   });
 
   const roleName = config['global-options']['organization-admin-role'];
-
-  // const accountResponse = await org.createAccount(emailAddress, accountName, roleName);
+  console.log(`Account Creation initiated for Email "${emailAddress}", Account Name "${accountName}, Role Name ${roleName}"`);
   const accountResponse = await org.createAccount(emailAddress, accountName, roleName);
   const response = accountResponse;
   // TODO Handle more failure cases

@@ -3,14 +3,18 @@ import { AccountAvailableOutput } from '@aws-pbmm/common-lambda/lib/aws/types/ac
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 
 const ACCOUNT_ALREADY_EXISTS = ['EMAIL_ALREADY_EXISTS', 'GOVCLOUD_ACCOUNT_ALREADY_EXISTS'];
+
 interface CheckStepInput {
   account: ConfigurationAccount;
   requestId: string;
 }
 
+interface CheckStepOutput extends AccountAvailableOutput {
+  account?: ConfigurationAccount;
+}
 const org = new Organizations();
 
-export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAvailableOutput> => {
+export const handler = async (input: Partial<CheckStepInput>): Promise<CheckStepOutput> => {
   console.log(`Verifying status of provisioned account`);
   console.log(JSON.stringify(input, null, 2));
   const { account, requestId } = input;
@@ -35,9 +39,12 @@ export const handler = async (input: Partial<CheckStepInput>): Promise<AccountAv
       statusReason: response.FailureReason,
     };
   }
+  if (account) {
+    account.accountId = response.AccountId;
+  }
   return {
     status: response.State,
     statusReason: response.FailureReason || 'Account Created Successfully.',
-    accountId: response.AccountId!,
+    account,
   };
 };

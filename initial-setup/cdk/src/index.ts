@@ -80,6 +80,12 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
+      // creating a bucket to store SCP artifacts
+      const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
+        versioned: true,
+        removalPolicy: cdk.RemovalPolicy.RETAIN,
+      });
+
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: createRoleName('L-SFN-MasterRole'),
@@ -184,6 +190,7 @@ export namespace InitialSetup {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
+          'baseline.$': '$.configuration.baseline',
         },
         resultPath: '$.configuration',
       });
@@ -256,6 +263,12 @@ export namespace InitialSetup {
         parameters: {
           'account.$': '$$.Map.Item.Value',
           'organizationalUnits.$': '$.configuration.organizationalUnits',
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+          scpBucketName: scpArtifactBucket.bucketName,
+          scpBucketPrefix: 'scp',
+          acceleratorPrefix: props.acceleratorPrefix,
         },
       });
 
@@ -337,12 +350,6 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
-      // creating a bucket to store SCP artifacts
-      const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
-        versioned: true,
-        removalPolicy: cdk.RemovalPolicy.RETAIN,
-      });
-
       const scpArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'SCPs');
 
       new s3deployment.BucketDeployment(stack, 'ScpArtifactsDeployment', {
@@ -369,6 +376,22 @@ export namespace InitialSetup {
         },
         resultPath: 'DISCARD',
       });
+
+      const pass = new sfn.Pass(this, 'Success');
+
+      const detachQuarantineScpTask = new CodeTask(this, 'Detach Quarantine SCP', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.detachQuarantineScp',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      })
+      detachQuarantineScpTask.next(pass);
 
       const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
         functionProps: {
@@ -543,6 +566,10 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const baseLineCleanupChoice = new sfn.Choice(this, 'Baseline Clean Up?')
+        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), detachQuarantineScpTask)
+        .otherwise(pass);
+
       const commonDefinition = loadAccountsTask.startState
         .next(installRolesTask)
         .next(loadLimitsTask)
@@ -564,7 +591,8 @@ export namespace InitialSetup {
         .next(enableDirectorySharingTask)
         .next(deployPhase5Task)
         .next(createAdConnectorTask)
-        .next(storeCommitIdTask);
+        .next(storeCommitIdTask)
+        .next(baseLineCleanupChoice);
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
@@ -589,8 +617,9 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
-        definition: sfn.Chain.start(getOrCreateConfigurationTask).next(getBaseLineTask)
-          .next(compareConfigurationsTask)  
+        definition: sfn.Chain.start(getOrCreateConfigurationTask)
+          .next(compareConfigurationsTask)
+          .next(getBaseLineTask)
           .next(baseLineChoice),
       });
     }

@@ -27,5 +27,4 @@ export interface AccountAvailableOutput {
   statusReason?: string;
   provisionedProductStatus?: string;
   provisionToken?: string;
-  accountId?: string;
 }

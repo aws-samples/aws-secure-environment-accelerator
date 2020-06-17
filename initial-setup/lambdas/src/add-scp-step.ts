@@ -97,7 +97,7 @@ export const handler = async (input: AddScpInput) => {
  *
  * @return Accelerator policies that were created based on the given policy config.
  */
-async function createPoliciesFromConfiguration(props: {
+export async function createPoliciesFromConfiguration(props: {
   acceleratorPrefix: string;
   scpBucketName: string;
   scpBucketPrefix: string;
@@ -306,7 +306,7 @@ async function attachOrDetachPoliciesToOrganizationalUnits(props: {
  *
  * @return Policy name with Accelerator prefix.
  */
-function policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
+export function policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
   const { policyName, acceleratorPrefix } = props;
   if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyName.startsWith(acceleratorPrefix)) {
     return policyName;
