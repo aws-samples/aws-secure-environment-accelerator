@@ -34,7 +34,7 @@ import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
-import * as accountWarming from '../deployments/account-warming';
+import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -61,6 +61,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
@@ -220,6 +221,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
+      additionalCidrBlocks: vpc.additionalCidrBlocks,
       subnets: vpc.azSubnets.subnets.map(s => ({
         subnetId: s.subnet.ref,
         subnetName: s.subnetName,
@@ -285,16 +287,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         vpc: vpc!,
         accountStacks,
       });
-
-      // verify and create ec2 instance to increase account limits
-      await accountWarming.step1({
-        accountKey,
-        vpc: vpc!,
-        accountStacks,
-        config: acceleratorConfig,
-        outputs,
-      });
-
       subscriptionCheckDone.push(accountKey);
     }
   }
@@ -390,6 +382,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         iamPoliciesDefinition,
         accounts,
         userPasswords,
+        logBucket,
       });
     }
   };
@@ -440,7 +433,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // SSM config step 1
   await ssm.step1({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     bucketName: logBucket.bucketName,
     config: acceleratorConfig,
@@ -451,5 +443,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountBuckets,
     accountStacks,
     config: acceleratorConfig,
+  });
+
+  // Central Services step 1
+  const logsAccountStack = accountStacks.getOrCreateAccountStack(logAccountKey);
+  await cwlCentralLoggingToS3.step1({
+    accountStack: logsAccountStack,
+    accounts,
+    logBucket,
   });
 }

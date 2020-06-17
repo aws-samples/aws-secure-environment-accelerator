@@ -10,25 +10,27 @@ import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
 
-export async function deployPhases(app: cdk.App, phases: PhaseInfo[]) {
-  const input = createPhaseInput(app);
+export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.App> {
+  const input = createPhaseInput();
   for (const phase of phases) {
+    const accountStacks = new AccountStacks({
+      accounts: input.accounts,
+      context: input.context,
+      phase: phase.id,
+    });
     const runner = await phase.runner();
     await runner({
       ...input,
-      accountStacks: new AccountStacks(input.app, {
-        accounts: input.accounts,
-        context: input.context,
-        phase: phase.id,
-      }),
+      accountStacks,
     });
+    yield* accountStacks.apps;
   }
 }
 
 /**
  * Function that returns mock input for a given phase.
  */
-export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'> {
+export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
   const accounts: Account[] = [
     {
       key: 'master',
@@ -104,6 +106,17 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
   const limiter = new Limiter([]);
   const outputs: StackOutput[] = [
     {
+      accountKey: 'perimeter',
+      outputKey: 'InstanceTimeOutput70915320',
+      outputValue: JSON.stringify({
+        type: 'InstanceTime',
+        value: {
+          instanceId: '1',
+          time: '1970-01-01T00:00:00',
+        },
+      }),
+    },
+    {
       accountKey: 'shared-network',
       outputKey: 'GlobalOptionsDNSResolversGlobalOptionsOutput70915320',
       outputValue: JSON.stringify({
@@ -152,6 +165,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-0aafbbf8390e61df9',
           vpcName: 'UnClass',
           cidrBlock: '10.5.0.0/16',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-02a864aa8c921a5ec', subnetName: 'TGW', az: 'a', cidrBlock: '10.5.88.0/27' },
             { subnetId: 'subnet-0ac25d35acc0aaad6', subnetName: 'TGW', az: 'b', cidrBlock: '10.5.88.32/27' },
@@ -183,6 +197,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-00788be23432ad14e',
           vpcName: 'Test',
           cidrBlock: '10.3.0.0/16',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-040ff3deaa1ebcdc2', subnetName: 'TGW', az: 'a', cidrBlock: '10.3.88.0/27' },
             { subnetId: 'subnet-08996b5322ac7ce94', subnetName: 'TGW', az: 'b', cidrBlock: '10.3.88.32/27' },
@@ -214,6 +229,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-0d0b4cd029857165a',
           vpcName: 'Central',
           cidrBlock: '10.1.0.0/16',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-06bb47a9733f0aa4d', subnetName: 'TGW', az: 'a', cidrBlock: '10.1.88.0/27' },
             { subnetId: 'subnet-055bf3aa2b3ff91f5', subnetName: 'TGW', az: 'b', cidrBlock: '10.1.88.32/27' },
@@ -496,6 +512,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-0ec4a94a0fed0323f',
           vpcName: 'Dev',
           cidrBlock: '10.2.0.0/16',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-02470384cf1ec8b37', subnetName: 'TGW', az: 'a', cidrBlock: '10.2.88.0/27' },
             { subnetId: 'subnet-04637c048e4b6f18d', subnetName: 'TGW', az: 'b', cidrBlock: '10.2.88.32/27' },
@@ -567,6 +584,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-0be7520a610121f51',
           vpcName: 'Endpoint',
           cidrBlock: '10.7.0.0/22',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-0d23fab6faf468e78', subnetName: 'Endpoint', az: 'a', cidrBlock: '10.7.0.0/24' },
             { subnetId: 'subnet-08ce2f607198a4347', subnetName: 'Endpoint', az: 'b', cidrBlock: '10.7.1.0/24' },
@@ -805,6 +823,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-008309eb2954c138b',
           vpcName: 'Perimeter',
           cidrBlock: '10.7.4.0/22',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-074afd4fc157a36d3', subnetName: 'Public', az: 'a', cidrBlock: '100.96.250.0/25' },
             { subnetId: 'subnet-0919b680c624cda7a', subnetName: 'Public', az: 'b', cidrBlock: '100.96.250.128/25' },
@@ -829,8 +848,8 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           securityGroups: [
             { securityGroupId: 'sg-06e305933a4bbd75a', securityGroupName: 'Public-Prod-ALB' },
             { securityGroupId: 'sg-0e1d7c2ce7350c63e', securityGroupName: 'Public-DevTest-ALB' },
-            { securityGroupId: 'sg-03d7fd5e7ead15cdf', securityGroupName: 'FortigateMgr' },
-            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Fortigates' },
+            { securityGroupId: 'sg-03d7fd5e7ead15cdf', securityGroupName: 'FirewallMgr' },
+            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Firewall' },
           ],
         },
       }),
@@ -913,6 +932,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-0d6c94538df842886',
           vpcName: 'ForSSO',
           cidrBlock: '10.249.1.0/24',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-0663975f1bac6383a', subnetName: 'ForSSO', az: 'a', cidrBlock: '10.249.1.0/27' },
             { subnetId: 'subnet-0e9ef996895c4c674', subnetName: 'ForSSO', az: 'b', cidrBlock: '10.249.1.32/27' },
@@ -1028,6 +1048,7 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
           vpcId: 'vpc-02bcf75f21ece6cc7',
           vpcName: 'Sandbox',
           cidrBlock: '10.6.0.0/16',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-0a9f3ea3534976522', subnetName: 'Web', az: 'a', cidrBlock: '10.6.32.0/20' },
             { subnetId: 'subnet-095b350da47024ef2', subnetName: 'Web', az: 'b', cidrBlock: '10.6.128.0/20' },
@@ -1065,7 +1086,6 @@ export function createPhaseInput(app: cdk.App): Omit<PhaseInput, 'accountStacks'
   return {
     acceleratorConfig: config,
     accounts,
-    app,
     context,
     limiter,
     outputs,

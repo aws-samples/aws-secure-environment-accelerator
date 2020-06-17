@@ -131,6 +131,19 @@ export namespace InitialSetup {
         resultPath: '$.configuration',
       });
 
+      const compareConfigurationsTask = new CodeTask(this, 'Compare Configurations', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.compareConfigurationsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'inputConfig.$': '$',
+          region: cdk.Aws.REGION,
+        },
+        resultPath: '$.configuration',
+      });
+
       const loadConfigurationTask = new CodeTask(this, 'Load Configuration', {
         functionProps: {
           code: lambdaCode,
@@ -257,19 +270,6 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
-      // creating a bucket to store SCP artifacts
-      const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
-        versioned: true,
-      });
-
-      const scpArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'SCPs');
-
-      new s3deployment.BucketDeployment(stack, 'ScpArtifactsDeployment', {
-        sources: [s3deployment.Source.asset(scpArtifactsFolderPath)],
-        destinationBucket: scpArtifactBucket,
-        destinationKeyPrefix: 'scp',
-      });
-
       const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {
         functionProps: {
           code: lambdaCode,
@@ -281,10 +281,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          scpBucketName: scpArtifactBucket.bucketName,
-          scpBucketPrefix: 'scp',
           'organizationalUnits.$': '$.organizationalUnits',
           'accounts.$': '$.accounts',
+          stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });
@@ -447,19 +446,34 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storeCommitIdTask = new CodeTask(this, 'Store CommitId', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeCommitIdStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+        },
+        resultPath: 'DISCARD',
+      });
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
+          .next(compareConfigurationsTask)
           .next(loadConfigurationTask)
           .next(addRoleToServiceCatalog)
           .next(createAccountsTask)
           .next(loadAccountsTask)
           .next(installRolesTask)
           .next(loadLimitsTask)
-          .next(addScpTask)
           .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
+          .next(addScpTask)
           .next(deployPhase1Task)
           .next(storePhase1Output)
           .next(accountDefaultSettingsTask)
@@ -473,7 +487,8 @@ export namespace InitialSetup {
           .next(addTagsToSharedResourcesTask)
           .next(enableDirectorySharingTask)
           .next(deployPhase5Task)
-          .next(createAdConnectorTask),
+          .next(createAdConnectorTask)
+          .next(storeCommitIdTask),
       });
     }
   }
