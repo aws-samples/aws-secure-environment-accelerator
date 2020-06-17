@@ -382,6 +382,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         iamPoliciesDefinition,
         accounts,
         userPasswords,
+        logBucket,
       });
     }
   };

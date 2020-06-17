@@ -38,6 +38,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
+    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     accounts,
     config: acceleratorConfig,

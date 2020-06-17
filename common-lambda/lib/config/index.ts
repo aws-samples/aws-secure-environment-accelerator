@@ -207,6 +207,7 @@ export const IamRoleConfigType = t.interface({
   'source-account': optional(t.string),
   'source-account-role': optional(t.string),
   'trust-policy': optional(t.string),
+  'ssm-log-archive-access': optional(t.boolean),
 });
 
 export const IamConfigType = t.interface({
@@ -559,6 +560,7 @@ export const CwlExclusions = t.interface({
 
 export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,
+  region: NonEmptyString,
   'security-hub': fromNullable(t.boolean, false),
   'guard-duty': fromNullable(t.boolean, false),
   cwl: fromNullable(t.boolean, false),

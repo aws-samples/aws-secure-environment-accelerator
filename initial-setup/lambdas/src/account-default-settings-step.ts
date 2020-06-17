@@ -9,7 +9,7 @@ import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
-import { UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
+import { UpdateDocumentRequest, CreateDocumentRequest } from 'aws-sdk/clients/ssm';
 
 interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
@@ -194,7 +194,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       sessionType: 'Standard_Stream',
       inputs: {
         s3BucketName: bucketName,
-        s3KeyPrefix: '',
+        s3KeyPrefix: `/${accountId}/SSM/`, // TODO: add region when region is available to pass in
         s3EncryptionEnabled: useS3,
         cloudWatchLogGroupName: logGroupName,
         cloudWatchEncryptionEnabled: useCWL,
@@ -204,14 +204,33 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       },
     };
 
-    const updateDocumentRequest: UpdateDocumentRequest = {
-      Content: JSON.stringify(settings),
-      Name: 'SSM-SessionManagerRunShell',
-      DocumentVersion: '$LATEST',
-    };
-    console.log('Update SSM Request: ', updateDocumentRequest);
-    const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
-    console.log('Update SSM: ', updateSSMResponse);
+    try {
+      const ssmDocument = await ssm
+        .describeDocument({
+          Name: 'SSM-SessionManagerRunShell',
+        })
+        .promise();
+
+      const updateDocumentRequest: UpdateDocumentRequest = {
+        Content: JSON.stringify(settings),
+        Name: 'SSM-SessionManagerRunShell',
+        DocumentVersion: '$LATEST',
+      };
+      console.log('Update SSM Request: ', updateDocumentRequest);
+      const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
+      console.log('Update SSM: ', updateSSMResponse);
+    } catch (e) {
+      // if Document not exist, call createDocument API
+      if (e.code === 'InvalidDocument') {
+        const createDocumentRequest: CreateDocumentRequest = {
+          Content: JSON.stringify(settings),
+          Name: 'SSM-SessionManagerRunShell',
+        };
+        console.log('Create SSM Request: ', createDocumentRequest);
+        const createSSMResponse = await ssm.createDocument(createDocumentRequest).promise();
+        console.log('Create SSM: ', createSSMResponse);
+      }
+    }
   };
 
   const accountConfigs = acceleratorConfig.getAccountConfigs();
