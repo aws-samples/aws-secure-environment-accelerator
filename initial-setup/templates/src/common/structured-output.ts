@@ -13,14 +13,10 @@ export interface StructuredOutputFilter<T> {
   accountKey?: string;
 }
 
-export abstract class CfnStructuredOutput<T> extends cdk.Construct {}
-
-export interface CfnStructuredOutputClass<T> {
-  new (scope: cdk.Construct, id: string, value: T): CfnStructuredOutput<T>;
-}
+export type CfnStructuredOutputClass<T> = new (scope: cdk.Construct, id: string, value: T) => cdk.Construct;
 
 export function createCfnStructuredOutput<T>(type: t.Type<T>): CfnStructuredOutputClass<T> {
-  class Impl extends CfnStructuredOutput<T> {
+  class Impl extends cdk.Construct {
     constructor(scope: cdk.Construct, id: string, value: T) {
       super(scope, id);
 

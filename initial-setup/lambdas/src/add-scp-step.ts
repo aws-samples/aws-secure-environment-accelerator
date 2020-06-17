@@ -48,7 +48,7 @@ export const handler = async (input: AddScpInput) => {
 
   // Find the SCP artifact output
   const artifactOutput = ArtifactOutputFinder.findOneByName({
-    outputs: outputs,
+    outputs,
     artifactName: 'SCP',
   });
   const scpBucketName = artifactOutput.bucketName;

@@ -20,20 +20,20 @@ export function compareConfiguration(original: LHS, modified: RHS): Diff[] | und
   return diff.diff(original, modified);
 }
 
-export function isDiffNew(diff: Diff): diff is DiffNew {
-  return diff.kind === 'N';
+export function isDiffNew(difference: Diff): difference is DiffNew {
+  return difference.kind === 'N';
 }
 
-export function isDiffEdit(diff: Diff): diff is DiffEdit {
-  return diff.kind === 'E';
+export function isDiffEdit(difference: Diff): difference is DiffEdit {
+  return difference.kind === 'E';
 }
 
-export function isDiffDeleted(diff: Diff): diff is DiffDeleted {
-  return diff.kind === 'D';
+export function isDiffDeleted(difference: Diff): difference is DiffDeleted {
+  return difference.kind === 'D';
 }
 
-export function isDiffArray(diff: Diff): diff is DiffArray {
-  return diff.kind === 'A';
+export function isDiffArray(difference: Diff): difference is DiffArray {
+  return difference.kind === 'A';
 }
 
 export function getAccountNames(original: LHS): string[] {

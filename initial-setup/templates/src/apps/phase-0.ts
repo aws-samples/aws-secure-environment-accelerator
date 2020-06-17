@@ -28,7 +28,6 @@ import { JsonOutputValue } from '../common/json-output';
  *   - Copy of the central bucket
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
-
   // verify and create ec2 instance to increase account limits
   await accountWarming.step1({
     accountStacks,
