@@ -85,12 +85,12 @@ async function cwlSettingsInLogArchive(props: {
       {
         Effect: 'Allow',
         Principal: {
-          AWS: accountIds
+          AWS: accountIds,
         },
         Action: 'logs:PutSubscriptionFilter',
         Resource: `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}`,
-      }
-    ]
+      },
+    ],
   };
   const destinationPolicyStr = JSON.stringify(destinatinPolicy);
   // Create AWS Logs Destination
