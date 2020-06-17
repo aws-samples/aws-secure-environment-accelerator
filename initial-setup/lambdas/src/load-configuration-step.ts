@@ -4,7 +4,7 @@ export interface LoadConfigurationInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
-  baseline: BaseLineType;
+  baseline?: BaseLineType;
 }
 
 export interface LoadConfigurationOutput {

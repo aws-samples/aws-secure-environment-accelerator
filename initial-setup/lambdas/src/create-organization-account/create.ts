@@ -1,11 +1,17 @@
-import { ConfigurationAccount } from '../load-configuration-step';
+import { ConfigurationAccount, LoadConfigurationInput } from '../load-configuration-step';
 import { CreateAccountOutput } from '@aws-pbmm/common-lambda/lib/aws/types/account';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
+interface CreateOrganizationAccountInput extends LoadConfigurationInput {
+  account: ConfigurationAccount;
+};
 const org = new Organizations();
-export const handler = async (account: ConfigurationAccount): Promise<CreateAccountOutput> => {
+export const handler = async (input: CreateOrganizationAccountInput): Promise<CreateAccountOutput> => {
   console.log(`Creating account using Organizations...`);
-  console.log(JSON.stringify(account, null, 2));
+  console.log(JSON.stringify(input, null, 2));
+
+  const { account, configRepositoryName, configFilePath, configCommitId } = input;
 
   if (account.accountId) {
     return {
@@ -16,7 +22,16 @@ export const handler = async (account: ConfigurationAccount): Promise<CreateAcco
 
   const { accountName, emailAddress } = account;
 
-  const accountResponse = await org.createAccount(emailAddress, accountName);
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
+
+  const roleName = config["global-options"]["organization-admin-role"];
+  
+  // const accountResponse = await org.createAccount(emailAddress, accountName, roleName);
+  const accountResponse = await org.createAccount(emailAddress, accountName, roleName);
   const response = accountResponse;
   // TODO Handle more failure cases
   if (!response) {
