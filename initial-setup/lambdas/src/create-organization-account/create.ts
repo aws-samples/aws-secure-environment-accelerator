@@ -5,7 +5,7 @@ import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
 interface CreateOrganizationAccountInput extends LoadConfigurationInput {
   account: ConfigurationAccount;
-};
+}
 const org = new Organizations();
 export const handler = async (input: CreateOrganizationAccountInput): Promise<CreateAccountOutput> => {
   console.log(`Creating account using Organizations...`);
@@ -28,8 +28,8 @@ export const handler = async (input: CreateOrganizationAccountInput): Promise<Cr
     commitId: configCommitId,
   });
 
-  const roleName = config["global-options"]["organization-admin-role"];
-  
+  const roleName = config['global-options']['organization-admin-role'];
+
   // const accountResponse = await org.createAccount(emailAddress, accountName, roleName);
   const accountResponse = await org.createAccount(emailAddress, accountName, roleName);
   const response = accountResponse;

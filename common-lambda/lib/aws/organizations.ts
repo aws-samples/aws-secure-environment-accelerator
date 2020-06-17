@@ -269,7 +269,11 @@ export class Organizations {
    * @param email
    * @param accountName
    */
-  async createAccount(email: string, accountName: string, roleName: string): Promise<org.CreateAccountStatus | undefined> {
+  async createAccount(
+    email: string,
+    accountName: string,
+    roleName: string,
+  ): Promise<org.CreateAccountStatus | undefined> {
     const accountStatus = await throttlingBackOff(() =>
       this.client
         .createAccount({
