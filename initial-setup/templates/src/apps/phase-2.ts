@@ -1,5 +1,4 @@
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
 import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
@@ -7,7 +6,6 @@ import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput, ImportedVpc } from '../deployments/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { ActiveDirectory } from '../common/active-directory';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
@@ -20,7 +18,7 @@ import { CentralBucketOutput, AccountBucketOutput } from '../deployments/default
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
-import { getMadRootPasswordSecretArn } from '../deployments/mad';
+import * as madDeployment from '../deployments/mad';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -30,7 +28,6 @@ import { getMadRootPasswordSecretArn } from '../deployments/mad';
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
-  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
   /**
@@ -105,73 +102,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
             vpcName: peerVpcOutput.vpcName,
           },
         ],
-      },
-    });
-  }
-
-  const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-
-  const accountConfigs = acceleratorConfig.getAccountConfigs();
-  for (const [accountKey, accountConfig] of accountConfigs) {
-    const madDeploymentConfig = accountConfig.deployments?.mad;
-    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
-      continue;
-    }
-    const accountId = getAccountId(accounts, accountKey);
-    if (!accountId) {
-      console.warn(`Cannot find account with key ${accountKey}`);
-      continue;
-    }
-
-    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!stack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
-    }
-
-    const madPasswordSecretName = madDeploymentConfig['password-secret-name'];
-    let madPasswordSecretArn;
-    if (madPasswordSecretName) {
-      madPasswordSecretArn = `arn:${cdk.Aws.PARTITION}:secretsmanager:${cdk.Aws.REGION}:${masterStack.accountId}:secret:${madPasswordSecretName}`;
-    } else {
-      madPasswordSecretArn = getMadRootPasswordSecretArn({
-        acceleratorPrefix: context.acceleratorPrefix,
-        accountKey,
-        secretAccountId: masterStack.accountId,
-      });
-    }
-
-    const madPasswordSecret = cdk.SecretValue.secretsManager(madPasswordSecretArn);
-
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      outputType: 'VpcOutput',
-    });
-    const vpcOutput = vpcOutputs.find(output => output.vpcName === madDeploymentConfig['vpc-name']);
-    if (!vpcOutput) {
-      console.warn(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
-      continue;
-    }
-
-    const vpcId = vpcOutput.vpcId;
-    const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madDeploymentConfig.subnet).map(s => s.subnetId);
-
-    const activeDirectory = new ActiveDirectory(stack, 'Microsoft AD', {
-      madDeploymentConfig,
-      subnetInfo: {
-        vpcId,
-        subnetIds,
-      },
-      password: madPasswordSecret,
-    });
-
-    new JsonOutputValue(stack, 'MadOutput', {
-      type: 'MadOutput',
-      value: {
-        id: madDeploymentConfig['dir-id'],
-        vpcName: madDeploymentConfig['vpc-name'],
-        directoryId: activeDirectory.directoryId,
-        dnsIps: cdk.Fn.join(',', activeDirectory.dnsIps),
-        passwordArn: madPasswordSecretArn,
       },
     });
   }
@@ -283,6 +213,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await madDeployment.step2({
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
+    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     config: acceleratorConfig,
     outputs,

@@ -1,6 +1,7 @@
 // all accounts
 export const OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION = 'KmsKeyIdForEbsDefaultEncryption';
 export const OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER = 'KmsKeyIdForSSMSessionManager';
+export const OUTPUT_KMS_KEY_ARN_FOR_SSM_SESSION_MANAGER = 'KmsKeyArnForSSMSessionManager';
 export const OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER = 'CWLForSSMSessionManager';
 export const AWS_LANDING_ZONE_CLOUD_TRAIL_NAME = 'AWS-Landing-Zone-BaselineCloudTrail';
 export const ACM_CERT_ARN_SECRET_ID_FORMAT = 'accelerator/xxaccountKeyxx/acm/xxcertNamexx';
@@ -48,6 +49,7 @@ export interface VpcOutput {
   vpcId: string;
   vpcName: string;
   cidrBlock: string;
+  additionalCidrBlocks: string[];
   subnets: VpcSubnetOutput[];
   routeTables: { [key: string]: string };
   securityGroups: VpcSecurityGroupOutput[];

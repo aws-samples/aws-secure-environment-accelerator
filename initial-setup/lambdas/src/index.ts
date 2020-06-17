@@ -15,6 +15,8 @@ export { handler as enableSecurityHub } from './enable-security-hub';
 export { handler as inviteMembersSecurityHub } from './send-security-hub-invite';
 export { handler as acceptInviteSecurityHub } from './accept-security-hub-invite';
 export { handler as getOrCreateConfig } from './get-or-create-config';
+export { handler as compareConfigurationsStep } from './compare-configurations-step';
+export { handler as storeCommitIdStep } from './store-commit-id-step';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

@@ -4,7 +4,7 @@
 
 ### Prerequisites
 
-You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed.  
+You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed.
 
 NOTE: If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
 
@@ -44,12 +44,12 @@ If using an internal AWS account, to successfully install, you need to enable pr
       - Select `DefaultEncryptionKey`,
       - Set the secret name to `accelerator/github-token`
       - Select `Disable rotation`
-    - Via AWS CLI: 
+    - Via AWS CLI:
       - `aws secretsmanager create-secret --name accelerator/github-token --secret-string <token>`
 
 ## Accelerator Configuration
 
-1. You can use the [`config.example.json`](./config.example.json) file as base 
+1. You can use the [`config.example.json`](./config.example.json) file as base
    - Use the version from the branch you are deploying from as some parameters have changed over time
    - This configuration file can be used with minor modification to successfully deploy the standard architecture
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
@@ -121,7 +121,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 12. After the pipeline executes, the state machine will execute (Step functions).  The configuration file should be automatically moved into Code Commit (and deleted from S3).  From this point forward, you must update your configuration file in CodeCommit.
 13. After the perimeter account is created in AWS Organizations, but before the ALZ AVM finishes:
     1. (v1.0.4 only) Apply the bucket policy to `your-bucket-name` in the master account, as defined in step 7 (above), making sure you update ir with the peirmeter `account id`
-    2. login to the **perimeter** sub-account 
+    2. login to the **perimeter** sub-account
     3. create a small /24 VPC, create a small /24 subnet, start a AL2 t2.micro instance
     4. activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
        - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
@@ -146,6 +146,16 @@ Your request for accessing resources in this region is being validated, and you 
 
 
 **STOP HERE, YOU ARE DONE**
+
+## Release Process
+
+1. Ensure `master` is in a suitable state
+2. Create a version branch with [SemVer](https://semver.org/) semantics and a `branch` suffix: e.g. `v1.0.4-branch`
+  * **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `branch` suffix reserves the actual version name for the tag itself.
+3. Push that branch to GitHub (if created locally)
+4. The release workflow will run, and create a **draft** release if successful with all commits since the last tagged release.
+5. Prune the commits that have been added to the release (e.g. remove any low-information commits)
+6. Publish the release - this creates the git tag in the repo and marks the release as latest.
 
 
 ## BELOW IS OUTDATED/INCORRECT

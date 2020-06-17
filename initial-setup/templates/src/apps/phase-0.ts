@@ -6,7 +6,6 @@ import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { SecretsContainer } from '@aws-pbmm/common-cdk/lib/core/secrets-container';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
@@ -15,10 +14,13 @@ import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
 import * as firewallCluster from '../deployments/firewall/cluster';
 import * as iamDeployment from '../deployments/iam';
-import * as mad from '../deployments/mad';
+import * as madDeployment from '../deployments/mad';
+import * as secretsDeployment from '../deployments/secrets';
 import { PhaseInput } from './shared';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
+import * as accountWarming from '../deployments/account-warming';
+
 /**
  * This is the main entry point to deploy phase 0.
  *
@@ -26,11 +28,17 @@ import { createR53LogGroupName } from '../common/r53-zones';
  *   - Log archive bucket
  *   - Copy of the central bucket
  */
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+  // verify and create ec2 instance to increase account limits
+  await accountWarming.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
     acceleratorPrefix: context.acceleratorPrefix,
-    acceleratorName: context.acceleratorName,
     accountStacks,
     accounts,
     config: acceleratorConfig,
@@ -104,8 +112,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     destinationKeyPrefix: 'config/scripts',
   });
 
-  // Create secrets for the different deployments
-  const secretsContainer = new SecretsContainer(masterAccountStack, 'Secrets');
+  // Create secrets container for the different deployments
+  const { secretsContainer } = await secretsDeployment.step1({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 
   // Create IAM secrets
   await iamDeployment.createSecrets({
@@ -116,7 +127,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   // Create MAD secrets
-  await mad.createSecrets({
+  await madDeployment.createSecrets({
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
     acceleratorPrefix: context.acceleratorPrefix,
     accounts,
     config: acceleratorConfig,
@@ -159,7 +171,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // MAD creation step 1
   // Needs EBS default keys from the EBS default step
-  await mad.step1({
+  await madDeployment.step1({
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
     accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
