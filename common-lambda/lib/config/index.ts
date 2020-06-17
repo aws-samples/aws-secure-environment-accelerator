@@ -1,9 +1,7 @@
 import * as t from 'io-ts';
-import { availabilityZone, cidr, optional, region, enumType } from './types';
-import { PathReporter } from './reporter';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
-import { isLeft } from 'fp-ts/lib/Either';
+import { availabilityZone, cidr, optional, region, enumType, parse } from '@aws-pbmm/common-types';
 
 export const MANDATORY_ACCOUNT_TYPES = ['master', 'central-security', 'central-log', 'central-operations'] as const;
 
@@ -962,16 +960,6 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
     const values = parse(AcceleratorConfigType, content);
     return new AcceleratorConfig(values);
   }
-}
-
-export function parse<S, T>(type: t.Decoder<S, T>, content: S): T {
-  const result = type.decode(content);
-  if (isLeft(result)) {
-    const errors = PathReporter.report(result).map(error => `* ${error}`);
-    const errorMessage = errors.join('\n');
-    throw new Error(`Could not parse content:\n${errorMessage}`);
-  }
-  return result.right;
 }
 
 function priorityByOuType(ou1: OrganizationalUnit, ou2: OrganizationalUnit) {
