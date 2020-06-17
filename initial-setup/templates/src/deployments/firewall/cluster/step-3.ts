@@ -99,6 +99,7 @@ export async function step3(props: FirewallStep3Props) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;
     }
+
     await createFirewallCluster({
       accountBucket,
       accountStack,
