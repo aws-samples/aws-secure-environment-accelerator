@@ -57,6 +57,10 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');
 
+  const guardduty = new aws.GuardDuty();
+  await guardduty.enableOrganizationAdminAccount({AdminAccountId: securityAccountId}).promise();
+  console.log('Security account enable administrator for Guard Duty in the organization.');
+
   await org.registerDelegatedAdministrator(securityAccountId, 'guardduty.amazonaws.com');
   console.log('Security account registered as delegated administrator for Guard Duty in the organization.');
 

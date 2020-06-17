@@ -26,11 +26,14 @@ export async function step1(props: GuardDutyStepProps) {
     return;
   }
 
+  const masterOrgKey = props.config.getMandatoryAccountKey('master');
+
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(props.accounts, masterAccountKey);
   const regions = props.config['global-options']['supported-regions'];
   regions?.map(region => {
-    const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
+    // Guard duty need to be enabled from master account of the organization
+    const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterOrgKey, region);
 
     if (masterAccountId) {
       const admin = new GuardDutyAdmin(masterAccountStack, 'GuardDutyAdmin', {

@@ -33,6 +33,10 @@ export class GuardDutyAdmin extends cdk.Construct {
           actions: ['guardduty:EnableOrganizationAdminAccount'],
           resources: ['*'],
         }),
+        new iam.PolicyStatement({
+          actions: ['organizations:*'],
+          resources: ['*'],
+        })
       ]),
     });
   }
