@@ -5,6 +5,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { S3CopyFiles } from '@custom-resources/s3-copy-files';
 import { S3PublicAccessBlock } from '@custom-resources/s3-public-access-block';
+import { Organizations } from '@custom-resources/organization';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { createEncryptionKeyName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import {
@@ -22,6 +23,7 @@ import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
 
 export interface DefaultsStep1Props {
+  acceleratorPrefix: string;
   accountStacks: AccountStacks;
   accounts: Account[];
   config: AcceleratorConfig;
@@ -153,6 +155,9 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
+  const organizations = new Organizations(logAccountStack, 'Organizations');
+
+  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
   const logKey = createDefaultS3Key({
     accountStack: logAccountStack,
   });
@@ -163,16 +168,38 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     encryptionKey: logKey,
   });
 
-  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
-
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(accountPrincipals);
+  logBucket.replicateFrom(accountPrincipals, organizations.organizationId, props.acceleratorPrefix);
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       principals: accountPrincipals,
-      actions: ['s3:PutObject'],
-      resources: [`${logBucket.bucketArn}/*`],
+      actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
+      resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.organizationId,
+        },
+      },
+    }),
+  );
+
+  // Allow Kinesis access bucket
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      // TODO: principal need to limit to kinesis iam roles
+      // "AWS": ["arn:aws:iam::{account-id}:role/{kinesis-iam-role}"]
+      principals: accountPrincipals,
+      actions: [
+        's3:AbortMultipartUpload',
+        's3:GetBucketLocation',
+        's3:GetObject',
+        's3:ListBucket',
+        's3:ListBucketMultipartUploads',
+        's3:PutObject',
+        's3:PutObjectAcl',
+      ],
+      resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
     }),
   );
 
@@ -194,6 +221,21 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
       principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
       actions: ['s3:GetBucketAcl'],
       resources: [`${logBucket.bucketArn}`],
+    }),
+  );
+
+  // Allow cross account encrypt access for logArchive bucket
+  logBucket.encryptionKey?.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
+      actions: ['kms:Encrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+      principals: accountPrincipals,
+      resources: ['*'],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.organizationId,
+        },
+      },
     }),
   );
 

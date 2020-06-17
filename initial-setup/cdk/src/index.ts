@@ -132,6 +132,19 @@ export namespace InitialSetup {
         resultPath: '$.configuration',
       });
 
+      const compareConfigurationsTask = new CodeTask(this, 'Compare Configurations', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.compareConfigurationsStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'inputConfig.$': '$',
+          region: cdk.Aws.REGION,
+        },
+        resultPath: '$.configuration',
+      });
+
       const getBaseLineTask = new CodeTask(this, 'Get Baseline From Configuration', {
         functionProps: {
           code: lambdaCode,
@@ -516,6 +529,20 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const storeCommitIdTask = new CodeTask(this, 'Store CommitId', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeCommitIdStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+        },
+        resultPath: 'DISCARD',
+      });
+
       const commonDefinition = loadAccountsTask.startState
         .next(installRolesTask)
         .next(loadLimitsTask)
@@ -536,7 +563,8 @@ export namespace InitialSetup {
         .next(addTagsToSharedResourcesTask)
         .next(enableDirectorySharingTask)
         .next(deployPhase5Task)
-        .next(createAdConnectorTask);
+        .next(createAdConnectorTask)
+        .next(storeCommitIdTask);
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
@@ -561,7 +589,9 @@ export namespace InitialSetup {
 
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
-        definition: sfn.Chain.start(getOrCreateConfigurationTask).next(getBaseLineTask).next(baseLineChoice),
+        definition: sfn.Chain.start(getOrCreateConfigurationTask).next(getBaseLineTask)
+          .next(compareConfigurationsTask)  
+          .next(baseLineChoice),
       });
     }
   }

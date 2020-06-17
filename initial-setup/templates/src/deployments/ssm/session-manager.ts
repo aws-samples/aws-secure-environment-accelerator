@@ -36,6 +36,9 @@ export async function step1(props: SSMStep1Props) {
     new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER, {
       value: ssmKey.keyId,
     });
+    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ARN_FOR_SSM_SESSION_MANAGER, {
+      value: ssmKey.keyArn,
+    });
     new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER, {
       value: logGroup.logGroupName,
     });
