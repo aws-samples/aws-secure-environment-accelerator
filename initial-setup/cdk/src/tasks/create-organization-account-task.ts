@@ -57,7 +57,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
         'configRepositoryName.$': '$.createAccountConfiguration.configRepositoryName',
         'configFilePath.$': '$.createAccountConfiguration.configFilePath',
         'configCommitId.$': '$.createAccountConfiguration.configCommitId',
-      }
+      },
     });
 
     const verifyTaskResultPath = '$.verifyOutput';
@@ -98,7 +98,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
         'scpBucketName.$': '$.createAccountConfiguration.scpBucketName',
         'scpBucketPrefix.$': '$.createAccountConfiguration.scpBucketPrefix',
         'acceleratorPrefix.$': '$.createAccountConfiguration.acceleratorPrefix',
-      }
+      },
     });
     addScpTask.next(pass);
 

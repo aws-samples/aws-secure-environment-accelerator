@@ -2,7 +2,7 @@ import { ConfigurationAccount, LoadConfigurationInput } from '../load-configurat
 import { CreateAccountOutput } from '@aws-pbmm/common-lambda/lib/aws/types/account';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
-import { createPoliciesFromConfiguration, policyNameToAcceleratorPolicyName} from './../add-scp-step';
+import { createPoliciesFromConfiguration, policyNameToAcceleratorPolicyName } from './../add-scp-step';
 import * as org from 'aws-sdk/clients/organizations';
 import { QuarantineScpName } from '@aws-pbmm/common-outputs/lib/accounts';
 
@@ -54,16 +54,16 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
   const policyName = policyNameToAcceleratorPolicyName({
     acceleratorPrefix,
     policyName: QuarantineScpName,
-  })
+  });
   const existingPolicy = existingPolicies.find(p => p.Name === policyName);
   let acceleratorPolicy: org.PolicySummary;
   if (!existingPolicy) {
     // Create quarantineScps if not exists and attach AccountId to Policy
-    const policies =  await createPoliciesFromConfiguration({
-        acceleratorPrefix,
-        scpBucketName,
-        scpBucketPrefix,
-        policyConfigs: quarantineScps,
+    const policies = await createPoliciesFromConfiguration({
+      acceleratorPrefix,
+      scpBucketName,
+      scpBucketPrefix,
+      policyConfigs: quarantineScps,
     });
     acceleratorPolicy = policies[0];
   } else {
@@ -73,7 +73,7 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
   await organizations.attachPolicy(acceleratorPolicy.Id!, account.accountId);
 
   return {
-    status: "SUCCESS",
+    status: 'SUCCESS',
     provisionToken: `Account "${account.accountId}" Successfully attached to Quarantine SCP`,
   };
 };

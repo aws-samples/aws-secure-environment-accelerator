@@ -390,7 +390,7 @@ export namespace InitialSetup {
           'accounts.$': '$.accounts',
         },
         resultPath: 'DISCARD',
-      })
+      });
       detachQuarantineScpTask.next(pass);
 
       const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
