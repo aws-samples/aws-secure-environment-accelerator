@@ -23,12 +23,12 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     // Set/Update IAM account password policy
     await iam
       .updateAccountPasswordPolicy({
-        AllowUsersToChangePassword: Boolean(event.ResourceProperties.allowUsersToChangePassword),
-        HardExpiry: Boolean(event.ResourceProperties.hardExpiry),
-        RequireUppercaseCharacters: Boolean(event.ResourceProperties.requireUppercaseCharacters),
-        RequireLowercaseCharacters: Boolean(event.ResourceProperties.requireLowercaseCharacters),
-        RequireSymbols: Boolean(event.ResourceProperties.requireSymbols),
-        RequireNumbers: Boolean(event.ResourceProperties.requireNumbers),
+        AllowUsersToChangePassword: toBoolean(event.ResourceProperties.allowUsersToChangePassword),
+        HardExpiry: toBoolean(event.ResourceProperties.hardExpiry),
+        RequireUppercaseCharacters: toBoolean(event.ResourceProperties.requireUppercaseCharacters),
+        RequireLowercaseCharacters: toBoolean(event.ResourceProperties.requireLowercaseCharacters),
+        RequireSymbols: toBoolean(event.ResourceProperties.requireSymbols),
+        RequireNumbers: toBoolean(event.ResourceProperties.requireNumbers),
         MinimumPasswordLength: event.ResourceProperties.minimumPasswordLength,
         PasswordReusePrevention: event.ResourceProperties.passwordReusePrevention,
         MaxPasswordAge: event.ResourceProperties.maxPasswordAge,
@@ -46,4 +46,11 @@ async function onUpdate(event: CloudFormationCustomResourceEvent) {
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {
   console.log(`Nothing to do for delete...`);
+}
+
+function toBoolean(value: string | boolean): boolean {
+  if (typeof value === 'string') {
+    return value === 'true';
+  }
+  return value;
 }
