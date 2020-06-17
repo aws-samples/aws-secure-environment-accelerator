@@ -15,6 +15,7 @@
       "region": "ca-central-1",
       "security-hub": true,
       "guard-duty": true,
+      "guard-duty-regions": ["us-east-1", "us-west-2", "ca-central-1"],
       "cwl": true,
       "access-analyzer": true
     },

@@ -1,63 +1,81 @@
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
-import { GuardDutyMaster, GuardDutyMember } from '@aws-pbmm/common-cdk/lib/organization';
-import { CfnMemberProps } from '@aws-cdk/aws-guardduty';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
+import { GuardDutyAdmin } from '@custom-resources/guardduty-enable-admin';
+import { GuardDutyCreateMember } from '@custom-resources/guardduty-create-member';
+import { GuardDutyDetector } from '@custom-resources/guardduty-list-detector';
+import { GuardDutyUpdateConfig } from '@custom-resources/guardduty-update-config';
 
 export interface GuardDutyStepProps {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   accounts: Account[];
-  detectorId: string;
 }
 
 /**
- * First send guard duty invites to all member accounts in the organization
+ * Step 1 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
  *
  * @param props accountStacks and config passed from phases
  */
 export async function step1(props: GuardDutyStepProps) {
-  const masterAccountKey = props.config.getMandatoryAccountKey('master');
-  const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey);
+  const alzBaseline = props.config["global-options"]["alz-baseline"];
+  const enableGuardDuty = props.config["global-options"]["central-security-services"]["guard-duty"];
 
-  const memberProps: CfnMemberProps = [];
-
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    // only create member props so exclude master account
-    if (accountKey !== masterAccountKey) {
-      memberProps.push({
-        email: accountConfig.email,
-        memberId: getAccountId(props.accounts, accountKey),
-        detectorId: props.detectorId, // set to empty will be auto generated
-      });
-    }
+  // skipping Guardduty if using ALZ or not enabled from config
+  if (alzBaseline || !enableGuardDuty) {
+    return;
   }
 
-  const guardDutyMaster = new GuardDutyMaster(masterAccountStack, 'GuardDutyMaster', {
-    memberProps,
+  const masterAccountKey = props.config["global-options"]["central-security-services"].account;
+  const masterAccountId = getAccountId(props.accounts, masterAccountKey);
+  const regions = props.config["global-options"]["central-security-services"]["guard-duty-regions"];
+  regions?.map(region => {
+    const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
+
+    if (masterAccountId) {
+      const admin = new GuardDutyAdmin(masterAccountStack, 'GuardDutyAdmin', {
+        accountId: masterAccountId,
+      });
+    }
   });
 }
 
 /**
- * Second accept all invites from master account in the organization
- *
+ * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+ * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+ * 
  * @param props accountStacks and config passed from phases
  */
 export async function step2(props: GuardDutyStepProps) {
-  const masterAccountKey = props.config.getMandatoryAccountKey('master');
+  const alzBaseline = props.config["global-options"]["alz-baseline"];
+  const enableGuardDuty = props.config["global-options"]["central-security-services"]["guard-duty"];
 
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    // only accept invites for member account excluding master account
-    if (accountKey !== masterAccountKey) {
-      const memberStack = props.accountStacks.getOrCreateAccountStack(accountKey);
-
-      const memberAccountId = getAccountId(props.accounts, masterAccountKey);
-      if (memberAccountId) {
-        new GuardDutyMember(memberStack, 'GuardDutyMember', {
-          detectorId: props.detectorId,
-          masterId: memberAccountId,
-        });
-      }
-    }
+  // skipping Guardduty if using ALZ or not enabled from config
+  if (alzBaseline || !enableGuardDuty) {
+    return;
   }
+  
+  const masterAccountKey = props.config["global-options"]["central-security-services"].account;
+  const regions = props.config["global-options"]["central-security-services"]["guard-duty-regions"];
+  regions?.map(region => {
+    const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
+
+    const detector = new GuardDutyDetector(masterAccountStack, 'GuardDutyDetector');
+
+    // Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+    const accountDetails = props.accounts.map(account => ({
+      AccountId: account.id,
+      Email: account.email,
+    }));
+    const members = new GuardDutyCreateMember(masterAccountStack, 'GuardDutyCreateMember', {
+      accountDetails,
+      detectorId: detector.detectorId,
+    });
+
+    // Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+    const updateConfig = new GuardDutyUpdateConfig(masterAccountStack, 'GuardDutyUpdateConfig', {
+      autoEnable: true,
+      detectorId: detector.detectorId,
+    });
+  });
 }

@@ -558,6 +558,7 @@ export const CentralServicesConfigType = t.interface({
   region: NonEmptyString,
   'security-hub': fromNullable(t.boolean, false),
   'guard-duty': fromNullable(t.boolean, false),
+  'guard-duty-regions': optional(t.array(t.string)),
   cwl: fromNullable(t.boolean, false),
   'access-analyzer': fromNullable(t.boolean, false),
   'cwl-access-level': optional(t.string),
