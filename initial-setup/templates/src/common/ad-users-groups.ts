@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
+import { LaunchConfiguration } from '@aws-pbmm/constructs/lib/autoscaling';
 import { MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { CfnAutoScalingGroup, CfnLaunchConfiguration, AutoScalingGroup } from '@aws-cdk/aws-autoscaling';
+import { CfnAutoScalingGroup } from '@aws-cdk/aws-autoscaling';
 import { pascalCase } from 'pascal-case';
 import { SecurityGroup } from './security-group';
 import { createIamInstanceProfileName } from './iam-assets';
@@ -101,13 +102,13 @@ export class ADUsersAndGroups extends cdk.Construct {
     const stack = AcceleratorStack.of(this);
     const prefix = trimSpecialCharacters(stack.acceleratorPrefix);
 
-    const launchConfig = new CfnLaunchConfiguration(this, 'RDGWLaunchConfiguration', {
+    const launchConfig = new LaunchConfiguration(this, 'RDGWLaunchConfiguration', {
+      launchConfigurationName: `${prefix}-RDGWLaunchConfiguration`,
       associatePublicIpAddress: false,
       imageId: latestRdgwAmiId,
       securityGroups: [securityGroup.securityGroups[0].id],
       iamInstanceProfile: createIamInstanceProfileName(madDeploymentConfig['rdgw-instance-role']),
       instanceType: madDeploymentConfig['rdgw-instance-type'],
-      launchConfigurationName: `${prefix}-RDGWLaunchConfiguration`,
       blockDeviceMappings: [
         {
           deviceName: '/dev/sda1',
@@ -120,25 +121,24 @@ export class ADUsersAndGroups extends cdk.Construct {
       keyName: keyPairName,
     });
 
+    const autoScalingGroupSize = madDeploymentConfig['num-rdgw-hosts'];
     const autoscalingGroup = new CfnAutoScalingGroup(this, 'RDGWAutoScalingGroupB', {
-      launchConfigurationName: launchConfig.launchConfigurationName,
+      autoScalingGroupName: `${prefix}-RDGWAutoScalingGroup`,
+      launchConfigurationName: launchConfig.ref,
       vpcZoneIdentifier: subnetIds,
-      minSize: madDeploymentConfig['num-rdgw-hosts'].toString(),
-      maxSize: madDeploymentConfig['num-rdgw-hosts'].toString(),
+      minSize: `${autoScalingGroupSize}`,
+      maxSize: `${autoScalingGroupSize}`,
       cooldown: '300',
-      desiredCapacity: madDeploymentConfig['num-rdgw-hosts'].toString(),
-      autoScalingGroupName: 'PBMMRDGWAutoScalingGroup',
+      desiredCapacity: `${autoScalingGroupSize}`,
       serviceLinkedRoleArn,
     });
 
     autoscalingGroup.cfnOptions.creationPolicy = {
       resourceSignal: {
-        count: madDeploymentConfig['num-rdgw-hosts'],
+        count: autoScalingGroupSize,
         timeout: 'PT30M',
       },
     };
-
-    autoscalingGroup.addDependsOn(launchConfig);
 
     launchConfig.addOverride('Metadata.AWS::CloudFormation::Authentication', {
       S3AccessCreds: {

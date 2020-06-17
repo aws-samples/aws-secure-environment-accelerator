@@ -1,22 +1,22 @@
 {
-  "Version":"2012-10-17",
-  "Statement":[
+  "Version": "2012-10-17",
+  "Statement": [
     {
-      "Sid":"DenyTag1",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "DenyTag1",
+      "Effect": "Deny",
+      "Action": [
         "ec2:DeleteSecurityGroup",
         "ec2:RevokeSecurityGroup*",
         "ec2:AuthorizeSecurityGroup*",
         "ec2:CreateSecurityGroup"
       ],
-      "Resource":"*",
-      "Condition":{
-        "StringEquals":{
-          "ec2:ResourceTag/Accelerator":"PBMM"
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "ec2:ResourceTag/Accelerator": "PBMM"
         },
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -24,18 +24,16 @@
       }
     },
     {
-      "Sid":"DenyTag2",
-      "Effect":"Deny",
-      "Action":[
-        "iam:*"
-      ],
-      "Resource":"*",
-      "Condition":{
-        "StringEquals":{
-          "iam:ResourceTag/Accelerator":"PBMM"
+      "Sid": "DenyTag2",
+      "Effect": "Deny",
+      "Action": ["iam:*"],
+      "Resource": "*",
+      "Condition": {
+        "StringEquals": {
+          "iam:ResourceTag/Accelerator": "PBMM"
         },
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -43,9 +41,9 @@
       }
     },
     {
-      "Sid":"DenyS3",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "DenyS3",
+      "Effect": "Deny",
+      "Action": [
         "s3:Delete*",
         "s3:PutBucketVersioning",
         "s3:PutEncryptionConfiguration",
@@ -56,14 +54,10 @@
         "s3:PutObjectRetention",
         "s3:PutObjectTagging"
       ],
-      "Resource":[
-	    "arn:aws:s3:::pbmmaccel-*",
-		"arn:aws:s3:::cdktoolkit-*",
-		"arn:aws:s3:::cf-templates-*"
-      ],
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Resource": ["arn:aws:s3:::pbmmaccel-*", "arn:aws:s3:::cdktoolkit-*", "arn:aws:s3:::cf-templates-*"],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -71,19 +65,17 @@
       }
     },
     {
-      "Sid":"ProtectCloudFormation",
-      "Effect":"Deny",
-      "Action":[
-        "cloudformation:*"
-      ],
-      "Resource":[
+      "Sid": "ProtectCloudFormation",
+      "Effect": "Deny",
+      "Action": ["cloudformation:*"],
+      "Resource": [
         "arn:aws:cloudformation:*:*:stack/StackSet-AWS-Landing-Zone-*",
         "arn:aws:cloudformation:*:*:stack/StackSet-PBMMAccel-*",
         "arn:aws:cloudformation:*:*:stack/PBMMAccel-*"
       ],
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -91,9 +83,9 @@
       }
     },
     {
-      "Sid":"DenyAlarmDeletion",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "DenyAlarmDeletion",
+      "Effect": "Deny",
+      "Action": [
         "cloudwatch:DeleteAlarms",
         "cloudwatch:DisableAlarmActions",
         "cloudwatch:DeleteDashboards",
@@ -101,15 +93,15 @@
         "cloudwatch:PutMetricAlarm",
         "cloudwatch:SetAlarmState"
       ],
-      "Resource":[
+      "Resource": [
         "arn:aws:cloudwatch:*:*:alarm:CloudTrail*",
         "arn:aws:cloudwatch:*:*:alarm:PBMMAccel-*",
         "arn:aws:cloudwatch:*:*:alarm:IAMPolicyChanges",
         "arn:aws:cloudwatch:*:*:alarm:RootLogin"
       ],
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -117,19 +109,17 @@
       }
     },
     {
-      "Sid":"ProtectKeyRoles",
-      "Effect":"Deny",
-      "Action":[
-        "iam:*"
-      ],
-      "Resource":[
+      "Sid": "ProtectKeyRoles",
+      "Effect": "Deny",
+      "Action": ["iam:*"],
+      "Resource": [
         "arn:aws:iam::*:role/PBMMAccel-*",
         "arn:aws:iam::*:role/PBMMOps-*",
         "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole"
       ],
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -137,9 +127,9 @@
       }
     },
     {
-      "Sid":"DenySSMDel",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "DenySSMDel",
+      "Effect": "Deny",
+      "Action": [
         "ssm:DeleteParameter",
         "ssm:DeleteParameters",
         "ssm:PutParameter",
@@ -147,14 +137,14 @@
         "ssm:UpdateDocument",
         "ssm:CreateDocument"
       ],
-      "Resource":[
+      "Resource": [
         "arn:aws:ssm:*:*:parameter/PBMMAccel-*",
         "arn:aws:ssm:*:*:parameter/cloudformation*",
         "arn:aws:ssm:*:*:document/PBMMAccel-*"
       ],
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -162,9 +152,9 @@
       }
     },
     {
-      "Sid":"DenyLogDel",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "DenyLogDel",
+      "Effect": "Deny",
+      "Action": [
         "ec2:DeleteFlowLogs",
         "logs:DeleteResourcePolicy",
         "logs:DeleteMetricFilter",
@@ -176,10 +166,10 @@
         "logs:PutRetentionPolicy",
         "logs:DeleteLogStream"
       ],
-      "Resource":"*",
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -187,15 +177,15 @@
       }
     },
     {
-      "Sid":"DenyLeaveOrg",
-      "Effect":"Deny",
-      "Action":"organizations:LeaveOrganization",
-      "Resource":"*"
+      "Sid": "DenyLeaveOrg",
+      "Effect": "Deny",
+      "Action": "organizations:LeaveOrganization",
+      "Resource": "*"
     },
     {
-      "Sid":"DenyLambdaDel",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "DenyLambdaDel",
+      "Effect": "Deny",
+      "Action": [
         "lambda:AddPermission",
         "lambda:CreateEventSourceMapping",
         "lambda:CreateFunction",
@@ -208,13 +198,13 @@
         "lambda:UpdateFunctionCode",
         "lambda:UpdateFunctionConfiguration"
       ],
-      "Resource":[
+      "Resource": [
         "arn:aws:lambda:*:*:function:StackSet-AWS-Landing-Zone-*",
         "arn:aws:lambda:*:*:function:PBMMAccel-*"
       ],
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
@@ -222,9 +212,9 @@
       }
     },
     {
-      "Sid":"BlockOther",
-      "Effect":"Deny",
-      "Action":[
+      "Sid": "BlockOther",
+      "Effect": "Deny",
+      "Action": [
         "aws-portal:ModifyAccount",
         "aws-portal:ModifyBilling",
         "aws-portal:ModifyPaymentMethods",
@@ -244,10 +234,10 @@
         "config:PutAggregationAuthorization",
         "config:PutConfigurationAggregator"
       ],
-      "Resource":"*",
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
             "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]

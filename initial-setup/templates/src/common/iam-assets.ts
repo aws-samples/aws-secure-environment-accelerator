@@ -8,6 +8,7 @@ import {
   IamRoleConfigType,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { Account, getAccountId } from '../utils/accounts';
+import { IBucket } from '@aws-cdk/aws-s3';
 
 export interface IamAssetsProps {
   accountKey: string;
@@ -15,12 +16,13 @@ export interface IamAssetsProps {
   iamPoliciesDefinition: { [policyName: string]: string };
   accounts: Account[];
   userPasswords: { [userId: string]: cdk.SecretValue };
+  logBucket: IBucket;
 }
 
 export class IamAssets extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: IamAssetsProps) {
     super(scope, id);
-    const { accountKey, iamConfig, iamPoliciesDefinition, accounts, userPasswords } = props;
+    const { accountKey, iamConfig, iamPoliciesDefinition, accounts, userPasswords, logBucket } = props;
 
     const customerManagedPolicies: { [policyName: string]: iam.ManagedPolicy } = {};
     // method to create IAM Policy
@@ -72,11 +74,11 @@ export class IamAssets extends cdk.Construct {
       sourceAccount?: string,
       sourceAccountRole?: string,
       trustPolicy?: string,
-    ): void => {
+    ): iam.Role => {
       if (sourceAccount && sourceAccountRole && trustPolicy) {
         const sourceAccountId = getAccountId(accounts, sourceAccount);
 
-        const iamRole = new iam.Role(this, `IAM-Role-${role}-${accountKey}`, {
+        return new iam.Role(this, `IAM-Role-${role}-${accountKey}`, {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ArnPrincipal(`arn:aws:iam::${sourceAccountId}:role/${sourceAccountRole}`),
@@ -86,7 +88,7 @@ export class IamAssets extends cdk.Construct {
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
         });
       } else {
-        const iamRole = new iam.Role(this, `IAM-Role-${role}`, {
+        return new iam.Role(this, `IAM-Role-${role}`, {
           roleName: role,
           description: `PBMM - ${role}`,
           assumedBy: new iam.ServicePrincipal(`${type}.amazonaws.com`),
@@ -132,7 +134,7 @@ export class IamAssets extends cdk.Construct {
             `IAM config - roles is not defined for account with key - ${accountKey}. Skipping Roles creation.`,
           );
         } else {
-          createIamRole(
+          const role = createIamRole(
             iamRole.role,
             iamRole.type,
             iamRole.policies,
@@ -145,9 +147,39 @@ export class IamAssets extends cdk.Construct {
           if (iamRole.type === 'ec2') {
             new iam.CfnInstanceProfile(this, `IAM-Instance-Profile-${iamRole.role}-${accountKey}`, {
               path: '/',
-              roles: [iamRole.role],
+              roles: [role.roleName],
               instanceProfileName: createIamInstanceProfileName(iamRole.role),
             });
+          }
+
+          if (iamRole['ssm-log-archive-access']) {
+            role.addToPolicy(
+              new iam.PolicyStatement({
+                actions: ['kms:DescribeKey', 'kms:GenerateDataKey*', 'kms:Decrypt', 'kms:Encrypt', 'kms:ReEncrypt*'],
+                resources: [logBucket.encryptionKey?.keyArn || '*'],
+              }),
+            );
+
+            role.addToPolicy(
+              new iam.PolicyStatement({
+                actions: ['kms:Decrypt'],
+                resources: ['*'], // TODO: limit resource to be SSM key only
+              }),
+            );
+
+            role.addToPolicy(
+              new iam.PolicyStatement({
+                actions: ['s3:GetEncryptionConfiguration'],
+                resources: [logBucket.bucketArn],
+              }),
+            );
+
+            role.addToPolicy(
+              new iam.PolicyStatement({
+                actions: ['s3:PutObject', 's3:PutObjectAcl'],
+                resources: [logBucket.arnForObjects('*')],
+              }),
+            );
           }
         }
       }

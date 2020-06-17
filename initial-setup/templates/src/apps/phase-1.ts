@@ -34,7 +34,6 @@ import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
-import * as accountWarming from '../deployments/account-warming';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -220,6 +219,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
+      additionalCidrBlocks: vpc.additionalCidrBlocks,
       subnets: vpc.azSubnets.subnets.map(s => ({
         subnetId: s.subnet.ref,
         subnetName: s.subnetName,
@@ -285,16 +285,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         vpc: vpc!,
         accountStacks,
       });
-
-      // verify and create ec2 instance to increase account limits
-      await accountWarming.step1({
-        accountKey,
-        vpc: vpc!,
-        accountStacks,
-        config: acceleratorConfig,
-        outputs,
-      });
-
       subscriptionCheckDone.push(accountKey);
     }
   }
@@ -390,6 +380,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         iamPoliciesDefinition,
         accounts,
         userPasswords,
+        logBucket,
       });
     }
   };
@@ -440,7 +431,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // SSM config step 1
   await ssm.step1({
-    acceleratorPrefix: context.acceleratorPrefix,
     accountStacks,
     bucketName: logBucket.bucketName,
     config: acceleratorConfig,
