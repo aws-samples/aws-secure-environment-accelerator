@@ -89,7 +89,7 @@ async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResou
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
   const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
-  for (const logGroup of filterLogGroups) {
+  for (const logGroup of logGroups) {
     // Delete Subscription filter from logGroup
     await removeSubscriptionFilter(logGroup.logGroupName!);
   }

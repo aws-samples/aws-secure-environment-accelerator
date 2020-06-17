@@ -78,20 +78,21 @@ async function cwlSettingsInLogArchive(props: {
     name: 'LogDestination',
     suffixLength: 0,
   });
-  const accountIdsStr = `"${accountIds.join('","')}"`;
-  const destinationPolicyStr = `{
-    "Version" : "2012-10-17",
-    "Statement" : [
+
+  const destinatinPolicy = {
+    Version: '2012-10-17',
+    Statement: [
       {
-        "Effect" : "Allow",
-        "Principal" : {
-          "AWS" : [${accountIdsStr}]
+        Effect: 'Allow',
+        Principal: {
+          AWS: accountIds
         },
-        "Action" : "logs:PutSubscriptionFilter",
-        "Resource" : "arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}"
+        Action: 'logs:PutSubscriptionFilter',
+        Resource: `arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:destination:${destinationName}`,
       }
     ]
-  }`;
+  };
+  const destinationPolicyStr = JSON.stringify(destinatinPolicy);
   // Create AWS Logs Destination
   const logDestination = new logs.CfnDestination(scope, 'Log-Destination', {
     destinationName,

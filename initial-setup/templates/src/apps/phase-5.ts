@@ -138,7 +138,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
    * Central Logging Services step 2
    * Creating Subscription Filters for handling CloudWatch Celtral Logging to S3 in log-archive account
    * Good to have in last phase, since we add subscription filter to all log groups
-   * TODO - Create CloudWatch Event in all account for create LogGroup
    */
   await cwlCentralLoggingToS3.step2({
     accountStacks,

@@ -452,11 +452,4 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     logBucket,
   });
-  // for (const account of accounts) {
-  //   const accountStack = accountStacks.getOrCreateAccountStack(account.key);
-  //   await cwlCentralLoggingToS3.step1({
-  //     accountStack,
-  //     bucketArn: logBucket.bucketArn,
-  //   });
-  // }
 }
