@@ -3,8 +3,8 @@ import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
 
 export interface AccountDetail {
-  accountId: string;
-  email: string;
+  AccountId: string;
+  Email: string;
 }
 
 export interface GuardDutyCreateMemberProps {
