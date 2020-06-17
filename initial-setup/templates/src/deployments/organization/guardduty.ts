@@ -18,17 +18,17 @@ export interface GuardDutyStepProps {
  * @param props accountStacks and config passed from phases
  */
 export async function step1(props: GuardDutyStepProps) {
-  const alzBaseline = props.config["global-options"]["alz-baseline"];
-  const enableGuardDuty = props.config["global-options"]["central-security-services"]["guard-duty"];
+  const alzBaseline = props.config['global-options']['alz-baseline'];
+  const enableGuardDuty = props.config['global-options']['central-security-services']['guard-duty'];
 
   // skipping Guardduty if using ALZ or not enabled from config
   if (alzBaseline || !enableGuardDuty) {
     return;
   }
 
-  const masterAccountKey = props.config["global-options"]["central-security-services"].account;
+  const masterAccountKey = props.config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(props.accounts, masterAccountKey);
-  const regions = props.config["global-options"]["central-security-services"]["guard-duty-regions"];
+  const regions = props.config['global-options']['central-security-services']['guard-duty-regions'];
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
 
@@ -43,20 +43,20 @@ export async function step1(props: GuardDutyStepProps) {
 /**
  * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
  * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
- * 
+ *
  * @param props accountStacks and config passed from phases
  */
 export async function step2(props: GuardDutyStepProps) {
-  const alzBaseline = props.config["global-options"]["alz-baseline"];
-  const enableGuardDuty = props.config["global-options"]["central-security-services"]["guard-duty"];
+  const alzBaseline = props.config['global-options']['alz-baseline'];
+  const enableGuardDuty = props.config['global-options']['central-security-services']['guard-duty'];
 
   // skipping Guardduty if using ALZ or not enabled from config
   if (alzBaseline || !enableGuardDuty) {
     return;
   }
-  
-  const masterAccountKey = props.config["global-options"]["central-security-services"].account;
-  const regions = props.config["global-options"]["central-security-services"]["guard-duty-regions"];
+
+  const masterAccountKey = props.config['global-options']['central-security-services'].account;
+  const regions = props.config['global-options']['central-security-services']['guard-duty-regions'];
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
 
