@@ -28,7 +28,7 @@ export async function step1(props: GuardDutyStepProps) {
 
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(props.accounts, masterAccountKey);
-  const regions = props.config['global-options']["supported-regions"];
+  const regions = props.config['global-options']['supported-regions'];
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
 
@@ -56,7 +56,7 @@ export async function step2(props: GuardDutyStepProps) {
   }
 
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
-  const regions = props.config['global-options']["supported-regions"];
+  const regions = props.config['global-options']['supported-regions'];
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
 
