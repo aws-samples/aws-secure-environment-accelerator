@@ -16,7 +16,7 @@ import * as firewallCluster from '../deployments/firewall/cluster';
 import * as iamDeployment from '../deployments/iam';
 import * as madDeployment from '../deployments/mad';
 import * as secretsDeployment from '../deployments/secrets';
-import * as guardDutyDeployment from '../deployments/organization/guardduty';
+import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
@@ -173,13 +173,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // GuardDuty step 1
   // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
   await guardDutyDeployment.step1({
-    accountStacks,
-    config: acceleratorConfig,
-    accounts,
-  });
-
-  // GuardDuty step 2
-  await guardDutyDeployment.step2({
     accountStacks,
     config: acceleratorConfig,
     accounts,

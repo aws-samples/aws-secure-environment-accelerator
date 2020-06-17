@@ -32,6 +32,7 @@ import * as firewall from '../deployments/firewall/cluster';
 import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
+import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 
@@ -441,5 +442,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountBuckets,
     accountStacks,
     config: acceleratorConfig,
+  });
+
+  // GuardDuty step 2
+  await guardDutyDeployment.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
   });
 }
