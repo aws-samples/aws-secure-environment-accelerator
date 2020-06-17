@@ -36,7 +36,7 @@ export class GuardDutyAdmin extends cdk.Construct {
         new iam.PolicyStatement({
           actions: ['organizations:*'],
           resources: ['*'],
-        })
+        }),
       ]),
     });
   }
