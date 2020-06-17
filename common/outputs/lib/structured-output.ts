@@ -1,7 +1,6 @@
 import * as t from 'io-ts';
-import { PathReporter } from 'io-ts/lib/PathReporter';
-import { isLeft } from 'fp-ts/lib/Either';
 import { StackOutput } from './stack-output';
+import { parse } from '@aws-pbmm/common-types';
 
 export interface StructuredValue<T> {
   type: string;
@@ -13,6 +12,41 @@ export interface StructuredValueFindProps<T> {
   type: t.Type<T>;
   accountKey?: string;
   predicate?: (value: T) => boolean;
+}
+
+export type StructureValueFinderProps<T> = Omit<StructuredValueFindProps<T>, 'type'>;
+
+export interface StructuredValueFinder<T> {
+  tryFindOne(filter: StructureValueFinderProps<T>): T | undefined;
+  findOne(filter: StructureValueFinderProps<T>): T;
+  findAll(filter: StructureValueFinderProps<T>): T[];
+}
+
+/**
+ * Creates an interface StructuredValueFinder<T> that can be extended using the extend parameter.
+ */
+export function createStructuredOutputFinder<T, X = undefined>(
+  type: t.Type<T>,
+  extend?: (finder: StructuredValueFinder<T>) => X,
+): StructuredValueFinder<T> & X {
+  const finder = {
+    tryFindOne: (filter: StructureValueFinderProps<T>): T | undefined => {
+      return tryFindValueFromOutputs({ ...filter, type });
+    },
+    findOne: (filter: StructureValueFinderProps<T>): T => {
+      return findValueFromOutputs({ ...filter, type });
+    },
+    findAll: (filter: StructureValueFinderProps<T>): T[] => {
+      return findValuesFromOutputs({ ...filter, type });
+    },
+  };
+  const extension = extend ? extend(finder) : undefined;
+  return Object.assign(finder, extension);
+}
+
+export function tryFindValueFromOutputs<T>(props: StructuredValueFindProps<T>): T | undefined {
+  const values = findValuesFromOutputs(props);
+  return values?.[0];
 }
 
 export function findValueFromOutputs<T>(props: StructuredValueFindProps<T>): T {
@@ -43,14 +77,4 @@ export function parseValueFromOutput<T>(output: StackOutput, type: t.Type<T>): T
       }
     }
   } catch {}
-}
-
-export function parse<S, T>(type: t.Decoder<S, T>, content: S): T {
-  const result = type.decode(content);
-  if (isLeft(result)) {
-    const errors = PathReporter.report(result).map(error => `* ${error}`);
-    const errorMessage = errors.join('\n');
-    throw new Error(`Could not parse content:\n${errorMessage}`);
-  }
-  return result.right;
 }

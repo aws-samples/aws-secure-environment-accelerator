@@ -7,7 +7,7 @@ import { ConfigurationOrganizationalUnit, LoadConfigurationInput } from './load-
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
-import { findArtifactWithName } from '@aws-pbmm/common-outputs/lib/artifacts';
+import { ArtifactOutputFinder } from '@aws-pbmm/common-outputs/lib/artifacts';
 
 const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
@@ -47,8 +47,8 @@ export const handler = async (input: AddScpInput) => {
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   // Find the SCP artifact output
-  const artifactOutput = findArtifactWithName({
-    outputs,
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs: outputs,
     artifactName: 'SCP',
   });
   const scpBucketName = artifactOutput.bucketName;

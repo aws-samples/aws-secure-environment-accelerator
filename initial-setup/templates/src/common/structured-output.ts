@@ -1,12 +1,7 @@
 import * as t from 'io-ts';
 import * as cdk from '@aws-cdk/core';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import {
-  StructuredValue,
-  StructuredValueFindProps,
-  findValuesFromOutputs,
-  findValueFromOutputs,
-} from '@aws-pbmm/common-outputs/lib/structured-output';
+import { StructuredValue, findValuesFromOutputs } from '@aws-pbmm/common-outputs/lib/structured-output';
 
 export interface StructuredOutputProps<T> {
   type: t.Type<T>;
@@ -18,15 +13,10 @@ export interface StructuredOutputFilter<T> {
   accountKey?: string;
 }
 
-export type CfnStructuredOutputFindProps<T> = Omit<StructuredValueFindProps<T>, 'type'>;
-
 export abstract class CfnStructuredOutput<T> extends cdk.Construct {}
 
 export interface CfnStructuredOutputClass<T> {
   new (scope: cdk.Construct, id: string, value: T): CfnStructuredOutput<T>;
-
-  findOne(filter: CfnStructuredOutputFindProps<T>): T;
-  findAll(filter: CfnStructuredOutputFindProps<T>): T[];
 }
 
 export function createCfnStructuredOutput<T>(type: t.Type<T>): CfnStructuredOutputClass<T> {
@@ -38,14 +28,6 @@ export function createCfnStructuredOutput<T>(type: t.Type<T>): CfnStructuredOutp
         type,
         value,
       });
-    }
-
-    static findOne(filter: CfnStructuredOutputFindProps<T>): T {
-      return findValueFromOutputs({ ...filter, type });
-    }
-
-    static findAll(filter: CfnStructuredOutputFindProps<T>): T[] {
-      return findValuesFromOutputs({ ...filter, type });
     }
   }
   return Impl;
