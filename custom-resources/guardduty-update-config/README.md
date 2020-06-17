@@ -1,14 +1,14 @@
-# Retrieve Guard Duty detector id
+# Update Guard Duty config
 
-This is a custom resource to Enable Guard Duty admin from `enable-organization-admin-account` API call.
+This is a custom resource to update Guard Duty config from `UpdateOrganizationConfiguration` API call.
 
 ## Usage
 
-    // Creating Guard Duty Master using detector id
-    const guardDutyDetector = GuardDutyDetector(this, 'MemberDetector');
+    // Update Guard Duty config using detector id
+    const detector = new GuardDutyDetector(masterAccountStack, 'GuardDutyDetector');
 
-    new CfnMaster(this, `GuardDuty_Master_${props.masterId}`, {
-      detectorId: guardDutyDetector.getDetectorId(),
-      ...props
+    const updateConfig = new GuardDutyUpdateConfig(masterAccountStack, 'GuardDutyUpdateConfig', {
+      autoEnable: true,
+      detectorId: detector.detectorId,
     });
 
