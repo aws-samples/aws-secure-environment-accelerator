@@ -553,6 +553,11 @@ export const SecurityHubFrameworksConfigType = t.interface({
   ),
 });
 
+export const CwlExclusions = t.interface({
+  account: t.string,
+  exclusions: t.array(t.string),
+});
+
 export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,
   region: NonEmptyString,
@@ -564,6 +569,7 @@ export const CentralServicesConfigType = t.interface({
   'cwl-glbl-exclusions': optional(t.array(t.string)),
   'ssm-to-s3': optional(t.boolean),
   'ssm-to-cwl': optional(t.boolean),
+  'cwl-exclusions': optional(t.array(CwlExclusions)),
 });
 
 export const ScpsConfigType = t.interface({
