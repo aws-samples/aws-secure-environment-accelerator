@@ -85,6 +85,17 @@
         }
       ]
     },
+    "iam-password-policies": {
+      "allow-users-to-change-password": true,
+      "hard-expiry": false,
+      "require-uppercase-characters": true,
+      "require-lowercase-characters": true,
+      "require-symbols": true,
+      "require-numbers": true,
+      "minimum-password-length": 14,
+      "password-reuse-prevention": 6,
+      "max-password-age": 90
+    },
     "scps": [
       {
         "name": "ALZ-Core",
