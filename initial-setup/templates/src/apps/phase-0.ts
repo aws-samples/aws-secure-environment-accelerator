@@ -20,6 +20,7 @@ import { PhaseInput } from './shared';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
+import * as passwordPolicy from '../deployments/iam-password-policy';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -35,6 +36,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
+
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    await passwordPolicy.step1({
+      accountStacks,
+      config: acceleratorConfig,
+    });
+  }
 
   // Create defaults, e.g. S3 buckets, EBS encryption keys
   const defaultsResult = await defaults.step1({
