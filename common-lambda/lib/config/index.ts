@@ -558,7 +558,6 @@ export const CentralServicesConfigType = t.interface({
   region: NonEmptyString,
   'security-hub': fromNullable(t.boolean, false),
   'guard-duty': fromNullable(t.boolean, false),
-  'guard-duty-regions': optional(t.array(t.string)),
   cwl: fromNullable(t.boolean, false),
   'access-analyzer': fromNullable(t.boolean, false),
   'cwl-access-level': optional(t.string),
@@ -589,6 +588,7 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-services': CentralServicesConfigType,
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
+  'supported-regions': t.array(t.string),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
