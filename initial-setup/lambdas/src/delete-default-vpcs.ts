@@ -1,7 +1,7 @@
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { LoadConfigurationInput } from './load-configuration-step';
 
-export interface DeleteVPCInput extends LoadConfigurationInput{
+export interface DeleteVPCInput extends LoadConfigurationInput {
   accountId: string;
 }
 
@@ -19,7 +19,7 @@ export const handler = async (input: DeleteVPCInput): Promise<DeleteVPCOutput[] 
   let response: DeleteVPCOutput[] = [];
   const defaultVpcs = await ec2.describeDefaultVpcs();
   if (!defaultVpcs || defaultVpcs.length === 0) {
-    return
+    return;
   }
   for (const vpc of defaultVpcs) {
     const errors = await deleteDefaultVpc(vpc.VpcId!);
@@ -27,15 +27,14 @@ export const handler = async (input: DeleteVPCInput): Promise<DeleteVPCOutput[] 
       vpcId: vpc.VpcId,
       errors: errors,
       accountId,
-    }
+    };
     response.push(resp);
   }
   console.log(JSON.stringify(response, null, 2));
-  return response
+  return response;
 };
 
-
-async function deleteDefaultVpc (vpcId: string): Promise<string[]> {
+async function deleteDefaultVpc(vpcId: string): Promise<string[]> {
   const errors: string[] = [];
   // List all Subnets to delete
   const subnets = await ec2.listSubnets({
@@ -43,18 +42,18 @@ async function deleteDefaultVpc (vpcId: string): Promise<string[]> {
       {
         Name: 'vpc-id',
         Values: [vpcId],
-      }
-    ]
+      },
+    ],
   });
   // Deleting Subnets
   for (const subnet of subnets) {
     try {
       await ec2.deleteSubnet(subnet.SubnetId!);
     } catch (error) {
-        errors.push(error.message);
+      errors.push(error.message);
     }
   }
-  
+
   // Detach VPC From Internet Gateway
   const igws = await ec2.describeInternetGatewaysByVpc([vpcId]);
   for (const igw of igws || []) {
@@ -62,7 +61,7 @@ async function deleteDefaultVpc (vpcId: string): Promise<string[]> {
       await ec2.detachInternetGateway(vpcId, igw.InternetGatewayId!);
       await ec2.deleteInternetGateway(igw.InternetGatewayId!);
     } catch (error) {
-        errors.push(error.message);
+      errors.push(error.message);
     }
   }
   // Deleting VPC
@@ -77,5 +76,5 @@ handler({
   accountId: '',
   configCommitId: '',
   configFilePath: '',
-  configRepositoryName: ''
+  configRepositoryName: '',
 });

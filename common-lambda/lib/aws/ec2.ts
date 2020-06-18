@@ -100,9 +100,9 @@ export class EC2 {
           Filters: [
             {
               Name: 'attachment.vpc-id',
-              Values: vpcIds
-            }
-          ]
+              Values: vpcIds,
+            },
+          ],
         })
         .promise(),
     );
@@ -117,7 +117,7 @@ export class EC2 {
       this.client
         .detachInternetGateway({
           InternetGatewayId: igwId,
-          VpcId: vpcId
+          VpcId: vpcId,
         })
         .promise(),
     );
