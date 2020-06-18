@@ -23,7 +23,7 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
     commitId: configCommitId,
   });
 
-  const securityAccountKey = config["global-options"]["central-security-services"].account;
+  const securityAccountKey = config['global-options']['central-security-services'].account;
 
   const securityAccount = accounts.find(a => a.key === securityAccountKey);
   if (!securityAccount) {
