@@ -5,10 +5,10 @@ This is a custom resource to retrieve Detector ID from `list-detectors` API call
 ## Usage
 
     // Creating Guard Duty Master using detector id
-    const guardDutyDetector = GuardDutyDetector(this, 'MemberDetector');
+    const detector = new GuardDutyDetector(masterAccountStack, 'GuardDutyDetector');
 
-    new CfnMaster(this, `GuardDuty_Master_${props.masterId}`, {
-      detectorId: guardDutyDetector.getDetectorId(),
-      ...props
+    const updateConfig = new GuardDutyUpdateConfig(masterAccountStack, 'GuardDutyUpdateConfig', {
+      autoEnable: true,
+      detectorId: detector.detectorId,
     });
 
