@@ -80,5 +80,6 @@ export async function step2(props: GuardDutyStepProps) {
       autoEnable: true,
       detectorId: detector.detectorId,
     });
+    updateConfig.node.addDependency(members);
   });
 }
