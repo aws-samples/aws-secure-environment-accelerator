@@ -4,7 +4,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 
-export namespace CreateAccountTask {
+export namespace CreateLandingZoneAccountTask {
   export interface Props {
     role: iam.IRole;
     lambdaCode: lambda.Code;
@@ -12,11 +12,11 @@ export namespace CreateAccountTask {
   }
 }
 
-export class CreateAccountTask extends sfn.StateMachineFragment {
+export class CreateLandingZoneAccountTask extends sfn.StateMachineFragment {
   readonly startState: sfn.State;
   readonly endStates: sfn.INextable[];
 
-  constructor(scope: cdk.Construct, id: string, props: CreateAccountTask.Props) {
+  constructor(scope: cdk.Construct, id: string, props: CreateLandingZoneAccountTask.Props) {
     super(scope, id);
 
     const { role, lambdaCode, waitSeconds = 60 } = props;
@@ -52,7 +52,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
 
     const createTaskResultPath = '$.createOutput';
     const createTaskStatusPath = `${createTaskResultPath}.status`;
-    const createTask = new CodeTask(scope, `Start Account Creation`, {
+    const createTask = new CodeTask(scope, `Start Landing Zone Account Creation`, {
       resultPath: createTaskResultPath,
       functionProps: {
         role,
@@ -63,7 +63,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
 
     const verifyTaskResultPath = '$.verifyOutput';
     const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
-    const verifyTask = new CodeTask(scope, 'Verify Account Creation', {
+    const verifyTask = new CodeTask(scope, 'Verify ALZ Account Creation', {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
@@ -72,18 +72,18 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
       },
     });
 
-    const waitTask = new sfn.Wait(scope, 'Wait for Account Creation', {
+    const waitTask = new sfn.Wait(scope, 'Wait for ALZ Account Creation', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const pass = new sfn.Pass(this, 'Account Creation Succeeded');
+    const pass = new sfn.Pass(this, 'ALZ Account Creation Succeeded');
 
-    const fail = new sfn.Fail(this, 'Account Creation Failed');
+    const fail = new sfn.Fail(this, 'ALZ Account Creation Failed');
 
     waitTask
       .next(verifyTask)
       .next(
-        new sfn.Choice(scope, 'Account Creation Done?')
+        new sfn.Choice(scope, 'ALZ Account Creation Done?')
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
@@ -92,7 +92,7 @@ export class CreateAccountTask extends sfn.StateMachineFragment {
       );
 
     createTask.next(
-      new sfn.Choice(scope, 'Account Creation Started?')
+      new sfn.Choice(scope, 'ALZ Account Creation Started?')
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'SUCCESS'), waitTask)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)
         .when(sfn.Condition.stringEquals(createTaskStatusPath, 'ALREADY_EXISTS'), pass)

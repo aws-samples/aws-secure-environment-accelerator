@@ -6,6 +6,7 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
+    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "aws-org-master": {
       "account": "master",
       "region": "ca-central-1"
