@@ -434,6 +434,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           'accounts.$': '$.accounts',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         },
         resultPath: 'DISCARD',
       });
