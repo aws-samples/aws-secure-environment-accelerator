@@ -1,11 +1,8 @@
-import { Diff, DiffEdit, DiffArray } from 'deep-diff';
-import { getDiffs, RHS, LHS } from './config-diff';
+import { Diff, isDiffArray, isDiffEdit, isDiffDeleted } from './config-diff';
 
-export function deletedSubAccount(accountNames: string[], diffs: Diff<LHS, RHS>[]): string[] {
-  const deletedDiffs = getDiffs(diffs, 'D');
-
+export function deletedSubAccount(accountNames: string[], diffs: Diff[]): string[] {
   const errors = [];
-  for (const deletedDiff of deletedDiffs) {
+  for (const deletedDiff of diffs.filter(isDiffDeleted)) {
     if (!deletedDiff.path) {
       continue;
     }
@@ -20,15 +17,13 @@ export function deletedSubAccount(accountNames: string[], diffs: Diff<LHS, RHS>[
 }
 
 export function matchEditedConfigPath(
-  diffs: Diff<LHS, RHS>[],
+  diffs: Diff[],
   pathValue: string,
   isChangeAllowed: boolean,
   pathLength?: number,
 ): string[] {
   const errors = [];
-  const updatedDiffs = getDiffs(diffs, 'E');
-  const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
-  for (const editedDiff of editedDiffs) {
+  for (const editedDiff of diffs.filter(isDiffEdit)) {
     const changedValue = editedDiff.path?.[editedDiff.path?.length - 1];
     if (
       changedValue === pathValue &&
@@ -41,11 +36,9 @@ export function matchEditedConfigPath(
   return errors;
 }
 
-export function deletedConfigDependencyArray(diffs: Diff<LHS, RHS>[], pathValue: string): string[] {
+export function deletedConfigDependencyArray(diffs: Diff[], pathValue: string): string[] {
   const errors = [];
-  const arrayDiffs = getDiffs(diffs, 'A');
-  const editedArrayDiffs = arrayDiffs as DiffArray<LHS, RHS>[];
-  for (const editedArrayDiff of editedArrayDiffs) {
+  for (const editedArrayDiff of diffs.filter(isDiffArray)) {
     if (editedArrayDiff.item.kind === 'D') {
       const changedValue = editedArrayDiff.path?.[editedArrayDiff.path?.length - 1];
       if (changedValue === pathValue) {
@@ -60,11 +53,9 @@ export function deletedConfigDependencyArray(diffs: Diff<LHS, RHS>[], pathValue:
   return errors;
 }
 
-export function editedConfigArray(diffs: Diff<LHS, RHS>[], pathValues: string[]): string[] {
+export function editedConfigArray(diffs: Diff[], pathValues: string[]): string[] {
   const errors = [];
-  const arrayDiffs = getDiffs(diffs, 'A');
-  const editedArrayDiffs = arrayDiffs as DiffArray<LHS, RHS>[];
-  for (const editedArrayDiff of editedArrayDiffs) {
+  for (const editedArrayDiff of diffs.filter(isDiffArray)) {
     const found = pathValues.every(r => editedArrayDiff.path?.includes(r));
     if (found) {
       errors.push(`ConfigCheck: blocked changing config path "${editedArrayDiff.path?.join('/')}"`);
@@ -73,11 +64,9 @@ export function editedConfigArray(diffs: Diff<LHS, RHS>[], pathValues: string[])
   return errors;
 }
 
-export function editedConfigDependency(diffs: Diff<LHS, RHS>[], pathValues: string[]): string[] {
+export function editedConfigDependency(diffs: Diff[], pathValues: string[]): string[] {
   const errors = [];
-  const updatedDiffs = getDiffs(diffs, 'E');
-  const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
-  for (const editedDiff of editedDiffs) {
+  for (const editedDiff of diffs.filter(isDiffEdit)) {
     const found = pathValues.every(r => editedDiff.path?.includes(r));
     if (found && editedDiff.lhs) {
       errors.push(`ConfigCheck: blocked changing config path "${editedDiff.path?.join('/')}"`);
@@ -86,15 +75,9 @@ export function editedConfigDependency(diffs: Diff<LHS, RHS>[], pathValues: stri
   return errors;
 }
 
-export function matchEditedConfigDependency(
-  diffs: Diff<LHS, RHS>[],
-  pathValues: string[],
-  pathLength?: number,
-): string[] {
+export function matchEditedConfigDependency(diffs: Diff[], pathValues: string[], pathLength?: number): string[] {
   const errors = [];
-  const updatedDiffs = getDiffs(diffs, 'E');
-  const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
-  for (const editedDiff of editedDiffs) {
+  for (const editedDiff of diffs.filter(isDiffEdit)) {
     const found = pathValues.every(r => editedDiff.path?.includes(r));
     if (found && editedDiff.lhs && (pathLength ? editedDiff.path?.length === pathLength : true)) {
       errors.push(`ConfigCheck: blocked changing config path "${editedDiff.path?.join('/')}"`);
@@ -104,15 +87,13 @@ export function matchEditedConfigDependency(
 }
 
 export function matchEditedConfigPathValues(
-  diffs: Diff<LHS, RHS>[],
+  diffs: Diff[],
   pathValues: string[],
   isChangeAllowed: boolean,
   pathLength?: number,
 ): string[] {
   const errors = [];
-  const updatedDiffs = getDiffs(diffs, 'E');
-  const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
-  for (const editedDiff of editedDiffs) {
+  for (const editedDiff of diffs.filter(isDiffEdit)) {
     const found = pathValues.every(r => editedDiff.path?.includes(r));
     if (
       found &&
@@ -125,15 +106,9 @@ export function matchEditedConfigPathValues(
   return errors;
 }
 
-export function matchEditedConfigPathDisabled(
-  diffs: Diff<LHS, RHS>[],
-  pathValues: string[],
-  pathLength?: number,
-): string[] {
+export function matchEditedConfigPathDisabled(diffs: Diff[], pathValues: string[], pathLength?: number): string[] {
   const errors = [];
-  const updatedDiffs = getDiffs(diffs, 'E');
-  const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
-  for (const editedDiff of editedDiffs) {
+  for (const editedDiff of diffs.filter(isDiffEdit)) {
     // const found = editedDiff.path?.some(r => VPC_VALUES.includes(r))
     const found = pathValues.every(r => editedDiff.path?.includes(r));
     if (found && (!editedDiff.lhs ? true : false) && (pathLength ? editedDiff.path?.length === pathLength : true)) {
@@ -143,11 +118,9 @@ export function matchEditedConfigPathDisabled(
   return errors;
 }
 
-export function matchConfigPath(diffs: Diff<LHS, RHS>[], pathValues: string[]): string[] {
+export function matchConfigPath(diffs: Diff[], pathValues: string[]): string[] {
   const errors = [];
-  const updatedDiffs = getDiffs(diffs, 'E');
-  const editedDiffs = updatedDiffs as DiffEdit<LHS, RHS>[];
-  for (const editedDiff of editedDiffs) {
+  for (const editedDiff of diffs.filter(isDiffEdit)) {
     const found = editedDiff.path?.every(r => pathValues.includes(r));
     if (found && editedDiff.lhs) {
       errors.push(`ConfigCheck: blocked changing config path "${editedDiff.path?.join('/')}"`);
@@ -156,15 +129,9 @@ export function matchConfigPath(diffs: Diff<LHS, RHS>[], pathValues: string[]): 
   return errors;
 }
 
-export function matchConfigDependencyArray(
-  diffs: Diff<LHS, RHS>[],
-  pathValues: string[],
-  pathLength?: number,
-): string[] {
+export function matchConfigDependencyArray(diffs: Diff[], pathValues: string[], pathLength?: number): string[] {
   const errors = [];
-  const arrayDiffs = getDiffs(diffs, 'A');
-  const editedArrayDiffs = arrayDiffs as DiffArray<LHS, RHS>[];
-  for (const editedArrayDiff of editedArrayDiffs) {
+  for (const editedArrayDiff of diffs.filter(isDiffArray)) {
     if (editedArrayDiff.item.kind === 'D') {
       const found = pathValues.every(r => editedArrayDiff.path?.includes(r));
       if (found && (pathLength ? editedArrayDiff.path?.length === pathLength : true)) {

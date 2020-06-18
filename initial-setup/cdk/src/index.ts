@@ -383,14 +383,6 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
-      const scpArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'SCPs');
-
-      new s3deployment.BucketDeployment(stack, 'ScpArtifactsDeployment', {
-        sources: [s3deployment.Source.asset(scpArtifactsFolderPath)],
-        destinationBucket: scpArtifactBucket,
-        destinationKeyPrefix: 'scp',
-      });
-
       const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {
         functionProps: {
           code: lambdaCode,
@@ -402,10 +394,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          scpBucketName: scpArtifactBucket.bucketName,
-          scpBucketPrefix: 'scp',
           'organizationalUnits.$': '$.organizationalUnits',
           'accounts.$': '$.accounts',
+          stackOutputSecretId: stackOutputSecret.secretArn,
         },
         resultPath: 'DISCARD',
       });
@@ -609,10 +600,10 @@ export namespace InitialSetup {
       const commonDefinition = loadAccountsTask.startState
         .next(installRolesTask)
         .next(loadLimitsTask)
-        .next(addScpTask)
         .next(enableTrustedAccessForServicesTask)
         .next(deployPhase0Task)
         .next(storePhase0Output)
+        .next(addScpTask)
         .next(deployPhase1Task)
         .next(storePhase1Output)
         .next(accountDefaultSettingsTask)

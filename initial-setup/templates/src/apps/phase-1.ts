@@ -35,6 +35,7 @@ import * as ssm from '../deployments/ssm/session-manager';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
+import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -61,6 +62,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
@@ -449,5 +451,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  // Central Services step 1
+  const logsAccountStack = accountStacks.getOrCreateAccountStack(logAccountKey);
+  await cwlCentralLoggingToS3.step1({
+    accountStack: logsAccountStack,
+    accounts,
+    logBucket,
   });
 }

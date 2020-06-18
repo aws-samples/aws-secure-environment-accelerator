@@ -170,6 +170,9 @@ async function createFirewallCluster(props: {
     },
   });
 
+  // Make sure the instance can read the configuration
+  accountBucket.grantRead(instanceRole);
+
   // We only need once firewall instance per availability zone
   const instancePerAz: { [az: string]: FirewallInstance } = {};
   let licenseIndex: number = 0;

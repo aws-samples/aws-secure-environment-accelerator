@@ -1,14 +1,12 @@
-import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
 import * as iam from '@aws-cdk/aws-iam';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
-import { JsonOutputValue } from '../common/json-output';
 import { SecurityHubStack } from '../common/security-hub';
+import * as artifactsDeployment from '../deployments/artifacts';
 import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
 import * as defaults from '../deployments/defaults';
@@ -22,6 +20,7 @@ import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as passwordPolicy from '../deployments/iam-password-policy';
+import { JsonOutputValue } from '../common/json-output';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -54,71 +53,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   const centralBucket = defaultsResult.centralBucketCopy;
-
-  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
-  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-
-  const uploadArtifacts = ({
-    artifactName,
-    artifactFolderName,
-    artifactKeyPrefix,
-    accountKey,
-    destinationKeyPrefix,
-  }: {
-    artifactName: string;
-    artifactFolderName: string;
-    artifactKeyPrefix: string;
-    accountKey: string;
-    destinationKeyPrefix?: string;
-  }): void => {
-    const artifactsFolderPath = path.join(__dirname, '..', '..', '..', '..', 'reference-artifacts', artifactFolderName);
-
-    // TODO Leave existing files in the folder
-    // TODO Do not override existing files
-    // See https://github.com/aws/aws-cdk/issues/953
-    new s3deployment.BucketDeployment(masterAccountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
-      sources: [s3deployment.Source.asset(artifactsFolderPath)],
-      destinationBucket: centralBucket,
-      destinationKeyPrefix,
-    });
-
-    // outputs to store reference artifacts s3 bucket information
-    new JsonOutputValue(masterAccountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
-      type: `${artifactName}ArtifactsOutput`,
-      value: {
-        accountKey,
-        bucketArn: centralBucket.bucketArn,
-        bucketName: centralBucket.bucketName,
-        keyPrefix: artifactKeyPrefix,
-      },
-    });
-  };
-
-  // upload IAM-Policies Artifacts
-  uploadArtifacts({
-    artifactName: 'IamPolicy',
-    artifactFolderName: 'iam-policies',
-    artifactKeyPrefix: 'iam-policy',
-    accountKey: masterAccountKey,
-    destinationKeyPrefix: 'iam-policy',
-  });
-
-  // upload firewall
-  // uploadArtifacts({
-  //   artifactName: 'Firewall',
-  //   artifactFolderName: 'Third-Party',
-  //   artifactKeyPrefix: 'Third-Party/',
-  //   accountKey: masterAccountKey,
-  //   destinationKeyPrefix: 'firewall',
-  // });
-
-  // upload RDGW Artifacts
-  uploadArtifacts({
-    artifactName: 'Rdgw',
-    artifactFolderName: 'scripts',
-    artifactKeyPrefix: 'config/scripts/',
-    accountKey: masterAccountKey,
-    destinationKeyPrefix: 'config/scripts',
+  await artifactsDeployment.step1({
+    accountStacks,
+    centralBucket,
+    config: acceleratorConfig,
   });
 
   // Create secrets container for the different deployments
