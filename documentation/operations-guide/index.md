@@ -36,17 +36,52 @@ Accelerator dependencies and starts the deployment of the Accelerator using the 
 CDK bootstraps its environment and creates the `CDKToolkit` stack in the AWS account. It creates the S3 bucket `cdktoolkit-stagingbucket-*`
 and the ECR repository `aws-cdk/assets`.
 
-CDK deploys assets to the bootstrap bucket and bootstrap repository that are used by the Accelerator. The assets that are
-store on S3 include default IAM policies, default SCPs, default firewall configuration. The assets that are pushed to ECR
-include the Accelerator Docker build image.
+CDK copies assets to the bootstrap bucket and bootstrap repository that are used by the Accelerator. The assets that are
+stored on S3 include default IAM policies, default SCPs, default firewall configuration. The assets that are pushed to ECR
+include the Accelerator Docker build image. This Docker image is responsible for deploying Accelerator resources using the CDK.
+
+CDK finally deploys the Accelerator stack, or Initial Setup stack, and launches the Accelerator state machine. The
+Accelerator state machine is described in the next section.
 
 ### Accelerator
+
+*a.k.a "Initial Setup"*
+
+The Accelerator consists of a state machine that executes various steps to create Accelerator resources in your AWS
+organization. You can find the latest steps in the state machine in the image below.
+
+![Accelerator State Machine](./images/step-functions-main-sm.png)
+
+The state machine contains three types of steps:
+
+1. steps that execute a Lambda function;
+2. steps that start another state machine, e.g. `Create Accounts` step;
+3. steps that start a CodeBuild project, e.g. the `Phase {0,1,2,3,4,5}` steps.
+
+State Machine
+  - `Get or Create Configuration from S3`
+  - `Compare Configurations`
+  - `Load Configuration`
+
+State Machines
+  - Main State Machine
+  - Create Account
+  - Create AD Connector
+  - Install Execution Roles
+  - Start CodeBuild Project
+Lambda functions backing the steps in the Main State Machine
+  - ...
+CodeBuild step to run CDK deploy
+  - AWS::CodeBuild::Project PBMMAccel-DeployPrebuilt
+Secrets
+  - accelerator/accounts
+  - accelerator/outputs
+  - accelerator/limits
+Roles
+  - PBMMAccel-L-SFN-MasterRole
 
 ### Phases
 
 ## Troubleshooting
-
-
-
 
 <a name="cdk">[1]</a>: https://docs.aws.amazon.com/cdk/latest/guide/home.html
