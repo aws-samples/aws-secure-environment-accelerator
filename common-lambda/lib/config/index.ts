@@ -557,6 +557,18 @@ export const SecurityHubFrameworksConfigType = t.interface({
   ),
 });
 
+export const IamAccountPasswordPolicyType = t.interface({
+  'allow-users-to-change-password': t.boolean,
+  'hard-expiry': t.boolean,
+  'require-uppercase-characters': t.boolean,
+  'require-lowercase-characters': t.boolean,
+  'require-symbols': t.boolean,
+  'require-numbers': t.boolean,
+  'minimum-password-length': t.number,
+  'password-reuse-prevention': t.number,
+  'max-password-age': t.number,
+});
+
 export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,
   region: NonEmptyString,
@@ -593,6 +605,7 @@ export const GlobalOptionsConfigType = t.interface({
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
   'organization-admin-role': NonEmptyString,
+  'iam-password-policies': IamAccountPasswordPolicyType,
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
