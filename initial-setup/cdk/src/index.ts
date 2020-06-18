@@ -17,6 +17,7 @@ import { CreateOrganizationAccountTask } from './tasks/create-organization-accou
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
+import { CreateStackTask } from './tasks/create-stack-task';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -296,6 +297,34 @@ export namespace InitialSetup {
         resultPath: '$',
       });
 
+      const installCfnRoleMasterTemplate = new s3assets.Asset(this, 'CloudFormationExecutionRoleTemplate', {
+        path: path.join(__dirname, 'assets', 'cfn-execution-role-master.template.json'),
+      });
+      installCfnRoleMasterTemplate.bucket.grantRead(pipelineRole);
+
+      const installCfnRoleMasterStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallCloudFormationExecutionRoleMaster_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}InstallCfnRoleMaster_sm`,
+        definition: new CreateStackTask(this, 'Install CloudFormation Execution Role', {
+          lambdaCode,
+          role: pipelineRole,
+        }),
+      });
+
+      const installCfnRoleMasterTask = new sfn.Task(this, 'Install CloudFormation Role in Master', {
+        task: new tasks.StartExecution(installCfnRoleMasterStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            stackName: `${props.acceleratorPrefix}CloudFormationStackSetExecutionRole`,
+            stackCapabilities: ['CAPABILITY_NAMED_IAM'],
+            stackTemplate: {
+              s3BucketName: installCfnRoleMasterTemplate.s3BucketName,
+              s3ObjectKey: installCfnRoleMasterTemplate.s3ObjectKey,
+            }
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       const installRoleTemplate = new s3assets.Asset(this, 'ExecutionRoleTemplate', {
         path: path.join(__dirname, 'assets', 'execution-role.template.json'),
       });
@@ -573,25 +602,25 @@ export namespace InitialSetup {
       const commonDefinition = loadAccountsTask.startState
         .next(installRolesTask)
         .next(loadLimitsTask)
-        .next(addScpTask)
-        .next(enableTrustedAccessForServicesTask)
-        .next(deployPhase0Task)
-        .next(storePhase0Output)
-        .next(deployPhase1Task)
-        .next(storePhase1Output)
-        .next(accountDefaultSettingsTask)
-        .next(deployPhase2Task)
-        .next(storePhase2Output)
-        .next(deployPhase3Task)
-        .next(storePhase3Output)
-        .next(deployPhase4Task)
-        .next(storePhase4Output)
-        .next(associateHostedZonesTask)
-        .next(addTagsToSharedResourcesTask)
-        .next(enableDirectorySharingTask)
-        .next(deployPhase5Task)
-        .next(createAdConnectorTask)
-        .next(storeCommitIdTask)
+        // .next(addScpTask)
+        // .next(enableTrustedAccessForServicesTask)
+        // .next(deployPhase0Task)
+        // .next(storePhase0Output)
+        // .next(deployPhase1Task)
+        // .next(storePhase1Output)
+        // .next(accountDefaultSettingsTask)
+        // .next(deployPhase2Task)
+        // .next(storePhase2Output)
+        // .next(deployPhase3Task)
+        // .next(storePhase3Output)
+        // .next(deployPhase4Task)
+        // .next(storePhase4Output)
+        // .next(associateHostedZonesTask)
+        // .next(addTagsToSharedResourcesTask)
+        // .next(enableDirectorySharingTask)
+        // .next(deployPhase5Task)
+        // .next(createAdConnectorTask)
+        // .next(storeCommitIdTask)
         .next(baseLineCleanupChoice);
 
       // Landing Zone Config Setup
@@ -602,6 +631,7 @@ export namespace InitialSetup {
 
       // // Organizations Config Setup
       const orgConfigDefinition = loadOrgConfigurationTask.startState
+        .next(installCfnRoleMasterTask)
         .next(createOrganizationAccountsTask)
         .next(commonDefinition);
 

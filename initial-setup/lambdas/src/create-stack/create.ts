@@ -1,25 +1,14 @@
-import * as aws from 'aws-sdk';
-import AdmZip from 'adm-zip';
 import { CloudFormation, objectToCloudFormationParameters } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
-import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
+import { StackTemplateLocation, getTemplateBody } from '../create-stack-set/create-stack-set';
 
-interface CreateMasterExecutionRoleInput {
-  assumeRoleArn: string;
+interface CreateStackInput {
   stackName: string;
-  stackCapabilities?: string[];
-  stackParameters?: { [key: string]: string };
-  stackTemplateArtifactBucket?: string;
-  stackTemplateArtifactKey?: string;
-  stackTemplateArtifactPath?: string;
-  stackTemplateArtifactCredentials?: {
-    accessKeyId: string;
-    secretAccessKey: string;
-    sessionToken: string;
-  };
+  stackCapabilities: string[];
+  stackParameters: { [key: string]: string };
+  stackTemplate: StackTemplateLocation;
 }
 
-export const handler = async (input: CreateMasterExecutionRoleInput) => {
+export const handler = async (input: CreateStackInput) => {
   console.log(`Creating stack...`);
   console.log(JSON.stringify(input, null, 2));
 
@@ -27,36 +16,19 @@ export const handler = async (input: CreateMasterExecutionRoleInput) => {
     stackName,
     stackCapabilities,
     stackParameters,
-    stackTemplateArtifactBucket,
-    stackTemplateArtifactKey,
-    stackTemplateArtifactPath,
-    stackTemplateArtifactCredentials,
-    assumeRoleArn,
+    stackTemplate,
   } = input;
-
-  // Read the template as the master account
-  const s3creds = new aws.Credentials(stackTemplateArtifactCredentials!);
-  const s3 = new S3(s3creds);
-  const artifact = await s3.getObjectBody({
-    Bucket: stackTemplateArtifactBucket!,
-    Key: stackTemplateArtifactKey!,
-  });
-
-  // Extract the stack template from the ZIP file
-  const zip = new AdmZip(artifact as Buffer);
-  const stackTemplate = zip.readAsText(stackTemplateArtifactPath!);
 
   console.debug(`Creating stack template`);
   console.debug(stackTemplate);
 
-  const sts = new STS();
-  const credentials = await sts.getCredentialsForRoleArn(assumeRoleArn);
+  // Load the template body from the given location
+  const templateBody = await getTemplateBody(stackTemplate);
 
-  // Deploy the stack using the assumed role in the current region
-  const cfn = new CloudFormation(credentials);
+  const cfn = new CloudFormation();
   await cfn.createOrUpdateStack({
     StackName: stackName,
-    TemplateBody: stackTemplate,
+    TemplateBody: templateBody,
     Capabilities: stackCapabilities,
     Parameters: objectToCloudFormationParameters(stackParameters),
   });
