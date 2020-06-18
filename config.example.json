@@ -6,6 +6,30 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
+    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "supported-regions": [
+      "af-south-1",
+      "ap-east-1",
+      "ap-northeast-1",
+      "ap-northeast-2",
+      "ap-northeast-3",
+      "ap-south-1",
+      "ap-southeast-1",
+      "ap-southeast-2",
+      "ca-central-1",
+      "eu-central-1",
+      "eu-north-1",
+      "eu-south-1",
+      "eu-west-1",
+      "eu-west-2",
+      "eu-west-3",
+      "me-south-1",
+      "sa-east-1",
+      "us-east-1",
+      "us-east-2",
+      "us-west-1",
+      "us-west-2"
+    ],
     "aws-org-master": {
       "account": "master",
       "region": "ca-central-1"
@@ -14,9 +38,13 @@
       "account": "security",
       "region": "ca-central-1",
       "security-hub": true,
-      "guard-duty": true,
+      "security-hub-excl-regions": ["ap-northeast-3"],
+      "guardduty": true,
+      "guardduty-excl-regions": ["af-south-1", "ap-northeast-3", "eu-south-1"],
       "cwl": true,
-      "access-analyzer": true
+      "access-analyzer": true,
+      "config-excl-regions": ["ap-northeast-3"],
+      "config-aggr-excl-regions": ["af-south-1", "ap-east-1", "ap-northeast-3", "eu-south-1", "me-south-1"]
     },
     "central-operations-services": {
       "account": "operations",
@@ -151,13 +179,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
@@ -343,17 +371,18 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
             "role": "PBMMAccel-RDGW-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -449,7 +478,7 @@
       "account-name": "Perimeter",
       "email": "myemail+pbmmT-perimeter@example.com---------------------REPLACE----------------------",
       "ou": "core",
-      "account-warming-required": false,
+      "account-warming-required": true,
       "limits": {
         "Amazon EC2/Number of EIPs": {
           "value": 10,
@@ -640,13 +669,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           },
           {
             "role": "Firewall-Role",
@@ -891,7 +920,7 @@
                   "tcp-ports": [22, 443, 541, 3000, 8080],
                   "source": ["0.0.0.0/0"]
                 },
-				{
+                {
                   "description": "Mgmt Traffic and AWS Outbound traffic",
                   "type": ["ALL"],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
@@ -1628,13 +1657,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       }
@@ -2101,13 +2130,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       }
@@ -2574,13 +2603,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       }
@@ -3047,13 +3076,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       }
@@ -3494,13 +3523,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       }
@@ -3869,13 +3898,13 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
+            "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
               "CloudWatchAgentServerPolicy"
             ],
-            "boundary-policy": "Default-Boundary-Policy",
-            "ssm-log-archive-access": true
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       }

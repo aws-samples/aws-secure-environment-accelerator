@@ -5,15 +5,17 @@ import { OrganizationalUnitConfig, ScpConfig } from '@aws-pbmm/common-lambda/lib
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { ConfigurationOrganizationalUnit, LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { ArtifactOutputFinder } from '@aws-pbmm/common-outputs/lib/artifacts';
 
 const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
 interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
-  scpBucketName: string;
-  scpBucketPrefix: string;
-  organizationalUnits: ConfigurationOrganizationalUnit[];
   accounts: Account[];
+  organizationalUnits: ConfigurationOrganizationalUnit[];
+  stackOutputSecretId: string;
 }
 
 const s3 = new S3();
@@ -25,13 +27,12 @@ export const handler = async (input: AddScpInput) => {
 
   const {
     acceleratorPrefix,
-    scpBucketName,
-    scpBucketPrefix,
     accounts,
     organizationalUnits,
     configRepositoryName,
     configFilePath,
     configCommitId,
+    stackOutputSecretId,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -40,6 +41,18 @@ export const handler = async (input: AddScpInput) => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
+
+  const secrets = new SecretsManager();
+  const outputsString = await secrets.getSecret(stackOutputSecretId);
+  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
+
+  // Find the SCP artifact output
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs,
+    artifactName: 'SCP',
+  });
+  const scpBucketName = artifactOutput.bucketName;
+  const scpBucketPrefix = artifactOutput.keyPrefix;
 
   // Find policy config
   const globalOptionsConfig = config['global-options'];
@@ -97,7 +110,7 @@ export const handler = async (input: AddScpInput) => {
  *
  * @return Accelerator policies that were created based on the given policy config.
  */
-async function createPoliciesFromConfiguration(props: {
+export async function createPoliciesFromConfiguration(props: {
   acceleratorPrefix: string;
   scpBucketName: string;
   scpBucketPrefix: string;
@@ -306,7 +319,7 @@ async function attachOrDetachPoliciesToOrganizationalUnits(props: {
  *
  * @return Policy name with Accelerator prefix.
  */
-function policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
+export function policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
   const { policyName, acceleratorPrefix } = props;
   if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyName.startsWith(acceleratorPrefix)) {
     return policyName;

@@ -3,8 +3,10 @@ import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { FMS } from '@aws-pbmm/common-lambda/lib/aws/fms';
 import { IAM } from '@aws-pbmm/common-lambda/lib/aws/iam';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { LoadConfigurationInput } from './load-configuration-step';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 
-interface EnableTrustedAccessForServicesInput {
+interface EnableTrustedAccessForServicesInput extends LoadConfigurationInput {
   accounts: Account[];
 }
 
@@ -12,9 +14,18 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   console.log(`Enable Trusted Access for AWS services within the organization ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts } = input;
+  const { accounts, configRepositoryName, configFilePath, configCommitId } = input;
 
-  const securityAccount = accounts.find(a => a.type === 'security');
+  // Retrieve Configuration from Code Commit with specific commitId
+  const config = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
+
+  const securityAccountKey = config['global-options']['central-security-services'].account;
+
+  const securityAccount = accounts.find(a => a.key === securityAccountKey);
   if (!securityAccount) {
     console.warn('Cannot find account with type security');
     return;
@@ -56,6 +67,9 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
 
   await org.registerDelegatedAdministrator(securityAccountId, 'access-analyzer.amazonaws.com');
   console.log('Security account registered as delegated administrator for Access Analyzer in the organization.');
+
+  await org.registerDelegatedAdministrator(securityAccountId, 'guardduty.amazonaws.com');
+  console.log('Security account registered as delegated administrator for Guard Duty in the organization.');
 
   return {
     status: 'SUCCESS',
