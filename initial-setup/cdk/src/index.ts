@@ -302,13 +302,17 @@ export namespace InitialSetup {
       });
       installCfnRoleMasterTemplate.bucket.grantRead(pipelineRole);
 
-      const installCfnRoleMasterStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallCloudFormationExecutionRoleMaster_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}InstallCfnRoleMaster_sm`,
-        definition: new CreateStackTask(this, 'Install CloudFormation Execution Role', {
-          lambdaCode,
-          role: pipelineRole,
-        }),
-      });
+      const installCfnRoleMasterStateMachine = new sfn.StateMachine(
+        this,
+        `${props.acceleratorPrefix}InstallCloudFormationExecutionRoleMaster_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}InstallCfnRoleMaster_sm`,
+          definition: new CreateStackTask(this, 'Install CloudFormation Execution Role', {
+            lambdaCode,
+            role: pipelineRole,
+          }),
+        },
+      );
 
       const installCfnRoleMasterTask = new sfn.Task(this, 'Install CloudFormation Role in Master', {
         task: new tasks.StartExecution(installCfnRoleMasterStateMachine, {
@@ -319,7 +323,7 @@ export namespace InitialSetup {
             stackTemplate: {
               s3BucketName: installCfnRoleMasterTemplate.s3BucketName,
               s3ObjectKey: installCfnRoleMasterTemplate.s3ObjectKey,
-            }
+            },
           },
         }),
         resultPath: 'DISCARD',
@@ -602,25 +606,25 @@ export namespace InitialSetup {
       const commonDefinition = loadAccountsTask.startState
         .next(installRolesTask)
         .next(loadLimitsTask)
-        // .next(addScpTask)
-        // .next(enableTrustedAccessForServicesTask)
-        // .next(deployPhase0Task)
-        // .next(storePhase0Output)
-        // .next(deployPhase1Task)
-        // .next(storePhase1Output)
-        // .next(accountDefaultSettingsTask)
-        // .next(deployPhase2Task)
-        // .next(storePhase2Output)
-        // .next(deployPhase3Task)
-        // .next(storePhase3Output)
-        // .next(deployPhase4Task)
-        // .next(storePhase4Output)
-        // .next(associateHostedZonesTask)
-        // .next(addTagsToSharedResourcesTask)
-        // .next(enableDirectorySharingTask)
-        // .next(deployPhase5Task)
-        // .next(createAdConnectorTask)
-        // .next(storeCommitIdTask)
+        .next(addScpTask)
+        .next(enableTrustedAccessForServicesTask)
+        .next(deployPhase0Task)
+        .next(storePhase0Output)
+        .next(deployPhase1Task)
+        .next(storePhase1Output)
+        .next(accountDefaultSettingsTask)
+        .next(deployPhase2Task)
+        .next(storePhase2Output)
+        .next(deployPhase3Task)
+        .next(storePhase3Output)
+        .next(deployPhase4Task)
+        .next(storePhase4Output)
+        .next(associateHostedZonesTask)
+        .next(addTagsToSharedResourcesTask)
+        .next(enableDirectorySharingTask)
+        .next(deployPhase5Task)
+        .next(createAdConnectorTask)
+        .next(storeCommitIdTask)
         .next(baseLineCleanupChoice);
 
       // Landing Zone Config Setup
