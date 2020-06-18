@@ -600,6 +600,7 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-services': CentralServicesConfigType,
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
+  'supported-regions': t.array(t.string),
   'iam-password-policies': IamAccountPasswordPolicyType,
 });
 
