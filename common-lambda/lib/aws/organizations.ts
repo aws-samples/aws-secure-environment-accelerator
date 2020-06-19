@@ -205,11 +205,14 @@ export class Organizations {
    * @param targetId
    */
   async attachPolicy(policyId: string, targetId: string): Promise<void> {
-    const params: org.AttachPolicyRequest = {
-      PolicyId: policyId,
-      TargetId: targetId,
-    };
-    await this.client.attachPolicy(params).promise();
+    await throttlingBackOff(() =>
+      this.client
+        .attachPolicy({
+          PolicyId: policyId,
+          TargetId: targetId,
+        })
+        .promise(),
+    );
   }
 
   /**
