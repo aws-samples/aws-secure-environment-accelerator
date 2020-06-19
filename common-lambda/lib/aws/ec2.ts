@@ -9,7 +9,7 @@ import {
   DescribeSubnetsRequest,
   SubnetList,
   DescribeSubnetsResult,
-  Subnet
+  Subnet,
 } from 'aws-sdk/clients/ec2';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';

@@ -4,7 +4,6 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 
-
 const runOptions = [
   {
     type: 'DeleteDefaultVPC',
@@ -12,9 +11,8 @@ const runOptions = [
     lambdaPath: 'index.deleteDefaultVpcs',
     verboseNamePlural: 'Delete Default VPCs',
     verboseName: 'Delete Default VPC',
-    
-  }
-]
+  },
+];
 export namespace RunAcrossAccountsTask {
   export interface Props {
     role: iam.IRole;
@@ -68,7 +66,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
-      }
+      },
     });
 
     // Create Map task to iterate
@@ -82,7 +80,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
-      }
+      },
     });
     mapTask.iterator(runTask);
 
@@ -96,7 +94,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
       inputPath: '$',
     });
 
-    const pass = new sfn.Pass(this, `Success`,{
+    const pass = new sfn.Pass(this, `Success`, {
       resultPath: 'DISCARD',
     });
 
@@ -104,11 +102,9 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
 
     const isTaskSuccess = new sfn.Choice(scope, `Deleted?`)
       .when(sfn.Condition.stringEquals('$.status', 'SUCCESS'), pass)
-      .otherwise(fail)
+      .otherwise(fail);
 
-    const chain = sfn.Chain.start(mapTask)
-      .next(verifyTask)
-      .next(isTaskSuccess)
+    const chain = sfn.Chain.start(mapTask).next(verifyTask).next(isTaskSuccess);
 
     this.startState = chain.startState;
     this.endStates = fail.endStates;

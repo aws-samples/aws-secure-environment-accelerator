@@ -13,7 +13,7 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   console.log(`Deleting Default VPC in account ...`);
   console.log(JSON.stringify(input, null, 2));
   const { account, assumeRoleName, configRepositoryName, configFilePath, configCommitId } = input;
-  
+
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
@@ -21,8 +21,8 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
     commitId: configCommitId,
   });
   const accountId = account.id;
-  const supportedRegions = acceleratorConfig["global-options"]["supported-regions"];
-  const excludeRegions =  acceleratorConfig["global-options"]["keep-default-vpc-regions"];
+  const supportedRegions = acceleratorConfig['global-options']['supported-regions'];
+  const excludeRegions = acceleratorConfig['global-options']['keep-default-vpc-regions'];
   const regions = supportedRegions.filter(r => !excludeRegions.includes(r));
   console.log(`${accountId}: Excluding Deletion of  Default VPC for regions from account "${accountId}"...`);
   console.log(`${accountId}: ${JSON.stringify(excludeRegions, null, 2)}`);
@@ -46,12 +46,12 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
       continue;
     }
   }
-  
+
   console.log(`${accountId}: Errors `, JSON.stringify(errors, null, 2));
   return errors;
 };
 
-async function deleteDefaultVpc(ec2: EC2,vpcId: string, accountId:string, region: string): Promise<string[]> {
+async function deleteDefaultVpc(ec2: EC2, vpcId: string, accountId: string, region: string): Promise<string[]> {
   const errors: string[] = [];
   // List all Subnets to delete
   const subnets = await ec2.listSubnets({

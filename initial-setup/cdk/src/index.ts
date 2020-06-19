@@ -374,18 +374,18 @@ export namespace InitialSetup {
           role: pipelineRole,
           type: 'DeleteDefaultVPC',
           assumeRoleName: props.stateMachineExecutionRole,
-        })
+        }),
       });
 
       const deleteVpcTask = new sfn.Task(this, 'Delete Default Vpcs', {
-        task: new tasks.StartExecution(deleteVpcSfn,{
+        task: new tasks.StartExecution(deleteVpcSfn, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             'accounts.$': '$.accounts',
             configRepositoryName: props.configRepositoryName,
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
-          }
+          },
         }),
         resultPath: 'DISCARD',
       });

@@ -5,7 +5,7 @@ interface VerifyDeleteVPCInput {
   errors: string[][];
 }
 
-interface VerifyDeleteVPCOutput{
+interface VerifyDeleteVPCOutput {
   status: string;
   /**
    * Single Dimensional Array constructed for readablity from Multi Dimensional
@@ -29,5 +29,5 @@ export const handler = async (input: VerifyDeleteVPCInput): Promise<VerifyDelete
   return {
     status,
     errors: finalErros,
-  }
-}
+  };
+};

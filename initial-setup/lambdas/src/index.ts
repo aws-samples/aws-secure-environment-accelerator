@@ -32,4 +32,12 @@ import * as createStack from './create-stack';
 import * as createStackSet from './create-stack-set';
 import * as createAdConnector from './create-adconnector';
 import * as deleteDefaultVpcs from './delete-default-vpc';
-export { codebuild, createAccount, createStack, createStackSet, createAdConnector, createOrganizationAccount, deleteDefaultVpcs };
+export {
+  codebuild,
+  createAccount,
+  createStack,
+  createStackSet,
+  createAdConnector,
+  createOrganizationAccount,
+  deleteDefaultVpcs,
+};
