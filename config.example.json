@@ -904,12 +904,12 @@
               "name": "Firewalls",
               "inbound-rules": [
                 {
-                  "description": "Web Traffic Inbound",
+                  "description": "Fortigate Mgmt Traffic Inbound",
                   "tcp-ports": [22, 443, 541, 3000, 8080],
                   "source": ["0.0.0.0/0"]
                 },
                 {
-                  "description": "Mgmt Traffic and AWS Outbound traffic",
+                  "description": "AWS Outbound traffic and ALBs",
                   "type": ["ALL"],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
