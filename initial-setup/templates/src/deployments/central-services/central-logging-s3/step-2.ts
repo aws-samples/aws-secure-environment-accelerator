@@ -50,7 +50,7 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${account.key}`, {
         logDestinationArn,
         globalExclusions,
-        ruleName
+        ruleName,
       });
     }
   }
