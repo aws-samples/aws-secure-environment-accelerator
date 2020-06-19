@@ -513,8 +513,8 @@
         {
           "name": "PerimSelf-SignedCert",
           "type": "import",
-          "priv-key": "certs/domain1.key",
-          "cert": "certs/domain1.crt"
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
         }
       ],
       "alb": [
@@ -901,7 +901,7 @@
               ]
             },
             {
-              "name": "Firewall",
+              "name": "Firewalls",
               "inbound-rules": [
                 {
                   "description": "Web Traffic Inbound",
@@ -936,7 +936,7 @@
           "image-id": "ami-047aac44951feb9fb",
           "instance-sizes": "c5n.2xlarge",
           "region": "ca-central-1",
-          "security-group": "Firewall",
+          "security-group": "Firewalls",
           "fw-instance-role": "Firewall-Role",
           "vpc": "Perimeter",
           "ports": [
@@ -3075,7 +3075,7 @@
         ]
       }
     },
-    "Unclass": {
+    "UnClass": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
