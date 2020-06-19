@@ -69,7 +69,7 @@
         "additional-schema-elements": ["RESOURCES"],
         "compression": "Parquet",
         "format": "Parquet",
-        "report-name": "cost-and-usage-report",
+        "report-name": "Cost-and-Usage-Report",
         "s3-prefix": "cur",
         "time-unit": "HOURLY",
         "additional-artifacts": ["ATHENA"],
