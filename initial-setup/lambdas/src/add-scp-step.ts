@@ -158,22 +158,20 @@ export async function createPoliciesFromConfiguration(props: {
     } else if (existingPolicy) {
       console.log(`Updating policy ${acceleratorPolicyName}`);
 
-      const response = await organizations.updatePolicy(
-        policyContent,
-        policyConfig.description,
-        acceleratorPolicyName,
-        existingPolicy.Id!,
-      );
+      const response = await organizations.updatePolicy({
+        policyId: existingPolicy.Id!,
+        content: policyContent,
+      });
       policies.push(response.Policy?.PolicySummary!);
     } else {
       console.log(`Creating policy ${acceleratorPolicyName}`);
 
-      const response = await organizations.createPolicy(
-        policyContent,
-        policyConfig.description,
-        acceleratorPolicyName,
-        'SERVICE_CONTROL_POLICY',
-      );
+      const response = await organizations.createPolicy({
+        type: 'SERVICE_CONTROL_POLICY',
+        name: acceleratorPolicyName,
+        description: policyConfig.description,
+        content: policyContent,
+      });
       policies.push(response.Policy?.PolicySummary!);
     }
   }
