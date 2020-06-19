@@ -49,6 +49,9 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.enableAWSServiceAccess('access-analyzer.amazonaws.com');
   console.log('Enabled Access Analyzer service access within the Organization.');
 
+  await org.enableAWSServiceAccess('guardduty.amazonaws.com');
+  console.log('Enabled Guard Duty service access within the Organization.');
+
   const iam = new IAM();
   // as access analyzer will be created in security account, creating service linked role specifically in master.
   try {
