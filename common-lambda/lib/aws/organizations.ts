@@ -218,11 +218,14 @@ export class Organizations {
    * @param targetId
    */
   async detachPolicy(policyId: string, targetId: string): Promise<void> {
-    const params: org.DetachPolicyRequest = {
-      PolicyId: policyId,
-      TargetId: targetId,
-    };
-    await this.client.detachPolicy(params).promise();
+    await throttlingBackOff(() =>
+      this.client
+        .detachPolicy({
+          PolicyId: policyId,
+          TargetId: targetId,
+        })
+        .promise(),
+    );
   }
 
   /**
