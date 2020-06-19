@@ -610,6 +610,7 @@ export const GlobalOptionsConfigType = t.interface({
   scps: t.array(ScpsConfigType),
   'organization-admin-role': NonEmptyString,
   'supported-regions': t.array(t.string),
+  'keep-default-vpc-regions': t.array(t.string),
   'iam-password-policies': IamAccountPasswordPolicyType,
 });
 

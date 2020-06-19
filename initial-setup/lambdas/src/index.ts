@@ -31,4 +31,5 @@ import * as createOrganizationAccount from './create-organization-account';
 import * as createStack from './create-stack';
 import * as createStackSet from './create-stack-set';
 import * as createAdConnector from './create-adconnector';
-export { codebuild, createAccount, createStack, createStackSet, createAdConnector, createOrganizationAccount };
+import * as deleteDefaultVpcs from './delete-default-vpc';
+export { codebuild, createAccount, createStack, createStackSet, createAdConnector, createOrganizationAccount, deleteDefaultVpcs };

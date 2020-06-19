@@ -4,10 +4,13 @@ import {
   EnableEbsEncryptionByDefaultResult,
   ModifyEbsDefaultKmsKeyIdRequest,
   ModifyEbsDefaultKmsKeyIdResult,
-  SubnetList,
+  InternetGatewayList,
   VpcList,
+  DescribeSubnetsRequest,
+  SubnetList,
+  DescribeSubnetsResult,
+  Subnet
 } from 'aws-sdk/clients/ec2';
-import * as ec2 from 'aws-sdk/clients/ec2';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { collectAsync } from '../util/generator';
@@ -15,8 +18,9 @@ import { collectAsync } from '../util/generator';
 export class EC2 {
   private readonly client: aws.EC2;
 
-  public constructor(credentials?: aws.Credentials) {
+  public constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.EC2({
+      region,
       credentials,
     });
   }
@@ -93,7 +97,7 @@ export class EC2 {
   /**
    * to describe Internet Gateways
    */
-  async describeInternetGatewaysByVpc(vpcIds: string[]): Promise<ec2.InternetGatewayList | undefined> {
+  async describeInternetGatewaysByVpc(vpcIds: string[]): Promise<InternetGatewayList | undefined> {
     const igws = await throttlingBackOff(() =>
       this.client
         .describeInternetGateways({
@@ -139,8 +143,8 @@ export class EC2 {
   /**
    * Wrapper around AWS.EC2.describeSubnets.
    */
-  async listSubnets(input: ec2.DescribeSubnetsRequest): Promise<ec2.SubnetList> {
-    return listWithNextToken<ec2.DescribeSubnetsRequest, ec2.DescribeSubnetsResult, ec2.Subnet>(
+  async listSubnets(input: DescribeSubnetsRequest): Promise<SubnetList> {
+    return listWithNextToken<DescribeSubnetsRequest, DescribeSubnetsResult, Subnet>(
       this.client.describeSubnets.bind(this.client),
       r => r.Subnets!,
       input,

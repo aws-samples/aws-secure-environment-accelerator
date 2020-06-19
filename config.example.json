@@ -30,6 +30,7 @@
       "us-west-1",
       "us-west-2"
     ],
+    "keep-default-vpc-regions": [],
     "aws-org-master": {
       "account": "master",
       "region": "ca-central-1"
