@@ -422,7 +422,7 @@
             {
               "user": "User1",
               "email": "myemail+pbmmT-User1@example.com",
-              "groups": ["Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
+              "groups": ["aws-Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
             },
             {
               "user": "User2",
