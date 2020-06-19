@@ -7,6 +7,7 @@ export { VpcOutput, SecurityGroupsOutput } from '@aws-pbmm/common-outputs/lib/st
 export interface ImportedVpcProps {
   readonly id: string;
   readonly name: string;
+  readonly region: string;
 
   readonly cidrBlock: string;
   readonly additionalCidrBlocks: string[];
@@ -26,6 +27,10 @@ export class ImportedVpc implements Vpc {
 
   get name(): string {
     return this.props.name;
+  }
+
+  get region(): string {
+    return this.props.region;
   }
 
   get cidrBlock(): string {
@@ -100,6 +105,7 @@ export class ImportedVpc implements Vpc {
     return new ImportedVpc({
       id: output.vpcId,
       name: output.vpcName,
+      region: output.region,
       cidrBlock: output.cidrBlock,
       additionalCidrBlocks: output.additionalCidrBlocks,
       subnets: output.subnets.map(s => ({

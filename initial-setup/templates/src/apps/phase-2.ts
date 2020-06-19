@@ -41,7 +41,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -120,7 +120,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     for (const [index, sharedAccountKey] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const accountStack = accountStacks.tryGetOrCreateAccountStack(sharedAccountKey);
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(sharedAccountKey, vpcConfig.region);
       if (!accountStack) {
         console.warn(`Cannot find account stack ${sharedAccountKey}`);
         continue;

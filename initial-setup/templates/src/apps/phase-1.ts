@@ -16,6 +16,7 @@ import {
   IamConfig,
   IamConfigType,
   IamPolicyConfigType,
+  VpcConfig,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { VpcOutput } from '../deployments/vpc';
@@ -93,13 +94,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   /**
-   * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
-   * @param roleName : Role Name forpeering connection from source to target
+   * Creates IAM Role in source Account and provide assume permissions to target acceleratorExecutionRole
+   * @param roleName : Role Name for peering connection from source to target
    * @param sourceAccount : Source Account Key, Role will be created in this
-   * @param accountKey : Target Account Key, Access will be provided to this accout
+   * @param accountKey : Target Account Key, Access will be provided to this account
    */
-  const createIamRoleForPCXAcceptence = (roleName: string, sourceAccount: string, targetAccount: string) => {
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount);
+  const createIamRoleForPCXAcceptence = (
+    roleName: string,
+    sourceAccount: string,
+    sourceVpcConfig: VpcConfig,
+    targetAccount: string,
+  ) => {
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount, sourceVpcConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${sourceAccount}`);
       return;
@@ -125,12 +131,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Auxiliary method to create a VPC stack the account with given account key
   // Only one VPC stack per account is created
-  const getFlowLogContainer = (accountKey: string): FlowLogContainer | undefined => {
+  const getFlowLogContainer = (accountKey: string, region: string): FlowLogContainer | undefined => {
     if (flowLogContainers[accountKey]) {
       return flowLogContainers[accountKey];
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       return;
@@ -152,7 +158,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
     const { vpcConfig } = props;
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       return;
@@ -203,7 +209,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     // Enable flow logging if necessary
     const flowLogs = vpcConfig['flow-logs'];
     if (flowLogs) {
-      const flowLogContainer = getFlowLogContainer(accountKey);
+      const flowLogContainer = getFlowLogContainer(accountKey, vpcConfig.region);
       if (flowLogContainer) {
         new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
           deliverLogsPermissionArn: flowLogContainer.role.roleArn,
@@ -220,6 +226,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const vpcOutput: VpcOutput = {
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
+      region: props.vpcConfig.region,
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
       additionalCidrBlocks: vpc.additionalCidrBlocks,
       subnets: vpc.azSubnets.subnets.map(s => ({
@@ -249,9 +256,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const subscriptionCheckDone: string[] = [];
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
-    if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
+    if (!limiter.create(accountKey, Limit.VpcPerRegion, vpcConfig.region)) {
       console.log(
-        `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
+        `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}" and region "${vpcConfig.region}`,
       );
       continue;
     }
@@ -273,9 +280,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
-      // Create Accepter Role for Peering Connection **WITHOUT** random suffix
-      const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
-      createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
+      const sourceVpcConfig = acceleratorConfig
+        .getVpcConfigs()
+        .find(
+          vpcConfig =>
+            vpcConfig.accountKey === pcxConfig.source && vpcConfig.vpcConfig.name === pcxConfig['source-vpc'],
+        );
+      if (!sourceVpcConfig) {
+        console.warn(`Cannot find PCX source VPC ${pcxConfig['source-vpc']} in account ${pcxConfig.source}`);
+      } else {
+        // Create Accepter Role for Peering Connection **WITHOUT** random suffix
+        // TODO Region support
+        const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
+        createIamRoleForPCXAcceptence(roleName, pcxConfig.source, sourceVpcConfig.vpcConfig, accountKey);
+      }
     }
 
     // Validate subscription for Firewall images only once per account

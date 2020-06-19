@@ -66,7 +66,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     const r53Zones = new Route53Zones(this, 'DNSResolvers', {
       zonesConfig,
       vpcId: resolverVpc.vpcId,
-      vpcRegion: cdk.Aws.REGION,
+      vpcRegion: resolverVpc.region,
     });
 
     // Auxiliary method to create a resolvers in the account with given account key

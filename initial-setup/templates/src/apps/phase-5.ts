@@ -34,8 +34,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // TODO Move to deployments/mad/step-x.ts
   type UserSecrets = UserSecret[];
   for (const [accountKey, accountConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {
-    const madDeploymentConfig = accountConfig.deployments?.mad;
-    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+    const madConfig = accountConfig.deployments?.mad;
+    if (!madConfig || !madConfig.deploy) {
       continue;
     }
 
@@ -49,7 +49,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
     const madAutoScalingRoleOutput = madAutoScalingRoleOutputs[0];
 
-    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const stack = accountStacks.tryGetOrCreateAccountStack(accountKey, madConfig.region);
     if (!stack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -60,7 +60,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     });
 
     const userSecrets: UserSecrets = [];
-    for (const adUser of madDeploymentConfig['ad-users']) {
+    for (const adUser of madConfig['ad-users']) {
       const passwordSecretArn = getMadUserPasswordSecretArn({
         acceleratorPrefix: context.acceleratorPrefix,
         accountKey,
@@ -93,29 +93,29 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
       outputType: 'VpcOutput',
     });
-    const vpcOutput = vpcOutputs.find(output => output.vpcName === madDeploymentConfig['vpc-name']);
+    const vpcOutput = vpcOutputs.find(output => output.vpcName === madConfig['vpc-name']);
     if (!vpcOutput) {
-      console.warn(`Cannot find output with vpc name ${madDeploymentConfig['vpc-name']}`);
+      console.warn(`Cannot find output with vpc name ${madConfig['vpc-name']}`);
       continue;
     }
 
     const vpcId = vpcOutput.vpcId;
     const vpcName = vpcOutput.vpcName;
-    const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madDeploymentConfig.subnet).map(s => s.subnetId);
+    const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madConfig.subnet).map(s => s.subnetId);
 
     const madOutputs: MadOutput[] = getStackJsonOutput(outputs, {
       accountKey,
       outputType: 'MadOutput',
     });
 
-    const madOutput = madOutputs.find(output => output.id === madDeploymentConfig['dir-id']);
+    const madOutput = madOutputs.find(output => output.id === madConfig['dir-id']);
     if (!madOutput || !madOutput.directoryId) {
-      console.warn(`Cannot find madOutput with vpc name ${madDeploymentConfig['vpc-name']}`);
+      console.warn(`Cannot find madOutput with vpc name ${madConfig['vpc-name']}`);
       continue;
     }
 
     const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
-      madDeploymentConfig,
+      madDeploymentConfig: madConfig,
       latestRdgwAmiId,
       vpcId,
       vpcName,

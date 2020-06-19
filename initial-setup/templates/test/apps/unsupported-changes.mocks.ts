@@ -164,6 +164,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-0aafbbf8390e61df9',
           vpcName: 'UnClass',
+          region: 'ca-central-1',
           cidrBlock: '10.5.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -196,6 +197,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-00788be23432ad14e',
           vpcName: 'Test',
+          region: 'ca-central-1',
           cidrBlock: '10.3.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -228,6 +230,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-0d0b4cd029857165a',
           vpcName: 'Central',
+          region: 'ca-central-1',
           cidrBlock: '10.1.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -480,7 +483,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-05236b7e563d76ea7',
           vpcName: 'Prod',
+          region: 'ca-central-1',
           cidrBlock: '10.4.0.0/16',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-0afcdace47c5b7db3', subnetName: 'TGW', az: 'a', cidrBlock: '10.4.88.0/27' },
             { subnetId: 'subnet-01b8fbfe6db2317a9', subnetName: 'TGW', az: 'b', cidrBlock: '10.4.88.32/27' },
@@ -511,6 +516,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-0ec4a94a0fed0323f',
           vpcName: 'Dev',
+          region: 'ca-central-1',
           cidrBlock: '10.2.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -583,6 +589,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-0be7520a610121f51',
           vpcName: 'Endpoint',
+          region: 'ca-central-1',
           cidrBlock: '10.7.0.0/22',
           additionalCidrBlocks: [],
           subnets: [
@@ -822,6 +829,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-008309eb2954c138b',
           vpcName: 'Perimeter',
+          region: 'ca-central-1',
           cidrBlock: '10.7.4.0/22',
           additionalCidrBlocks: [],
           subnets: [
@@ -931,6 +939,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-0d6c94538df842886',
           vpcName: 'ForSSO',
+          region: 'ca-central-1',
           cidrBlock: '10.249.1.0/24',
           additionalCidrBlocks: [],
           subnets: [
@@ -1047,6 +1056,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           vpcId: 'vpc-02bcf75f21ece6cc7',
           vpcName: 'Sandbox',
+          region: 'ca-central-1',
           cidrBlock: '10.6.0.0/16',
           additionalCidrBlocks: [],
           subnets: [

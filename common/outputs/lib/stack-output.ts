@@ -92,6 +92,7 @@ export interface VpcSecurityGroupOutput {
 export interface VpcOutput {
   vpcId: string;
   vpcName: string;
+  region: string;
   cidrBlock: string;
   additionalCidrBlocks: string[];
   subnets: VpcSubnetOutput[];

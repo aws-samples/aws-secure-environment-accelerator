@@ -1,4 +1,3 @@
-import * as s3 from '@aws-cdk/aws-s3';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../../../common/account-stacks';
@@ -15,10 +14,10 @@ export interface FirewallSubscriptionStep1Props {
 }
 
 /**
- * Validates Marketplace image Supscription
+ * Validates Marketplace image subscription
  *
  * This step outputs the following:
- *   - MarketPlace image subscription status per account
+ *   - Marketplace image subscription status per account
  */
 export async function step1(props: FirewallSubscriptionStep1Props) {
   const { accountKey, deployments, vpc, accountStacks } = props;
@@ -28,13 +27,8 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
   if (!firewallConfig) {
     return;
   }
-  if (!vpc) {
-    console.log(
-      `Skipping firewall marketplace image subscription check because of missing VPC "${firewallConfig.vpc}"`,
-    );
-    return;
-  }
-  const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+
+  const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpc.region);
   if (!accountStack) {
     console.warn(`Cannot find account stack ${accountStack}`);
     return;

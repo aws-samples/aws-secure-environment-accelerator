@@ -18,8 +18,8 @@ export interface MadStep1Props {
 export async function step1(props: MadStep1Props) {
   const { accountStacks, accountEbsEncryptionKeys, config, acceleratorName, acceleratorPrefix } = props;
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
-    const madDeploymentConfig = accountConfig.deployments?.mad;
-    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+    const madConfig = accountConfig.deployments?.mad;
+    if (!madConfig || !madConfig.deploy) {
       continue;
     }
 
@@ -29,7 +29,7 @@ export async function step1(props: MadStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, madConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;

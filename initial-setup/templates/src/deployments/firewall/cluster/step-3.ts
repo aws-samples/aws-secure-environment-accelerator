@@ -94,7 +94,7 @@ export async function step3(props: FirewallStep3Props) {
       throw new Error(`Cannot find default account bucket for account ${accountKey}`);
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;

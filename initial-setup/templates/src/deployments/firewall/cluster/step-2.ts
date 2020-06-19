@@ -69,7 +69,7 @@ export async function step2(props: FirewallStep2Props) {
       continue;
     }
 
-    const tgwAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAccountKey);
+    const tgwAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAccountKey, transitGateway.region);
     if (!tgwAccountStack) {
       console.warn(`Cannot find account stack ${tgwAccountKey}`);
       continue;

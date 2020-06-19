@@ -44,18 +44,19 @@ export async function step1(props: AlbStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
-    }
-
     for (const albConfig of albConfigs) {
       const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === albConfig.vpc)?.vpcConfig;
       if (!vpcConfig) {
         console.warn(`Cannot find vpc config with name ${albConfig.vpc}`);
         continue;
       }
+
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
+
       createAlb(accountKey, albConfig, accountStack, outputs, aesLogArchiveBucket, vpcConfig.deploy);
     }
   }

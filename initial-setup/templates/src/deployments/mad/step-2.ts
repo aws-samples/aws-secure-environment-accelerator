@@ -45,7 +45,7 @@ function createActiveDirectory(props: MadStep2Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, madConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -125,7 +125,7 @@ function createKeyAndSecretPolicies(props: MadStep2Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, madConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -219,5 +219,5 @@ function getMadConfigRootPasswordSecretArn(props: {
       secretAccountId,
     });
   }
-  return `arn:${cdk.Aws.PARTITION}:secretsmanager:${cdk.Aws.REGION}:${secretAccountId}:secret:${madPasswordSecretName}`;
+  return `arn:aws:secretsmanager:${madConfig.region}:${secretAccountId}:secret:${madPasswordSecretName}`;
 }

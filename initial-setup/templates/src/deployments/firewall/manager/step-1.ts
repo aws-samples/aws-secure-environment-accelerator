@@ -3,7 +3,6 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallManager } from '@aws-pbmm/constructs/lib/firewall';
-import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
@@ -36,7 +35,7 @@ export async function step1(props: FirewallManagerStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, managerConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;
