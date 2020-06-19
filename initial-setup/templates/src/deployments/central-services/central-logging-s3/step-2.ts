@@ -3,8 +3,10 @@ import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-subscription-filter';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface CentralLoggingToS3Step2Props {
+  acceleratorPrefix: string;
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   accounts: Account[];
@@ -17,7 +19,7 @@ export interface CentralLoggingToS3Step2Props {
  * TODO - Create CloudWatch Event in all account for create LogGroup
  */
 export async function step2(props: CentralLoggingToS3Step2Props) {
-  const { accountStacks, config, accounts, outputs } = props;
+  const { accountStacks, config, accounts, outputs, acceleratorPrefix } = props;
 
   const globalOptionsConfig = config['global-options'];
   const logConfig = globalOptionsConfig['central-log-services'];
@@ -40,9 +42,15 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         ...(logConfig['cwl-exclusions']?.find(e => e.account === account.key)?.exclusions || []),
       ];
       const globalExclusions = [...(logConfig['cwl-glbl-exclusions'] || []), ...accountSpecificExclusions];
+      const ruleName = createName({
+        name: 'NewLogGroup_rule',
+        account: false,
+        region: false,
+      });
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${account.key}`, {
         logDestinationArn,
         globalExclusions,
+        ruleName
       });
     }
   }
