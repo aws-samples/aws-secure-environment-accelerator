@@ -849,7 +849,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             { securityGroupId: 'sg-06e305933a4bbd75a', securityGroupName: 'Public-Prod-ALB' },
             { securityGroupId: 'sg-0e1d7c2ce7350c63e', securityGroupName: 'Public-DevTest-ALB' },
             { securityGroupId: 'sg-03d7fd5e7ead15cdf', securityGroupName: 'FirewallMgr' },
-            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Firewall' },
+            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Firewalls' },
           ],
         },
       }),
