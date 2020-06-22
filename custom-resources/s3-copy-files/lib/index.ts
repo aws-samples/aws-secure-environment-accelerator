@@ -96,7 +96,7 @@ export class S3CopyFiles extends cdk.Construct {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         resources: ['*'],

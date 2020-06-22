@@ -115,7 +115,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       ),
     });
 
-    peeringRole.addToPolicy(
+    peeringRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         resources: ['*'],
         actions: ['ec2:AcceptVpcPeeringConnection'],

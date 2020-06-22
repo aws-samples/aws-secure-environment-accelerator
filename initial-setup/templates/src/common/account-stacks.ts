@@ -42,6 +42,7 @@ export class AccountApp extends cdk.Stage {
   readonly stack: AccountStack;
 
   constructor(stackLogicalId: string, props: AccountAppProps) {
+    // tslint:disable-next-line:no-any
     super(undefined as any, '', {
       outdir: props.outDir ?? path.resolve('cdk.out'),
       env: {
