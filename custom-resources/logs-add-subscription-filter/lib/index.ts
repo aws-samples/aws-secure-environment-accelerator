@@ -9,6 +9,7 @@ const resourceType = 'Custom::CentralLoggingSubscriptionFilter';
 export interface CentralLoggingSubscriptionFilterProps {
   logDestinationArn: string;
   globalExclusions?: string[];
+  logRetention: number;
 }
 
 /**
@@ -36,6 +37,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     const envVariables = {
       EXCLUSIONS: JSON.stringify(props.globalExclusions),
       LOG_DESTINATION: props.logDestinationArn,
+      LOG_RETENTION: props.logRetention.toString(),
     };
     const addSubscriptionLambda = this.ensureLambdaFunction(
       this.cloudWatchEnventLambdaPath,
