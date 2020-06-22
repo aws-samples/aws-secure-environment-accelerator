@@ -53,7 +53,9 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
         errors.push(...deleteErrors);
       }
     } catch (error) {
-      errors.push(`${accountId}:${region}: ${error.code}: ${CustomErrorMessage.find(cm => cm.code)?.message || error.message}`);
+      errors.push(
+        `${accountId}:${region}: ${error.code}: ${CustomErrorMessage.find(cm => cm.code)?.message || error.message}`,
+      );
       continue;
     }
   }
