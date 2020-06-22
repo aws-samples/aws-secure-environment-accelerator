@@ -38,6 +38,7 @@ export class CreateCloudTrail extends cdk.Construct {
         new iam.PolicyStatement({
           actions: [
             'cloudtrail:CreateTrail',
+            'cloudtrail:UpdateTrail',
             'cloudtrail:DeleteTrail',
             'cloudtrail:DescribeTrails',
             'cloudtrail:AddTags',

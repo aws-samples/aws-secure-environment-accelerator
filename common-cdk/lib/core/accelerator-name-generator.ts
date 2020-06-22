@@ -39,7 +39,7 @@ export function createCloudTrailLogGroupName(name: string): string {
     '/' +
     createName({
       name,
-      suffixLength: 8,
+      suffixLength: 0,
       separator: '/',
     })
   );

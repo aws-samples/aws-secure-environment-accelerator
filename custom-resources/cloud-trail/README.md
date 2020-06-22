@@ -15,7 +15,7 @@ This is a custom resource to create CloudTrail Trail in master account using the
     const tagName = ...;
     const tagValue = ...;
 
-    new IamPasswordPolicy(this, 'IamPasswordPolicy', {
+    new CreateCloudTrail(this, 'CreateCloudTrail', {
       cloudTrailName,
       bucketName,
       logGroupArn,

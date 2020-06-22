@@ -19,77 +19,71 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 };
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  try {
-    // create CloudTrail Trail
-    await cloudTrail
-      .createTrail({
-        Name: event.ResourceProperties.cloudTrailName,
-        S3BucketName: event.ResourceProperties.bucketName,
-        CloudWatchLogsLogGroupArn: event.ResourceProperties.logGroupArn,
-        CloudWatchLogsRoleArn: event.ResourceProperties.roleArn,
-        EnableLogFileValidation: true,
-        IncludeGlobalServiceEvents: true,
-        IsMultiRegionTrail: true,
-        IsOrganizationTrail: true,
-        KmsKeyId: event.ResourceProperties.kmsKeyId,
-        S3KeyPrefix: event.ResourceProperties.s3KeyPrefix,
-        TagsList: [
-          {
-            Key: event.ResourceProperties.tagName,
-            Value: event.ResourceProperties.tagValue,
-          },
-        ],
-      })
-      .promise();
-
-    // Log Insight events
-    await cloudTrail
-      .putInsightSelectors(buildInsightSelectorsRequest(event.ResourceProperties.cloudTrailName))
-      .promise();
-
-    // S3 Data events
-    await cloudTrail.putEventSelectors(buildEventSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise();
-
-    // Enable CloudTrail Trail logging
-    await cloudTrail
-      .startLogging({
-        Name: event.ResourceProperties.cloudTrailName,
-      })
-      .promise();
-  } catch (e) {
-    console.warn(`Ignore creation of CloudTrail Trail failure`);
-    console.warn(e);
+  const response = await cloudTrail
+    .describeTrails({
+      trailNameList: [event.ResourceProperties.cloudTrailName],
+    })
+    .promise();
+  if (response.trailList?.length === 0) {
+    try {
+      // create CloudTrail Trail
+      await cloudTrail
+        .createTrail(
+          buildCloudTrailCreateRequest({
+            name: event.ResourceProperties.cloudTrailName,
+            bucketName: event.ResourceProperties.bucketName,
+            logGroupArn: event.ResourceProperties.logGroupArn,
+            roleArn: event.ResourceProperties.roleArn,
+            kmsKeyId: event.ResourceProperties.kmsKeyId,
+            s3KeyPrefix: event.ResourceProperties.s3KeyPrefix,
+            tagName: event.ResourceProperties.tagName,
+            tagValue: event.ResourceProperties.tagValue,
+          }),
+        )
+        .promise();
+    } catch (e) {
+      throw new Error(`Cannot create CloudTrail Trail: ${JSON.stringify(e)}`);
+    }
+  } else {
+    try {
+      // update CloudTrail Trail
+      await cloudTrail
+        .updateTrail(
+          buildCloudTrailUpdateRequest({
+            name: event.ResourceProperties.cloudTrailName,
+            bucketName: event.ResourceProperties.bucketName,
+            logGroupArn: event.ResourceProperties.logGroupArn,
+            roleArn: event.ResourceProperties.roleArn,
+            kmsKeyId: event.ResourceProperties.kmsKeyId,
+            s3KeyPrefix: event.ResourceProperties.s3KeyPrefix,
+          }),
+        )
+        .promise();
+    } catch (e) {
+      throw new Error(`Cannot update CloudTrail Trail: ${JSON.stringify(e)}`);
+    }
   }
+
+  // Log Insight events
+  await cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise();
+
+  // S3 Data events
+  await cloudTrail.putEventSelectors(buildEventSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise();
+
+  // Enable CloudTrail Trail logging
+  await cloudTrail
+    .startLogging({
+      Name: event.ResourceProperties.cloudTrailName,
+    })
+    .promise();
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
-  try {
-    const response = await cloudTrail
-      .describeTrails({
-        trailNameList: [event.ResourceProperties.cloudTrailName],
-      })
-      .promise();
-    if (response.trailList?.length === 0) {
-      return onCreate(event);
-    }
-  } catch (e) {
-    console.warn(`describe CloudTrail Trail failure, calling create Trail`);
-    console.warn(e);
-  }
+  return onCreate(event);
 }
 
 async function onDelete(event: CloudFormationCustomResourceEvent) {
-  console.log(`Deleting CloudTrail Trail...`);
-  try {
-    await cloudTrail
-      .deleteTrail({
-        Name: event.ResourceProperties.cloudTrailName,
-      })
-      .promise();
-  } catch (e) {
-    console.warn(`Ignore deletion of CloudTrail Trail failure`);
-    console.warn(e);
-  }
+  console.log(`Nothing to do for delete...`);
 }
 
 function buildInsightSelectorsRequest(trailName: string) {
@@ -119,5 +113,59 @@ function buildEventSelectorsRequest(trailName: string) {
       },
     ],
     TrailName: trailName,
+  };
+}
+
+function buildCloudTrailCreateRequest(props: {
+  name: string;
+  bucketName: string;
+  logGroupArn: string;
+  roleArn: string;
+  kmsKeyId: string;
+  s3KeyPrefix: string;
+  tagName: string;
+  tagValue: string;
+}): AWS.CloudTrail.CreateTrailRequest {
+  const { name, bucketName, logGroupArn, roleArn, kmsKeyId, s3KeyPrefix, tagName, tagValue } = props;
+  return {
+    Name: name,
+    S3BucketName: bucketName,
+    CloudWatchLogsLogGroupArn: logGroupArn,
+    CloudWatchLogsRoleArn: roleArn,
+    EnableLogFileValidation: true,
+    IncludeGlobalServiceEvents: true,
+    IsMultiRegionTrail: true,
+    IsOrganizationTrail: true,
+    KmsKeyId: kmsKeyId,
+    S3KeyPrefix: s3KeyPrefix,
+    TagsList: [
+      {
+        Key: tagName,
+        Value: tagValue,
+      },
+    ],
+  };
+}
+
+function buildCloudTrailUpdateRequest(props: {
+  name: string;
+  bucketName: string;
+  logGroupArn: string;
+  roleArn: string;
+  kmsKeyId: string;
+  s3KeyPrefix: string;
+}): AWS.CloudTrail.UpdateTrailRequest {
+  const { name, bucketName, logGroupArn, roleArn, kmsKeyId, s3KeyPrefix } = props;
+  return {
+    Name: name,
+    S3BucketName: bucketName,
+    CloudWatchLogsLogGroupArn: logGroupArn,
+    CloudWatchLogsRoleArn: roleArn,
+    EnableLogFileValidation: true,
+    IncludeGlobalServiceEvents: true,
+    IsMultiRegionTrail: true,
+    IsOrganizationTrail: true,
+    KmsKeyId: kmsKeyId,
+    S3KeyPrefix: s3KeyPrefix,
   };
 }
