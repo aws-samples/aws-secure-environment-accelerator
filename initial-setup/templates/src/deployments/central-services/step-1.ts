@@ -3,7 +3,6 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '../../utils/accounts';
 import * as iam from '@aws-cdk/aws-iam';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface CentralServicesStep1Props {
   accountStacks: AccountStacks;
@@ -60,6 +59,7 @@ async function centralServicesSettingsInMaster(props: {
 
 /**
  * Cloud Watch Cross Account Settings in Master Account
+ * 5.15b - READY - Centralize CWL - Part 1
  */
 async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; accountIds: string[] }) {
   const { scope, accountIds } = props;

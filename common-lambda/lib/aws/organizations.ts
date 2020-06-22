@@ -22,9 +22,12 @@ export class Organizations {
     return response.OrganizationalUnit;
   }
 
-  async getPolicyByName(
-    input: org.ListPoliciesRequest & { Name: string },
-  ): Promise<org.DescribePolicyResponse | undefined> {
+  async describeOrganization(): Promise<org.OrganizationalUnit | undefined> {
+    const response = await this.client.describeOrganization().promise();
+    return response.Organization;
+  }
+
+  async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.Policy | undefined> {
     const name = input.Name;
     delete input.Name;
 
@@ -35,7 +38,8 @@ export class Organizations {
     );
     for await (const summary of summaries) {
       if (summary.Name === name) {
-        return this.describePolicy(summary.Id!);
+        const describePolicy = await this.describePolicy(summary.Id!);
+        return describePolicy.Policy;
       }
     }
     return undefined;
@@ -158,17 +162,17 @@ export class Organizations {
    * @param name
    * @param type
    */
-  async createPolicy(
-    content: string,
-    description: string,
-    name: string,
-    type: string,
-  ): Promise<org.CreatePolicyResponse> {
+  async createPolicy(props: {
+    type: string;
+    name: string;
+    description: string;
+    content: string;
+  }): Promise<org.CreatePolicyResponse> {
     const params: org.CreatePolicyRequest = {
-      Content: content,
-      Description: description,
-      Name: name,
-      Type: type,
+      Content: props.content,
+      Description: props.description,
+      Name: props.name,
+      Type: props.type,
     };
     return this.client.createPolicy(params).promise();
   }
@@ -180,17 +184,17 @@ export class Organizations {
    * @param name
    * @param policyId
    */
-  async updatePolicy(
-    content: string,
-    description: string,
-    name: string,
-    policyId: string,
-  ): Promise<org.UpdatePolicyResponse> {
+  async updatePolicy(props: {
+    policyId: string;
+    name?: string;
+    description?: string;
+    content?: string;
+  }): Promise<org.UpdatePolicyResponse> {
     const params: org.UpdatePolicyRequest = {
-      Content: content,
-      Description: description,
-      Name: name,
-      PolicyId: policyId,
+      PolicyId: props.policyId,
+      Content: props.content,
+      Description: props.description,
+      Name: props.name,
     };
     return this.client.updatePolicy(params).promise();
   }
@@ -201,11 +205,14 @@ export class Organizations {
    * @param targetId
    */
   async attachPolicy(policyId: string, targetId: string): Promise<void> {
-    const params: org.AttachPolicyRequest = {
-      PolicyId: policyId,
-      TargetId: targetId,
-    };
-    await this.client.attachPolicy(params).promise();
+    await throttlingBackOff(() =>
+      this.client
+        .attachPolicy({
+          PolicyId: policyId,
+          TargetId: targetId,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -214,11 +221,14 @@ export class Organizations {
    * @param targetId
    */
   async detachPolicy(policyId: string, targetId: string): Promise<void> {
-    const params: org.DetachPolicyRequest = {
-      PolicyId: policyId,
-      TargetId: targetId,
-    };
-    await this.client.detachPolicy(params).promise();
+    await throttlingBackOff(() =>
+      this.client
+        .detachPolicy({
+          PolicyId: policyId,
+          TargetId: targetId,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -257,5 +267,52 @@ export class Organizations {
         throw e;
       }
     }
+  }
+
+  /**
+   * to create aws account
+   * @param email
+   * @param accountName
+   */
+  async createAccount(
+    email: string,
+    accountName: string,
+    roleName: string,
+  ): Promise<org.CreateAccountStatus | undefined> {
+    const accountStatus = await throttlingBackOff(() =>
+      this.client
+        .createAccount({
+          AccountName: accountName,
+          Email: email,
+          RoleName: roleName,
+        })
+        .promise(),
+    );
+    return accountStatus.CreateAccountStatus;
+  }
+
+  /**
+   * to get create account status
+   * @param requestId
+   */
+  async createAccountStatus(requestId: string): Promise<org.CreateAccountStatus | undefined> {
+    const accountStatus = await throttlingBackOff(() =>
+      this.client
+        .describeCreateAccountStatus({
+          CreateAccountRequestId: requestId,
+        })
+        .promise(),
+    );
+    return accountStatus.CreateAccountStatus;
+  }
+
+  /**
+   * to move account to Organization
+   * @param accountId
+   * @param parentOuId
+   * @param destinationOuId
+   */
+  async moveAccount(params: org.MoveAccountRequest): Promise<void> {
+    await throttlingBackOff(() => this.client.moveAccount(params).promise());
   }
 }
