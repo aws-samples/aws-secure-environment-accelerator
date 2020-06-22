@@ -99,15 +99,13 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
       mapTask.next(verifyTask).next(isTaskSuccess);
       // Add more conditions if required.
       const baselineChoice = new sfn.Choice(scope, `${name}Baseline?`, {
-        comment: 'Baseline?'
+        comment: 'Baseline?',
       })
         .when(sfn.Condition.stringEquals(`$.baseline`, 'ORGANIZATIONS'), mapTask)
-        .otherwise(pass)
+        .otherwise(pass);
       chain = sfn.Chain.start(baselineChoice);
     } else {
-      chain = sfn.Chain.start(mapTask)
-        .next(verifyTask)
-        .next(isTaskSuccess);
+      chain = sfn.Chain.start(mapTask).next(verifyTask).next(isTaskSuccess);
     }
 
     this.startState = chain.startState;
