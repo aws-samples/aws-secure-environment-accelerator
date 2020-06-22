@@ -21,21 +21,21 @@ export class CreateLandingZoneAccountTask extends sfn.StateMachineFragment {
 
     const { role, lambdaCode, waitSeconds = 60 } = props;
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
         actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       }),
     );
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
         actions: ['codepipeline:PutJobSuccessResult', 'codepipeline:PutJobFailureResult'],
       }),
     );
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
