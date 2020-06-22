@@ -20,7 +20,7 @@
     "webpack-shell-plugin-next": "1.1.9"
   },
   "dependencies": {
-    "aws-cdk": "1.38.0",
+    "aws-cdk": "1.46.0",
     "aws-sdk": "2.668.0",
     "colors": "1.4.0"
   }

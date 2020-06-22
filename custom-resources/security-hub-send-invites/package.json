@@ -13,11 +13,11 @@
     "tslint-config-standard": "9.0.0"
   },
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.38.0",
-    "@aws-cdk/core": "1.38.0"
+    "@aws-cdk/aws-iam": "1.46.0",
+    "@aws-cdk/core": "1.46.0"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "^1.38.0",
-    "@aws-cdk/core": "^1.38.0"
+    "@aws-cdk/aws-iam": "^1.46.0",
+    "@aws-cdk/core": "^1.46.0"
   }
 }

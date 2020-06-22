@@ -10,7 +10,7 @@ import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
 
-export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.App> {
+export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.Stage> {
   const input = createPhaseInput();
   for (const phase of phases) {
     const accountStacks = new AccountStacks({
