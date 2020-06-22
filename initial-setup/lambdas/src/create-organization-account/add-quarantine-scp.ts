@@ -1,32 +1,19 @@
-import { ConfigurationAccount, LoadConfigurationInput } from '../load-configuration-step';
+import { ConfigurationAccount } from '../load-configuration-step';
 import { CreateAccountOutput } from '@aws-pbmm/common-lambda/lib/aws/types/account';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
-import { createPoliciesFromConfiguration, policyNameToAcceleratorPolicyName } from './../add-scp-step';
-import * as org from 'aws-sdk/clients/organizations';
-import { QuarantineScpName } from '@aws-pbmm/common-outputs/lib/accounts';
 
-interface AddQuarantineScpInput extends LoadConfigurationInput {
+interface AddQuarantineScpInput {
   account: ConfigurationAccount;
   acceleratorPrefix: string;
-  scpBucketName: string;
-  scpBucketPrefix: string;
 }
 
 const organizations = new Organizations();
+
 export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccountOutput> => {
-  console.log(`Creating account using Organizations...`);
+  console.log(`Adding quarantine SCP to account...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    acceleratorPrefix,
-    scpBucketName,
-    scpBucketPrefix,
-    account,
-    configRepositoryName,
-    configFilePath,
-    configCommitId,
-  } = input;
+  const { acceleratorPrefix, account } = input;
 
   if (!account.accountId) {
     return {
@@ -35,45 +22,66 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
     };
   }
 
-  const config = await loadAcceleratorConfig({
-    repositoryName: configRepositoryName,
-    filePath: configFilePath,
-    commitId: configCommitId,
-  });
+  const policyName = createQuarantineScpName({ acceleratorPrefix });
+  const policyContent = createQuarantineScpContent({ acceleratorPrefix });
 
-  // Find policy config
-  const globalOptionsConfig = config['global-options'];
-  const policyConfigs = globalOptionsConfig.scps;
-
-  const quarantineScps = policyConfigs.filter(scp => scp.name === QuarantineScpName);
-
-  // Find all policies in the organization
-  const existingPolicies = await organizations.listPolicies({
+  const getPolicyByName = await organizations.getPolicyByName({
+    Name: policyName,
     Filter: 'SERVICE_CONTROL_POLICY',
   });
-  const policyName = policyNameToAcceleratorPolicyName({
-    acceleratorPrefix,
-    policyName: QuarantineScpName,
-  });
-  const existingPolicy = existingPolicies.find(p => p.Name === policyName);
-  let acceleratorPolicy: org.PolicySummary;
-  if (!existingPolicy) {
-    // Create quarantineScps if not exists and attach AccountId to Policy
-    const policies = await createPoliciesFromConfiguration({
-      acceleratorPrefix,
-      scpBucketName,
-      scpBucketPrefix,
-      policyConfigs: quarantineScps,
-    });
-    acceleratorPolicy = policies[0];
+  let policyId = getPolicyByName?.PolicySummary?.Id;
+  if (policyId) {
+    console.log(`Updating policy ${policyName}`);
+
+    if (getPolicyByName?.Content !== policyContent) {
+      await organizations.updatePolicy({
+        policyId,
+        content: policyContent,
+      });
+    }
   } else {
-    acceleratorPolicy = existingPolicy;
+    console.log(`Creating policy ${policyName}`);
+
+    const response = await organizations.createPolicy({
+      type: 'SERVICE_CONTROL_POLICY',
+      name: policyName,
+      description: `${acceleratorPrefix}Quarantine policy - Apply to ACCOUNTS that need to be quarantined`,
+      content: policyContent,
+    });
+    policyId = response.Policy?.PolicySummary?.Id!;
   }
-  console.log(`Attaching account "${account.accountId}" to SCP "${policyName}"`);
-  await organizations.attachPolicy(acceleratorPolicy.Id!, account.accountId);
+
+  console.log(`Attaching SCP "${policyName}" to account "${account.accountId}"`);
+  await organizations.attachPolicy(policyId, account.accountId);
 
   return {
     status: 'SUCCESS',
-    provisionToken: `Account "${account.accountId}" Successfully attached to Quarantine SCP`,
+    provisionToken: `Account "${account.accountId}" successfully attached to Quarantine SCP`,
   };
 };
+
+export function createQuarantineScpName(props: { acceleratorPrefix: string }) {
+  return `${props.acceleratorPrefix}Quarantine-New-Object`;
+}
+
+export function createQuarantineScpContent(props: { acceleratorPrefix: string }) {
+  return JSON.stringify({
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Sid: 'DenyAllAWSServicesExceptBreakglassRoles',
+        Effect: 'Deny',
+        Action: '*',
+        Resource: '*',
+        Condition: {
+          ArnNotLike: {
+            'aws:PrincipalARN': [
+              'arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole',
+              `arn:aws:iam::*:role/${props.acceleratorPrefix}*`,
+            ],
+          },
+        },
+      },
+    ],
+  });
+}

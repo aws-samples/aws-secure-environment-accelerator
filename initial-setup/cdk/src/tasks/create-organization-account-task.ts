@@ -45,7 +45,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
 
     const createTaskResultPath = '$.createOutput';
     const createTaskStatusPath = `${createTaskResultPath}.status`;
-    const createTask = new CodeTask(scope, `Start Organization Account Creation`, {
+    const createTask = new CodeTask(scope, `Start Account Creation`, {
       resultPath: createTaskResultPath,
       functionProps: {
         role,
@@ -62,7 +62,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
 
     const verifyTaskResultPath = '$.verifyOutput';
     const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
-    const verifyTask = new CodeTask(scope, 'Verify Org Account Creation', {
+    const verifyTask = new CodeTask(scope, 'Verify Account Creation', {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
@@ -79,11 +79,11 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const pass = new sfn.Pass(this, 'Org Account Creation Succeeded');
+    const pass = new sfn.Pass(this, 'Account Creation Succeeded');
 
-    const fail = new sfn.Fail(this, 'Org Account Creation Failed');
+    const fail = new sfn.Fail(this, 'Account Creation Failed');
 
-    const addScpTask = new CodeTask(scope, 'Apply Quarantine SCP To Account', {
+    const attachQuarantineScpTask = new CodeTask(scope, 'Attach Quarantine SCP To Account', {
       resultPath: 'DISCARD',
       functionProps: {
         role,
@@ -92,18 +92,13 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       },
       functionPayload: {
         'account.$': '$.moveOutput',
-        'configRepositoryName.$': '$.createAccountConfiguration.configRepositoryName',
-        'configFilePath.$': '$.createAccountConfiguration.configFilePath',
-        'configCommitId.$': '$.createAccountConfiguration.configCommitId',
-        'scpBucketName.$': '$.createAccountConfiguration.scpBucketName',
-        'scpBucketPrefix.$': '$.createAccountConfiguration.scpBucketPrefix',
         'acceleratorPrefix.$': '$.createAccountConfiguration.acceleratorPrefix',
       },
     });
-    addScpTask.next(pass);
+    attachQuarantineScpTask.next(pass);
 
     const moveTaskResultPath = '$.moveOutput';
-    const moveTask = new CodeTask(scope, 'Move Account To Organization', {
+    const moveTask = new CodeTask(scope, 'Move Account to Organizational Unit', {
       resultPath: moveTaskResultPath,
       functionProps: {
         role,
@@ -115,12 +110,12 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
         'organizationalUnits.$': '$.createAccountConfiguration.organizationalUnits',
       },
     });
-    moveTask.next(addScpTask);
+    moveTask.next(attachQuarantineScpTask);
 
     waitTask
       .next(verifyTask)
       .next(
-        new sfn.Choice(scope, 'Org Account Creation Done?')
+        new sfn.Choice(scope, 'Account Creation Done?')
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCEEDED'), moveTask)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'ALREADY_EXISTS'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'NON_MANDATORY_ACCOUNT_FAILURE'), pass)

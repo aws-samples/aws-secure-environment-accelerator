@@ -1,6 +1,6 @@
-import { Account, QuarantineScpName } from '@aws-pbmm/common-outputs/lib/accounts';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { policyNameToAcceleratorPolicyName } from './add-scp-step';
+import { createQuarantineScpName } from './create-organization-account/add-quarantine-scp';
 
 interface DetachQuarantineScpInput {
   accounts: Account[];
@@ -14,27 +14,28 @@ export const handler = async (input: DetachQuarantineScpInput): Promise<string> 
 
   const { acceleratorPrefix, accounts } = input;
 
+  const policyName = createQuarantineScpName({ acceleratorPrefix });
+
   // Find all policies in the organization
-  const existingPolicies = await organizations.listPolicies({
+  const policy = await organizations.getPolicyByName({
     Filter: 'SERVICE_CONTROL_POLICY',
+    Name: policyName,
   });
-  const policyName = policyNameToAcceleratorPolicyName({
-    acceleratorPrefix,
-    policyName: QuarantineScpName,
-  });
-  const existingPolicy = existingPolicies.find(p => p.Name === policyName);
-  if (!existingPolicy) {
+  const policyId = policy?.PolicySummary?.Id;
+  if (!policyId) {
     console.log(`No SCP with name ${policyName} to detach from accounts`);
     return 'SUCCESS';
   }
   for (const account of accounts) {
-    console.log(`Detaching policy "${policyName}"  from Account "${account.name}"`);
+    console.log(`Detaching policy "${policyName}" from account "${account.name}"`);
     try {
-      await organizations.detachPolicy(existingPolicy.Id!, account.id);
-    } catch (error) {
-      if (error.code === 'PolicyNotAttachedException') {
-        console.log(`"${policyName}" is not attached to Account "${account.name}"`);
+      await organizations.detachPolicy(policyId, account.id);
+    } catch (e) {
+      if (e.code === 'PolicyNotAttachedException') {
+        console.log(`"${policyName}" is not attached to account "${account.name}"`);
+        continue;
       }
+      throw e;
     }
   }
   return 'SUCCESS';

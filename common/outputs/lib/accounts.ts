@@ -2,8 +2,6 @@ export const LANDING_ZONE_ACCOUNT_TYPES = ['primary', 'security', 'log-archive',
 
 export type LandingZoneAccountType = typeof LANDING_ZONE_ACCOUNT_TYPES[number];
 
-export const QuarantineScpName = 'Quarantine-Deny-All';
-
 export interface Account {
   key: string;
   id: string;
