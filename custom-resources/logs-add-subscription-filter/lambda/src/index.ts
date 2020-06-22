@@ -143,14 +143,14 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
   try {
     // Adding subscription filter
     await throttlingBackOff(() =>
-    logs
-      .putSubscriptionFilter({
-        destinationArn,
-        logGroupName,
-        filterName: `${CloudWatchRulePrefix}${logGroupName}`,
-        filterPattern: '',
-      })
-      .promise(),
+      logs
+        .putSubscriptionFilter({
+          destinationArn,
+          logGroupName,
+          filterName: `${CloudWatchRulePrefix}${logGroupName}`,
+          filterPattern: '',
+        })
+        .promise(),
     );
   } catch (error) {
     console.error(`Error while adding subscription filter: ${error.message}`);
@@ -178,9 +178,11 @@ async function getSubscriptionFilters(logGroupName: string): Promise<Subscriptio
   // Get existing subscription filter for logGroup
   try {
     const subscriptionFilters = await throttlingBackOff(() =>
-      logs.describeSubscriptionFilters({
-        logGroupName,
-      }).promise()
+      logs
+        .describeSubscriptionFilters({
+          logGroupName,
+        })
+        .promise(),
     );
     return subscriptionFilters.subscriptionFilters;
   } catch (error) {
