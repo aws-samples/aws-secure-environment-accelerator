@@ -45,7 +45,7 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${accountKey}`, {
         logDestinationArn,
         globalExclusions,
-        logRetention
+        logRetention,
       });
     }
   }

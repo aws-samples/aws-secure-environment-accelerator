@@ -61,10 +61,12 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
 async function putLogRetentionPolicy(logGroupName: string, retentionInDays: number) {
   try {
     await throttlingBackOff(() =>
-      logs.putRetentionPolicy({
-        logGroupName,
-        retentionInDays
-      }).promise()
+      logs
+        .putRetentionPolicy({
+          logGroupName,
+          retentionInDays,
+        })
+        .promise(),
     );
   } catch (error) {
     console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);
