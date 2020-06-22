@@ -40,12 +40,14 @@ export async function step1(props: CreateCloudTrailProps) {
   const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
   console.log('AWS S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
   if (!s3KmsKeyArn) {
-    console.warn(`cannot found LogArchive account KMS key Arn`);
-    return;
+    throw new Error(`cannot find LogArchive account KMS key Arn`);
   }
 
   const masterAccountKey = config.getMandatoryAccountKey('master');
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+  if (!masterAccountStack) {
+    throw new Error(`Cannot find account stack ${masterAccountKey}`);
+  }
 
   const organizations = new Organizations(masterAccountStack, 'Organizations');
   const organizationId = organizations.organizationId;
