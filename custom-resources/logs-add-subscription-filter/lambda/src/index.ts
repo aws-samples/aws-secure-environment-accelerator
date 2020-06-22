@@ -12,6 +12,7 @@ import { throttlingBackOff, CloudWatchRulePrefix } from '@custom-resources/cfn-u
 export interface HandlerProperties {
   logDestinationArn: string;
   globalExclusions?: string[];
+  logRetention: number;
 }
 
 export const handler = errorHandler(onEvent);
@@ -70,11 +71,13 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
 async function centralLoggingSubscription(event: CloudFormationCustomResourceEvent): Promise<string> {
   const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const { logDestinationArn } = properties;
+  const { logDestinationArn, logRetention } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
   const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
   for (const logGroup of filterLogGroups) {
+    // Change Log Retention for Log Group
+    await putLogRetentionPolicy(logGroup.logGroupName!, logRetention);
     // Add Subscription filter to logGroup
     console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
     await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn);
@@ -85,7 +88,7 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
 async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResourceEvent): Promise<string> {
   const physicalResourceId = 'PhysicalResourceId' in event ? event.PhysicalResourceId : undefined;
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const { logDestinationArn } = properties;
+  const { logDestinationArn, logRetention } = properties;
   const globalExclusions = properties.globalExclusions || [];
   const logGroups = await getLogGroups();
   const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
@@ -94,6 +97,8 @@ async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResou
     await removeSubscriptionFilter(logGroup.logGroupName!);
   }
   for (const logGroup of filterLogGroups) {
+    // Change Log Retention for Log Group
+    await putLogRetentionPolicy(logGroup.logGroupName!, logRetention);
     // Add Subscription filter to logGroup
     console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
     await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn);
@@ -150,4 +155,19 @@ async function getLogGroups(): Promise<LogGroup[]> {
     logGroups.push(...response.logGroups!);
   } while (token);
   return logGroups;
+}
+
+async function putLogRetentionPolicy(logGroupName: string, retentionInDays: number) {
+  try {
+    await throttlingBackOff(() =>
+      logs
+        .putRetentionPolicy({
+          logGroupName,
+          retentionInDays,
+        })
+        .promise(),
+    );
+  } catch (error) {
+    console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);
+  }
 }
