@@ -1,5 +1,5 @@
 import * as AWS from 'aws-sdk';
-import { LogGroup } from 'aws-sdk/clients/cloudwatchlogs';
+import { LogGroup, SubscriptionFilters } from 'aws-sdk/clients/cloudwatchlogs';
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -52,7 +52,8 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const logGroups = await getLogGroups();
   for (const logGroup of logGroups) {
     // Delete Subscription filter from logGroup
-    await removeSubscriptionFilter(logGroup.logGroupName!);
+    const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
+    await removeSubscriptionFilter(logGroup.logGroupName!, filterName);
   }
 }
 
@@ -75,6 +76,14 @@ async function centralLoggingSubscription(event: CloudFormationCustomResourceEve
   const logGroups = await getLogGroups();
   const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
   for (const logGroup of filterLogGroups) {
+    // Get Subscription filter and remove
+    const subscriptinFilters = await getSubscriptionFilters(logGroup.logGroupName!);
+    if (subscriptinFilters && subscriptinFilters.length > 0) {
+      // Remove existing Subscription filters
+      for (const subscriptinFilter of subscriptinFilters) {
+        await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName!);
+      }
+    }
     // Add Subscription filter to logGroup
     console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
     await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn);
@@ -90,10 +99,19 @@ async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResou
   const logGroups = await getLogGroups();
   const filterLogGroups = logGroups.filter(lg => !isExcluded(globalExclusions, lg.logGroupName!));
   for (const logGroup of logGroups) {
-    // Delete Subscription filter from logGroup
-    await removeSubscriptionFilter(logGroup.logGroupName!);
+    // Remove "PBMM-" Subscription filter from all log Groups if exists on update
+    const filterName = `${CloudWatchRulePrefix}${logGroup.logGroupName}`;
+    await removeSubscriptionFilter(logGroup.logGroupName!, filterName);
   }
   for (const logGroup of filterLogGroups) {
+    // Get Subscription filter and remove
+    const subscriptinFilters = await getSubscriptionFilters(logGroup.logGroupName!);
+    if (subscriptinFilters && subscriptinFilters.length > 0) {
+      // Remove existing Subscription filters
+      for (const subscriptinFilter of subscriptinFilters) {
+        await removeSubscriptionFilter(logGroup.logGroupName!, subscriptinFilter.filterName!);
+      }
+    }
     // Add Subscription filter to logGroup
     console.log(`Adding subscription filter for ${logGroup.logGroupName}`);
     await addSubscriptionFilter(logGroup.logGroupName!, logDestinationArn);
@@ -101,14 +119,14 @@ async function centralLoggingSubscriptionUpdate(event: CloudFormationCustomResou
   return physicalResourceId!;
 }
 
-async function removeSubscriptionFilter(logGroupName: string) {
+async function removeSubscriptionFilter(logGroupName: string, filterName: string) {
   // Remove existing subscription filter
   try {
     await throttlingBackOff(() =>
       logs
         .deleteSubscriptionFilter({
           logGroupName,
-          filterName: `${CloudWatchRulePrefix}${logGroupName}`,
+          filterName,
         })
         .promise(),
     );
@@ -122,8 +140,9 @@ async function removeSubscriptionFilter(logGroupName: string) {
 }
 
 async function addSubscriptionFilter(logGroupName: string, destinationArn: string) {
-  // Adding subscription filter
-  await throttlingBackOff(() =>
+  try {
+    // Adding subscription filter
+    await throttlingBackOff(() =>
     logs
       .putSubscriptionFilter({
         destinationArn,
@@ -132,7 +151,10 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
         filterPattern: '',
       })
       .promise(),
-  );
+    );
+  } catch (error) {
+    console.error(`Error while adding subscription filter: ${error.message}`);
+  }
 }
 
 async function getLogGroups(): Promise<LogGroup[]> {
@@ -150,4 +172,19 @@ async function getLogGroups(): Promise<LogGroup[]> {
     logGroups.push(...response.logGroups!);
   } while (token);
   return logGroups;
+}
+
+async function getSubscriptionFilters(logGroupName: string): Promise<SubscriptionFilters | undefined> {
+  // Get existing subscription filter for logGroup
+  try {
+    const subscriptionFilters = await throttlingBackOff(() =>
+      logs.describeSubscriptionFilters({
+        logGroupName,
+      }).promise()
+    );
+    return subscriptionFilters.subscriptionFilters;
+  } catch (error) {
+    console.log(`Error while retriving subscription filters: ${error.message}`);
+    return;
+  }
 }
