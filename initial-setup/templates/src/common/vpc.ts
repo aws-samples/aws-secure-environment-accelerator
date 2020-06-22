@@ -3,14 +3,14 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-types';
 import * as constructs from '@aws-pbmm/constructs/lib/vpc';
-import { Account } from '../utils/accounts';
+import { Account, getAccountId } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
-import { TransitGateway } from './transit-gateway';
 import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
 export interface VpcCommonProps {
   /**
@@ -83,7 +83,8 @@ export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
 
 export interface VpcStackProps extends NestedStackProps {
   vpcProps: VpcProps;
-  transitGateways: Map<string, TransitGateway>;
+  masterAccountId: string;
+  outputs: StackOutput[];
 }
 
 export class VpcStack extends NestedStack {
@@ -92,19 +93,8 @@ export class VpcStack extends NestedStack {
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name, props);
 
-    // Create TGW Before Creating VPC
-    let tgw;
-    const tgwDeployment = props.vpcProps.tgwDeployment;
-    if (tgwDeployment) {
-      tgw = new TransitGateway(this, tgwDeployment.name, tgwDeployment);
-      props.transitGateways.set(tgwDeployment.name, tgw);
-    }
-
     // Create the VPC
     this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
-    if (tgw) {
-      this.vpc.node.addDependency(tgw);
-    }
   }
 }
 
@@ -276,9 +266,13 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     }
 
     let tgwAttachment;
+    const tgwOutputs = getStackJsonOutput(props.outputs, {
+      accountKey,
+      outputType: 'TransitGatewayOutput',
+    });
+    const tgw = tgwOutputs[0];
     if (config.TransitGatewayAttachConfigType.is(tgwAttach)) {
       const tgwName = tgwAttach['associate-to-tgw'];
-      const tgw = props.transitGateways.get(tgwName);
       if (!tgw) {
         console.warn(`Cannot find transit gateway with name "${tgwName}"`);
       } else {
@@ -291,8 +285,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
         );
 
-        const tgwRouteAssociates = associateConfig.map(route => tgw.getRouteTableIdByName(route)!);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.getRouteTableIdByName(route)!);
+        const tgwRouteAssociates = associateConfig.map(route => tgw.tgwRouteTableNameToIdMap[route]);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw.tgwRouteTableNameToIdMap[route]);
 
         // Attach VPC To TGW
         tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
@@ -339,12 +333,10 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             continue;
           } else if (route.target === 'TGW' && config.TransitGatewayAttachConfigType.is(tgwAttach) && tgwAttachment) {
             const tgwName = tgwAttach['associate-to-tgw'];
-            const tgw = props.transitGateways.get(tgwName);
-            dependsOn = tgw?.tgw;
             const tgwRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
               routeTableId: routeTableObj,
               destinationCidrBlock: route.destination as string,
-              transitGatewayId: tgw?.tgwId,
+              transitGatewayId: tgw.tgwId,
             });
             tgwRoute.addDependsOn(tgwAttachment.tgwAttach);
             continue;
