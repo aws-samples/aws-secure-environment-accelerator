@@ -144,6 +144,5 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
     outputs,
-    acceleratorPrefix: context.acceleratorPrefix,
   });
 }
