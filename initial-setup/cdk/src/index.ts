@@ -18,6 +18,7 @@ import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
+import { RunAcrossAccountsTask } from './tasks/run-accross-accounts-task';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -366,6 +367,31 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const deleteVpcSfn = new sfn.StateMachine(this, 'Delete Default Vpcs Sfn', {
+        stateMachineName: `${props.acceleratorPrefix}DeleteDefaultVpcs_sfn`,
+        definition: new RunAcrossAccountsTask(this, 'DeleteDefaultVPCs', {
+          lambdaCode,
+          role: pipelineRole,
+          assumeRoleName: props.stateMachineExecutionRole,
+          lambdaPath: 'index.deleteDefaultVpcs',
+          name: 'Delete Default VPC',
+        }),
+      });
+
+      const deleteVpcTask = new sfn.Task(this, 'Delete Default Vpcs', {
+        task: new tasks.StartExecution(deleteVpcSfn, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            configRepositoryName: props.configRepositoryName,
+            configFilePath: props.configFilePath,
+            'configCommitId.$': '$.configCommitId',
+            'baseline.$': '$.baseline',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       const loadLimitsTask = new CodeTask(this, 'Load Limits', {
         functionProps: {
           code: lambdaCode,
@@ -599,6 +625,7 @@ export namespace InitialSetup {
 
       const commonDefinition = loadAccountsTask.startState
         .next(installRolesTask)
+        .next(deleteVpcTask)
         .next(loadLimitsTask)
         .next(enableTrustedAccessForServicesTask)
         .next(deployPhase0Task)
