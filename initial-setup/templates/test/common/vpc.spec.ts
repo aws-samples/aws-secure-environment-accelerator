@@ -91,13 +91,11 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-    },
-    transitGateways: new Map<string, TransitGateway>(),
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    transitGateways: {},
   });
 
   // Convert the stack to a CloudFormation template
@@ -210,13 +208,11 @@ test('the VPC creation should throw an error when a subnet uses a route table th
   });
   expect(() => {
     new Vpc(stack, 'SharedNetwork', {
-      vpcProps: {
-        accountKey: 'master',
-        accounts: [],
-        vpcConfig,
-        limiter: new Limiter([]),
-      },
-      transitGateways: new Map<string, TransitGateway>(),
+      accountKey: 'master',
+      accounts: [],
+      vpcConfig,
+      limiter: new Limiter([]),
+      transitGateways: {},
     });
   });
 });
@@ -236,13 +232,11 @@ test('the VPC creation should create the internet gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-    },
-    transitGateways: new Map<string, TransitGateway>(),
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    transitGateways: {},
   });
 
   // Convert the stack to a CloudFormation template
@@ -270,13 +264,11 @@ test('the VPC creation should create the VPN gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-    },
-    transitGateways: new Map<string, TransitGateway>(),
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    transitGateways: {},
   });
 
   // Convert the stack to a CloudFormation template
@@ -387,13 +379,11 @@ test('the VPC creation should create the NAT gateway', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-    },
-    transitGateways: new Map<string, TransitGateway>(),
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    transitGateways: {},
   });
 
   // Convert the stack to a CloudFormation template

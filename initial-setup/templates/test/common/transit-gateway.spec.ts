@@ -15,6 +15,7 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
     parse(TgwDeploymentConfigType, {
       name: 'Main',
       asn: 64512,
+      region: 'ca-central-1',
       features: {
         'DNS-support': true,
         'VPN-ECMP-support': true,
