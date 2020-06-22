@@ -136,7 +136,7 @@ export function createAlb(
   }
 
   const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
-    albName: `${albConfig.name}-${accountKey}-alb`,
+    albName: createAlbName(albConfig.name, accountKey, cdk.Aws.ACCOUNT_ID),
     scheme: albConfig.scheme,
     subnetIds: subnets.map(s => s.subnetId),
     securityGroupIds: [securityGroupId],
@@ -310,4 +310,16 @@ export function getEc2InstanceIds(
     }
   }
   return instanceIds;
+}
+
+function createAlbName(
+  albName: string,
+  accountKey: string,
+  accountNumber: string,
+): string {
+  const albNameAccountKey = albName + accountKey;
+  if (albNameAccountKey.length > 28) {
+    return albName.length > 16 ? albName.substring(0, 16) : albName + accountNumber + '-alb';
+  }
+  return albNameAccountKey + '-alb';
 }
