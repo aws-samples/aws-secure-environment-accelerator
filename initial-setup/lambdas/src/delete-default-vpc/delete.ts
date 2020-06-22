@@ -9,6 +9,17 @@ interface DeleteVPCInput extends LoadConfigurationInput {
   assumeRoleName: string;
 }
 
+const CustomErrorMessage = [
+  {
+    code: 'AuthFailure',
+    message: 'Region Not Enabled',
+  },
+  {
+    code: 'OptInRequired',
+    message: 'Region not Opted-in',
+  },
+];
+
 const sts = new STS();
 export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   console.log(`Deleting Default VPC in account ...`);
@@ -42,7 +53,7 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
         errors.push(...deleteErrors);
       }
     } catch (error) {
-      errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
+      errors.push(`${accountId}:${region}: ${error.code}: ${CustomErrorMessage.find(cm => cm.code)?.message || error.message}`);
       continue;
     }
   }
