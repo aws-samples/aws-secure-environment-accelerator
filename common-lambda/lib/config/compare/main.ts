@@ -33,7 +33,6 @@ export async function compareAcceleratorConfig(props: {
 
   // compare both the configurations
   const configChanges = compareConfiguration(previousConfig, modifiedConfig);
-  // console.log(configChanges);
   if (!configChanges) {
     console.log('no differences found');
     return errors;

@@ -1,9 +1,7 @@
 import * as t from 'io-ts';
-import { availabilityZone, cidr, optional, region, enumType } from './types';
-import { PathReporter } from './reporter';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
-import { isLeft } from 'fp-ts/lib/Either';
+import { availabilityZone, cidr, optional, region, enumType, parse } from '@aws-pbmm/common-types';
 
 export const MANDATORY_ACCOUNT_TYPES = ['master', 'central-security', 'central-log', 'central-operations'] as const;
 
@@ -438,6 +436,10 @@ export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
 
+export const BASELINE_TYPES = ['LANDING_ZONE', 'ORGANIZATIONS', 'CONTROL_TOWER'] as const;
+export const BaseLineConfigType = enumType<typeof BASELINE_TYPES[number]>(BASELINE_TYPES);
+export type BaseLineType = t.TypeOf<typeof BaseLineConfigType>;
+
 export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
@@ -565,6 +567,11 @@ export const IamAccountPasswordPolicyType = t.interface({
   'max-password-age': t.number,
 });
 
+export const CwlExclusions = t.interface({
+  account: t.string,
+  exclusions: t.array(t.string),
+});
+
 export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,
   region: NonEmptyString,
@@ -576,6 +583,7 @@ export const CentralServicesConfigType = t.interface({
   'cwl-glbl-exclusions': optional(t.array(t.string)),
   'ssm-to-s3': optional(t.boolean),
   'ssm-to-cwl': optional(t.boolean),
+  'cwl-exclusions': optional(t.array(CwlExclusions)),
 });
 
 export const ScpsConfigType = t.interface({
@@ -600,6 +608,8 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-services': CentralServicesConfigType,
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
+  'organization-admin-role': NonEmptyString,
+  'supported-regions': t.array(t.string),
   'iam-password-policies': IamAccountPasswordPolicyType,
 });
 
@@ -971,16 +981,6 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
     const values = parse(AcceleratorConfigType, content);
     return new AcceleratorConfig(values);
   }
-}
-
-export function parse<S, T>(type: t.Decoder<S, T>, content: S): T {
-  const result = type.decode(content);
-  if (isLeft(result)) {
-    const errors = PathReporter.report(result).map(error => `* ${error}`);
-    const errorMessage = errors.join('\n');
-    throw new Error(`Could not parse content:\n${errorMessage}`);
-  }
-  return result.right;
 }
 
 function priorityByOuType(ou1: OrganizationalUnit, ou2: OrganizationalUnit) {
