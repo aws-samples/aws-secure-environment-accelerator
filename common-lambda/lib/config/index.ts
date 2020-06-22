@@ -487,6 +487,7 @@ export const MandatoryAccountConfigType = t.interface({
   'log-retention': optional(t.number),
   budget: optional(BudgetConfigType),
   'account-warming-required': optional(t.boolean),
+  'cwl-retention': optional(t.number),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -612,6 +613,7 @@ export const GlobalOptionsConfigType = t.interface({
   'supported-regions': t.array(t.string),
   'keep-default-vpc-regions': t.array(t.string),
   'iam-password-policies': IamAccountPasswordPolicyType,
+  'default-cwl-retention': t.number,
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

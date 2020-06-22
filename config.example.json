@@ -7,6 +7,7 @@
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "default-cwl-retention": 365,
     "supported-regions": [
       "af-south-1",
       "ap-east-1",
@@ -71,7 +72,7 @@
         "additional-schema-elements": ["RESOURCES"],
         "compression": "Parquet",
         "format": "Parquet",
-        "report-name": "cost-and-usage-report",
+        "report-name": "Cost-and-Usage-Report",
         "s3-prefix": "cur",
         "time-unit": "HOURLY",
         "additional-artifacts": ["ATHENA"],
@@ -435,7 +436,7 @@
             {
               "user": "User1",
               "email": "myemail+pbmmT-User1@example.com",
-              "groups": ["Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
+              "groups": ["aws-Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
             },
             {
               "user": "User2",
@@ -526,8 +527,8 @@
         {
           "name": "PerimSelf-SignedCert",
           "type": "import",
-          "priv-key": "certs/domain1.key",
-          "cert": "certs/domain1.crt"
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
         }
       ],
       "alb": [
@@ -914,15 +915,15 @@
               ]
             },
             {
-              "name": "Firewall",
+              "name": "Firewalls",
               "inbound-rules": [
                 {
-                  "description": "Web Traffic Inbound",
+                  "description": "Fortigate Mgmt Traffic Inbound",
                   "tcp-ports": [22, 443, 541, 3000, 8080],
                   "source": ["0.0.0.0/0"]
                 },
                 {
-                  "description": "Mgmt Traffic and AWS Outbound traffic",
+                  "description": "AWS Outbound traffic and ALBs",
                   "type": ["ALL"],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
@@ -949,7 +950,7 @@
           "image-id": "ami-047aac44951feb9fb",
           "instance-sizes": "c5n.2xlarge",
           "region": "ca-central-1",
-          "security-group": "Firewall",
+          "security-group": "Firewalls",
           "fw-instance-role": "Firewall-Role",
           "vpc": "Perimeter",
           "ports": [
@@ -3088,7 +3089,7 @@
         ]
       }
     },
-    "Unclass": {
+    "UnClass": {
       "type": "workload",
       "share-mad-from": "operations",
       "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
