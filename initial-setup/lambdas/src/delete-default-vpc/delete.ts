@@ -9,6 +9,7 @@ interface DeleteVPCInput extends LoadConfigurationInput {
   assumeRoleName: string;
 }
 
+const sts = new STS();
 export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   console.log(`Deleting Default VPC in account ...`);
   console.log(JSON.stringify(input, null, 2));
@@ -27,7 +28,6 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   console.log(`${accountId}: Excluding Deletion of  Default VPC for regions from account "${accountId}"...`);
   console.log(`${accountId}: ${JSON.stringify(excludeRegions, null, 2)}`);
   const errors: string[] = [];
-  const sts = new STS();
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   for (const region of regions) {
     console.log(`Deleting Default vpc in ${region}`);
@@ -38,7 +38,7 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
         continue;
       }
       for (const vpc of defaultVpcs) {
-        const deleteErrors = await deleteDefaultVpc(ec2, vpc.VpcId!, accountId, region);
+        const deleteErrors = await deleteVpc(ec2, vpc.VpcId!, accountId, region);
         errors.push(...deleteErrors);
       }
     } catch (error) {
@@ -51,7 +51,7 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   return errors;
 };
 
-async function deleteDefaultVpc(ec2: EC2, vpcId: string, accountId: string, region: string): Promise<string[]> {
+async function deleteVpc(ec2: EC2, vpcId: string, accountId: string, region: string): Promise<string[]> {
   const errors: string[] = [];
   // List all Subnets to delete
   const subnets = await ec2.listSubnets({

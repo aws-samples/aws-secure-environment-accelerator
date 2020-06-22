@@ -372,8 +372,9 @@ export namespace InitialSetup {
         definition: new RunAcrossAccountsTask(this, 'DeleteDefaultVPCs', {
           lambdaCode,
           role: pipelineRole,
-          type: 'DeleteDefaultVPC',
           assumeRoleName: props.stateMachineExecutionRole,
+          lambdaPath: 'index.deleteDefaultVpcs',
+          name: 'Delete Default VPC',
         }),
       });
 
@@ -385,6 +386,7 @@ export namespace InitialSetup {
             configRepositoryName: props.configRepositoryName,
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
+            'baseline.$': '$.baseline',
           },
         }),
         resultPath: 'DISCARD',

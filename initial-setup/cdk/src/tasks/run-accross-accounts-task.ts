@@ -4,22 +4,16 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 
-const runOptions = [
-  {
-    type: 'DeleteDefaultVPC',
-    permissions: [],
-    lambdaPath: 'index.deleteDefaultVpcs',
-    verboseNamePlural: 'Delete Default VPCs',
-    verboseName: 'Delete Default VPC',
-  },
-];
 export namespace RunAcrossAccountsTask {
   export interface Props {
     role: iam.IRole;
     lambdaCode: lambda.Code;
     waitSeconds?: number;
-    type: string;
     assumeRoleName: string;
+    lambdaPath: string;
+    name: string;
+    permissions?: string[];
+    baselineCheck?: boolean;
   }
 }
 
@@ -30,12 +24,8 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: RunAcrossAccountsTask.Props) {
     super(scope, id);
 
-    const { role, lambdaCode, type, waitSeconds = 60, assumeRoleName } = props;
+    const { role, lambdaCode, name, lambdaPath, permissions, assumeRoleName, baselineCheck, waitSeconds = 60 } = props;
 
-    const options = runOptions.find(op => op.type === type);
-    if (!options) {
-      throw new Error(`Invalid type supplied "${type}", please add proper config in run accross accounts task`);
-    }
     role.addToPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -43,22 +33,22 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       }),
     );
-    if (options.permissions.length > 0) {
+    if (permissions && permissions.length > 0) {
       role.addToPolicy(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           resources: ['*'],
-          actions: options.permissions,
+          actions: permissions,
         }),
       );
     }
 
-    const runTask = new CodeTask(scope, options.verboseName, {
+    const runTask = new CodeTask(scope, name, {
       resultPath: '$',
       functionProps: {
         role,
         code: lambdaCode,
-        handler: `${options.lambdaPath}.run`,
+        handler: `${lambdaPath}.run`,
       },
       functionPayload: {
         'account.$': '$.account',
@@ -70,7 +60,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
     });
 
     // Create Map task to iterate
-    const mapTask = new sfn.Map(this, options.verboseNamePlural, {
+    const mapTask = new sfn.Map(this, `${name} Map`, {
       itemsPath: '$.accounts',
       resultPath: '$.errors',
       maxConcurrency: 1,
@@ -84,12 +74,12 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
     });
     mapTask.iterator(runTask);
 
-    const verifyTask = new CodeTask(scope, `${options.verboseNamePlural} Verify`, {
+    const verifyTask = new CodeTask(scope, `${name} Verify`, {
       resultPath: '$',
       functionProps: {
         role,
         code: lambdaCode,
-        handler: `${options.lambdaPath}.verify`,
+        handler: `${lambdaPath}.verify`,
       },
       inputPath: '$',
     });
@@ -104,9 +94,23 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
       .when(sfn.Condition.stringEquals('$.status', 'SUCCESS'), pass)
       .otherwise(fail);
 
-    const chain = sfn.Chain.start(mapTask).next(verifyTask).next(isTaskSuccess);
+    let chain: sfn.Chain;
+    if (baselineCheck) {
+      mapTask.next(verifyTask).next(isTaskSuccess);
+      // Add more conditions if required.
+      const baselineChoice = new sfn.Choice(scope, `${name}Baseline?`, {
+        comment: 'Baseline?'
+      })
+        .when(sfn.Condition.stringEquals(`$.baseline`, 'ORGANIZATIONS'), mapTask)
+        .otherwise(pass)
+      chain = sfn.Chain.start(baselineChoice);
+    } else {
+      chain = sfn.Chain.start(mapTask)
+        .next(verifyTask)
+        .next(isTaskSuccess);
+    }
 
     this.startState = chain.startState;
-    this.endStates = fail.endStates;
+    this.endStates = chain.endStates;
   }
 }

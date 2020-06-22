@@ -17,17 +17,14 @@ export const handler = async (input: VerifyDeleteVPCInput): Promise<VerifyDelete
   console.log(`Verifying Delete VPC Output...`);
   console.log(JSON.stringify(input, null, 2));
   const { errors } = input;
-  const finalErros: string[] = [];
-  for (const accountErrors of errors) {
-    finalErros.push(...accountErrors);
-  }
+  const finalErrors = errors.flatMap(accountErrors => accountErrors);
   let status = 'SUCCESS';
-  if (finalErros.length > 0) {
+  if (finalErrors.length > 0) {
     status = 'FAILED';
   }
-  console.log(status, finalErros);
+  console.log(status, finalErrors);
   return {
     status,
-    errors: finalErros,
+    errors: finalErrors,
   };
 };
