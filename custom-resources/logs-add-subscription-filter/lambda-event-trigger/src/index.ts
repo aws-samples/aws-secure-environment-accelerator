@@ -25,6 +25,11 @@ export const handler = async (input: any): Promise<string> => {
     return `No Need of Subscription Filter for "${logGroupName}"`;
   }
   await addSubscriptionFilter(logGroupName, logDestinationArn);
+  const logRetention = process.env.LOG_RETENTION;
+  if (logRetention) {
+    // Update Log Retention Policy
+    await putLogRetentionPolicy(logGroupName!, Number(logRetention));
+  }
   return 'SUCCESS';
 };
 
@@ -52,3 +57,16 @@ const isExcluded = (exclusions: string[], logGroupName: string): boolean => {
   }
   return false;
 };
+
+async function putLogRetentionPolicy(logGroupName: string, retentionInDays: number) {
+  try {
+    await throttlingBackOff(() =>
+      logs.putRetentionPolicy({
+        logGroupName,
+        retentionInDays
+      }).promise()
+    );
+  } catch (error) {
+    console.error(`Error while updating retention policy on "${logGroupName}": ${error.message}`);
+  }
+}
