@@ -19,6 +19,7 @@ import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
 import * as madDeployment from '../deployments/mad';
+import * as vpcDeployment from '../deployments/vpc';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -213,6 +214,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await vpcDeployment.step2({
+    accountBuckets,
     accountStacks,
     config: acceleratorConfig,
     outputs,

@@ -25,7 +25,7 @@ export interface FirewallStep2Props {
    *
    * TODO Find a better way to pass around the transit gateway.
    */
-  transitGateways: Map<string, TransitGateway>;
+  transitGateways: { [name: string]: TransitGateway };
 }
 
 /**
@@ -63,7 +63,7 @@ export async function step2(props: FirewallStep2Props) {
     const tgwName = tgwAttach['associate-to-tgw'];
 
     // TODO Validate account
-    const transitGateway = transitGateways.get(tgwName);
+    const transitGateway = transitGateways[tgwName];
     if (!transitGateway) {
       console.warn(`Cannot find transit gateway "${tgwName}" in account "${tgwAccountKey}"`);
       continue;

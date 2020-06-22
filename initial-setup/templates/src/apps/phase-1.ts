@@ -1,10 +1,8 @@
 import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
-import { FlowLogContainer } from '../common/flow-log-container';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
@@ -68,10 +66,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
 
-  const transitGateways = new Map<string, TransitGateway>();
-
-  const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
-
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
     accountStacks,
@@ -129,33 +123,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     );
   };
 
-  // Auxiliary method to create a VPC stack the account with given account key
-  // Only one VPC stack per account is created
-  const getFlowLogContainer = (accountKey: string, region: string): FlowLogContainer | undefined => {
-    if (flowLogContainers[accountKey]) {
-      return flowLogContainers[accountKey];
-    }
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      return;
-    }
-    const accountBucket = accountBuckets[accountKey];
-    if (!accountBucket) {
-      console.warn(`Cannot find account bucket ${accountKey}`);
-      return;
-    }
-
-    const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
-      bucket: accountBucket,
-    });
-    flowLogContainers[accountKey] = flowLogContainer;
-    return flowLogContainer;
-  };
-
   // Auxiliary method to create a VPC in the account with given account key
-  const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
+  const createVpc = (
+    accountKey: string,
+    props: VpcProps,
+  ): Vpc | undefined => {
     const { vpcConfig } = props;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
@@ -166,10 +138,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
-    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
-      vpcProps: props,
-      transitGateways,
-    });
+    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, props);
     const vpc = vpcStack.vpc;
 
     const endpointConfig = vpcConfig['interface-endpoints'];
@@ -206,22 +175,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       }
     }
 
-    // Enable flow logging if necessary
-    const flowLogs = vpcConfig['flow-logs'];
-    if (flowLogs) {
-      const flowLogContainer = getFlowLogContainer(accountKey, vpcConfig.region);
-      if (flowLogContainer) {
-        new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
-          deliverLogsPermissionArn: flowLogContainer.role.roleArn,
-          resourceId: vpc.vpcId,
-          resourceType: 'VPC',
-          trafficType: ec2.FlowLogTrafficType.ALL,
-          logDestination: flowLogContainer.destination,
-          logDestinationType: ec2.FlowLogDestinationType.S3,
-        });
-      }
-    }
-
     // Prepare the output for next phases
     const vpcOutput: VpcOutput = {
       vpcId: vpc.vpcId,
@@ -253,6 +206,24 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     return vpcStack.vpc;
   };
 
+  // TODO Move to deployments/transit-gateway
+  const transitGateways: { [accountKey: string]: TransitGateway } = {};
+  for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
+    const tgwConfig = accountConfig.deployments?.tgw;
+    if (!tgwConfig) {
+      continue;
+    }
+
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, tgwConfig.region);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey}`);
+      return;
+    }
+
+    const transitGateway = new TransitGateway(accountStack, `Tgw${tgwConfig.name}`, tgwConfig);
+    transitGateways[tgwConfig.name] = transitGateway;
+  }
+
   const subscriptionCheckDone: string[] = [];
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
@@ -276,6 +247,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
+      transitGateways,
     });
 
     const pcxConfig = vpcConfig.pcx;
@@ -297,6 +269,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
 
     // Validate subscription for Firewall images only once per account
+    // TODO Add region to check
+    // TODO Check if VPC or deployments exists
     if (!subscriptionCheckDone.includes(accountKey)) {
       console.log(`Checking Subscription for ${accountKey}`);
       await firewallSubscription.validate({

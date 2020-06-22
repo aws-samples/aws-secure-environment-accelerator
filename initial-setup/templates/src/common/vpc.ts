@@ -79,32 +79,18 @@ export class AzSubnets {
   }
 }
 
-export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
-
-export interface VpcStackProps extends NestedStackProps {
-  vpcProps: VpcProps;
-  transitGateways: Map<string, TransitGateway>;
+export interface VpcProps extends VpcCommonProps {
+  transitGateways: { [accountKey: string]: TransitGateway };
 }
 
 export class VpcStack extends NestedStack {
   readonly vpc: Vpc;
 
-  constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
-    super(scope, name, props);
-
-    // Create TGW Before Creating VPC
-    let tgw;
-    const tgwDeployment = props.vpcProps.tgwDeployment;
-    if (tgwDeployment) {
-      tgw = new TransitGateway(this, tgwDeployment.name, tgwDeployment);
-      props.transitGateways.set(tgwDeployment.name, tgw);
-    }
+  constructor(scope: cdk.Construct, name: string, props: VpcProps) {
+    super(scope, name);
 
     // Create the VPC
-    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
-    if (tgw) {
-      this.vpc.node.addDependency(tgw);
-    }
+    this.vpc = new Vpc(this, props.vpcConfig.name, props);
   }
 }
 
@@ -129,8 +115,11 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
 
-  constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
+  constructor(scope: cdk.Construct, name: string, vpcProps: VpcProps) {
     super(scope, name);
+
+    // TODO Remove this dummy variable
+    const props = { vpcProps };
 
     const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, vpcConfigs } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
@@ -278,7 +267,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     let tgwAttachment;
     if (config.TransitGatewayAttachConfigType.is(tgwAttach)) {
       const tgwName = tgwAttach['associate-to-tgw'];
-      const tgw = props.transitGateways.get(tgwName);
+      const tgw = vpcProps.transitGateways[tgwName];
       if (!tgw) {
         console.warn(`Cannot find transit gateway with name "${tgwName}"`);
       } else {
@@ -339,7 +328,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             continue;
           } else if (route.target === 'TGW' && config.TransitGatewayAttachConfigType.is(tgwAttach) && tgwAttachment) {
             const tgwName = tgwAttach['associate-to-tgw'];
-            const tgw = props.transitGateways.get(tgwName);
+            const tgw = vpcProps.transitGateways[tgwName];
             dependsOn = tgw?.tgw;
             const tgwRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
               routeTableId: routeTableObj,
