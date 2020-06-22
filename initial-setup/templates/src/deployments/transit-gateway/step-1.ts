@@ -35,6 +35,7 @@ export async function step1(props: TransitGatewayStep1Props) {
 
       // Save Transit Gateway Output
       const tgwOutput = {
+        name: tgwDeployment.name,
         tgwId: tgw.tgwId,
         tgwRouteTableNameToIdMap: tgw.tgwRouteTableNameToIdMap,
       };
