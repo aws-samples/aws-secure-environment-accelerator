@@ -185,6 +185,7 @@ export namespace InitialSetup {
       });
 
       const createAccountTask = new sfn.Task(this, 'Create Account', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createAccountStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -232,6 +233,7 @@ export namespace InitialSetup {
       });
 
       const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(installRolesStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -311,6 +313,7 @@ export namespace InitialSetup {
       // TODO Move this to a separate state machine, including store output task
       const createDeploymentTask = (phase: number) => {
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
+          // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(codeBuildStateMachine, {
             integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
             input: {
@@ -431,6 +434,7 @@ export namespace InitialSetup {
       });
 
       const createAdConnectorTask = new sfn.Task(this, 'Create AD Connector', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createAdConnectorStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {

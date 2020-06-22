@@ -218,7 +218,7 @@ export function createLambdaRole(scope: cdk.Construct) {
     ],
   });
 
-  elbLambdaAccessRole.addToPolicy(
+  elbLambdaAccessRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       resources: ['arn:aws:logs:*:*:*'],
       actions: ['sts:AssumeRole', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],

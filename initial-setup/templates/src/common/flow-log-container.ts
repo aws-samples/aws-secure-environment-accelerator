@@ -26,7 +26,7 @@ export class FlowLogContainer extends cdk.Construct {
       assumedBy: new iam.ServicePrincipal('vpc-flow-logs.amazonaws.com'),
     });
 
-    this.role.addToPolicy(
+    this.role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['logs:CreateLogDelivery', 'logs:DeleteLogDelivery'],
         resources: ['*'],
@@ -34,7 +34,7 @@ export class FlowLogContainer extends cdk.Construct {
     );
 
     // Give the role access to the flow log bucket
-    this.role.addToPolicy(
+    this.role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['s3:*'],
         resources: [this.bucket.bucketArn, this.destination],

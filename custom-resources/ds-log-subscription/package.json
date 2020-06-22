@@ -12,17 +12,17 @@
     "typescript": "3.8.3"
   },
   "dependencies": {
-    "@aws-cdk/aws-directoryservice": "1.38.0",
-    "@aws-cdk/aws-iam": "1.38.0",
-    "@aws-cdk/aws-logs": "1.38.0",
-    "@aws-cdk/core": "1.38.0",
-    "@aws-cdk/custom-resources": "1.38.0"
+    "@aws-cdk/aws-directoryservice": "1.46.0",
+    "@aws-cdk/aws-iam": "1.46.0",
+    "@aws-cdk/aws-logs": "1.46.0",
+    "@aws-cdk/core": "1.46.0",
+    "@aws-cdk/custom-resources": "1.46.0"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-directoryservice": "^1.38.0",
-    "@aws-cdk/aws-iam": "^1.38.0",
-    "@aws-cdk/aws-logs": "^1.38.0",
-    "@aws-cdk/core": "^1.38.0",
-    "@aws-cdk/custom-resources": "^1.38.0"
+    "@aws-cdk/aws-directoryservice": "^1.46.0",
+    "@aws-cdk/aws-iam": "^1.46.0",
+    "@aws-cdk/aws-logs": "^1.46.0",
+    "@aws-cdk/core": "^1.46.0",
+    "@aws-cdk/custom-resources": "^1.46.0"
   }
 }
