@@ -24,23 +24,13 @@ export function createKeyPairName(name: string): string {
   });
 }
 
-export function createLogGroupName(name: string): string {
+export function createLogGroupName(name: string, suffixLength?: number): string {
   return (
     '/' +
     createName({
       name,
       separator: '/',
-    })
-  );
-}
-
-export function createCloudTrailLogGroupName(name: string): string {
-  return (
-    '/' +
-    createName({
-      name,
-      suffixLength: 0,
-      separator: '/',
+      suffixLength,
     })
   );
 }
