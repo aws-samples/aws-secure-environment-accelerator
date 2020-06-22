@@ -38,7 +38,7 @@ export async function step1(props: CreateCloudTrailProps) {
   }
 
   const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
-  console.log('AWS LZ CloudTrail S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
+  console.log('AWS S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
   if (!s3KmsKeyArn) {
     console.warn(`cannot found LogArchive account KMS key Arn`);
     return;
