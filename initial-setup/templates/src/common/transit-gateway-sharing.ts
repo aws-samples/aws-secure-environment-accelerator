@@ -1,7 +1,6 @@
 import { Construct } from '@aws-cdk/core';
 import * as ram from '@aws-cdk/aws-ram';
 
-
 export interface TransitGatewaySharingProps {
   name: string;
   region: string;

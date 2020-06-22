@@ -37,7 +37,7 @@ export async function step1(props: TransitGatewayStep1Props) {
       const tgwOutput = {
         tgwId: tgw.tgwId,
         tgwRouteTableNameToIdMap: tgw.tgwRouteTableNameToIdMap,
-      }
+      };
       new JsonOutputValue(tgw, `TgwOutput`, {
         type: 'TgwOutput',
         value: tgwOutput,
