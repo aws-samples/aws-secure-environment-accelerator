@@ -34,6 +34,17 @@ export function createLogGroupName(name: string): string {
   );
 }
 
+export function createCloudTrailLogGroupName(name: string): string {
+  return (
+    '/' +
+    createName({
+      name,
+      suffixLength: 8,
+      separator: '/',
+    })
+  );
+}
+
 const DEFAULT_SEPARATOR = '-';
 
 export interface CreateNameProps {
