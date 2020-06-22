@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { optional } from '@aws-pbmm/common-types';
+import { optional } from '@aws-pbmm/common-lambda/lib/config/types';
 
 export const FirewallInstanceOutputType = t.interface(
   {

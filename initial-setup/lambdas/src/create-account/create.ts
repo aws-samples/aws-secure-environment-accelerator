@@ -1,7 +1,6 @@
-import { AccountVendingMachine } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
+import { AccountVendingMachine, CreateAccountOutput } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
 import { ConfigurationAccount } from '../load-configuration-step';
 import { ServiceCatalog } from '@aws-pbmm/common-lambda/lib/aws/service-catalog';
-import { CreateAccountOutput } from '@aws-pbmm/common-lambda/lib/aws/types/account';
 
 interface CreateMasterExecutionRoleInput {
   avmPortfolioName: string;

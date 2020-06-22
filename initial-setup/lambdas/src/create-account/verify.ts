@@ -1,6 +1,5 @@
-import { AccountVendingMachine } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
+import { AccountAvailableOutput, AccountVendingMachine } from '@aws-pbmm/common-lambda/lib/aws/account-vending-machine';
 import { ConfigurationAccount } from '../load-configuration-step';
-import { AccountAvailableOutput } from '@aws-pbmm/common-lambda/lib/aws/types/account';
 
 interface CheckStepInput {
   account: ConfigurationAccount;

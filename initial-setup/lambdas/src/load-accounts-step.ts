@@ -26,21 +26,16 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const accounts = [];
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
-    organizationAccount = organizationAccounts.find(a => {
-      return a.Email === accountConfig.emailAddress;
-    });
-
-    // TODO Removing "landingZoneAccountType" check for mandatory account. Can be replaced with "accountName" after proper testing
-    // if (accountConfig.landingZoneAccountType === 'primary') {
-    //   // Only filter on the email address if we are dealing with the master account
-    //   organizationAccount = organizationAccounts.find(a => {
-    //     return a.Email === accountConfig.emailAddress;
-    //   });
-    // } else {
-    //   organizationAccount = organizationAccounts.find(a => {
-    //     return a.Name === accountConfig.accountName && a.Email === accountConfig.emailAddress;
-    //   });
-    // }
+    if (accountConfig.landingZoneAccountType === 'primary') {
+      // Only filter on the email address if we are dealing with the master account
+      organizationAccount = organizationAccounts.find(a => {
+        return a.Email === accountConfig.emailAddress;
+      });
+    } else {
+      organizationAccount = organizationAccounts.find(a => {
+        return a.Name === accountConfig.accountName && a.Email === accountConfig.emailAddress;
+      });
+    }
     if (!organizationAccount) {
       if (!accountConfig.isMandatoryAccount) {
         console.warn(

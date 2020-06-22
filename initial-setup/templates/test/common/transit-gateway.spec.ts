@@ -1,8 +1,7 @@
 // tslint:disable:no-any
 import 'jest';
 import * as cdk from '@aws-cdk/core';
-import { parse } from '@aws-pbmm/common-types';
-import { TgwDeploymentConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { parse, TgwDeploymentConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { TransitGateway } from '../../src/common/transit-gateway';
 

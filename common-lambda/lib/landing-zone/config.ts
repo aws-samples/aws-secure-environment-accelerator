@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { fromNullable } from 'io-ts-types/lib/fromNullable';
 import * as yaml from 'js-yaml';
-import { optional, parse } from '@aws-pbmm/common-types';
+import { parse } from '../config';
+import { optional } from '../config/types';
 
 export const AccountConfigType = t.interface({
   name: t.string,

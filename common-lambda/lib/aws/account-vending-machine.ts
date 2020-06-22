@@ -2,12 +2,38 @@ import * as aws from 'aws-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import { ProductAVMParam, ServiceCatalog } from './service-catalog';
 import { STS } from './sts';
-import { CreateAccountInput, CreateAccountOutput, AccountAvailableOutput } from './types/account';
 
-export interface CreateAvmAccountInput extends CreateAccountInput {
+export interface CreateAccountInput {
   avmPortfolioName: string;
   avmProductName: string;
+  accountName: string;
+  emailAddress: string;
+  organizationalUnit: string;
 }
+
+export type CreateAccountOutputStatus =
+  | 'SUCCESS'
+  | 'FAILURE'
+  | 'ALREADY_EXISTS'
+  | 'NOT_RELEVANT'
+  | 'NON_MANDATORY_ACCOUNT_FAILURE';
+
+export interface CreateAccountOutput {
+  status?: CreateAccountOutputStatus;
+  statusReason?: string;
+  provisionedProductStatus?: string;
+  provisionToken?: string;
+}
+
+export type AccountAvailableStatus = 'SUCCESS' | 'FAILURE' | 'IN_PROGRESS' | 'NON_MANDATORY_ACCOUNT_FAILURE';
+
+export interface AccountAvailableOutput {
+  status?: AccountAvailableStatus;
+  statusReason?: string;
+  provisionedProductStatus?: string;
+  provisionToken?: string;
+}
+
 export class AccountVendingMachine {
   private readonly client: ServiceCatalog;
   private readonly sts: STS;
@@ -20,7 +46,7 @@ export class AccountVendingMachine {
   /**
    * Create account using account-vending-machine
    */
-  async createAccount(input: CreateAvmAccountInput): Promise<CreateAccountOutput> {
+  async createAccount(input: CreateAccountInput): Promise<CreateAccountOutput> {
     const { avmPortfolioName, avmProductName, accountName, emailAddress, organizationalUnit } = input;
 
     // find service catalog portfolioId by name

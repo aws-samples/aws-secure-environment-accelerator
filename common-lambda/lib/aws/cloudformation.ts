@@ -81,7 +81,6 @@ export class CloudFormation {
    * Wrapper around AWS.CloudFormation.createStack.
    */
   async createStack(input: cfn.CreateStackInput): Promise<cfn.CreateStackOutput> {
-    input.EnableTerminationProtection = true;
     return this.client.createStack(input).promise();
   }
 

@@ -187,6 +187,8 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   // Allow Kinesis access bucket
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
+      // TODO: principal need to limit to kinesis iam roles
+      // "AWS": ["arn:aws:iam::{account-id}:role/{kinesis-iam-role}"]
       principals: accountPrincipals,
       actions: [
         's3:AbortMultipartUpload',
@@ -198,14 +200,6 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
         's3:PutObjectAcl',
       ],
       resources: [logBucket.bucketArn, `${logBucket.bucketArn}/*`],
-      conditions: {
-        StringEquals: {
-          'aws:PrincipalOrgID': organizations.organizationId,
-        },
-        ArnLike: {
-          'aws:PrincipalARN': `arn:aws:iam::*:role/${props.acceleratorPrefix}Kinesis-*`,
-        },
-      },
     }),
   );
 

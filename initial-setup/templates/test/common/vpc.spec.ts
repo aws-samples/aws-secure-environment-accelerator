@@ -1,8 +1,7 @@
 // tslint:disable:no-any
 import 'jest';
 import * as cdk from '@aws-cdk/core';
-import { parse } from '@aws-pbmm/common-types';
-import { VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { parse, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { Vpc } from '../../src/common/vpc';
 import { Limiter } from '../../src/utils/limits';

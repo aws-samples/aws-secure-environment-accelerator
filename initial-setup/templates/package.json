@@ -40,8 +40,6 @@
     "@aws-cdk/aws-ec2": "1.38.0",
     "@aws-cdk/aws-elasticloadbalancingv2": "1.38.0",
     "@aws-cdk/aws-iam": "1.38.0",
-    "@aws-cdk/aws-kinesis": "1.38.0",
-    "@aws-cdk/aws-kinesisfirehose": "1.38.0",
     "@aws-cdk/aws-kms": "1.38.0",
     "@aws-cdk/aws-lambda": "1.38.0",
     "@aws-cdk/aws-logs": "1.38.0",
@@ -55,13 +53,11 @@
     "@aws-cdk/aws-securityhub": "1.38.0",
     "@aws-cdk/aws-sns": "1.38.0",
     "@aws-cdk/aws-ssm": "1.38.0",
-    "@aws-cdk/aws-guardduty": "1.38.0",
     "@aws-cdk/core": "1.38.0",
     "@aws-cdk/custom-resources": "1.38.0",
     "@aws-pbmm/common-cdk": "workspace:^0.0.1",
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
     "@aws-pbmm/common-outputs": "workspace:^0.0.1",
-    "@aws-pbmm/common-types": "workspace:^0.0.1",
     "@aws-pbmm/constructs": "workspace:^0.0.1",
     "@custom-resources/acm-import-certificate": "workspace:^0.0.1",
     "@custom-resources/cfn-sleep": "workspace:^0.0.1",
@@ -76,10 +72,8 @@
     "@custom-resources/ec2-vpn-tunnel-options": "workspace:^0.0.1",
     "@custom-resources/iam-password-policy": "workspace:^0.0.1",
     "@custom-resources/kms-grant": "workspace:^0.0.1",
-    "@custom-resources/logs-add-subscription-filter": "workspace:^0.0.1",
     "@custom-resources/logs-log-group": "workspace:^0.0.1",
     "@custom-resources/logs-resource-policy": "workspace:^0.0.1",
-    "@custom-resources/organization": "workspace:^0.0.1",
     "@custom-resources/r53-dns-endpoint-ips": "workspace:^0.0.1",
     "@custom-resources/s3-copy-files": "workspace:^0.0.1",
     "@custom-resources/s3-public-access-block": "workspace:^0.0.1",
@@ -87,10 +81,7 @@
     "@custom-resources/security-hub-accept-invites": "workspace:^0.0.1",
     "@custom-resources/security-hub-enable": "workspace:^0.0.1",
     "@custom-resources/security-hub-send-invites": "workspace:^0.0.1",
-    "@custom-resources/guardduty-list-detector": "workspace:^0.0.1",
-    "@custom-resources/guardduty-enable-admin": "workspace:^0.0.1",
-    "@custom-resources/guardduty-create-member": "workspace:^0.0.1",
-    "@custom-resources/guardduty-update-config": "workspace:^0.0.1",
+    "@custom-resources/organization": "workspace:^0.0.1",
     "@types/cfn-response": "^1.0.3",
     "colors": "1.4.0",
     "constructs": "2.0.1",
@@ -102,9 +93,6 @@
   },
   "jest": {
     "preset": "ts-jest",
-    "testEnvironment": "node",
-    "testMatch": [
-      "<rootDir>/test/**/(*.)+(spec|test).ts"
-    ]
+    "testEnvironment": "node"
   }
 }
