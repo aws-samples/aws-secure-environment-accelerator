@@ -230,6 +230,27 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
+      actions: ['s3:GetBucketAcl'],
+      resources: [`${logBucket.bucketArn}`],
+    }),
+  );
+
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
+      actions: ['s3:PutObject'],
+      resources: [`${logBucket.bucketArn}/*`],
+      conditions: {
+        StringEquals: {
+          's3:x-amz-acl': 'bucket-owner-full-control',
+        },
+      },
+    }),
+  );
+
   // Allow cross account encrypt access for logArchive bucket
   logBucket.encryptionKey?.addToResourcePolicy(
     new iam.PolicyStatement({
@@ -242,6 +263,15 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
           'aws:PrincipalOrgID': organizations.organizationId,
         },
       },
+    }),
+  );
+
+  logBucket.encryptionKey?.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Allow CloudTrail to encrypt and describe logs',
+      actions: ['kms:GenerateDataKey*', 'kms:DescribeKey'],
+      principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
+      resources: ['*'],
     }),
   );
 

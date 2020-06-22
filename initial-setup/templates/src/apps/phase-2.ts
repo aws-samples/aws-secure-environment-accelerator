@@ -19,6 +19,7 @@ import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
 import * as madDeployment from '../deployments/mad';
+import * as createTrail from '../deployments/cloud-trail';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -29,6 +30,15 @@ import * as madDeployment from '../deployments/mad';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
+
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    await createTrail.step1({
+      accountStacks,
+      config: acceleratorConfig,
+      outputs,
+      context,
+    });
+  }
 
   /**
    * Code to create Peering Connection in all accounts

@@ -249,12 +249,14 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.error(e);
     }
 
-    try {
-      // update AWS LZ cloud trail settings
-      await updateCloudTrailSettings(account.id, account.key);
-    } catch (e) {
-      console.error(`Error while updating CloudTrail settings`);
-      console.error(e);
+    if (acceleratorConfig['global-options']['alz-baseline']) {
+      try {
+        // update AWS LZ cloud trail settings
+        await updateCloudTrailSettings(account.id, account.key);
+      } catch (e) {
+        console.error(`Error while updating CloudTrail settings`);
+        console.error(e);
+      }
     }
 
     try {
