@@ -7,7 +7,6 @@ import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-sub
 export interface CentralLoggingToS3Step2Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
-  accounts: Account[];
   outputs: StackOutput[];
 }
 
@@ -17,9 +16,11 @@ export interface CentralLoggingToS3Step2Props {
  * TODO - Create CloudWatch Event in all account for create LogGroup
  */
 export async function step2(props: CentralLoggingToS3Step2Props) {
-  const { accountStacks, config, accounts, outputs } = props;
+  const { accountStacks, config, outputs } = props;
 
   const globalOptionsConfig = config['global-options'];
+  const defaultLogRetention = globalOptionsConfig['default-cwl-retention'];
+  const accountConfigs = config.getAccountConfigs();
   const logConfig = globalOptionsConfig['central-log-services'];
   const logArchiveAccountKey = logConfig.account;
   const logDestinationOutput = getStackJsonOutput(outputs, {
@@ -31,18 +32,20 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
     return;
   }
   const logDestinationArn = logDestinationOutput[0].logDestination;
-  for (const account of accounts) {
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
+  for (const [accountKey, accountConfig] of accountConfigs) {
+    const logRetention = accountConfig['cwl-retention'] || defaultLogRetention;
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {
-      console.warn(`Cannot find account stack ${account.key}`);
+      console.warn(`Cannot find account stack ${accountKey}`);
     } else {
       const accountSpecificExclusions = [
-        ...(logConfig['cwl-exclusions']?.find(e => e.account === account.key)?.exclusions || []),
+        ...(logConfig['cwl-exclusions']?.find(e => e.account === accountKey)?.exclusions || []),
       ];
       const globalExclusions = [...(logConfig['cwl-glbl-exclusions'] || []), ...accountSpecificExclusions];
-      new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${account.key}`, {
+      new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${accountKey}`, {
         logDestinationArn,
         globalExclusions,
+        logRetention,
       });
     }
   }

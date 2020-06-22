@@ -140,7 +140,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   await cwlCentralLoggingToS3.step2({
     accountStacks,
     config: acceleratorConfig,
-    accounts,
     outputs,
   });
 }
