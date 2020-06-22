@@ -3,7 +3,7 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutput, ImportedVpc } from '../deployments/vpc';
+import { VpcOutput, ImportedVpc } from '../deployments/vpc/outputs';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';

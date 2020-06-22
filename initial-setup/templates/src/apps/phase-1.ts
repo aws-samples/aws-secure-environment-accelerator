@@ -124,10 +124,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   };
 
   // Auxiliary method to create a VPC in the account with given account key
-  const createVpc = (
-    accountKey: string,
-    props: VpcProps,
-  ): Vpc | undefined => {
+  const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
     const { vpcConfig } = props;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
@@ -254,10 +251,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     if (PeeringConnectionConfig.is(pcxConfig)) {
       const sourceVpcConfig = acceleratorConfig
         .getVpcConfigs()
-        .find(
-          vpcConfig =>
-            vpcConfig.accountKey === pcxConfig.source && vpcConfig.vpcConfig.name === pcxConfig['source-vpc'],
-        );
+        .find(x => x.accountKey === pcxConfig.source && x.vpcConfig.name === pcxConfig['source-vpc']);
       if (!sourceVpcConfig) {
         console.warn(`Cannot find PCX source VPC ${pcxConfig['source-vpc']} in account ${pcxConfig.source}`);
       } else {
