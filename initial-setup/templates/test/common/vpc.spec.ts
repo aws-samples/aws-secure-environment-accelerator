@@ -6,7 +6,6 @@ import { VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { Vpc } from '../../src/common/vpc';
 import { Limiter } from '../../src/utils/limits';
-import { TransitGateway } from '../../src/common/transit-gateway';
 
 test('the VPC creation should create the correct amount of subnets', () => {
   const stack = new cdk.Stack();
@@ -97,7 +96,8 @@ test('the VPC creation should create the correct amount of subnets', () => {
       vpcConfig,
       limiter: new Limiter([]),
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -216,7 +216,8 @@ test('the VPC creation should throw an error when a subnet uses a route table th
         vpcConfig,
         limiter: new Limiter([]),
       },
-      transitGateways: new Map<string, TransitGateway>(),
+      masterAccountId: '',
+      outputs: [],
     });
   });
 });
@@ -242,7 +243,8 @@ test('the VPC creation should create the internet gateway', () => {
       vpcConfig,
       limiter: new Limiter([]),
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -276,7 +278,8 @@ test('the VPC creation should create the VPN gateway', () => {
       vpcConfig,
       limiter: new Limiter([]),
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -393,7 +396,8 @@ test('the VPC creation should create the NAT gateway', () => {
       vpcConfig,
       limiter: new Limiter([]),
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template

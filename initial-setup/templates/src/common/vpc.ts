@@ -266,12 +266,12 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     }
 
     let tgwAttachment;
-    const tgwOutputs = getStackJsonOutput(props.outputs, {
-      accountKey: tgwAttach.account,
-      outputType: 'TgwOutput',
-    });
-    const tgw = tgwOutputs[0];
     if (config.TransitGatewayAttachConfigType.is(tgwAttach)) {
+      const tgwOutputs = getStackJsonOutput(props.outputs, {
+        accountKey: tgwAttach.account,
+        outputType: 'TgwOutput',
+      });
+      const tgw = tgwOutputs[0];
       const tgwName = tgwAttach['associate-to-tgw'];
       if (!tgw) {
         console.warn(`Cannot find transit gateway with name "${tgwName}"`);
@@ -332,6 +332,11 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             dynamoRoutes.push(routeTableObj);
             continue;
           } else if (route.target === 'TGW' && config.TransitGatewayAttachConfigType.is(tgwAttach) && tgwAttachment) {
+            const tgwOutputs = getStackJsonOutput(props.outputs, {
+              accountKey: tgwAttach.account,
+              outputType: 'TgwOutput',
+            });
+            const tgw = tgwOutputs[0];
             const tgwName = tgwAttach['associate-to-tgw'];
             const tgwRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
               routeTableId: routeTableObj,
