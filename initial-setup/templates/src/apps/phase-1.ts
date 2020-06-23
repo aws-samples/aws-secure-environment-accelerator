@@ -443,11 +443,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   // Central Services step 1
-  /*
   const logsAccountStack = accountStacks.getOrCreateAccountStack(logAccountKey);
   await cwlCentralLoggingToS3.step1({
     accountStack: logsAccountStack,
     accounts,
     logBucket,
-  });*/
+  });
 }
