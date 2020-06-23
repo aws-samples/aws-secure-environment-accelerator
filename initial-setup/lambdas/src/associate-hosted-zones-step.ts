@@ -1,4 +1,3 @@
-import * as aws from 'aws-sdk';
 import * as r53 from 'aws-sdk/clients/route53';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
@@ -10,6 +9,7 @@ import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { throttlingBackOff } from '@aws-pbmm/common-lambda/lib/aws/backoff';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 
 interface AssociateHostedZonesInput extends LoadConfigurationInput {
   accounts: Account[];
@@ -164,18 +164,19 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     }
 
     const vpcName = vpcConfig.name;
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const vpcRegion = vpcConfig.region;
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
       accountKey,
-      outputType: 'VpcOutput',
+      region: vpcRegion,
+      vpcName,
     });
-    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcName);
     if (!vpcOutput) {
       console.warn(`Cannot find VPC "${vpcName}" in outputs`);
       continue;
     }
 
     const vpcId = vpcOutput.vpcId;
-    const vpcRegion = vpcConfig.region;
 
     // TODO Support the use-case that the VPC could have its own interface endpoints
 

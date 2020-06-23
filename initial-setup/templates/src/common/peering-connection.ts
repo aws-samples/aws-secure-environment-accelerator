@@ -1,11 +1,11 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PcxRouteConfig, PcxRouteConfigType, ResolvedVpcConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { VpcOutput } from '../deployments/vpc';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { getVpcConfig } from './get-all-vpcs';
 import { StructuredOutput } from './structured-output';
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 
 export namespace PeeringConnection {
   export interface PeeringConnectionRoutesProps {
@@ -34,11 +34,11 @@ export namespace PeeringConnection {
 
       const { accountKey, vpcName, vpcConfigs, outputs } = props;
       const vpcConfig = getVpcConfig(vpcConfigs, accountKey, vpcName);
-      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+        outputs,
         accountKey,
-        outputType: 'VpcOutput',
+        vpcName,
       });
-      const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcName);
       if (!vpcOutput) {
         console.warn(`No VPC Created with name "${vpcName}"`);
         return;

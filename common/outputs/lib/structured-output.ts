@@ -77,5 +77,7 @@ export function parseValueFromOutput<T>(output: StackOutput, type: t.Type<T>): T
         return parse(type, json.value);
       }
     }
-  } catch {}
+  } catch (e) {
+    console.warn(`Unable to parse output: ${e}`);
+  }
 }

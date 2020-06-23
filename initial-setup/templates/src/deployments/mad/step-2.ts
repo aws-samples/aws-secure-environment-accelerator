@@ -4,14 +4,14 @@ import * as kms from '@aws-cdk/aws-kms';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import { Grant as KeyGrant, GrantOperation } from '@custom-resources/kms-grant';
 import { AcceleratorConfig, MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { getMadUserPasswordSecretArn, getMadRootPasswordSecretArn } from './outputs';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { StructuredOutput } from '../../common/structured-output';
 import { SecretEncryptionKeyOutputType } from '../secrets';
 import { JsonOutputValue } from '../../common/json-output';
 import { ActiveDirectory } from '../../common/active-directory';
-import { VpcOutput } from '../vpc';
 
 export interface MadStep2Props {
   acceleratorExecutionRoleName: string;
@@ -51,10 +51,10 @@ function createActiveDirectory(props: MadStep2Props) {
       continue;
     }
 
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      outputType: 'VpcOutput',
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
+      vpcName: madConfig['vpc-name'],
     });
-    const vpcOutput = vpcOutputs.find(output => output.vpcName === madConfig['vpc-name']);
     if (!vpcOutput) {
       console.warn(`Cannot find output with vpc name ${madConfig['vpc-name']}`);
       continue;

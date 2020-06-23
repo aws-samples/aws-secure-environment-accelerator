@@ -4,7 +4,6 @@ import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
-import { JsonOutputValue } from '../common/json-output';
 import { TransitGateway } from '../common/transit-gateway';
 import { Limit } from '../utils/limits';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
@@ -17,7 +16,7 @@ import {
   VpcConfig,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
-import { VpcOutput } from '../deployments/vpc';
+import { CfnVpcOutput } from '../deployments/vpc';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
@@ -172,11 +171,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       }
     }
 
-    // Prepare the output for next phases
-    const vpcOutput: VpcOutput = {
+    // Store the VPC output so that subsequent phases can access the output
+    new CfnVpcOutput(vpc, `VpcOutput`, {
+      accountKey,
+      region: props.vpcConfig.region,
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
-      region: props.vpcConfig.region,
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
       additionalCidrBlocks: vpc.additionalCidrBlocks,
       subnets: vpc.azSubnets.subnets.map(s => ({
@@ -192,12 +192,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           securityGroupName: name,
         }),
       ),
-    };
-
-    // Store the VPC output so that subsequent phases can access the output
-    new JsonOutputValue(vpc, `VpcOutput`, {
-      type: 'VpcOutput',
-      value: vpcOutput,
     });
 
     return vpcStack.vpc;

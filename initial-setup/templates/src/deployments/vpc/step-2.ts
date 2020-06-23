@@ -1,6 +1,7 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as s3 from '@aws-cdk/aws-s3';
-import { StackOutput, VpcOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStack, AccountStacks } from '../../common/account-stacks';
 import { FlowLogContainer } from '../../common/flow-log-container';
@@ -37,11 +38,12 @@ function createFlowLogs(props: VpcStep2Props) {
       continue;
     }
 
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
       accountKey,
-      outputType: 'VpcOutput',
+      region: vpcConfig.region,
+      vpcName: vpcConfig.name,
     });
-    const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcConfig.name);
     if (!vpcOutput) {
       console.warn(`Cannot find VPC "${vpcConfig.name}" to enable flow logs`);
       continue;

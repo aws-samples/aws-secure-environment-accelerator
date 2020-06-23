@@ -77,36 +77,7 @@ export interface ResolversOutput {
   rules?: ResolverRulesOutput;
 }
 
-export interface VpcSubnetOutput {
-  subnetId: string;
-  subnetName: string;
-  az: string;
-  cidrBlock: string;
-}
-
-export interface VpcSecurityGroupOutput {
-  securityGroupId: string;
-  securityGroupName: string;
-}
-
-export interface VpcOutput {
-  vpcId: string;
-  vpcName: string;
-  region: string;
-  cidrBlock: string;
-  additionalCidrBlocks: string[];
-  subnets: VpcSubnetOutput[];
-  routeTables: { [key: string]: string };
-  securityGroups: VpcSecurityGroupOutput[];
-}
-
 export interface AmiSubscriptionOutput {
   imageId: string;
   status: string;
-}
-
-export interface SecurityGroupsOutput {
-  vpcId: string;
-  vpcName: string;
-  securityGroupIds: VpcSecurityGroupOutput[];
 }

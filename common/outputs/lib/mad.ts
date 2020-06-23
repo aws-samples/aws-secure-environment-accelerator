@@ -1,5 +1,13 @@
 import { createFixedSecretName } from './secrets';
 
+export interface MadOutput {
+  id: number;
+  vpcName: string;
+  directoryId: string;
+  dnsIps: string;
+  passwordArn: string;
+}
+
 /**
  * Creates a fixed secret name that will store the MAD password.
  */

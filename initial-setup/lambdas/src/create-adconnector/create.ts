@@ -3,9 +3,10 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { createMadUserPasswordSecretName } from '@aws-pbmm/common-outputs/lib/mad';
+import { createMadUserPasswordSecretName, MadOutput } from '@aws-pbmm/common-outputs/lib/mad';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from '../load-configuration-step';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 
 const VALID_STATUSES: string[] = ['Requested', 'Creating', 'Created', 'Active', 'Inoperable', 'Impaired', 'Restoring'];
 
@@ -17,27 +18,6 @@ interface AdConnectorInput extends LoadConfigurationInput {
   configFilePath: string;
   configCommitId: string;
   stackOutputSecretId: string;
-}
-
-interface MadOutput {
-  id: number;
-  vpcName: string;
-  directoryId: string;
-  dnsIps: string;
-  passwordArn: string;
-}
-
-interface VpcSubnetOutput {
-  subnetId: string;
-  subnetName: string;
-  az: string;
-}
-
-interface VpcOutput {
-  vpcId: string;
-  vpcName: string;
-  subnets: VpcSubnetOutput[];
-  routeTables: object;
 }
 
 export interface AdConnectorOutput {
@@ -117,20 +97,19 @@ export const handler = async (input: AdConnectorInput) => {
     }
 
     // Getting VPC outputs by account name
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const vpcName = adcConfig['vpc-name'];
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
       accountKey,
-      outputType: 'VpcOutput',
+      vpcName,
     });
-
-    // Finding the VPC based on vpc-name from stacks output
-    const vpc = vpcOutputs.find(output => output.vpcName === adcConfig['vpc-name']);
-    if (!vpc) {
-      console.warn(`Cannot find VPC with name "${adcConfig['vpc-name']}"`);
+    if (!vpcOutput) {
+      console.warn(`Cannot find VPC with name "${vpcName}"`);
       continue;
     }
 
     // Find subnets based on ADC Config subnet name
-    const subnetIds = vpc.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
+    const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
 
     const accountId = getAccountId(accounts, accountKey);
     if (!accountId) {
@@ -162,7 +141,7 @@ export const handler = async (input: AdConnectorInput) => {
         Password: madPassword.SecretString!,
         Size: adcConfig.size,
         ConnectSettings: {
-          VpcId: vpc.vpcId,
+          VpcId: vpcOutput.vpcId,
           SubnetIds: subnetIds,
           CustomerDnsIps: madOutput.dnsIps.split(','),
           CustomerUserName: adConnectorUser.user,

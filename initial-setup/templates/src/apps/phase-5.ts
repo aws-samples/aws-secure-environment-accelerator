@@ -1,22 +1,15 @@
 import * as ssm from '@aws-cdk/aws-ssm';
 import { getAccountId } from '../utils/accounts';
-import { VpcOutput } from '../deployments/vpc';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
+import { MadOutput } from '@aws-pbmm/common-outputs/lib/mad';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
-
-interface MadOutput {
-  id: number;
-  vpcName: string;
-  directoryId: string;
-  dnsIps: string;
-  passwordArn: string;
-}
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
@@ -88,10 +81,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const S3KeyPrefix = rdgwScriptsOutput[0].keyPrefix;
     console.log('RDGW reference scripts s3 bucket name with key ', s3BucketName, S3KeyPrefix);
 
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      outputType: 'VpcOutput',
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
+      vpcName: madConfig['vpc-name'],
     });
-    const vpcOutput = vpcOutputs.find(output => output.vpcName === madConfig['vpc-name']);
     if (!vpcOutput) {
       console.warn(`Cannot find output with vpc name ${madConfig['vpc-name']}`);
       continue;

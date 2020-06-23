@@ -162,6 +162,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0aafbbf8390e61df9',
           vpcName: 'UnClass',
           region: 'ca-central-1',
@@ -195,6 +196,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-00788be23432ad14e',
           vpcName: 'Test',
           region: 'ca-central-1',
@@ -228,6 +230,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0d0b4cd029857165a',
           vpcName: 'Central',
           region: 'ca-central-1',
@@ -481,6 +484,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-05236b7e563d76ea7',
           vpcName: 'Prod',
           region: 'ca-central-1',
@@ -514,6 +518,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0ec4a94a0fed0323f',
           vpcName: 'Dev',
           region: 'ca-central-1',
@@ -587,6 +592,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0be7520a610121f51',
           vpcName: 'Endpoint',
           region: 'ca-central-1',
@@ -827,6 +833,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'perimeter',
           vpcId: 'vpc-008309eb2954c138b',
           vpcName: 'Perimeter',
           region: 'ca-central-1',
@@ -937,6 +944,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'master',
           vpcId: 'vpc-0d6c94538df842886',
           vpcName: 'ForSSO',
           region: 'ca-central-1',
@@ -1054,6 +1062,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'fun-acct',
           vpcId: 'vpc-02bcf75f21ece6cc7',
           vpcName: 'Sandbox',
           region: 'ca-central-1',
