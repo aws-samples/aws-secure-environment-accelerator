@@ -276,6 +276,7 @@ export namespace InitialSetup {
       });
 
       const createOrganizationAccountTask = new sfn.Task(this, 'Create Organization Account', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createOrganizationAccountStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -317,6 +318,7 @@ export namespace InitialSetup {
       );
 
       const installCfnRoleMasterTask = new sfn.Task(this, 'Install CloudFormation Role in Master', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(installCfnRoleMasterStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -381,6 +383,7 @@ export namespace InitialSetup {
       });
 
       const deleteVpcTask = new sfn.Task(this, 'Delete Default Vpcs', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(deleteVpcSfn, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {

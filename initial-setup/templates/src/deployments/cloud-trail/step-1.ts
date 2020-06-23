@@ -62,7 +62,7 @@ export async function step1(props: CreateCloudTrailProps) {
     assumedBy: new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
   });
 
-  cloudTrailLogGroupRole.addToPolicy(
+  cloudTrailLogGroupRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['logs:CreateLogStream'],
       resources: [
@@ -72,7 +72,7 @@ export async function step1(props: CreateCloudTrailProps) {
     }),
   );
 
-  cloudTrailLogGroupRole.addToPolicy(
+  cloudTrailLogGroupRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['logs:PutLogEvents'],
       resources: [
