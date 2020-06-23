@@ -229,7 +229,7 @@
           ],
           "tgw-attach": {
             "associate-to-tgw": "Main",
-            "account": "local",
+            "account": "shared-network",
             "associate-type": "ATTACH",
             "tgw-rt-associate": ["core"],
             "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],

@@ -266,9 +266,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     }
 
     let tgwAttachment;
-    const tgwAttachAccount = tgwAttach.account === 'local' ? accountKey : tgwAttach.account;
     const tgwOutputs = getStackJsonOutput(props.outputs, {
-      accountKey: tgwAttachAccount,
+      accountKey: tgwAttach.account,
       outputType: 'TransitGatewayOutput',
     });
     const tgw = tgwOutputs[0];
