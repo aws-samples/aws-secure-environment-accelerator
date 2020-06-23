@@ -1,5 +1,4 @@
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
@@ -10,18 +9,14 @@ import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/uti
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks, AccountStack } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
-import {
-  FirewallVpnConnectionOutputType,
-  FirewallVpnConnection,
-  FirewallInstanceOutput,
-  FirewallInstanceOutputType,
-} from './outputs';
+import { FirewallVpnConnectionOutputType, FirewallVpnConnection, CfnFirewallInstanceOutput } from './outputs';
 import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { checkAccountWarming } from '../../account-warming/outputs';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
+import { RegionalBucket } from '../../defaults';
 
 export interface FirewallStep3Props {
-  accountBuckets: { [accountKey: string]: s3.IBucket };
+  accountBuckets: { [accountKey: string]: RegionalBucket };
   accountStacks: AccountStacks;
   centralBucket: s3.IBucket;
   config: c.AcceleratorConfig;
@@ -115,7 +110,7 @@ export async function step3(props: FirewallStep3Props) {
  * Create firewall for the given VPC and config in the given scope.
  */
 async function createFirewallCluster(props: {
-  accountBucket: s3.IBucket;
+  accountBucket: RegionalBucket;
   accountStack: AccountStack;
   centralBucket: s3.IBucket;
   firewallConfig: c.FirewallConfig;
@@ -163,7 +158,7 @@ async function createFirewallCluster(props: {
     instanceProfile,
     configuration: {
       bucket: accountBucket,
-      bucketRegion: cdk.Aws.REGION,
+      bucketRegion: accountBucket.region,
       templateBucket: centralBucket,
       templateConfigPath: configFile,
     },
@@ -207,13 +202,10 @@ async function createFirewallCluster(props: {
       instancePerAz[az] = instance;
       licenseIndex++;
 
-      new StructuredOutput<FirewallInstanceOutput>(accountStack, `Fgt${pascalCase(az)}Output`, {
-        type: FirewallInstanceOutputType,
-        value: {
-          id: instance.instanceId,
-          name: firewallName,
-          az,
-        },
+      new CfnFirewallInstanceOutput(accountStack, `Fgt${pascalCase(az)}Output`, {
+        id: instance.instanceId,
+        name: firewallName,
+        az,
       });
     }
 

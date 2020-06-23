@@ -1,57 +1,87 @@
 import * as t from 'io-ts';
+import * as cdk from '@aws-cdk/core';
 import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account } from '../../utils/accounts';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { StructuredOutput } from '../../common/structured-output';
+import { StructuredOutput, createCfnStructuredOutput } from '../../common/structured-output';
+
+export interface RegionalBucket extends s3.IBucket {
+  region: string;
+}
+
+export interface RegionalBucketAttributes extends s3.BucketAttributes {
+  region: string;
+}
+
+export namespace RegionalBucket {
+  export function fromBucketAttributes(
+    scope: cdk.Construct,
+    id: string,
+    attrs: RegionalBucketAttributes,
+  ): RegionalBucket {
+    return Object.assign(s3.Bucket.fromBucketAttributes(scope, id, attrs), {
+      region: attrs.region,
+    });
+  }
+}
 
 export type AccountBuckets = { [accountKey: string]: s3.IBucket };
 
 // TODO Merge all these outputs into one
-export const AccountBucketOutputType = t.interface(
+const AccountBucketOutputType = t.interface(
   {
     bucketName: t.string,
     bucketArn: t.string,
     encryptionKeyArn: t.string,
+    region: t.string,
   },
   'AccountBucket',
 );
 
-export type AccountBucketOutput = t.TypeOf<typeof AccountBucketOutputType>;
+type AccountBucketOutput = t.TypeOf<typeof AccountBucketOutputType>;
 
-export const LogBucketOutputType = t.interface(
+const LogBucketOutputType = t.interface(
   {
     bucketName: t.string,
     bucketArn: t.string,
     encryptionKeyArn: t.string,
+    region: t.string,
   },
   'LogBucket',
 );
 
-export type LogBucketOutput = t.TypeOf<typeof LogBucketOutputType>;
+type LogBucketOutput = t.TypeOf<typeof LogBucketOutputType>;
 
-export const CentralBucketOutputType = t.interface(
+const CentralBucketOutputType = t.interface(
   {
     bucketName: t.string,
     bucketArn: t.string,
     encryptionKeyArn: t.string,
+    region: t.string,
   },
   'CentralBucket',
 );
 
-export type CentralBucketOutput = t.TypeOf<typeof CentralBucketOutputType>;
+type CentralBucketOutput = t.TypeOf<typeof CentralBucketOutputType>;
 
-export const AesBucketOutputType = t.interface(
+const AesBucketOutputType = t.interface(
   {
     bucketName: t.string,
     bucketArn: t.string,
+    region: t.string,
   },
   'AesBucket',
 );
 
-export type AesBucketOutput = t.TypeOf<typeof AesBucketOutputType>;
+type AesBucketOutput = t.TypeOf<typeof AesBucketOutputType>;
+
+export const CfnAccountBucketOutput = createCfnStructuredOutput(AccountBucketOutputType);
+export const CfnLogBucketOutput = createCfnStructuredOutput(LogBucketOutputType);
+export const CfnCentralBucketOutput = createCfnStructuredOutput(CentralBucketOutputType);
+export const CfnAesBucketOutput = createCfnStructuredOutput(AesBucketOutputType);
 
 export namespace AccountBucketOutput {
   /**
@@ -62,8 +92,8 @@ export namespace AccountBucketOutput {
     accountStacks: AccountStacks;
     config: AcceleratorConfig;
     outputs: StackOutput[];
-  }): AccountBuckets {
-    const accountBuckets: AccountBuckets = {};
+  }): { [accountKey: string]: RegionalBucket } {
+    const accountBuckets: { [accountKey: string]: RegionalBucket } = {};
 
     const logBucket = LogBucketOutput.getBucket(props);
     accountBuckets[props.config['global-options']['central-log-services'].account] = logBucket;
@@ -85,9 +115,10 @@ export namespace AccountBucketOutput {
       }
 
       const encryptionKey = kms.Key.fromKeyArn(accountStack, 'DefaultKey', accountBucketOutput.encryptionKeyArn);
-      const defaultBucket = s3.Bucket.fromBucketAttributes(accountStack, 'DefaultBucket', {
+      const defaultBucket = RegionalBucket.fromBucketAttributes(accountStack, 'DefaultBucket', {
         bucketName: accountBucketOutput.bucketName,
         encryptionKey,
+        region: accountBucketOutput.region,
       });
       accountBuckets[account.key] = defaultBucket;
     }
@@ -103,7 +134,7 @@ export namespace LogBucketOutput {
     accountStacks: AccountStacks;
     config: AcceleratorConfig;
     outputs: StackOutput[];
-  }) {
+  }): RegionalBucket {
     const logAccountConfig = props.config['global-options']['central-log-services'];
     const logAccountKey = logAccountConfig.account;
     const logAccountStack = props.accountStacks.getOrCreateAccountStack(logAccountKey);
@@ -118,9 +149,10 @@ export namespace LogBucketOutput {
     }
 
     const encryptionKey = kms.Key.fromKeyArn(logAccountStack, 'LogBucketKey', logBucketOutput.encryptionKeyArn);
-    return s3.Bucket.fromBucketAttributes(logAccountStack, 'LogBucket', {
+    return RegionalBucket.fromBucketAttributes(logAccountStack, 'LogBucket', {
       bucketName: logBucketOutput.bucketName,
       encryptionKey,
+      region: logBucketOutput.region,
     });
   }
 }
@@ -133,7 +165,7 @@ export namespace AesBucketOutput {
     accountStacks: AccountStacks;
     config: AcceleratorConfig;
     outputs: StackOutput[];
-  }) {
+  }): RegionalBucket {
     const logAccountConfig = props.config['global-options']['central-log-services'];
     const logAccountKey = logAccountConfig.account;
     const logAccountStack = props.accountStacks.getOrCreateAccountStack(logAccountKey);
@@ -147,8 +179,9 @@ export namespace AesBucketOutput {
       throw new Error(`Cannot find central AES bucket for log account ${logAccountKey}`);
     }
 
-    return s3.Bucket.fromBucketAttributes(logAccountStack, 'LogBucket', {
+    return RegionalBucket.fromBucketAttributes(logAccountStack, 'LogBucket', {
       bucketName: aesBucketOutput.bucketName,
+      region: aesBucketOutput.region,
     });
   }
 }
@@ -161,7 +194,7 @@ export namespace CentralBucketOutput {
     accountStacks: AccountStacks;
     config: AcceleratorConfig;
     outputs: StackOutput[];
-  }) {
+  }): RegionalBucket {
     const masterAccountConfig = props.config['global-options']['aws-org-master'];
     const masterAccountKey = masterAccountConfig.account;
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey);
@@ -180,9 +213,10 @@ export namespace CentralBucketOutput {
       'CentralBucketKey',
       centralBucketOutput.encryptionKeyArn,
     );
-    return s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
+    return RegionalBucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
       bucketName: centralBucketOutput.bucketName,
       encryptionKey,
+      region: centralBucketOutput.region,
     });
   }
 }

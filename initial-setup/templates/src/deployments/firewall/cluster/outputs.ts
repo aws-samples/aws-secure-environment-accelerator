@@ -1,7 +1,8 @@
 import * as t from 'io-ts';
 import { optional } from '@aws-pbmm/common-types';
+import { createCfnStructuredOutput } from '../../../common/structured-output';
 
-export const FirewallInstanceOutputType = t.interface(
+export const FirewallInstanceOutput = t.interface(
   {
     id: t.string,
     name: t.string,
@@ -10,7 +11,9 @@ export const FirewallInstanceOutputType = t.interface(
   'FirewallInstanceOutput',
 );
 
-export type FirewallInstanceOutput = t.TypeOf<typeof FirewallInstanceOutputType>;
+export type FirewallInstanceOutput = t.TypeOf<typeof FirewallInstanceOutput>;
+
+export const CfnFirewallInstanceOutput = createCfnStructuredOutput(FirewallInstanceOutput);
 
 export const FirewallPortType = t.interface({
   name: t.string,

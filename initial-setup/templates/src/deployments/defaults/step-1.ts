@@ -8,17 +8,9 @@ import { S3PublicAccessBlock } from '@custom-resources/s3-public-access-block';
 import { Organizations } from '@custom-resources/organization';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { createEncryptionKeyName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import {
-  CentralBucketOutput,
-  CentralBucketOutputType,
-  LogBucketOutput,
-  LogBucketOutputType,
-  AesBucketOutputType,
-  AesBucketOutput,
-} from './outputs';
+import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
-import { StructuredOutput } from '../../common/structured-output';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
 
@@ -134,13 +126,11 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   });
   copyFiles.node.addDependency(bucket);
 
-  new StructuredOutput<CentralBucketOutput>(masterAccountStack, 'CentralBucketOutput', {
-    type: CentralBucketOutputType,
-    value: {
-      bucketArn: bucket.bucketArn,
-      bucketName: bucket.bucketName,
-      encryptionKeyArn: encryptionKey.keyArn,
-    },
+  new CfnCentralBucketOutput(masterAccountStack, 'CentralBucketOutput', {
+    bucketArn: bucket.bucketArn,
+    bucketName: bucket.bucketName,
+    encryptionKeyArn: encryptionKey.keyArn,
+    region: cdk.Aws.REGION,
   });
 
   return bucket;
@@ -245,13 +235,11 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
-  new StructuredOutput<LogBucketOutput>(logAccountStack, 'LogBucketOutput', {
-    type: LogBucketOutputType,
-    value: {
-      bucketArn: logBucket.bucketArn,
-      bucketName: logBucket.bucketName,
-      encryptionKeyArn: logBucket.encryptionKey!.keyArn,
-    },
+  new CfnLogBucketOutput(logAccountStack, 'LogBucketOutput', {
+    bucketArn: logBucket.bucketArn,
+    bucketName: logBucket.bucketName,
+    encryptionKeyArn: logBucket.encryptionKey!.keyArn,
+    region: cdk.Aws.REGION,
   });
 
   return logBucket;
@@ -309,12 +297,10 @@ function createAesLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
-  new StructuredOutput<AesBucketOutput>(logAccountStack, 'AesLogBucketOutput', {
-    type: AesBucketOutputType,
-    value: {
-      bucketArn: logBucket.bucketArn,
-      bucketName: logBucket.bucketName,
-    },
+  new CfnAesBucketOutput(logAccountStack, 'AesLogBucketOutput', {
+    bucketArn: logBucket.bucketArn,
+    bucketName: logBucket.bucketName,
+    region: cdk.Aws.REGION,
   });
 
   return logBucket;

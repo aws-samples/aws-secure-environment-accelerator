@@ -20,7 +20,7 @@ import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-g
 import { AccountStacks } from '../../common/account-stacks';
 import { createCertificateSecretName } from '../certificates';
 import { AesBucketOutput } from '../defaults';
-import { FirewallInstanceOutputType } from '../firewall/cluster/outputs';
+import { FirewallInstanceOutput } from '../firewall/cluster/outputs';
 import { StructuredOutput } from '../../common/structured-output';
 
 export interface AlbStep1Props {
@@ -293,7 +293,7 @@ export function getEc2InstanceIds(
   targetInstances: AlbTargetInstanceConfig[],
 ): string[] {
   const firewallInstances = StructuredOutput.fromOutputs(outputs, {
-    type: FirewallInstanceOutputType,
+    type: FirewallInstanceOutput,
     accountKey,
   });
   const instanceIds = [];
