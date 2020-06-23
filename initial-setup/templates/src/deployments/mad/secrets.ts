@@ -39,6 +39,7 @@ export async function createSecrets(props: MadSecretsProps) {
       description: 'Password for Managed Active Directory.',
       generateSecretString: {
         passwordLength: 16,
+        requireEachIncludedType: true,
       },
       principals: [acceleratorRole],
     });
@@ -54,6 +55,7 @@ export async function createSecrets(props: MadSecretsProps) {
         description: 'Password for Managed Active Directory.',
         generateSecretString: {
           passwordLength: madConfig['password-policies']['min-len'],
+          requireEachIncludedType: true,
         },
         principals: [acceleratorRole],
       });

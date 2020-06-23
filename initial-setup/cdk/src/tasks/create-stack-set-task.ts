@@ -22,14 +22,14 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
 
     const { role, lambdaCode, functionPayload, waitSeconds = 10 } = props;
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
         actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       }),
     );
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
