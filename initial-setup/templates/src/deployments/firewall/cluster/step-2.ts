@@ -59,7 +59,7 @@ export async function step2(props: FirewallStep2Props) {
     // TODO Validate account
     const tgwOutputs: TransitGatewayOutput[] = getStackJsonOutput(outputs, {
       accountKey: tgwAccountKey,
-      outputType: 'TransitGatewayOutput',
+      outputType: 'TgwOutput',
     });
     const transitGateway = tgwOutputs[0];
     if (!transitGateway) {
