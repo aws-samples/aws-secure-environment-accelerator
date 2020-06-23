@@ -14,13 +14,14 @@ export interface CentralLoggingToS3Step1Props {
   accountStack: AccountStack;
   accounts: Account[];
   logBucket: s3.IBucket;
+  shardCount?: number;
 }
 
 /**
  * Enable Central Logging to S3 in "log-archive" account Step 1
  */
 export async function step1(props: CentralLoggingToS3Step1Props) {
-  const { accountStack, accounts, logBucket } = props;
+  const { accountStack, accounts, logBucket, shardCount } = props;
   // Setup for CloudWatch logs storing in logs account
   const allAccountIds = accounts.map(account => account.id);
   await cwlSettingsInLogArchive({
@@ -28,6 +29,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
     accountIds: allAccountIds,
     bucketArn: logBucket.bucketArn,
     encryptionKey: logBucket.encryptionKey?.keyArn!,
+    shardCount
   });
 }
 
@@ -40,8 +42,9 @@ async function cwlSettingsInLogArchive(props: {
   accountIds: string[];
   bucketArn: string;
   encryptionKey: string;
+  shardCount?: number;
 }) {
-  const { scope, accountIds, bucketArn, encryptionKey } = props;
+  const { scope, accountIds, bucketArn, encryptionKey, shardCount } = props;
 
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
@@ -50,6 +53,7 @@ async function cwlSettingsInLogArchive(props: {
       suffixLength: 0,
     }),
     encryption: kinesis.StreamEncryption.UNENCRYPTED,
+    shardCount,
   });
 
   // Create IAM Role for reading logs from stream and push to destination

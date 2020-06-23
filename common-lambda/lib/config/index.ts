@@ -569,6 +569,7 @@ export const CentralServicesConfigType = t.interface({
   'ssm-to-s3': optional(t.boolean),
   'ssm-to-cwl': optional(t.boolean),
   'cwl-exclusions': optional(t.array(CwlExclusions)),
+  'kinesis-stream-shard-count': optional(t.number),
 });
 
 export const ScpsConfigType = t.interface({
