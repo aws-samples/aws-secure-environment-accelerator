@@ -29,7 +29,7 @@ export async function step1(props: CentralLoggingToS3Step1Props) {
     accountIds: allAccountIds,
     bucketArn: logBucket.bucketArn,
     encryptionKey: logBucket.encryptionKey?.keyArn!,
-    shardCount
+    shardCount,
   });
 }
 
