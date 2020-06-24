@@ -26,7 +26,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
 
     const { role, lambdaCode, name, lambdaPath, permissions, assumeRoleName, baselineCheck, waitSeconds = 60 } = props;
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         resources: ['*'],
@@ -34,7 +34,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
       }),
     );
     if (permissions && permissions.length > 0) {
-      role.addToPolicy(
+      role.addToPrincipalPolicy(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
           resources: ['*'],
