@@ -6,6 +6,7 @@ import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
+import * as ouValidation from '../deployments/ou-validation-events';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
@@ -142,4 +143,23 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
+
+  
+  const { acceleratorBaseline, acceleratorPrefix, defaultRegion, acceleratorPipelineRoleName, configBranch, configFilePath, configRepositoryName } = context;
+  if (acceleratorBaseline === 'ORGANIZATIONS') {
+    const masterStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, 'us-east-1');
+    if (!masterStack) {
+      console.error(`Not able to create stack for "${masterAccountKey}"`);
+    } else {
+      ouValidation.step1({
+        scope: masterStack,
+        roleName: acceleratorPipelineRoleName,
+        acceleratorPrefix,
+        configFilePath,
+        configBranch,
+        configRepositoryName,
+        defaultRegion
+      });
+    }
+  }
 }

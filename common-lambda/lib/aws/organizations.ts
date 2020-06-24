@@ -3,6 +3,10 @@ import * as org from 'aws-sdk/clients/organizations';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 
+export interface OrganizationalUnit extends org.OrganizationalUnit {
+  Path: string;
+}
+
 export class Organizations {
   private readonly client: aws.Organizations;
 
@@ -314,5 +318,43 @@ export class Organizations {
    */
   async moveAccount(params: org.MoveAccountRequest): Promise<void> {
     await throttlingBackOff(() => this.client.moveAccount(params).promise());
+  }
+
+  /**
+   * to get account 
+   * @param accountId
+   */
+  async getAccount(accountId: string): Promise<org.Account | undefined> {
+    const response = await this.client
+      .describeAccount({
+        AccountId: accountId,
+      })
+      .promise();
+    return response.Account;
+  }
+
+  async getOrganazationUnitWithPath(ouId: string): Promise<OrganizationalUnit> {
+    const orgnazationUnit = await this.getOrganizationalUnit(ouId);
+    const parents = await this.getOrganazationParents(ouId, [orgnazationUnit!]);
+    const orgPath = parents.reverse().map(parent => parent.Name).join('/');
+    return {
+      ...orgnazationUnit,
+      Path: orgPath
+    }
+
+  }
+
+  async getOrganazationParents(organizationUnitId: string, parents: org.OrganizationalUnit[]): Promise<org.OrganizationalUnit[]> {
+    const localParents = await this.listParents(organizationUnitId);
+    if (localParents.length > 0 && localParents[0].Type !== 'ROOT') {
+      const organizationUnits: org.OrganizationalUnit[] =[];
+      for (const ou of localParents) {
+        const organizationalUnit = await this.getOrganizationalUnit(ou.Id!);
+        organizationUnits.push(organizationalUnit!)
+      }
+      parents.push(...organizationUnits);
+      await this.getOrganazationParents(localParents[0].Id!, parents);
+    }
+    return parents;
   }
 }

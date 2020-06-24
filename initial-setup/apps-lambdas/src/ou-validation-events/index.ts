@@ -1,0 +1,1 @@
+export { handler as moveAccount } from './move-account-organization';

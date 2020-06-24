@@ -6,6 +6,12 @@ export interface Context {
   acceleratorPrefix: string;
   acceleratorExecutionRoleName: string;
   defaultRegion: string;
+  acceleratorBaseline: string;
+  acceleratorPipelineRoleName: string;
+  configFilePath: string;
+  configRepositoryName: string;
+  configCommitId: string;
+  configBranch: string;
 }
 
 export function loadContext(): Context {
@@ -23,5 +29,11 @@ export function loadContext(): Context {
     acceleratorPrefix: process.env.ACCELERATOR_PREFIX!,
     acceleratorExecutionRoleName: process.env.ACCELERATOR_EXECUTION_ROLE_NAME!,
     defaultRegion: process.env.AWS_REGION!,
+    acceleratorBaseline: process.env.ACCELERATOR_BASELINE!,
+    acceleratorPipelineRoleName: process.env.ACCELERATOR_PIPELINE_ROLE_NAME!,
+    configBranch: process.env.CONFIG_REPOSITORY_BRANCH!,
+    configRepositoryName: process.env.CONFIG_REPOSITORY_NAME!,
+    configCommitId: process.env.CONFIG_COMMIT_ID!,
+    configFilePath: process.env.CONFIG_FILE_PATH!,
   };
 }

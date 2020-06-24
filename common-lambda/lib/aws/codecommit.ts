@@ -6,13 +6,17 @@ import {
   GetBranchOutput,
   CreateRepositoryOutput,
   BatchGetRepositoriesOutput,
+  CreateCommitInput
 } from 'aws-sdk/clients/codecommit';
+import { throttlingBackOff } from './backoff';
+
 export class CodeCommit {
   private readonly client: aws.CodeCommit;
 
-  public constructor(credentials?: aws.Credentials) {
+  public constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.CodeCommit({
       credentials,
+      region,
     });
   }
 
@@ -76,5 +80,16 @@ export class CodeCommit {
         repositoryDescription,
       })
       .promise();
+  }
+
+  /**
+   * Create Commit in Code Commit Repository
+   * @param input: CreateCommitInput
+   */
+  async commit(input: CreateCommitInput): Promise<string> {
+    const response = await throttlingBackOff(() =>
+      this.client.createCommit(input).promise()
+    );
+    return response.commitId!;
   }
 }
