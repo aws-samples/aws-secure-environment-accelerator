@@ -17,6 +17,7 @@ const resourceTypeNames = [
   'AWS::DirectoryService::MicrosoftAD',
   'AWS::EC2::Instance',
   'AWS::EC2::TransitGateway',
+  'AWS::ElasticLoadBalancingV2::LoadBalancer',
   'AWS::S3::Bucket',
   'AWS::SecretsManager::Secret',
   'AWS::SecretsManager::ResourcePolicy',
