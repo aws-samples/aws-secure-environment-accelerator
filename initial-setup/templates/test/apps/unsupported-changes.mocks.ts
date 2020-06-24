@@ -91,6 +91,22 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm-lz-perimeter@amazon.com',
       ou: 'core',
     },
+    {
+      key: 'fun-acct',
+      id: '888888888888',
+      arn: 'arn:aws:organizations::888888888888:account/o-111111111111/888888888888',
+      name: 'test-fun-act',
+      email: 'test+pbmm-fun-act@amazon.com',
+      ou: 'core',
+    },
+    {
+      key: 'mydevacct1',
+      id: '999999999999',
+      arn: 'arn:aws:organizations::999999999999:account/o-111111111111/999999999999',
+      name: 'test-mydevacct1',
+      email: 'test+pbmm-mydevacct1@amazon.com',
+      ou: 'core',
+    },
   ];
 
   const content = fs.readFileSync('../../config.example.json');
