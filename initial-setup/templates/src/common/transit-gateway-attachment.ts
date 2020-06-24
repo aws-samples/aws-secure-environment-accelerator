@@ -9,7 +9,7 @@ export interface TransitGatewayAttachmentProps {
 
 export class TransitGatewayAttachment extends cdk.Construct {
   public readonly tgwAttach: ec2.CfnTransitGatewayAttachment;
-  
+
   constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps) {
     super(parent, name);
 

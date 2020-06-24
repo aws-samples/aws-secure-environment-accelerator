@@ -127,7 +127,15 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name);
 
-    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, vpcConfigs, accountStacks } = props.vpcProps;
+    const {
+      accountKey,
+      accounts,
+      vpcConfig,
+      organizationalUnitName,
+      limiter,
+      vpcConfigs,
+      accountStacks,
+    } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
     this.name = props.vpcProps.vpcConfig.name;
@@ -302,7 +310,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
         // in case TGW attachment is created for the same account, we create using the same stack
         // otherwise, we will find the attach account stack and create in that stack instead
-        if ( tgwAttach.account === accountKey) {
+        if (tgwAttach.account === accountKey) {
           const tgwRoutes = new TransitGatewayRoute(this, 'TgwRoute', {
             tgwAttachmentId: tgwAttachment.tgwAttach.ref,
             tgwRouteAssociates,
