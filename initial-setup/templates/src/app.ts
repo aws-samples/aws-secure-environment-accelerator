@@ -27,7 +27,7 @@ export interface AppProps {
   useTempOutputDir?: boolean;
 }
 
-export async function deploy(props: AppProps): Promise<cdk.App[]> {
+export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
   const { accountKey, phaseId, region, useTempOutputDir } = props;
   const phase = phases.find(p => p.id === phaseId);
   if (!phase) {

@@ -19,7 +19,7 @@ export class AccountStack extends AcceleratorStack {
   readonly accountId: string;
   readonly accountKey: string;
 
-  constructor(readonly app: cdk.App, id: string, props: AccountStackProps) {
+  constructor(readonly app: cdk.Stage, id: string, props: AccountStackProps) {
     super(app, id, {
       ...props,
       env: {
@@ -38,12 +38,17 @@ export interface AccountAppProps {
   stackProps: AccountStackProps;
 }
 
-export class AccountApp extends cdk.App {
+export class AccountApp extends cdk.Stage {
   readonly stack: AccountStack;
 
   constructor(stackLogicalId: string, props: AccountAppProps) {
-    super({
+    // tslint:disable-next-line:no-any
+    super(undefined as any, '', {
       outdir: props.outDir ?? path.resolve('cdk.out'),
+      env: {
+        account: props.stackProps.accountId,
+        region: props.stackProps.region,
+      },
     });
     this.stack = new AccountStack(this, stackLogicalId, props.stackProps);
   }
@@ -54,10 +59,6 @@ export class AccountApp extends cdk.App {
 
   get accountKey() {
     return this.stack.accountKey;
-  }
-
-  get region() {
-    return this.stack.region;
   }
 }
 
@@ -90,7 +91,7 @@ export class AccountStacks {
    */
   tryGetOrCreateAccountStack(accountKey: string, region?: string): AccountStack | undefined {
     const regionOrDefault = region ?? this.props.context.defaultRegion;
-    const existingApp = this.apps.find(s => s.accountKey === accountKey && s.region === regionOrDefault);
+    const existingApp = this.apps.find(s => s.accountKey === accountKey && s.stack.region === regionOrDefault);
     if (existingApp) {
       return existingApp.stack;
     }

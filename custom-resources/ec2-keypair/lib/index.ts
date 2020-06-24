@@ -58,19 +58,19 @@ export class Keypair extends cdk.Construct implements cdk.ITaggable {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['cur:*', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         resources: ['*'],
       }),
     );
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['ec2:CreateKeyPair', 'ec2:DeleteKeyPair'],
         resources: ['*'],
       }),
     );
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
           'secretsmanager:CreateSecret',

@@ -3,6 +3,7 @@ import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-subscription-filter';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface CentralLoggingToS3Step2Props {
   accountStacks: AccountStacks;
@@ -42,9 +43,15 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         ...(logConfig['cwl-exclusions']?.find(e => e.account === accountKey)?.exclusions || []),
       ];
       const globalExclusions = [...(logConfig['cwl-glbl-exclusions'] || []), ...accountSpecificExclusions];
+      const ruleName = createName({
+        name: 'NewLogGroup_rule',
+        account: false,
+        region: false,
+      });
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${accountKey}`, {
         logDestinationArn,
         globalExclusions,
+        ruleName,
         logRetention,
       });
     }

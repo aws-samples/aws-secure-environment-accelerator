@@ -55,7 +55,7 @@ export class CdkToolkit {
     this.tags = settings.get(['tags']);
   }
 
-  static async create(apps: cdk.App[]) {
+  static async create(apps: cdk.Stage[]) {
     const assemblies = apps.map(app => app.synth());
 
     const configuration = new Configuration({
@@ -156,56 +156,44 @@ export class CdkToolkit {
 
     const resources = Object.keys(stack.template.Resources || {});
     if (resources.length === 0) {
-      if (!stackExists) {
-        console.warn(`${stack.displayName}: stack has no resources, skipping deployment`);
-        return [];
+      console.warn(`${stack.displayName}: stack has no resources`);
+      if (stackExists) {
+        console.warn(`${stack.displayName}: deleting existing stack`);
+        this.destroyStack(stack);
       }
-
-      console.warn(`${stack.displayName}: stack has no resources, deleting existing stack`);
-      this.destroyStack(stack);
       return [];
     }
 
-    try {
-      // Add stack tags to the tags list
-      const tags = this.tags || [];
-      tags.push(...tagsForStack(stack));
+    // Add stack tags to the tags list
+    const tags = this.tags || [];
+    tags.push(...tagsForStack(stack));
 
-      const result = await this.cloudFormation.deployStack({
-        stack,
-        deployName: stack.stackName,
-        execute: true,
-        force: true,
-        notificationArns: undefined,
-        reuseAssets: [],
-        roleArn: undefined,
-        tags,
-        toolkitStackName: this.toolkitStackName,
-        usePreviousParameters: false,
-      });
+    const result = await this.cloudFormation.deployStack({
+      stack,
+      deployName: stack.stackName,
+      execute: true,
+      force: true,
+      notificationArns: undefined,
+      reuseAssets: [],
+      roleArn: undefined,
+      tags,
+      toolkitStackName: this.toolkitStackName,
+      usePreviousParameters: false,
+    });
 
-      if (result.noOp) {
-        console.log(`${stack.displayName}: no changes`);
-      } else {
-        console.log(`${stack.displayName}: deploy successful`);
-      }
-
-      return Object.entries(result.outputs).map(([name, value]) => ({
-        stack: stack.stackName,
-        account: stack.environment.account,
-        region: stack.environment.region,
-        name,
-        value,
-      }));
-    } catch (e) {
-      console.log(`${stack.displayName}: failed to deploy`);
-      if (!stackExists) {
-        console.warn(`${stack.displayName}: deleting newly created failed stack`);
-        await this.destroyStack(stack);
-        console.warn(`${stack.displayName}: deleted newly created failed stack`);
-      }
-      throw e;
+    if (result.noOp) {
+      console.log(`${stack.displayName}: no changes`);
+    } else {
+      console.log(`${stack.displayName}: deploy successful`);
     }
+
+    return Object.entries(result.outputs).map(([name, value]) => ({
+      stack: stack.stackName,
+      account: stack.environment.account,
+      region: stack.environment.region,
+      name,
+      value,
+    }));
   }
 
   /**

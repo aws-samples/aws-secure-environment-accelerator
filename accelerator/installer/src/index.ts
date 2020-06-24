@@ -80,7 +80,7 @@ async function main() {
   });
 
   // Allow creation of ECR repositories
-  installerProjectRole.addToPolicy(
+  installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['ecr:*'],
       resources: [`arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/aws-cdk/*`],
@@ -88,7 +88,7 @@ async function main() {
   );
 
   // Allow getting authorization tokens for ECR
-  installerProjectRole.addToPolicy(
+  installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['ecr:GetAuthorizationToken'],
       resources: [`*`],
@@ -96,7 +96,7 @@ async function main() {
   );
 
   // Allow all CloudFormation permissions
-  installerProjectRole.addToPolicy(
+  installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['cloudformation:*'],
       resources: [`arn:aws:cloudformation:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:stack/*`],
@@ -104,7 +104,7 @@ async function main() {
   );
 
   // Allow the role to access the CDK asset bucket
-  installerProjectRole.addToPolicy(
+  installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['s3:*'],
       resources: [`arn:aws:s3:::cdktoolkit-stagingbucket-*`],
@@ -112,7 +112,7 @@ async function main() {
   );
 
   // Allow the role to create anything through CloudFormation
-  installerProjectRole.addToPolicy(
+  installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['*'],
       resources: ['*'],
@@ -191,7 +191,7 @@ async function main() {
   });
 
   // Grant permissions to write logs
-  stateMachineExecutionRole.addToPolicy(
+  stateMachineExecutionRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
@@ -199,7 +199,7 @@ async function main() {
   );
 
   // Grant permissions to start the state machine
-  stateMachineExecutionRole.addToPolicy(
+  stateMachineExecutionRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['states:StartExecution'],
       resources: [stateMachineArn],

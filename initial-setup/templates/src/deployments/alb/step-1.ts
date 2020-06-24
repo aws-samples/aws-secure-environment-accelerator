@@ -218,7 +218,7 @@ export function createLambdaRole(scope: cdk.Construct) {
     ],
   });
 
-  elbLambdaAccessRole.addToPolicy(
+  elbLambdaAccessRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       resources: ['arn:aws:logs:*:*:*'],
       actions: ['sts:AssumeRole', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
@@ -313,7 +313,7 @@ export function getEc2InstanceIds(
 }
 
 function createAlbName(albName: string, accountKey: string, accountNumber: string): string {
-  const albNameAccountKey = albName + '-' + accountKey;
+  const albNameAccountKey = albName + accountKey;
   if (albNameAccountKey.length > 28) {
     return albName.length > 16 ? albName.substring(0, 16) : albName + accountNumber + '-alb';
   }

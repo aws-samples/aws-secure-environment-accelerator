@@ -9,6 +9,7 @@ const resourceType = 'Custom::CentralLoggingSubscriptionFilter';
 export interface CentralLoggingSubscriptionFilterProps {
   logDestinationArn: string;
   globalExclusions?: string[];
+  ruleName: string;
   logRetention: number;
 }
 
@@ -61,7 +62,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     new events.CfnRule(this, 'NewLogGroupsCwlRule', {
       description: 'Adds CWL Central Logging Destination as Subscription filter to newly created Log Group',
       state: 'ENABLED',
-      name: 'NewLogGroup_rule',
+      name: props.ruleName,
       eventPattern,
       targets: [ruleTarget],
     });
@@ -100,7 +101,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['logs:*'],
         resources: ['*'],

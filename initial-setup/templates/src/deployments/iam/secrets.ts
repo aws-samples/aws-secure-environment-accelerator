@@ -36,7 +36,8 @@ export async function createSecrets(props: IamSecretsProps): Promise<IamSecretsR
         }),
         description: `Password for IAM User - ${userId}.`,
         generateSecretString: {
-          passwordLength: 16,
+          passwordLength: 24,
+          requireEachIncludedType: true,
         },
         principals: [accountPrincipal],
       });
