@@ -19,18 +19,28 @@ export async function step1(props: TransitGatewayStep1Props) {
     // Create TGW Before Creating VPC
     const tgwDeployment = deployments?.tgw;
     if (tgwDeployment && accountStack) {
+      const accountNames = tgwDeployment["share-to-account"];
       const tgw = new TransitGateway(accountStack, tgwDeployment.name, tgwDeployment);
 
       // Share TGW to the organization
       const accountId = getAccountId(props.accounts, accountKey) || accountStack.account;
-      const tgwShare = new TransitGatewaySharing(accountStack, `Shared_${tgwDeployment.name}_org`, {
-        name: tgwDeployment.name,
-        region,
-        accountId,
-        tgwId: tgw.tgwId,
-        masterAccountId: props.masterAccountId,
-        principals: [accountId],
-      });
+      if (accountNames) {
+        const principals: string[] = [];
+        for ( const accountName of accountNames) {
+          const principal = getAccountId(props.accounts, accountName);
+          if ( principal !== undefined) {
+            principals.push(principal);
+          }
+        }
+        const tgwShare = new TransitGatewaySharing(accountStack, `Shared_${tgwDeployment.name}_org`, {
+          name: tgwDeployment.name,
+          region,
+          accountId,
+          tgwId: tgw.tgwId,
+          masterAccountId: props.masterAccountId,
+          principals,
+        });
+      }
 
       // Save Transit Gateway Output
       const tgwOutput = {
