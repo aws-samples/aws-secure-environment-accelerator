@@ -267,6 +267,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
+      accountStacks,
     });
 
     const pcxConfig = vpcConfig.pcx;

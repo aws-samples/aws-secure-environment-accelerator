@@ -7,7 +7,7 @@ export interface TransitGatewaySharingProps {
   accountId: string;
   tgwId: string;
   masterAccountId: string;
-  orgId: string;
+  principals: string[];
 }
 
 export class TransitGatewaySharing extends Construct {
@@ -16,7 +16,7 @@ export class TransitGatewaySharing extends Construct {
 
     new ram.CfnResourceShare(this, `Share-${props.name}`, {
       name: props.name,
-      principals: [`arn:aws:organizations::${props.masterAccountId}:organization/${props.orgId}`],
+      principals: props.principals,
       resourceArns: [`arn:aws:ec2:${props.region}:${props.accountId}:transit-gateway/${props.tgwId}`],
     });
   }

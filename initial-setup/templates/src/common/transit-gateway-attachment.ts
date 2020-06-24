@@ -5,21 +5,33 @@ export interface TransitGatewayAttachmentProps {
   subnetIds: string[];
   transitGatewayId: string;
   vpcId: string;
+}
+
+export class TransitGatewayAttachment extends cdk.Construct {
+  public readonly tgwAttach: ec2.CfnTransitGatewayAttachment;
+  
+  constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps) {
+    super(parent, name);
+
+    this.tgwAttach = new ec2.CfnTransitGatewayAttachment(this, name, props);
+  }
+}
+
+export interface TransitGatewayRouteProps {
+  tgwAttachmentId: string;
   tgwRouteAssociates?: string[];
   tgwRoutePropagates?: string[];
   blackhole?: boolean;
   cidr?: string;
 }
 
-export class TransitGatewayAttachment extends cdk.Construct {
-  public readonly tgwAttach: ec2.CfnTransitGatewayAttachment;
-  constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps) {
+export class TransitGatewayRoute extends cdk.Construct {
+  constructor(parent: cdk.Construct, name: string, props: TransitGatewayRouteProps) {
     super(parent, name);
 
-    this.tgwAttach = new ec2.CfnTransitGatewayAttachment(this, name, props);
     for (const [index, route] of props.tgwRouteAssociates?.entries() || []) {
       new ec2.CfnTransitGatewayRouteTableAssociation(this, `tgw_associate_${index}`, {
-        transitGatewayAttachmentId: this.tgwAttach.ref,
+        transitGatewayAttachmentId: props.tgwAttachmentId,
         transitGatewayRouteTableId: route,
       });
 
@@ -35,7 +47,7 @@ export class TransitGatewayAttachment extends cdk.Construct {
 
     for (const [index, route] of props.tgwRoutePropagates?.entries() || []) {
       new ec2.CfnTransitGatewayRouteTablePropagation(this, `tgw_propagate_${index}`, {
-        transitGatewayAttachmentId: this.tgwAttach.ref,
+        transitGatewayAttachmentId: props.tgwAttachmentId,
         transitGatewayRouteTableId: route,
       });
     }

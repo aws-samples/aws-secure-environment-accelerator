@@ -7,10 +7,11 @@ import { Account, getAccountId } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
-import { TransitGatewayAttachment } from '../common/transit-gateway-attachment';
+import { TransitGatewayAttachment, TransitGatewayRoute } from '../common/transit-gateway-attachment';
 import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { AccountStacks } from '../common/account-stacks';
 
 export interface VpcCommonProps {
   /**
@@ -38,6 +39,10 @@ export interface VpcCommonProps {
    * All VPC Configs to read Subnet Cidrs for Security Group and NACLs creation
    */
   vpcConfigs?: config.ResolvedVpcConfig[];
+  /**
+   * List of account stacks in the organization.
+   */
+  accountStacks: AccountStacks;
 }
 
 export interface AzSubnet extends constructs.Subnet {
@@ -122,7 +127,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
     super(scope, name);
 
-    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, vpcConfigs } = props.vpcProps;
+    const { accountKey, accounts, vpcConfig, organizationalUnitName, limiter, vpcConfigs, accountStacks } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
     this.name = props.vpcProps.vpcConfig.name;
@@ -293,13 +298,32 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           vpcId: this.vpcId,
           subnetIds,
           transitGatewayId: tgw.tgwId,
-          tgwRouteAssociates,
-          tgwRoutePropagates,
-          blackhole,
-          cidr: this.cidrBlock,
         });
-        // Add name tag
-        cdk.Tag.add(tgwAttachment, 'Name', `${vpcName}_${tgwName}_att`);
+
+        // in case TGW attachment is created for the same account, we create using the same stack
+        // otherwise, we will find the attach account stack and create in that stack instead
+        if ( tgwAttach.account === accountKey) {
+          const tgwRoutes = new TransitGatewayRoute(this, 'TgwRoute', {
+            tgwAttachmentId: tgwAttachment.tgwAttach.ref,
+            tgwRouteAssociates,
+            tgwRoutePropagates,
+            blackhole,
+            cidr: this.cidrBlock,
+          });
+        } else {
+          if (tgwAttach.account) {
+            const targetAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAttach.account);
+            if (targetAccountStack) {
+              const tgwRoutes = new TransitGatewayRoute(targetAccountStack, 'TgwRoute', {
+                tgwAttachmentId: tgwAttachment.tgwAttach.ref,
+                tgwRouteAssociates,
+                tgwRoutePropagates,
+                blackhole,
+                cidr: this.cidrBlock,
+              });
+            }
+          }
+        }
       }
     }
 
