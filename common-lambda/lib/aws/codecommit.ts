@@ -6,7 +6,7 @@ import {
   GetBranchOutput,
   CreateRepositoryOutput,
   BatchGetRepositoriesOutput,
-  CreateCommitInput
+  CreateCommitInput,
 } from 'aws-sdk/clients/codecommit';
 import { throttlingBackOff } from './backoff';
 
@@ -87,9 +87,7 @@ export class CodeCommit {
    * @param input: CreateCommitInput
    */
   async commit(input: CreateCommitInput): Promise<string> {
-    const response = await throttlingBackOff(() =>
-      this.client.createCommit(input).promise()
-    );
+    const response = await throttlingBackOff(() => this.client.createCommit(input).promise());
     return response.commitId!;
   }
 }

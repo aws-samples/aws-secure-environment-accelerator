@@ -482,7 +482,7 @@ export namespace InitialSetup {
                 'CONFIG_FILE_PATH.$': '$.configFilePath',
                 'CONFIG_COMMIT_ID.$': '$.configCommitId',
                 'ACCELERATOR_BASELINE.$': '$.baseline',
-                'ACCELERATOR_PIPELINE_ROLE_NAME': pipelineRole.roleName,
+                ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
               },
             },
           }),

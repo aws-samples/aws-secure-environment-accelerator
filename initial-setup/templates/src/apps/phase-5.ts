@@ -144,8 +144,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  
-  const { acceleratorBaseline, acceleratorPrefix, defaultRegion, acceleratorPipelineRoleName, configBranch, configFilePath, configRepositoryName } = context;
+  const {
+    acceleratorBaseline,
+    acceleratorPrefix,
+    defaultRegion,
+    acceleratorPipelineRoleName,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
+  } = context;
   if (acceleratorBaseline === 'ORGANIZATIONS') {
     const masterStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, 'us-east-1');
     if (!masterStack) {
@@ -158,7 +165,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         configFilePath,
         configBranch,
         configRepositoryName,
-        defaultRegion
+        defaultRegion,
       });
     }
   }

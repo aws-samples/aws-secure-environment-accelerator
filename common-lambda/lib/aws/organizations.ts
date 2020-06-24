@@ -321,7 +321,7 @@ export class Organizations {
   }
 
   /**
-   * to get account 
+   * to get account
    * @param accountId
    */
   async getAccount(accountId: string): Promise<org.Account | undefined> {
@@ -336,21 +336,26 @@ export class Organizations {
   async getOrganazationUnitWithPath(ouId: string): Promise<OrganizationalUnit> {
     const orgnazationUnit = await this.getOrganizationalUnit(ouId);
     const parents = await this.getOrganazationParents(ouId, [orgnazationUnit!]);
-    const orgPath = parents.reverse().map(parent => parent.Name).join('/');
+    const orgPath = parents
+      .reverse()
+      .map(parent => parent.Name)
+      .join('/');
     return {
       ...orgnazationUnit,
-      Path: orgPath
-    }
-
+      Path: orgPath,
+    };
   }
 
-  async getOrganazationParents(organizationUnitId: string, parents: org.OrganizationalUnit[]): Promise<org.OrganizationalUnit[]> {
+  async getOrganazationParents(
+    organizationUnitId: string,
+    parents: org.OrganizationalUnit[],
+  ): Promise<org.OrganizationalUnit[]> {
     const localParents = await this.listParents(organizationUnitId);
     if (localParents.length > 0 && localParents[0].Type !== 'ROOT') {
-      const organizationUnits: org.OrganizationalUnit[] =[];
+      const organizationUnits: org.OrganizationalUnit[] = [];
       for (const ou of localParents) {
         const organizationalUnit = await this.getOrganizationalUnit(ou.Id!);
-        organizationUnits.push(organizationalUnit!)
+        organizationUnits.push(organizationalUnit!);
       }
       parents.push(...organizationUnits);
       await this.getOrganazationParents(localParents[0].Id!, parents);

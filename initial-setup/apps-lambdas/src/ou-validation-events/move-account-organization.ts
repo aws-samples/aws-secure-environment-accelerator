@@ -3,7 +3,6 @@ import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 
-
 interface MoveAccountOrganization extends ScheduledEvent {
   version?: string;
 }
@@ -25,14 +24,14 @@ export const handler = async (input: MoveAccountOrganization) => {
   const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   const parentCommitId = configCommit.commitId;
   const config = configCommit.fileContent.toString();
-  
+
   const requestDetail = input.detail;
   const invokedBy = requestDetail.userIdentity.sessionContext.sessionIssuer.userName;
   if (invokedBy === acceleratorRoleName) {
     console.log(`Move Account Performed by Accelerator, No operation required`);
     return {
       status: 'NO_OPERATION_REQUIRED',
-    }
+    };
   }
   console.log(`Reading organization and account information from request`);
   const { accountId, destinationParentId, sourceParentId } = requestDetail.requestParameters;
@@ -65,7 +64,7 @@ export const handler = async (input: MoveAccountOrganization) => {
         email: account.Email!,
         ou: destinationOrg.Name!,
         oupath: destinationOrg.Path,
-      }
+      };
     }
     workLoadAccounts[account.Name!] = accountConfig;
     updateConfig['workload-account-configs'] = workLoadAccounts;
@@ -75,11 +74,13 @@ export const handler = async (input: MoveAccountOrganization) => {
     branchName: configBranch,
     repositoryName: configRepositoryName,
     parentCommitId,
-    putFiles: [{
-      filePath: configFilePath,
-      fileContent: JSON.stringify(updateConfig, null, 2),
-    }]
+    putFiles: [
+      {
+        filePath: configFilePath,
+        fileContent: JSON.stringify(updateConfig, null, 2),
+      },
+    ],
   });
-  console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`)
+  console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
   return 'SUCCESS';
 };

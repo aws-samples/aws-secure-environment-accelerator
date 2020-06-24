@@ -32,7 +32,15 @@ export interface MoveAccountProps {
  * OU Validation - Handling manual account creation and move account to organizations
  */
 export async function step1(props: OuValidationStep1Props) {
-  const { scope, roleName, acceleratorPrefix, configBranch, configFilePath, configRepositoryName, defaultRegion } = props;
+  const {
+    scope,
+    roleName,
+    acceleratorPrefix,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
+    defaultRegion,
+  } = props;
   const lambdaPath = require.resolve('@aws-pbmm/apps-lambdas');
   const lambdaDir = path.dirname(lambdaPath);
   const lambdaCode = lambda.Code.fromAsset(lambdaDir);
@@ -51,17 +59,17 @@ export async function step1(props: OuValidationStep1Props) {
     configRepositoryName,
     defaultRegion,
     lambdaCode,
-  })
+  });
 }
 
 async function moveAccount(input: MoveAccountProps) {
-  const { 
-    scope, 
-    pipelineRole, 
-    acceleratorPrefix, 
-    configBranch, 
-    configFilePath, 
-    configRepositoryName, 
+  const {
+    scope,
+    pipelineRole,
+    acceleratorPrefix,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
     defaultRegion,
     lambdaCode,
   } = input;
@@ -71,40 +79,40 @@ async function moveAccount(input: MoveAccountProps) {
     code: lambdaCode,
     role: pipelineRole,
     environment: {
-        ACCELERATOR_PREFIX: acceleratorPrefix,
-        CONFIG_REPOSITORY_NAME: configRepositoryName,
-        CONFIG_FILE_PATH: configFilePath,
-        CONFIG_REPOSITORY_BRANCH: configBranch,
-        ACCELERATOR_STATEMACHINE_ROLENAME: pipelineRole.roleName,
-        ACCELERATOR_DEFAULT_REGION: defaultRegion,
+      ACCELERATOR_PREFIX: acceleratorPrefix,
+      CONFIG_REPOSITORY_NAME: configRepositoryName,
+      CONFIG_FILE_PATH: configFilePath,
+      CONFIG_REPOSITORY_BRANCH: configBranch,
+      ACCELERATOR_STATEMACHINE_ROLENAME: pipelineRole.roleName,
+      ACCELERATOR_DEFAULT_REGION: defaultRegion,
     },
     timeout: cdk.Duration.minutes(15),
   });
-    
+
   moveAccountFunc.addPermission(`InvokePermission-NewLogGroup_rule`, {
     action: 'lambda:InvokeFunction',
     principal: new iam.ServicePrincipal('events.amazonaws.com'),
   });
-    
+
   const moveAccountEventPattern = {
     source: ['aws.organizations'],
     'detail-type': ['AWS API Call via CloudTrail'],
     detail: {
-        eventSource: ['organizations.amazonaws.com'],
-        eventName: ['MoveAccount'],
+      eventSource: ['organizations.amazonaws.com'],
+      eventName: ['MoveAccount'],
     },
   };
-    
+
   const ruleTarget: events.CfnRule.TargetProperty = {
     arn: moveAccountFunc.functionArn,
     id: 'MoveAccountToOrganizationRule',
   };
-    
+
   new events.CfnRule(scope, 'MoveAccountToOrganizationRule', {
     description: 'Adds Account Configuration to config file on successful moveAccount',
     state: 'ENABLED',
     name: createName({
-        name: 'MoveAccount_rule'
+      name: 'MoveAccount_rule',
     }),
     eventPattern: moveAccountEventPattern,
     targets: [ruleTarget],
