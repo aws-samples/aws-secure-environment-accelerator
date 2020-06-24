@@ -27,12 +27,6 @@ export interface GlobalOptionsProps {
  * Auxiliary construct that creates VPCs for organizational units.
  */
 export class GlobalOptionsDeployment extends cdk.Construct {
-  /**
-   * We should store the relevant constructs that are created instead of storing outputs.
-   * @deprecated
-   */
-  readonly outputs = new Map<string, string>();
-
   constructor(scope: cdk.Construct, id: string, props: GlobalOptionsProps) {
     super(scope, id);
 
