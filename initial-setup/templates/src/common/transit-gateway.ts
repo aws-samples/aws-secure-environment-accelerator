@@ -29,7 +29,7 @@ export class TransitGateway extends cdk.Construct {
       autoAcceptSharedAttachments: enableDisableProperty(features?.['Auto-accept-sharing-attachments']),
       amazonSideAsn: props.asn,
     });
-    this.tgw.tags.setTag('Name', `${props.name}_tgw`);
+    this.tgw.tags.setTag('Name', `${props.name}_tgw`, 1000);
 
     const routeTables = props['route-tables'] || [];
     for (const routeTableName of routeTables) {

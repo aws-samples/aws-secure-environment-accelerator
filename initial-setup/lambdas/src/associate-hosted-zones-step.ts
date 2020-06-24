@@ -1,7 +1,7 @@
 import * as r53 from 'aws-sdk/clients/route53';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
-import { ResolversOutput, VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { ResolversOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';
