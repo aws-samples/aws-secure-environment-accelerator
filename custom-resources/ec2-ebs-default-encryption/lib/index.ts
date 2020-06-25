@@ -12,7 +12,7 @@ export interface EbsDefaultEncryptionProps {
 }
 
 export class EbsDefaultEncryption extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: EbsDefaultEncryptionProps) {
+  constructor(scope: cdk.Construct, id: string, private readonly props: EbsDefaultEncryptionProps) {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {
@@ -57,9 +57,15 @@ export class EbsDefaultEncryption extends cdk.Construct {
           'ec2:EnableEbsEncryptionByDefault',
           'ec2:ModifyEbsDefaultKmsKeyId',
           'ec2:ResetEbsDefaultKmsKeyId',
-          'kms:DescribeKey',
         ],
         resources: ['*'],
+      }),
+    );
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['kms:DescribeKey'],
+        resources: [this.props.key.keyArn],
       }),
     );
 
