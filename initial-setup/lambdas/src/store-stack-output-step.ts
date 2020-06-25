@@ -80,37 +80,43 @@ async function* getOutputsForRegion(props: {
   region: string;
 }): AsyncIterableIterator<StackOutput> {
   const { acceleratorPrefix, accountKey, credentials, region } = props;
-  const cfn = new CloudFormation(credentials, region);
-  const stacks = cfn.listStacksGenerator({
-    StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
-  });
 
-  for await (const summary of stacks) {
-    if (!summary.StackName.startsWith(acceleratorPrefix)) {
-      console.warn(`Skipping stack with name "${summary.StackName}"`);
-      continue;
-    }
-    const stack = await cfn.describeStack(summary.StackName);
-    if (!stack) {
-      console.warn(`Could not load stack with name "${summary.StackName}"`);
-      continue;
-    }
-    const acceleratorTag = stack.Tags?.find(t => t.Key === 'Accelerator');
-    if (!acceleratorTag) {
-      console.warn(`Could not find Accelerator tag in stack with name "${summary.StackName}" in region ${region}`);
-      continue;
-    }
+  try {
+    const cfn = new CloudFormation(credentials, region);
 
-    console.debug(`Storing outputs for stack with name "${summary.StackName}" in region ${region}`);
-    for (const output of stack.Outputs || []) {
-      yield {
-        accountKey,
-        region,
-        outputKey: output.OutputKey,
-        outputValue: output.OutputValue,
-        outputDescription: output.Description,
-        outputExportName: output.ExportName,
-      };
+    const stacks = cfn.listStacksGenerator({
+      StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
+    });
+
+    for await (const summary of stacks) {
+      if (!summary.StackName.startsWith(acceleratorPrefix)) {
+        console.warn(`Skipping stack with name "${summary.StackName}"`);
+        continue;
+      }
+      const stack = await cfn.describeStack(summary.StackName);
+      if (!stack) {
+        console.warn(`Could not load stack with name "${summary.StackName}"`);
+        continue;
+      }
+      const acceleratorTag = stack.Tags?.find(t => t.Key === 'Accelerator');
+      if (!acceleratorTag) {
+        console.warn(`Could not find Accelerator tag in stack with name "${summary.StackName}" in region ${region}`);
+        continue;
+      }
+
+      console.debug(`Storing outputs for stack with name "${summary.StackName}" in region ${region}`);
+      for (const output of stack.Outputs || []) {
+        yield {
+          accountKey,
+          region,
+          outputKey: output.OutputKey,
+          outputValue: output.OutputValue,
+          outputDescription: output.Description,
+          outputExportName: output.ExportName,
+        };
+      }
     }
+  } catch (e) {
+    console.warn(`Cannot find outputs in account "${accountKey}" and region "${region}": ${e}`);
   }
 }
