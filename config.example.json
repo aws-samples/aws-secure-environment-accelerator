@@ -6,24 +6,19 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "default-cwl-retention":365,
+    "default-cwl-retention":731,
     "supported-regions": [
-      "af-south-1",
-      "ap-east-1",
       "ap-northeast-1",
       "ap-northeast-2",
-      "ap-northeast-3",
       "ap-south-1",
       "ap-southeast-1",
       "ap-southeast-2",
       "ca-central-1",
       "eu-central-1",
       "eu-north-1",
-      "eu-south-1",
       "eu-west-1",
       "eu-west-2",
       "eu-west-3",
-      "me-south-1",
       "sa-east-1",
       "us-east-1",
       "us-east-2",
@@ -38,13 +33,13 @@
       "account": "security",
       "region": "ca-central-1",
       "security-hub": true,
-      "security-hub-excl-regions": ["ap-northeast-3"],
+      "security-hub-excl-regions": [],
       "guardduty": true,
-      "guardduty-excl-regions": ["af-south-1", "ap-northeast-3", "eu-south-1"],
+      "guardduty-excl-regions": [],
       "cwl": true,
       "access-analyzer": true,
-      "config-excl-regions": ["ap-northeast-3"],
-      "config-aggr-excl-regions": ["af-south-1", "ap-east-1", "ap-northeast-3", "eu-south-1", "me-south-1"]
+      "config-excl-regions": [],
+      "config-aggr-excl-regions": []
     },
     "central-operations-services": {
       "account": "operations",
@@ -696,12 +691,12 @@
                 {
                   "az": "a",
                   "route-table": "Public_Shared",
-                  "cidr": "100.96.250.0/25"
+                  "cidr": "100.96.250.0/26"
                 },
                 {
                   "az": "b",
                   "route-table": "Public_Shared",
-                  "cidr": "100.96.250.128/25"
+                  "cidr": "100.96.250.128/26"
                 }
               ]
             },
@@ -741,12 +736,12 @@
                 {
                   "az": "a",
                   "route-table": "OnPremise_Shared",
-                  "cidr": "100.96.251.0/27"
+                  "cidr": "100.96.250.64/26"
                 },
                 {
                   "az": "b",
                   "route-table": "OnPremise_Shared",
-                  "cidr": "100.96.251.128/27"
+                  "cidr": "100.96.250.192/26"
                 }
               ]
             },
