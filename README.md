@@ -100,7 +100,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 7. Add an `Email` address to be used for notification of code releases
 8. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `v1.0.5-branch`, case sensitive
+   - the latest stable branch is currently `release/v1.0.5`, case sensitive
 9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 10. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 11. The stack typically takes under 5 minutes to deploy.
@@ -137,9 +137,9 @@ If using an internal AWS account, to successfully install, you need to enable pr
 ## Release Process
 
 1. Ensure `master` is in a suitable state
-2. Create a version branch with [SemVer](https://semver.org/) semantics and a `branch` suffix: e.g. `v1.0.5-branch`
+2. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
 
-- **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `branch` suffix reserves the actual version name for the tag itself.
+- **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself.
 
 3. Push that branch to GitHub (if created locally)
 4. The release workflow will run, and create a **draft** release if successful with all commits since the last tagged release.
