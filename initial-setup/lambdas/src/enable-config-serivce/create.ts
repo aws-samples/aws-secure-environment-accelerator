@@ -2,7 +2,7 @@ import { ConfigService } from '@aws-pbmm/common-lambda/lib/aws/configservice';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { LoadConfigurationInput } from '../load-configuration-step';
-import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 

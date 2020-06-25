@@ -12,7 +12,11 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
   const accountKeys = config.getAccountConfigs().map(([accountKey, _]) => accountKey);
 
   for (const accountKey of accountKeys) {
-    const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    if (!accountStack) {
+      console.error(`Not able to create stack for "${accountKey}"`);
+      continue;
+    }
 
     // Creating role for Config Recorder
     new iam.Role(accountStack, `IAM-ConfigRecorderRole-${accountKey}`, {

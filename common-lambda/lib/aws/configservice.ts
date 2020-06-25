@@ -69,7 +69,8 @@ export class ConfigService {
   async DescribeConfigurationRecorder(
     input: DescribeConfigurationRecordersRequest,
   ): Promise<DescribeConfigurationRecordersResponse> {
-    return throttlingBackOff(() => this.client.describeConfigurationRecorders(input).promise());
+    const describeRecorder = await throttlingBackOff(() => this.client.describeConfigurationRecorders(input).promise());
+    return describeRecorder;
   }
 
   /**
@@ -81,7 +82,10 @@ export class ConfigService {
   async DescribeDeliveryChannelStatus(
     input: DescribeDeliveryChannelStatusRequest,
   ): Promise<DescribeDeliveryChannelStatusResponse> {
-    return throttlingBackOff(() => this.client.describeDeliveryChannelStatus(input).promise());
+    const describeChannelStatus = await throttlingBackOff(() =>
+      this.client.describeDeliveryChannelStatus(input).promise(),
+    );
+    return describeChannelStatus;
   }
 
   /**
@@ -93,6 +97,9 @@ export class ConfigService {
   async DescribeConfigurationRecorderStatus(
     input: DescribeConfigurationRecorderStatusRequest,
   ): Promise<DescribeConfigurationRecorderStatusResponse> {
-    return throttlingBackOff(() => this.client.describeConfigurationRecorderStatus(input).promise());
+    const describeRecorderStatus = await throttlingBackOff(() =>
+      this.client.describeConfigurationRecorderStatus(input).promise(),
+    );
+    return describeRecorderStatus;
   }
 }
