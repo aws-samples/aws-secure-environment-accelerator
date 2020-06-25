@@ -76,7 +76,7 @@ export const handler = async (input: MoveAccountOrganization) => {
     }
   }
   if (updatestatus === 'SUCCESS') {
-    await startStateMachine(acceleratorStateMachinearn!);
+    await startStateMachine(acceleratorStateMachinearn);
   }
   return 'SUCCESS';
 };
@@ -119,7 +119,8 @@ async function updateAccountConfig(account: org.Account, destinationOrg: Organiz
     workLoadAccounts[accountKey] = accountConfig;
     updateConfig['workload-account-configs'] = workLoadAccounts;
   }
-  return await createCommit(updateConfig, parentCommitId);
+  const commitStatus = await createCommit(updateConfig, parentCommitId);
+  return commitStatus;
 }
 
 async function createCommit(config: AcceleratorConfig, parentCommitId: string): Promise<string> {
@@ -146,18 +147,18 @@ async function createCommit(config: AcceleratorConfig, parentCommitId: string): 
   }
 }
 
-async function startStateMachine(stateMachineArn: string): Promise<string>{
+async function startStateMachine(stateMachineArn: string): Promise<string> {
   const runningExecutions = await stepfunctions.listExecutions({
     stateMachineArn,
     statusFilter: 'RUNNING'
   });
+
   if (runningExecutions.length === 0) {
-    const executionArn = await stepfunctions.startExecution({
+    await stepfunctions.startExecution({
       stateMachineArn
     });
-    console.log(executionArn);
-    return 'SUCCESS';
   } else {
     return 'SM_ALREADY_RUNNING';
   }
+  return 'SUCCESS';
 }
