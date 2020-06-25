@@ -1,0 +1,164 @@
+import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { StepFunctions } from '@aws-pbmm/common-lambda/lib/aws/stepfunctions';
+import * as org from 'aws-sdk/clients/organizations';
+import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { ScheduledEvent } from 'aws-lambda';
+import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
+import { AcceleratorConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
+
+interface MoveAccountOrganization extends ScheduledEvent {
+  version?: string;
+}
+
+const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
+const acceleratorStateMachinearn = process.env.ACCELERATOR_STATE_MACHINE_ARN!;
+const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
+const configFilePath = process.env.CONFIG_FILE_PATH!;
+const configBranch = process.env.CONFIG_BRANCH_NAME!;
+const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
+
+const organizations = new Organizations();
+const codecommit = new CodeCommit(undefined, defaultRegion);
+const stepfunctions = new StepFunctions(undefined, defaultRegion);
+
+export const handler = async (input: MoveAccountOrganization) => {
+  console.log(`Account moved to Organization, adding account config to configuration...`);
+  console.log(JSON.stringify(input, null, 2));
+  const requestDetail = input.detail;
+  const invokedBy = requestDetail.userIdentity.sessionContext.sessionIssuer.userName;
+  if (invokedBy === acceleratorRoleName) {
+    console.log(`Move Account Performed by Accelerator, No operation required`);
+    return {
+      status: 'NO_OPERATION_REQUIRED',
+    };
+  }
+  console.log(`Reading organization and account information from request`);
+  const { accountId, destinationParentId, sourceParentId } = requestDetail.requestParameters;
+
+  const account = await organizations.getAccount(accountId);
+  if (!account) {
+    console.error(`Account did not find in Organizations "${accountId}"`);
+    return;
+  }
+  const rootOrg = await organizations.listRoots();
+  const rootOrgId = rootOrg[0].Id;
+  let updatestatus: string;
+  if (sourceParentId === rootOrgId) {
+    // Account is moving from Root Organization to another
+    const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
+    updatestatus = await updateAccountConfig(account, destinationOrg);
+  } else if (destinationParentId === rootOrgId){
+    // Move account back to source and don't update config
+    console.log(`Invalid moveAccount from ${sourceParentId} to ROOT Organization`);
+    await organizations.moveAccount({
+      AccountId: account.Id!,
+      DestinationParentId: sourceParentId,
+      SourceParentId: destinationParentId,
+    });
+    return 'FAILED';
+  } else {
+    const parentOrg = await organizations.getOrganizationalUnitWithPath(sourceParentId);
+    const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
+    const parentRootOrg = parentOrg.Path.split('/')[0];
+    const destinationRootOrg = destinationOrg.Path.split('/')[0];
+    if (parentRootOrg !== destinationRootOrg) {
+      // Move account back to source and don't change config
+      console.log(`Invalid moveAccount from ${parentOrg.Path} to ${destinationOrg.Path}`);
+      await organizations.moveAccount({
+        AccountId: account.Id!,
+        DestinationParentId: sourceParentId,
+        SourceParentId: destinationParentId,
+      });
+      return 'FAILED';
+    } else {
+      // Update Config
+      updatestatus = await updateAccountConfig(account, destinationOrg);
+    }
+  }
+  if (updatestatus === 'SUCCESS') {
+    await startStateMachine(acceleratorStateMachinearn);
+  }
+  return 'SUCCESS';
+};
+
+async function updateAccountConfig(account: org.Account, destinationOrg: OrganizationalUnit): Promise<string> {
+  console.log(`Updating Configuration for account "${account.Name}" to Organization ${destinationOrg.Name}`);
+  const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
+  const parentCommitId = configCommit.commitId;
+  const config = configCommit.fileContent.toString();
+  const updateConfig = JSON.parse(config);
+  const workLoadAccounts: AccountsConfig = updateConfig['workload-account-configs'];
+  const mandatoryAccounts: AccountsConfig = updateConfig['mandatory-account-configs'];
+  const workLoadAccountConfig = Object.entries(workLoadAccounts).find(([key, value]) => value["account-name"] === account.Name!);
+  const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(([key, value]) => value["account-name"] === account.Name!);
+  let accountConfig: any;
+  let accountKey: string = '';
+  if (workLoadAccountConfig) {
+    accountKey = workLoadAccountConfig[0];
+    accountConfig = workLoadAccountConfig[1];
+    accountConfig.ou = destinationOrg.Name!;
+    accountConfig['ou-path'] = destinationOrg.Path;
+  } else if (mandatoryAccountConfig) {
+    accountKey = mandatoryAccountConfig[0];
+    accountConfig = mandatoryAccountConfig[1];
+    accountConfig.ou = destinationOrg.Name!;
+    accountConfig['ou-path'] = destinationOrg.Path;
+  } else {
+    accountConfig = {
+      'account-name': account.Name!,
+      email: account.Email!,
+      ou: destinationOrg.Name!,
+      'ou-path': destinationOrg.Path
+    }
+  }
+  accountKey = accountKey || account.Name!;
+  if (mandatoryAccountConfig) {
+    mandatoryAccounts[accountKey] = accountConfig;
+    updateConfig['mandatory-account-configs'] = mandatoryAccounts;
+  } else {
+    workLoadAccounts[accountKey] = accountConfig;
+    updateConfig['workload-account-configs'] = workLoadAccounts;
+  }
+  const commitStatus = await createCommit(updateConfig, parentCommitId);
+  return commitStatus;
+}
+
+async function createCommit(config: AcceleratorConfig, parentCommitId: string): Promise<string> {
+  try{
+    const commitId = await codecommit.commit({
+      branchName: configBranch,
+      repositoryName: configRepositoryName,
+      parentCommitId,
+      putFiles: [
+        {
+          filePath: configFilePath,
+          fileContent: JSON.stringify(config, null, 2),
+        },
+      ],
+    });
+    console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
+    return 'SUCCESS';
+  } catch(error) {
+    if (error.code === 'NoChangeException') {
+      return "NoChangeException";
+    } else {
+      throw new Error(error);
+    }
+  }
+}
+
+async function startStateMachine(stateMachineArn: string): Promise<string> {
+  const runningExecutions = await stepfunctions.listExecutions({
+    stateMachineArn,
+    statusFilter: 'RUNNING'
+  });
+
+  if (runningExecutions.length === 0) {
+    await stepfunctions.startExecution({
+      stateMachineArn
+    });
+  } else {
+    return 'SM_ALREADY_RUNNING';
+  }
+  return 'SUCCESS';
+}
