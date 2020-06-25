@@ -55,6 +55,9 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.enableAWSServiceAccess('cloudtrail.amazonaws.com');
   console.log('Enabled Cloud Trail service access within the Organization.');
 
+  await org.enableAWSServiceAccess('config.amazonaws.com');
+  console.log('Enabled Config service access within the Organization.');
+
   const iam = new IAM();
   // as access analyzer will be created in security account, creating service linked role specifically in master.
   try {

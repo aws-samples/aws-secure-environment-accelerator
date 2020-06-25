@@ -5,7 +5,6 @@ import { LogGroup } from '@custom-resources/logs-log-group';
 import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
-import { SecurityHubStack } from '../common/security-hub';
 import * as artifactsDeployment from '../deployments/artifacts';
 import * as budget from '../deployments/billing/budget';
 import * as centralServices from '../deployments/central-services';
@@ -20,7 +19,6 @@ import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as passwordPolicy from '../deployments/iam-password-policy';
-import { JsonOutputValue } from '../common/json-output';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -73,6 +71,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     secretsContainer,
   });
 
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    // Create IAM role for Config Service
+    await iamDeployment.createConfigServiceRoles({
+      config: acceleratorConfig,
+      accountStacks,
+    });
+  }
+
   // Create MAD secrets
   await madDeployment.createSecrets({
     acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
@@ -94,25 +100,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         region: false,
       }),
       type: 'ORGANIZATION',
-    });
-  }
-
-  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
-  if (!securityMasterAccountStack) {
-    console.warn(`Cannot find security stack`);
-  } else {
-    const globalOptions = acceleratorConfig['global-options'];
-    const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
-    const subAccountIds = accounts.map(account => ({
-      AccountId: account.id,
-      Email: account.email,
-    }));
-
-    // Create Security Hub stack for Master Account in Security Account
-    new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
-      account: securityMasterAccount!,
-      standards: globalOptions['security-hub-frameworks'],
-      subAccountIds,
     });
   }
 

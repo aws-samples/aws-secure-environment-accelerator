@@ -392,6 +392,7 @@ export namespace InitialSetup {
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
+            stackOutputSecretId: stackOutputSecret.secretArn,
           },
         }),
         resultPath: 'DISCARD',
@@ -522,6 +523,33 @@ export namespace InitialSetup {
       const storePhase4Output = createStoreOutputTask(4);
       const deployPhase5Task = createDeploymentTask(5);
 
+      const enableConfigRecorderSfn = new sfn.StateMachine(this, 'Enable Config Recorder Sfn', {
+        stateMachineName: `${props.acceleratorPrefix}EnableConfigRecorder_sfn`,
+        definition: new RunAcrossAccountsTask(this, 'EnableConfigRecorder', {
+          lambdaCode,
+          role: pipelineRole,
+          assumeRoleName: props.stateMachineExecutionRole,
+          lambdaPath: 'index.enableConfigService',
+          name: 'Enable Config Recorder',
+        }),
+      });
+
+      const enableConfigRecorderTask = new sfn.Task(this, 'Enable Config Recorders', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(enableConfigRecorderSfn, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            configRepositoryName: props.configRepositoryName,
+            configFilePath: props.configFilePath,
+            'configCommitId.$': '$.configCommitId',
+            'baseline.$': '$.baseline',
+            stackOutputSecretId: stackOutputSecret.secretArn,
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       // TODO We could put this task in a map task and apply to all accounts individually
       const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
         functionProps: {
@@ -630,14 +658,7 @@ export namespace InitialSetup {
         .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), detachQuarantineScpTask)
         .otherwise(pass);
 
-      const commonDefinition = loadAccountsTask.startState
-        .next(installRolesTask)
-        .next(deleteVpcTask)
-        .next(loadLimitsTask)
-        .next(enableTrustedAccessForServicesTask)
-        .next(deployPhase0Task)
-        .next(storePhase0Output)
-        .next(addScpTask)
+      const commonStep1 = addScpTask.startState
         .next(deployPhase1Task)
         .next(storePhase1Output)
         .next(accountDefaultSettingsTask)
@@ -654,6 +675,20 @@ export namespace InitialSetup {
         .next(createAdConnectorTask)
         .next(storeCommitIdTask)
         .next(baseLineCleanupChoice);
+
+      const enableConfigChoice = new sfn.Choice(this, 'Enable Config?')
+        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), enableConfigRecorderTask.next(commonStep1))
+        .otherwise(commonStep1)
+        .afterwards();
+
+      const commonDefinition = loadAccountsTask.startState
+        .next(installRolesTask)
+        .next(deleteVpcTask)
+        .next(loadLimitsTask)
+        .next(enableTrustedAccessForServicesTask)
+        .next(deployPhase0Task)
+        .next(storePhase0Output)
+        .next(enableConfigChoice);
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState

@@ -56,6 +56,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
+        'stackOutputSecretId.$': '$.stackOutputSecretId',
       },
     });
 
@@ -70,6 +71,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
+        'stackOutputSecretId.$': '$.stackOutputSecretId',
       },
     });
     mapTask.iterator(runTask);
@@ -84,13 +86,13 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
       inputPath: '$',
     });
 
-    const pass = new sfn.Pass(this, `Success`, {
+    const pass = new sfn.Pass(this, `${name} Success`, {
       resultPath: 'DISCARD',
     });
 
-    const fail = new sfn.Fail(this, `Failed`);
+    const fail = new sfn.Fail(this, `${name} Failed`);
 
-    const isTaskSuccess = new sfn.Choice(scope, `Deleted?`)
+    const isTaskSuccess = new sfn.Choice(scope, `${name} Deleted?`)
       .when(sfn.Condition.stringEquals('$.status', 'SUCCESS'), pass)
       .otherwise(fail);
 
