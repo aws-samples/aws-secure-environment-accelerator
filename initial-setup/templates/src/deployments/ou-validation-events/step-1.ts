@@ -81,7 +81,7 @@ async function moveAccount(input: MoveAccountProps) {
     environment: {
       CONFIG_REPOSITORY_NAME: configRepositoryName,
       CONFIG_FILE_PATH: configFilePath,
-      CONFIG_REPOSITORY_BRANCH: configBranch,
+      CONFIG_BRANCH_NAME: configBranch,
       ACCELERATOR_STATEMACHINE_ROLENAME: acceleratorPipelineRole.roleName,
       ACCELERATOR_DEFAULT_REGION: defaultRegion,
       ACCELERATOR_STATE_MACHINE_ARN: acceleratorStateMachineArn,

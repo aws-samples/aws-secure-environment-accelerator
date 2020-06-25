@@ -31,7 +31,7 @@ export class StepFunctions {
   /**
    * Run Statemachine
    */
-  async startExecution(input: StartExecutionInput): Promise<String> {
+  async startExecution(input: StartExecutionInput): Promise<string> {
     const execution = await throttlingBackOff(() => 
       this.client.startExecution(input).promise()
     );

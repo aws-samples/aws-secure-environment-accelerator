@@ -14,7 +14,7 @@ const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
 const acceleratorStateMachinearn = process.env.ACCELERATOR_STATE_MACHINE_ARN!;
 const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
 const configFilePath = process.env.CONFIG_FILE_PATH!;
-const configBranch = process.env.CONFIG_REPOSITORY_BRANCH!;
+const configBranch = process.env.CONFIG_BRANCH_NAME!;
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
 
 const organizations = new Organizations();
