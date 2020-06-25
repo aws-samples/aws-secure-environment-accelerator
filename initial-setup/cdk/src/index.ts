@@ -82,11 +82,9 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
-      // creating a bucket to store SCP artifacts
-      const scpArtifactBucket = new s3.Bucket(stack, 'ScpArtifactsBucket', {
-        versioned: true,
-        removalPolicy: cdk.RemovalPolicy.RETAIN,
-      });
+      // This is the maximum time before a build times out
+      // The role used by the build should allow this session duration
+      const buildTimeout = cdk.Duration.hours(4);
 
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
@@ -98,6 +96,7 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('events.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+        maxSessionDuration: buildTimeout,
       });
 
       // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
@@ -113,12 +112,13 @@ export namespace InitialSetup {
         projectRoot: props.solutionRoot,
         packageManager: 'pnpm',
         commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
-        timeout: cdk.Duration.hours(4),
+        timeout: buildTimeout,
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
           ACCELERATOR_PREFIX: props.acceleratorPrefix,
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
+          CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
@@ -270,8 +270,6 @@ export namespace InitialSetup {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
-          scpBucketName: scpArtifactBucket.bucketName,
-          scpBucketPrefix: 'scp',
           acceleratorPrefix: props.acceleratorPrefix,
         },
       });
@@ -488,7 +486,7 @@ export namespace InitialSetup {
                 'ACCELERATOR_BASELINE.$': '$.baseline',
                 ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
                 ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
-                CONFIG_BRANCH_NAME: props.configBranchName, 
+                CONFIG_BRANCH_NAME: props.configBranchName,
               },
             },
           }),
