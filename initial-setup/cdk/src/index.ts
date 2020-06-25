@@ -343,6 +343,7 @@ export namespace InitialSetup {
             stackOutputSecretId: stackOutputSecret.secretArn,
             assumeRoleName: props.stateMachineExecutionRole,
             'accounts.$': '$.accounts',
+            'regions.$': '$.regions',
           },
           resultPath: 'DISCARD',
         });

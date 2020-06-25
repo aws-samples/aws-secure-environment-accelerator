@@ -594,6 +594,7 @@ export const GlobalOptionsConfigType = t.interface({
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
   'default-cwl-retention': t.number,
+  'supported-regions': t.array(t.string),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

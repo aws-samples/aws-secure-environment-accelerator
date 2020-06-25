@@ -19,6 +19,7 @@ export interface LoadConfigurationInput {
 export interface LoadConfigurationOutput {
   organizationalUnits: ConfigurationOrganizationalUnit[];
   accounts: ConfigurationAccount[];
+  regions: string[];
   warnings: string[];
   configCommitId: string;
 }
@@ -293,6 +294,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     ...input,
     organizationalUnits: configurationOus,
     accounts: configurationAccounts,
+    regions: config['global-options']['supported-regions'],
     warnings,
   };
 };

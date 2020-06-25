@@ -17,6 +17,7 @@ export const OUTPUT_SUBSCRIPTION_DONE = 'Subscribed';
 
 export interface StackOutput {
   accountKey: string;
+  region: string;
   outputKey?: string;
   outputValue?: string;
   outputDescription?: string;
