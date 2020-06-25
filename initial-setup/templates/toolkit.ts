@@ -3,6 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
 import { ToolkitInfo } from 'aws-cdk';
+import { setVerbose } from 'aws-cdk/lib/logging';
 import { bootstrapEnvironment } from 'aws-cdk/lib/api/bootstrap';
 import { Configuration } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
@@ -10,6 +11,9 @@ import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deploy
 import { PluginHost } from 'aws-cdk/lib/plugin';
 import { AssumeProfilePlugin } from '@aws-pbmm/plugin-assume-role/lib/assume-role-plugin';
 import { fulfillAll } from './promise';
+
+// Set verbose logging
+setVerbose(true);
 
 // Register the assume role plugin
 const assumeRolePlugin = new AssumeProfilePlugin();
