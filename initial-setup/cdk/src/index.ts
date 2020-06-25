@@ -95,6 +95,7 @@ export namespace InitialSetup {
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
+          new iam.ServicePrincipal('events.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });

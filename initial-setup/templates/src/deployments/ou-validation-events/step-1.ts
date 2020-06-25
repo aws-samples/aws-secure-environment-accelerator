@@ -8,6 +8,8 @@ import * as events from '@aws-cdk/aws-events';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { Context } from '../../utils/context';
 
+import { createAccount } from './create-account';
+
 export interface OuValidationStep1Props {
   scope: AccountStack;
   context: Context,
@@ -43,10 +45,22 @@ export async function step1(props: OuValidationStep1Props) {
   const lambdaDir = path.dirname(lambdaPath);
   const lambdaCode = lambda.Code.fromAsset(lambdaDir);
   const roleArn = `arn:aws:iam::${scope.accountId}:role/${acceleratorPipelineRoleName}`;
-  const acceleratorPipelineRole = iam.Role.fromRoleArn(scope, 'moveAccountToOrganizationRole', roleArn, {
+  const acceleratorPipelineRole = iam.Role.fromRoleArn(scope, 'OuValidationRole', roleArn, {
     mutable: true,
   });
 
+  // Creates resource needed for handling create account directly from console
+  await createAccount({
+    scope,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
+    defaultRegion,
+    lambdaCode,
+    acceleratorStateMachineName,
+  });
   // Creates resources needed for handling move account directly from console
   await moveAccount({
     scope,
