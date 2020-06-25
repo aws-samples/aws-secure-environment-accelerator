@@ -9,6 +9,7 @@ import { Account } from '../../src/utils/accounts';
 import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
+import { Context } from '../../src/utils/context';
 
 export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.Stage> {
   const input = createPhaseInput();
@@ -112,10 +113,17 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
   const content = fs.readFileSync('../../config.example.json');
   const config = AcceleratorConfig.fromString(content.toString());
 
-  const context = {
+  const context: Context = {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel-',
     acceleratorExecutionRoleName: 'PBMMAccel-PipelineRole',
+    acceleratorBaseline: 'ORGANIZATIONS',
+    acceleratorPipelineRoleName: 'PBMMAccel-PipelineRole',
+    acceleratorStateMachineName: 'PBMMAccel-MainStateMachine_sm',
+    configBranch: '',
+    configCommitId: '',
+    configFilePath: '',
+    configRepositoryName: '',
     defaultRegion: 'ca-central-1',
   };
 

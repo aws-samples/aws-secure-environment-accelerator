@@ -6,7 +6,7 @@ export interface Context {
   acceleratorPrefix: string;
   acceleratorExecutionRoleName: string;
   defaultRegion: string;
-  acceleratorBaseline: string;
+  acceleratorBaseline: 'LANDING_ZONE' | 'ORGANIZATIONS' | 'CONTROL_TOWER' | string;
   acceleratorPipelineRoleName: string;
   configFilePath: string;
   configRepositoryName: string;
