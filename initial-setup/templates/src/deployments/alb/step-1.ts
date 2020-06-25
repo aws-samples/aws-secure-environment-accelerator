@@ -137,7 +137,7 @@ export function createAlb(
   }
 
   const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
-    albName: createAlbName(albConfig.name, accountKey, cdk.Aws.ACCOUNT_ID),
+    albName: createAlbName({ albName: albConfig.name, accountKey }),
     scheme: albConfig.scheme,
     subnetIds: subnets.map(s => s.subnetId),
     securityGroupIds: [securityGroupId],
@@ -176,7 +176,10 @@ export function getTargetGroupArn(props: {
   const { accountStack, accountKey, albConfig, targetConfig, outputs, vpcId } = props;
   const role = createLambdaRole(accountStack);
 
-  const targetGroupName = `${albConfig.name}-${targetConfig['target-name']}`;
+  const targetGroupName = createTargetGroupName({
+    albName: albConfig.name,
+    targetGroupName: targetConfig['target-name'],
+  });
   if (targetConfig['lambda-filename']) {
     const fileName = targetConfig['lambda-filename'];
     const lambdaArn = getLambdaFunctionArn(accountStack, fileName, role, albConfig.name, targetConfig['target-name']);
@@ -313,10 +316,36 @@ export function getEc2InstanceIds(
   return instanceIds;
 }
 
-function createAlbName(albName: string, accountKey: string, accountNumber: string): string {
-  const albNameAccountKey = albName + '-' + accountKey;
-  if (albNameAccountKey.length > 28) {
-    return albName.length > 16 ? albName.substring(0, 16) : albName + accountNumber + '-alb';
+const ALB_NAME_SUFFIX = '-alb';
+const ALB_MAX_LENGTH = 32;
+const ACCOUNT_ID_LENGTH = 12;
+
+/**
+ * Creates an ALB name based on the ALB name and the given account key. The returned name will not exceed 32 characters.
+ */
+export function createAlbName(props: { albName: string; accountKey: string }): string {
+  const { albName, accountKey } = props;
+  const result = albName + '-' + accountKey + ALB_NAME_SUFFIX;
+  if (result.length > ALB_MAX_LENGTH) {
+    // Use account ID instead of account key and trim the ALB name
+    // -1 for the additional dash
+    const albNameLength = ALB_MAX_LENGTH - (1 + ACCOUNT_ID_LENGTH + ALB_NAME_SUFFIX.length);
+    return albName.substring(0, albNameLength) + '-' + cdk.Aws.ACCOUNT_ID + ALB_NAME_SUFFIX;
   }
-  return albNameAccountKey + '-alb';
+  return result;
+}
+
+/**
+ * Creates a target group name based on the ALB name and the given target group name. The returned name will not exceed
+ * 32 characters.
+ */
+export function createTargetGroupName(props: { albName: string; targetGroupName: string }): string {
+  const { albName, targetGroupName } = props;
+  const result = albName + '-' + targetGroupName;
+  if (result.length > ALB_MAX_LENGTH) {
+    const partLength = ALB_MAX_LENGTH / 2;
+    // -1 for the additional dash
+    return albName.substring(0, partLength - 1) + '-' + targetGroupName.substring(0, partLength);
+  }
+  return result;
 }
