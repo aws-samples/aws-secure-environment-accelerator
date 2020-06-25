@@ -3,14 +3,26 @@ import { AssumeRoleProviderSource } from './assume-role-provider-source';
 
 export class AssumeProfilePlugin implements Plugin {
   readonly version = '1';
-  private readonly assumeRoleName: string;
 
-  constructor(props: { assumeRoleName?: string } = {}) {
-    this.assumeRoleName = props.assumeRoleName ?? process.env.CDK_PLUGIN_ASSUME_ROLE_NAME!;
+  constructor(private readonly props: { assumeRoleName?: string; assumeRoleDuration?: number } = {}) {}
+
+  init(host: PluginHost): void {
+    const source = new AssumeRoleProviderSource({
+      name: 'cdk-assume-role-plugin',
+      assumeRoleName: this.props.assumeRoleName ?? AssumeProfilePlugin.getDefaultAssumeRoleName(),
+      assumeRoleDuration: this.props.assumeRoleDuration ?? AssumeProfilePlugin.getDefaultAssumeRoleDuration(),
+    });
+    host.registerCredentialProviderSource(source);
   }
 
-  init(host: PluginHost) {
-    const source = new AssumeRoleProviderSource('cdk-assume-role-plugin', this.assumeRoleName);
-    host.registerCredentialProviderSource(source);
+  static getDefaultAssumeRoleName(): string {
+    return process.env.CDK_PLUGIN_ASSUME_ROLE_NAME!;
+  }
+
+  static getDefaultAssumeRoleDuration(): number {
+    if (process.env.CDK_PLUGIN_ASSUME_ROLE_DURATION) {
+      return +process.env.CDK_PLUGIN_ASSUME_ROLE_DURATION;
+    }
+    return 3600;
   }
 }

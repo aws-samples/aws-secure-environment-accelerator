@@ -79,6 +79,10 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
+      // This is the maximum time before a build times out
+      // The role used by the build should allow this session duration
+      const buildTimeout = cdk.Duration.hours(4);
+
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: createRoleName('L-SFN-MasterRole'),
@@ -88,6 +92,7 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+        maxSessionDuration: buildTimeout,
       });
 
       // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
@@ -103,12 +108,13 @@ export namespace InitialSetup {
         projectRoot: props.solutionRoot,
         packageManager: 'pnpm',
         commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
-        timeout: cdk.Duration.hours(4),
+        timeout: buildTimeout,
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
           ACCELERATOR_PREFIX: props.acceleratorPrefix,
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
+          CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
