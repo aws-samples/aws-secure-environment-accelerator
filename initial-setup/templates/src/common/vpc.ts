@@ -13,7 +13,6 @@ import { SecurityGroup } from './security-group';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../common/account-stacks';
 import { JsonOutputValue } from '../common/json-output';
-import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface VpcCommonProps {
   /**
@@ -310,18 +309,30 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           transitGatewayId: tgw.tgwId,
         });
 
-        if (tgwAttach.account) {
-          const targetStack = accountStacks.getOrCreateAccountStack(tgwAttach.account);
-          new JsonOutputValue(targetStack, createName({ name: 'TgwAttachmentOutput' }), {
-            type: 'TgwAttachmentOutput',
-            value: {
-              tgwAttachmentId: tgwAttachment.tgwAttach.ref,
-              tgwRouteAssociates,
-              tgwRoutePropagates,
-              blackhole,
-              cidr: this.cidrBlock,
-            },
+        // in case TGW attachment is created for the same account, we create using the same stack
+        // otherwise, we will store tgw attachment output and do it in next phase
+        if (tgwAttach.account === accountKey) {
+          const tgwRoutes = new TransitGatewayRoute(this, 'TgwRoute', {
+            tgwAttachmentId: tgwAttachment.tgwAttach.ref,
+            tgwRouteAssociates,
+            tgwRoutePropagates,
+            blackhole,
+            cidr: this.cidrBlock,
           });
+        } else {
+          if (tgwAttach.account) {
+            new JsonOutputValue(this, `TgwAttachmentOutput`, {
+              type: 'TgwAttachmentOutput',
+              value: {
+                accountName: tgwAttach.account,
+                tgwAttachmentId: tgwAttachment.tgwAttach.ref,
+                tgwRouteAssociates,
+                tgwRoutePropagates,
+                blackhole,
+                cidr: this.cidrBlock,
+              },
+            });
+          }
         }
       }
     }
