@@ -1,9 +1,11 @@
 import 'jest';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cfnspec from '@aws-cdk/cfnspec';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { resourcesToList, stackToCloudFormation, ResourceWithLogicalId, ResourceProperties } from '../jest';
+import { resourcesToList, ResourceWithLogicalId, ResourceProperties } from '../jest';
 import { deployPhases } from './unsupported-changes.mocks';
 import { phases } from '../../src/app';
 
@@ -14,6 +16,8 @@ const resourceTypeNames = [
   'AWS::Budgets::Budget',
   'AWS::DirectoryService::MicrosoftAD',
   'AWS::EC2::Instance',
+  'AWS::EC2::TransitGateway',
+  'AWS::ElasticLoadBalancingV2::LoadBalancer',
   'AWS::S3::Bucket',
   'AWS::SecretsManager::Secret',
   'AWS::SecretsManager::ResourcePolicy',
@@ -64,13 +68,21 @@ beforeAll(async () => {
 
   // Deploy all phases that are defined in src/app.ts
   for await (const app of deployPhases(phases)) {
-    // Convert the stacks to CloudFormation resources
-    const stacks = app.node.children.filter(child => child instanceof cdk.Stack) as cdk.Stack[];
+    const assembly = app.synth();
+    const stacks = app.node.children.filter(cdk.Stack.isStack);
     for (const stack of stacks) {
-      const template = stackToCloudFormation(stack);
-      const resources = resourcesToList(template.Resources);
+      const artifact = assembly.getStackArtifact(stack.artifactId);
+      const template = artifact.template;
+      stackResources[stack.node.uniqueId] = resourcesToList(template.Resources);
 
-      stackResources[stack.stackName] = resources;
+      // Render all nested stacks
+      // See https://github.com/aws/aws-cdk/blob/master/packages/@aws-cdk/assert/lib/synth-utils.ts#L52
+      const nestedStacks = stack.node.findAll().filter(cdk.NestedStack.isNestedStack);
+      for (const nestedStack of nestedStacks) {
+        const nestedTemplateFile = path.join(assembly.directory, nestedStack.templateFile);
+        const nestedTemplate = JSON.parse(fs.readFileSync(nestedTemplateFile).toString('utf-8'));
+        stackResources[nestedStack.node.uniqueId] = resourcesToList(nestedTemplate.Resources);
+      }
     }
   }
 });
