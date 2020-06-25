@@ -13,6 +13,7 @@ import { SecurityGroup } from './security-group';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../common/account-stacks';
 import { JsonOutputValue } from '../common/json-output';
+import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface VpcCommonProps {
   /**
@@ -311,7 +312,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
         if (tgwAttach.account) {
           const targetStack = accountStacks.getOrCreateAccountStack(tgwAttach.account);
-          new JsonOutputValue(targetStack, `${tgwAttachment.tgwAttach.ref}_TgwAttachmentOutput`, {
+          new JsonOutputValue(targetStack, createName({name: 'TgwAttachmentOutput'}), {
             type: 'TgwAttachmentOutput',
             value: {
               tgwAttachmentId: tgwAttachment.tgwAttach.ref,
