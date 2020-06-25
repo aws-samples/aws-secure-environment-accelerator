@@ -476,6 +476,7 @@ export const MandatoryAccountConfigType = t.interface({
   'account-name': t.string,
   email: t.string,
   ou: t.string,
+  'ou-path': optional(t.string),
   'share-mad-from': optional(t.string),
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),

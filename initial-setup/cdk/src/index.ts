@@ -95,6 +95,7 @@ export namespace InitialSetup {
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
+          new iam.ServicePrincipal('events.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
       });
@@ -485,7 +486,10 @@ export namespace InitialSetup {
                 'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
                 'CONFIG_FILE_PATH.$': '$.configFilePath',
                 'CONFIG_COMMIT_ID.$': '$.configCommitId',
-                'CONFIG_BASELINE.$': '$.baseline',
+                'ACCELERATOR_BASELINE.$': '$.baseline',
+                ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
+                ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
+                CONFIG_BRANCH_NAME: props.configBranchName, 
               },
             },
           }),

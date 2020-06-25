@@ -128,6 +128,28 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
   );
 });
 
+test('should add the Name tag with the correct suffix to ec2.CfnTransitGateway', () => {
+  const stack = new cdk.Stack();
+
+  new ec2.CfnTransitGateway(stack, 'Main', {});
+
+  stack.node.applyAspect(new AcceleratorNameTagger());
+
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
+  expect(stack).to(
+    haveResourceLike('AWS::EC2::TransitGateway', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'Main_tgw',
+        },
+      ],
+    }),
+  );
+});
+
 test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRouteTable', () => {
   const stack = new cdk.Stack();
 
