@@ -312,7 +312,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
         if (tgwAttach.account) {
           const targetStack = accountStacks.getOrCreateAccountStack(tgwAttach.account);
-          new JsonOutputValue(targetStack, createName({name: 'TgwAttachmentOutput'}), {
+          new JsonOutputValue(targetStack, createName({ name: 'TgwAttachmentOutput' }), {
             type: 'TgwAttachmentOutput',
             value: {
               tgwAttachmentId: tgwAttachment.tgwAttach.ref,
