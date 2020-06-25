@@ -15,8 +15,8 @@ export async function step2(props: TransitGatewayStep2Props) {
   const tgwAttOutputs = getStackJsonOutput(props.outputs, {
     outputType: 'TgwAttachmentOutput',
   });
-  const outputMap : {[accountKey: string]: TransitGatewayRouteProps[]} = {}
-  for ( const tgwAttOutput of tgwAttOutputs) {
+  const outputMap: { [accountKey: string]: TransitGatewayRouteProps[] } = {};
+  for (const tgwAttOutput of tgwAttOutputs) {
     const accountKey = tgwAttOutput.accountName;
     const prop: TransitGatewayRouteProps = {
       tgwAttachmentId: tgwAttOutput.tgwAttachmentId,
@@ -24,7 +24,7 @@ export async function step2(props: TransitGatewayStep2Props) {
       tgwRoutePropagates: tgwAttOutput.tgwRoutePropagates,
       blackhole: tgwAttOutput.blackhole,
       cidr: tgwAttOutput.cidr,
-    }
+    };
     if (outputMap[accountKey]) {
       outputMap[accountKey].push(prop);
     } else {
@@ -35,7 +35,7 @@ export async function step2(props: TransitGatewayStep2Props) {
   for (const { ouKey, accountKey, vpcConfig, deployments } of props.config.getVpcConfigs()) {
     const stack = props.accountStacks.getOrCreateAccountStack(accountKey);
 
-    for ( const tgwAttOutput of outputMap[accountKey]) {
+    for (const tgwAttOutput of outputMap[accountKey]) {
       const tgwRoutes = new TransitGatewayRoute(stack, 'TgwRoute', tgwAttOutput);
     }
   }
