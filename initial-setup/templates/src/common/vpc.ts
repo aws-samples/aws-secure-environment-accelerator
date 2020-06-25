@@ -309,32 +309,18 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           transitGatewayId: tgw.tgwId,
         });
 
-        // in case TGW attachment is created for the same account, we create using the same stack
-        // otherwise, we will store tgw attachment output and do it in next phase
-        if (tgwAttach.account === accountKey) {
-          const tgwRoutes = new TransitGatewayRoute(this, 'TgwRoute', {
-            tgwAttachmentId: tgwAttachment.tgwAttach.ref,
-            tgwRouteAssociates,
-            tgwRoutePropagates,
-            blackhole,
-            cidr: this.cidrBlock,
+        if (tgwAttach.account) {
+          const targetStack = accountStacks.getOrCreateAccountStack(tgwAttach.account);
+          new JsonOutputValue(targetStack, `${tgwAttachment.tgwAttach.ref}_TgwAttachmentOutput`, {
+            type: 'TgwAttachmentOutput',
+            value: {
+              tgwAttachmentId: tgwAttachment.tgwAttach.ref,
+              tgwRouteAssociates,
+              tgwRoutePropagates,
+              blackhole,
+              cidr: this.cidrBlock,
+            },
           });
-        } else {
-          if (tgwAttach.account) {
-            const targetStack = accountStacks.tryGetOrCreateAccountStack(tgwAttach.account);
-            if (targetStack) {
-              new JsonOutputValue(targetStack, `TgwAttachmentOutput`, {
-                type: 'TgwAttachmentOutput',
-                value: {
-                  tgwAttachmentId: tgwAttachment.tgwAttach.ref,
-                  tgwRouteAssociates,
-                  tgwRoutePropagates,
-                  blackhole,
-                  cidr: this.cidrBlock,
-                },
-              });
-            }
-          }
         }
       }
     }
@@ -487,6 +473,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
     // Share VPC subnet
     new VpcSubnetSharing(this, 'Sharing', {
+      accountStacks,
       accountKey,
       accounts,
       vpcConfig,

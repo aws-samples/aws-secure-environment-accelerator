@@ -20,14 +20,13 @@ export async function step2(props: TransitGatewayStep2Props) {
 
     const stack = props.accountStacks.getOrCreateAccountStack(accountKey);
 
-    if (tgwAttOutputs.length > 0) {
-      const tgwAttachment = tgwAttOutputs[0];
+    for ( const tgwAttOutput of tgwAttOutputs) {
       const tgwRoutes = new TransitGatewayRoute(stack, 'TgwRoute', {
-        tgwAttachmentId: tgwAttachment.tgwAttachmentId,
-        tgwRouteAssociates: tgwAttachment.tgwRouteAssociates,
-        tgwRoutePropagates: tgwAttachment.tgwRoutePropagates,
-        blackhole: tgwAttachment.blackhole,
-        cidr: tgwAttachment.cidrBlock,
+        tgwAttachmentId: tgwAttOutput.tgwAttachmentId,
+        tgwRouteAssociates: tgwAttOutput.tgwRouteAssociates,
+        tgwRoutePropagates: tgwAttOutput.tgwRoutePropagates,
+        blackhole: tgwAttOutput.blackhole,
+        cidr: tgwAttOutput.cidrBlock,
       });
     }
   }
