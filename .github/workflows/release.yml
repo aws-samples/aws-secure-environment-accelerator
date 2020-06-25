@@ -53,7 +53,7 @@ jobs:
         run: |
           previous_tag=$(git describe --tags --abbrev=0)
           echo "Previous release was: ${previous_tag}"
-          changes=$(git log ${previous_tag}..HEAD --pretty="tformat:* %s (%h)")
+          changes=$(git log ${previous_tag}..HEAD --pretty="tformat:* %s (%h)" --first-parent)
           echo ${changes}
           changes="${changes//'%'/'%25'}"    # Avoids whitespace removal.
           changes="${changes//$'\n'/'%0A'}"
