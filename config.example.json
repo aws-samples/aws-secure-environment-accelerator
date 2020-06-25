@@ -327,10 +327,9 @@
             "VPN-ECMP-support": true,
             "Default-route-table-association": false,
             "Default-route-table-propagation": false,
-            "Auto-accept-sharing-attachments": true
+            "Auto-accept-sharing-attachments": false
           },
-          "route-tables": ["core", "segregated", "shared", "standalone"],
-          "share-to-account": ["master"]
+          "route-tables": ["core", "segregated", "shared", "standalone"]
         }
       }
     },
