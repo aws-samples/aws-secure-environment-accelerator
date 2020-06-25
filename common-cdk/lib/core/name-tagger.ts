@@ -21,12 +21,16 @@ function addNameTagAsIdWithSuffix<T extends cdk.Construct>(
   return (value: cdk.IConstruct) => {
     if (value instanceof type) {
       const id = value.node.id;
-      const name = id.endsWith(suffix) ? id : `${id}${suffix}`; // Only add the suffix if it isn't there yet
-      value.node.applyAspect(
-        new cdk.Tag(NAME_TAG, name, {
-          priority: tagPriority,
-        }),
-      );
+      // Only add the suffix if it isn't there yet
+      const name = id.endsWith(suffix) ? id : `${id}${suffix}`;
+
+      // Try to add the tags to the value (in case we have an L1 construct like ec2.CfnVPC)
+      // Otherwise add it to the value's default child (in case we have an L2 construct like ec2.Vpc)
+      if (cdk.TagManager.isTaggable(value)) {
+        value.tags.setTag(NAME_TAG, name, tagPriority);
+      } else if (cdk.TagManager.isTaggable(value.node.defaultChild)) {
+        value.node.defaultChild.tags.setTag(NAME_TAG, name, tagPriority);
+      }
       return true;
     }
     return false;

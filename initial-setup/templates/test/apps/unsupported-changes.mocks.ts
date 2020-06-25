@@ -10,7 +10,7 @@ import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
 
-export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.App> {
+export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.Stage> {
   const input = createPhaseInput();
   for (const phase of phases) {
     const accountStacks = new AccountStacks({
@@ -89,6 +89,22 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       arn: 'arn:aws:organizations::111111111111:account/o-111111111111/777777777777',
       name: 'test-perimeter',
       email: 'test+pbmm-lz-perimeter@amazon.com',
+      ou: 'core',
+    },
+    {
+      key: 'fun-acct',
+      id: '888888888888',
+      arn: 'arn:aws:organizations::888888888888:account/o-111111111111/888888888888',
+      name: 'test-fun-act',
+      email: 'test+pbmm-fun-act@amazon.com',
+      ou: 'core',
+    },
+    {
+      key: 'mydevacct1',
+      id: '999999999999',
+      arn: 'arn:aws:organizations::999999999999:account/o-111111111111/999999999999',
+      name: 'test-mydevacct1',
+      email: 'test+pbmm-mydevacct1@amazon.com',
       ou: 'core',
     },
   ];
@@ -825,14 +841,14 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           cidrBlock: '10.7.4.0/22',
           additionalCidrBlocks: [],
           subnets: [
-            { subnetId: 'subnet-074afd4fc157a36d3', subnetName: 'Public', az: 'a', cidrBlock: '100.96.250.0/25' },
-            { subnetId: 'subnet-0919b680c624cda7a', subnetName: 'Public', az: 'b', cidrBlock: '100.96.250.128/25' },
+            { subnetId: 'subnet-074afd4fc157a36d3', subnetName: 'Public', az: 'a', cidrBlock: '100.96.250.0/26' },
+            { subnetId: 'subnet-0919b680c624cda7a', subnetName: 'Public', az: 'b', cidrBlock: '100.96.250.128/26' },
             { subnetId: 'subnet-052d9c1787cc451df', subnetName: 'FWMgmt', az: 'a', cidrBlock: '100.96.251.32/27' },
             { subnetId: 'subnet-001239090ca287b94', subnetName: 'FWMgmt', az: 'b', cidrBlock: '100.96.251.160/27' },
             { subnetId: 'subnet-074c58bdde90265f3', subnetName: 'Proxy', az: 'a', cidrBlock: '100.96.251.64/26' },
             { subnetId: 'subnet-064c1ac74779f8ecb', subnetName: 'Proxy', az: 'b', cidrBlock: '100.96.251.192/26' },
-            { subnetId: 'subnet-05bbb12ea281f2c24', subnetName: 'OnPremise', az: 'a', cidrBlock: '100.96.251.0/27' },
-            { subnetId: 'subnet-050d0cafb42104fbe', subnetName: 'OnPremise', az: 'b', cidrBlock: '100.96.251.128/27' },
+            { subnetId: 'subnet-05bbb12ea281f2c24', subnetName: 'OnPremise', az: 'a', cidrBlock: '100.96.250.64/26' },
+            { subnetId: 'subnet-050d0cafb42104fbe', subnetName: 'OnPremise', az: 'b', cidrBlock: '100.96.250.192/26' },
             { subnetId: 'subnet-0fb010dd0735d5d17', subnetName: 'Detonation', az: 'a', cidrBlock: '10.7.4.0/24' },
             { subnetId: 'subnet-01cc2e0ae8555005b', subnetName: 'Detonation', az: 'b', cidrBlock: '10.7.5.0/24' },
           ],

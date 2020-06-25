@@ -1,4 +1,3 @@
-import * as iam from '@aws-cdk/aws-iam';
 import * as ssm from '@aws-cdk/aws-ssm';
 import { getAccountId } from '../utils/accounts';
 import { VpcOutput } from '../deployments/vpc';
@@ -9,7 +8,6 @@ import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
-import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-subscription-filter';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 
 interface MadOutput {
@@ -142,7 +140,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   await cwlCentralLoggingToS3.step2({
     accountStacks,
     config: acceleratorConfig,
-    accounts,
     outputs,
   });
 }

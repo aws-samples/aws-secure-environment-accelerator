@@ -86,14 +86,14 @@ export class Grant extends cdk.Construct {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
         resources: ['*'],
       }),
     );
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['kms:CreateGrant', 'kms:RevokeGrant'],
         resources: [this.props.key.keyArn],

@@ -70,7 +70,7 @@ async function cloudWatchSettingsInMaster(props: { scope: cdk.Construct; account
     roleName: 'CloudWatch-CrossAccountSharing-ListAccountsRole',
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),
   });
-  cwlCrossAccountSharingRole.addToPolicy(
+  cwlCrossAccountSharingRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       resources: ['*'],
       actions: ['organizations:ListAccounts', 'organizations:ListAccountsForParent'],

@@ -79,6 +79,10 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
+      // This is the maximum time before a build times out
+      // The role used by the build should allow this session duration
+      const buildTimeout = cdk.Duration.hours(4);
+
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: createRoleName('L-SFN-MasterRole'),
@@ -88,6 +92,7 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('lambda.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+        maxSessionDuration: buildTimeout,
       });
 
       // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
@@ -103,12 +108,13 @@ export namespace InitialSetup {
         projectRoot: props.solutionRoot,
         packageManager: 'pnpm',
         commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
-        timeout: cdk.Duration.hours(4),
+        timeout: buildTimeout,
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
           ACCELERATOR_PREFIX: props.acceleratorPrefix,
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
+          CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
@@ -185,6 +191,7 @@ export namespace InitialSetup {
       });
 
       const createAccountTask = new sfn.Task(this, 'Create Account', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createAccountStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -232,6 +239,7 @@ export namespace InitialSetup {
       });
 
       const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(installRolesStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -311,6 +319,7 @@ export namespace InitialSetup {
       // TODO Move this to a separate state machine, including store output task
       const createDeploymentTask = (phase: number) => {
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
+          // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(codeBuildStateMachine, {
             integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
             input: {
@@ -431,6 +440,7 @@ export namespace InitialSetup {
       });
 
       const createAdConnectorTask = new sfn.Task(this, 'Create AD Connector', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createAdConnectorStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {

@@ -89,7 +89,7 @@ export class AcmImportCertificate extends cdk.Construct implements cdk.ITaggable
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
-    role.addToPolicy(
+    role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
           'acm:AddTagsToCertificate',
