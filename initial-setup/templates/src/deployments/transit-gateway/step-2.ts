@@ -20,7 +20,7 @@ export async function step2(props: TransitGatewayStep2Props) {
 
     const stack = props.accountStacks.getOrCreateAccountStack(accountKey);
 
-    for ( const tgwAttOutput of tgwAttOutputs) {
+    for (const tgwAttOutput of tgwAttOutputs) {
       const tgwRoutes = new TransitGatewayRoute(stack, 'TgwRoute', {
         tgwAttachmentId: tgwAttOutput.tgwAttachmentId,
         tgwRouteAssociates: tgwAttOutput.tgwRouteAssociates,
