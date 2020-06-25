@@ -25,7 +25,7 @@ export async function createAccount(input: CreateAccountProps) {
 
   const accleratorInvocation = new sfn.Pass(scope, 'Acclerator Invocation');
 
-  const waitTask = new sfn.Wait(scope, 'Wait for Org Account Creation', {
+  const waitTask = new sfn.Wait(scope, 'Wait', {
     time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
   });
 
@@ -34,7 +34,7 @@ export async function createAccount(input: CreateAccountProps) {
   const fail = new sfn.Fail(scope, 'Failed');
 
   const verifyTaskResultPath = '$.verifyOutput';
-  const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
+  const verifyTaskStatusPath = `${verifyTaskResultPath}.State`;
   const verifyCreateAccountTask = new CodeTask(scope, 'Verify Create Account', {
     functionProps: {
       code: lambdaCode,
@@ -55,7 +55,7 @@ export async function createAccount(input: CreateAccountProps) {
       handler: 'index.ouValidationEvents.createAccount.addScp',
     },
     functionPayload: {
-      'accountId.$': '$.verifyOutput.accountId',
+      'accountId.$': '$.verifyOutput.AccountId',
       acceleratorPrefix
     },
   });
