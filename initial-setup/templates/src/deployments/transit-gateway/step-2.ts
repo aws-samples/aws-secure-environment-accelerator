@@ -30,6 +30,5 @@ export async function step2(props: TransitGatewayStep2Props) {
         cidr: tgwAttachment.cidrBlock,
       });
     }
-    
   }
 }

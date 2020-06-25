@@ -320,7 +320,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             cidr: this.cidrBlock,
           });
         } else {
-          if(tgwAttach.account) {
+          if (tgwAttach.account) {
             const targetStack = accountStacks.tryGetOrCreateAccountStack(tgwAttach.account);
             if (targetStack) {
               new JsonOutputValue(targetStack, `TgwAttachmentOutput`, {
