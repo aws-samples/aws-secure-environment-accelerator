@@ -20,7 +20,7 @@ jobs:
         run: |
           git fetch --tags
           echo ::set-output name=branch_name::$(echo "${GITHUB_REF}" | cut -d/ -f3-)
-          echo ::set-output name=tag_name::$(echo "${GITHUB_REF}" | cut -d/ -f3- | sed 's/bump\///')
+          echo ::set-output name=tag_name::$(echo "${GITHUB_REF}" | cut -d/ -f4-)
           echo ::set-output name=release_name::"Release $(echo "${GITHUB_REF}" | cut -d/ -f3- | sed 's/bump\///')"
       - name: Use Node.js
         uses: actions/setup-node@v1
