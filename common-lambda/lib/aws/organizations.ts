@@ -333,20 +333,20 @@ export class Organizations {
     return response.Account;
   }
 
-  async getOrganazationUnitWithPath(ouId: string): Promise<OrganizationalUnit> {
-    const orgnazationUnit = await this.getOrganizationalUnit(ouId);
-    const parents = await this.getOrganazationParents(ouId, [orgnazationUnit!]);
+  async getOrganizationalUnitWithPath(ouId: string): Promise<OrganizationalUnit> {
+    const organizationalUnit = await this.getOrganizationalUnit(ouId);
+    const parents = await this.getOrganizationParents(ouId, [organizationalUnit!]);
     const orgPath = parents
       .reverse()
       .map(parent => parent.Name)
       .join('/');
     return {
-      ...orgnazationUnit,
+      ...organizationalUnit,
       Path: orgPath,
     };
   }
 
-  async getOrganazationParents(
+  async getOrganizationParents(
     organizationUnitId: string,
     parents: org.OrganizationalUnit[],
   ): Promise<org.OrganizationalUnit[]> {
@@ -358,7 +358,7 @@ export class Organizations {
         organizationUnits.push(organizationalUnit!);
       }
       parents.push(...organizationUnits);
-      await this.getOrganazationParents(localParents[0].Id!, parents);
+      await this.getOrganizationParents(localParents[0].Id!, parents);
     }
     return parents;
   }

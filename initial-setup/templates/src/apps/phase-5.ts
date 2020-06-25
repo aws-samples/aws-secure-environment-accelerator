@@ -144,28 +144,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  const {
-    acceleratorBaseline,
-    acceleratorPrefix,
-    defaultRegion,
-    acceleratorPipelineRoleName,
-    configBranch,
-    configFilePath,
-    configRepositoryName,
-  } = context;
+  const { acceleratorBaseline } = context;
   if (acceleratorBaseline === 'ORGANIZATIONS') {
-    const masterStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, 'us-east-1');
+    const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey, 'us-east-1');
     if (!masterStack) {
       console.error(`Not able to create stack for "${masterAccountKey}"`);
     } else {
       ouValidation.step1({
         scope: masterStack,
-        roleName: acceleratorPipelineRoleName,
-        acceleratorPrefix,
-        configFilePath,
-        configBranch,
-        configRepositoryName,
-        defaultRegion,
+        context
       });
     }
   }

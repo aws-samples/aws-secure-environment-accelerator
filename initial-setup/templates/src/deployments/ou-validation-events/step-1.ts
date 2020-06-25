@@ -6,15 +6,11 @@ import * as path from 'path';
 import * as iam from '@aws-cdk/aws-iam';
 import * as events from '@aws-cdk/aws-events';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { Context } from '../../utils/context';
 
 export interface OuValidationStep1Props {
   scope: AccountStack;
-  roleName: string;
-  acceleratorPrefix: string;
-  configFilePath: string;
-  configBranch: string;
-  configRepositoryName: string;
-  defaultRegion: string;
+  context: Context,
 }
 
 export interface MoveAccountProps {
@@ -24,67 +20,71 @@ export interface MoveAccountProps {
   configFilePath: string;
   configRepositoryName: string;
   defaultRegion: string;
-  pipelineRole: iam.IRole;
+  acceleratorPipelineRole: iam.IRole;
   lambdaCode: lambda.Code;
+  acceleratorStateMachineName: string;
 }
 
 /**
  * OU Validation - Handling manual account creation and move account to organizations
  */
 export async function step1(props: OuValidationStep1Props) {
+  const { scope, context } = props;
   const {
-    scope,
-    roleName,
+    acceleratorPipelineRoleName,
     acceleratorPrefix,
     configBranch,
     configFilePath,
     configRepositoryName,
     defaultRegion,
-  } = props;
+    acceleratorStateMachineName
+  } = context;
   const lambdaPath = require.resolve('@aws-pbmm/apps-lambdas');
   const lambdaDir = path.dirname(lambdaPath);
   const lambdaCode = lambda.Code.fromAsset(lambdaDir);
-  const roleArn = `arn:aws:iam::${scope.accountId}:role/${roleName}`;
-  const pipelineRole = iam.Role.fromRoleArn(scope, 'moveAccountToOrganizationRole', roleArn, {
+  const roleArn = `arn:aws:iam::${scope.accountId}:role/${acceleratorPipelineRoleName}`;
+  const acceleratorPipelineRole = iam.Role.fromRoleArn(scope, 'moveAccountToOrganizationRole', roleArn, {
     mutable: true,
   });
 
   // Creates resources needed for handling move account directly from console
   await moveAccount({
     scope,
-    pipelineRole,
+    acceleratorPipelineRole,
     acceleratorPrefix,
     configBranch,
     configFilePath,
     configRepositoryName,
     defaultRegion,
     lambdaCode,
+    acceleratorStateMachineName,
   });
 }
 
 async function moveAccount(input: MoveAccountProps) {
   const {
     scope,
-    pipelineRole,
-    acceleratorPrefix,
+    acceleratorPipelineRole,
     configBranch,
     configFilePath,
     configRepositoryName,
     defaultRegion,
     lambdaCode,
+    acceleratorStateMachineName
   } = input;
+  const acceleratorStateMachineArn = `arn:aws:states:${defaultRegion}:${scope.accountId}:stateMachine:${acceleratorStateMachineName}`
   const moveAccountFunc = new lambda.Function(scope, 'moveAccountToOrganization', {
     runtime: lambda.Runtime.NODEJS_12_X,
     handler: 'index.ouValidationEvents.moveAccount',
     code: lambdaCode,
-    role: pipelineRole,
+    role: acceleratorPipelineRole,
     environment: {
-      ACCELERATOR_PREFIX: acceleratorPrefix,
       CONFIG_REPOSITORY_NAME: configRepositoryName,
       CONFIG_FILE_PATH: configFilePath,
       CONFIG_REPOSITORY_BRANCH: configBranch,
-      ACCELERATOR_STATEMACHINE_ROLENAME: pipelineRole.roleName,
+      ACCELERATOR_STATEMACHINE_ROLENAME: acceleratorPipelineRole.roleName,
       ACCELERATOR_DEFAULT_REGION: defaultRegion,
+      ACCELERATOR_STATE_MACHINE_ARN: acceleratorStateMachineArn,
     },
     timeout: cdk.Duration.minutes(15),
   });
