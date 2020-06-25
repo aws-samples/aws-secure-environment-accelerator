@@ -22,7 +22,7 @@ export async function step1(props: TransitGatewayStep1Props) {
       const accountNames = tgwDeployment['share-to-account'];
       const tgw = new TransitGateway(accountStack, tgwDeployment.name, tgwDeployment);
 
-      // Share TGW to the organization
+      // Share TGW to the principals provided
       const accountId = getAccountId(props.accounts, accountKey) || accountStack.account;
       if (accountNames) {
         const principals: string[] = [];
@@ -32,7 +32,7 @@ export async function step1(props: TransitGatewayStep1Props) {
             principals.push(principal);
           }
         }
-        const tgwShare = new TransitGatewaySharing(accountStack, `Shared_${tgwDeployment.name}_org`, {
+        const tgwShare = new TransitGatewaySharing(accountStack, `TGW_Shared_${tgwDeployment.name}`, {
           name: tgwDeployment.name,
           region,
           accountId,

@@ -12,6 +12,7 @@ import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../common/account-stacks';
+import { JsonOutputValue } from '../common/json-output';
 
 export interface VpcCommonProps {
   /**
@@ -309,7 +310,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         });
 
         // in case TGW attachment is created for the same account, we create using the same stack
-        // otherwise, we will find the attach account stack and create in that stack instead
+        // otherwise, we will store tgw attachment output and do it in next phase
         if (tgwAttach.account === accountKey) {
           const tgwRoutes = new TransitGatewayRoute(this, 'TgwRoute', {
             tgwAttachmentId: tgwAttachment.tgwAttach.ref,
@@ -319,15 +320,18 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             cidr: this.cidrBlock,
           });
         } else {
-          if (tgwAttach.account) {
-            const targetAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAttach.account);
-            if (targetAccountStack) {
-              const tgwRoutes = new TransitGatewayRoute(targetAccountStack, 'TgwRoute', {
-                tgwAttachmentId: tgwAttachment.tgwAttach.ref,
-                tgwRouteAssociates,
-                tgwRoutePropagates,
-                blackhole,
-                cidr: this.cidrBlock,
+          if(tgwAttach.account) {
+            const targetStack = accountStacks.tryGetOrCreateAccountStack(tgwAttach.account);
+            if (targetStack) {
+              new JsonOutputValue(targetStack, `TgwAttachmentOutput`, {
+                type: 'TgwAttachmentOutput',
+                value: {
+                  tgwAttachmentId: tgwAttachment.tgwAttach.ref,
+                  tgwRouteAssociates,
+                  tgwRoutePropagates,
+                  blackhole,
+                  cidr: this.cidrBlock,
+                },
               });
             }
           }
