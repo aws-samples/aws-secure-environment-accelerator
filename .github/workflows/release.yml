@@ -2,7 +2,7 @@ name: Release
 on:
   push:
     branches:
-      - 'bump/v*'
+      - 'release/v*'
 jobs:
   release:
     name: Release
@@ -21,7 +21,7 @@ jobs:
           git fetch --tags
           echo ::set-output name=branch_name::$(echo "${GITHUB_REF}" | cut -d/ -f3-)
           echo ::set-output name=tag_name::$(echo "${GITHUB_REF}" | cut -d/ -f4-)
-          echo ::set-output name=release_name::"Release $(echo "${GITHUB_REF}" | cut -d/ -f3- | sed 's/bump\///')"
+          echo ::set-output name=release_name::"Release $(echo "${GITHUB_REF}" | cut -d/ -f4-)"
       - name: Use Node.js
         uses: actions/setup-node@v1
         env:
