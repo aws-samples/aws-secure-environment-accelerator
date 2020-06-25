@@ -2,7 +2,6 @@ import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
 import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
@@ -38,27 +37,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const sts = new STS();
-
-  const enableEbsDefaultEncryption = async (accountId: string, accountKey: string): Promise<void> => {
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-
-    const kmsKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION);
-    if (!kmsKeyId) {
-      console.warn(
-        `Cannot find output of ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION} for account ${accountKey}`,
-      );
-      return;
-    }
-    console.log('kmsKeyId: ' + kmsKeyId);
-
-    const ec2 = new EC2(credentials);
-    const enableEbsEncryptionByDefaultResult = await ec2.enableEbsEncryptionByDefault(false);
-    console.log('enableEbsEncryptionByDefaultResult: ', enableEbsEncryptionByDefaultResult);
-
-    const modifyEbsDefaultKmsKeyIdResult = await ec2.modifyEbsDefaultKmsKeyId(kmsKeyId, false);
-    console.log('modifyEbsDefaultKmsKeyIdResult: ', modifyEbsDefaultKmsKeyIdResult);
-    console.log(`EBS default encryption turned ON with KMS CMK for account - ${accountKey}`);
-  };
 
   const updateCloudTrailSettings = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
@@ -239,14 +217,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     if (!account) {
       console.warn(`Cannot find account with key "${accountKey}"`);
       continue;
-    }
-
-    try {
-      // enable default encryption for EBS
-      await enableEbsDefaultEncryption(account.id, account.key);
-    } catch (e) {
-      console.error(`Ignoring error while enabling EBS default encryption`);
-      console.error(e);
     }
 
     try {

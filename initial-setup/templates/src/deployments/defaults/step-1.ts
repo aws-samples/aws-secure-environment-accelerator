@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
-import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { EbsDefaultEncryption } from '@custom-resources/ec2-ebs-default-encryption';
 import { S3CopyFiles } from '@custom-resources/s3-copy-files';
 import { S3PublicAccessBlock } from '@custom-resources/s3-public-access-block';
 import { Organizations } from '@custom-resources/organization';
@@ -13,6 +13,8 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
+
+export type AccountRegionEbsEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
 
 export interface DefaultsStep1Props {
   acceleratorPrefix: string;
@@ -25,7 +27,7 @@ export interface DefaultsStep1Result {
   centralBucketCopy: s3.Bucket;
   centralLogBucket: s3.Bucket;
   aesLogBucket: s3.Bucket;
-  accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
+  accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
 }
 
 export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Result> {
@@ -306,12 +308,18 @@ function createAesLogBucket(props: DefaultsStep1Props) {
   return logBucket;
 }
 
-function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
+function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegionEbsEncryptionKeys {
   const { accountStacks, config } = props;
 
-  const accountEbsEncryptionKeys: { [accountKey: string]: kms.Key } = {};
-  for (const [accountKey, _] of config.getAccountConfigs()) {
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+  // Create an EBS encryption key for every account and region that has a VPC
+  const accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys = {};
+  for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
+    const region = vpcConfig.region;
+    if (accountEbsEncryptionKeys[accountKey]?.[region]) {
+      continue;
+    }
+
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -332,13 +340,15 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
       }),
     );
 
-    accountEbsEncryptionKeys[accountKey] = key;
-
-    // Save the output so it can be used in the state machine later
-    // TODO Replace with custom resource
-    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
-      value: key.keyId,
+    // Enable default EBS encryption
+    new EbsDefaultEncryption(accountStack, 'EbsDefaultEncryptionSet', {
+      key,
     });
+
+    accountEbsEncryptionKeys[accountKey] = {
+      ...accountEbsEncryptionKeys[accountKey],
+      [region]: key,
+    };
   }
   return accountEbsEncryptionKeys;
 }

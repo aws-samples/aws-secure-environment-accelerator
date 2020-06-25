@@ -1,5 +1,4 @@
 // all accounts
-export const OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION = 'KmsKeyIdForEbsDefaultEncryption';
 export const OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER = 'KmsKeyIdForSSMSessionManager';
 export const OUTPUT_KMS_KEY_ARN_FOR_SSM_SESSION_MANAGER = 'KmsKeyArnForSSMSessionManager';
 export const OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER = 'CWLForSSMSessionManager';

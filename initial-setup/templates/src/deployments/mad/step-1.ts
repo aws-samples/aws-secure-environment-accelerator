@@ -1,16 +1,16 @@
 import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
 import { ServiceLinkedRole } from '@aws-pbmm/constructs/lib/iam';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnSleep } from '@custom-resources/cfn-sleep';
 import { AccountStacks } from '../../common/account-stacks';
 import { StructuredOutput } from '../../common/structured-output';
 import { MadAutoScalingRoleOutput, MadAutoScalingRoleOutputType } from './outputs';
+import { AccountRegionEbsEncryptionKeys } from '../defaults';
 
 export interface MadStep1Props {
   acceleratorName: string;
   acceleratorPrefix: string;
-  accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
+  accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
 }
@@ -23,13 +23,17 @@ export async function step1(props: MadStep1Props) {
       continue;
     }
 
-    const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey];
+    const region = madConfig.region;
+    const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey]?.[region];
     if (!accountEbsEncryptionKey) {
-      console.warn(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
+      console.warn(
+        `Could not find EBS encryption key in account "${accountKey}" and region "${region}" ` +
+          `to deploy service-linked role`,
+      );
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, madConfig.region);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;
