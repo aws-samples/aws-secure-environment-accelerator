@@ -324,7 +324,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             new JsonOutputValue(this, `TgwAttachmentOutput`, {
               type: 'TgwAttachmentOutput',
               value: {
-                accountName: tgwAttach.account,
+                accountKey: tgwAttach.account,
+                region: this.region,
                 tgwAttachmentId: tgwAttachment.tgwAttach.ref,
                 tgwRouteAssociates,
                 tgwRoutePropagates,

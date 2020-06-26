@@ -15,34 +15,22 @@ export async function step2(props: TransitGatewayStep2Props) {
   const tgwAttOutputs = getStackJsonOutput(props.outputs, {
     outputType: 'TgwAttachmentOutput',
   });
-  const outputMap: { [accountKey: string]: TransitGatewayRouteProps[] } = {};
   for (const tgwAttOutput of tgwAttOutputs) {
-    const accountKey = tgwAttOutput.accountName;
-    const prop: TransitGatewayRouteProps = {
+    const accountKey = tgwAttOutput.accountKey;
+    const region = tgwAttOutput.region;
+
+    const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey} in region ${region}`);
+      continue;
+    }
+
+    new TransitGatewayRoute(accountStack, 'TgwRoute', {
       tgwAttachmentId: tgwAttOutput.tgwAttachmentId,
       tgwRouteAssociates: tgwAttOutput.tgwRouteAssociates,
       tgwRoutePropagates: tgwAttOutput.tgwRoutePropagates,
       blackhole: tgwAttOutput.blackhole,
       cidr: tgwAttOutput.cidr,
-    };
-    if (outputMap[accountKey]) {
-      outputMap[accountKey].push(prop);
-    } else {
-      outputMap[accountKey] = [prop];
-    }
-  }
-
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    const vpcs = accountConfig.vpc;
-    if (vpcs) {
-      const region = vpcs[0].region; // assume all vpc is defined in the same region?
-      const stack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
-
-      if (outputMap[accountKey]) {
-        for (const tgwAttOutput of outputMap[accountKey]) {
-          const tgwRoutes = new TransitGatewayRoute(stack, 'TgwRoute', tgwAttOutput);
-        }
-      }
-    }
+    });
   }
 }
