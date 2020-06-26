@@ -59,6 +59,5 @@ export async function step2(props: MacieStepProps) {
     const members = new MacieCreateMember(masterAccountStack, 'MacieCreateMember', {
       accountDetails,
     });
-
   });
 }

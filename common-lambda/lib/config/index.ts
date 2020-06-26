@@ -570,7 +570,7 @@ export const CentralServicesConfigType = t.interface({
   'ssm-to-cwl': optional(t.boolean),
   'cwl-exclusions': optional(t.array(CwlExclusions)),
   'kinesis-stream-shard-count': optional(t.number),
-  'macie': fromNullable(t.boolean, false),
+  macie: fromNullable(t.boolean, false),
   'macie-excl-regions': optional(t.array(t.string)),
   'macie-frequency': optional(t.number),
 });
