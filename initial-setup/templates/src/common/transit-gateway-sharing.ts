@@ -1,23 +1,21 @@
-import { Construct } from '@aws-cdk/core';
+import * as cdk from '@aws-cdk/core';
 import * as ram from '@aws-cdk/aws-ram';
 
 export interface TransitGatewaySharingProps {
   name: string;
-  region: string;
-  accountId: string;
   tgwId: string;
   masterAccountId: string;
   principals: string[];
 }
 
-export class TransitGatewaySharing extends Construct {
-  constructor(scope: Construct, id: string, props: TransitGatewaySharingProps) {
+export class TransitGatewaySharing extends cdk.Construct {
+  constructor(scope: cdk.Construct, id: string, props: TransitGatewaySharingProps) {
     super(scope, id);
 
     new ram.CfnResourceShare(this, `Share-${props.name}`, {
       name: props.name,
       principals: props.principals,
-      resourceArns: [`arn:aws:ec2:${props.region}:${props.accountId}:transit-gateway/${props.tgwId}`],
+      resourceArns: [`arn:aws:ec2:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:transit-gateway/${props.tgwId}`],
     });
   }
 }

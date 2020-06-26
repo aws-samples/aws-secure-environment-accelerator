@@ -34,8 +34,6 @@ export async function step1(props: TransitGatewayStep1Props) {
         }
         const tgwShare = new TransitGatewaySharing(accountStack, `TGW_Shared_${tgwDeployment.name}`, {
           name: tgwDeployment.name,
-          region,
-          accountId,
           tgwId: tgw.tgwId,
           masterAccountId: props.masterAccountId,
           principals,

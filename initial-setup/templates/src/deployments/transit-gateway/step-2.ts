@@ -33,11 +33,15 @@ export async function step2(props: TransitGatewayStep2Props) {
   }
 
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    const stack = props.accountStacks.getOrCreateAccountStack(accountKey);
+    const vpc = accountConfig.vpc;
+    if (vpc) {
+      const region = vpc.region;
+      const stack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
 
-    if (outputMap[accountKey]) {
-      for (const tgwAttOutput of outputMap[accountKey]) {
-        const tgwRoutes = new TransitGatewayRoute(stack, 'TgwRoute', tgwAttOutput);
+      if (outputMap[accountKey]) {
+        for (const tgwAttOutput of outputMap[accountKey]) {
+          const tgwRoutes = new TransitGatewayRoute(stack, 'TgwRoute', tgwAttOutput);
+        }
       }
     }
   }
