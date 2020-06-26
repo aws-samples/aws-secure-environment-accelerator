@@ -15,7 +15,7 @@ export async function step2(props: TransitGatewayStep2Props) {
   const tgwAttOutputs = getStackJsonOutput(props.outputs, {
     outputType: 'TgwAttachmentOutput',
   });
-  for (const tgwAttOutput of tgwAttOutputs) {
+  for (const [index, tgwAttOutput] of Object.entries(tgwAttOutputs)) {
     const accountKey = tgwAttOutput.accountKey;
     const region = tgwAttOutput.region;
 
@@ -25,7 +25,7 @@ export async function step2(props: TransitGatewayStep2Props) {
       continue;
     }
 
-    new TransitGatewayRoute(accountStack, 'TgwRoute', {
+    new TransitGatewayRoute(accountStack, `TgwRoute${index}`, {
       tgwAttachmentId: tgwAttOutput.tgwAttachmentId,
       tgwRouteAssociates: tgwAttOutput.tgwRouteAssociates,
       tgwRoutePropagates: tgwAttOutput.tgwRoutePropagates,
