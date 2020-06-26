@@ -32,7 +32,7 @@ import * as createStack from './create-stack';
 import * as createStackSet from './create-stack-set';
 import * as createAdConnector from './create-adconnector';
 import * as deleteDefaultVpcs from './delete-default-vpc';
-import * as enableConfigService from './enable-config-serivce';
+import * as createConfigRecorder from './create-config-recorder';
 export {
   codebuild,
   createAccount,
@@ -41,5 +41,5 @@ export {
   createAdConnector,
   createOrganizationAccount,
   deleteDefaultVpcs,
-  enableConfigService,
+  createConfigRecorder,
 };

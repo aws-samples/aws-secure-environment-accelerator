@@ -57,6 +57,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
         'stackOutputSecretId.$': '$.stackOutputSecretId',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
       },
     });
 
@@ -72,6 +73,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
         'stackOutputSecretId.$': '$.stackOutputSecretId',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
       },
     });
     mapTask.iterator(runTask);

@@ -74,6 +74,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   if (!acceleratorConfig['global-options']['alz-baseline']) {
     // Create IAM role for Config Service
     await iamDeployment.createConfigServiceRoles({
+      acceleratorPrefix: context.acceleratorPrefix,
       config: acceleratorConfig,
       accountStacks,
     });

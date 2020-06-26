@@ -5,11 +5,13 @@ import { LoadConfigurationInput } from '../load-configuration-step';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { createConfigRecorderName, createAggregatorName } from '@aws-pbmm/common-outputs/lib/config';
 
 interface ConfigServiceInput extends LoadConfigurationInput {
   account: Account;
   assumeRoleName: string;
   stackOutputSecretId: string;
+  acceleratorPrefix: string;
 }
 
 interface LogBucketOutputType {
@@ -32,13 +34,18 @@ const CustomErrorMessage = [
 const sts = new STS();
 const secrets = new SecretsManager();
 
-const CONFIG_RECORDER_NAME = 'PBMMAccel-Config-Recorder';
-const CONFIG_AGGREGATOR_NAME = 'PBMMAccel-Org-Aggregator';
-
 export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   console.log(`Enable Config Recorder in account ...`);
   console.log(JSON.stringify(input, null, 2));
-  const { account, assumeRoleName, configRepositoryName, configFilePath, configCommitId, stackOutputSecretId } = input;
+  const {
+    account,
+    assumeRoleName,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+    stackOutputSecretId,
+    acceleratorPrefix,
+  } = input;
 
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
@@ -78,14 +85,26 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
       const describeRecorders = await configService.DescribeConfigurationRecorder({});
       console.log('configurationRecorders', describeRecorders, region);
       if (!describeRecorders.ConfigurationRecorders || describeRecorders.ConfigurationRecorders?.length === 0) {
-        const createConfig = await createConfigRecorder(configService, accountId, region, centralSecurityRegion);
+        const createConfig = await createConfigRecorder(
+          configService,
+          accountId,
+          region,
+          centralSecurityRegion,
+          acceleratorPrefix,
+        );
         errors.push(...createConfig);
       }
 
       const describeChannels = await configService.DescribeDeliveryChannelStatus({});
       console.log('deliveryChannels', describeChannels);
       if (!describeChannels.DeliveryChannelsStatus || describeChannels.DeliveryChannelsStatus.length === 0) {
-        const createChannel = await createDeliveryChannel(configService, accountId, region, logBucketOutput.bucketName);
+        const createChannel = await createDeliveryChannel(
+          configService,
+          accountId,
+          region,
+          logBucketOutput.bucketName,
+          acceleratorPrefix,
+        );
         errors.push(...createChannel);
       }
 
@@ -96,7 +115,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
         describeRecordingStatus.ConfigurationRecordersStatus.length > 0 &&
         !describeRecordingStatus.ConfigurationRecordersStatus[0].recording
       ) {
-        const enableConfig = await enableConfigRecorder(configService, accountId, region);
+        const enableConfig = await enableConfigRecorder(configService, accountId, region, acceleratorPrefix);
         errors.push(...enableConfig);
       }
     } catch (error) {
@@ -111,7 +130,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
 
   if (account.key === masterAccountKey) {
     const configService = new ConfigService(credentials, centralSecurityRegion);
-    const enableAggregator = await createAggregator(configService, accountId, centralSecurityRegion);
+    const enableAggregator = await createAggregator(configService, accountId, centralSecurityRegion, acceleratorPrefix);
     errors.push(...enableAggregator);
   }
 
@@ -124,6 +143,7 @@ async function createConfigRecorder(
   accountId: string,
   region: string,
   centralSecurityRegion: string,
+  acceleratorPrefix: string,
 ): Promise<string[]> {
   const errors: string[] = [];
   console.log('in createConfigRecorder function', region);
@@ -131,8 +151,8 @@ async function createConfigRecorder(
   try {
     await configService.createRecorder({
       ConfigurationRecorder: {
-        name: CONFIG_RECORDER_NAME,
-        roleARN: `arn:aws:iam::${accountId}:role/PBMMAccel-ConfigRecorderRole`,
+        name: createConfigRecorderName(acceleratorPrefix),
+        roleARN: `arn:aws:iam::${accountId}:role/${acceleratorPrefix}ConfigRecorderRole`,
         recordingGroup: {
           allSupported: true,
           includeGlobalResourceTypes: region === centralSecurityRegion ? true : false,
@@ -150,6 +170,7 @@ async function createDeliveryChannel(
   accountId: string,
   region: string,
   bucketName: string,
+  acceleratorPrefix: string,
 ): Promise<string[]> {
   const errors: string[] = [];
   console.log('in createDeliveryChannel function', region);
@@ -157,7 +178,7 @@ async function createDeliveryChannel(
   try {
     await configService.createDeliveryChannel({
       DeliveryChannel: {
-        name: CONFIG_RECORDER_NAME,
+        name: createConfigRecorderName(acceleratorPrefix),
         s3BucketName: bucketName,
         configSnapshotDeliveryProperties: {
           deliveryFrequency: 'TwentyFour_Hours',
@@ -174,27 +195,33 @@ async function enableConfigRecorder(
   configService: ConfigService,
   accountId: string,
   region: string,
+  acceleratorPrefix: string,
 ): Promise<string[]> {
   const errors: string[] = [];
   console.log('in enableConfigRecorder function', region);
   // Start Recorder
   try {
-    await configService.startRecorder({ ConfigurationRecorderName: CONFIG_RECORDER_NAME });
+    await configService.startRecorder({ ConfigurationRecorderName: createConfigRecorderName(acceleratorPrefix) });
   } catch (error) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
   return errors;
 }
 
-async function createAggregator(configService: ConfigService, accountId: string, region: string): Promise<string[]> {
+async function createAggregator(
+  configService: ConfigService,
+  accountId: string,
+  region: string,
+  acceleratorPrefix: string,
+): Promise<string[]> {
   const errors: string[] = [];
 
   // Create Config Aggregator
   try {
     await configService.createAggregator({
-      ConfigurationAggregatorName: CONFIG_AGGREGATOR_NAME,
+      ConfigurationAggregatorName: createAggregatorName(acceleratorPrefix),
       OrganizationAggregationSource: {
-        RoleArn: `arn:aws:iam::${accountId}:role/PBMMAccel-ConfigAggregatorRole`,
+        RoleArn: `arn:aws:iam::${accountId}:role/${acceleratorPrefix}ConfigAggregatorRole`,
         AllAwsRegions: true,
       },
     });

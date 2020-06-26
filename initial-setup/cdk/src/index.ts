@@ -4,7 +4,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
@@ -18,7 +17,7 @@ import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
-import { RunAcrossAccountsTask } from './tasks/run-accross-accounts-task';
+import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -394,6 +393,7 @@ export namespace InitialSetup {
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
             stackOutputSecretId: stackOutputSecret.secretArn,
+            acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
         resultPath: 'DISCARD',
@@ -489,7 +489,7 @@ export namespace InitialSetup {
                 'ACCELERATOR_BASELINE.$': '$.baseline',
                 ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
                 ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
-                CONFIG_BRANCH_NAME: props.configBranchName, 
+                CONFIG_BRANCH_NAME: props.configBranchName,
               },
             },
           }),
@@ -527,20 +527,20 @@ export namespace InitialSetup {
       const storePhase4Output = createStoreOutputTask(4);
       const deployPhase5Task = createDeploymentTask(5);
 
-      const enableConfigRecorderSfn = new sfn.StateMachine(this, 'Enable Config Recorder Sfn', {
-        stateMachineName: `${props.acceleratorPrefix}EnableConfigRecorder_sfn`,
-        definition: new RunAcrossAccountsTask(this, 'EnableConfigRecorder', {
+      const createConfigRecorderSfn = new sfn.StateMachine(this, 'Create Config Recorder Sfn', {
+        stateMachineName: `${props.acceleratorPrefix}CreateConfigRecorder_sfn`,
+        definition: new RunAcrossAccountsTask(this, 'CreateConfigRecorder', {
           lambdaCode,
           role: pipelineRole,
           assumeRoleName: props.stateMachineExecutionRole,
-          lambdaPath: 'index.enableConfigService',
-          name: 'Enable Config Recorder',
+          lambdaPath: 'index.createConfigRecorder',
+          name: 'Create Config Recorder',
         }),
       });
 
-      const enableConfigRecorderTask = new sfn.Task(this, 'Enable Config Recorders', {
+      const createConfigRecordersTask = new sfn.Task(this, 'Create Config Recorders', {
         // tslint:disable-next-line: deprecation
-        task: new tasks.StartExecution(enableConfigRecorderSfn, {
+        task: new tasks.StartExecution(createConfigRecorderSfn, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             'accounts.$': '$.accounts',
@@ -549,6 +549,7 @@ export namespace InitialSetup {
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
             stackOutputSecretId: stackOutputSecret.secretArn,
+            acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
         resultPath: 'DISCARD',
@@ -680,8 +681,8 @@ export namespace InitialSetup {
         .next(storeCommitIdTask)
         .next(baseLineCleanupChoice);
 
-      const enableConfigChoice = new sfn.Choice(this, 'Enable Config?')
-        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), enableConfigRecorderTask.next(commonStep1))
+      const enableConfigChoice = new sfn.Choice(this, 'Create Config Recorders?')
+        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), createConfigRecordersTask.next(commonStep1))
         .otherwise(commonStep1)
         .afterwards();
 
