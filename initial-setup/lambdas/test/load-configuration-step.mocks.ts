@@ -4,7 +4,6 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 
 type DeepPartial<T> = {
@@ -40,9 +39,11 @@ export function install() {
     .spyOn(AcceleratorConfig, 'fromString')
     .mockImplementation(() => new AcceleratorConfig(values.acceleratorConfig as AcceleratorConfig));
 
-  jest.spyOn(Organizations.prototype, 'listOrganizationalUnits').mockImplementation(() => values.organizationalUnits);
+  jest
+    .spyOn(Organizations.prototype, 'listOrganizationalUnits')
+    .mockImplementation(async () => values.organizationalUnits);
 
-  jest.spyOn(SSM.prototype, 'getParameter').mockImplementation(() => ({
+  jest.spyOn(SSM.prototype, 'getParameter').mockImplementation(async () => ({
     Parameter: {
       Value: 'lz@amazon.com',
     },
@@ -50,11 +51,16 @@ export function install() {
 
   jest
     .spyOn(Organizations.prototype, 'listAccountsForParent')
-    .mockImplementation((parentId: string) => values.organizationalUnitAccounts[parentId]);
+    .mockImplementation(async (parentId: string) => values.organizationalUnitAccounts[parentId]);
 
   // What we return here does not matter, it should just not be undefined
 
-  jest.spyOn(CodeCommit.prototype, 'getFile').mockImplementation(() => ({
+  jest.spyOn(CodeCommit.prototype, 'getFile').mockImplementation(async () => ({
+    commitId: '',
+    blobId: '',
     fileContent: '',
+    fileMode: '',
+    filePath: '',
+    fileSize: 0,
   }));
 }

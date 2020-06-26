@@ -276,6 +276,9 @@ function reset() {
   };
 
   mocks.values.acceleratorConfig = {
+    'global-options': {
+      'supported-regions': ['ca-central-1', 'us-east-1'],
+    },
     'mandatory-account-configs': {
       'primary-key': {
         ou: 'core',

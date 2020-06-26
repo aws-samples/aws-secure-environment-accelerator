@@ -123,6 +123,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
   const outputs: StackOutput[] = [
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'InstanceTimeOutput70915320',
       outputValue: JSON.stringify({
         type: 'InstanceTime',
@@ -134,6 +135,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'GlobalOptionsDNSResolversGlobalOptionsOutput70915320',
       outputValue: JSON.stringify({
         type: 'GlobalOptionsOutput',
@@ -152,6 +154,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'GlobalOptionsDNSResolversMadRulesOutputB92B7C64',
       outputValue: JSON.stringify({
         type: 'MadRulesOutput',
@@ -160,6 +163,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'PcxOutputCentralOutput40798179',
       outputValue: JSON.stringify({
         type: 'Pcx',
@@ -174,6 +178,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'UnClassVpcOutput7D32BA58',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -208,6 +213,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'TestVpcOutputA3DF90CF',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -242,6 +248,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'CentralVpcOutput6FD59021',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -278,6 +285,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'CentralSharingOutputSharedResourcesSubnetsAddTagsToResourcesOutput6C76F064',
       outputValue: JSON.stringify({
         type: 'AddTagsToResources',
@@ -387,6 +395,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'CentralSharingOutputSharedResourcesVPCAddTagsToResourcesOutput8ADC1D7E',
       outputValue: JSON.stringify({
         type: 'AddTagsToResources',
@@ -496,6 +505,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'ProdVpcOutput158BE1F6',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -530,6 +540,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'DevVpcOutput116BFECE',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -564,46 +575,55 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainB9B36144Ref',
       outputValue: 'tgw-03d0ad93aa8d6262c',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwsharedD7F02DB6Ref',
       outputValue: 'tgw-rtb-02bc79504a6da4ea6',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwsegregated1A0E4708Ref',
       outputValue: 'tgw-rtb-0b37d20e343703baf',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwstandalone98B33BB3Ref',
       outputValue: 'tgw-rtb-0c395e05c512363f2',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwcoreF36239ECRef',
       outputValue: 'tgw-rtb-0d470b7d77862a57b',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointEndpointEndpointaza6F9FD084Ref',
       outputValue: 'subnet-0d23fab6faf468e78',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointEndpointEndpointazb30DDC20CRef',
       outputValue: 'subnet-08ce2f607198a4347',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointD8454F05Ref',
       outputValue: 'vpc-0be7520a610121f51',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'EndpointVpcOutput480C772D',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -625,6 +645,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -638,6 +659,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'FirewallVpnConnectionsOutputBF3C7B46',
       outputValue: JSON.stringify({
         type: 'FirewallVpnConnectionOutput',
@@ -737,6 +759,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'MadSlrOutputB33780D5',
       outputValue: JSON.stringify({
         type: 'MadAutoScalingRole',
@@ -748,6 +771,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'SecurityGroupOutputCentral0Output0751AD9A',
       outputValue: JSON.stringify({
         type: 'SecurityGroupsOutput',
@@ -765,6 +789,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'OutputSharedResourcesCentralShared0AddTagsToResourcesOutputA46EA520',
       outputValue: JSON.stringify({
         type: 'AddTagsToResources',
@@ -810,6 +835,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'MadOutputED7A3DFD',
       outputValue: JSON.stringify({
         type: 'MadOutput',
@@ -824,6 +850,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -837,16 +864,19 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterPublicPerimeteraza0AC836E9Ref',
       outputValue: 'subnet-074afd4fc157a36d3',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterAD7AA8ABRef',
       outputValue: 'vpc-008309eb2954c138b',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterVpcOutput17588A8B',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -889,16 +919,19 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterProxyPerimeterazaCA836246Ref',
       outputValue: 'subnet-074c58bdde90265f3',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterProxyPerimeterazb3D9DF31DRef',
       outputValue: 'subnet-064c1ac74779f8ecb',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -912,6 +945,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'FirewallSubscriptionsOutputperimeterOutputE06E54FF',
       outputValue: JSON.stringify({
         type: 'AmiSubscriptionStatus',
@@ -920,6 +954,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'FirewallManagerSubscriptionsOutputperimeterOutputA4CD3A94',
       outputValue: JSON.stringify({
         type: 'AmiSubscriptionStatus',
@@ -928,6 +963,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'FirewallPortOutput78ED81D4',
       outputValue: JSON.stringify({
         type: 'FirewallPortOutput',
@@ -959,6 +995,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'ForSSOVpcOutputA52A9D36',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -980,6 +1017,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -993,6 +1031,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'IamPolicyArtifactsOutputmasterOutput0A80EBB8',
       outputValue: JSON.stringify({
         type: 'IamPolicyArtifactsOutput',
@@ -1006,6 +1045,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'CentralBucketOutputBAF8A406',
       outputValue: JSON.stringify({
         type: 'CentralBucket',
@@ -1019,6 +1059,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'RdgwArtifactsOutputmasterOutputF3DB137F',
       outputValue: JSON.stringify({
         type: 'RdgwArtifactsOutput',
@@ -1032,6 +1073,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'log-archive',
+      region: 'ca-central-1',
       outputKey: 'LogBucketOutput9005E9C6',
       outputValue: JSON.stringify({
         type: 'LogBucket',
@@ -1045,6 +1087,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'log-archive',
+      region: 'ca-central-1',
       outputKey: 'AesLogBucketOutput0333D00E',
       outputValue: JSON.stringify({
         type: 'AesBucket',
@@ -1057,6 +1100,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'security',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -1070,6 +1114,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-services',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -1083,6 +1128,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'fun-acct',
+      region: 'ca-central-1',
       outputKey: 'SandboxVpcOutput323ACFBC',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
@@ -1115,6 +1161,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'fun-acct',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
