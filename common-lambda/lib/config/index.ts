@@ -570,6 +570,9 @@ export const CentralServicesConfigType = t.interface({
   'ssm-to-cwl': optional(t.boolean),
   'cwl-exclusions': optional(t.array(CwlExclusions)),
   'kinesis-stream-shard-count': optional(t.number),
+  'macie': fromNullable(t.boolean, false),
+  'macie-excl-regions': optional(t.array(t.string)),
+  'macie-frequency': optional(t.number),
 });
 
 export const ScpsConfigType = t.interface({
@@ -593,6 +596,7 @@ export const GlobalOptionsConfigType = t.interface({
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
   'default-cwl-retention': t.number,
+  'supported-regions': t.array(t.string),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

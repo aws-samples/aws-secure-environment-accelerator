@@ -26,7 +26,7 @@ export class MacieCreateMember extends cdk.Construct {
         account: {
           accountId,
           email,
-        }
+        },
       },
     };
 
