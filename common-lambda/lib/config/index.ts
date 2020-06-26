@@ -251,6 +251,7 @@ export type CertificateConfig = t.TypeOf<typeof CertificateConfigType>;
 
 export const TgwDeploymentConfigType = t.interface({
   name: t.string,
+  region: t.string,
   asn: optional(t.number),
   features: optional(
     t.interface({
@@ -262,6 +263,7 @@ export const TgwDeploymentConfigType = t.interface({
     }),
   ),
   'route-tables': optional(t.array(NonEmptyString)),
+  'share-to-account': optional(t.array(t.string)),
 });
 
 export const PasswordPolicyType = t.interface({

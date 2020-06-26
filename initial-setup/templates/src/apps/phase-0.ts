@@ -18,7 +18,8 @@ import { PhaseInput } from './shared';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
-import { JsonOutputValue } from '../common/json-output';
+import * as transitGateway from '../deployments/transit-gateway';
+import { getAccountId } from '../utils/accounts';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -28,6 +29,11 @@ import { JsonOutputValue } from '../common/json-output';
  *   - Copy of the central bucket
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
+  if (!masterAccountId) {
+    throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
+  }
   // verify and create ec2 instance to increase account limits
   await accountWarming.step1({
     accountStacks,
@@ -133,6 +139,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   await centralServices.step1({
     accountStacks,
     config: acceleratorConfig,
+    accounts,
+  });
+
+  // Transit Gateway step 1
+  await transitGateway.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    masterAccountId,
     accounts,
   });
 

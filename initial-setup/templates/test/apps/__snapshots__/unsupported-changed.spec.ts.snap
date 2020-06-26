@@ -1111,7 +1111,32 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SecurityPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "TGWMain75B662F5",
+    "Properties": Object {
+      "AmazonSideAsn": 65521,
+      "AutoAcceptSharedAttachments": "disable",
+      "DefaultRouteTableAssociation": "disable",
+      "DefaultRouteTablePropagation": "disable",
+      "Description": undefined,
+      "DnsSupport": "enable",
+      "Tags": Array [
+        Object {
+          "Key": "Accelerator",
+          "Value": "PBMM",
+        },
+        Object {
+          "Key": "Name",
+          "Value": "TGW_Main_tgw",
+        },
+      ],
+      "VpnEcmpSupport": "enable",
+    },
+  },
+]
+`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0UsEast1 1`] = `Array []`;
 
@@ -1127,32 +1152,7 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackDev3F77197C 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackEndpointF8AAED62 1`] = `
-Array [
-  Object {
-    "LogicalId": "MainB7F6E78B",
-    "Properties": Object {
-      "AmazonSideAsn": 65521,
-      "AutoAcceptSharedAttachments": "disable",
-      "DefaultRouteTableAssociation": "disable",
-      "DefaultRouteTablePropagation": "disable",
-      "Description": undefined,
-      "DnsSupport": "enable",
-      "Tags": Array [
-        Object {
-          "Key": "Accelerator",
-          "Value": "PBMM",
-        },
-        Object {
-          "Key": "Name",
-          "Value": "Main_tgw",
-        },
-      ],
-      "VpnEcmpSupport": "enable",
-    },
-  },
-]
-`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackEndpointF8AAED62 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackProd407EC8DE 1`] = `Array []`;
 

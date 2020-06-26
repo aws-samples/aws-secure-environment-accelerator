@@ -6,7 +6,18 @@ import { VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { resourcesToList, stackToCloudFormation } from '../jest';
 import { Vpc } from '../../src/common/vpc';
 import { Limiter } from '../../src/utils/limits';
-import { TransitGateway } from '../../src/common/transit-gateway';
+import { AccountStacks } from '../../src/common/account-stacks';
+
+const testStacks = new AccountStacks({
+  phase: 'test',
+  accounts: [],
+  context: {
+    acceleratorName: 'test',
+    acceleratorPrefix: 'test',
+    acceleratorExecutionRoleName: 'test',
+    defaultRegion: 'test',
+  },
+});
 
 test('the VPC creation should create the correct amount of subnets', () => {
   const stack = new cdk.Stack();
@@ -96,8 +107,10 @@ test('the VPC creation should create the correct amount of subnets', () => {
       accounts: [],
       vpcConfig,
       limiter: new Limiter([]),
+      accountStacks: testStacks,
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -215,8 +228,10 @@ test('the VPC creation should throw an error when a subnet uses a route table th
         accounts: [],
         vpcConfig,
         limiter: new Limiter([]),
+        accountStacks: testStacks,
       },
-      transitGateways: new Map<string, TransitGateway>(),
+      masterAccountId: '',
+      outputs: [],
     });
   });
 });
@@ -241,8 +256,10 @@ test('the VPC creation should create the internet gateway', () => {
       accounts: [],
       vpcConfig,
       limiter: new Limiter([]),
+      accountStacks: testStacks,
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -275,8 +292,10 @@ test('the VPC creation should create the VPN gateway', () => {
       accounts: [],
       vpcConfig,
       limiter: new Limiter([]),
+      accountStacks: testStacks,
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template
@@ -392,8 +411,10 @@ test('the VPC creation should create the NAT gateway', () => {
       accounts: [],
       vpcConfig,
       limiter: new Limiter([]),
+      accountStacks: testStacks,
     },
-    transitGateways: new Map<string, TransitGateway>(),
+    masterAccountId: '',
+    outputs: [],
   });
 
   // Convert the stack to a CloudFormation template
