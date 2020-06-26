@@ -13,43 +13,48 @@ export interface TransitGatewayStep1Props {
 }
 
 export async function step1(props: TransitGatewayStep1Props) {
-  for (const { ouKey, accountKey, vpcConfig, deployments } of props.config.getVpcConfigs()) {
-    const region = vpcConfig.region;
-    const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey, region);
+  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
+    const tgwDeployment = accountConfig.deployments?.tgw;
+    if (!tgwDeployment) {
+      continue;
+    }
+
+    const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey, tgwDeployment.region);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountKey} in region ${tgwDeployment.region}`);
+      continue;
+    }
+
     // Create TGW Before Creating VPC
-    const tgwDeployment = deployments?.tgw;
-    if (tgwDeployment && accountStack) {
-      const accountNames = tgwDeployment['share-to-account'];
-      const tgw = new TransitGateway(accountStack, tgwDeployment.name, tgwDeployment);
+    const accountNames = tgwDeployment['share-to-account'];
+    const tgw = new TransitGateway(accountStack, `TGW_${tgwDeployment.name}`, tgwDeployment);
 
-      // Share TGW to the principals provided
-      const accountId = getAccountId(props.accounts, accountKey) || accountStack.account;
-      if (accountNames) {
-        const principals: string[] = [];
-        for (const accountName of accountNames) {
-          const principal = getAccountId(props.accounts, accountName);
-          if (principal !== undefined) {
-            principals.push(principal);
-          }
-        }
-        const tgwShare = new TransitGatewaySharing(accountStack, `TGW_Shared_${tgwDeployment.name}`, {
-          name: tgwDeployment.name,
-          tgwId: tgw.tgwId,
-          masterAccountId: props.masterAccountId,
-          principals,
-        });
+    // Share TGW to the principals provided
+    const principals: string[] = [];
+    for (const accountName of accountNames || []) {
+      const principal = getAccountId(props.accounts, accountName);
+      if (principal !== undefined) {
+        principals.push(principal);
       }
+    }
 
-      // Save Transit Gateway Output
-      const tgwOutput = {
+    if (principals.length > 0) {
+      new TransitGatewaySharing(accountStack, `TGW_Shared_${tgwDeployment.name}`, {
         name: tgwDeployment.name,
         tgwId: tgw.tgwId,
-        tgwRouteTableNameToIdMap: tgw.tgwRouteTableNameToIdMap,
-      };
-      new JsonOutputValue(tgw, `TgwOutput`, {
-        type: 'TgwOutput',
-        value: tgwOutput,
+        principals,
       });
     }
+
+    // Save Transit Gateway Output
+    const tgwOutput = {
+      name: tgwDeployment.name,
+      tgwId: tgw.tgwId,
+      tgwRouteTableNameToIdMap: tgw.tgwRouteTableNameToIdMap,
+    };
+    new JsonOutputValue(tgw, `TgwOutput`, {
+      type: 'TgwOutput',
+      value: tgwOutput,
+    });
   }
 }
