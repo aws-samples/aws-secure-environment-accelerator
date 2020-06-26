@@ -33,9 +33,9 @@ export async function step2(props: TransitGatewayStep2Props) {
   }
 
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    const vpc = accountConfig.vpc;
-    if (vpc) {
-      const region = vpc.region;
+    const vpcs = accountConfig.vpc;
+    if (vpcs) {
+      const region = vpcs[0].region; // assume all vpc is defined in the same region?
       const stack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
 
       if (outputMap[accountKey]) {
