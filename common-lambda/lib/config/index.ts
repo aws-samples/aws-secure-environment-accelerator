@@ -263,6 +263,7 @@ export const TgwDeploymentConfigType = t.interface({
     }),
   ),
   'route-tables': optional(t.array(NonEmptyString)),
+  'share-to-account': optional(t.array(t.string)),
 });
 
 export const PasswordPolicyType = t.interface({

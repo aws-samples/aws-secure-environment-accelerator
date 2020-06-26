@@ -11,7 +11,7 @@ export class TransitGateway extends cdk.Construct {
   readonly name: string;
   readonly region: string;
   readonly tgw: ec2.CfnTransitGateway;
-  readonly tgwRouteTableNameToIdMap: { [routeTableName: string]: ec2.CfnTransitGatewayRouteTable } = {};
+  readonly tgwRouteTableNameToIdMap: { [routeTableName: string]: string } = {};
 
   constructor(parent: cdk.Construct, id: string, props: TgwDeploymentConfig) {
     super(parent, id);
@@ -36,7 +36,7 @@ export class TransitGateway extends cdk.Construct {
       const cfnRouteTable = new ec2.CfnTransitGatewayRouteTable(this, `${props.name}_tgw_${routeTableName}`, {
         transitGatewayId: this.tgw.ref,
       });
-      this.tgwRouteTableNameToIdMap[routeTableName] = cfnRouteTable;
+      this.tgwRouteTableNameToIdMap[routeTableName] = cfnRouteTable.ref;
     }
   }
 
@@ -44,11 +44,7 @@ export class TransitGateway extends cdk.Construct {
     return this.tgw.ref;
   }
 
-  getRouteTableByName(routeTableName: string): ec2.CfnTransitGatewayRouteTable | undefined {
+  getRouteTableIdByName(routeTableName: string): string {
     return this.tgwRouteTableNameToIdMap[routeTableName];
-  }
-
-  getRouteTableIdByName(routeTableName: string): string | undefined {
-    return this.getRouteTableByName(routeTableName)?.ref;
   }
 }

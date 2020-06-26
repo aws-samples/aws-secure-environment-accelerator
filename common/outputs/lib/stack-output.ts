@@ -1,3 +1,5 @@
+import { VpcSecurityGroupOutput } from './vpc';
+
 // all accounts
 export const OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER = 'KmsKeyIdForSSMSessionManager';
 export const OUTPUT_KMS_KEY_ARN_FOR_SSM_SESSION_MANAGER = 'KmsKeyArnForSSMSessionManager';
@@ -80,4 +82,15 @@ export interface ResolversOutput {
 export interface AmiSubscriptionOutput {
   imageId: string;
   status: string;
+}
+
+export interface SecurityGroupsOutput {
+  vpcId: string;
+  vpcName: string;
+  securityGroupIds: VpcSecurityGroupOutput[];
+}
+
+export interface TransitGatewayOutput {
+  tgwId: string;
+  tgwRouteTableNameToIdMap: { [routeTableName: string]: string };
 }

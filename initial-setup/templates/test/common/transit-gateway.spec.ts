@@ -14,6 +14,7 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
     'SharedNetwork',
     parse(TgwDeploymentConfigType, {
       name: 'Main',
+      region: 'us-west-2',
       asn: 64512,
       region: 'ca-central-1',
       features: {
@@ -24,6 +25,7 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
         'Auto-accept-sharing-attachments': false,
       },
       'route-tables': ['core', 'segregated', 'shared', 'standalone'],
+      'share-to-account': ['123'],
     }),
   );
 

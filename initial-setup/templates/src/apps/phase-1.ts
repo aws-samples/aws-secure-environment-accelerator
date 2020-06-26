@@ -198,7 +198,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   };
 
   // TODO Move to deployments/transit-gateway
-  const transitGateways: { [accountKey: string]: TransitGateway } = {};
+  const transitGateways: { [tgwName: string]: TransitGateway } = {};
   for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
     const tgwConfig = accountConfig.deployments?.tgw;
     if (!tgwConfig) {
@@ -232,6 +232,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     );
     const vpc = createVpc(accountKey, {
       accountKey,
+      accountStacks,
       limiter,
       accounts,
       vpcConfig,
@@ -276,7 +277,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     outputs,
-    transitGateways,
   });
 
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {

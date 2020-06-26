@@ -8,6 +8,7 @@ import { VpnAttachments } from '@custom-resources/ec2-vpn-attachment';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
 import { TransitGateway } from '../../../common/transit-gateway';
+import { TransitGatewayOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import {
   FirewallPortOutputType,
   FirewallPort,
@@ -39,7 +40,7 @@ export interface FirewallStep2Props {
  *   - Firewall ports from step 1 with additional VPN connection info, if available
  */
 export async function step2(props: FirewallStep2Props) {
-  const { accountStacks, config, outputs, transitGateways } = props;
+  const { accountStacks, config, outputs } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const firewallConfig = accountConfig.deployments?.firewall;
@@ -63,7 +64,12 @@ export async function step2(props: FirewallStep2Props) {
     const tgwName = tgwAttach['associate-to-tgw'];
 
     // TODO Validate account
-    const transitGateway = transitGateways[tgwName];
+    const tgwOutputs: TransitGatewayOutput[] = getStackJsonOutput(outputs, {
+      accountKey: tgwAccountKey,
+      outputType: 'TgwOutput',
+    });
+    // TODO Get transit gateway by name instead of taking the first one
+    const transitGateway = tgwOutputs[0];
     if (!transitGateway) {
       console.warn(`Cannot find transit gateway "${tgwName}" in account "${tgwAccountKey}"`);
       continue;
@@ -93,7 +99,7 @@ async function createCustomerGateways(props: {
   firewallAccountKey: string;
   firewallConfig: c.FirewallConfig;
   firewallPorts: FirewallPort[];
-  transitGateway: TransitGateway;
+  transitGateway: TransitGatewayOutput;
 }) {
   const { scope, firewallAccountKey, firewallConfig, firewallPorts, transitGateway } = props;
 
@@ -146,8 +152,8 @@ async function createCustomerGateways(props: {
       const associateConfig = tgwAttach['rt-associate'] || [];
       const propagateConfig = tgwAttach['rt-propagate'] || [];
 
-      const tgwRouteAssociates = associateConfig.map(route => transitGateway.getRouteTableIdByName(route)!);
-      const tgwRoutePropagates = propagateConfig.map(route => transitGateway.getRouteTableIdByName(route)!);
+      const tgwRouteAssociates = associateConfig.map(route => transitGateway.tgwRouteTableNameToIdMap[route]);
+      const tgwRoutePropagates = propagateConfig.map(route => transitGateway.tgwRouteTableNameToIdMap[route]);
 
       for (const [routeIndex, route] of tgwRouteAssociates?.entries()) {
         new ec2.CfnTransitGatewayRouteTableAssociation(scope, `tgw_associate_${index}_${routeIndex}`, {
