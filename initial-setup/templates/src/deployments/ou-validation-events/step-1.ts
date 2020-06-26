@@ -12,7 +12,7 @@ import { createAccount } from './create-account';
 
 export interface OuValidationStep1Props {
   scope: AccountStack;
-  context: Context,
+  context: Context;
 }
 
 export interface MoveAccountProps {
@@ -39,7 +39,7 @@ export async function step1(props: OuValidationStep1Props) {
     configFilePath,
     configRepositoryName,
     defaultRegion,
-    acceleratorStateMachineName
+    acceleratorStateMachineName,
   } = context;
   const lambdaPath = require.resolve('@aws-pbmm/apps-lambdas');
   const lambdaDir = path.dirname(lambdaPath);
@@ -84,9 +84,9 @@ async function moveAccount(input: MoveAccountProps) {
     configRepositoryName,
     defaultRegion,
     lambdaCode,
-    acceleratorStateMachineName
+    acceleratorStateMachineName,
   } = input;
-  const acceleratorStateMachineArn = `arn:aws:states:${defaultRegion}:${scope.accountId}:stateMachine:${acceleratorStateMachineName}`
+  const acceleratorStateMachineArn = `arn:aws:states:${defaultRegion}:${scope.accountId}:stateMachine:${acceleratorStateMachineName}`;
   const moveAccountFunc = new lambda.Function(scope, 'moveAccountToOrganization', {
     runtime: lambda.Runtime.NODEJS_12_X,
     handler: 'index.ouValidationEvents.moveAccount',

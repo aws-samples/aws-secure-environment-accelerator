@@ -7,9 +7,9 @@ interface VerifyAccountOrganizationInput {
 
 const org = new Organizations();
 export const handler = async (input: VerifyAccountOrganizationInput): Promise<CreateAccountStatus | undefined> => {
-  console.log("Verifying Account Creation status ....");
+  console.log('Verifying Account Creation status ....');
   console.log(JSON.stringify(input, null, 2));
   const { requestId } = input;
-  const accountStatus =  await org.createAccountStatus(requestId);
+  const accountStatus = await org.createAccountStatus(requestId);
   return accountStatus;
-}
+};

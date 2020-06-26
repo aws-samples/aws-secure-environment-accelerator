@@ -47,7 +47,7 @@ export const handler = async (input: MoveAccountOrganization) => {
     // Account is moving from Root Organization to another
     const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
     updatestatus = await updateAccountConfig(account, destinationOrg);
-  } else if (destinationParentId === rootOrgId){
+  } else if (destinationParentId === rootOrgId) {
     // Move account back to source and don't update config
     console.log(`Invalid moveAccount from ${sourceParentId} to ROOT Organization`);
     await organizations.moveAccount({
@@ -89,8 +89,13 @@ async function updateAccountConfig(account: org.Account, destinationOrg: Organiz
   const updateConfig = JSON.parse(config);
   const workLoadAccounts: AccountsConfig = updateConfig['workload-account-configs'];
   const mandatoryAccounts: AccountsConfig = updateConfig['mandatory-account-configs'];
-  const workLoadAccountConfig = Object.entries(workLoadAccounts).find(([key, value]) => value["account-name"] === account.Name!);
-  const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(([key, value]) => value["account-name"] === account.Name!);
+  const workLoadAccountConfig = Object.entries(workLoadAccounts).find(
+    ([_, value]) => value['account-name'] === account.Name!,
+  );
+  const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(
+    ([_, value]) => value['account-name'] === account.Name!,
+  );
+  // tslint:disable-next-line: no-any
   let accountConfig: any;
   let accountKey: string = '';
   if (workLoadAccountConfig) {
@@ -108,8 +113,8 @@ async function updateAccountConfig(account: org.Account, destinationOrg: Organiz
       'account-name': account.Name!,
       email: account.Email!,
       ou: destinationOrg.Name!,
-      'ou-path': destinationOrg.Path
-    }
+      'ou-path': destinationOrg.Path,
+    };
   }
   accountKey = accountKey || account.Name!;
   if (mandatoryAccountConfig) {
@@ -124,7 +129,7 @@ async function updateAccountConfig(account: org.Account, destinationOrg: Organiz
 }
 
 async function createCommit(config: AcceleratorConfig, parentCommitId: string): Promise<string> {
-  try{
+  try {
     const commitId = await codecommit.commit({
       branchName: configBranch,
       repositoryName: configRepositoryName,
@@ -138,9 +143,9 @@ async function createCommit(config: AcceleratorConfig, parentCommitId: string): 
     });
     console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
     return 'SUCCESS';
-  } catch(error) {
+  } catch (error) {
     if (error.code === 'NoChangeException') {
-      return "NoChangeException";
+      return 'NoChangeException';
     } else {
       throw new Error(error);
     }
@@ -150,12 +155,12 @@ async function createCommit(config: AcceleratorConfig, parentCommitId: string): 
 async function startStateMachine(stateMachineArn: string): Promise<string> {
   const runningExecutions = await stepfunctions.listExecutions({
     stateMachineArn,
-    statusFilter: 'RUNNING'
+    statusFilter: 'RUNNING',
   });
 
   if (runningExecutions.length === 0) {
     await stepfunctions.startExecution({
-      stateMachineArn
+      stateMachineArn,
     });
   } else {
     return 'SM_ALREADY_RUNNING';

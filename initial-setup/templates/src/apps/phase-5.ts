@@ -150,9 +150,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     if (!masterStack) {
       console.error(`Not able to create stack for "${masterAccountKey}"`);
     } else {
-      ouValidation.step1({
+      await ouValidation.step1({
         scope: masterStack,
-        context
+        context,
       });
     }
   }

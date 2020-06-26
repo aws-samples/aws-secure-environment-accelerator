@@ -10,18 +10,18 @@ import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 
 export interface CreateAccountProps {
   scope: AccountStack;
-  acceleratorPrefix: string;  
-  configBranch: string;  
-  configFilePath: string;  
-  configRepositoryName: string;  
-  defaultRegion: string;  
-  acceleratorPipelineRole: iam.IRole;  
-  lambdaCode: lambda.Code;  
+  acceleratorPrefix: string;
+  configBranch: string;
+  configFilePath: string;
+  configRepositoryName: string;
+  defaultRegion: string;
+  acceleratorPipelineRole: iam.IRole;
+  lambdaCode: lambda.Code;
   acceleratorStateMachineName: string;
 }
 export async function createAccount(input: CreateAccountProps) {
   const { scope, lambdaCode, acceleratorPipelineRole, acceleratorPrefix } = input;
-  const waitSeconds = 60
+  const waitSeconds = 60;
 
   const accleratorInvocation = new sfn.Pass(scope, 'Acclerator Invocation');
 
@@ -56,7 +56,7 @@ export async function createAccount(input: CreateAccountProps) {
     },
     functionPayload: {
       'accountId.$': '$.verifyOutput.AccountId',
-      acceleratorPrefix
+      acceleratorPrefix,
     },
   });
   pass.next(attachQuarantineScpTask);
@@ -68,16 +68,22 @@ export async function createAccount(input: CreateAccountProps) {
       .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCEEDED'), pass)
       .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
       .otherwise(fail)
-      .afterwards()
+      .afterwards(),
   );
 
   const invokeCheckTask = new sfn.Choice(scope, 'Non Accelerator Invocation?')
-    .when(sfn.Condition.stringEquals('$.detail.userIdentity.sessionContext.sessionIssuer.userName', acceleratorPipelineRole.roleName), accleratorInvocation)
-    .otherwise(verifyCreateAccountTask)
+    .when(
+      sfn.Condition.stringEquals(
+        '$.detail.userIdentity.sessionContext.sessionIssuer.userName',
+        acceleratorPipelineRole.roleName,
+      ),
+      accleratorInvocation,
+    )
+    .otherwise(verifyCreateAccountTask);
 
   const createStateMachine = new sfn.StateMachine(scope, 'StateMachine', {
     stateMachineName: createName({
-      name: 'CreateAccountEventTrigger_sm'
+      name: 'CreateAccountEventTrigger_sm',
     }),
     definition: sfn.Chain.start(invokeCheckTask),
   });

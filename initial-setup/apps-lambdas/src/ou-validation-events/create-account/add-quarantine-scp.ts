@@ -55,7 +55,6 @@ async function addQuarantineScp(acceleratorPrefix: string, accountId: string) {
   await organizations.attachPolicy(policyId, accountId);
 }
 
-
 export function createQuarantineScpName(props: { acceleratorPrefix: string }) {
   return `${props.acceleratorPrefix}Quarantine-New-Object`;
 }
