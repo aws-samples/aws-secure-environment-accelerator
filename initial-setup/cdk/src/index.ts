@@ -4,7 +4,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
@@ -18,7 +17,7 @@ import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
-import { RunAcrossAccountsTask } from './tasks/run-accross-accounts-task';
+import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -391,6 +390,8 @@ export namespace InitialSetup {
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
+            stackOutputSecretId: stackOutputSecret.secretArn,
+            acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
         resultPath: 'DISCARD',
@@ -524,6 +525,34 @@ export namespace InitialSetup {
       const storePhase4Output = createStoreOutputTask(4);
       const deployPhase5Task = createDeploymentTask(5);
 
+      const createConfigRecorderSfn = new sfn.StateMachine(this, 'Create Config Recorder Sfn', {
+        stateMachineName: `${props.acceleratorPrefix}CreateConfigRecorder_sfn`,
+        definition: new RunAcrossAccountsTask(this, 'CreateConfigRecorder', {
+          lambdaCode,
+          role: pipelineRole,
+          assumeRoleName: props.stateMachineExecutionRole,
+          lambdaPath: 'index.createConfigRecorder',
+          name: 'Create Config Recorder',
+        }),
+      });
+
+      const createConfigRecordersTask = new sfn.Task(this, 'Create Config Recorders', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(createConfigRecorderSfn, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            configRepositoryName: props.configRepositoryName,
+            configFilePath: props.configFilePath,
+            'configCommitId.$': '$.configCommitId',
+            'baseline.$': '$.baseline',
+            stackOutputSecretId: stackOutputSecret.secretArn,
+            acceleratorPrefix: props.acceleratorPrefix,
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       // TODO We could put this task in a map task and apply to all accounts individually
       const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
         functionProps: {
@@ -632,14 +661,7 @@ export namespace InitialSetup {
         .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), detachQuarantineScpTask)
         .otherwise(pass);
 
-      const commonDefinition = loadAccountsTask.startState
-        .next(installRolesTask)
-        .next(deleteVpcTask)
-        .next(loadLimitsTask)
-        .next(enableTrustedAccessForServicesTask)
-        .next(deployPhase0Task)
-        .next(storePhase0Output)
-        .next(addScpTask)
+      const commonStep1 = addScpTask.startState
         .next(deployPhase1Task)
         .next(storePhase1Output)
         .next(accountDefaultSettingsTask)
@@ -656,6 +678,20 @@ export namespace InitialSetup {
         .next(createAdConnectorTask)
         .next(storeCommitIdTask)
         .next(baseLineCleanupChoice);
+
+      const enableConfigChoice = new sfn.Choice(this, 'Create Config Recorders?')
+        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), createConfigRecordersTask.next(commonStep1))
+        .otherwise(commonStep1)
+        .afterwards();
+
+      const commonDefinition = loadAccountsTask.startState
+        .next(installRolesTask)
+        .next(deleteVpcTask)
+        .next(loadLimitsTask)
+        .next(enableTrustedAccessForServicesTask)
+        .next(deployPhase0Task)
+        .next(storePhase0Output)
+        .next(enableConfigChoice);
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState

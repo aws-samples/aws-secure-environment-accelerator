@@ -211,7 +211,11 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      principals: [
+        new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
+        new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
+        new iam.ServicePrincipal('config.amazonaws.com'),
+      ],
       actions: ['s3:PutObject'],
       resources: [`${logBucket.bucketArn}/*`],
       conditions: {
@@ -224,30 +228,13 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      principals: [
+        new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
+        new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
+        new iam.ServicePrincipal('config.amazonaws.com'),
+      ],
       actions: ['s3:GetBucketAcl'],
       resources: [`${logBucket.bucketArn}`],
-    }),
-  );
-
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
-      actions: ['s3:GetBucketAcl'],
-      resources: [`${logBucket.bucketArn}`],
-    }),
-  );
-
-  logBucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
-      actions: ['s3:PutObject'],
-      resources: [`${logBucket.bucketArn}/*`],
-      conditions: {
-        StringEquals: {
-          's3:x-amz-acl': 'bucket-owner-full-control',
-        },
-      },
     }),
   );
 
