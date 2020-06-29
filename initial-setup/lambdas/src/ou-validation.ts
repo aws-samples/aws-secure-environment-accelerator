@@ -113,7 +113,7 @@ async function createOrganizstionalUnits(
     const awsOu = awsOusWithPath.find(ou => ou.Name === acceleratorOu);
     if (!awsOu) {
       // Create Missing OrganizationalUnit
-      const orgUnit = await organizations.createOrganizationalUnit(acceleratorOu, rootId!);
+      const orgUnit = await organizations.createOrganizationalUnit(acceleratorOu, rootId);
       awsOusWithPath.push({
         ...orgUnit,
         Path: acceleratorOu,
@@ -128,7 +128,7 @@ async function createOrganizstionalUnits(
       const existingOu = awsOusWithPath.find(o => o.Path === workLoadOu.ou);
       if (!existingOu) {
         console.log(`Creating new Organizational Unit "${workLoadOu.ou}" under Root`);
-        const orgUnit = await organizations.createOrganizationalUnit(workLoadOu.ou, rootId!);
+        const orgUnit = await organizations.createOrganizationalUnit(workLoadOu.ou, rootId);
         awsOusWithPath.push({
           ...orgUnit,
           Path: workLoadOu.ou,
@@ -137,14 +137,14 @@ async function createOrganizstionalUnits(
       }
     } else {
       const ous = ouPath.split('/');
-      let localParent = rootId!;
+      let localParent = rootId;
       for (let i = 0; i < ous.length; i++) {
         const currentOuPath = ous.slice(0, i + 1).join('/');
         const existingOu = awsOusWithPath.find(o => o.Path === currentOuPath);
         let orgUnit: org.OrganizationalUnit | undefined;
         if (!existingOu) {
           console.log(`Creating OrganizationalUnit "${ous[i]}" under Parent ${currentOuPath} and id ${localParent}`);
-          orgUnit = await organizations.createOrganizationalUnit(ous[i], localParent)!;
+          orgUnit = await organizations.createOrganizationalUnit(ous[i], localParent);
           awsOusWithPath.push({
             ...orgUnit,
             Path: currentOuPath,

@@ -32,7 +32,7 @@ export class Organizations {
   }
 
   async createOrganizationalUnit(name: string, parentId: string): Promise<org.OrganizationalUnit | undefined> {
-    const org = await throttlingBackOff(() =>
+    const organizationalUnit = await throttlingBackOff(() =>
       this.client
         .createOrganizationalUnit({
           Name: name,
@@ -40,7 +40,7 @@ export class Organizations {
         })
         .promise(),
     );
-    return org.OrganizationalUnit;
+    return organizationalUnit.OrganizationalUnit;
   }
 
   async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.Policy | undefined> {
