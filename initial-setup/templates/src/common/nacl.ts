@@ -26,6 +26,7 @@ export class Nacl extends cdk.Construct {
     const nacl = new ec2.CfnNetworkAcl(this, `Nacl-${vpcConfig.name}-${subnetConfig.name}`, {
       vpcId,
     });
+    cdk.Tag.add(nacl, 'Name', `${subnetConfig.name}_${vpcConfig.name}_nacl`, { priority: 1000 });
 
     const localSubnetDefinitions = subnetConfig.definitions;
     for (const sd of localSubnetDefinitions) {

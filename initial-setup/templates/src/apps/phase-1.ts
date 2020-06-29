@@ -4,7 +4,6 @@ import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
-import { TransitGateway } from '../common/transit-gateway';
 import { Limit } from '../utils/limits';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
@@ -197,24 +196,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     return vpcStack.vpc;
   };
 
-  // TODO Move to deployments/transit-gateway
-  const transitGateways: { [tgwName: string]: TransitGateway } = {};
-  for (const [accountKey, accountConfig] of acceleratorConfig.getAccountConfigs()) {
-    const tgwConfig = accountConfig.deployments?.tgw;
-    if (!tgwConfig) {
-      continue;
-    }
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, tgwConfig.region);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      return;
-    }
-
-    const transitGateway = new TransitGateway(accountStack, `Tgw${tgwConfig.name}`, tgwConfig);
-    transitGateways[tgwConfig.name] = transitGateway;
-  }
-
   const subscriptionCheckDone: string[] = [];
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
@@ -239,7 +220,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
-      transitGateways,
+      outputs,
     });
 
     const pcxConfig = vpcConfig.pcx;

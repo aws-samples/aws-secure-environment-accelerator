@@ -1,47 +1,38 @@
 // tslint:disable:no-any
 import 'jest';
 import * as cdk from '@aws-cdk/core';
-import { parse } from '@aws-pbmm/common-types';
-import { TgwDeploymentConfigType } from '@aws-pbmm/common-lambda/lib/config';
+import { TransitGateway } from '@aws-pbmm/constructs/lib/vpc';
 import { resourcesToList, stackToCloudFormation } from '../jest';
-import { TransitGateway } from '../../src/common/transit-gateway';
 
 test('the TransitGateway creation should create Transit Gateway with appropriate configurations', () => {
   const stack = new cdk.Stack();
 
-  new TransitGateway(
-    stack,
-    'SharedNetwork',
-    parse(TgwDeploymentConfigType, {
-      name: 'Main',
-      region: 'us-west-2',
-      asn: 64512,
-      region: 'ca-central-1',
-      features: {
-        'DNS-support': true,
-        'VPN-ECMP-support': true,
-        'Default-route-table-association': false,
-        'Default-route-table-propagation': false,
-        'Auto-accept-sharing-attachments': false,
-      },
-      'route-tables': ['core', 'segregated', 'shared', 'standalone'],
-      'share-to-account': ['123'],
-    }),
-  );
+  const transitGateway = new TransitGateway(stack, 'SharedNetwork', {
+    name: 'Main',
+    asn: 64512,
+    dnsSupport: true,
+    vpnEcmpSupport: true,
+    defaultRouteTableAssociation: false,
+    defaultRouteTablePropagation: false,
+    autoAcceptSharedAttachments: false,
+  });
+  transitGateway.addRouteTable('core');
+  transitGateway.addRouteTable('segregated');
+  transitGateway.addRouteTable('shared');
+  transitGateway.addRouteTable('standalone');
 
   // Convert the stack to a CloudFormation template
   const template = stackToCloudFormation(stack);
   const resources = resourcesToList(template.Resources);
 
-  const tgw = resources.filter(r => r.Type === 'AWS::EC2::TransitGateway');
-  const tgwRoutes = resources.filter(r => r.Type === 'AWS::EC2::TransitGatewayRouteTable');
+  const resource = resources.filter(r => r.Type === 'AWS::EC2::TransitGateway');
+  expect(resource).toHaveLength(1);
 
-  // There should only be one internet gateway
-  expect(tgw).toHaveLength(1);
-  expect(tgwRoutes).toHaveLength(4);
+  const routeTables = resources.filter(r => r.Type === 'AWS::EC2::TransitGatewayRouteTable');
+  expect(routeTables).toHaveLength(4);
 
   // Check config of Transit Gateway
-  expect(tgw).toEqual(
+  expect(resource).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         Type: 'AWS::EC2::TransitGateway',
@@ -52,6 +43,12 @@ test('the TransitGateway creation should create Transit Gateway with appropriate
           DefaultRouteTablePropagation: 'disable',
           DnsSupport: 'enable',
           VpnEcmpSupport: 'enable',
+          Tags: [
+            {
+              Key: 'Name',
+              Value: 'Main_tgw',
+            },
+          ],
         }),
       }),
     ]),

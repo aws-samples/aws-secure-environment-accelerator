@@ -3,12 +3,12 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { TransitGateway } from '@aws-pbmm/constructs/lib/vpc';
 import { VpnTunnelOptions } from '@custom-resources/ec2-vpn-tunnel-options';
 import { VpnAttachments } from '@custom-resources/ec2-vpn-attachment';
 import { AccountStacks } from '../../../common/account-stacks';
 import { StructuredOutput } from '../../../common/structured-output';
-import { TransitGateway } from '../../../common/transit-gateway';
-import { TransitGatewayOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import {
   FirewallPortOutputType,
   FirewallPort,
@@ -21,12 +21,6 @@ export interface FirewallStep2Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
-  /**
-   * Map with transit gateway name as key and the transit gateway itself as value.
-   *
-   * TODO Find a better way to pass around the transit gateway.
-   */
-  transitGateways: { [name: string]: TransitGateway };
 }
 
 /**
@@ -48,6 +42,11 @@ export async function step2(props: FirewallStep2Props) {
       continue;
     }
 
+    const attachConfig = firewallConfig['tgw-attach'];
+    if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
+      continue;
+    }
+
     // Find the firewall EIPs in the firewall account
     const firewallPortOutputs = StructuredOutput.fromOutputs(outputs, {
       type: FirewallPortOutputType,
@@ -59,17 +58,13 @@ export async function step2(props: FirewallStep2Props) {
       continue;
     }
 
-    const tgwAttach = firewallConfig['tgw-attach'];
-    const tgwAccountKey = tgwAttach.account;
-    const tgwName = tgwAttach['associate-to-tgw'];
-
-    // TODO Validate account
-    const tgwOutputs: TransitGatewayOutput[] = getStackJsonOutput(outputs, {
+    const tgwAccountKey = attachConfig.account;
+    const tgwName = attachConfig['associate-to-tgw'];
+    const transitGateway = TransitGatewayOutputFinder.tryFindOneByName({
+      outputs,
       accountKey: tgwAccountKey,
-      outputType: 'TgwOutput',
+      name: tgwName,
     });
-    // TODO Get transit gateway by name instead of taking the first one
-    const transitGateway = tgwOutputs[0];
     if (!transitGateway) {
       console.warn(`Cannot find transit gateway "${tgwName}" in account "${tgwAccountKey}"`);
       continue;
@@ -87,6 +82,7 @@ export async function step2(props: FirewallStep2Props) {
       firewallConfig,
       firewallPorts,
       transitGateway,
+      attachConfig,
     });
   }
 }
@@ -100,15 +96,15 @@ async function createCustomerGateways(props: {
   firewallConfig: c.FirewallConfig;
   firewallPorts: FirewallPort[];
   transitGateway: TransitGatewayOutput;
+  attachConfig: c.TransitGatewayAttachConfig;
 }) {
-  const { scope, firewallAccountKey, firewallConfig, firewallPorts, transitGateway } = props;
+  const { scope, firewallAccountKey, firewallConfig, firewallPorts, transitGateway, attachConfig } = props;
 
   // Keep track of the created VPN connection so we can use them in the next steps
   const vpnConnections: FirewallVpnConnection[] = [];
 
   const firewallCgwName = firewallConfig['fw-cgw-name'];
   const firewallCgwAsn = firewallConfig['fw-cgw-asn'];
-  const tgwAttach = firewallConfig['tgw-attach'];
 
   for (const [index, port] of Object.entries(firewallPorts)) {
     let customerGateway;
@@ -149,8 +145,8 @@ async function createCustomerGateways(props: {
         tgwId: transitGateway.tgwId,
       });
 
-      const associateConfig = tgwAttach['rt-associate'] || [];
-      const propagateConfig = tgwAttach['rt-propagate'] || [];
+      const associateConfig = attachConfig['tgw-rt-associate'] || [];
+      const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
 
       const tgwRouteAssociates = associateConfig.map(route => transitGateway.tgwRouteTableNameToIdMap[route]);
       const tgwRoutePropagates = propagateConfig.map(route => transitGateway.tgwRouteTableNameToIdMap[route]);

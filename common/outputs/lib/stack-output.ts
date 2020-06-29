@@ -89,8 +89,3 @@ export interface SecurityGroupsOutput {
   vpcName: string;
   securityGroupIds: VpcSecurityGroupOutput[];
 }
-
-export interface TransitGatewayOutput {
-  tgwId: string;
-  tgwRouteTableNameToIdMap: { [routeTableName: string]: string };
-}

@@ -41,6 +41,11 @@ export async function step3(props: FirewallStep3Props) {
       continue;
     }
 
+    const attachConfig = firewallConfig['tgw-attach'];
+    if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
+      continue;
+    }
+
     if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
       console.log(`Skipping firewall deployment: account "${accountKey}" is not warmed`);
       continue;
@@ -68,13 +73,10 @@ export async function step3(props: FirewallStep3Props) {
       continue;
     }
 
-    const tgwAttach = firewallConfig['tgw-attach'];
-    const tgwAccountKey = tgwAttach.account;
-
     // Find the firewall VPN connections in the TGW account
     const firewallVpnConnectionOutputs = StructuredOutput.fromOutputs(outputs, {
       type: FirewallVpnConnectionOutputType,
-      accountKey: tgwAccountKey,
+      accountKey: attachConfig.account,
     });
     const firewallVpnConnections = firewallVpnConnectionOutputs
       .flatMap(array => array)
