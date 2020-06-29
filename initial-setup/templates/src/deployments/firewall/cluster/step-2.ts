@@ -81,7 +81,7 @@ export async function step2(props: FirewallStep2Props) {
       firewallConfig,
       firewallPorts,
       transitGateway,
-      attachConfig: attachConfig,
+      attachConfig,
     });
   }
 }

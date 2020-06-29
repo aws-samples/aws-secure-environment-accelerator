@@ -37,4 +37,7 @@ export const TransitGatewayAttachmentOutput = t.interface(
 
 export type TransitGatewayAttachmentOutput = t.TypeOf<typeof TransitGatewayAttachmentOutput>;
 
-export const TransitGatewayAttachmentOutputFinder = createStructuredOutputFinder(TransitGatewayAttachmentOutput, () => ({}));
+export const TransitGatewayAttachmentOutputFinder = createStructuredOutputFinder(
+  TransitGatewayAttachmentOutput,
+  () => ({}),
+);

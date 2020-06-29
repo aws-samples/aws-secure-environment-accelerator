@@ -27,7 +27,7 @@ export interface StructuredValueFinder<T> {
  */
 export function createStructuredOutputFinder<T, X = {}>(
   type: t.Type<T>,
-  extend: (finder: StructuredValueFinder<T>) => X = () => ({} as X),
+  extend: (finder: StructuredValueFinder<T>) => X,
 ): StructuredValueFinder<T> & X {
   const finder = {
     tryFindOne: (filter: StructureValueFinderProps<T>): T | undefined => {
