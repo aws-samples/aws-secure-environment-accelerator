@@ -33,10 +33,12 @@ export class Organizations {
 
   async createOrganizationalUnit(name: string, parentId: string): Promise<org.OrganizationalUnit | undefined> {
     const org = await throttlingBackOff(() =>
-      this.client.createOrganizationalUnit({
-        Name: name,
-        ParentId: parentId,
-      }).promise()
+      this.client
+        .createOrganizationalUnit({
+          Name: name,
+          ParentId: parentId,
+        })
+        .promise(),
     );
     return org.OrganizationalUnit;
   }

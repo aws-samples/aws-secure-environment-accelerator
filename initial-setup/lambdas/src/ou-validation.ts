@@ -28,7 +28,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
-  
+
   const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
   const awsAccounts: org.Account[] = [];
   const awsOusWithPath: OrganizationalUnit[] = [];
@@ -41,7 +41,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
   await createOrganizstionalUnits(config, awsOusWithPath, rootId);
-  
+
   const suspendedOuName = 'Suspended';
   let suspendedOu = awsOusWithPath.find(o => o.Path === suspendedOuName);
   if (!suspendedOu) {
@@ -94,16 +94,20 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   return '';
 };
 
-async function createSuspendedOu(suspendedOuName:string, rootId: string): Promise<OrganizationalUnit> {
+async function createSuspendedOu(suspendedOuName: string, rootId: string): Promise<OrganizationalUnit> {
   const suspendedOu = await organizations.createOrganizationalUnit(suspendedOuName, rootId);
   return {
     ...suspendedOu,
     Path: suspendedOuName,
-  }
+  };
 }
 
-async function createOrganizstionalUnits(config: AcceleratorConfig, awsOusWithPath: OrganizationalUnit[], rootId: string) {
-  const acceleratorOuConfigs = config['organizational-units']
+async function createOrganizstionalUnits(
+  config: AcceleratorConfig,
+  awsOusWithPath: OrganizationalUnit[],
+  rootId: string,
+) {
+  const acceleratorOuConfigs = config['organizational-units'];
   const acceleratorOus = Object.keys(acceleratorOuConfigs);
   for (const acceleratorOu of acceleratorOus) {
     const awsOu = awsOusWithPath.find(ou => ou.Name === acceleratorOu);
@@ -112,14 +116,14 @@ async function createOrganizstionalUnits(config: AcceleratorConfig, awsOusWithPa
       const orgUnit = await organizations.createOrganizationalUnit(acceleratorOu, rootId!);
       awsOusWithPath.push({
         ...orgUnit,
-        Path: acceleratorOu
+        Path: acceleratorOu,
       });
     }
   }
-  
+
   const acceleratorWorkLoadAccountConfigs = config.getWorkloadAccountConfigs();
   for (const [accountKey, workLoadOu] of acceleratorWorkLoadAccountConfigs) {
-    const ouPath = workLoadOu["ou-path"]!;
+    const ouPath = workLoadOu['ou-path']!;
     if (!ouPath) {
       const existingOu = awsOusWithPath.find(o => o.Path === workLoadOu.ou);
       if (!existingOu) {
@@ -127,7 +131,7 @@ async function createOrganizstionalUnits(config: AcceleratorConfig, awsOusWithPa
         const orgUnit = await organizations.createOrganizationalUnit(workLoadOu.ou, rootId!);
         awsOusWithPath.push({
           ...orgUnit,
-          Path: workLoadOu.ou
+          Path: workLoadOu.ou,
         });
         continue;
       }
@@ -135,16 +139,16 @@ async function createOrganizstionalUnits(config: AcceleratorConfig, awsOusWithPa
       const ous = ouPath.split('/');
       let localParent = rootId!;
       for (let i = 0; i < ous.length; i++) {
-        const currentOuPath = ous.slice(0, i+1).join('/');
+        const currentOuPath = ous.slice(0, i + 1).join('/');
         const existingOu = awsOusWithPath.find(o => o.Path === currentOuPath);
         let orgUnit: org.OrganizationalUnit | undefined;
         if (!existingOu) {
-          console.log(`Creating OrganizationalUnit "${ous[i]}" under Parent ${currentOuPath} and id ${localParent}`)
+          console.log(`Creating OrganizationalUnit "${ous[i]}" under Parent ${currentOuPath} and id ${localParent}`);
           orgUnit = await organizations.createOrganizationalUnit(ous[i], localParent)!;
           awsOusWithPath.push({
             ...orgUnit,
             Path: currentOuPath,
-          })
+          });
           continue;
         } else {
           orgUnit = existingOu;

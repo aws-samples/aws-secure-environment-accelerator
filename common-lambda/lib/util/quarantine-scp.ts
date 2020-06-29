@@ -1,7 +1,7 @@
 export function createQuarantineScpName(props: { acceleratorPrefix: string }) {
   return `${props.acceleratorPrefix}Quarantine-New-Object`;
 }
-  
+
 export function createQuarantineScpContent(props: { acceleratorPrefix: string }) {
   return JSON.stringify({
     Version: '2012-10-17',
