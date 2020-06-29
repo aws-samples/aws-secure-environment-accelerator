@@ -31,6 +31,16 @@ export class Organizations {
     return response.Organization;
   }
 
+  async createOrganizationalUnit(name: string, parentId: string): Promise<org.OrganizationalUnit | undefined> {
+    const org = await throttlingBackOff(() =>
+      this.client.createOrganizationalUnit({
+        Name: name,
+        ParentId: parentId,
+      }).promise()
+    );
+    return org.OrganizationalUnit;
+  }
+
   async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.Policy | undefined> {
     const name = input.Name;
     delete input.Name;
