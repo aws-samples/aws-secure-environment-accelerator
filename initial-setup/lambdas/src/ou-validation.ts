@@ -122,7 +122,7 @@ async function createOrganizstionalUnits(
   }
 
   const acceleratorWorkLoadAccountConfigs = config.getWorkloadAccountConfigs();
-  for (const [accountKey, workLoadOu] of acceleratorWorkLoadAccountConfigs) {
+  for (const [_, workLoadOu] of acceleratorWorkLoadAccountConfigs) {
     const ouPath = workLoadOu['ou-path']!;
     if (!ouPath) {
       const existingOu = awsOusWithPath.find(o => o.Path === workLoadOu.ou);
