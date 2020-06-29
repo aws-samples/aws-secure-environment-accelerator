@@ -1,60 +1,95 @@
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import {
+  AcceleratorConfig,
+  TransitGatewayAttachConfigType,
+  TransitGatewayAttachConfig,
+} from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { TransitGatewaySharing } from '../../common/transit-gateway-sharing';
-import { TransitGateway } from '../../common/transit-gateway';
+import { TransitGateway } from '@aws-pbmm/constructs/lib/vpc';
 import { Account, getAccountId } from '../../utils/accounts';
-import { JsonOutputValue } from '../../common/json-output';
+import { CfnTransitGatewayOutput } from './outputs';
 
 export interface TransitGatewayStep1Props {
   accountStacks: AccountStacks;
-  config: AcceleratorConfig;
-  masterAccountId: string;
   accounts: Account[];
+  config: AcceleratorConfig;
 }
 
 export async function step1(props: TransitGatewayStep1Props) {
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
-    const tgwDeployment = accountConfig.deployments?.tgw;
-    if (!tgwDeployment) {
+  const { accountStacks, accounts, config } = props;
+
+  const accountConfigs = config.getAccountConfigs();
+  const vpcConfigs = config.getVpcConfigs();
+
+  // Create a list of all transit gateway attachment configurations
+  const attachConfigs: [string, TransitGatewayAttachConfig][] = [];
+  for (const { accountKey, vpcConfig } of vpcConfigs) {
+    const attachConfig = vpcConfig['tgw-attach'];
+    if (TransitGatewayAttachConfigType.is(attachConfig)) {
+      attachConfigs.push([accountKey, attachConfig]);
+    }
+  }
+  for (const [accountKey, accountConfig] of accountConfigs) {
+    const attachConfig = accountConfig.deployments?.firewall?.['tgw-attach'];
+    if (TransitGatewayAttachConfigType.is(attachConfig)) {
+      attachConfigs.push([accountKey, attachConfig]);
+    }
+  }
+
+  for (const [accountKey, accountConfig] of accountConfigs) {
+    const tgwConfig = accountConfig.deployments?.tgw;
+    if (!tgwConfig) {
       continue;
     }
 
-    const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey, tgwDeployment.region);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, tgwConfig.region);
     if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey} in region ${tgwDeployment.region}`);
+      console.warn(`Cannot find account stack ${accountKey} in region ${tgwConfig.region}`);
       continue;
     }
 
-    // Create TGW Before Creating VPC
-    const accountNames = tgwDeployment['share-to-account'];
-    const tgw = new TransitGateway(accountStack, `TGW_${tgwDeployment.name}`, tgwDeployment);
+    const { features } = tgwConfig;
+    const transitGateway = new TransitGateway(accountStack, `Tgw${tgwConfig.name}`, {
+      name: tgwConfig.name,
+      asn: tgwConfig.asn,
+      dnsSupport: features?.['DNS-support'],
+      vpnEcmpSupport: features?.['VPN-ECMP-support'],
+      defaultRouteTableAssociation: features?.['Default-route-table-association'],
+      defaultRouteTablePropagation: features?.['Default-route-table-propagation'],
+      autoAcceptSharedAttachments: features?.['Auto-accept-sharing-attachments'],
+    });
 
-    // Share TGW to the principals provided
-    const principals: string[] = [];
-    for (const accountName of accountNames || []) {
-      const principal = getAccountId(props.accounts, accountName);
-      if (principal !== undefined) {
-        principals.push(principal);
+    const routeTables = tgwConfig['route-tables'] || [];
+    for (const routeTableName of routeTables) {
+      transitGateway.addRouteTable(routeTableName);
+    }
+
+    // Find the list of accounts where we need to share to
+    const shareToAccountIds: string[] = [];
+    for (const [attachAccountKey, attachConfig] of attachConfigs) {
+      if (attachConfig.account === accountKey && attachConfig['associate-to-tgw'] === tgwConfig.name) {
+        const accountId = getAccountId(accounts, attachAccountKey);
+        if (accountId && !shareToAccountIds.includes(accountId)) {
+          shareToAccountIds.push(accountId);
+        }
       }
     }
 
-    if (principals.length > 0) {
-      new TransitGatewaySharing(accountStack, `TGW_Shared_${tgwDeployment.name}`, {
-        name: tgwDeployment.name,
-        tgwId: tgw.tgwId,
-        principals,
+    console.debug(`Sharing transit gateway ${tgwConfig.name} with accounts ${shareToAccountIds.join(', ')}`);
+
+    if (shareToAccountIds.length > 0) {
+      new TransitGatewaySharing(transitGateway, 'Sharing', {
+        name: tgwConfig.name,
+        tgwId: transitGateway.ref,
+        principals: shareToAccountIds,
       });
     }
 
     // Save Transit Gateway Output
-    const tgwOutput = {
-      name: tgwDeployment.name,
-      tgwId: tgw.tgwId,
-      tgwRouteTableNameToIdMap: tgw.tgwRouteTableNameToIdMap,
-    };
-    new JsonOutputValue(tgw, `TgwOutput`, {
-      type: 'TgwOutput',
-      value: tgwOutput,
+    new CfnTransitGatewayOutput(transitGateway, 'Output', {
+      name: tgwConfig.name,
+      tgwId: transitGateway.ref,
+      tgwRouteTableNameToIdMap: transitGateway.tgwRouteTableNameToIdMap,
     });
   }
 }

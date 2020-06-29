@@ -3,16 +3,17 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-types';
 import * as constructs from '@aws-pbmm/constructs/lib/vpc';
-import { Account, getAccountId } from '../utils/accounts';
+import { Account } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment, TransitGatewayRoute } from '../common/transit-gateway-attachment';
 import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../common/account-stacks';
-import { JsonOutputValue } from '../common/json-output';
+import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
+import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 
 export interface VpcCommonProps {
   /**
@@ -279,14 +280,17 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       }
     }
 
+    let tgw: TransitGatewayOutput | undefined;
     let tgwAttachment;
     if (config.TransitGatewayAttachConfigType.is(tgwAttach)) {
-      const tgwOutputs = getStackJsonOutput(props.outputs, {
-        accountKey: tgwAttach.account,
-        outputType: 'TgwOutput',
-      });
-      const tgw = tgwOutputs[0];
       const tgwName = tgwAttach['associate-to-tgw'];
+
+      // Find TGW in outputs
+      tgw = TransitGatewayOutputFinder.tryFindOneByName({
+        outputs: props.outputs,
+        accountKey: tgwAttach.account,
+        name: tgwName,
+      });
       if (!tgw) {
         console.warn(`Cannot find transit gateway with name "${tgwName}"`);
       } else {
@@ -299,11 +303,12 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
         );
 
-        const tgwRouteAssociates = associateConfig.map(route => tgw.tgwRouteTableNameToIdMap[route]);
-        const tgwRoutePropagates = propagateConfig.map(route => tgw.tgwRouteTableNameToIdMap[route]);
+        const tgwRouteAssociates = associateConfig.map(route => tgw!.tgwRouteTableNameToIdMap[route]);
+        const tgwRoutePropagates = propagateConfig.map(route => tgw!.tgwRouteTableNameToIdMap[route]);
 
         // Attach VPC To TGW
         tgwAttachment = new TransitGatewayAttachment(this, 'TgwAttach', {
+          name: `${vpcConfig.name}_${tgw.name}_att`,
           vpcId: this.vpcId,
           subnetIds,
           transitGatewayId: tgw.tgwId,
@@ -312,28 +317,23 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         // in case TGW attachment is created for the same account, we create using the same stack
         // otherwise, we will store tgw attachment output and do it in next phase
         if (tgwAttach.account === accountKey) {
-          const tgwRoutes = new TransitGatewayRoute(this, 'TgwRoute', {
-            tgwAttachmentId: tgwAttachment.tgwAttach.ref,
+          new TransitGatewayRoute(this, 'TgwRoute', {
+            tgwAttachmentId: tgwAttachment.transitGatewayAttachmentId,
             tgwRouteAssociates,
             tgwRoutePropagates,
             blackhole,
             cidr: this.cidrBlock,
           });
         } else {
-          if (tgwAttach.account) {
-            new JsonOutputValue(this, `TgwAttachmentOutput`, {
-              type: 'TgwAttachmentOutput',
-              value: {
-                accountKey: tgwAttach.account,
-                region: this.region,
-                tgwAttachmentId: tgwAttachment.tgwAttach.ref,
-                tgwRouteAssociates,
-                tgwRoutePropagates,
-                blackhole,
-                cidr: this.cidrBlock,
-              },
-            });
-          }
+          new CfnTransitGatewayAttachmentOutput(this, 'TgwAttachmentOutput', {
+            accountKey: tgwAttach.account,
+            region: this.region,
+            tgwAttachmentId: tgwAttachment.transitGatewayAttachmentId,
+            tgwRouteAssociates,
+            tgwRoutePropagates,
+            blackhole: blackhole ?? false,
+            cidr: this.cidrBlock,
+          });
         }
       }
     }
@@ -366,19 +366,13 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           } else if (route.target.toLowerCase() === 'dynamodb') {
             dynamoRoutes.push(routeTableObj);
             continue;
-          } else if (route.target === 'TGW' && config.TransitGatewayAttachConfigType.is(tgwAttach) && tgwAttachment) {
-            const tgwOutputs = getStackJsonOutput(props.outputs, {
-              accountKey: tgwAttach.account,
-              outputType: 'TgwOutput',
-            });
-            const tgw = tgwOutputs[0];
-            const tgwName = tgwAttach['associate-to-tgw'];
+          } else if (route.target === 'TGW' && tgw && tgwAttachment) {
             const tgwRoute = new ec2.CfnRoute(this, `${routeTableName}_${route.target}`, {
               routeTableId: routeTableObj,
               destinationCidrBlock: route.destination as string,
               transitGatewayId: tgw.tgwId,
             });
-            tgwRoute.addDependsOn(tgwAttachment.tgwAttach);
+            tgwRoute.addDependsOn(tgwAttachment.resource);
             continue;
           } else {
             // Need to add for different Routes

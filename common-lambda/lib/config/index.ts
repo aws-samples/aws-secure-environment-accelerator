@@ -91,12 +91,12 @@ export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all att
 
 export const TransitGatewayAttachConfigType = t.interface({
   'associate-to-tgw': t.string,
-  account: optional(t.string),
-  'associate-type': optional(t.literal('ATTACH')),
-  'tgw-rt-associate': optional(t.array(NonEmptyString)),
-  'tgw-rt-propagate': optional(t.array(NonEmptyString)),
+  account: t.string,
+  'associate-type': optional(t.union([t.literal('ATTACH'), t.literal('VPN')])),
+  'tgw-rt-associate': t.array(t.string),
+  'tgw-rt-propagate': t.array(t.string),
   'blackhole-route': optional(t.boolean),
-  'attach-subnets': optional(t.array(NonEmptyString)),
+  'attach-subnets': optional(t.array(t.string)),
   options: optional(t.array(TransitGatewayAttachOption)),
 });
 
@@ -263,7 +263,6 @@ export const TgwDeploymentConfigType = t.interface({
     }),
   ),
   'route-tables': optional(t.array(NonEmptyString)),
-  'share-to-account': optional(t.array(t.string)),
 });
 
 export const PasswordPolicyType = t.interface({
@@ -403,13 +402,7 @@ export const FirewallConfigType = t.interface({
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.string,
-  'tgw-attach': t.interface({
-    name: t.string,
-    account: t.string,
-    'associate-to-tgw': t.string,
-    'rt-associate': optional(t.array(t.string)),
-    'rt-propagate': optional(t.array(t.string)),
-  }),
+  'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
 });
 
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;

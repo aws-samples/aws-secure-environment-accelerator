@@ -145,9 +145,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // Transit Gateway step 1
   await transitGateway.step1({
     accountStacks,
-    config: acceleratorConfig,
-    masterAccountId,
     accounts,
+    config: acceleratorConfig,
   });
 
   /**
