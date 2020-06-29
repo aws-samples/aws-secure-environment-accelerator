@@ -36,6 +36,17 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     awsOusWithPath.push(await organizations.getOrganizationalUnitWithPath(awsOu.Id!));
   }
 
+  for (const organizationalUnit of awsOusWithPath) {
+    const ouId = organizationalUnit.Id!;
+    const accountsInOu = await organizations.listAccountsForParent(ouId);
+
+    // Associate accounts to organizational unit
+    awsOuAccountMap[ouId] = accountsInOu;
+
+    // Store the accounts in a simple list as well
+    awsAccounts.push(...accountsInOu);
+  }
+
   console.log(`Found organizational units:`);
   console.log(JSON.stringify(awsOusWithPath, null, 2));
   const roots = await organizations.listRoots();
@@ -49,10 +60,17 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   }
 
   // List Suspended Accounts
-  const accounts = await organizations.listAccounts();
-  const suspendedAccounts = accounts.filter(account => account.Status === 'SUSPENDED');
-  const suspendedAccountIds = suspendedAccounts.map(account => account.Id);
-
+  // TODO Testing
+  for (const [ouId, accounts] of Object.entries(awsOuAccountMap)) {
+    const suspendedAccounts = accounts.filter(account => account.Status === 'SUSPENDED');
+    for (const suspendedAccount of suspendedAccounts) {
+      await organizations.moveAccount({
+        AccountId: suspendedAccount.Id!,
+        DestinationParentId: suspendedOu.Id!,
+        SourceParentId: ouId,
+      });
+    }
+  }
   // Attach Qurantine SCP to free Accounts
   const policyName = createQuarantineScpName({ acceleratorPrefix });
   const policyContent = createQuarantineScpContent({ acceleratorPrefix });
@@ -86,8 +104,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const policyTargets = await organizations.listTargetsForPolicy({
     PolicyId: policyId,
   });
-  const existingTargets = [...policyTargets.map(target => target.TargetId), ...suspendedAccountIds];
-  const targetIds = rootAccountIds.filter(targetId => !existingTargets.includes(targetId));
+  const existingTargets = policyTargets.map(target => target.TargetId);
+  const targetIds = [...rootAccountIds.filter(targetId => !existingTargets.includes(targetId)), suspendedOu.Id];
   for (const targetId of targetIds) {
     await organizations.attachPolicy(policyId, targetId!);
   }
