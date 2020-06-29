@@ -253,7 +253,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   await tgwDeployment.step2({
     accountStacks,
-    config: acceleratorConfig,
     accounts,
     outputs,
   });
