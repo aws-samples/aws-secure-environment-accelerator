@@ -259,7 +259,6 @@ export const TgwDeploymentConfigType = t.interface({
       'VPN-ECMP-support': t.boolean,
       'Default-route-table-association': t.boolean,
       'Default-route-table-propagation': t.boolean,
-      'Auto-accept-sharing-attachments': t.boolean,
     }),
   ),
   'route-tables': optional(t.array(NonEmptyString)),
