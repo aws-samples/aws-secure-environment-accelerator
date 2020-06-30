@@ -19,11 +19,11 @@ export class Organizations {
 
   async getOrganizationalUnit(organizationalUnitId: string): Promise<org.OrganizationalUnit | undefined> {
     const response = await throttlingBackOff(() =>
-     this.client
-      .describeOrganizationalUnit({
-        OrganizationalUnitId: organizationalUnitId,
-      })
-      .promise()
+      this.client
+        .describeOrganizationalUnit({
+          OrganizationalUnitId: organizationalUnitId,
+        })
+        .promise(),
     );
     return response.OrganizationalUnit;
   }

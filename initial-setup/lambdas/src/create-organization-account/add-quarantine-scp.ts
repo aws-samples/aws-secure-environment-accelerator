@@ -22,7 +22,7 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
 
   // TODO Replace with scp class from config
   const scps = new ServiceControlPolicy(acceleratorPrefix);
-  await scps.createOrUpdateQuarantineScp([account.accountId!]);
+  await scps.createOrUpdateQuarantineScp([account.accountId]);
 
   return {
     status: 'SUCCESS',

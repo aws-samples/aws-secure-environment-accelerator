@@ -82,7 +82,11 @@ export const handler = async (input: MoveAccountOrganization) => {
   return 'SUCCESS';
 };
 
-async function updateAccountConfig(account: org.Account, destinationOrg: OrganizationalUnit, destinationRootOrg: string): Promise<string> {
+async function updateAccountConfig(
+  account: org.Account,
+  destinationOrg: OrganizationalUnit,
+  destinationRootOrg: string,
+): Promise<string> {
   console.log(`Updating Configuration for account "${account.Name}" to Organization ${destinationOrg.Name}`);
   const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   const parentCommitId = configCommit.commitId;

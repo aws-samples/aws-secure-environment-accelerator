@@ -2,7 +2,11 @@ import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME, createQuarantineScpName } from '@aws-pbmm/common-lambda/lib/scp';
+import {
+  ServiceControlPolicy,
+  FULL_AWS_ACCESS_POLICY_NAME,
+  createQuarantineScpName,
+} from '@aws-pbmm/common-lambda/lib/scp';
 
 export interface ValdationInput {
   configFilePath: string;
@@ -79,8 +83,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   // Detach target from all polocies except FullAccess and Qurantine SCP
   for (const targetId of [...rootAccountIds, suspendedOu.Id]) {
     await scps.detachPoliciesFromTargets({
-      policyNamesToKeep: [createQuarantineScpName({acceleratorPrefix}), FULL_AWS_ACCESS_POLICY_NAME],
-      policyTargetIdsToInclude: [targetId!]
+      policyNamesToKeep: [createQuarantineScpName({ acceleratorPrefix }), FULL_AWS_ACCESS_POLICY_NAME],
+      policyTargetIdsToInclude: [targetId!],
     });
   }
   const policyTargets = await organizations.listTargetsForPolicy({

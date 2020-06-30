@@ -2,9 +2,7 @@ import { Organizations } from '../aws/organizations';
 import { S3 } from '../aws/s3';
 import { ScpConfig, OrganizationalUnitConfig } from '../config';
 import { stringType } from 'aws-sdk/clients/iam';
-import {
-  PolicySummary
-} from 'aws-sdk/clients/organizations';
+import { PolicySummary } from 'aws-sdk/clients/organizations';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
@@ -22,7 +20,7 @@ export class ServiceControlPolicy {
   private readonly org: Organizations;
   private readonly s3: S3;
   private readonly acceleratorPrefix: string;
-  
+
   constructor(acceleratorPrefix: stringType, client?: Organizations) {
     this.org = client || new Organizations();
     this.s3 = new S3();
@@ -31,7 +29,7 @@ export class ServiceControlPolicy {
 
   async createOrUpdateQuarantineScp(targetIds?: string[]): Promise<string> {
     const policyName = createQuarantineScpName({ acceleratorPrefix: this.acceleratorPrefix });
-    const policyContent = this.createQuarantineScpContent({ acceleratorPrefix: this.acceleratorPrefix});
+    const policyContent = this.createQuarantineScpContent({ acceleratorPrefix: this.acceleratorPrefix });
     const getPolicyByName = await this.org.getPolicyByName({
       Name: policyName,
       Filter: 'SERVICE_CONTROL_POLICY',
@@ -63,9 +61,9 @@ export class ServiceControlPolicy {
   }
 
   /**
-    * Create or update the policies from the policy configuration.
-    *
-    * @return Accelerator policies that were created based on the given policy config.
+   * Create or update the policies from the policy configuration.
+   *
+   * @return Accelerator policies that were created based on the given policy config.
    */
   async createPoliciesFromConfiguration(props: {
     acceleratorPrefix: string;
@@ -74,13 +72,13 @@ export class ServiceControlPolicy {
     policyConfigs: ScpConfig[];
   }): Promise<PolicySummary[]> {
     const { acceleratorPrefix, scpBucketName, scpBucketPrefix, policyConfigs } = props;
-  
+
     // Find all policies in the organization
     const existingPolicies = await this.listScps();
-  
+
     // Keep track of all the policies created based on the config
     const policies = [];
-  
+
     // Create or update all policies from the Accelerator config file
     for (const policyConfig of policyConfigs) {
       const policyKey = `${scpBucketPrefix}/${policyConfig.policy}`;
@@ -96,23 +94,23 @@ export class ServiceControlPolicy {
         }
         throw e;
       }
-  
+
       // Minify the SCP content
       policyContent = JSON.stringify(JSON.parse(policyContent));
-  
+
       // Prefix the Accelerator prefix if necessary
       const acceleratorPolicyName = this.policyNameToAcceleratorPolicyName({
         acceleratorPrefix,
         policyName: policyConfig.name,
       });
-  
+
       const existingPolicy = existingPolicies.find(p => p.Name === acceleratorPolicyName);
       if (existingPolicy?.AwsManaged) {
         console.log(`Skipping update of AWS Managed Policy "${existingPolicy.Name}"`);
         policies.push(existingPolicy);
       } else if (existingPolicy) {
         console.log(`Updating policy ${acceleratorPolicyName}`);
-  
+
         const response = await this.org.updatePolicy({
           policyId: existingPolicy.Id!,
           content: policyContent,
@@ -120,7 +118,7 @@ export class ServiceControlPolicy {
         policies.push(response.Policy?.PolicySummary!);
       } else {
         console.log(`Creating policy ${acceleratorPolicyName}`);
-  
+
         const response = await this.org.createPolicy({
           type: 'SERVICE_CONTROL_POLICY',
           name: acceleratorPolicyName,
@@ -136,18 +134,15 @@ export class ServiceControlPolicy {
   /**
    * Detach the policies that are not in the given policy names to keep from targets that are in the targets list.
    */
-  async detachPoliciesFromTargets(props: {
-    policyNamesToKeep: string[];
-    policyTargetIdsToInclude: string[];
-  }) {
+  async detachPoliciesFromTargets(props: { policyNamesToKeep: string[]; policyTargetIdsToInclude: string[] }) {
     const { policyNamesToKeep, policyTargetIdsToInclude } = props;
-  
+
     // Remove non-Accelerator policies from Accelerator targets
-    
+
     for (const target of policyTargetIdsToInclude) {
       const existingPolicies = await this.org.listPoliciesForTarget({
         TargetId: target,
-        Filter: 'SERVICE_CONTROL_POLICY'
+        Filter: 'SERVICE_CONTROL_POLICY',
       });
       for (const policy of existingPolicies) {
         const policyName = policy.Name!;
@@ -163,24 +158,21 @@ export class ServiceControlPolicy {
   /**
    * Attach the FullAWSAccess policy to the given targets.
    */
-  async attachFullAwsAccessPolicyToTargets(props: {
-    existingPolicies: PolicySummary[];
-    targetIds: string[];
-  }) {
+  async attachFullAwsAccessPolicyToTargets(props: { existingPolicies: PolicySummary[]; targetIds: string[] }) {
     const { existingPolicies, targetIds } = props;
-  
+
     // Find the full access policy
     const fullAccessPolicy = existingPolicies.find(p => p.Name === FULL_AWS_ACCESS_POLICY_NAME);
     if (!fullAccessPolicy) {
       console.warn(`Cannot find policy with name ${FULL_AWS_ACCESS_POLICY_NAME}`);
       return;
     }
-  
+
     const fullAccessPolicyId = fullAccessPolicy.Id!;
     const fullAccessPolicyTargets = await this.org.listTargetsForPolicy({
       PolicyId: fullAccessPolicyId,
     });
-  
+
     // Attach FullAWSAccess to all roots, OUs in Accelerator and accounts in Accelerator
     for (const targetId of targetIds) {
       const target = fullAccessPolicyTargets.find(t => t.TargetId === targetId);
@@ -188,7 +180,7 @@ export class ServiceControlPolicy {
         console.log(`Skipping attachment of ${fullAccessPolicy.Name} to already attached target ${target.Name}`);
         continue;
       }
-  
+
       console.log(`Attaching policy ${fullAccessPolicy.Name} attaching to target ${targetId}`);
       await this.org.attachPolicy(fullAccessPolicyId, targetId);
     }
@@ -197,14 +189,14 @@ export class ServiceControlPolicy {
   /**
    * Attach new or detach removed policies based on the organizational unit configuration.
    */
-  async  attachOrDetachPoliciesToOrganizationalUnits(props: {
+  async attachOrDetachPoliciesToOrganizationalUnits(props: {
     existingPolicies: PolicySummary[];
     configurationOus: ConfigurationOrganizationalUnit[];
     acceleratorOus: [string, OrganizationalUnitConfig][];
     acceleratorPrefix: string;
   }) {
     const { existingPolicies, configurationOus, acceleratorOus, acceleratorPrefix } = props;
-  
+
     // Attach Accelerator SCPs to OUs
     for (const [ouKey, ouConfig] of acceleratorOus) {
       const organizationalUnit = configurationOus.find(ou => ou.ouKey === ouKey);
@@ -219,13 +211,13 @@ export class ServiceControlPolicy {
         console.warn(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
         continue;
       }
-  
+
       // Find targets for this policy
       const policyTargets = await this.org.listPoliciesForTarget({
         Filter: 'SERVICE_CONTROL_POLICY',
         TargetId: organizationalUnit.ouId,
       });
-  
+
       // Detach removed policies
       for (const policyTarget of policyTargets) {
         const policyTargetName = policyTarget.Name!;
@@ -234,7 +226,7 @@ export class ServiceControlPolicy {
           await this.org.detachPolicy(policyTarget.Id!, organizationalUnit.ouId);
         }
       }
-  
+
       // Attach new policies
       for (const ouPolicyName of ouPolicyNames) {
         const policy = existingPolicies.find(p => p.Name === ouPolicyName);
@@ -242,19 +234,18 @@ export class ServiceControlPolicy {
           console.warn(`Cannot find policy with name "${ouPolicyName}"`);
           continue;
         }
-  
+
         const policyTarget = policyTargets.find(x => x.Name === ouPolicyName);
         if (policyTarget) {
           console.log(`Skipping attachment of ${ouPolicyName} to already attached OU ${ouKey}`);
           continue;
         }
-  
+
         console.log(`Attaching ${ouPolicyName} to OU ${ouKey}`);
         await this.org.attachPolicy(policy.Id!, organizationalUnit.ouId);
       }
     }
   }
-
 
   /**
    * Convert policy name to Accelerator policy name. If the policy name is the FullAWSAccess policy name, then we keep
@@ -269,7 +260,7 @@ export class ServiceControlPolicy {
     }
     return `${acceleratorPrefix}${policyName}`;
   }
-  
+
   createQuarantineScpContent(props: { acceleratorPrefix: string }) {
     return JSON.stringify({
       Version: '2012-10-17',
@@ -291,7 +282,7 @@ export class ServiceControlPolicy {
       ],
     });
   }
-  
+
   async organizationRoots(): Promise<string[]> {
     const roots = await this.org.listRoots();
     return roots.map(r => r.Id!);

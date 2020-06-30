@@ -8,7 +8,6 @@ import {
   LoadConfigurationOutput,
 } from '../load-configuration-step';
 
-
 export const handler = async (input: LoadConfigurationInput): Promise<LoadConfigurationOutput> => {
   console.log(`Loading Organization baseline configuration...`);
   console.log(JSON.stringify(input, null, 2));
@@ -78,7 +77,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     });
   }
   const workLoadOuConfigs = config.getWorkloadAccountConfigs();
-  const workLoadOus = workLoadOuConfigs.map(([_, wc]) => wc["ou-path"] || wc.ou);
+  const workLoadOus = workLoadOuConfigs.map(([_, wc]) => wc['ou-path'] || wc.ou);
   for (const acceleratorOu of workLoadOus) {
     if (configurationOus.find(co => co.ouPath === acceleratorOu)) {
       // Skipp as it is already added in organizational-units
@@ -113,7 +112,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
 
     // Find the organizational account used by this
     const organizationalUnitName = accountConfig.ou;
-    const organizationalUnitPath = accountConfig["ou-path"] || organizationalUnitName;
+    const organizationalUnitPath = accountConfig['ou-path'] || organizationalUnitName;
     let organizationalUnit = awsOusWithPath.find(ou => ou.Path === organizationalUnitPath);
     if (!organizationalUnit) {
       organizationalUnit = awsOusWithPath.find(ou => ou.Name === organizationalUnitName);
@@ -147,9 +146,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   // Verify if there are additional accounts in the OU that are not managed by Accelerator
   for (const organizationalUnit of awsOusWithPath) {
     const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
-    const acceleratorAccountsInOu = configurationAccounts.filter(
-      account => account.ouPath === organizationalUnit.Path,
-    );
+    const acceleratorAccountsInOu = configurationAccounts.filter(account => account.ouPath === organizationalUnit.Path);
     if (accountsInOu.length !== acceleratorAccountsInOu.length) {
       warnings.push(
         `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Name}" while there are only ` +

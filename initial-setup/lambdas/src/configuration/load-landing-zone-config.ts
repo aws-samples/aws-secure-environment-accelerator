@@ -97,7 +97,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
 
     // Find the organizational account used by this
     const organizationalUnitName = accountConfig.ou;
-    const organizationalUnitPath = accountConfig["ou-path"] || organizationalUnitName;
+    const organizationalUnitPath = accountConfig['ou-path'] || organizationalUnitName;
     const organizationalUnit = awsOus.find(ou => ou.Name === organizationalUnitName);
     if (!organizationalUnit) {
       errors.push(`Cannot find organizational unit "${accountConfig.ou}" that is used by Accelerator`);
