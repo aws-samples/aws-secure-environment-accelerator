@@ -248,6 +248,7 @@ export namespace InitialSetup {
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
               RoleName: props.stateMachineExecutionRole,
+              MaxSessionDuration: `${buildTimeout.toSeconds()}`,
               // TODO Only add root role for development environments
               AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
