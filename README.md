@@ -4,11 +4,15 @@
 
 Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitiate installation.
 
+Installation of the provided sample AWS architecture requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization excluding workload accounts.
+
 ### Prerequisites
 
-Installation of the provided sample AWS architecture requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization
-
 You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed.
+
+- If using the ALZ-Takeout branch, before installing, you must first:
+  - Enable AWS Organizations
+  - Enable Service Control Policies
 
 NOTE: If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
 
@@ -41,6 +45,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
    - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
 4. It is **_extrememly important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts. This information is copied to every new sub-account on creation. Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section. Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
+5. It is also suggested that customers manually enable `"Cost Explorer"` and enable `"Receive Billing Alerts"`, as this has not been automated
 
 #### Create a GitHub Personal Access Token.
 
@@ -153,6 +158,36 @@ If using an internal AWS account, to successfully install, you need to enable pr
        - Set `"customer-confirm-inplace"` to **true** in the config file for the limit `"Amazon VPC/Interface VPC endpoints per VPC"` in the shared network account
     3. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
     4. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
+
+## Configuration File Notes
+
+- You cannot supply (or change) configuration file values to something not supported by the AWS platform
+  - For example, CWL retention only supports specific retention values (not any number)
+  - Shard count - can only increase/reduce by 1/2 the current limit. can change 1-2,2-3, 4-6
+- Always add any new items to the END of all lists or sections in the config file, otherwise
+  - update checks to fail (vpc's, subnets, share-to, etc.)
+  - vpc endpoint deployments to blow up - do NOT re-order VPC endpoints
+- To skip, remove or uninstall a component, you can simply change the section header
+  - change "deployments"/"firewall" to "deployments"/"xxfirewall" and it will de-install the firewalls
+- As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have it's capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
+- Updates to NACL's requires changing the rule number (100 to 101) or they will fail to update
+- The firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
+
+## Other Notes
+
+- Do not mess with _any_ buckets in the master account
+- While likely protected, do not mess with cdk, CFN, or PBMMAccel- buckets in _any_ subaccounts
+- Log group deletion is prevented for security purposes - Users of the Accelerator will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack
+
+## Known limitations/purposeful exclusions:
+
+- ALB automated deployments currently only supports Forward and not redirect rules
+- Amazon Detective - not included
+- Only 1 auto-deployed MAD per account is supported
+- Only 1 auto-deployed TGW per account is supported
+- VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
+- If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC
+- Firewall updates are performed using the firewall in-instance update capabailities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's are blocked)
 
 **STOP HERE, YOU ARE DONE**
 
