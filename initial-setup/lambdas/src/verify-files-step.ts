@@ -19,13 +19,14 @@ interface RdgwArtifactsOutput {
   keyPrefix: string;
 }
 
+const s3 = new S3();
+const secrets = new SecretsManager();
+
 export const handler = async (input: VerifyFilesInput) => {
   console.log('Validate existence of all required files ...');
   console.log(JSON.stringify(input, null, 2));
 
   const { configRepositoryName, stackOutputSecretId, configFilePath, configCommitId, rdgwScripts } = input;
-
-  const secrets = new SecretsManager();
   const outputsString = await secrets.getSecret(stackOutputSecretId);
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -36,130 +37,137 @@ export const handler = async (input: VerifyFilesInput) => {
   });
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
-  const s3 = new S3();
   const errors: string[] = [];
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
 
-  const verifyFiles = async (bucketName: string, fileNames: string[]): Promise<void> => {
-    for (const fileName of fileNames) {
-      console.log(`checking file ${fileName} in s3 bucket ${bucketName}`);
-      try {
-        await s3.getObjectBody({
-          Bucket: bucketName,
-          Key: fileName,
-        });
-      } catch (e) {
-        errors.push(`FileCheck: File not found at "s3://${bucketName}/${fileName}"`);
-      }
-    }
-  };
-
-  const verifyScpFiles = async (): Promise<void> => {
-    const artifactOutput = ArtifactOutputFinder.findOneByName({
-      outputs,
-      artifactName: 'SCP',
-    });
-    const scpBucketName = artifactOutput.bucketName;
-    const scpBucketPrefix = artifactOutput.keyPrefix;
-
-    const globalOptionsConfig = acceleratorConfig['global-options'];
-    const policyConfigs = globalOptionsConfig.scps;
-
-    const scpPolicies: string[] = [];
-    for (const policyConfig of policyConfigs) {
-      const policyKey = `${scpBucketPrefix}/${policyConfig.policy}`;
-      scpPolicies.push(policyKey);
-    }
-    await verifyFiles(scpBucketName, scpPolicies);
-  };
-
-  const verifyIamPolicyFiles = async (): Promise<void> => {
-    const artifactOutput = ArtifactOutputFinder.findOneByName({
-      outputs,
-      artifactName: 'IamPolicy',
-    });
-    const iamPolicyBucketName = artifactOutput.bucketName;
-    const iamPolicyBucketPrefix = artifactOutput.keyPrefix;
-
-    const policyFiles = listIamPolicyFileNames(acceleratorConfig);
-    const iamPolicies: string[] = [];
-    for (const policyFile of policyFiles) {
-      const policyKey = `${iamPolicyBucketPrefix}/${policyFile}`;
-      iamPolicies.push(policyKey);
-    }
-    await verifyFiles(iamPolicyBucketName, iamPolicies);
-  };
-
-  const verifyRdgwFiles = async (): Promise<void> => {
-    const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
-      accountKey: masterAccountKey,
-      outputType: 'RdgwArtifactsOutput',
-    });
-    if (rdgwScriptsOutput.length === 0) {
-      return;
-    }
-    const rdgwBucketName = rdgwScriptsOutput[0].bucketName;
-    const rdgwBucketPrefix = rdgwScriptsOutput[0].keyPrefix;
-
-    const rdgwScriptFiles: string[] = [];
-    for (const rdgwScriptFile of rdgwScripts) {
-      const rdgwScript = `${rdgwBucketPrefix}${rdgwScriptFile}`;
-      rdgwScriptFiles.push(rdgwScript);
-    }
-    await verifyFiles(rdgwBucketName, rdgwScriptFiles);
-  };
-
-  const verifyFirewallLicenses = async (): Promise<void> => {
-    const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
-      outputs,
-      accountKey: masterAccountKey,
-    });
-
-    const firewallLicenses: string[] = [];
-    for (const [_, accountConfig] of acceleratorConfig.getAccountConfigs()) {
-      const firewallConfig = accountConfig.deployments?.firewall;
-      if (!firewallConfig) {
-        continue;
-      }
-      if (firewallConfig.license) {
-        firewallLicenses.push(...firewallConfig.license);
-      }
-    }
-    await verifyFiles(centralBucketOutput.bucketName, firewallLicenses);
-  };
-
-  const verifyCertificates = async (): Promise<void> => {
-    const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
-      outputs,
-      accountKey: masterAccountKey,
-    });
-
-    const certificateFiles: string[] = [];
-    for (const { certificates } of Object.values(acceleratorConfig.getCertificateConfigs())) {
-      if (!certificates || certificates.length === 0) {
-        continue;
-      }
-      for (const certificate of certificates) {
-        if (c.ImportCertificateConfigType.is(certificate)) {
-          certificateFiles.push(certificate.cert);
-          certificateFiles.push(certificate['priv-key']);
-        }
-      }
-    }
-    await verifyFiles(centralBucketOutput.bucketName, certificateFiles);
-  };
-
   // calling all file validation methods
-  await verifyScpFiles();
-  await verifyIamPolicyFiles();
-  await verifyRdgwFiles();
-  await verifyCertificates();
-  await verifyFirewallLicenses();
+  await verifyScpFiles(outputs, acceleratorConfig, errors);
+  await verifyIamPolicyFiles(outputs, acceleratorConfig, errors);
+  await verifyRdgwFiles(masterAccountKey, rdgwScripts, outputs, errors);
+  await verifyCertificates(masterAccountKey, outputs, acceleratorConfig, errors);
+  await verifyFirewallLicenses(masterAccountKey, outputs, acceleratorConfig, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
   }
 };
+
+async function verifyScpFiles(outputs: StackOutput[], config: c.AcceleratorConfig, errors: string[]): Promise<void> {
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs,
+    artifactName: 'SCP',
+  });
+  const scpBucketName = artifactOutput.bucketName;
+  const scpBucketPrefix = artifactOutput.keyPrefix;
+
+  const globalOptionsConfig = config['global-options'];
+  const policyConfigs = globalOptionsConfig.scps;
+
+  const scpPolicies = policyConfigs.map(policyConfig => `${scpBucketPrefix}/${policyConfig.policy}`);
+  await verifyFiles(scpBucketName, scpPolicies, errors);
+}
+
+async function verifyIamPolicyFiles(
+  outputs: StackOutput[],
+  config: c.AcceleratorConfig,
+  errors: string[],
+): Promise<void> {
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs,
+    artifactName: 'IamPolicy',
+  });
+  const iamPolicyBucketName = artifactOutput.bucketName;
+  const iamPolicyBucketPrefix = artifactOutput.keyPrefix;
+
+  const policyFiles = listIamPolicyFileNames(config);
+  const iamPolicies = policyFiles.map(policyFile => `${iamPolicyBucketPrefix}/${policyFile}`);
+  await verifyFiles(iamPolicyBucketName, iamPolicies, errors);
+}
+
+async function verifyRdgwFiles(
+  masterAccountKey: string,
+  rdgwScripts: string[],
+  outputs: StackOutput[],
+  errors: string[],
+): Promise<void> {
+  const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
+    accountKey: masterAccountKey,
+    outputType: 'RdgwArtifactsOutput',
+  });
+  if (rdgwScriptsOutput.length === 0) {
+    return;
+  }
+  const rdgwBucketName = rdgwScriptsOutput[0].bucketName;
+  const rdgwBucketPrefix = rdgwScriptsOutput[0].keyPrefix;
+
+  const rdgwScriptFiles = rdgwScripts.map(rdgwScriptFile => `${rdgwBucketPrefix}${rdgwScriptFile}`);
+  await verifyFiles(rdgwBucketName, rdgwScriptFiles, errors);
+}
+
+async function verifyFirewallLicenses(
+  masterAccountKey: string,
+  outputs: StackOutput[],
+  config: c.AcceleratorConfig,
+  errors: string[],
+): Promise<void> {
+  const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+  });
+
+  const firewallLicenses: string[] = [];
+  for (const [_, accountConfig] of config.getAccountConfigs()) {
+    const firewallConfig = accountConfig.deployments?.firewall;
+    if (!firewallConfig) {
+      continue;
+    }
+    if (firewallConfig.license) {
+      firewallLicenses.push(...firewallConfig.license);
+    }
+  }
+  await verifyFiles(centralBucketOutput.bucketName, firewallLicenses, errors);
+}
+
+async function verifyCertificates(
+  masterAccountKey: string,
+  outputs: StackOutput[],
+  config: c.AcceleratorConfig,
+  errors: string[],
+): Promise<void> {
+  const centralBucketOutput = CentralBucketOutputFinder.findOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+  });
+
+  const certificateFiles: string[] = [];
+  for (const { certificates } of Object.values(config.getCertificateConfigs())) {
+    if (!certificates || certificates.length === 0) {
+      continue;
+    }
+    for (const certificate of certificates) {
+      if (c.ImportCertificateConfigType.is(certificate)) {
+        certificateFiles.push(certificate.cert);
+        certificateFiles.push(certificate['priv-key']);
+      }
+    }
+  }
+  await verifyFiles(centralBucketOutput.bucketName, certificateFiles, errors);
+}
+
+async function verifyFiles(bucketName: string, fileNames: string[], errors: string[]): Promise<string[]> {
+  for (const fileName of fileNames) {
+    console.log(`checking file ${fileName} in s3 bucket ${bucketName}`);
+    try {
+      await s3.getObjectBody({
+        Bucket: bucketName,
+        Key: fileName,
+      });
+    } catch (e) {
+      errors.push(`FileCheck: File not found at "s3://${bucketName}/${fileName}"`);
+    }
+  }
+  return errors;
+}
 
 function listIamPolicyFileNames(config: c.AcceleratorConfig): string[] {
   const policyFileNames: string[] = [];

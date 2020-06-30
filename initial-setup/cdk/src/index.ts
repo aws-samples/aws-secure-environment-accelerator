@@ -386,10 +386,7 @@ export namespace InitialSetup {
       });
 
       const rdgwArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'scripts');
-      const rdgwScripts: string[] = [];
-      fs.readdirSync(rdgwArtifactsFolderPath).forEach(file => {
-        rdgwScripts.push(file);
-      });
+      const rdgwScripts = fs.readdirSync(rdgwArtifactsFolderPath);
 
       const verifyFilesTask = new CodeTask(this, 'Verify Files', {
         functionProps: {
