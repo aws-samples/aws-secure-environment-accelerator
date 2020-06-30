@@ -6,6 +6,8 @@ Deploying the AWS Accelerator requires the assistance of your local AWS Account 
 
 ### Prerequisites
 
+Installation of the provided sample AWS architecture requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization
+
 You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed.
 
 NOTE: If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
@@ -38,7 +40,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 2. Set the region to `ca-central-1`.
 3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
    - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
-4. It is **_extrememly important_** that ***all*** the account contact details be validated in the MASTER account before deploying any new sub-accounts. This information is copied to every new sub-account on creation. Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section. Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
+4. It is **_extrememly important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts. This information is copied to every new sub-account on creation. Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section. Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
 
 #### Create a GitHub Personal Access Token.
 
@@ -61,13 +63,26 @@ If using an internal AWS account, to successfully install, you need to enable pr
    - This configuration file can be used with minor modification to successfully deploy the standard architecture
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
    1. For existing accounts, they must match identically to the ones defined in your AWS Landing Zone;
-   2. For new accounts, they must reflect the new account you want created;
+   2. For new accounts, they must reflect the new account name/email you want created;
    3. All new AWS accounts require a unique email address which has never before been used to create an AWS account;
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient.
 
 ### Key Things to Note:
 
 - **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
+  - Plan for OU structure, if not matching suggested structure
+  - 6 \* RFC1918 Class B address blocks (CIDR's) which do not conflict with on-premise networks
+    (for Central, Dev, Test, Prod, Unclass, Endpoint VPC's) (Recommend class B's, half class B's possible)
+  - 3 \* RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
+    (MAD, perimeter underlay, perimeter overlay)(non-GC customers can use space from the endpoint CIDR range)
+  - 3 \* BGP ASN's (TGW, FW Cluster, VGW)
+  - A Unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.)
+  - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution
+  - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]`
+  - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]`
+  - Wildcard DNS certificate for each of the 2 previous zones
+  - 2 Fortinet licenses
+  - recomend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 - **A Test environment can use the remainder of the values as-is**
 - **At this time, DO NOT include any workload accounts (remove them), as it will slow down the deployment process**
 - **(The ALZ AVM takes 42 minutes per sub-account. You can add additional AWS workload accounts at a later time)**
@@ -110,7 +125,7 @@ If using an internal AWS account, to successfully install, you need to enable pr
 15. Once the pipeline completes (typically under 15 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
 16. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 17. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-18. After the perimeter account is created in AWS Organizations, but before the ALZ AVM reaches Stage 2:
+18. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firwall products
     2. Login to the **perimeter** sub-account
     3. Activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
@@ -131,6 +146,13 @@ If using an internal AWS account, to successfully install, you need to enable pr
        - Update firewall configuration per your organizations security best practices
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
+23. During the installation we request required limit increases, resources dependant on these limits were not deployed
+    1. You should receive emails from support confirming the limit increases
+    2. Unfortunately, once the VPC endpoint limit is increased, it does not properly register in AWS Quota tool
+       - If and when you receive confirmation from support that the **VPC endpopint** limit in the shared network account has been increased
+       - Set `"customer-confirm-inplace"` to **true** in the config file for the limit `"Amazon VPC/Interface VPC endpoints per VPC"` in the shared network account
+    3. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
+    4. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
 **STOP HERE, YOU ARE DONE**
 
