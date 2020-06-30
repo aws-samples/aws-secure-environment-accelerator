@@ -300,6 +300,10 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         const subnetIds = attachSubnetsConfig.flatMap(
           subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
         );
+        if (subnetIds.length === 0) {
+          // TODO Throw or warn?
+          // throw new Error(`Cannot attach to TGW ${tgw.name}: no subnets found to attach to for VPC ${vpcConfig.name}`);
+        }
 
         const tgwRouteAssociates = associateConfig.map(route => tgw!.tgwRouteTableNameToIdMap[route]);
         const tgwRoutePropagates = propagateConfig.map(route => tgw!.tgwRouteTableNameToIdMap[route]);

@@ -1117,7 +1117,7 @@ Array [
     "LogicalId": "TgwMain627BB489",
     "Properties": Object {
       "AmazonSideAsn": 65521,
-      "AutoAcceptSharedAttachments": "disable",
+      "AutoAcceptSharedAttachments": "enable",
       "DefaultRouteTableAssociation": "disable",
       "DefaultRouteTablePropagation": "disable",
       "Description": undefined,
