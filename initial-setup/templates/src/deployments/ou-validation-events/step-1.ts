@@ -9,6 +9,7 @@ import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-gener
 import { Context } from '../../utils/context';
 
 import { createAccount } from './create-account';
+import { changePolicy } from './policy-changes';
 
 export interface OuValidationStep1Props {
   scope: AccountStack;
@@ -73,6 +74,19 @@ export async function step1(props: OuValidationStep1Props) {
     lambdaCode,
     acceleratorStateMachineName,
   });
+
+  // Creates resource needed for handling create account directly from console
+  await changePolicy({
+    scope,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
+    defaultRegion,
+    lambdaCode,
+    acceleratorStateMachineName,
+  });
 }
 
 async function moveAccount(input: MoveAccountProps) {
@@ -103,7 +117,7 @@ async function moveAccount(input: MoveAccountProps) {
     timeout: cdk.Duration.minutes(15),
   });
 
-  moveAccountFunc.addPermission(`InvokePermission-NewLogGroup_rule`, {
+  moveAccountFunc.addPermission(`InvokePermission-MoveAccount_rule`, {
     action: 'lambda:InvokeFunction',
     principal: new iam.ServicePrincipal('events.amazonaws.com'),
   });
