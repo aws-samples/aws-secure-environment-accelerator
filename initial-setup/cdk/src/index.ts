@@ -414,6 +414,21 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
+      const validateOuConfiguration = new CodeTask(this, 'OU Validation', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.ouValidation',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+          acceleratorPrefix: props.acceleratorPrefix,
+        },
+        resultPath: 'DISCARD',
+      });
+
       const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {
         functionProps: {
           code: lambdaCode,
@@ -700,7 +715,8 @@ export namespace InitialSetup {
         .next(commonDefinition);
 
       // // Organizations Config Setup
-      const orgConfigDefinition = loadOrgConfigurationTask.startState
+      const orgConfigDefinition = validateOuConfiguration.startState
+        .next(loadOrgConfigurationTask)
         .next(installCfnRoleMasterTask)
         .next(createOrganizationAccountsTask)
         .next(commonDefinition);
