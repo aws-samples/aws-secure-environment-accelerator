@@ -14,6 +14,8 @@ import { changePolicy } from './policy-changes';
 export interface OuValidationStep1Props {
   scope: AccountStack;
   context: Context;
+  scpBucketName: string;
+  scpBucketPrefix: string;
 }
 
 export interface MoveAccountProps {
@@ -32,7 +34,7 @@ export interface MoveAccountProps {
  * OU Validation - Handling manual account creation and move account to organizations
  */
 export async function step1(props: OuValidationStep1Props) {
-  const { scope, context } = props;
+  const { scope, context, scpBucketName, scpBucketPrefix } = props;
   const {
     acceleratorPipelineRoleName,
     acceleratorPrefix,
@@ -86,6 +88,8 @@ export async function step1(props: OuValidationStep1Props) {
     defaultRegion,
     lambdaCode,
     acceleratorStateMachineName,
+    scpBucketName,
+    scpBucketPrefix,
   });
 }
 

@@ -12,7 +12,7 @@ interface AddScpInput extends LoadConfigurationInput {
   organizationalUnits: ConfigurationOrganizationalUnit[];
   stackOutputSecretId: string;
 }
-
+const secrets = new SecretsManager();
 export const handler = async (input: AddScpInput) => {
   console.log(`Adding service control policy to organization...`);
   console.log(JSON.stringify(input, null, 2));
@@ -36,7 +36,6 @@ export const handler = async (input: AddScpInput) => {
 
   const scps = new ServiceControlPolicy(acceleratorPrefix);
 
-  const secrets = new SecretsManager();
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 

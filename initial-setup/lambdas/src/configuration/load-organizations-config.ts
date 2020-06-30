@@ -64,7 +64,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   const acceleratorOuConfigs = config['organizational-units'];
   const acceleratorOus = Object.keys(acceleratorOuConfigs);
   for (const acceleratorOu of acceleratorOus) {
-    const awsOu = awsOusWithPath.find(ou => ou.Name === acceleratorOu);
+    const awsOu = awsOusWithPath.find(ou => ou.Name === acceleratorOu && ou.Path === acceleratorOu);
     if (!awsOu) {
       errors.push(`Cannot find organizational unit "${acceleratorOu}" that is used by Accelerator`);
       continue;

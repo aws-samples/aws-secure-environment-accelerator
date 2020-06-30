@@ -10,18 +10,31 @@ import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
 
 export interface PolicyChangeEventProps {
   scope: AccountStack;
-  acceleratorPrefix: string;  
-  configBranch: string;  
-  configFilePath: string;  
-  configRepositoryName: string;  
-  defaultRegion: string;  
-  acceleratorPipelineRole: iam.IRole;  
-  lambdaCode: lambda.Code;  
+  acceleratorPrefix: string;
+  configBranch: string;
+  configFilePath: string;
+  configRepositoryName: string;
+  defaultRegion: string;
+  acceleratorPipelineRole: iam.IRole;
+  lambdaCode: lambda.Code;
   acceleratorStateMachineName: string;
+  scpBucketName: string;
+  scpBucketPrefix: string;
 }
 export async function changePolicy(input: PolicyChangeEventProps) {
-  const { scope, lambdaCode, acceleratorPipelineRole, acceleratorPrefix, defaultRegion, configRepositoryName, configFilePath, configBranch } = input;
-  const waitSeconds = 60
+  const {
+    scope,
+    lambdaCode,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    defaultRegion,
+    configRepositoryName,
+    configFilePath,
+    configBranch,
+    scpBucketName,
+    scpBucketPrefix,
+  } = input;
+  const waitSeconds = 60;
 
   const policyChangeFunc = new lambda.Function(scope, 'policyChanges', {
     runtime: lambda.Runtime.NODEJS_12_X,
@@ -35,6 +48,8 @@ export async function changePolicy(input: PolicyChangeEventProps) {
       ACCELERATOR_STATEMACHINE_ROLENAME: acceleratorPipelineRole.roleName,
       ACCELERATOR_DEFAULT_REGION: defaultRegion,
       ACCELERATOR_PREFIX: acceleratorPrefix,
+      ACCELERATOR_SCP_BUCKET_PREFIX: scpBucketPrefix,
+      ACCELERATOR_SCP_BUCKET_NAME: scpBucketName,
     },
     timeout: cdk.Duration.minutes(15),
   });

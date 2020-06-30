@@ -16,6 +16,20 @@ export function createQuarantineScpName(props: { acceleratorPrefix: string }) {
   return `${props.acceleratorPrefix}Quarantine-New-Object`;
 }
 
+/**
+ * Convert policy name to Accelerator policy name. If the policy name is the FullAWSAccess policy name, then we keep
+ * the name as is. If the policy name does not have the Accelerator prefix, then we add the prefix.
+ *
+ * @return Policy name with Accelerator prefix.
+ */
+export function policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
+  const { policyName, acceleratorPrefix } = props;
+  if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyName.startsWith(acceleratorPrefix)) {
+    return policyName;
+  }
+  return `${acceleratorPrefix}${policyName}`;
+}
+
 export class ServiceControlPolicy {
   private readonly org: Organizations;
   private readonly s3: S3;
@@ -99,7 +113,7 @@ export class ServiceControlPolicy {
       policyContent = JSON.stringify(JSON.parse(policyContent));
 
       // Prefix the Accelerator prefix if necessary
-      const acceleratorPolicyName = this.policyNameToAcceleratorPolicyName({
+      const acceleratorPolicyName = policyNameToAcceleratorPolicyName({
         acceleratorPrefix,
         policyName: policyConfig.name,
       });
@@ -205,7 +219,7 @@ export class ServiceControlPolicy {
         continue;
       }
       const ouPolicyNames = ouConfig.scps.map(policyName =>
-        this.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
+        policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       );
       if (ouPolicyNames.length > 4) {
         console.warn(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
@@ -245,20 +259,6 @@ export class ServiceControlPolicy {
         await this.org.attachPolicy(policy.Id!, organizationalUnit.ouId);
       }
     }
-  }
-
-  /**
-   * Convert policy name to Accelerator policy name. If the policy name is the FullAWSAccess policy name, then we keep
-   * the name as is. If the policy name does not have the Accelerator prefix, then we add the prefix.
-   *
-   * @return Policy name with Accelerator prefix.
-   */
-  policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
-    const { policyName, acceleratorPrefix } = props;
-    if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyName.startsWith(acceleratorPrefix)) {
-      return policyName;
-    }
-    return `${acceleratorPrefix}${policyName}`;
   }
 
   createQuarantineScpContent(props: { acceleratorPrefix: string }) {
