@@ -2,7 +2,7 @@ import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { createQuarantineScpContent, createQuarantineScpName } from '@aws-pbmm/common-lambda/lib/util/quarantine-scp';
+import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME, createQuarantineScpName } from '@aws-pbmm/common-lambda/lib/scp';
 
 export interface ValdationInput {
   configFilePath: string;
@@ -25,6 +25,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
+  const scps = new ServiceControlPolicy(acceleratorPrefix, organizations);
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
@@ -71,41 +72,25 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       });
     }
   }
-  // Attach Qurantine SCP to free Accounts
-  const policyName = createQuarantineScpName({ acceleratorPrefix });
-  const policyContent = createQuarantineScpContent({ acceleratorPrefix });
-  const getPolicyByName = await organizations.getPolicyByName({
-    Name: policyName,
-    Filter: 'SERVICE_CONTROL_POLICY',
-  });
-  let policyId = getPolicyByName?.PolicySummary?.Id;
-  if (policyId) {
-    console.log(`Updating policy ${policyName}`);
-
-    if (getPolicyByName?.Content !== policyContent) {
-      await organizations.updatePolicy({
-        policyId,
-        content: policyContent,
-      });
-    }
-  } else {
-    console.log(`Creating policy ${policyName}`);
-
-    const response = await organizations.createPolicy({
-      type: 'SERVICE_CONTROL_POLICY',
-      name: policyName,
-      description: `${acceleratorPrefix}Quarantine policy - Apply to ACCOUNTS that need to be quarantined`,
-      content: policyContent,
-    });
-    policyId = response.Policy?.PolicySummary?.Id!;
-  }
+  // Attach Qurantine SCP to root Accounts
+  const policyId = await scps.createOrUpdateQuarantineScp();
   const rootAccounts = await organizations.listAccountsForParent(rootId);
   const rootAccountIds = rootAccounts.map(acc => acc.Id);
+  // Detach target from all polocies except FullAccess and Qurantine SCP
+  for (const targetId of [...rootAccountIds, suspendedOu.Id]) {
+    await scps.detachPoliciesFromTargets({
+      policyNamesToKeep: [createQuarantineScpName({acceleratorPrefix}), FULL_AWS_ACCESS_POLICY_NAME],
+      policyTargetIdsToInclude: [targetId!]
+    });
+  }
   const policyTargets = await organizations.listTargetsForPolicy({
     PolicyId: policyId,
   });
   const existingTargets = policyTargets.map(target => target.TargetId);
-  const targetIds = [...rootAccountIds.filter(targetId => !existingTargets.includes(targetId)), suspendedOu.Id];
+  const targetIds = rootAccountIds.filter(targetId => !existingTargets.includes(targetId));
+  if (!existingTargets.includes(suspendedOu.Id)) {
+    targetIds.push(suspendedOu.Id);
+  }
   for (const targetId of targetIds) {
     await organizations.attachPolicy(policyId, targetId!);
   }
@@ -167,18 +152,11 @@ async function createOrganizstionalUnits(
             ...orgUnit,
             Path: currentOuPath,
           });
-          continue;
         } else {
           orgUnit = existingOu;
         }
-        localParent = orgUnit.Id!;
+        localParent = orgUnit?.Id!;
       }
     }
   }
 }
-// handler({
-//   configFilePath: 'config.json',
-//   configCommitId: '63d30f462083a894cd0dc30725f53ffac580465d',
-//   configRepositoryName: 'PBMMAccel-Config-Repo',
-//   acceleratorPrefix: 'PBMMAccel-'
-// })

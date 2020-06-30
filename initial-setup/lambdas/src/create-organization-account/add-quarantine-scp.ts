@@ -1,14 +1,11 @@
 import { ConfigurationAccount } from '../load-configuration-step';
 import { CreateAccountOutput } from '@aws-pbmm/common-lambda/lib/aws/types/account';
-import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { createQuarantineScpContent, createQuarantineScpName } from '@aws-pbmm/common-lambda/lib/util/quarantine-scp';
+import { ServiceControlPolicy } from '@aws-pbmm/common-lambda/lib/scp';
 
 interface AddQuarantineScpInput {
   account: ConfigurationAccount;
   acceleratorPrefix: string;
 }
-
-const organizations = new Organizations();
 
 export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccountOutput> => {
   console.log(`Adding quarantine SCP to account...`);
@@ -23,37 +20,9 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
     };
   }
 
-  const policyName = createQuarantineScpName({ acceleratorPrefix });
-  const policyContent = createQuarantineScpContent({ acceleratorPrefix });
-
-  const getPolicyByName = await organizations.getPolicyByName({
-    Name: policyName,
-    Filter: 'SERVICE_CONTROL_POLICY',
-  });
-  let policyId = getPolicyByName?.PolicySummary?.Id;
-  if (policyId) {
-    console.log(`Updating policy ${policyName}`);
-
-    if (getPolicyByName?.Content !== policyContent) {
-      await organizations.updatePolicy({
-        policyId,
-        content: policyContent,
-      });
-    }
-  } else {
-    console.log(`Creating policy ${policyName}`);
-
-    const response = await organizations.createPolicy({
-      type: 'SERVICE_CONTROL_POLICY',
-      name: policyName,
-      description: `${acceleratorPrefix}Quarantine policy - Apply to ACCOUNTS that need to be quarantined`,
-      content: policyContent,
-    });
-    policyId = response.Policy?.PolicySummary?.Id!;
-  }
-
-  console.log(`Attaching SCP "${policyName}" to account "${account.accountId}"`);
-  await organizations.attachPolicy(policyId, account.accountId);
+  // TODO Replace with scp class from config
+  const scps = new ServiceControlPolicy(acceleratorPrefix);
+  await scps.createOrUpdateQuarantineScp([account.accountId!]);
 
   return {
     status: 'SUCCESS',

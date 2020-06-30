@@ -21,6 +21,7 @@ export { handler as getBaseline } from './get-baseline-step';
 export { handler as compareConfigurationsStep } from './compare-configurations-step';
 export { handler as storeCommitIdStep } from './store-commit-id-step';
 export { handler as detachQuarantineScp } from './detach-quarantine-scp';
+export { handler as ouValidation } from './ou-validation';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

@@ -1,6 +1,6 @@
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { createQuarantineScpName } from './create-organization-account/add-quarantine-scp';
+import { createQuarantineScpName } from '@aws-pbmm/common-lambda/lib/scp';
 
 interface DetachQuarantineScpInput {
   accounts: Account[];

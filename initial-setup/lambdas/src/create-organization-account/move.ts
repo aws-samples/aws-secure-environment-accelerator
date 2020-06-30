@@ -15,14 +15,17 @@ export const handler = async (input: MoveAccountInput): Promise<ConfigurationAcc
   const { account, organizationalUnits } = input;
   const rootOrg = await org.listRoots();
   const parentOrgId = rootOrg[0].Id;
-  const destOrgId = organizationalUnits.find(ou => ou.ouName === account.organizationalUnit);
+  let destOrg = organizationalUnits.find(ou => ou.ouPath === account.ouPath);
+  if (!destOrg) {
+    destOrg = organizationalUnits.find(ou => ou.ouName === account.organizationalUnit);
+  }
   if (!account.accountId) {
     console.warn(`Did not find Account Id in Verify Account Output for account "${account.accountName}"`);
     return account;
   }
   await org.moveAccount({
     AccountId: account.accountId,
-    DestinationParentId: destOrgId?.ouId!,
+    DestinationParentId: destOrg?.ouId!,
     SourceParentId: parentOrgId!,
   });
   return account;

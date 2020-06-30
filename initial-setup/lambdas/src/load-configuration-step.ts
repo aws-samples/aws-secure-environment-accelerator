@@ -22,10 +22,12 @@ export interface ConfigurationAccount {
   organizationalUnit: string;
   isMandatoryAccount: boolean;
   landingZoneAccountType?: LandingZoneAccountType;
+  ouPath?: string;
 }
 
 export interface ConfigurationOrganizationalUnit {
   ouId: string;
   ouKey: string;
   ouName: string;
+  ouPath: string;
 }

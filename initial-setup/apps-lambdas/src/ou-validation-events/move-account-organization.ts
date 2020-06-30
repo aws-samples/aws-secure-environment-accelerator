@@ -46,7 +46,8 @@ export const handler = async (input: MoveAccountOrganization) => {
   if (sourceParentId === rootOrgId) {
     // Account is moving from Root Organization to another
     const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
-    updatestatus = await updateAccountConfig(account, destinationOrg);
+    const destinationRootOrg = destinationOrg.Path.split('/')[0];
+    updatestatus = await updateAccountConfig(account, destinationOrg, destinationRootOrg);
   } else if (destinationParentId === rootOrgId) {
     // Move account back to source and don't update config
     console.log(`Invalid moveAccount from ${sourceParentId} to ROOT Organization`);
@@ -72,7 +73,7 @@ export const handler = async (input: MoveAccountOrganization) => {
       return 'FAILED';
     } else {
       // Update Config
-      updatestatus = await updateAccountConfig(account, destinationOrg);
+      updatestatus = await updateAccountConfig(account, destinationOrg, destinationRootOrg);
     }
   }
   if (updatestatus === 'SUCCESS') {
@@ -81,7 +82,7 @@ export const handler = async (input: MoveAccountOrganization) => {
   return 'SUCCESS';
 };
 
-async function updateAccountConfig(account: org.Account, destinationOrg: OrganizationalUnit): Promise<string> {
+async function updateAccountConfig(account: org.Account, destinationOrg: OrganizationalUnit, destinationRootOrg: string): Promise<string> {
   console.log(`Updating Configuration for account "${account.Name}" to Organization ${destinationOrg.Name}`);
   const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   const parentCommitId = configCommit.commitId;
@@ -101,18 +102,18 @@ async function updateAccountConfig(account: org.Account, destinationOrg: Organiz
   if (workLoadAccountConfig) {
     accountKey = workLoadAccountConfig[0];
     accountConfig = workLoadAccountConfig[1];
-    accountConfig.ou = destinationOrg.Name!;
+    accountConfig.ou = destinationRootOrg;
     accountConfig['ou-path'] = destinationOrg.Path;
   } else if (mandatoryAccountConfig) {
     accountKey = mandatoryAccountConfig[0];
     accountConfig = mandatoryAccountConfig[1];
-    accountConfig.ou = destinationOrg.Name!;
+    accountConfig.ou = destinationRootOrg;
     accountConfig['ou-path'] = destinationOrg.Path;
   } else {
     accountConfig = {
       'account-name': account.Name!,
       email: account.Email!,
-      ou: destinationOrg.Name!,
+      ou: destinationRootOrg,
       'ou-path': destinationOrg.Path,
     };
   }

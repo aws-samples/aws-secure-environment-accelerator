@@ -62,6 +62,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       email: organizationAccount.Email!,
       ou: accountConfig.organizationalUnit,
       type: accountConfig.landingZoneAccountType,
+      ouPath: accountConfig.ouPath
     });
   }
 

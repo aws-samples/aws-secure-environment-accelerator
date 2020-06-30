@@ -75,11 +75,13 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       errors.push(`Cannot find organizational unit "${acceleratorOu}" that is used by Accelerator`);
       continue;
     }
+    const awsOuWithPath = await organizations.getOrganizationalUnitWithPath(awsOu.Id!);
 
     configurationOus.push({
       ouId: awsOu.Id!,
       ouName: awsOu.Name!,
       ouKey: acceleratorOu,
+      ouPath: awsOuWithPath.Path,
     });
   }
 
@@ -95,6 +97,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
 
     // Find the organizational account used by this
     const organizationalUnitName = accountConfig.ou;
+    const organizationalUnitPath = accountConfig["ou-path"] || organizationalUnitName;
     const organizationalUnit = awsOus.find(ou => ou.Name === organizationalUnitName);
     if (!organizationalUnit) {
       errors.push(`Cannot find organizational unit "${accountConfig.ou}" that is used by Accelerator`);
@@ -129,6 +132,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       organizationalUnit: organizationalUnitName,
       isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
       landingZoneAccountType,
+      ouPath: organizationalUnitPath,
     });
   }
 
