@@ -16,6 +16,7 @@ import { CreateAccountTask } from './tasks/create-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
+import * as fs from 'fs';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -384,6 +385,27 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const rdgwArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'scripts');
+      const rdgwScripts = fs.readdirSync(rdgwArtifactsFolderPath);
+
+      const verifyFilesTask = new CodeTask(this, 'Verify Files', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.verifyFilesStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          rdgwScripts,
+        },
+        resultPath: 'DISCARD',
+      });
+
       const associateHostedZonesTask = new CodeTask(this, 'Associate Hosted Zones', {
         functionProps: {
           code: lambdaCode,
@@ -483,6 +505,7 @@ export namespace InitialSetup {
           .next(enableTrustedAccessForServicesTask)
           .next(deployPhase0Task)
           .next(storePhase0Output)
+          .next(verifyFilesTask)
           .next(addScpTask)
           .next(deployPhase1Task)
           .next(storePhase1Output)
