@@ -971,8 +971,8 @@
             "account": "shared-network",
             "name": "TGW-to-Perimeter",
             "associate-type": "VPN",
-            "rt-associate": ["core"],
-            "rt-propagate": ["core", "segregated", "shared", "standalone"],
+            "tgw-rt-associate": ["core"],
+            "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
             "blackhole-route": false,
             "attach-subnets": [],
             "options": ["DNS-support"]

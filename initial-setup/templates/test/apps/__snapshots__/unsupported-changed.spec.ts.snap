@@ -1114,7 +1114,7 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0 1`] = `
 Array [
   Object {
-    "LogicalId": "TGWMain75B662F5",
+    "LogicalId": "TgwMain627BB489",
     "Properties": Object {
       "AmazonSideAsn": 65521,
       "AutoAcceptSharedAttachments": "disable",
@@ -1129,7 +1129,7 @@ Array [
         },
         Object {
           "Key": "Name",
-          "Value": "TGW_Main_tgw",
+          "Value": "Main_tgw",
         },
       ],
       "VpnEcmpSupport": "enable",

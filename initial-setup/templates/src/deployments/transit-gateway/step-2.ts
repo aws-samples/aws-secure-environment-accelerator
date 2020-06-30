@@ -1,8 +1,9 @@
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { TransitGatewayAttachmentOutputFinder } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { AccountStacks } from '../../common/account-stacks';
-import { Account, getAccountId } from '../../utils/accounts';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { TransitGatewayRoute, TransitGatewayRouteProps } from '../../common/transit-gateway-attachment';
+import { Account } from '../../utils/accounts';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { TransitGatewayRoute } from '../../common/transit-gateway-attachment';
 
 export interface TransitGatewayStep2Props {
   accountStacks: AccountStacks;
@@ -12,12 +13,13 @@ export interface TransitGatewayStep2Props {
 }
 
 export async function step2(props: TransitGatewayStep2Props) {
-  const tgwAttOutputs = getStackJsonOutput(props.outputs, {
-    outputType: 'TgwAttachmentOutput',
+  const { outputs } = props;
+  const attachments = TransitGatewayAttachmentOutputFinder.findAll({
+    outputs,
   });
-  for (const [index, tgwAttOutput] of Object.entries(tgwAttOutputs)) {
-    const accountKey = tgwAttOutput.accountKey;
-    const region = tgwAttOutput.region;
+  for (const [index, attachment] of Object.entries(attachments)) {
+    const accountKey = attachment.accountKey;
+    const region = attachment.region;
 
     const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
     if (!accountStack) {
@@ -26,11 +28,11 @@ export async function step2(props: TransitGatewayStep2Props) {
     }
 
     new TransitGatewayRoute(accountStack, `TgwRoute${index}`, {
-      tgwAttachmentId: tgwAttOutput.tgwAttachmentId,
-      tgwRouteAssociates: tgwAttOutput.tgwRouteAssociates,
-      tgwRoutePropagates: tgwAttOutput.tgwRoutePropagates,
-      blackhole: tgwAttOutput.blackhole,
-      cidr: tgwAttOutput.cidr,
+      tgwAttachmentId: attachment.tgwAttachmentId,
+      tgwRouteAssociates: attachment.tgwRouteAssociates,
+      tgwRoutePropagates: attachment.tgwRoutePropagates,
+      blackhole: attachment.blackhole,
+      cidr: attachment.cidr,
     });
   }
 }
