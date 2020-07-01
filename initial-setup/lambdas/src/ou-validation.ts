@@ -52,7 +52,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   console.log(JSON.stringify(awsOusWithPath, null, 2));
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
-  awsOusWithPath.push(...await createOrganizstionalUnits(config, awsOusWithPath, rootId));
+  awsOusWithPath.push(...(await createOrganizstionalUnits(config, awsOusWithPath, rootId)));
 
   const suspendedOuName = 'Suspended';
   let suspendedOu = awsOusWithPath.find(o => o.Path === suspendedOuName);
@@ -72,7 +72,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
         SourceParentId: ouId,
       });
     }
-  } 
+  }
   // Attach Qurantine SCP to root Accounts
   const policyId = await scps.createOrUpdateQuarantineScp();
   const rootAccounts = await organizations.listAccountsForParent(rootId);
@@ -106,7 +106,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   });
   const updatedTargetIdsForQnoScp = updatedTargetsForQnoScp.map(t => t.TargetId);
   const rootOusInAccount = awsOusWithPath.filter(awsOu => awsOu.Name === awsOu.Path);
-  const configOrgUnitNames = Object.keys(config["organizational-units"]);
+  const configOrgUnitNames = Object.keys(config['organizational-units']);
   for (const rootOrg of rootOusInAccount) {
     if (configOrgUnitNames.includes(rootOrg.Name!)) {
       // Organization is exists in Configuration, Detach QNO SCP if exists
@@ -129,8 +129,6 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   }
   return 'SUCCESS';
 };
-
-
 
 async function createSuspendedOu(suspendedOuName: string, rootId: string): Promise<OrganizationalUnit> {
   const suspendedOu = await organizations.createOrganizationalUnit(suspendedOuName, rootId);
@@ -209,11 +207,3 @@ async function createOrganizstionalUnits(
   }
   return result;
 }
-
-
-handler({
-  "configRepositoryName": "PBMMAccel-Config-Repo",
-  "configFilePath": "config.json",
-  "acceleratorPrefix": "PBMMAccel-",
-  "configCommitId": "660dd60124218b7bd4e7a33965239d751531e4a5"
-});
