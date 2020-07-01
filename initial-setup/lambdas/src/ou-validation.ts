@@ -52,12 +52,13 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   console.log(JSON.stringify(awsOusWithPath, null, 2));
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
-  await createOrganizstionalUnits(config, awsOusWithPath, rootId);
+  awsOusWithPath.push(...await createOrganizstionalUnits(config, awsOusWithPath, rootId));
 
   const suspendedOuName = 'Suspended';
   let suspendedOu = awsOusWithPath.find(o => o.Path === suspendedOuName);
   if (!suspendedOu) {
     suspendedOu = await createSuspendedOu(suspendedOuName, rootId);
+    awsOusWithPath.push(suspendedOu);
   }
 
   // List Suspended Accounts
@@ -71,7 +72,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
         SourceParentId: ouId,
       });
     }
-  }
+  } 
   // Attach Qurantine SCP to root Accounts
   const policyId = await scps.createOrUpdateQuarantineScp();
   const rootAccounts = await organizations.listAccountsForParent(rootId);
@@ -97,8 +98,39 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   for (const targetId of targetIds) {
     await organizations.attachPolicy(policyId, targetId!);
   }
-  return '';
+
+  // Apply the QNO SCP to all top-level OU's not defined in the configuration file (removing all other SCP's except the default FullAccess SCP)
+  // Remove the QNO SCP from all top-level OU's properly defined in the configuration file
+  const updatedTargetsForQnoScp = await organizations.listTargetsForPolicy({
+    PolicyId: policyId,
+  });
+  const updatedTargetIdsForQnoScp = updatedTargetsForQnoScp.map(t => t.TargetId);
+  const rootOusInAccount = awsOusWithPath.filter(awsOu => awsOu.Name === awsOu.Path);
+  const configOrgUnitNames = Object.keys(config["organizational-units"]);
+  for (const rootOrg of rootOusInAccount) {
+    if (configOrgUnitNames.includes(rootOrg.Name!)) {
+      // Organization is exists in Configuration, Detach QNO SCP if exists
+      if (updatedTargetIdsForQnoScp.includes(rootOrg.Id)) {
+        await organizations.detachPolicy(policyId, rootOrg.Id!);
+      }
+    } else {
+      // Organization doesn't exist in Configuration attach QNO SCP
+      await scps.detachPoliciesFromTargets({
+        policyNamesToKeep: [
+          ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix }),
+          FULL_AWS_ACCESS_POLICY_NAME,
+        ],
+        policyTargetIdsToInclude: [rootOrg.Id!],
+      });
+      if (!updatedTargetIdsForQnoScp.includes(rootOrg.Id)) {
+        await organizations.attachPolicy(policyId, rootOrg.Id!);
+      }
+    }
+  }
+  return 'SUCCESS';
 };
+
+
 
 async function createSuspendedOu(suspendedOuName: string, rootId: string): Promise<OrganizationalUnit> {
   const suspendedOu = await organizations.createOrganizationalUnit(suspendedOuName, rootId);
@@ -112,7 +144,8 @@ async function createOrganizstionalUnits(
   config: AcceleratorConfig,
   awsOusWithPath: OrganizationalUnit[],
   rootId: string,
-) {
+): Promise<OrganizationalUnit[]> {
+  const result: OrganizationalUnit[] = [];
   const acceleratorOuConfigs = config['organizational-units'];
   const acceleratorOus = Object.keys(acceleratorOuConfigs);
   for (const acceleratorOu of acceleratorOus) {
@@ -121,6 +154,10 @@ async function createOrganizstionalUnits(
       // Create Missing OrganizationalUnit
       const orgUnit = await organizations.createOrganizationalUnit(acceleratorOu, rootId);
       awsOusWithPath.push({
+        ...orgUnit,
+        Path: acceleratorOu,
+      });
+      result.push({
         ...orgUnit,
         Path: acceleratorOu,
       });
@@ -136,6 +173,10 @@ async function createOrganizstionalUnits(
         console.log(`Creating new Organizational Unit "${workLoadOu.ou}" under Root`);
         const orgUnit = await organizations.createOrganizationalUnit(workLoadOu.ou, rootId);
         awsOusWithPath.push({
+          ...orgUnit,
+          Path: workLoadOu.ou,
+        });
+        result.push({
           ...orgUnit,
           Path: workLoadOu.ou,
         });
@@ -155,6 +196,10 @@ async function createOrganizstionalUnits(
             ...orgUnit,
             Path: currentOuPath,
           });
+          result.push({
+            ...orgUnit,
+            Path: currentOuPath,
+          });
         } else {
           orgUnit = existingOu;
         }
@@ -162,4 +207,13 @@ async function createOrganizstionalUnits(
       }
     }
   }
+  return result;
 }
+
+
+handler({
+  "configRepositoryName": "PBMMAccel-Config-Repo",
+  "configFilePath": "config.json",
+  "acceleratorPrefix": "PBMMAccel-",
+  "configCommitId": "660dd60124218b7bd4e7a33965239d751531e4a5"
+});
