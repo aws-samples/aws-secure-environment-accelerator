@@ -12,24 +12,6 @@ interface ConfigurationOrganizationalUnit {
   ouName: string;
 }
 
-export function createQuarantineScpName(props: { acceleratorPrefix: string }) {
-  return `${props.acceleratorPrefix}Quarantine-New-Object`;
-}
-
-/**
- * Convert policy name to Accelerator policy name. If the policy name is the FullAWSAccess policy name, then we keep
- * the name as is. If the policy name does not have the Accelerator prefix, then we add the prefix.
- *
- * @return Policy name with Accelerator prefix.
- */
-export function policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
-  const { policyName, acceleratorPrefix } = props;
-  if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyName.startsWith(acceleratorPrefix)) {
-    return policyName;
-  }
-  return `${acceleratorPrefix}${policyName}`;
-}
-
 export class ServiceControlPolicy {
   private readonly org: Organizations;
   private readonly s3: S3;
@@ -42,8 +24,8 @@ export class ServiceControlPolicy {
   }
 
   async createOrUpdateQuarantineScp(targetIds?: string[]): Promise<string> {
-    const policyName = createQuarantineScpName({ acceleratorPrefix: this.acceleratorPrefix });
-    const policyContent = this.createQuarantineScpContent({ acceleratorPrefix: this.acceleratorPrefix });
+    const policyName = ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix: this.acceleratorPrefix });
+    const policyContent = ServiceControlPolicy.createQuarantineScpContent({ acceleratorPrefix: this.acceleratorPrefix });
     const getPolicyByName = await this.org.getPolicyByName({
       Name: policyName,
       Filter: 'SERVICE_CONTROL_POLICY',
@@ -113,7 +95,7 @@ export class ServiceControlPolicy {
       policyContent = JSON.stringify(JSON.parse(policyContent));
 
       // Prefix the Accelerator prefix if necessary
-      const acceleratorPolicyName = policyNameToAcceleratorPolicyName({
+      const acceleratorPolicyName = ServiceControlPolicy.policyNameToAcceleratorPolicyName({
         acceleratorPrefix,
         policyName: policyConfig.name,
       });
@@ -219,7 +201,7 @@ export class ServiceControlPolicy {
         continue;
       }
       const ouPolicyNames = ouConfig.scps.map(policyName =>
-        policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
+        ServiceControlPolicy.policyNameToAcceleratorPolicyName({ acceleratorPrefix, policyName }),
       );
       if (ouPolicyNames.length > 4) {
         console.warn(`Maximum allowed SCP per OU is 5. Limit exceeded for OU ${ouKey}`);
@@ -261,7 +243,7 @@ export class ServiceControlPolicy {
     }
   }
 
-  createQuarantineScpContent(props: { acceleratorPrefix: string }) {
+  static createQuarantineScpContent(props: { acceleratorPrefix: string }) {
     return JSON.stringify({
       Version: '2012-10-17',
       Statement: [
@@ -283,15 +265,33 @@ export class ServiceControlPolicy {
     });
   }
 
+  static createQuarantineScpName(props: { acceleratorPrefix: string }) {
+    return `${props.acceleratorPrefix}Quarantine-New-Object`;
+  }
+  
+  /**
+   * Convert policy name to Accelerator policy name. If the policy name is the FullAWSAccess policy name, then we keep
+   * the name as is. If the policy name does not have the Accelerator prefix, then we add the prefix.
+   *
+   * @return Policy name with Accelerator prefix.
+   */
+  static policyNameToAcceleratorPolicyName(props: { policyName: string; acceleratorPrefix: string }) {
+    const { policyName, acceleratorPrefix } = props;
+    if (policyName === FULL_AWS_ACCESS_POLICY_NAME || policyName.startsWith(acceleratorPrefix)) {
+      return policyName;
+    }
+    return `${acceleratorPrefix}${policyName}`;
+  }
+
   async organizationRoots(): Promise<string[]> {
     const roots = await this.org.listRoots();
     return roots.map(r => r.Id!);
   }
 
   async listScps(): Promise<PolicySummary[]> {
-    const polocies = await this.org.listPolicies({
+    const policies = await this.org.listPolicies({
       Filter: 'SERVICE_CONTROL_POLICY',
     });
-    return polocies;
+    return policies;
   }
 }

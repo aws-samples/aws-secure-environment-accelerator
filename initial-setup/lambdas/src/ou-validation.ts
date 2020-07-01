@@ -5,7 +5,6 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import {
   ServiceControlPolicy,
   FULL_AWS_ACCESS_POLICY_NAME,
-  createQuarantineScpName,
 } from '@aws-pbmm/common-lambda/lib/scp';
 
 export interface ValdationInput {
@@ -83,7 +82,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   // Detach target from all polocies except FullAccess and Qurantine SCP
   for (const targetId of [...rootAccountIds, suspendedOu.Id]) {
     await scps.detachPoliciesFromTargets({
-      policyNamesToKeep: [createQuarantineScpName({ acceleratorPrefix }), FULL_AWS_ACCESS_POLICY_NAME],
+      policyNamesToKeep: [ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix }), FULL_AWS_ACCESS_POLICY_NAME],
       policyTargetIdsToInclude: [targetId!],
     });
   }

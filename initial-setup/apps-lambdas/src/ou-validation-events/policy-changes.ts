@@ -1,7 +1,6 @@
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import * as org from 'aws-sdk/clients/organizations';
 import {
-  policyNameToAcceleratorPolicyName,
   ServiceControlPolicy,
   FULL_AWS_ACCESS_POLICY_NAME,
 } from '@aws-pbmm/common-lambda/lib/scp';
@@ -60,7 +59,7 @@ export const handler = async (input: PolicyChangeEvent) => {
 
   const configScps = config['global-options'].scps;
   const scpNames = configScps.map(scp =>
-    policyNameToAcceleratorPolicyName({
+    ServiceControlPolicy.policyNameToAcceleratorPolicyName({
       acceleratorPrefix,
       policyName: scp.name,
     }),

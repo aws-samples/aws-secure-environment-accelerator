@@ -10,6 +10,7 @@ import * as ouValidation from '../deployments/ou-validation-events';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
+import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 
 interface MadOutput {
   id: number;
@@ -145,6 +146,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   const { acceleratorBaseline } = context;
+  // Find the SCP artifact output
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs,
+    artifactName: 'SCP',
+  });
+  const scpBucketName = artifactOutput.bucketName;
+  const scpBucketPrefix = artifactOutput.keyPrefix;
+
   if (acceleratorBaseline === 'ORGANIZATIONS') {
     const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey, 'us-east-1');
     if (!masterStack) {
@@ -153,6 +162,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       await ouValidation.step1({
         scope: masterStack,
         context,
+        scpBucketName,
+        scpBucketPrefix,
       });
     }
   }
