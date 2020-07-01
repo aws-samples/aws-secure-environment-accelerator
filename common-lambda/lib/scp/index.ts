@@ -25,7 +25,9 @@ export class ServiceControlPolicy {
 
   async createOrUpdateQuarantineScp(targetIds?: string[]): Promise<string> {
     const policyName = ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix: this.acceleratorPrefix });
-    const policyContent = ServiceControlPolicy.createQuarantineScpContent({ acceleratorPrefix: this.acceleratorPrefix });
+    const policyContent = ServiceControlPolicy.createQuarantineScpContent({
+      acceleratorPrefix: this.acceleratorPrefix,
+    });
     const getPolicyByName = await this.org.getPolicyByName({
       Name: policyName,
       Filter: 'SERVICE_CONTROL_POLICY',
@@ -268,7 +270,7 @@ export class ServiceControlPolicy {
   static createQuarantineScpName(props: { acceleratorPrefix: string }) {
     return `${props.acceleratorPrefix}Quarantine-New-Object`;
   }
-  
+
   /**
    * Convert policy name to Accelerator policy name. If the policy name is the FullAWSAccess policy name, then we keep
    * the name as is. If the policy name does not have the Accelerator prefix, then we add the prefix.

@@ -1,9 +1,6 @@
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import * as org from 'aws-sdk/clients/organizations';
-import {
-  ServiceControlPolicy,
-  FULL_AWS_ACCESS_POLICY_NAME,
-} from '@aws-pbmm/common-lambda/lib/scp';
+import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-pbmm/common-lambda/lib/scp';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { ScheduledEvent } from 'aws-lambda';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
