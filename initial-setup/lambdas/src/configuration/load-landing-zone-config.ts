@@ -1,7 +1,7 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES } from '@aws-pbmm/common-lambda/lib/config';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
-import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
@@ -51,8 +51,13 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     awsAccounts.push(...accountsInOu);
   }
 
+  const awsOusWithPath: OrganizationalUnit[] = [];
+  for (const awsOu of awsOus) {
+    awsOusWithPath.push(await organizations.getOrganizationalUnitWithPath(awsOu.Id!));
+  }
+
   console.log(`Found organizational units:`);
-  console.log(JSON.stringify(awsOus, null, 2));
+  console.log(JSON.stringify(awsOusWithPath, null, 2));
 
   // Keep track of errors and warnings instead of failing immediately
   const errors = [];
@@ -85,6 +90,32 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     });
   }
 
+  const workLoadOuConfigs = config.getWorkloadAccountConfigs();
+  const workLoadOus = workLoadOuConfigs.map(([_, wc]) => wc['ou-path'] || wc.ou);
+  for (const acceleratorOu of workLoadOus) {
+    if (configurationOus.find(co => co.ouPath === acceleratorOu)) {
+      // Skipp as it is already added in organizational-units
+      continue;
+    }
+    let awsOu = awsOusWithPath.find(ou => ou.Path === acceleratorOu);
+    if (!awsOu) {
+      awsOu = awsOusWithPath.find(ou => ou.Name === acceleratorOu);
+    }
+    if (!awsOu) {
+      errors.push(`Cannot find organizational unit "${acceleratorOu}" that is used by Accelerator`);
+      continue;
+    }
+    configurationOus.push({
+      ouId: awsOu.Id!,
+      ouName: awsOu.Name!,
+      ouKey: acceleratorOu,
+      ouPath: awsOu.Path,
+    });
+  }
+
+  console.log(`Found organizational units in Configuration from both OrganizationalUnits and WorkLoadAccounts:`);
+  console.log(JSON.stringify(configurationOus, null, 2));
+
   // First load mandatory accounts configuration
   const mandatoryAccounts = config.getMandatoryAccountConfigs();
   const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
@@ -98,7 +129,10 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     // Find the organizational account used by this
     const organizationalUnitName = accountConfig.ou;
     const organizationalUnitPath = accountConfig['ou-path'] || organizationalUnitName;
-    const organizationalUnit = awsOus.find(ou => ou.Name === organizationalUnitName);
+    let organizationalUnit = awsOusWithPath.find(ou => ou.Path === organizationalUnitPath);
+    if (!organizationalUnit) {
+      organizationalUnit = awsOusWithPath.find(ou => ou.Name === organizationalUnitName);
+    }
     if (!organizationalUnit) {
       errors.push(`Cannot find organizational unit "${accountConfig.ou}" that is used by Accelerator`);
       continue;
@@ -266,6 +300,8 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
   }
 
+  console.log(JSON.stringify(configurationAccounts, null, 2));
+  console.log(JSON.stringify(configurationOus, null, 2));
   return {
     ...input,
     organizationalUnits: configurationOus,

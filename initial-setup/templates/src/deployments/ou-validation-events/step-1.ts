@@ -10,6 +10,7 @@ import { Context } from '../../utils/context';
 
 import { createAccount } from './create-account';
 import { changePolicy } from './policy-changes';
+import { removeAccount } from './remove-account';
 
 export interface OuValidationStep1Props {
   scope: AccountStack;
@@ -91,6 +92,26 @@ export async function step1(props: OuValidationStep1Props) {
     scpBucketName,
     scpBucketPrefix,
   });
+
+  // Handles RemoveAccountFromOrganization and removes WorkLoadAccount Configuration from configuration file
+  await removeAccount({
+    scope,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
+    defaultRegion,
+    lambdaCode,
+  });
+
+  // Handles AcceptHandshake and adds QNO SCP to newly added account
+  // await acceptHandShake({
+  //   scope,
+  //   acceleratorPipelineRole,
+  //   acceleratorPrefix,
+  //   lambdaCode,
+  // });
 }
 
 async function moveAccount(input: MoveAccountProps) {
