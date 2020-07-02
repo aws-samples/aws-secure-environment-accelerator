@@ -6,7 +6,7 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "default-cwl-retention":731,
+    "default-cwl-retention": 731,
     "supported-regions": [
       "ap-northeast-1",
       "ap-northeast-2",
@@ -391,7 +391,7 @@
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/PBMMAccel/MAD/example.local",
           "share-to-account": "master",
-          "restrict_srcips": ["100.96.252.0/23", "100.96.250.0/23", "10.0.0.0/8"],
+          "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
           "num-rdgw-hosts": 1,
           "rdgw-instance-type": "t2.large",
           "rdgw-instance-role": "PBMMAccel-RDGW-Role",
@@ -1498,9 +1498,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
@@ -1931,9 +1931,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -2404,9 +2404,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -2877,9 +2877,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -3324,9 +3324,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -3748,9 +3748,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
