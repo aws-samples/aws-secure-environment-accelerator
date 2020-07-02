@@ -25,13 +25,13 @@ export async function step1(props: TransitGatewayStep1Props) {
   const attachConfigs: [string, TransitGatewayAttachConfig][] = [];
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const attachConfig = vpcConfig['tgw-attach'];
-    if (TransitGatewayAttachConfigType.is(attachConfig)) {
+    if (TransitGatewayAttachConfigType.is(attachConfig) && attachConfig['associate-type'] === 'ATTACH') {
       attachConfigs.push([accountKey, attachConfig]);
     }
   }
   for (const [accountKey, accountConfig] of accountConfigs) {
     const attachConfig = accountConfig.deployments?.firewall?.['tgw-attach'];
-    if (TransitGatewayAttachConfigType.is(attachConfig)) {
+    if (TransitGatewayAttachConfigType.is(attachConfig) && attachConfig['associate-type'] === 'ATTACH') {
       attachConfigs.push([accountKey, attachConfig]);
     }
   }
@@ -56,7 +56,7 @@ export async function step1(props: TransitGatewayStep1Props) {
       vpnEcmpSupport: features?.['VPN-ECMP-support'],
       defaultRouteTableAssociation: features?.['Default-route-table-association'],
       defaultRouteTablePropagation: features?.['Default-route-table-propagation'],
-      autoAcceptSharedAttachments: features?.['Auto-accept-sharing-attachments'],
+      autoAcceptSharedAttachments: true,
     });
 
     const routeTables = tgwConfig['route-tables'] || [];
@@ -69,7 +69,7 @@ export async function step1(props: TransitGatewayStep1Props) {
     for (const [attachAccountKey, attachConfig] of attachConfigs) {
       if (attachConfig.account === accountKey && attachConfig['associate-to-tgw'] === tgwConfig.name) {
         const accountId = getAccountId(accounts, attachAccountKey);
-        if (accountId && !shareToAccountIds.includes(accountId)) {
+        if (accountId && accountId !== accountStack.accountId && !shareToAccountIds.includes(accountId)) {
           shareToAccountIds.push(accountId);
         }
       }
