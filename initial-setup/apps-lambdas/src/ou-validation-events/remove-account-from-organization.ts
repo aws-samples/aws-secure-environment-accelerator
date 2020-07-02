@@ -47,34 +47,41 @@ async function removeAccountConfig(account: Account): Promise<string> {
   const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   const parentCommitId = configCommit.commitId;
   const config = configCommit.fileContent.toString();
-  const updateConfig = JSON.parse(config);
-  const workLoadAccounts: AccountsConfig = updateConfig['workload-account-configs'];
-  const mandatoryAccounts: AccountsConfig = updateConfig['mandatory-account-configs'];
+  const updatedConfig = JSON.parse(config);
+  const workLoadAccounts: AccountsConfig = updatedConfig['workload-account-configs'];
+  const mandatoryAccounts: AccountsConfig = updatedConfig['mandatory-account-configs'];
   const workLoadAccountConfig = Object.entries(workLoadAccounts).find(
     ([_, value]) => value['account-name'] === account.name,
   );
   const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(
     ([_, value]) => value['account-name'] === account.name,
   );
+  // tslint:disable-next-line: no-any
+  let accountConfig: any;
   let accountKey: string = '';
   let isMandatoryAccount = false;
   if (workLoadAccountConfig) {
     accountKey = workLoadAccountConfig[0];
+    accountConfig = workLoadAccountConfig[1];
+    accountConfig.deleted = true;
   } else if (mandatoryAccountConfig) {
     accountKey = mandatoryAccountConfig[0];
+    accountConfig = mandatoryAccountConfig[1];
+    accountConfig.deleted = true;
     isMandatoryAccount = true;
   } else {
     console.log(`Account Config not found in Accelerator Configuration ${account.id}`);
   }
   accountKey = accountKey || account.name;
   if (isMandatoryAccount) {
-    console.log(`Nothing to perform`);
+    console.log(`Mandatory Account is deleted nothing to perform`);
+    return "SUCCESS";
   } else {
-    delete workLoadAccounts[accountKey];
-    updateConfig['workload-account-configs'] = workLoadAccounts;
+    workLoadAccounts[accountKey] = accountConfig;
+    updatedConfig['workload-account-configs'] = workLoadAccounts;
+    const commitStatus = await createCommit(updatedConfig, parentCommitId);
+    return commitStatus;
   }
-  const commitStatus = await createCommit(updateConfig, parentCommitId);
-  return commitStatus;
 }
 
 async function createCommit(config: AcceleratorConfig, parentCommitId: string): Promise<string> {

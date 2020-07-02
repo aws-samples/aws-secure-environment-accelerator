@@ -108,6 +108,9 @@ async function updateAccountConfig(
     accountConfig = workLoadAccountConfig[1];
     accountConfig.ou = destinationRootOrg;
     accountConfig['ou-path'] = destinationOrg.Path;
+    if (accountConfig.deleted) {
+      accountConfig.deleted = false;
+    }
   } else if (mandatoryAccountConfig) {
     accountKey = mandatoryAccountConfig[0];
     accountConfig = mandatoryAccountConfig[1];

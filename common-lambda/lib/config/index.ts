@@ -489,6 +489,7 @@ export const MandatoryAccountConfigType = t.interface({
   budget: optional(BudgetConfigType),
   'account-warming-required': optional(t.boolean),
   'cwl-retention': optional(t.number),
+  deleted: fromNullable(t.boolean, false),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -719,7 +720,8 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
    * @return [accountKey: string, accountConfig: AccountConfig][]
    */
   getWorkloadAccountConfigs(): [string, AccountConfig][] {
-    return Object.entries(this['workload-account-configs']);
+    return Object.entries(this['workload-account-configs']).filter(
+      ([_, value]) => !value.deleted);
   }
 
   /**
