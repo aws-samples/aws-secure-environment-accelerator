@@ -45,7 +45,7 @@ export const handler = async (input: VerifyFilesInput) => {
   await verifyIamPolicyFiles(outputs, acceleratorConfig, errors);
   await verifyRdgwFiles(masterAccountKey, rdgwScripts, outputs, errors);
   await verifyCertificates(masterAccountKey, outputs, acceleratorConfig, errors);
-  await verifyFirewallLicenses(masterAccountKey, outputs, acceleratorConfig, errors);
+  await verifyFirewallFiles(masterAccountKey, outputs, acceleratorConfig, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -104,7 +104,7 @@ async function verifyRdgwFiles(
   await verifyFiles(rdgwBucketName, rdgwScriptFiles, errors);
 }
 
-async function verifyFirewallLicenses(
+async function verifyFirewallFiles(
   masterAccountKey: string,
   outputs: StackOutput[],
   config: c.AcceleratorConfig,
@@ -115,17 +115,18 @@ async function verifyFirewallLicenses(
     accountKey: masterAccountKey,
   });
 
-  const firewallLicenses: string[] = [];
+  const firewallFiles: string[] = [];
   for (const [_, accountConfig] of config.getAccountConfigs()) {
     const firewallConfig = accountConfig.deployments?.firewall;
     if (!firewallConfig) {
       continue;
     }
     if (firewallConfig.license) {
-      firewallLicenses.push(...firewallConfig.license);
+      firewallFiles.push(...firewallConfig.license);
     }
+    firewallFiles.push(firewallConfig.config);
   }
-  await verifyFiles(centralBucketOutput.bucketName, firewallLicenses, errors);
+  await verifyFiles(centralBucketOutput.bucketName, firewallFiles, errors);
 }
 
 async function verifyCertificates(
