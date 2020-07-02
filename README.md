@@ -1,30 +1,28 @@
-# PBMM Accelerator
+# AWS Secure Environment Accelerator
 
 ## Installation - These instructions are intended for v1.0.5
 
 Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitiate installation.
 
-Installation of the provided sample AWS architecture requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization excluding workload accounts.
+The Accelerator allows for complete customization, based on parameters passed in the configuration file. A sample configuration file is provided that deploys a prescriptive architecture which meets many worlwide government security requirements, in this case they are modelled after the Government of Canada. Installation of the provided sample AWS architecture, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
 
 ### Prerequisites
 
-You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed.
+You currently need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
 
-- If using the ALZ-Takeout branch, before installing, you must first:
-  - Enable AWS Organizations
-  - Enable Service Control Policies
+If using the ALZ-Takeout branch (Alpha) which removes the ALZ dependencies, before installing, you must first:
 
-NOTE: If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
+- Enable AWS Organizations
+- Enable Service Control Policies
 
 When deploying the ALZ select:
 
 1. Set `Lock StackSetExecution Role` to `No`
 2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
 3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,UnClass,Sandbox` (case sensitive)
+   - these match the provided sample Accelerator configuration file (config.example.json)
 
-- these match the provided sample Accelerator configuration file (config.example.json)
-
-If using an internal AWS account, to successfully install, you need to enable private marketplace before starting:
+If deploying to an internal AWS account, to successfully install, you need to enable private marketplace before starting:
 
 1. In the master account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click Create Marketplace
@@ -38,14 +36,14 @@ If using an internal AWS account, to successfully install, you need to enable pr
 9. Wait a couple of minutes while it adds itm to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
 
-### Using the Installer
+## Preparation
 
 1. Login to the Organization **Master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
-2. Set the region to `ca-central-1`.
+2. **_Set the region to `ca-central-1`._**
 3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
    - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
 4. It is **_extrememly important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts. This information is copied to every new sub-account on creation. Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section. Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
-5. It is also suggested that customers manually enable `"Cost Explorer"` and enable `"Receive Billing Alerts"`, as this has not been automated
+5. It is also suggested that customers manually enable `"Cost Explorer"` and enable `"Receive Billing Alerts"` in the master account, as this has not been automated
 
 #### Create a GitHub Personal Access Token.
 
@@ -58,55 +56,53 @@ If using an internal AWS account, to successfully install, you need to enable pr
      - Select `DefaultEncryptionKey`,
      - Set the secret name to `accelerator/github-token`
      - Select `Disable rotation`
-   - Via AWS CLI:
-     - `aws secretsmanager create-secret --name accelerator/github-token --secret-string <token>`
 
 ## Accelerator Configuration
 
 1. You can use the [`config.example.json`](./config.example.json) file as base
    - Use the version from the branch you are deploying from as some parameters have changed over time
-   - This configuration file can be used with minor modification to successfully deploy the standard architecture
+   - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
    1. For existing accounts, they must match identically to the ones defined in your AWS Landing Zone;
    2. For new accounts, they must reflect the new account name/email you want created;
    3. All new AWS accounts require a unique email address which has never before been used to create an AWS account;
-   4. When updating the budget notification email addresses within the example, a single email address for all is sufficient.
+   4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
+   5. For a test deployment, the remainder of the values can be used as-is.
+3. To speed a new deployment, we strongly recommend removing all workload accounts from the configuration file. They can be added at any time in the future.
+   - The ALZ AVM takes 42 minutes per sub-account.
 
-### Key Things to Note:
+### Key Production Config File Requirements:
 
 - **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
-  - Plan for OU structure, if not matching suggested structure
+  - Plan your OU structure (if it does not match the suggested structure)
   - 6 \* RFC1918 Class B address blocks (CIDR's) which do not conflict with on-premise networks
     (for Central, Dev, Test, Prod, Unclass, Endpoint VPC's) (Recommend class B's, half class B's possible)
   - 3 \* RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
-    (MAD, perimeter underlay, perimeter overlay)(non-GC customers can use space from the endpoint CIDR range)
+    (MAD, perimeter underlay, perimeter overlay)(non-GC customers can use address space from the endpoint CIDR class B range)
   - 3 \* BGP ASN's (TGW, FW Cluster, VGW)
   - A Unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.)
   - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution
   - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]`
   - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]`
   - Wildcard DNS certificate for each of the 2 previous zones
-  - 2 Fortinet licenses
-  - recomend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
-- **A Test environment can use the remainder of the values as-is**
-- **At this time, DO NOT include any workload accounts (remove them), as it will slow down the deployment process**
-- **(The ALZ AVM takes 42 minutes per sub-account. You can add additional AWS workload accounts at a later time)**
+  - 2 Fortinet Fortigate firewall licenses
+  - we also recomend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
-3. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
+4. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
-4. Place your customized config file, named `config.json`, in your new bucket
-5. Place the firewall configuration and license files in the folder and path defined in the config file
+5. Place your customized config file, named `config.json`, in your new bucket
+6. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
    - Sample available here: `./reference-artifacts/Third-Party/firewall-example.txt`
    - If you don't have any license files, update the config file with an empty array []
-6. Place any defined certificate files in the folder and path defined in the config file
+7. Place any defined certificate files in the folder and path defined in the config file
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
    - Sample available here: `./reference-artifacts/Certs-Sample/*`
    - Ideally you would generate real certificates using your existing certificate authority
    - Should you wish, instructions are provided to aid in generating your own self-signed certificates
-   - Use the examples to demonstrate Accelerator functionality
-7. Detach **_ALL_** SCP's from all OU's and accounts before proceeding
+   - Use the examples to demonstrate Accelerator TLS functionality only
+8. Detach **_ALL_** SCP's from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
 
 ### Deploy the Accelerator Installer Stack
@@ -165,10 +161,10 @@ If using an internal AWS account, to successfully install, you need to enable pr
   - For example, CWL retention only supports specific retention values (not any number)
   - Shard count - can only increase/reduce by 1/2 the current limit. can change 1-2,2-3, 4-6
 - Always add any new items to the END of all lists or sections in the config file, otherwise
-  - update checks to fail (vpc's, subnets, share-to, etc.)
-  - vpc endpoint deployments to blow up - do NOT re-order VPC endpoints
+  - update validation checks will fail (vpc's, subnets, share-to, etc.)
+  - vpc endpoint deployments to blow up - do NOT re-order or insert VPC endpoints (unless you first remove them completely, execute SM, and then re-add them, run SM)
 - To skip, remove or uninstall a component, you can simply change the section header
-  - change "deployments"/"firewall" to "deployments"/"xxfirewall" and it will de-install the firewalls
+  - change "deployments"/"firewall" to "deployments"/"xxfirewall" and it will uninstall the firewalls
 - As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have it's capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (100 to 101) or they will fail to update
 - The firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
@@ -176,8 +172,8 @@ If using an internal AWS account, to successfully install, you need to enable pr
 ## Other Notes
 
 - Do not mess with _any_ buckets in the master account
-- While likely protected, do not mess with cdk, CFN, or PBMMAccel- buckets in _any_ subaccounts
-- Log group deletion is prevented for security purposes - Users of the Accelerator will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack
+- While likely protected, do not mess with cdk, CFN, or PBMMAccel- buckets in _any_ sub-accounts
+- Log group deletion is prevented for security purposes - Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
 
 ## Known limitations/purposeful exclusions:
 
@@ -187,11 +183,11 @@ If using an internal AWS account, to successfully install, you need to enable pr
 - Only 1 auto-deployed TGW per account is supported
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
 - If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC
-- Firewall updates are performed using the firewall in-instance update capabailities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's are blocked)
+- Firewall updates are to be performed using the firewall OS based update capabailities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment)
 
-**STOP HERE, YOU ARE DONE**
+# **STOP HERE, YOU ARE DONE, ENJOY!**
 
-## Release Process
+## Creating a new Accelerator Release (GitHub Release Process)
 
 1. Ensure `master` is in a suitable state
 2. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
@@ -202,71 +198,3 @@ If using an internal AWS account, to successfully install, you need to enable pr
 4. The release workflow will run, and create a **draft** release if successful with all commits since the last tagged release.
 5. Prune the commits that have been added to the release (e.g. remove any low-information commits)
 6. Publish the release - this creates the git tag in the repo and marks the release as latest.
-
-## BELOW IS OUTDATED/INCORRECT and was only relevant for Developers working on the Accelerator
-
-### Using the Command-Line
-
-Configure the AWS CLI so that CDK can deploy in the AWS account.
-
-    export AWS_PROFILE=aws-account-profile
-    export AWS_REGION=ca-central-1
-
-If required, install the pnpm package manager.
-
-    https://pnpm.js.org/en/installation
-
-Install the `pnpm` dependencies.
-
-    pnpm install
-
-Enter the main project directory and bootstrap the CDK. You only need to execute this step once.
-
-    cd accelerator/cdk
-    pnpm run bootstrap
-
-Next we need to enable versioning on the the S3 bucket that the CDK bootstrap command has created. You only need to
-execute this step once.
-
-Store a configuration file as a secret in secrets manager with name `accelerator/config`. You can find an example in
-`config.example.json`.
-
-Finally deploy the CDK project.
-
-    cd accelerator/cdk
-    pnpm run deploy
-
-## Architecture
-
-The main component of this project is a state machine that deploys CloudFormation stacks in specific accounts using CDK.
-These accounts could be the master account, log archive account, security account, and so on.
-
-The CloudFormation stacks are deployed using the CDK and are located in `initial-setup/templates` and
-`account-setup/templates`. These CDK templates are deployed in the specific accounts using CodeBuild.
-
-## Code Structure
-
-The main entry point for CDK is `accelerator/cdk/index.ts`. Is constructs the CodePipelines for the initial setup and for the account setup. The CodePipelines for initial setup and account setup are defined in
-
-- `initial-setup/cdk` and
-- `account-setup/cdk`.
-
-Some actions in the state machine require Lambda functions. The code for the Lambda functions is located in
-`initial-setup/lambdas/src/steps`.
-
-## Testing
-
-Execute the following command to execute unit tests.
-
-    pnpm recursive test  -- --pass-with-no-tests
-
-## Code Style
-
-Please run `tslint` and `prettier` before committing.
-
-    pnpm recursive run lint
-    pnpx prettier --check **/*.ts
-
-In case `prettier` finds issues, you can let `prettier` resolve the issues.
-
-    pnpx prettier --write **/*.ts
