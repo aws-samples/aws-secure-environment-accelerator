@@ -75,7 +75,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
   accountKey = accountKey || account.name;
   if (isMandatoryAccount) {
     console.log(`Mandatory Account is deleted nothing to perform`);
-    return "SUCCESS";
+    return 'SUCCESS';
   } else {
     workLoadAccounts[accountKey] = accountConfig;
     updatedConfig['workload-account-configs'] = workLoadAccounts;
