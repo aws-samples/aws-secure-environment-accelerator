@@ -6,6 +6,7 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
+    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
     "supported-regions": [
       "ap-northeast-1",
@@ -25,6 +26,7 @@
       "us-west-1",
       "us-west-2"
     ],
+    "keep-default-vpc-regions": [],
     "aws-org-master": {
       "account": "master",
       "region": "ca-central-1"
@@ -50,13 +52,8 @@
     "central-log-services": {
       "account": "log-archive",
       "region": "ca-central-1",
-      "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],
-      "cwl-exclusions": [
-        {
-          "account": "fun-acct",
-          "exclusions": ["def/*"]
-        }
-      ],
+      "cwl-glbl-exclusions": [],
+      "cwl-exclusions": [],
       "ssm-to-s3": true,
       "ssm-to-cwl": true
     },
@@ -106,6 +103,17 @@
           "controls-to-disable": ["CIS.1.3", "CIS1.11"]
         }
       ]
+    },
+    "iam-password-policies": {
+      "allow-users-to-change-password": true,
+      "hard-expiry": false,
+      "require-uppercase-characters": true,
+      "require-lowercase-characters": true,
+      "require-symbols": true,
+      "require-numbers": true,
+      "minimum-password-length": 14,
+      "password-reuse-prevention": 24,
+      "max-password-age": 90
     },
     "scps": [
       {
@@ -465,7 +473,7 @@
       "account-warming-required": true,
       "limits": {
         "Amazon EC2/Number of EIPs": {
-          "value": 10,
+          "value": 5,
           "customer-confirm-inplace": false
         }
       },
@@ -900,12 +908,12 @@
               "name": "Firewalls",
               "inbound-rules": [
                 {
-                  "description": "Fortigate Mgmt Traffic Inbound",
+                  "description": "All Allowed Inbound Traffic",
                   "tcp-ports": [22, 443, 541, 3000, 8080],
                   "source": ["0.0.0.0/0"]
                 },
                 {
-                  "description": "AWS Outbound traffic and ALBs",
+                  "description": "Mgmt Traffic, Customer Outbound traffic and ALBs",
                   "type": ["ALL"],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
