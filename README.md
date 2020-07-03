@@ -110,23 +110,24 @@ If deploying to an internal AWS account, to successfully install, you need to en
 1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account
-4. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
-5. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
-6. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
-7. Add an `Email` address to be used for notification of code releases
-8. The `GithubBranch` should point to the release you selected
+4. **_Make sure you are in `ca-central-1` (or your desired primary region)_**
+5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
+6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
+7. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
+8. Add an `Email` address to be used for notification of code releases
+9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
    - the latest stable branch is currently `release/v1.0.5`, case sensitive
-9. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
-10. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
-11. The stack typically takes under 5 minutes to deploy.
-12. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
-13. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
-14. Approve the `Manual Approval` step in the pipeline to start the Accelerator code deployment or upgrade.
-15. Once the pipeline completes (typically under 15 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
-16. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
-17. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-18. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
+10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
+11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
+12. The stack typically takes under 5 minutes to deploy.
+13. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
+14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
+15. Approve the `Manual Approval` step in the pipeline to start the Accelerator code deployment or upgrade.
+16. Once the pipeline completes (typically under 15 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
+17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
+18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
+19. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firwall products
     2. Login to the **perimeter** sub-account
     3. Activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
