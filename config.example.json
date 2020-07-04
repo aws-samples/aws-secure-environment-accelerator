@@ -96,7 +96,7 @@
         },
         {
           "name": "PCI DSS v3.2.1",
-          "controls-to-disable": ["PCI.IAM.3", "PCI.KMS.1", "PCI.S3.3", "PCI.EC2.3", "PCI.LAMBDA.2"]
+          "controls-to-disable": ["PCI.IAM.3", "PCI.KMS.1", "PCI.S3.3", "PCI.EC2.3", "PCI.Lambda.2"]
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",
