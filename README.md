@@ -169,6 +169,7 @@ If deploying to an internal AWS account, to successfully install, you need to en
 - As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have it's capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (100 to 101) or they will fail to update
 - The firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
+- Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
 
 ## Other Notes
 
