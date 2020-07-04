@@ -96,11 +96,11 @@
         },
         {
           "name": "PCI DSS v3.2.1",
-          "controls-to-disable": ["PCI.IAM.3", "PCI.KMS.1", "PCI.S3.3", "PCI.EC2.3"]
+          "controls-to-disable": ["PCI.IAM.3", "PCI.KMS.1", "PCI.S3.3", "PCI.EC2.3", "PCI.LAMBDA.2"]
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",
-          "controls-to-disable": ["CIS.1.22", "CIS.2.8"]
+          "controls-to-disable": ["CIS.1.20", "CIS.1.22", "CIS.2.8"]
         }
       ]
     },
@@ -891,7 +891,7 @@
               "inbound-rules": [
                 {
                   "description": "Allow Mgmt Traffic Inbound",
-                  "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080, 80, 22],
+                  "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080],
                   "udp-ports": [9443],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
