@@ -301,6 +301,9 @@ export const MadConfigType = t.interface({
   'rdgw-instance-type': t.string,
   'rdgw-instance-role': t.string,
   'num-rdgw-hosts': t.number,
+  'rdgw-max-instance-age': t.number,
+  'min-rdgw-hosts': t.number,
+  'max-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
   'ad-per-account-groups': t.array(t.string),
@@ -308,6 +311,29 @@ export const MadConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
   'security-groups': t.array(SecurityGroupConfigType),
   'password-secret-name': optional(t.string),
+});
+
+export const RsyslogSubnetConfigType = t.interface({
+  name: t.string,
+  az: t.string,
+});
+
+export const RsyslogType = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  region: t.string,
+  'log-group-name': t.string,
+  'security-groups': t.array(SecurityGroupConfigType),
+  'app-subnets': t.array(RsyslogSubnetConfigType),
+  'web-subnets': t.array(RsyslogSubnetConfigType),
+  'min-rsyslog-hosts': t.number,
+  'desired-rsyslog-hosts': t.number,
+  'max-rsyslog-hosts': t.number,
+  'ssm-image-id': t.string,
+  'rsyslog-instance-type': t.string,
+  'rsyslog-instance-role': t.string,
+  'rsyslog-root-volume-size': t.number,
+  'rsyslog-max-instance-age': t.number,
 });
 
 export const AlbTargetInstanceFirewallConfigType = t.interface({
@@ -433,6 +459,7 @@ export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigTyp
 export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
+  rsyslog: optional(RsyslogType),
   adc: optional(AdcConfigType),
   firewall: optional(FirewallConfigType),
   'firewall-manager': optional(FirewallManagerConfigType),
@@ -603,6 +630,8 @@ export const AcceleratorConfigType = t.interface({
 export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
+
+export type RsyslogConfig = t.TypeOf<typeof RsyslogType>;
 
 export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
 

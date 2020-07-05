@@ -7,6 +7,7 @@ import { SecurityGroup } from './security-group';
 import { createIamInstanceProfileName } from './iam-assets';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { trimSpecialCharacters } from '@aws-pbmm/common-outputs/lib/secrets';
+import { boolean } from '@aws-pbmm/common-lambda/node_modules/io-ts';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -115,6 +116,7 @@ export class ADUsersAndGroups extends cdk.Construct {
           ebs: {
             volumeSize: 50,
             volumeType: 'gp2',
+            encrypted: true,
           },
         },
       ],
@@ -126,11 +128,19 @@ export class ADUsersAndGroups extends cdk.Construct {
       autoScalingGroupName: `${prefix}-RDGWAutoScalingGroup`,
       launchConfigurationName: launchConfig.ref,
       vpcZoneIdentifier: subnetIds,
-      minSize: `${autoScalingGroupSize}`,
-      maxSize: `${autoScalingGroupSize}`,
+      maxInstanceLifetime: madDeploymentConfig['rdgw-max-instance-age'] * 86400,
+      minSize: `${madDeploymentConfig['min-rdgw-hosts']}`,
+      maxSize: `${madDeploymentConfig['max-rdgw-hosts']}`,
       cooldown: '300',
       desiredCapacity: `${autoScalingGroupSize}`,
       serviceLinkedRoleArn,
+      tags: [
+        {
+          key: 'Name',
+          value: `${stack.acceleratorPrefix}RDGW`,
+          propagateAtLaunch: true,
+        },
+      ],
     });
 
     autoscalingGroup.cfnOptions.creationPolicy = {
