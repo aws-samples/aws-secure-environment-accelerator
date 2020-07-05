@@ -146,24 +146,27 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   const { acceleratorBaseline } = context;
-  // Find the SCP artifact output
-  const artifactOutput = ArtifactOutputFinder.findOneByName({
-    outputs,
-    artifactName: 'SCP',
-  });
-  const scpBucketName = artifactOutput.bucketName;
-  const scpBucketPrefix = artifactOutput.keyPrefix;
 
   if (acceleratorBaseline === 'ORGANIZATIONS') {
     const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey, 'us-east-1');
     if (!masterStack) {
       console.error(`Not able to create stack for "${masterAccountKey}"`);
     } else {
+      // Find the SCP artifact output
+      const artifactOutput = ArtifactOutputFinder.findOneByName({
+        outputs,
+        artifactName: 'SCP',
+      });
+      const scpBucketName = artifactOutput.bucketName;
+      const scpBucketPrefix = artifactOutput.keyPrefix;
+      const ignoredOus = acceleratorConfig['global-options']['ignored-ous'] || [];
+
       await ouValidation.step1({
         scope: masterStack,
         context,
         scpBucketName,
         scpBucketPrefix,
+        ignoredOus,
       });
     }
   }

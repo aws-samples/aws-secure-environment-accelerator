@@ -1,10 +1,10 @@
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { StepFunctions } from '@aws-pbmm/common-lambda/lib/aws/stepfunctions';
 import * as org from 'aws-sdk/clients/organizations';
-import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { AcceleratorConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 
 interface MoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -77,6 +77,7 @@ export const handler = async (input: MoveAccountOrganization) => {
     }
   }
   if (updatestatus === 'SUCCESS') {
+    await delay(1000);
     await startStateMachine(acceleratorStateMachinearn);
   }
   return 'SUCCESS';

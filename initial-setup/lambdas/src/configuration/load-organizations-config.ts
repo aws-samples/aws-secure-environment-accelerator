@@ -93,7 +93,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     }
     configurationOus.push({
       ouId: awsOu.Id!,
-      ouName: awsOu.Name!,
+      ouName: awsOu.Path,
       ouKey: acceleratorOu,
       ouPath: awsOu.Path,
     });

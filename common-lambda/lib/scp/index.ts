@@ -259,6 +259,7 @@ export class ServiceControlPolicy {
               'aws:PrincipalARN': [
                 'arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole',
                 `arn:aws:iam::*:role/${props.acceleratorPrefix}*`,
+                'arn:aws:iam::*:role/aws:*',
               ],
             },
           },

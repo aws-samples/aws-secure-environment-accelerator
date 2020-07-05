@@ -1,20 +1,20 @@
-  {
-    "Version": "2012-10-17",
-    "Statement": [
+{
+  "Version": "2012-10-17",
+  "Statement": [
       {
-        "Sid": "DenyAllAWSServicesExceptBreakglassRoles",
-        "Effect": "Deny",
-        "Action": "*",
-        "Resource": "*",
-        "Condition": {
-          "ArnNotLike": {
-            "aws:PrincipalARN": [
-              "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-              "arn:aws:iam::*:role/PBMMAccel-*"
-            ]
+          "Sid": "DenyAllAWSServicesExceptBreakglassRoles",
+          "Effect": "Deny",
+          "Action": "*",
+          "Resource": "*",
+          "Condition": {
+              "ArnNotLike": {
+                  "aws:PrincipalARN": [
+                      "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+                      "arn:aws:iam::*:role/aws:*",
+                      "arn:aws:iam::*:role/PBMMAccel-*"
+                  ]
+              }
           }
-        }
       }
-    ]
-  }
-  
+  ]
+}

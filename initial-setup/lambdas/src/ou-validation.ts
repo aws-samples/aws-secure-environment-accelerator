@@ -1,30 +1,52 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-pbmm/common-lambda/lib/scp';
+import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
+import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 
 export interface ValdationInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
   acceleratorPrefix: string;
+  accountsSecretId: string;
+  organizationsSecretId: string;
+  configBranch: string;
 }
 
 const organizations = new Organizations();
+const secrets = new SecretsManager();
+const codecommit = new CodeCommit();
 
 export const handler = async (input: ValdationInput): Promise<string> => {
-  console.log(`Loading Organization baseline configuration...`);
-  console.log(JSON.stringify(input, null, 2));
+  // console.log(`Loading Organization baseline configuration...`);
+  // console.log(JSON.stringify(input, null, 2));
 
-  const { configFilePath, configRepositoryName, configCommitId, acceleratorPrefix } = input;
+  const {
+    configFilePath,
+    configRepositoryName,
+    configCommitId,
+    acceleratorPrefix,
+    accountsSecretId,
+    organizationsSecretId,
+    configBranch,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
-  const config = await loadAcceleratorConfig({
+  const previousConfig = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
     filePath: configFilePath,
     commitId: configCommitId,
   });
+
+  let config = previousConfig;
+  const previousAccounts = await loadAccounts(accountsSecretId);
+  const previousOrganizationalUnits = await loadOrganizations(organizationsSecretId);
+
   const scps = new ServiceControlPolicy(acceleratorPrefix, organizations);
 
   // Find OUs and accounts in AWS account
@@ -50,6 +72,12 @@ export const handler = async (input: ValdationInput): Promise<string> => {
 
   console.log(`Found organizational units:`);
   console.log(JSON.stringify(awsOusWithPath, null, 2));
+
+  // change config based on rename Accounts
+  config = updateRenamedAccounts(config, previousAccounts, awsAccounts);
+  // change config based on rename Organizational Units
+  config = updateRenamedOrganizationalUnits(config, previousOrganizationalUnits, awsOusWithPath);
+
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
   awsOusWithPath.push(...(await createOrganizstionalUnits(config, awsOusWithPath, rootId)));
@@ -107,8 +135,12 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const updatedTargetIdsForQnoScp = updatedTargetsForQnoScp.map(t => t.TargetId);
   const rootOusInAccount = awsOusWithPath.filter(awsOu => awsOu.Name === awsOu.Path);
   const configOrgUnitNames = Object.keys(config['organizational-units']);
+  const ignoredRootOus = config['global-options']['ignored-ous'] || [];
   for (const rootOrg of rootOusInAccount) {
-    if (configOrgUnitNames.includes(rootOrg.Name!)) {
+    if (ignoredRootOus.includes(rootOrg.Name!)) {
+      // Organization is specified in Ignored OUS, Nothing to perform
+      // console.log(`Ignoring, Since Organization "${rootOrg.Name}" is specified in IgnoredOus list`);
+    } else if (configOrgUnitNames.includes(rootOrg.Name!)) {
       // Organization is exists in Configuration, Detach QNO SCP if exists
       if (updatedTargetIdsForQnoScp.includes(rootOrg.Id)) {
         await organizations.detachPolicy(policyId, rootOrg.Id!);
@@ -127,7 +159,169 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       }
     }
   }
+  const commitStatus = await createCommit(config, configCommitId, configBranch, configRepositoryName, configFilePath);
   return 'SUCCESS';
+};
+
+async function createCommit(
+  config: AcceleratorConfig,
+  parentCommitId: string,
+  configBranch: string,
+  configRepositoryName: string,
+  configFilePath: string,
+): Promise<string> {
+  try {
+    const commitId = await codecommit.commit({
+      branchName: configBranch,
+      repositoryName: configRepositoryName,
+      parentCommitId,
+      putFiles: [
+        {
+          filePath: configFilePath,
+          fileContent: JSON.stringify(config, null, 2),
+        },
+      ],
+    });
+    console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
+    return 'SUCCESS';
+  } catch (error) {
+    if (error.code === 'NoChangeException') {
+      return 'NoChangeException';
+    } else {
+      throw new Error(error);
+    }
+  }
+}
+
+async function loadAccounts(accountsSecretId: string): Promise<Account[]> {
+  const secret = await secrets.getSecret(accountsSecretId);
+  if (!secret) {
+    throw new Error(`Cannot find secret with ID "${accountsSecretId}"`);
+  }
+  return JSON.parse(secret.SecretString!);
+}
+
+async function loadOrganizations(organizationsSecretId: string): Promise<ConfigOrganizationalUnit[]> {
+  const secret = await secrets.getSecret(organizationsSecretId);
+  if (!secret) {
+    throw new Error(`Cannot find secret with ID "${organizationsSecretId}"`);
+  }
+  return JSON.parse(secret.SecretString!);
+}
+
+const updateRenamedAccounts = (
+  config: AcceleratorUpdateConfig,
+  previousAccounts: Account[],
+  awsAccounts: org.Account[],
+): AcceleratorConfig => {
+  // Directly reading from config instead of using methods to create actual config objects
+  const updateMandatoryAccounts = config['mandatory-account-configs'];
+  const updateWorkLoadAccounts = config['workload-account-configs'];
+  for (const previousAccount of previousAccounts) {
+    const currentAccount = awsAccounts.find(acc => acc.Id === previousAccount.id);
+    if (!currentAccount) {
+      // console.log(`Account "${previousAccount.id}" is removed from Orfanizations`);
+      // TODO Remove account from load account if needed
+      continue;
+    }
+    if (!isAccountChanged(previousAccount, currentAccount)) {
+      continue;
+    }
+    // TODO Update Account Config
+    let isMandatoryAccount = true;
+    let accountConfig = config.getMandatoryAccountConfigs().find(([_, value]) => value.email === previousAccount.email);
+    if (!accountConfig) {
+      accountConfig = config.getWorkloadAccountConfigs().find(([_, value]) => value.email === previousAccount.email);
+      isMandatoryAccount = false;
+    }
+    if (!accountConfig) {
+      // console.log(`Account "${previousAccount.email} not found in config, Ignoring"`);
+      continue;
+    }
+    if (isMandatoryAccount) {
+      // Update Account in Mandatory Accounts
+      const updatedAccountConfig = updateMandatoryAccounts[accountConfig[0]];
+      updatedAccountConfig['account-name'] = currentAccount.Name!;
+      updatedAccountConfig.email = currentAccount.Email!;
+      updateMandatoryAccounts[accountConfig[0]] = updatedAccountConfig;
+    } else {
+      // Update Account in Workload Accounts
+      const updatedAccountConfig = updateWorkLoadAccounts[accountConfig[0]];
+      updatedAccountConfig['account-name'] = currentAccount.Name!;
+      updatedAccountConfig.email = currentAccount.Email!;
+      updateWorkLoadAccounts[accountConfig[0]] = updatedAccountConfig;
+    }
+  }
+  config['mandatory-account-configs'] = updateMandatoryAccounts;
+  config['workload-account-configs'] = updateWorkLoadAccounts;
+  return config;
+};
+
+const isAccountChanged = (previousAccount: Account, currentAccount: org.Account): boolean => {
+  let isChanged = false;
+  if (previousAccount.name !== currentAccount.Name || previousAccount.email !== currentAccount.Email) {
+    // Account did change
+    isChanged = true;
+  }
+  return isChanged;
+};
+
+const updateRenamedOrganizationalUnits = (
+  config: AcceleratorUpdateConfig,
+  previousOrganizationalUnits: ConfigOrganizationalUnit[],
+  awsOus: OrganizationalUnit[],
+): AcceleratorConfig => {
+  const updateMandatoryAccounts = config['mandatory-account-configs'];
+  const updateWorkLoadAccounts = config['workload-account-configs'];
+  const updateOrganizationalUnits = config['organizational-units'];
+  for (const previousOu of previousOrganizationalUnits) {
+    const currentOu = awsOus.find(ou => ou.Id === previousOu.ouId);
+    if (!currentOu) {
+      console.log(`OrganizationalUnit "${previousOu.ouName}" is not found`);
+      continue;
+    }
+    if (currentOu.Path === previousOu.ouPath) {
+      console.log(`OrganizationalUnit "${previousOu.ouName}" is not changed`);
+      continue;
+    }
+    // Search in Organizational-Units in config for ou (Name)
+    const ouConfig = config.getOrganizationalUnits().find(([key, _]) => key === previousOu.ouPath);
+    if (ouConfig) {
+      // OU Config found in Organizational-Units in config, Delete old key and replace config with new key
+      const updatedOuConfig = updateOrganizationalUnits[previousOu.ouPath];
+      delete updateOrganizationalUnits[previousOu.ouPath];
+      updateOrganizationalUnits[currentOu.Path] = updatedOuConfig;
+    }
+    // Check for ou occurence in Mandatory accounts
+    const mandatoryAccountsConfigPerOu = config
+      .getMandatoryAccountConfigs()
+      .filter(
+        ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
+      );
+    for (const [accountKey, mandatoryAccount] of mandatoryAccountsConfigPerOu) {
+      const updateMandatoryAccountConfig = mandatoryAccount;
+      updateMandatoryAccountConfig.ou = currentOu.Path.split('/')[0];
+      updateMandatoryAccountConfig['ou-path'] = currentOu.Path;
+      updateMandatoryAccounts[accountKey] = updateMandatoryAccountConfig;
+    }
+
+    // Check for ou occurence in Mandatory accounts
+    const workLoadAccountsConfigPerOu = config
+      .getWorkloadAccountConfigs()
+      .filter(
+        ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
+      );
+    for (const [accountKey, workLoadAccount] of workLoadAccountsConfigPerOu) {
+      const updateWorkLoadAccountConfig = workLoadAccount;
+      updateWorkLoadAccountConfig.ou = currentOu.Path.split('/')[0];
+      updateWorkLoadAccountConfig['ou-path'] = currentOu.Path;
+      updateWorkLoadAccounts[accountKey] = updateWorkLoadAccountConfig;
+    }
+  }
+  config['mandatory-account-configs'] = updateMandatoryAccounts;
+  config['workload-account-configs'] = updateWorkLoadAccounts;
+  config['organizational-units'] = updateOrganizationalUnits;
+  return config;
 };
 
 async function createSuspendedOu(suspendedOuName: string, rootId: string): Promise<OrganizationalUnit> {
@@ -168,7 +362,7 @@ async function createOrganizstionalUnits(
     if (!ouPath) {
       const existingOu = awsOusWithPath.find(o => o.Path === workLoadOu.ou);
       if (!existingOu) {
-        console.log(`Creating new Organizational Unit "${workLoadOu.ou}" under Root`);
+        // console.log(`Creating new Organizational Unit "${workLoadOu.ou}" under Root`);
         const orgUnit = await organizations.createOrganizationalUnit(workLoadOu.ou, rootId);
         awsOusWithPath.push({
           ...orgUnit,
@@ -188,7 +382,7 @@ async function createOrganizstionalUnits(
         const existingOu = awsOusWithPath.find(o => o.Path === currentOuPath);
         let orgUnit: org.OrganizationalUnit | undefined;
         if (!existingOu) {
-          console.log(`Creating OrganizationalUnit "${ous[i]}" under Parent ${currentOuPath} and id ${localParent}`);
+          // console.log(`Creating OrganizationalUnit "${ous[i]}" under Parent ${currentOuPath} and id ${localParent}`);
           orgUnit = await organizations.createOrganizationalUnit(ous[i], localParent);
           awsOusWithPath.push({
             ...orgUnit,

@@ -619,6 +619,7 @@ export const GlobalOptionsConfigType = t.interface({
   'keep-default-vpc-regions': t.array(t.string),
   'iam-password-policies': IamAccountPasswordPolicyType,
   'default-cwl-retention': t.number,
+  'ignored-ous': optional(t.array(t.string)),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
@@ -997,4 +998,16 @@ function priorityByOuType(ou1: OrganizationalUnit, ou2: OrganizationalUnit) {
     return -1;
   }
   return 1;
+}
+
+export class AcceleratorUpdateConfig extends AcceleratorConfig {
+  'global-options': GlobalOptionsConfig;
+  'mandatory-account-configs': AccountsConfig;
+  'workload-account-configs': AccountsConfig;
+  'organizational-units': OrganizationalUnitsConfig;
+
+  constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
+    super(values);
+    Object.assign(this, values);
+  }
 }

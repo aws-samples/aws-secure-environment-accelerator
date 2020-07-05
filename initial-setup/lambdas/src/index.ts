@@ -22,6 +22,7 @@ export { handler as compareConfigurationsStep } from './compare-configurations-s
 export { handler as storeCommitIdStep } from './store-commit-id-step';
 export { handler as detachQuarantineScp } from './detach-quarantine-scp';
 export { handler as ouValidation } from './ou-validation';
+export { handler as loadOrganizations } from './load-organizations-step';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

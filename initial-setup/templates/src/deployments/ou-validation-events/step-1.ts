@@ -11,12 +11,14 @@ import { Context } from '../../utils/context';
 import { createAccount } from './create-account';
 import { changePolicy } from './policy-changes';
 import { removeAccount } from './remove-account';
+import { createOrganizationalUnit } from './create-organization';
 
 export interface OuValidationStep1Props {
   scope: AccountStack;
   context: Context;
   scpBucketName: string;
   scpBucketPrefix: string;
+  ignoredOus: string[];
 }
 
 export interface MoveAccountProps {
@@ -35,7 +37,7 @@ export interface MoveAccountProps {
  * OU Validation - Handling manual account creation and move account to organizations
  */
 export async function step1(props: OuValidationStep1Props) {
-  const { scope, context, scpBucketName, scpBucketPrefix } = props;
+  const { scope, context, scpBucketName, scpBucketPrefix, ignoredOus } = props;
   const {
     acceleratorPipelineRoleName,
     acceleratorPrefix,
@@ -105,13 +107,13 @@ export async function step1(props: OuValidationStep1Props) {
     lambdaCode,
   });
 
-  // Handles AcceptHandshake and adds QNO SCP to newly added account
-  // await acceptHandShake({
-  //   scope,
-  //   acceleratorPipelineRole,
-  //   acceleratorPrefix,
-  //   lambdaCode,
-  // });
+  await createOrganizationalUnit({
+    scope,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    ignoredOus,
+    lambdaCode,
+  });
 }
 
 async function moveAccount(input: MoveAccountProps) {
