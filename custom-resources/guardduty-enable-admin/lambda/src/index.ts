@@ -33,8 +33,9 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
   return `${properties.accountId}`;
 }
 
-async function onCreateOrUpdate(event: CloudFormationCustomResourceCreateEvent
-  | CloudFormationCustomResourceUpdateEvent) {
+async function onCreateOrUpdate(
+  event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
+) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const response = await enableOrgAdmin(properties);
   return {
@@ -46,22 +47,19 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceCreateEvent
 async function enableOrgAdmin(properties: HandlerProperties) {
   const params = {
     AdminAccountId: properties.accountId,
-  }
-  
+  };
 
-  
   try {
-    const enableAdmin = await guardduty.enableOrganizationAdminAccount(
-      params,
-    ).promise();
+    const enableAdmin = await guardduty.enableOrganizationAdminAccount(params).promise();
 
     return enableAdmin;
   } catch (e) {
     const message = `${e}`;
     // if account is already enabled as delegated admin, do not error out
-    if (message.includes(`the account is already enabled as the GuardDuty delegated administrator for the organization`)) {
+    if (
+      message.includes(`the account is already enabled as the GuardDuty delegated administrator for the organization`)
+    ) {
       console.warn(message);
     }
   }
 }
-
