@@ -1,8 +1,7 @@
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import * as fs from 'fs';
 import * as path from 'path';
-
-export { OrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
+import { OrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 
 export async function loadOrganizations(): Promise<OrganizationalUnit[]> {
   if (process.env.CONFIG_MODE === 'development') {
