@@ -1,6 +1,5 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-pbmm/common-lambda/lib/scp';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
@@ -22,6 +21,15 @@ const organizations = new Organizations();
 const secrets = new SecretsManager();
 const codecommit = new CodeCommit();
 
+/**
+ *
+ * @param input ValdationInput
+ * - Check for renamed accounts and update in codecommit config file
+ * - Check for renamed Organizations and update in codecommit config file
+ * - Check for non created OUs in config file and create OUs
+ * - Create Suspended OU and move all suspended accounts to it
+ * - Attach QNO Scp to all free accounts under root and Suspended OU
+ */
 export const handler = async (input: ValdationInput): Promise<string> => {
   console.log(`Loading Organization baseline configuration...`);
   console.log(JSON.stringify(input, null, 2));
@@ -225,7 +233,7 @@ const updateRenamedAccounts = (
   for (const previousAccount of previousAccounts) {
     const currentAccount = awsAccounts.find(acc => acc.Id === previousAccount.id);
     if (!currentAccount) {
-      // console.log(`Account "${previousAccount.id}" is removed from Orfanizations`);
+      console.log(`Account "${previousAccount.id}" is removed from Orfanizations`);
       // TODO Remove account from load account if needed
       continue;
     }
@@ -240,7 +248,7 @@ const updateRenamedAccounts = (
       isMandatoryAccount = false;
     }
     if (!accountConfig) {
-      // console.log(`Account "${previousAccount.email} not found in config, Ignoring"`);
+      console.log(`Account "${previousAccount.email} not found in config, Ignoring"`);
       continue;
     }
     if (isMandatoryAccount) {
@@ -409,13 +417,3 @@ async function createOrganizstionalUnits(
   }
   return result;
 }
-
-// handler({
-//   "configRepositoryName": "PBMMAccel-Config-Repo",
-//   "configFilePath": "config.json",
-//   "acceleratorPrefix": "PBMMAccel-",
-//   "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-1i7T6S",
-//   "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-h5wJ35",
-//   "configBranch": "master",
-//   "configCommitId": "beb14043b761a61dc3d7c4335822ddcc2f9ba0b5"
-// });

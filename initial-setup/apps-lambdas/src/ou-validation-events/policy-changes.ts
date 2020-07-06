@@ -1,9 +1,10 @@
-import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
+import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import * as org from 'aws-sdk/clients/organizations';
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-pbmm/common-lambda/lib/scp';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { ScheduledEvent } from 'aws-lambda';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { OrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 
 interface PolicyChangeEvent extends ScheduledEvent {
   version?: string;
@@ -152,7 +153,7 @@ async function isAcceleratorScp(policyId: string, scpNames: string[]): Promise<b
 
 async function loadAccountsAndOrganizationsFromConfig(
   config: AcceleratorConfig,
-): Promise<{ organizationalUnits: ConfigurationOrganizationalUnit[]; accounts: ConfigurationAccount[] }> {
+): Promise<{ organizationalUnits: OrganizationalUnit[]; accounts: ConfigurationAccount[] }> {
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
   const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
@@ -172,26 +173,32 @@ async function loadAccountsAndOrganizationsFromConfig(
 
   const awsOusWithPath: OrganizationalUnit[] = [];
   for (const awsOu of awsOus) {
-    awsOusWithPath.push(await organizations.getOrganizationalUnitWithPath(awsOu.Id!));
+    const ouWithPath = await organizations.getOrganizationalUnitWithPath(awsOu.Id!);
+    awsOusWithPath.push({
+      ouArn: ouWithPath.Arn!,
+      ouId: ouWithPath.Id!,
+      ouName: ouWithPath.Name!,
+      ouPath: ouWithPath.Path,
+    });
   }
 
   // Store the discovered accounts and OUs in these objects
   const configurationAccounts: ConfigurationAccount[] = [];
-  const configurationOus: ConfigurationOrganizationalUnit[] = [];
+  const configurationOus: OrganizationalUnit[] = [];
 
   // Verify that AWS Account and Accelerator config have the same OUs
   const acceleratorOuConfigs = config['organizational-units'];
   const acceleratorOus = Object.keys(acceleratorOuConfigs);
   for (const acceleratorOu of acceleratorOus) {
-    const awsOu = awsOusWithPath.find(ou => ou.Name === acceleratorOu);
+    const awsOu = awsOusWithPath.find(ou => ou.ouName === acceleratorOu);
     if (!awsOu) {
       continue;
     }
     configurationOus.push({
-      ouId: awsOu.Id!,
-      ouName: awsOu.Name!,
-      ouKey: acceleratorOu,
-      ouPath: awsOu.Path,
+      ouId: awsOu.ouId,
+      ouName: awsOu.ouName,
+      ouArn: awsOu.ouArn,
+      ouPath: awsOu.ouPath,
     });
   }
 
@@ -202,19 +209,14 @@ async function loadAccountsAndOrganizationsFromConfig(
       // Skipp as it is already added in organizational-units
       continue;
     }
-    let awsOu = awsOusWithPath.find(ou => ou.Path === acceleratorOu);
+    let awsOu = awsOusWithPath.find(ou => ou.ouPath === acceleratorOu);
     if (!awsOu) {
-      awsOu = awsOusWithPath.find(ou => ou.Name === acceleratorOu);
+      awsOu = awsOusWithPath.find(ou => ou.ouName === acceleratorOu);
     }
     if (!awsOu) {
       continue;
     }
-    configurationOus.push({
-      ouId: awsOu.Id!,
-      ouName: awsOu.Name!,
-      ouKey: acceleratorOu,
-      ouPath: awsOu.Path,
-    });
+    configurationOus.push(awsOu);
   }
 
   const accountConfigs = config.getAccountConfigs();
@@ -225,9 +227,9 @@ async function loadAccountsAndOrganizationsFromConfig(
     // Find the organizational account used by this
     const organizationalUnitName = accountConfig.ou;
     const organizationalUnitPath = accountConfig['ou-path'] || organizationalUnitName;
-    let organizationalUnit = awsOusWithPath.find(ou => ou.Path === organizationalUnitPath);
+    let organizationalUnit = awsOusWithPath.find(ou => ou.ouPath === organizationalUnitPath);
     if (!organizationalUnit) {
-      organizationalUnit = awsOusWithPath.find(ou => ou.Name === organizationalUnitName);
+      organizationalUnit = awsOusWithPath.find(ou => ou.ouName === organizationalUnitName);
     }
     if (!organizationalUnit) {
       continue;
@@ -235,7 +237,7 @@ async function loadAccountsAndOrganizationsFromConfig(
 
     const account = awsAccounts.find(a => a.Email === accountConfigEmail);
     if (account) {
-      const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
+      const accountsInOu = awsOuAccountMap[organizationalUnit.ouId];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
       if (!accountInOu) {
         continue;

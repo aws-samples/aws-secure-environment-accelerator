@@ -15,7 +15,7 @@ export type LoadOrganizationsOutput = {
 const secrets = new SecretsManager();
 const organizations = new Organizations();
 
-export const handler = async (input: LoadOrganizationsInput): Promise<LoadOrganizationsOutput> => {
+export const handler = async (input: LoadOrganizationsInput): Promise<OrganizationalUnit[]> => {
   console.log('Load Organizations ...');
   console.log(JSON.stringify(input, null, 2));
 
@@ -51,7 +51,5 @@ export const handler = async (input: LoadOrganizationsInput): Promise<LoadOrgani
   });
 
   // Find all relevant accounts in the organization
-  return {
-    organizationalUnits,
-  };
+  return organizationalUnits;
 };

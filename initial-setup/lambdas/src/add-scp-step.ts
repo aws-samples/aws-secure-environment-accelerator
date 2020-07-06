@@ -1,5 +1,6 @@
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
-import { ConfigurationOrganizationalUnit, LoadConfigurationInput } from './load-configuration-step';
+import { OrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
+import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
@@ -9,7 +10,7 @@ import { ServiceControlPolicy } from '@aws-pbmm/common-lambda/lib/scp';
 interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
   accounts: Account[];
-  organizationalUnits: ConfigurationOrganizationalUnit[];
+  organizationalUnits: OrganizationalUnit[];
   stackOutputSecretId: string;
 }
 const secrets = new SecretsManager();

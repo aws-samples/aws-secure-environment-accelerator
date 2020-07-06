@@ -49,7 +49,7 @@ export async function createOrganizationalUnit(input: CreateOrganizationalUnitEv
     id: 'ChangeOrganizationalUnit',
   };
 
-  new events.CfnRule(scope, 'PolicyChangesEventRule', {
+  new events.CfnRule(scope, 'CreateOrganizationEventRule', {
     description: 'Handles Create Organizational Unit and performs respective action.',
     state: 'ENABLED',
     name: createName({

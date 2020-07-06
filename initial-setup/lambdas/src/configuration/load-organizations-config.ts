@@ -1,12 +1,17 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
+import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import {
   LoadConfigurationInput,
   ConfigurationAccount,
   ConfigurationOrganizationalUnit,
   LoadConfigurationOutput,
 } from '../load-configuration-step';
+
+// Using sts  getCallerIdentity() to get account nunber
+const sts = new STS();
+const organizations = new Organizations();
 
 export const handler = async (input: LoadConfigurationInput): Promise<LoadConfigurationOutput> => {
   console.log(`Loading Organization baseline configuration...`);
@@ -21,7 +26,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     commitId: configCommitId,
   });
 
-  const organizations = new Organizations();
+  const accountIdentity = await sts.getCallerIdentity();
+  const masterAccountId = accountIdentity.Account;
+  const masterAccount = await organizations.getAccount(masterAccountId!);
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
@@ -104,6 +111,16 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   // First load mandatory accounts configuration
   const mandatoryAccounts = config.getMandatoryAccountConfigs();
   const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
+
+  // Validate Master Accoung email
+  const masterAccountConfig = mandatoryAccounts.find(([accountKey, _]) => accountKey === 'master');
+  if (!masterAccountConfig) {
+    throw new Error(`Cannot find a Master Account in Configuration`);
+  }
+
+  if (masterAccountConfig[1].email !== masterAccount?.Email) {
+    throw new Error(`Invalid Master account email "${masterAccountConfig[1].email}" found in configuration`);
+  }
 
   const accountConfigs = config.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {

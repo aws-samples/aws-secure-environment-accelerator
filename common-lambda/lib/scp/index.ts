@@ -3,6 +3,7 @@ import { S3 } from '../aws/s3';
 import { ScpConfig, OrganizationalUnitConfig } from '../config';
 import { stringType } from 'aws-sdk/clients/iam';
 import { PolicySummary } from 'aws-sdk/clients/organizations';
+import { OrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
@@ -192,7 +193,7 @@ export class ServiceControlPolicy {
    */
   async attachOrDetachPoliciesToOrganizationalUnits(props: {
     existingPolicies: PolicySummary[];
-    configurationOus: ConfigurationOrganizationalUnit[];
+    configurationOus: OrganizationalUnit[];
     acceleratorOus: [string, OrganizationalUnitConfig][];
     acceleratorPrefix: string;
   }) {
@@ -200,7 +201,7 @@ export class ServiceControlPolicy {
 
     // Attach Accelerator SCPs to OUs
     for (const [ouKey, ouConfig] of acceleratorOus) {
-      const organizationalUnit = configurationOus.find(ou => ou.ouKey === ouKey);
+      const organizationalUnit = configurationOus.find(ou => ou.ouPath === ouKey);
       if (!organizationalUnit) {
         console.warn(`Cannot find OU configuration with key "${ouKey}"`);
         continue;
