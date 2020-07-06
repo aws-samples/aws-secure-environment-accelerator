@@ -32,6 +32,8 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
       // Try to assume the role with the given duration
       assumeRole = await this.assumeRole(accountId, this.props.assumeRoleDuration);
     } catch (e) {
+      console.warn(`Cannot assume role for ${this.props.assumeRoleDuration} seconds: ${e}`);
+
       // If that fails, than try to assume the role for one hour
       assumeRole = await this.assumeRole(accountId, 3600);
     }
