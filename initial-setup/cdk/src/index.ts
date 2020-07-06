@@ -81,6 +81,11 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
+      const organizationsSecret = new secrets.Secret(this, 'Organizations', {
+        secretName: 'accelerator/organizations',
+        description: 'This secret contains the information about the organizations that are used for deployment.',
+      });
+
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
@@ -121,6 +126,7 @@ export namespace InitialSetup {
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
+          ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
       });
 
@@ -285,6 +291,21 @@ export namespace InitialSetup {
 
       createOrganizationAccountsTask.iterator(createOrganizationAccountTask);
 
+      const loadOrganizationsTask = new CodeTask(this, 'Load Organizational Units', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadOrganizations',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          organizationsSecretId: organizationsSecret.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+        },
+        resultPath: '$.configuration.organizationalUnits',
+      });
+
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
           code: lambdaCode,
@@ -412,6 +433,24 @@ export namespace InitialSetup {
           'accounts.$': '$.accounts',
         },
         resultPath: '$.limits',
+      });
+
+      const validateOuConfiguration = new CodeTask(this, 'OU Validation', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.ouValidation',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+          acceleratorPrefix: props.acceleratorPrefix,
+          accountsSecretId: accountsSecret.secretArn,
+          organizationsSecretId: organizationsSecret.secretArn,
+          configBranch: props.configBranchName,
+        },
+        resultPath: '$.configuration.configCommitId',
       });
 
       const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {
@@ -684,7 +723,8 @@ export namespace InitialSetup {
         .otherwise(commonStep1)
         .afterwards();
 
-      const commonDefinition = loadAccountsTask.startState
+      const commonDefinition = loadOrganizationsTask.startState
+        .next(loadAccountsTask)
         .next(installRolesTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
@@ -700,7 +740,8 @@ export namespace InitialSetup {
         .next(commonDefinition);
 
       // // Organizations Config Setup
-      const orgConfigDefinition = loadOrgConfigurationTask.startState
+      const orgConfigDefinition = validateOuConfiguration.startState
+        .next(loadOrgConfigurationTask)
         .next(installCfnRoleMasterTask)
         .next(createOrganizationAccountsTask)
         .next(commonDefinition);

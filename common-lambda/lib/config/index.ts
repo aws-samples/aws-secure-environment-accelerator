@@ -489,6 +489,7 @@ export const MandatoryAccountConfigType = t.interface({
   budget: optional(BudgetConfigType),
   'account-warming-required': optional(t.boolean),
   'cwl-retention': optional(t.number),
+  deleted: fromNullable(t.boolean, false),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -618,6 +619,7 @@ export const GlobalOptionsConfigType = t.interface({
   'keep-default-vpc-regions': t.array(t.string),
   'iam-password-policies': IamAccountPasswordPolicyType,
   'default-cwl-retention': t.number,
+  'ignored-ous': optional(t.array(t.string)),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
@@ -719,7 +721,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
    * @return [accountKey: string, accountConfig: AccountConfig][]
    */
   getWorkloadAccountConfigs(): [string, AccountConfig][] {
-    return Object.entries(this['workload-account-configs']);
+    return Object.entries(this['workload-account-configs']).filter(([_, value]) => !value.deleted);
   }
 
   /**
@@ -996,4 +998,16 @@ function priorityByOuType(ou1: OrganizationalUnit, ou2: OrganizationalUnit) {
     return -1;
   }
   return 1;
+}
+
+export class AcceleratorUpdateConfig extends AcceleratorConfig {
+  'global-options': GlobalOptionsConfig;
+  'mandatory-account-configs': AccountsConfig;
+  'workload-account-configs': AccountsConfig;
+  'organizational-units': OrganizationalUnitsConfig;
+
+  constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
+    super(values);
+    Object.assign(this, values);
+  }
 }

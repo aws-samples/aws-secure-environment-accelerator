@@ -18,9 +18,10 @@ export interface CreateAccountProps {
   acceleratorPipelineRole: iam.IRole;
   lambdaCode: lambda.Code;
   acceleratorStateMachineName: string;
+  organizationAdminRole: string;
 }
 export async function createAccount(input: CreateAccountProps) {
-  const { scope, lambdaCode, acceleratorPipelineRole, acceleratorPrefix } = input;
+  const { scope, lambdaCode, acceleratorPipelineRole, acceleratorPrefix, organizationAdminRole } = input;
   const waitSeconds = 60;
 
   const accleratorInvocation = new sfn.Pass(scope, 'Acclerator Invocation');
@@ -57,6 +58,7 @@ export async function createAccount(input: CreateAccountProps) {
     functionPayload: {
       'accountId.$': '$.verifyOutput.AccountId',
       acceleratorPrefix,
+      organizationAdminRole,
     },
   });
   pass.next(attachQuarantineScpTask);

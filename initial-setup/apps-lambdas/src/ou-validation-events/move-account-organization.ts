@@ -1,10 +1,10 @@
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { StepFunctions } from '@aws-pbmm/common-lambda/lib/aws/stepfunctions';
 import * as org from 'aws-sdk/clients/organizations';
-import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { AcceleratorConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 
 interface MoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -46,7 +46,8 @@ export const handler = async (input: MoveAccountOrganization) => {
   if (sourceParentId === rootOrgId) {
     // Account is moving from Root Organization to another
     const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
-    updatestatus = await updateAccountConfig(account, destinationOrg);
+    const destinationRootOrg = destinationOrg.Path.split('/')[0];
+    updatestatus = await updateAccountConfig(account, destinationOrg, destinationRootOrg);
   } else if (destinationParentId === rootOrgId) {
     // Move account back to source and don't update config
     console.log(`Invalid moveAccount from ${sourceParentId} to ROOT Organization`);
@@ -72,16 +73,21 @@ export const handler = async (input: MoveAccountOrganization) => {
       return 'FAILED';
     } else {
       // Update Config
-      updatestatus = await updateAccountConfig(account, destinationOrg);
+      updatestatus = await updateAccountConfig(account, destinationOrg, destinationRootOrg);
     }
   }
   if (updatestatus === 'SUCCESS') {
+    await delay(1000);
     await startStateMachine(acceleratorStateMachinearn);
   }
   return 'SUCCESS';
 };
 
-async function updateAccountConfig(account: org.Account, destinationOrg: OrganizationalUnit): Promise<string> {
+async function updateAccountConfig(
+  account: org.Account,
+  destinationOrg: OrganizationalUnit,
+  destinationRootOrg: string,
+): Promise<string> {
   console.log(`Updating Configuration for account "${account.Name}" to Organization ${destinationOrg.Name}`);
   const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   const parentCommitId = configCommit.commitId;
@@ -101,18 +107,21 @@ async function updateAccountConfig(account: org.Account, destinationOrg: Organiz
   if (workLoadAccountConfig) {
     accountKey = workLoadAccountConfig[0];
     accountConfig = workLoadAccountConfig[1];
-    accountConfig.ou = destinationOrg.Name!;
+    accountConfig.ou = destinationRootOrg;
     accountConfig['ou-path'] = destinationOrg.Path;
+    if (accountConfig.deleted) {
+      accountConfig.deleted = false;
+    }
   } else if (mandatoryAccountConfig) {
     accountKey = mandatoryAccountConfig[0];
     accountConfig = mandatoryAccountConfig[1];
-    accountConfig.ou = destinationOrg.Name!;
+    accountConfig.ou = destinationRootOrg;
     accountConfig['ou-path'] = destinationOrg.Path;
   } else {
     accountConfig = {
       'account-name': account.Name!,
       email: account.Email!,
-      ou: destinationOrg.Name!,
+      ou: destinationRootOrg,
       'ou-path': destinationOrg.Path,
     };
   }

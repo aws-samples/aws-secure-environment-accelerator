@@ -1,6 +1,6 @@
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { createQuarantineScpName } from './create-organization-account/add-quarantine-scp';
+import { ServiceControlPolicy } from '@aws-pbmm/common-lambda/lib/scp';
 
 interface DetachQuarantineScpInput {
   accounts: Account[];
@@ -14,7 +14,7 @@ export const handler = async (input: DetachQuarantineScpInput): Promise<string> 
 
   const { acceleratorPrefix, accounts } = input;
 
-  const policyName = createQuarantineScpName({ acceleratorPrefix });
+  const policyName = ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix });
 
   // Find all policies in the organization
   const policy = await organizations.getPolicyByName({

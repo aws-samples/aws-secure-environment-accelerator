@@ -9,10 +9,17 @@ import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-gener
 import { Context } from '../../utils/context';
 
 import { createAccount } from './create-account';
+import { changePolicy } from './policy-changes';
+import { removeAccount } from './remove-account';
+import { createOrganizationalUnit } from './create-organization';
 
 export interface OuValidationStep1Props {
   scope: AccountStack;
   context: Context;
+  scpBucketName: string;
+  scpBucketPrefix: string;
+  ignoredOus: string[];
+  organizationAdminRole: string;
 }
 
 export interface MoveAccountProps {
@@ -31,7 +38,7 @@ export interface MoveAccountProps {
  * OU Validation - Handling manual account creation and move account to organizations
  */
 export async function step1(props: OuValidationStep1Props) {
-  const { scope, context } = props;
+  const { scope, context, scpBucketName, scpBucketPrefix, ignoredOus, organizationAdminRole } = props;
   const {
     acceleratorPipelineRoleName,
     acceleratorPrefix,
@@ -60,6 +67,7 @@ export async function step1(props: OuValidationStep1Props) {
     defaultRegion,
     lambdaCode,
     acceleratorStateMachineName,
+    organizationAdminRole,
   });
   // Creates resources needed for handling move account directly from console
   await moveAccount({
@@ -72,6 +80,43 @@ export async function step1(props: OuValidationStep1Props) {
     defaultRegion,
     lambdaCode,
     acceleratorStateMachineName,
+  });
+
+  // Creates resource needed for handling create account directly from console
+  await changePolicy({
+    scope,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
+    defaultRegion,
+    lambdaCode,
+    acceleratorStateMachineName,
+    scpBucketName,
+    scpBucketPrefix,
+    organizationAdminRole,
+  });
+
+  // Handles RemoveAccountFromOrganization and removes WorkLoadAccount Configuration from configuration file
+  await removeAccount({
+    scope,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    configBranch,
+    configFilePath,
+    configRepositoryName,
+    defaultRegion,
+    lambdaCode,
+  });
+
+  await createOrganizationalUnit({
+    scope,
+    acceleratorPipelineRole,
+    acceleratorPrefix,
+    ignoredOus,
+    lambdaCode,
+    organizationAdminRole,
   });
 }
 
@@ -103,7 +148,7 @@ async function moveAccount(input: MoveAccountProps) {
     timeout: cdk.Duration.minutes(15),
   });
 
-  moveAccountFunc.addPermission(`InvokePermission-NewLogGroup_rule`, {
+  moveAccountFunc.addPermission(`InvokePermission-MoveAccount_rule`, {
     action: 'lambda:InvokeFunction',
     principal: new iam.ServicePrincipal('events.amazonaws.com'),
   });

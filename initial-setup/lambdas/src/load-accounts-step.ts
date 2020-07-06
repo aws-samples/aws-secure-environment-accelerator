@@ -22,11 +22,12 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   // The first step is to load all the execution roles
   const organizations = new Organizations();
   const organizationAccounts = await organizations.listAccounts();
+  const activeAccounts = organizationAccounts.filter(account => account.Status === 'ACTIVE');
 
   const accounts = [];
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
-    organizationAccount = organizationAccounts.find(a => {
+    organizationAccount = activeAccounts.find(a => {
       return a.Email === accountConfig.emailAddress;
     });
 
@@ -61,6 +62,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       email: organizationAccount.Email!,
       ou: accountConfig.organizationalUnit,
       type: accountConfig.landingZoneAccountType,
+      ouPath: accountConfig.ouPath,
     });
   }
 

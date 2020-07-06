@@ -18,17 +18,31 @@ export class Organizations {
   }
 
   async getOrganizationalUnit(organizationalUnitId: string): Promise<org.OrganizationalUnit | undefined> {
-    const response = await this.client
-      .describeOrganizationalUnit({
-        OrganizationalUnitId: organizationalUnitId,
-      })
-      .promise();
+    const response = await throttlingBackOff(() =>
+      this.client
+        .describeOrganizationalUnit({
+          OrganizationalUnitId: organizationalUnitId,
+        })
+        .promise(),
+    );
     return response.OrganizationalUnit;
   }
 
   async describeOrganization(): Promise<org.OrganizationalUnit | undefined> {
     const response = await this.client.describeOrganization().promise();
     return response.Organization;
+  }
+
+  async createOrganizationalUnit(name: string, parentId: string): Promise<org.OrganizationalUnit | undefined> {
+    const organizationalUnit = await throttlingBackOff(() =>
+      this.client
+        .createOrganizationalUnit({
+          Name: name,
+          ParentId: parentId,
+        })
+        .promise(),
+    );
+    return organizationalUnit.OrganizationalUnit;
   }
 
   async getPolicyByName(input: org.ListPoliciesRequest & { Name: string }): Promise<org.Policy | undefined> {
