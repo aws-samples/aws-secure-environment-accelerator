@@ -2,8 +2,11 @@ import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { LogBucketOutputType } from '../defaults/outputs';
-import { StackOutput, getStackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
-import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import {
+  StackOutput,
+  getStackOutput,
+  OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
+} from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CreateCloudTrail } from '@custom-resources/create-cloud-trail';
 import { Organizations } from '@custom-resources/organization';
 import { LogGroup } from '@custom-resources/logs-log-group';
@@ -37,7 +40,7 @@ export async function step1(props: CreateCloudTrailProps) {
     throw new Error(`Cannot find central log bucket for log account ${logAccountKey}`);
   }
 
-  const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+  const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
   console.log('AWS S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
   if (!s3KmsKeyArn) {
     throw new Error(`cannot find LogArchive account KMS key Arn`);
