@@ -14,6 +14,7 @@ export interface RsysLogAutoScalingGroupProps extends cdk.StackProps {
   rsyslogConfig: RsyslogConfig;
   logGroupName: string;
   targetGroupArn: string;
+  centralBucketName: string;
 }
 
 export class RsysLogAutoScalingGroup extends cdk.Construct {
@@ -30,18 +31,20 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
       securityGroupId,
       logGroupName,
       targetGroupArn,
+      centralBucketName,
     } = props;
 
     const launchConfig = new LaunchConfiguration(this, 'RsyslogLaunchConfiguration', {
       launchConfigurationName: `${acceleratorPrefix}-RsyslogLaunchConfiguration`,
-      associatePublicIpAddress: true, //TODO
+      associatePublicIpAddress: true, // TODO
       imageId: latestRsyslogAmiId,
       securityGroups: [securityGroupId],
       iamInstanceProfile: createIamInstanceProfileName(rsyslogConfig['rsyslog-instance-role']),
       instanceType: rsyslogConfig['rsyslog-instance-type'],
+      keyName: 'test-operations', // TODO
       blockDeviceMappings: [
         {
-          deviceName: '/dev/sda1',
+          deviceName: '/dev/xvda',
           ebs: {
             volumeSize: rsyslogConfig['rsyslog-root-volume-size'],
             volumeType: 'gp2',
@@ -52,7 +55,7 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
     });
 
     const autoScalingGroupSize = rsyslogConfig['desired-rsyslog-hosts'];
-    const autoscalingGroup = new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroupB', {
+    new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroupB', {
       autoScalingGroupName: `${acceleratorPrefix}-RsyslogAutoScalingGroup`,
       launchConfigurationName: launchConfig.ref,
       vpcZoneIdentifier: subnetIds,
@@ -73,15 +76,8 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
       ],
     });
 
-    autoscalingGroup.cfnOptions.creationPolicy = {
-      resourceSignal: {
-        count: autoScalingGroupSize,
-        timeout: 'PT30M',
-      },
-    };
-
     launchConfig.userData = cdk.Fn.base64(
-      `#!/bin/bash\necho "[v8-stable]\nname=Adiscon CentOS-6 - local packages for \\$basearch\nbaseurl=http://rpms.adiscon.com/v8-stable/epel-6/\\$basearch\nenabled=0\ngpgcheck=0\ngpgkey=http://rpms.adiscon.com/RPM-GPG-KEY-Adiscon\nprotect=1" >> /etc/yum.repos.d/rsyslog.repo\nyum update -y\nyum install -y rsyslog --enablerepo=v8-stable --setopt=v8-stable.priority=1\nchkconfig rsyslog on\nsystemctl restart rsyslog\nwget https://s3.${cdk.Aws.REGION}.amazonaws.com/amazoncloudwatch-agent-${cdk.Aws.REGION}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\nrpm -U ./amazon-cloudwatch-agent.rpm\necho "{\\"logs\\": {\\"logs_collected\\": {\\"files\\": {\\"collect_list\\": [{\\"file_path\\": \\"/var/log/messages\\",\\"log_group_name\\": \\"${logGroupName}\\",\\"log_stream_name\\": \\"instance-id\\"}]}}}}" >> /opt/aws/amazon-cloudwatch-agent/bin/config.json\n/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -s -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json`,
+      `#!/bin/bash\necho "[v8-stable]\nname=Adiscon CentOS-6 - local packages for \\$basearch\nbaseurl=http://rpms.adiscon.com/v8-stable/epel-6/\\$basearch\nenabled=0\ngpgcheck=0\ngpgkey=http://rpms.adiscon.com/RPM-GPG-KEY-Adiscon\nprotect=1" >> /etc/yum.repos.d/rsyslog.repo\nyum update -y\nyum install -y rsyslog --enablerepo=v8-stable --setopt=v8-stable.priority=1\nchkconfig rsyslog on\naws s3 cp s3://${centralBucketName}/rsyslog/rsyslog.conf /etc/rsyslog.conf\nservice rsyslog restart\nwget https://s3.${cdk.Aws.REGION}.amazonaws.com/amazoncloudwatch-agent-${cdk.Aws.REGION}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\nrpm -U ./amazon-cloudwatch-agent.rpm\ninstanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)\necho "{\\"logs\\": {\\"logs_collected\\": {\\"files\\": {\\"collect_list\\": [{\\"file_path\\": \\"/var/log/messages\\",\\"log_group_name\\": \\"${logGroupName}\\",\\"log_stream_name\\": \\"$instanceid\\"}]}}}}" >> /opt/aws/amazon-cloudwatch-agent/bin/config.json\n/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -s -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json`,
     );
   }
 }

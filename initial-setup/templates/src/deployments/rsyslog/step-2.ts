@@ -1,5 +1,6 @@
 import * as ssm from '@aws-cdk/aws-ssm';
 import * as cdk from '@aws-cdk/core';
+import * as s3 from '@aws-cdk/aws-s3';
 import * as nlb from '@aws-cdk/aws-elasticloadbalancingv2';
 import { NetworkLoadBalancer, RsysLogAutoScalingGroup, Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AcceleratorConfig, RsyslogConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -17,10 +18,11 @@ export interface RSysLogStep1Props {
   config: AcceleratorConfig;
   outputs: StackOutput[];
   vpcs: Vpc[];
+  centralBucket: s3.IBucket;
 }
 
 export async function step2(props: RSysLogStep1Props) {
-  const { accountStacks, config, outputs, vpcs } = props;
+  const { accountStacks, config, outputs, vpcs, centralBucket } = props;
 
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
     const rsyslogConfig = accountConfig.deployments?.rsyslog;
@@ -44,7 +46,7 @@ export async function step2(props: RSysLogStep1Props) {
 
     const targetGroup = createNlb(accountKey, rsyslogConfig, accountStack, vpc);
     if (targetGroup) {
-      createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, targetGroup.ref);
+      createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, targetGroup.ref, centralBucket.bucketName);
     }
   }
 }
@@ -77,7 +79,7 @@ export function createNlb(accountKey: string, rsyslogConfig: RsyslogConfig, acco
   // Add default listener
   balancer.addListener({
     ports: 514,
-    protocol: 'UDP',
+    protocol: 'TCP_UDP',
     actionType: 'forward',
     targetGroupArns: [rsyslogTargetGroup.ref],
   });
@@ -100,6 +102,7 @@ export function createAsg(
   outputs: StackOutput[],
   vpc: Vpc,
   targetGroupArn: string,
+  centralBucketName: string,
 ) {
   const instanceSubnetIds: string[] = [];
   for (const subnetConfig of rsyslogConfig['app-subnets']) {
@@ -155,6 +158,7 @@ export function createAsg(
     rsyslogConfig,
     logGroupName: logGroup.logGroupName,
     targetGroupArn,
+    centralBucketName,
   });
 }
 
@@ -162,7 +166,7 @@ export function createTargetGroupForInstance(scope: cdk.Construct, targetGroupNa
   return new nlb.CfnTargetGroup(scope, `TgRsyslog${targetGroupName}`, {
     name: targetGroupName,
     targetType: 'instance',
-    protocol: 'UDP',
+    protocol: 'TCP_UDP',
     port: 514,
     vpcId,
     healthCheckPort: '514',
