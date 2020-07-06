@@ -49,12 +49,7 @@ export async function step2(props: RSysLogStep1Props) {
   }
 }
 
-export function createNlb(
-  accountKey: string,
-  rsyslogConfig: RsyslogConfig,
-  accountStack: AcceleratorStack,
-  vpc: Vpc,
-) {
+export function createNlb(accountKey: string, rsyslogConfig: RsyslogConfig, accountStack: AcceleratorStack, vpc: Vpc) {
   const nlbSubnetIds: string[] = [];
   for (const subnetConfig of rsyslogConfig['web-subnets']) {
     const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
