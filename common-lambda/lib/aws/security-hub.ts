@@ -59,7 +59,7 @@ export class SecurityHub {
       .updateStandardsControl({
         StandardsControlArn: standardsControlArn,
         ControlStatus: 'DISABLED',
-        DisabledReason: 'Not Required Done through Accelerator',
+        DisabledReason: 'Control disabled by Accelerator',
       })
       .promise();
   }
