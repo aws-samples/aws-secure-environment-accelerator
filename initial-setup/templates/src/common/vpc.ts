@@ -14,6 +14,7 @@ import { AccountStacks } from '../common/account-stacks';
 import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface VpcCommonProps {
   /**
