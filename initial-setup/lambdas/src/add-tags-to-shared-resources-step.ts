@@ -4,7 +4,7 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 
-const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc'];
+const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc', 'tgw-attachment'];
 
 interface CreateTagsRequestInput {
   assumeRoleName: string;
@@ -75,3 +75,8 @@ export const handler = async (input: CreateTagsRequestInput) => {
     statusReason: `Added tags for all the shared resources`,
   };
 };
+
+handler({
+  assumeRoleName: 'PBMMAccel-PipelineRole',
+  stackOutputSecretId: 'accelerator/outputs'
+})

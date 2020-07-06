@@ -8,7 +8,7 @@ export interface Tag {
 
 export interface AddTagsToResource {
   resourceId: string;
-  resourceType: 'subnet' | 'security-group' | 'vpc';
+  resourceType: 'subnet' | 'security-group' | 'vpc' | 'tgw-attachment';
   targetAccountIds: string[];
   tags: Tag[];
 }

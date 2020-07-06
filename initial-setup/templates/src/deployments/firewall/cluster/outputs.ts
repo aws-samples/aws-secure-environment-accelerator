@@ -1,5 +1,7 @@
 import * as t from 'io-ts';
 import { optional } from '@aws-pbmm/common-types';
+import { createCfnStructuredOutput } from '../../../common/structured-output';
+import { createStructuredOutputFinder } from '@aws-pbmm/common-outputs/lib/structured-output';
 
 export const FirewallInstanceOutputType = t.interface(
   {
@@ -12,7 +14,7 @@ export const FirewallInstanceOutputType = t.interface(
 
 export type FirewallInstanceOutput = t.TypeOf<typeof FirewallInstanceOutputType>;
 
-export const FirewallPortType = t.interface({
+export const FirewallPort = t.interface({
   name: t.string,
   subnetName: t.string,
   az: t.string,
@@ -21,12 +23,15 @@ export const FirewallPortType = t.interface({
   createCustomerGateway: t.boolean,
 });
 
-export const FirewallPortOutputType = t.array(FirewallPortType, 'FirewallPortOutput');
+export type FirewallPort = t.TypeOf<typeof FirewallPort>;
 
-export type FirewallPort = t.TypeOf<typeof FirewallPortType>;
-export type FirewallPortOutput = t.TypeOf<typeof FirewallPortOutputType>;
+export const FirewallPortOutput = t.array(FirewallPort, 'FirewallPortOutput');
 
-export const FirewallVpnTunnelOptionsType = t.interface({
+export const CfnFirewallPortOutput = createCfnStructuredOutput(FirewallPortOutput);
+
+export type FirewallPortOutput = t.TypeOf<typeof FirewallPortOutput>;
+
+export const FirewallVpnTunnelOptions = t.interface({
   cgwTunnelInsideAddress1: t.string,
   cgwTunnelOutsideAddress1: t.string,
   cgwBgpAsn1: t.string,
@@ -36,19 +41,27 @@ export const FirewallVpnTunnelOptionsType = t.interface({
   preSharedSecret1: t.string,
 });
 
-export const FirewallVpnConnectionType = t.intersection([
-  FirewallPortType,
+export type FirewallVpnTunnelOptions = t.TypeOf<typeof FirewallVpnTunnelOptions>;
+
+export const FirewallVpnConnection = t.intersection([
+  FirewallPort,
   t.interface({
     firewallAccountKey: t.string,
     transitGatewayId: t.string,
     customerGatewayId: optional(t.string),
     vpnConnectionId: optional(t.string),
-    vpnTunnelOptions: optional(FirewallVpnTunnelOptionsType),
+    vpnTunnelOptions: optional(FirewallVpnTunnelOptions),
   }),
 ]);
 
-export const FirewallVpnConnectionOutputType = t.array(FirewallVpnConnectionType, 'FirewallVpnConnectionOutput');
+export type FirewallVpnConnection = t.TypeOf<typeof FirewallVpnConnection>;
 
-export type FirewallVpnTunnelOptions = t.TypeOf<typeof FirewallVpnTunnelOptionsType>;
-export type FirewallVpnConnection = t.TypeOf<typeof FirewallVpnConnectionType>;
-export type FirewallVpnConnectionOutput = t.TypeOf<typeof FirewallVpnConnectionOutputType>;
+export const FirewallVpnConnectionOutput = t.array(FirewallVpnConnection, 'FirewallVpnConnectionOutput');
+
+export type FirewallVpnConnectionOutput = t.TypeOf<typeof FirewallVpnConnectionOutput>;
+
+export const CfnFirewallVpnConnectionOutput = createCfnStructuredOutput(FirewallVpnConnectionOutput);
+
+export const FirewallPortOutputFinder = createStructuredOutputFinder(FirewallPortOutput, () => ({}));
+
+export const FirewallVpnConnectionOutputFinder = createStructuredOutputFinder(FirewallVpnConnectionOutput, () => ({}));
