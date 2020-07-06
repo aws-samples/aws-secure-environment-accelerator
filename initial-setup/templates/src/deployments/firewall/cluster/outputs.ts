@@ -14,6 +14,8 @@ export const FirewallInstanceOutput = t.interface(
 
 export type FirewallInstanceOutput = t.TypeOf<typeof FirewallInstanceOutput>;
 
+export const FirewallInstanceOutputFinder = createStructuredOutputFinder(FirewallInstanceOutput, () => ({}));
+
 export const CfnFirewallInstanceOutput = createCfnStructuredOutput(FirewallInstanceOutput);
 
 export const FirewallPort = t.interface({
@@ -29,9 +31,11 @@ export type FirewallPort = t.TypeOf<typeof FirewallPort>;
 
 export const FirewallPortOutput = t.array(FirewallPort, 'FirewallPortOutput');
 
+export type FirewallPortOutput = t.TypeOf<typeof FirewallPortOutput>;
+
 export const CfnFirewallPortOutput = createCfnStructuredOutput(FirewallPortOutput);
 
-export type FirewallPortOutput = t.TypeOf<typeof FirewallPortOutput>;
+export const FirewallPortOutputFinder = createStructuredOutputFinder(FirewallPortOutput, () => ({}));
 
 export const FirewallVpnTunnelOptions = t.interface({
   cgwTunnelInsideAddress1: t.string,
@@ -63,7 +67,5 @@ export const FirewallVpnConnectionOutput = t.array(FirewallVpnConnection, 'Firew
 export type FirewallVpnConnectionOutput = t.TypeOf<typeof FirewallVpnConnectionOutput>;
 
 export const CfnFirewallVpnConnectionOutput = createCfnStructuredOutput(FirewallVpnConnectionOutput);
-
-export const FirewallPortOutputFinder = createStructuredOutputFinder(FirewallPortOutput, () => ({}));
 
 export const FirewallVpnConnectionOutputFinder = createStructuredOutputFinder(FirewallVpnConnectionOutput, () => ({}));
