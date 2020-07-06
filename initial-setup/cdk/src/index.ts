@@ -18,6 +18,7 @@ import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
+import * as fs from 'fs';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -376,6 +377,7 @@ export namespace InitialSetup {
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
               RoleName: props.stateMachineExecutionRole,
+              MaxSessionDuration: `${buildTimeout.toSeconds()}`,
               // TODO Only add root role for development environments
               AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
@@ -606,6 +608,27 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const rdgwArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'scripts');
+      const rdgwScripts = fs.readdirSync(rdgwArtifactsFolderPath);
+
+      const verifyFilesTask = new CodeTask(this, 'Verify Files', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.verifyFilesStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          rdgwScripts,
         },
         resultPath: 'DISCARD',
       });

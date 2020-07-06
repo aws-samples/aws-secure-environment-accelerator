@@ -47,6 +47,7 @@ export class AcceleratorNameTagger implements cdk.IAspect {
     addNameTagAsIdWithSuffix(ec2.CfnRouteTable, '_rt'),
     addNameTagAsIdWithSuffix(ec2.CfnTransitGatewayRouteTable, '_rt'),
     addNameTagAsIdWithSuffix(ec2.CfnTransitGateway, '_tgw'),
+    addNameTagAsIdWithSuffix(ec2.CfnTransitGatewayAttachment, '_att'),
     addNameTagAsIdWithSuffix(ec2.CfnVPCPeeringConnection, '_pcx'),
     addNameTagAsIdWithSuffix(ec2.SecurityGroup, '_sg', 200),
     addNameTagAsIdWithSuffix(ec2.CfnSecurityGroup, '_sg', 100),

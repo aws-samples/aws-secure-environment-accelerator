@@ -7,7 +7,6 @@ import { getAccountId, Account } from '../utils/accounts';
 import { FlowLogContainer } from '../common/flow-log-container';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
-import { TransitGateway } from '../common/transit-gateway';
 import { Limit } from '../utils/limits';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
@@ -68,8 +67,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
-
-  const transitGateways = new Map<string, TransitGateway>();
 
   const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
 
@@ -184,7 +181,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
       vpcProps: props,
-      transitGateways,
+      masterAccountId,
+      outputs,
     });
     const vpc = vpcStack.vpc;
 
@@ -291,6 +289,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
+      accountStacks,
     });
 
     const pcxConfig = vpcConfig.pcx;
@@ -318,7 +317,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     outputs,
-    transitGateways,
   });
 
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {

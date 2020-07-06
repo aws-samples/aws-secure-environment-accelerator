@@ -1119,29 +1119,13 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SecurityPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0UsEast1 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackCentralB4A762DD 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackDev3F77197C 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackEndpointF8AAED62 1`] = `
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0 1`] = `
 Array [
   Object {
-    "LogicalId": "MainB7F6E78B",
+    "LogicalId": "TgwMain627BB489",
     "Properties": Object {
       "AmazonSideAsn": 65521,
-      "AutoAcceptSharedAttachments": "disable",
+      "AutoAcceptSharedAttachments": "enable",
       "DefaultRouteTableAssociation": "disable",
       "DefaultRouteTablePropagation": "disable",
       "Description": undefined,
@@ -1161,6 +1145,22 @@ Array [
   },
 ]
 `;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0UsEast1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackCentralB4A762DD 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackDev3F77197C 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackEndpointF8AAED62 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackProd407EC8DE 1`] = `Array []`;
 

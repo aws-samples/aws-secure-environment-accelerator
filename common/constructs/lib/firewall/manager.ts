@@ -24,6 +24,20 @@ export class FirewallManager extends cdk.Construct {
       instanceType: this.props.instanceType,
       keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
+      blockDeviceMappings: [
+        {
+          deviceName: '/dev/sda1',
+          ebs: {
+            encrypted: true,
+          },
+        },
+        {
+          deviceName: '/dev/sdb',
+          ebs: {
+            encrypted: true,
+          },
+        },
+      ],
     });
     cdk.Tag.add(this.resource, 'Name', this.props.name);
   }

@@ -63,7 +63,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
             .updateStandardsControl({
               StandardsControlArn: standardControl.StandardsControlArn!,
               ControlStatus: 'DISABLED',
-              DisabledReason: 'Not Required Done through Accelerator',
+              DisabledReason: 'Control disabled by Accelerator',
             })
             .promise(),
         );

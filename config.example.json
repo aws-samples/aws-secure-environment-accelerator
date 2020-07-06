@@ -52,13 +52,8 @@
     "central-log-services": {
       "account": "log-archive",
       "region": "ca-central-1",
-      "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],
-      "cwl-exclusions": [
-        {
-          "account": "fun-acct",
-          "exclusions": ["def/*"]
-        }
-      ],
+      "cwl-glbl-exclusions": [],
+      "cwl-exclusions": [],
       "ssm-to-s3": true,
       "ssm-to-cwl": true
     },
@@ -101,11 +96,11 @@
         },
         {
           "name": "PCI DSS v3.2.1",
-          "controls-to-disable": ["PCI.IAM.3", "PCIDSS8.3.1"]
+          "controls-to-disable": ["PCI.IAM.3", "PCI.KMS.1", "PCI.S3.3", "PCI.EC2.3", "PCI.Lambda.2"]
         },
         {
           "name": "CIS AWS Foundations Benchmark v1.2.0",
-          "controls-to-disable": ["CIS.1.3", "CIS1.11"]
+          "controls-to-disable": ["CIS.1.20", "CIS.1.22", "CIS.2.8"]
         }
       ]
     },
@@ -117,7 +112,7 @@
       "require-symbols": true,
       "require-numbers": true,
       "minimum-password-length": 14,
-      "password-reuse-prevention": 6,
+      "password-reuse-prevention": 24,
       "max-password-age": 90
     },
     "scps": [
@@ -238,7 +233,7 @@
           ],
           "tgw-attach": {
             "associate-to-tgw": "Main",
-            "account": "local",
+            "account": "shared-network",
             "associate-type": "ATTACH",
             "tgw-rt-associate": ["core"],
             "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
@@ -404,7 +399,7 @@
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/PBMMAccel/MAD/example.local",
           "share-to-account": "master",
-          "restrict_srcips": ["100.96.252.0/23", "100.96.250.0/23", "10.0.0.0/8"],
+          "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
           "num-rdgw-hosts": 1,
           "rdgw-instance-type": "t2.large",
           "rdgw-instance-role": "PBMMAccel-RDGW-Role",
@@ -478,7 +473,7 @@
       "account-warming-required": true,
       "limits": {
         "Amazon EC2/Number of EIPs": {
-          "value": 10,
+          "value": 5,
           "customer-confirm-inplace": false
         }
       },
@@ -896,7 +891,7 @@
               "inbound-rules": [
                 {
                   "description": "Allow Mgmt Traffic Inbound",
-                  "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080, 80, 22],
+                  "tcp-ports": [22, 443, 514, 541, 2032, 3000, 5199, 6020, 6028, 8080],
                   "udp-ports": [9443],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
@@ -913,12 +908,12 @@
               "name": "Firewalls",
               "inbound-rules": [
                 {
-                  "description": "Fortigate Mgmt Traffic Inbound",
+                  "description": "All Allowed Inbound Traffic",
                   "tcp-ports": [22, 443, 541, 3000, 8080],
                   "source": ["0.0.0.0/0"]
                 },
                 {
-                  "description": "AWS Outbound traffic and ALBs",
+                  "description": "Mgmt Traffic, Customer Outbound traffic and ALBs",
                   "type": ["ALL"],
                   "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
@@ -984,8 +979,8 @@
             "account": "shared-network",
             "name": "TGW-to-Perimeter",
             "associate-type": "VPN",
-            "rt-associate": ["core"],
-            "rt-propagate": ["core", "segregated", "shared", "standalone"],
+            "tgw-rt-associate": ["core"],
+            "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
             "blackhole-route": false,
             "attach-subnets": [],
             "options": ["DNS-support"]
@@ -1511,9 +1506,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
@@ -1944,9 +1939,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -2417,9 +2412,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -2890,9 +2885,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -3337,9 +3332,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 },
                 {
                   "description": "Central VPC Traffic Inbound",
@@ -3761,9 +3756,9 @@
               "name": "Mgmt",
               "inbound-rules": [
                 {
-                  "description": "World RDP/SSH Traffic Inbound",
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
                   "type": ["RDP", "SSH"],
-                  "source": ["0.0.0.0/0"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
