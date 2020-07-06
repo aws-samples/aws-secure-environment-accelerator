@@ -75,8 +75,3 @@ export const handler = async (input: CreateTagsRequestInput) => {
     statusReason: `Added tags for all the shared resources`,
   };
 };
-
-handler({
-  assumeRoleName: 'PBMMAccel-PipelineRole',
-  stackOutputSecretId: 'accelerator/outputs'
-})
