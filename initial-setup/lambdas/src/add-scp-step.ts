@@ -33,8 +33,8 @@ export const handler = async (input: AddScpInput) => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
-
-  const scps = new ServiceControlPolicy(acceleratorPrefix);
+  const organizationAdminRole = config['global-options']['organization-admin-role'];
+  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole);
 
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];

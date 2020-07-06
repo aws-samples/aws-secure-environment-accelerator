@@ -19,6 +19,7 @@ export interface OuValidationStep1Props {
   scpBucketName: string;
   scpBucketPrefix: string;
   ignoredOus: string[];
+  organizationAdminRole: string;
 }
 
 export interface MoveAccountProps {
@@ -37,7 +38,7 @@ export interface MoveAccountProps {
  * OU Validation - Handling manual account creation and move account to organizations
  */
 export async function step1(props: OuValidationStep1Props) {
-  const { scope, context, scpBucketName, scpBucketPrefix, ignoredOus } = props;
+  const { scope, context, scpBucketName, scpBucketPrefix, ignoredOus, organizationAdminRole } = props;
   const {
     acceleratorPipelineRoleName,
     acceleratorPrefix,
@@ -66,6 +67,7 @@ export async function step1(props: OuValidationStep1Props) {
     defaultRegion,
     lambdaCode,
     acceleratorStateMachineName,
+    organizationAdminRole,
   });
   // Creates resources needed for handling move account directly from console
   await moveAccount({
@@ -93,6 +95,7 @@ export async function step1(props: OuValidationStep1Props) {
     acceleratorStateMachineName,
     scpBucketName,
     scpBucketPrefix,
+    organizationAdminRole,
   });
 
   // Handles RemoveAccountFromOrganization and removes WorkLoadAccount Configuration from configuration file
@@ -113,6 +116,7 @@ export async function step1(props: OuValidationStep1Props) {
     acceleratorPrefix,
     ignoredOus,
     lambdaCode,
+    organizationAdminRole,
   });
 }
 

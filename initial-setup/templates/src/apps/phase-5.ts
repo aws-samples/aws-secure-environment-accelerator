@@ -160,6 +160,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       const scpBucketName = artifactOutput.bucketName;
       const scpBucketPrefix = artifactOutput.keyPrefix;
       const ignoredOus = acceleratorConfig['global-options']['ignored-ous'] || [];
+      const organizationAdminRole = acceleratorConfig['global-options']['organization-admin-role'];
 
       await ouValidation.step1({
         scope: masterStack,
@@ -167,6 +168,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         scpBucketName,
         scpBucketPrefix,
         ignoredOus,
+        organizationAdminRole,
       });
     }
   }

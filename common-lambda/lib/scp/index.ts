@@ -16,17 +16,20 @@ export class ServiceControlPolicy {
   private readonly org: Organizations;
   private readonly s3: S3;
   private readonly acceleratorPrefix: string;
+  private readonly organizationAdminRole: string;
 
-  constructor(acceleratorPrefix: stringType, client?: Organizations) {
+  constructor(acceleratorPrefix: stringType, organizationAdminRole: string, client?: Organizations) {
     this.org = client || new Organizations();
     this.s3 = new S3();
     this.acceleratorPrefix = acceleratorPrefix;
+    this.organizationAdminRole = organizationAdminRole;
   }
 
   async createOrUpdateQuarantineScp(targetIds?: string[]): Promise<string> {
     const policyName = ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix: this.acceleratorPrefix });
     const policyContent = ServiceControlPolicy.createQuarantineScpContent({
       acceleratorPrefix: this.acceleratorPrefix,
+      organizationAdminRole: this.organizationAdminRole,
     });
     const getPolicyByName = await this.org.getPolicyByName({
       Name: policyName,
@@ -245,7 +248,7 @@ export class ServiceControlPolicy {
     }
   }
 
-  static createQuarantineScpContent(props: { acceleratorPrefix: string }) {
+  static createQuarantineScpContent(props: { acceleratorPrefix: string; organizationAdminRole: string }) {
     return JSON.stringify({
       Version: '2012-10-17',
       Statement: [
@@ -257,7 +260,7 @@ export class ServiceControlPolicy {
           Condition: {
             ArnNotLike: {
               'aws:PrincipalARN': [
-                'arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole',
+                `arn:aws:iam::*:role/${props.organizationAdminRole || 'AWSCloudFormationStackSetExecutionRole'}`,
                 `arn:aws:iam::*:role/${props.acceleratorPrefix}*`,
                 'arn:aws:iam::*:role/aws:*',
               ],

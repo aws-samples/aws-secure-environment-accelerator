@@ -54,6 +54,7 @@ export const handler = async (input: PolicyChangeEvent) => {
     defaultRegion,
   });
 
+  const organizationAdminRole = config['global-options']['organization-admin-role'];
   const configScps = config['global-options'].scps;
   const scpNames = configScps.map(scp =>
     ServiceControlPolicy.policyNameToAcceleratorPolicyName({
@@ -83,7 +84,7 @@ export const handler = async (input: PolicyChangeEvent) => {
     await organizations.attachPolicy(policyId, targetId);
   } else if (eventName === 'UpdatePolicy' || eventName === 'DeletePolicy') {
     console.log(`${eventName}, Changing back to original config from config`);
-    const scps = new ServiceControlPolicy(acceleratorPrefix, organizations);
+    const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
     const { organizationalUnits, accounts } = await loadAccountsAndOrganizationsFromConfig(config);
 
     // Find policy config

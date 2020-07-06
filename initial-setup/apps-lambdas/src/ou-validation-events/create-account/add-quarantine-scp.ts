@@ -5,6 +5,7 @@ import { ServiceControlPolicy } from '@aws-pbmm/common-lambda/lib/scp';
 interface AddQuarantineScpInput {
   accountId: string;
   acceleratorPrefix: string;
+  organizationAdminRole: string;
 }
 
 const organizations = new Organizations();
@@ -13,17 +14,17 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
   console.log(`Adding quarantine SCP to account...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accountId, acceleratorPrefix } = input;
+  const { accountId, acceleratorPrefix, organizationAdminRole } = input;
 
-  await addQuarantineScp(acceleratorPrefix, accountId);
+  await addQuarantineScp(acceleratorPrefix, organizationAdminRole, accountId);
   return {
     status: 'SUCCESS',
     provisionToken: `Account "${accountId}" successfully attached to Quarantine SCP`,
   };
 };
 
-async function addQuarantineScp(acceleratorPrefix: string, accountId: string) {
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizations);
+async function addQuarantineScp(acceleratorPrefix: string, organizationAdminRole: string, accountId: string) {
+  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
   const policyId = await scps.createOrUpdateQuarantineScp();
 
   console.log(`Attaching SCP "QNO SCP" to account "${accountId}"`);

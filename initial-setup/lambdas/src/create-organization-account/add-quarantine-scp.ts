@@ -5,13 +5,14 @@ import { ServiceControlPolicy } from '@aws-pbmm/common-lambda/lib/scp';
 interface AddQuarantineScpInput {
   account: ConfigurationAccount;
   acceleratorPrefix: string;
+  organizationAdminRole: string;
 }
 
 export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccountOutput> => {
   console.log(`Adding quarantine SCP to account...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, account } = input;
+  const { acceleratorPrefix, account, organizationAdminRole } = input;
 
   if (!account.accountId) {
     return {
@@ -20,8 +21,7 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
     };
   }
 
-  // TODO Replace with scp class from config
-  const scps = new ServiceControlPolicy(acceleratorPrefix);
+  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole);
   await scps.createOrUpdateQuarantineScp([account.accountId]);
 
   return {

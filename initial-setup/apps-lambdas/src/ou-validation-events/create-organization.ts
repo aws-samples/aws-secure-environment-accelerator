@@ -9,6 +9,7 @@ interface OrganizationChangeEvent extends ScheduledEvent {
 const acceleratorPrefix = process.env.ACCELERATOR_PREFIX! || 'PBMMAccel-';
 const ignoredOrganizationalUnits = process.env.IGNORED_OUS! || [];
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME! || 'PBMMAccel-L-SFN-MasterRole-DD650BE8';
+const organizationAdminRole = process.env.ORGANIZATIONS_ADMIN_ROLE!;
 
 export const handler = async (input: OrganizationChangeEvent) => {
   console.log(`Create Organizational Unit Event triggered ...`);

@@ -20,6 +20,7 @@ export interface PolicyChangeEventProps {
   acceleratorStateMachineName: string;
   scpBucketName: string;
   scpBucketPrefix: string;
+  organizationAdminRole: string;
 }
 export async function changePolicy(input: PolicyChangeEventProps) {
   const {
@@ -33,8 +34,8 @@ export async function changePolicy(input: PolicyChangeEventProps) {
     configBranch,
     scpBucketName,
     scpBucketPrefix,
+    organizationAdminRole,
   } = input;
-  const waitSeconds = 60;
 
   const policyChangeFunc = new lambda.Function(scope, 'policyChanges', {
     runtime: lambda.Runtime.NODEJS_12_X,
@@ -50,6 +51,7 @@ export async function changePolicy(input: PolicyChangeEventProps) {
       ACCELERATOR_PREFIX: acceleratorPrefix,
       ACCELERATOR_SCP_BUCKET_PREFIX: scpBucketPrefix,
       ACCELERATOR_SCP_BUCKET_NAME: scpBucketName,
+      ORGANIZATIONS_ADMIN_ROLE: organizationAdminRole,
     },
     timeout: cdk.Duration.minutes(15),
   });

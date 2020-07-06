@@ -299,7 +299,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           organizationsSecretId: organizationsSecret.secretArn,
-          'configuration.$': '$.configuration',
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
         },
         resultPath: '$.configuration.organizationalUnits',
       });
@@ -446,8 +448,9 @@ export namespace InitialSetup {
           acceleratorPrefix: props.acceleratorPrefix,
           accountsSecretId: accountsSecret.secretArn,
           organizationsSecretId: organizationsSecret.secretArn,
+          configBranch: props.configBranchName,
         },
-        resultPath: 'DISCARD',
+        resultPath: '$.configuration.configCommitId',
       });
 
       const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {

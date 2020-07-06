@@ -23,8 +23,8 @@ const secrets = new SecretsManager();
 const codecommit = new CodeCommit();
 
 export const handler = async (input: ValdationInput): Promise<string> => {
-  // console.log(`Loading Organization baseline configuration...`);
-  // console.log(JSON.stringify(input, null, 2));
+  console.log(`Loading Organization baseline configuration...`);
+  console.log(JSON.stringify(input, null, 2));
 
   const {
     configFilePath,
@@ -37,17 +37,17 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
-  const previousConfig = await loadAcceleratorConfig({
-    repositoryName: configRepositoryName,
-    filePath: configFilePath,
-    commitId: configCommitId,
-  });
+  // Reading directly from CodeCommit because of cidr objects
+  // TODO: Might need a common method when we start using multiple configuration files
+  const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configCommitId);
+  const previousConfigString = configCommit.fileContent.toString();
+  const previousConfig = JSON.parse(previousConfigString);
 
   let config = previousConfig;
   const previousAccounts = await loadAccounts(accountsSecretId);
   const previousOrganizationalUnits = await loadOrganizations(organizationsSecretId);
-
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizations);
+  const organizationAdminRole = config['global-options']['organization-admin-role'];
+  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
@@ -160,7 +160,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     }
   }
   const commitStatus = await createCommit(config, configCommitId, configBranch, configRepositoryName, configFilePath);
-  return 'SUCCESS';
+  return commitStatus || configCommitId;
 };
 
 async function createCommit(
@@ -169,7 +169,7 @@ async function createCommit(
   configBranch: string,
   configRepositoryName: string,
   configFilePath: string,
-): Promise<string> {
+): Promise<string | undefined> {
   try {
     const commitId = await codecommit.commit({
       branchName: configBranch,
@@ -183,10 +183,11 @@ async function createCommit(
       ],
     });
     console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
-    return 'SUCCESS';
+    return commitId;
   } catch (error) {
+    console.error(error);
     if (error.code === 'NoChangeException') {
-      return 'NoChangeException';
+      return;
     } else {
       throw new Error(error);
     }
@@ -217,6 +218,10 @@ const updateRenamedAccounts = (
   // Directly reading from config instead of using methods to create actual config objects
   const updateMandatoryAccounts = config['mandatory-account-configs'];
   const updateWorkLoadAccounts = config['workload-account-configs'];
+  const mandatoryAccountConfigs = Object.entries(config['mandatory-account-configs']);
+  const workLoadAccountsConfig = Object.entries(config['workload-account-configs']).filter(
+    ([_, value]) => !value.deleted,
+  );
   for (const previousAccount of previousAccounts) {
     const currentAccount = awsAccounts.find(acc => acc.Id === previousAccount.id);
     if (!currentAccount) {
@@ -229,9 +234,9 @@ const updateRenamedAccounts = (
     }
     // TODO Update Account Config
     let isMandatoryAccount = true;
-    let accountConfig = config.getMandatoryAccountConfigs().find(([_, value]) => value.email === previousAccount.email);
+    let accountConfig = mandatoryAccountConfigs.find(([_, value]) => value.email === previousAccount.email);
     if (!accountConfig) {
-      accountConfig = config.getWorkloadAccountConfigs().find(([_, value]) => value.email === previousAccount.email);
+      accountConfig = workLoadAccountsConfig.find(([_, value]) => value.email === previousAccount.email);
       isMandatoryAccount = false;
     }
     if (!accountConfig) {
@@ -274,6 +279,11 @@ const updateRenamedOrganizationalUnits = (
   const updateMandatoryAccounts = config['mandatory-account-configs'];
   const updateWorkLoadAccounts = config['workload-account-configs'];
   const updateOrganizationalUnits = config['organizational-units'];
+  const organizationalUnitsConfig = Object.entries(config['organizational-units']);
+  const mandatoryAccountConfigs = Object.entries(config['mandatory-account-configs']);
+  const workLoadAccountsConfig = Object.entries(config['workload-account-configs']).filter(
+    ([_, value]) => !value.deleted,
+  );
   for (const previousOu of previousOrganizationalUnits) {
     const currentOu = awsOus.find(ou => ou.Id === previousOu.ouId);
     if (!currentOu) {
@@ -285,7 +295,7 @@ const updateRenamedOrganizationalUnits = (
       continue;
     }
     // Search in Organizational-Units in config for ou (Name)
-    const ouConfig = config.getOrganizationalUnits().find(([key, _]) => key === previousOu.ouPath);
+    const ouConfig = organizationalUnitsConfig.find(([key, _]) => key === previousOu.ouPath);
     if (ouConfig) {
       // OU Config found in Organizational-Units in config, Delete old key and replace config with new key
       const updatedOuConfig = updateOrganizationalUnits[previousOu.ouPath];
@@ -293,11 +303,9 @@ const updateRenamedOrganizationalUnits = (
       updateOrganizationalUnits[currentOu.Path] = updatedOuConfig;
     }
     // Check for ou occurence in Mandatory accounts
-    const mandatoryAccountsConfigPerOu = config
-      .getMandatoryAccountConfigs()
-      .filter(
-        ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
-      );
+    const mandatoryAccountsConfigPerOu = mandatoryAccountConfigs.filter(
+      ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
+    );
     for (const [accountKey, mandatoryAccount] of mandatoryAccountsConfigPerOu) {
       const updateMandatoryAccountConfig = mandatoryAccount;
       updateMandatoryAccountConfig.ou = currentOu.Path.split('/')[0];
@@ -306,11 +314,9 @@ const updateRenamedOrganizationalUnits = (
     }
 
     // Check for ou occurence in Mandatory accounts
-    const workLoadAccountsConfigPerOu = config
-      .getWorkloadAccountConfigs()
-      .filter(
-        ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
-      );
+    const workLoadAccountsConfigPerOu = workLoadAccountsConfig.filter(
+      ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
+    );
     for (const [accountKey, workLoadAccount] of workLoadAccountsConfigPerOu) {
       const updateWorkLoadAccountConfig = workLoadAccount;
       updateWorkLoadAccountConfig.ou = currentOu.Path.split('/')[0];
@@ -333,7 +339,7 @@ async function createSuspendedOu(suspendedOuName: string, rootId: string): Promi
 }
 
 async function createOrganizstionalUnits(
-  config: AcceleratorConfig,
+  config: AcceleratorUpdateConfig,
   awsOusWithPath: OrganizationalUnit[],
   rootId: string,
 ): Promise<OrganizationalUnit[]> {
@@ -356,7 +362,9 @@ async function createOrganizstionalUnits(
     }
   }
 
-  const acceleratorWorkLoadAccountConfigs = config.getWorkloadAccountConfigs();
+  const acceleratorWorkLoadAccountConfigs = Object.entries(config['workload-account-configs']).filter(
+    ([_, value]) => !value.deleted,
+  );
   for (const [_, workLoadOu] of acceleratorWorkLoadAccountConfigs) {
     const ouPath = workLoadOu['ou-path']!;
     if (!ouPath) {
@@ -401,3 +409,13 @@ async function createOrganizstionalUnits(
   }
   return result;
 }
+
+// handler({
+//   "configRepositoryName": "PBMMAccel-Config-Repo",
+//   "configFilePath": "config.json",
+//   "acceleratorPrefix": "PBMMAccel-",
+//   "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-1i7T6S",
+//   "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-h5wJ35",
+//   "configBranch": "master",
+//   "configCommitId": "beb14043b761a61dc3d7c4335822ddcc2f9ba0b5"
+// });
