@@ -1105,6 +1105,20 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         },
       }),
     },
+    {
+      accountKey: 'master',
+      outputKey: 'SCPArtifactsOutputmasterSOutputA1DE17D3',
+      outputValue: JSON.stringify({
+        type: 'ArtifactOutput',
+        value: {
+          accountKey: 'master',
+          artifactName: 'SCP',
+          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          keyPrefix: 'scp',
+        },
+      }),
+    },
   ];
 
   return {
