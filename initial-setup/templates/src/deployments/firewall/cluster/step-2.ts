@@ -49,7 +49,7 @@ export async function step2(props: FirewallStep2Props) {
     const firewallPortOutputs = FirewallPortOutputFinder.findAll({
       outputs,
       accountKey,
-      // region: firewallConfig.region,
+      region: firewallConfig.region,
     });
     const firewallPorts = firewallPortOutputs.flatMap(array => array);
     if (firewallPorts.length === 0) {

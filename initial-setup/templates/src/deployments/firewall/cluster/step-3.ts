@@ -76,6 +76,7 @@ export async function step3(props: FirewallStep3Props) {
     const firewallVpnConnectionOutputs = FirewallVpnConnectionOutputFinder.findAll({
       outputs,
       accountKey: attachConfig.account,
+      region: firewallConfig.region,
     });
     const firewallVpnConnections = firewallVpnConnectionOutputs
       .flatMap(array => array)

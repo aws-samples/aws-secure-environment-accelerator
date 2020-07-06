@@ -11,6 +11,7 @@ export interface StructuredValueFindProps<T> {
   outputs: StackOutput[];
   type: t.Type<T>;
   accountKey?: string;
+  region?: string;
   predicate?: (value: T) => boolean;
 }
 
@@ -61,6 +62,7 @@ export function findValueFromOutputs<T>(props: StructuredValueFindProps<T>): T {
 export function findValuesFromOutputs<T>(props: StructuredValueFindProps<T>): T[] {
   const values = props.outputs
     .filter(output => props.accountKey === undefined || output.accountKey === props.accountKey)
+    .filter(output => props.region === undefined || output.region === props.region)
     .map(output => parseValueFromOutput(output, props.type))
     .filter((structured): structured is T => !!structured);
   if (props.predicate) {
