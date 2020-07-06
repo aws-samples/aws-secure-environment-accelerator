@@ -3,8 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../../common/account-stacks';
-import { StructuredOutput } from '../../../common/structured-output';
-import { FirewallPort, FirewallPortOutput, FirewallPortOutputType } from './outputs';
+import { FirewallPort, CfnFirewallPortOutput } from './outputs';
 
 export interface FirewallStep1Props {
   accountStacks: AccountStacks;
@@ -86,8 +85,5 @@ async function createFirewallEips(props: {
     }
   }
 
-  new StructuredOutput<FirewallPortOutput>(scope, 'FirewallPortOutput', {
-    type: FirewallPortOutputType,
-    value: ports,
-  });
+  new CfnFirewallPortOutput(scope, 'FirewallPortOutput', ports);
 }

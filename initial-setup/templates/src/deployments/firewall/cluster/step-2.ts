@@ -3,18 +3,16 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { TransitGateway } from '@aws-pbmm/constructs/lib/vpc';
+import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { VpnTunnelOptions } from '@custom-resources/ec2-vpn-tunnel-options';
 import { VpnAttachments } from '@custom-resources/ec2-vpn-attachment';
 import { AccountStacks } from '../../../common/account-stacks';
-import { StructuredOutput } from '../../../common/structured-output';
-import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
+import { AddTagsToResourcesOutput, AddTagsToResource } from '../../../common/add-tags-to-resources-output';
 import {
-  FirewallPortOutputType,
   FirewallPort,
   FirewallVpnConnection,
-  FirewallVpnConnectionOutput,
-  FirewallVpnConnectionOutputType,
+  CfnFirewallVpnConnectionOutput,
+  FirewallPortOutputFinder,
 } from './outputs';
 
 export interface FirewallStep2Props {
@@ -48,9 +46,10 @@ export async function step2(props: FirewallStep2Props) {
     }
 
     // Find the firewall EIPs in the firewall account
-    const firewallPortOutputs = StructuredOutput.fromOutputs(outputs, {
-      type: FirewallPortOutputType,
+    const firewallPortOutputs = FirewallPortOutputFinder.findAll({
+      outputs,
       accountKey,
+      // region: firewallConfig.region,
     });
     const firewallPorts = firewallPortOutputs.flatMap(array => array);
     if (firewallPorts.length === 0) {
@@ -106,6 +105,9 @@ async function createCustomerGateways(props: {
   const firewallCgwName = firewallConfig['fw-cgw-name'];
   const firewallCgwAsn = firewallConfig['fw-cgw-asn'];
 
+  const addTagsDependencies = [];
+  const addTagsToResources: AddTagsToResource[] = [];
+
   for (const [index, port] of Object.entries(firewallPorts)) {
     let customerGateway;
     let vpnConnection;
@@ -145,6 +147,20 @@ async function createCustomerGateways(props: {
         tgwId: transitGateway.tgwId,
       });
 
+      // Make sure to add the tags to the VPN attachments
+      addTagsDependencies.push(attachments);
+      addTagsToResources.push({
+        targetAccountIds: [cdk.Aws.ACCOUNT_ID],
+        resourceId: attachments.getTransitGatewayAttachmentId(0),
+        resourceType: 'tgw-attachment',
+        tags: [
+          {
+            key: 'Name',
+            value: `${prefix}_att`,
+          },
+        ],
+      });
+
       const associateConfig = attachConfig['tgw-rt-associate'] || [];
       const propagateConfig = attachConfig['tgw-rt-propagate'] || [];
 
@@ -176,9 +192,14 @@ async function createCustomerGateways(props: {
     });
   }
 
+  // Output the tags that need to be added to the VPN attachments
+  if (addTagsToResources.length > 0) {
+    new AddTagsToResourcesOutput(scope, `VpnAttachmentsTags`, {
+      dependencies: addTagsDependencies,
+      produceResources: () => addTagsToResources,
+    });
+  }
+
   // Store the firewall VPN connections as outputs
-  new StructuredOutput<FirewallVpnConnectionOutput>(scope, 'FirewallVpnConnections', {
-    type: FirewallVpnConnectionOutputType,
-    value: vpnConnections,
-  });
+  new CfnFirewallVpnConnectionOutput(scope, 'FirewallVpnConnections', vpnConnections);
 }

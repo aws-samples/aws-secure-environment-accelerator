@@ -3,7 +3,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { Region } from '@aws-pbmm/common-types';
 import * as constructs from '@aws-pbmm/constructs/lib/vpc';
-import { Account } from '../utils/accounts';
+import { Account, getAccountId } from '../utils/accounts';
 import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
@@ -13,7 +13,7 @@ import { SecurityGroup } from './security-group';
 import { AccountStacks } from '../common/account-stacks';
 import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 
 export interface VpcCommonProps {
   /**
@@ -279,7 +279,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
     }
 
     let tgw: TransitGatewayOutput | undefined;
-    let tgwAttachment;
+    let tgwAttachment: TransitGatewayAttachment | undefined;
     if (config.TransitGatewayAttachConfigType.is(tgwAttach)) {
       const tgwName = tgwAttach['associate-to-tgw'];
 
@@ -315,6 +315,22 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           subnetIds,
           transitGatewayId: tgw.tgwId,
         });
+
+        const ownerAccountId = getAccountId(accounts, tgwAttach.account);
+        if (ownerAccountId) {
+          // Add tags in the TGW owner account
+          new AddTagsToResourcesOutput(this, 'TgwAttachTags', {
+            dependencies: [tgwAttachment],
+            produceResources: () => [
+              {
+                resourceId: tgwAttachment!.transitGatewayAttachmentId,
+                resourceType: 'tgw-attachment',
+                tags: tgwAttachment!.resource.tags.renderTags(),
+                targetAccountIds: [ownerAccountId],
+              },
+            ],
+          });
+        }
 
         // in case TGW attachment is created for the same account, we create using the same stack
         // otherwise, we will store tgw attachment output and do it in next phase
