@@ -324,12 +324,14 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           // Add tags in the TGW owner account
           new AddTagsToResourcesOutput(this, 'TgwAttachTags', {
             dependencies: [tgwAttachment],
-            produceResources: () => [{
-              resourceId: tgwAttachment!.transitGatewayAttachmentId,
-              resourceType: 'tgw-attachment',
-              tags: tgwAttachment!.resource.tags.renderTags(),
-              targetAccountIds: [ownerAccountId]
-            }],
+            produceResources: () => [
+              {
+                resourceId: tgwAttachment!.transitGatewayAttachmentId,
+                resourceType: 'tgw-attachment',
+                tags: tgwAttachment!.resource.tags.renderTags(),
+                targetAccountIds: [ownerAccountId],
+              },
+            ],
           });
         }
 
