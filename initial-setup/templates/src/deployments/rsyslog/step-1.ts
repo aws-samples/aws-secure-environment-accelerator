@@ -38,12 +38,12 @@ export async function step1(props: RsyslogStep1Props) {
     // Create the auto scaling service-linked role manually in order to attach the policy to the default EBS KMS key
     const role = new ServiceLinkedRole(accountStack, 'RsyslogSlr', {
       awsServiceName: 'autoscaling.amazonaws.com',
-      customSuffix: acceleratorName,
+      customSuffix: `Rsyslog${acceleratorName}`,
       description: `${acceleratorPrefix}Autoscaling Role for ${acceleratorName}`,
     });
 
     // Sleep 30 seconds after creation of the role, otherwise the key policy creation will fail
-    const roleSleep = new CfnSleep(accountStack, 'SlrSleep', {
+    const roleSleep = new CfnSleep(accountStack, 'RsyslogSlrSleep', {
       sleep: 30 * 1000,
     });
     roleSleep.node.addDependency(role);

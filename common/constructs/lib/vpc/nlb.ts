@@ -30,7 +30,6 @@ export class NetworkLoadBalancer extends cdk.Construct {
     const { ports, protocol, actionType, targetGroupArns } = props;
     const targetGroups = targetGroupArns.map(arn => ({
       targetGroupArn: arn,
-      weight: 1,
     }));
     const listener = new elb.CfnListener(this, `Listener${this.listeners.length}`, {
       port: ports,
@@ -41,14 +40,18 @@ export class NetworkLoadBalancer extends cdk.Construct {
           type: actionType,
           forwardConfig: {
             targetGroups,
-            targetGroupStickinessConfig: {
-              enabled: true,
-              durationSeconds: 3600,
-            },
           },
         },
       ],
     });
     this.listeners.push(listener);
+  }
+
+  get name(): string {
+    return this.resource.name!;
+  }
+
+  get dns(): string {
+    return this.resource.attrDnsName;
   }
 }

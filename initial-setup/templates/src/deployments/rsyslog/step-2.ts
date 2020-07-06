@@ -3,12 +3,14 @@ import * as cdk from '@aws-cdk/core';
 import * as nlb from '@aws-cdk/aws-elasticloadbalancingv2';
 import { NetworkLoadBalancer, RsysLogAutoScalingGroup, Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AcceleratorConfig, RsyslogConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { SecurityGroup } from '../../common/security-group';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { StructuredOutput } from '../../common/structured-output';
+import { RsyslogRoleOutputType, RsyslogDnsOutputType, RsyslogDnsOutputTypeOutput } from './outputs';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -38,8 +40,12 @@ export async function step2(props: RSysLogStep1Props) {
       continue;
     }
 
-    createNlb(accountKey, rsyslogConfig, accountStack, outputs, vpc);
-    createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc);
+    // createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, '');
+
+    const targetGroup = createNlb(accountKey, rsyslogConfig, accountStack, vpc);
+    if (targetGroup) {
+      createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, targetGroup.ref);
+    }
   }
 }
 
@@ -47,7 +53,6 @@ export function createNlb(
   accountKey: string,
   rsyslogConfig: RsyslogConfig,
   accountStack: AcceleratorStack,
-  outputs: StackOutput[],
   vpc: Vpc,
 ) {
   const nlbSubnetIds: string[] = [];
@@ -76,11 +81,21 @@ export function createNlb(
 
   // Add default listener
   balancer.addListener({
-    ports: 80,
-    protocol: 'HTTP',
+    ports: 514,
+    protocol: 'UDP',
     actionType: 'forward',
     targetGroupArns: [rsyslogTargetGroup.ref],
   });
+
+  new StructuredOutput<RsyslogDnsOutputTypeOutput>(accountStack, 'RsyslogDnsOutput', {
+    type: RsyslogDnsOutputType,
+    value: {
+      name: balancer.name,
+      dns: balancer.dns,
+    },
+  });
+
+  return rsyslogTargetGroup;
 }
 
 export function createAsg(
@@ -89,6 +104,7 @@ export function createAsg(
   accountStack: AcceleratorStack,
   outputs: StackOutput[],
   vpc: Vpc,
+  targetGroupArn: string,
 ) {
   const instanceSubnetIds: string[] = [];
   for (const subnetConfig of rsyslogConfig['app-subnets']) {
@@ -105,6 +121,16 @@ export function createAsg(
     return;
   }
 
+  const rsyslogAutoScalingRoleOutputs = StructuredOutput.fromOutputs(outputs, {
+    accountKey,
+    type: RsyslogRoleOutputType,
+  });
+  if (rsyslogAutoScalingRoleOutputs.length !== 1) {
+    console.warn(`Cannot find required service-linked auto scaling role in account "${accountKey}"`);
+    return;
+  }
+  const rsyslogAutoScalingRoleOutput = rsyslogAutoScalingRoleOutputs[0];
+
   // creating security group for the instance
   const securityGroup = new SecurityGroup(accountStack, `RsysLogSG${accountKey}`, {
     securityGroups: rsyslogConfig['security-groups'],
@@ -118,21 +144,22 @@ export function createAsg(
     logGroupName: createLogGroupName(rsyslogConfig['log-group-name']),
   });
 
-  const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
+  const latestRsyslogAmiId = ssm.StringParameter.valueForTypedStringParameter(
     accountStack,
     rsyslogConfig['ssm-image-id'],
     ssm.ParameterType.AWS_EC2_IMAGE_ID,
   );
 
   new RsysLogAutoScalingGroup(accountStack, `RsyslogAsg${accountKey}`, {
-    latestRdgwAmiId,
+    latestRsyslogAmiId,
     subnetIds: instanceSubnetIds,
     stackId: accountStack.stackId,
-    serviceLinkedRoleArn: '', // TODO
+    serviceLinkedRoleArn: rsyslogAutoScalingRoleOutput.roleArn,
     acceleratorPrefix: accountStack.acceleratorPrefix,
     securityGroupId,
     rsyslogConfig,
     logGroupName: logGroup.logGroupName,
+    targetGroupArn,
   });
 }
 
@@ -143,5 +170,6 @@ export function createTargetGroupForInstance(scope: cdk.Construct, targetGroupNa
     protocol: 'UDP',
     port: 514,
     vpcId,
+    healthCheckPort: '514',
   });
 }
