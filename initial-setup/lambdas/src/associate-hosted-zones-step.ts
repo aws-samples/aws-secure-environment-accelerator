@@ -4,7 +4,7 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { ResolversOutput, VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput, StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { Route53 } from '@aws-pbmm/common-lambda/lib/aws/route53';
 import { Route53Resolver } from '@aws-pbmm/common-lambda/lib/aws/r53resolver';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';

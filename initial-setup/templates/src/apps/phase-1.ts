@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { FlowLogContainer } from '../common/flow-log-container';

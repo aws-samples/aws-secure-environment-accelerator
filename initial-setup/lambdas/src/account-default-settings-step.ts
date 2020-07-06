@@ -3,7 +3,7 @@ import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager'
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { EC2 } from '@aws-pbmm/common-lambda/lib/aws/ec2';
-import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';

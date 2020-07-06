@@ -1,5 +1,5 @@
 import * as t from 'io-ts';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { StructuredOutput } from '../../common/structured-output';
 
 export const InstanceTimeOutputType = t.interface(

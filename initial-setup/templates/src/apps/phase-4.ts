@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import { ResolversOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getAccountId } from '../utils/accounts';
 import { pascalCase } from 'pascal-case';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
 import { PhaseInput } from './shared';

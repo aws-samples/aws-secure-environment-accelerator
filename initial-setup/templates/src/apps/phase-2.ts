@@ -4,7 +4,7 @@ import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutput, ImportedVpc } from '../deployments/vpc';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';

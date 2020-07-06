@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { LogBucketOutputType } from '../defaults/outputs';
-import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CreateCloudTrail } from '@custom-resources/create-cloud-trail';
 import { Organizations } from '@custom-resources/organization';

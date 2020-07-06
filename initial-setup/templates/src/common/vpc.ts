@@ -10,7 +10,7 @@ import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment, TransitGatewayRoute } from '../common/transit-gateway-attachment';
 import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AccountStacks } from '../common/account-stacks';
 import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';

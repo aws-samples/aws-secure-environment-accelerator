@@ -1,7 +1,7 @@
 import * as ssm from '@aws-cdk/aws-ssm';
 import { getAccountId } from '../utils/accounts';
 import { VpcOutput } from '../deployments/vpc';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import { StructuredOutput } from '../common/structured-output';
