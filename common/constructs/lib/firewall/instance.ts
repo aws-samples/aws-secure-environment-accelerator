@@ -81,6 +81,20 @@ export class FirewallInstance extends cdk.Construct {
       iamInstanceProfile: this.props.instanceProfile.instanceProfileName,
       keyName: this.props.keyPairName,
       networkInterfaces: this.networkInterfacesProps,
+      blockDeviceMappings: [
+        {
+          deviceName: '/dev/sda1',
+          ebs: {
+            encrypted: true,
+          },
+        },
+        {
+          deviceName: '/dev/sdb',
+          ebs: {
+            encrypted: true,
+          },
+        },
+      ],
       userData: cdk.Fn.base64(
         JSON.stringify(
           {

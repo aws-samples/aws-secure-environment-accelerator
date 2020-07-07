@@ -2,28 +2,45 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 
 export interface TransitGatewayAttachmentProps {
+  name: string;
+  vpcId: string;
   subnetIds: string[];
   transitGatewayId: string;
-  vpcId: string;
+}
+
+export class TransitGatewayAttachment extends cdk.Construct {
+  public readonly resource: ec2.CfnTransitGatewayAttachment;
+
+  constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps) {
+    super(parent, name);
+
+    this.resource = new ec2.CfnTransitGatewayAttachment(this, 'Resource', props);
+    cdk.Tag.add(this.resource, 'Name', props.name, { priority: 1000 });
+  }
+
+  get transitGatewayAttachmentId(): string {
+    return this.resource.ref;
+  }
+}
+
+export interface TransitGatewayRouteProps {
+  tgwAttachmentId: string;
   tgwRouteAssociates?: string[];
   tgwRoutePropagates?: string[];
   blackhole?: boolean;
   cidr?: string;
 }
 
-export class TransitGatewayAttachment extends cdk.Construct {
-  public readonly tgwAttach: ec2.CfnTransitGatewayAttachment;
-  constructor(parent: cdk.Construct, name: string, props: TransitGatewayAttachmentProps) {
+export class TransitGatewayRoute extends cdk.Construct {
+  constructor(parent: cdk.Construct, name: string, props: TransitGatewayRouteProps) {
     super(parent, name);
 
-    this.tgwAttach = new ec2.CfnTransitGatewayAttachment(this, name, props);
     for (const [index, route] of props.tgwRouteAssociates?.entries() || []) {
       new ec2.CfnTransitGatewayRouteTableAssociation(this, `tgw_associate_${index}`, {
-        transitGatewayAttachmentId: this.tgwAttach.ref,
+        transitGatewayAttachmentId: props.tgwAttachmentId,
         transitGatewayRouteTableId: route,
       });
 
-      // some validation logic need to satisfy here: https://code.amazon.com/packages/AwsHubApiService/blobs/7817ec705ee0488995fc126c81c7cb86b82e2970/--/src/awshub/apiservice/validation/InputValidator.scala#L784
       if (props.blackhole) {
         new ec2.CfnTransitGatewayRoute(this, `tgw_tgw_route_${index}`, {
           transitGatewayRouteTableId: route,
@@ -35,7 +52,7 @@ export class TransitGatewayAttachment extends cdk.Construct {
 
     for (const [index, route] of props.tgwRoutePropagates?.entries() || []) {
       new ec2.CfnTransitGatewayRouteTablePropagation(this, `tgw_propagate_${index}`, {
-        transitGatewayAttachmentId: this.tgwAttach.ref,
+        transitGatewayAttachmentId: props.tgwAttachmentId,
         transitGatewayRouteTableId: route,
       });
     }

@@ -19,6 +19,7 @@ import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
 import * as madDeployment from '../deployments/mad';
+import * as tgwDeployment from '../deployments/transit-gateway';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -239,6 +240,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     vpcs: allVpcs,
+    outputs,
+  });
+
+  await tgwDeployment.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
     outputs,
   });
 }

@@ -3,6 +3,9 @@
     "RoleName": {
       "Type": "String"
     },
+    "MaxSessionDuration": {
+      "Type": "Number"
+    },
     "AssumedByRoleArn": {
       "Type": "CommaDelimitedList"
     }
@@ -41,6 +44,9 @@
         ],
         "RoleName": {
           "Ref": "RoleName"
+        },
+        "MaxSessionDuration": {
+          "Ref": "MaxSessionDuration"
         },
         "Tags": [
           {
