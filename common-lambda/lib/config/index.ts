@@ -313,19 +313,19 @@ export const MadConfigType = t.interface({
   'password-secret-name': optional(t.string),
 });
 
-export const RsyslogSubnetConfigType = t.interface({
+export const RsyslogSubnetConfig = t.interface({
   name: t.string,
   az: t.string,
 });
 
-export const RsyslogType = t.interface({
+export const RsyslogConfig = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   region: t.string,
   'log-group-name': t.string,
   'security-groups': t.array(SecurityGroupConfigType),
-  'app-subnets': t.array(RsyslogSubnetConfigType),
-  'web-subnets': t.array(RsyslogSubnetConfigType),
+  'app-subnets': t.array(RsyslogSubnetConfig),
+  'web-subnets': t.array(RsyslogSubnetConfig),
   'min-rsyslog-hosts': t.number,
   'desired-rsyslog-hosts': t.number,
   'max-rsyslog-hosts': t.number,
@@ -459,7 +459,7 @@ export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigTyp
 export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
-  rsyslog: optional(RsyslogType),
+  rsyslog: optional(RsyslogConfig),
   adc: optional(AdcConfigType),
   firewall: optional(FirewallConfigType),
   'firewall-manager': optional(FirewallManagerConfigType),
@@ -631,7 +631,7 @@ export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 
-export type RsyslogConfig = t.TypeOf<typeof RsyslogType>;
+export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
 
 export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
 

@@ -4,8 +4,7 @@ import { ServiceLinkedRole } from '@aws-pbmm/constructs/lib/iam';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnSleep } from '@custom-resources/cfn-sleep';
 import { AccountStacks } from '../../common/account-stacks';
-import { StructuredOutput } from '../../common/structured-output';
-import { RsyslogAutoScalingRoleOutput, RsyslogRoleOutputType } from './outputs';
+import { CfnRsyslogAutoScalingRoleOutput } from './outputs';
 
 export interface RsyslogStep1Props {
   acceleratorName: string;
@@ -38,7 +37,7 @@ export async function step1(props: RsyslogStep1Props) {
     // Create the auto scaling service-linked role manually in order to attach the policy to the default EBS KMS key
     const role = new ServiceLinkedRole(accountStack, 'RsyslogSlr', {
       awsServiceName: 'autoscaling.amazonaws.com',
-      customSuffix: `Rsyslog${acceleratorName}`,
+      customSuffix: `${acceleratorName}-Rsyslog`,
       description: `${acceleratorPrefix}Autoscaling Role for ${acceleratorName}`,
     });
 
@@ -76,11 +75,8 @@ export async function step1(props: RsyslogStep1Props) {
       }),
     );
 
-    new StructuredOutput<RsyslogAutoScalingRoleOutput>(accountStack, 'RsyslogSlrOutput', {
-      type: RsyslogRoleOutputType,
-      value: {
-        roleArn: role.roleArn,
-      },
+    new CfnRsyslogAutoScalingRoleOutput(accountStack, 'RsyslogSlrOutput', {
+      roleArn: role.roleArn,
     });
   }
 }

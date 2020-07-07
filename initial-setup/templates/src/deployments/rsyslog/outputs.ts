@@ -1,19 +1,20 @@
 import * as t from 'io-ts';
+import { createCfnStructuredOutput } from '../../common/structured-output';
 
-export const RsyslogRoleOutputType = t.interface(
+export const RsyslogAutoScalingRoleOutput = t.interface(
   {
     roleArn: t.string,
   },
   'RsyslogAutoScalingRole',
 );
-
-export const RsyslogDnsOutputType = t.interface(
+export const RsyslogDnsOutputTypeOutput = t.interface(
   {
     name: t.string,
     dns: t.string,
   },
   'RsyslogNlbDns',
 );
-
-export type RsyslogAutoScalingRoleOutput = t.TypeOf<typeof RsyslogRoleOutputType>;
-export type RsyslogDnsOutputTypeOutput = t.TypeOf<typeof RsyslogDnsOutputType>;
+export type RsyslogAutoScalingRoleOutput = t.TypeOf<typeof RsyslogAutoScalingRoleOutput>;
+export type RsyslogDnsOutputTypeOutput = t.TypeOf<typeof RsyslogDnsOutputTypeOutput>;
+export const CfnRsyslogAutoScalingRoleOutput = createCfnStructuredOutput(RsyslogAutoScalingRoleOutput);
+export const CfnRsyslogDnsOutputTypeOutput = createCfnStructuredOutput(RsyslogDnsOutputTypeOutput);

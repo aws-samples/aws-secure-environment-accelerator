@@ -11,7 +11,7 @@ import { SecurityGroup } from '../../common/security-group';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { StructuredOutput } from '../../common/structured-output';
-import { RsyslogRoleOutputType, RsyslogDnsOutputType, RsyslogDnsOutputTypeOutput } from './outputs';
+import { CfnRsyslogDnsOutputTypeOutput, RsyslogAutoScalingRoleOutput } from './outputs';
 import { checkAccountWarming } from '../account-warming/outputs';
 
 export interface RSysLogStep1Props {
@@ -91,12 +91,9 @@ export function createNlb(
     targetGroupArns: [targetGroupArn],
   });
 
-  new StructuredOutput<RsyslogDnsOutputTypeOutput>(accountStack, 'RsyslogDnsOutput', {
-    type: RsyslogDnsOutputType,
-    value: {
-      name: balancer.name,
-      dns: balancer.dns,
-    },
+  new CfnRsyslogDnsOutputTypeOutput(accountStack, 'RsyslogDnsOutput', {
+    name: balancer.name,
+    dns: balancer.dns,
   });
 }
 
@@ -126,7 +123,7 @@ export function createAsg(
 
   const rsyslogAutoScalingRoleOutputs = StructuredOutput.fromOutputs(outputs, {
     accountKey,
-    type: RsyslogRoleOutputType,
+    type: RsyslogAutoScalingRoleOutput,
   });
   if (rsyslogAutoScalingRoleOutputs.length !== 1) {
     console.warn(`Cannot find required service-linked auto scaling role in account "${accountKey}"`);

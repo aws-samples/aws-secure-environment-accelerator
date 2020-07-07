@@ -345,7 +345,7 @@
       "account-name": "Operations",
       "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
       "ou": "core",
-      "account-warming-required": false,
+      "account-warming-required": true,
       "limits": {},
       "share-mad-from": "",
       "iam": {
