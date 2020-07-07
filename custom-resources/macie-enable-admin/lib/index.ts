@@ -3,7 +3,7 @@ import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
 
 export interface MacieEnableAdminProps {
-  adminAccountId: string;
+  accountId: string;
   clientToken?: string;
 }
 
@@ -15,7 +15,7 @@ export class MacieEnableAdmin extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, props: MacieEnableAdminProps) {
     super(scope, id);
-    const { adminAccountId, clientToken } = props;
+    const { accountId, clientToken } = props;
 
     const physicalResourceId = custom.PhysicalResourceId.of('EnableOrganizationAdminAccount');
     const onCreateOrUpdate: custom.AwsSdkCall = {
@@ -23,7 +23,7 @@ export class MacieEnableAdmin extends cdk.Construct {
       action: 'enableOrganizationAdminAccount',
       physicalResourceId,
       parameters: {
-        adminAccountId,
+        adminAccountId: accountId,
         clientToken,
       },
     };
