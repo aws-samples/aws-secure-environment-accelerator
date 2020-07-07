@@ -1,5 +1,11 @@
 # Operations & Troubleshooting Guide
 
+**TODO**(ggindera):
+
+- How to update the configuration file?
+- How to restart the installer?
+- How to restart the state machine?
+
 ## System Overview
 
 **TODO**(ggindera): Diagram showing the complete system overview
@@ -49,6 +55,8 @@ The stack additionally consists of the following resources:
 **TODO**(ggindera): Describe all resources in the `PBMMAccel-InitialSetup` stack.
 
 - AWS::CodeBuild::Project
+  - `PipelineCdkDeploy9603AB0D`
+- AWS::CodeCommit::Repository
   - `PipelineCdkDeploy9603AB0D`
 - AWS::IAM::Policy
   - `PipelineRoleDefaultPolicyC7A05455`
@@ -246,7 +254,15 @@ _Executed only when using AWS Landing Zone baseline_
 
 This step starts the `PBMMAccel-ALZCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AVM and waits for the account to be created and configured.
 
+#### Organizational Unit Validation
+
+_Executed only when using AWS Organizations baseline_
+
+**TODO**(ggindera)
+
 #### Load Organization Configuration
+
+_Executed only when using AWS Organizations baseline_
 
 This step is a Lambda function that validates the Accelerator deployment and configuration.
 
@@ -255,8 +271,6 @@ This step fails when
 - an organizational unit that is used by the Accelerator can not be found;
 - an account is present in the Accelerator configuration but does not exist in AWS Organizations;
 - an account has a name, email address or organizational unit that is different from the Accelerator configuration.
-
-_Executed only when using AWS Organizations baseline_
 
 #### Install CloudFormation Role in Master
 
@@ -271,6 +285,10 @@ _Executed only when using AWS Organizations baseline_
 This step starts the `PBMMAccel-OrgCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AWS Organizations and waits for the account to be created and configured. The newly created account will be moved to the correct organizational unit and will have an the `PBMMAccel-Quarantine-New-Object` Service Control Policy (SCP) attached to it. The SCP will only be removed after the Accelerator state machine has completed.
 
 **TODO**(bmycroft): Explain why the SCP is attached.
+
+#### Load Organizational Units
+
+**TODO**(ggindera)
 
 #### Load Accounts
 
