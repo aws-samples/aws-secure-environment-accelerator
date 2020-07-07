@@ -207,7 +207,7 @@ export class CdkToolkit {
     try {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
       const cfn = sdk.cloudFormation();
-      cfn
+      await cfn
         .updateTerminationProtection({
           StackName: stack.id,
           EnableTerminationProtection: false,
