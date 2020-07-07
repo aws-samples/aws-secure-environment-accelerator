@@ -34,7 +34,9 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
   return `${properties.accountId}`;
 }
 
-async function onCreateOrUpdate(event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent) {
+async function onCreateOrUpdate(
+  event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
+) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const response = await enableOrgAdmin(properties);
   return {
@@ -45,17 +47,21 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceCreateEvent |
 
 async function enableOrgAdmin(properties: HandlerProperties) {
   try {
-    const enableAdmin = await macie.enableOrganizationAdminAccount(
-      {
+    const enableAdmin = await macie
+      .enableOrganizationAdminAccount({
         adminAccountId: properties.accountId,
         clientToken: properties.clientToken,
-      }
-    ).promise();
-  
+      })
+      .promise();
+
     return enableAdmin;
   } catch (e) {
     const message = `${e}`;
-    if (message.includes('The request failed because an account is already enabled as the Macie delegated administrator for the organization')) {
+    if (
+      message.includes(
+        'The request failed because an account is already enabled as the Macie delegated administrator for the organization',
+      )
+    ) {
       console.warn(e);
     } else {
       throw e;
