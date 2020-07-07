@@ -32,21 +32,21 @@ function addAccelProtectedTag<T extends cdk.Construct>(
 }
 
 export class AcceleratorProtectedTagger implements cdk.IAspect {
-  readonly ACCELERATOR_NAME: string;
+  readonly acceleratorName: string;
 
   // Non-CFN constructs have a tag with higher priority so that the non-CFN construct tag will get priority over the CFN construct tag
-  readonly ACTIONS: Action[];
+  readonly actions: Action[];
 
   constructor(acceleratorName: string) {
-    this.ACCELERATOR_NAME = acceleratorName;
-    this.ACTIONS = [
-      addAccelProtectedTag(ec2.SecurityGroup, this.ACCELERATOR_NAME, 200),
-      addAccelProtectedTag(ec2.CfnSecurityGroup, this.ACCELERATOR_NAME, 100),
+    this.acceleratorName = acceleratorName;
+    this.actions = [
+      addAccelProtectedTag(ec2.SecurityGroup, this.acceleratorName, 200),
+      addAccelProtectedTag(ec2.CfnSecurityGroup, this.acceleratorName, 100),
     ];
   }
 
   visit(node: cdk.IConstruct): void {
-    for (const action of this.ACTIONS) {
+    for (const action of this.actions) {
       if (action(node)) {
         // Break to only apply the first action that matches
         break;
