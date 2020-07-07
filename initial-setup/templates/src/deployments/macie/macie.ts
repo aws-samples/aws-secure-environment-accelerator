@@ -30,7 +30,7 @@ export async function step1(props: MacieStepProps) {
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey, region);
 
     if (masterAccountId) {
-      const admin = new MacieEnableAdmin(masterAccountStack, 'GuardDutyAdmin', {
+      const admin = new MacieEnableAdmin(masterAccountStack, 'MacieEnableAdmin', {
         accountId: masterAccountId,
       });
     }

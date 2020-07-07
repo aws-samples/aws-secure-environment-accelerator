@@ -37,6 +37,10 @@ export class MacieEnableAdmin extends cdk.Construct {
           actions: ['macie2:EnableOrganizationAdminAccount'],
           resources: ['*'],
         }),
+        new iam.PolicyStatement({
+          actions: ['organizations:*'],
+          resources: ['*'],
+        })
       ]),
     });
   }
