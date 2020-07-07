@@ -35,13 +35,12 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
     } = props;
 
     const launchConfig = new LaunchConfiguration(this, 'RsyslogLaunchConfiguration', {
-      launchConfigurationName: `${acceleratorPrefix}-RsyslogLaunchConfiguration`,
-      associatePublicIpAddress: true, // TODO
+      launchConfigurationName: `${acceleratorPrefix}RsyslogLaunchConfiguration`,
+      associatePublicIpAddress: false,
       imageId: latestRsyslogAmiId,
       securityGroups: [securityGroupId],
       iamInstanceProfile: createIamInstanceProfileName(rsyslogConfig['rsyslog-instance-role']),
       instanceType: rsyslogConfig['rsyslog-instance-type'],
-      keyName: 'test-operations', // TODO
       blockDeviceMappings: [
         {
           deviceName: '/dev/xvda',
@@ -55,8 +54,8 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
     });
 
     const autoScalingGroupSize = rsyslogConfig['desired-rsyslog-hosts'];
-    new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroupB', {
-      autoScalingGroupName: `${acceleratorPrefix}-RsyslogAutoScalingGroup`,
+    new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroup', {
+      autoScalingGroupName: `${acceleratorPrefix}RsyslogAutoScalingGroup`,
       launchConfigurationName: launchConfig.ref,
       vpcZoneIdentifier: subnetIds,
       maxInstanceLifetime: rsyslogConfig['rsyslog-max-instance-age'] * 86400,

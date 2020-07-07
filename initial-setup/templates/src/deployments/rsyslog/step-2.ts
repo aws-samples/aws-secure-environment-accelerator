@@ -12,6 +12,7 @@ import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { StructuredOutput } from '../../common/structured-output';
 import { RsyslogRoleOutputType, RsyslogDnsOutputType, RsyslogDnsOutputTypeOutput } from './outputs';
+import { checkAccountWarming } from '../account-warming/outputs';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -30,6 +31,11 @@ export async function step2(props: RSysLogStep1Props) {
       continue;
     }
 
+    if (accountConfig['account-warming-required'] && !checkAccountWarming(accountKey, outputs)) {
+      console.log(`Skipping rsyslog deployment: account "${accountKey}" is not warmed`);
+      continue;
+    }
+
     const vpc = vpcs.find(v => v.name === rsyslogConfig['vpc-name']);
     if (!vpc) {
       console.log(`Skipping Rsyslog deployment because of missing VPC "${rsyslogConfig['vpc-name']}"`);
@@ -42,16 +48,19 @@ export async function step2(props: RSysLogStep1Props) {
       continue;
     }
 
-    // createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, '');
-
-    const targetGroup = createNlb(accountKey, rsyslogConfig, accountStack, vpc);
-    if (targetGroup) {
-      createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, targetGroup.ref, centralBucket.bucketName);
-    }
+    const rsyslogTargetGroup = createTargetGroupForInstance(accountStack, 'RsyslogTG', vpc.id);
+    createNlb(accountKey, rsyslogConfig, accountStack, vpc, rsyslogTargetGroup.ref);
+    createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, rsyslogTargetGroup.ref, centralBucket.bucketName);
   }
 }
 
-export function createNlb(accountKey: string, rsyslogConfig: RsyslogConfig, accountStack: AcceleratorStack, vpc: Vpc) {
+export function createNlb(
+  accountKey: string,
+  rsyslogConfig: RsyslogConfig,
+  accountStack: AcceleratorStack,
+  vpc: Vpc,
+  targetGroupArn: string,
+) {
   const nlbSubnetIds: string[] = [];
   for (const subnetConfig of rsyslogConfig['web-subnets']) {
     const subnet = vpc.tryFindSubnetByNameAndAvailabilityZone(subnetConfig.name, subnetConfig.az);
@@ -67,10 +76,8 @@ export function createNlb(accountKey: string, rsyslogConfig: RsyslogConfig, acco
     return;
   }
 
-  const rsyslogTargetGroup = createTargetGroupForInstance(accountStack, 'RsyslogTG', vpc.id);
-
   const balancer = new NetworkLoadBalancer(accountStack, `NlbRsyslog${accountKey}`, {
-    nlbName: 'RsyslogNlb',
+    nlbName: 'RsyslogNLB',
     scheme: 'internal',
     subnetIds: nlbSubnetIds,
     ipType: 'ipv4',
@@ -81,7 +88,7 @@ export function createNlb(accountKey: string, rsyslogConfig: RsyslogConfig, acco
     ports: 514,
     protocol: 'TCP_UDP',
     actionType: 'forward',
-    targetGroupArns: [rsyslogTargetGroup.ref],
+    targetGroupArns: [targetGroupArn],
   });
 
   new StructuredOutput<RsyslogDnsOutputTypeOutput>(accountStack, 'RsyslogDnsOutput', {
@@ -91,8 +98,6 @@ export function createNlb(accountKey: string, rsyslogConfig: RsyslogConfig, acco
       dns: balancer.dns,
     },
   });
-
-  return rsyslogTargetGroup;
 }
 
 export function createAsg(
