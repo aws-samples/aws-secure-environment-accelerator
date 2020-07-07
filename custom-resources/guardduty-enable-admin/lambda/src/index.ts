@@ -60,6 +60,8 @@ async function enableOrgAdmin(properties: HandlerProperties) {
       message.includes(`the account is already enabled as the GuardDuty delegated administrator for the organization`)
     ) {
       console.warn(message);
+    } else {
+      throw e;
     }
   }
 }
