@@ -1,51 +1,41 @@
 import * as cdk from '@aws-cdk/core';
-import { LaunchConfiguration } from '../../../constructs/lib/autoscaling';
-import { createIamInstanceProfileName } from '../../../../initial-setup/templates/src/common/iam-assets';
-import { RsyslogConfig } from '../../../../common-lambda/lib/config';
+import { LaunchConfiguration } from '../../lib/autoscaling';
 import { CfnAutoScalingGroup } from '@aws-cdk/aws-autoscaling';
 
 export interface RsysLogAutoScalingGroupProps extends cdk.StackProps {
   latestRsyslogAmiId: string;
   subnetIds: string[];
-  stackId: string;
   serviceLinkedRoleArn: string;
   acceleratorPrefix: string;
   securityGroupId: string;
-  rsyslogConfig: RsyslogConfig;
   logGroupName: string;
   targetGroupArn: string;
   centralBucketName: string;
+  instanceRole: string;
+  instanceType: string;
+  rootVolumeSize: number;
+  desiredInstanceHosts: number;
+  minInstanceHosts: number;
+  maxInstanceHosts: number;
+  maxInstanceAge: number;
 }
 
 export class RsysLogAutoScalingGroup extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: RsysLogAutoScalingGroupProps) {
     super(scope, id);
 
-    const {
-      latestRsyslogAmiId,
-      stackId,
-      rsyslogConfig,
-      subnetIds,
-      serviceLinkedRoleArn,
-      acceleratorPrefix,
-      securityGroupId,
-      logGroupName,
-      targetGroupArn,
-      centralBucketName,
-    } = props;
-
     const launchConfig = new LaunchConfiguration(this, 'RsyslogLaunchConfiguration', {
-      launchConfigurationName: `${acceleratorPrefix}RsyslogLaunchConfiguration`,
+      launchConfigurationName: `${props.acceleratorPrefix}RsyslogLaunchConfiguration`,
       associatePublicIpAddress: false,
-      imageId: latestRsyslogAmiId,
-      securityGroups: [securityGroupId],
-      iamInstanceProfile: createIamInstanceProfileName(rsyslogConfig['rsyslog-instance-role']),
-      instanceType: rsyslogConfig['rsyslog-instance-type'],
+      imageId: props.latestRsyslogAmiId,
+      securityGroups: [props.securityGroupId],
+      iamInstanceProfile: createIamInstanceProfileName(props.instanceRole),
+      instanceType: props.instanceType,
       blockDeviceMappings: [
         {
           deviceName: '/dev/xvda',
           ebs: {
-            volumeSize: rsyslogConfig['rsyslog-root-volume-size'],
+            volumeSize: props.rootVolumeSize,
             volumeType: 'gp2',
             encrypted: true,
           },
@@ -53,30 +43,34 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
       ],
     });
 
-    const autoScalingGroupSize = rsyslogConfig['desired-rsyslog-hosts'];
+    const autoScalingGroupSize = props.desiredInstanceHosts;
     new CfnAutoScalingGroup(this, 'RsyslogAutoScalingGroup', {
-      autoScalingGroupName: `${acceleratorPrefix}RsyslogAutoScalingGroup`,
+      autoScalingGroupName: `${props.acceleratorPrefix}RsyslogAutoScalingGroup`,
       launchConfigurationName: launchConfig.ref,
-      vpcZoneIdentifier: subnetIds,
-      maxInstanceLifetime: rsyslogConfig['rsyslog-max-instance-age'] * 86400,
-      minSize: `${rsyslogConfig['min-rsyslog-hosts']}`,
-      maxSize: `${rsyslogConfig['max-rsyslog-hosts']}`,
+      vpcZoneIdentifier: props.subnetIds,
+      maxInstanceLifetime: props.maxInstanceAge * 86400,
+      minSize: `${props.minInstanceHosts}`,
+      maxSize: `${props.maxInstanceHosts}`,
       desiredCapacity: `${autoScalingGroupSize}`,
-      serviceLinkedRoleArn,
-      targetGroupArns: [targetGroupArn],
+      serviceLinkedRoleArn: props.serviceLinkedRoleArn,
+      targetGroupArns: [props.targetGroupArn],
       healthCheckType: 'ELB',
       healthCheckGracePeriod: 300,
       tags: [
         {
           key: 'Name',
-          value: `${acceleratorPrefix}rsyslog`,
+          value: `${props.acceleratorPrefix}rsyslog`,
           propagateAtLaunch: true,
         },
       ],
     });
 
     launchConfig.userData = cdk.Fn.base64(
-      `#!/bin/bash\necho "[v8-stable]\nname=Adiscon CentOS-6 - local packages for \\$basearch\nbaseurl=http://rpms.adiscon.com/v8-stable/epel-6/\\$basearch\nenabled=0\ngpgcheck=0\ngpgkey=http://rpms.adiscon.com/RPM-GPG-KEY-Adiscon\nprotect=1" >> /etc/yum.repos.d/rsyslog.repo\nyum update -y\nyum install -y rsyslog --enablerepo=v8-stable --setopt=v8-stable.priority=1\nchkconfig rsyslog on\naws s3 cp s3://${centralBucketName}/rsyslog/rsyslog.conf /etc/rsyslog.conf\nservice rsyslog restart\nwget https://s3.${cdk.Aws.REGION}.amazonaws.com/amazoncloudwatch-agent-${cdk.Aws.REGION}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\nrpm -U ./amazon-cloudwatch-agent.rpm\ninstanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)\necho "{\\"logs\\": {\\"logs_collected\\": {\\"files\\": {\\"collect_list\\": [{\\"file_path\\": \\"/var/log/messages\\",\\"log_group_name\\": \\"${logGroupName}\\",\\"log_stream_name\\": \\"$instanceid\\"}]}}}}" >> /opt/aws/amazon-cloudwatch-agent/bin/config.json\n/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -s -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json`,
+      `#!/bin/bash\necho "[v8-stable]\nname=Adiscon CentOS-6 - local packages for \\$basearch\nbaseurl=http://rpms.adiscon.com/v8-stable/epel-6/\\$basearch\nenabled=0\ngpgcheck=0\ngpgkey=http://rpms.adiscon.com/RPM-GPG-KEY-Adiscon\nprotect=1" >> /etc/yum.repos.d/rsyslog.repo\nyum update -y\nyum install -y rsyslog --enablerepo=v8-stable --setopt=v8-stable.priority=1\nchkconfig rsyslog on\naws s3 cp s3://${props.centralBucketName}/rsyslog/rsyslog.conf /etc/rsyslog.conf\nservice rsyslog restart\nwget https://s3.${cdk.Aws.REGION}.amazonaws.com/amazoncloudwatch-agent-${cdk.Aws.REGION}/amazon_linux/amd64/latest/amazon-cloudwatch-agent.rpm\nrpm -U ./amazon-cloudwatch-agent.rpm\ninstanceid=$(curl http://169.254.169.254/latest/meta-data/instance-id)\necho "{\\"logs\\": {\\"logs_collected\\": {\\"files\\": {\\"collect_list\\": [{\\"file_path\\": \\"/var/log/messages\\",\\"log_group_name\\": \\"${props.logGroupName}\\",\\"log_stream_name\\": \\"$instanceid\\"}]}}}}" >> /opt/aws/amazon-cloudwatch-agent/bin/config.json\n/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -s -a fetch-config -m ec2 -c file:/opt/aws/amazon-cloudwatch-agent/bin/config.json`,
     );
   }
+}
+
+function createIamInstanceProfileName(iamRoleName: string) {
+  return `${iamRoleName}-ip`;
 }

@@ -156,14 +156,19 @@ export function createAsg(
   new RsysLogAutoScalingGroup(accountStack, `RsyslogAsg${accountKey}`, {
     latestRsyslogAmiId,
     subnetIds: instanceSubnetIds,
-    stackId: accountStack.stackId,
     serviceLinkedRoleArn: rsyslogAutoScalingRoleOutput.roleArn,
     acceleratorPrefix: accountStack.acceleratorPrefix,
     securityGroupId,
-    rsyslogConfig,
     logGroupName: logGroup.logGroupName,
     targetGroupArn,
     centralBucketName,
+    instanceRole: rsyslogConfig['rsyslog-instance-role'],
+    instanceType: rsyslogConfig['rsyslog-instance-type'],
+    rootVolumeSize: rsyslogConfig['rsyslog-root-volume-size'],
+    desiredInstanceHosts: rsyslogConfig['desired-rsyslog-hosts'],
+    minInstanceHosts: rsyslogConfig['min-rsyslog-hosts'],
+    maxInstanceHosts: rsyslogConfig['max-rsyslog-hosts'],
+    maxInstanceAge: rsyslogConfig['max-rsyslog-hosts'],
   });
 }
 
