@@ -345,6 +345,7 @@
       "account-name": "Operations",
       "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
       "ou": "core",
+      "account-warming-required": false,
       "limits": {},
       "share-mad-from": "",
       "iam": {
@@ -389,7 +390,8 @@
             "ssm-log-archive-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
-              "CloudWatchAgentServerPolicy"
+              "CloudWatchAgentServerPolicy",
+              "AmazonS3ReadOnlyAccess"
             ],
             "boundary-policy": "Default-Boundary-Policy"
           }
@@ -468,19 +470,19 @@
           ]
         },
         "rsyslog": {
-          "deploy": true,
+          "deploy": false,
           "vpc-name": "Central",
           "region": "ca-central-1",
-          "log-group-name": "/PBMMAccel/rsyslog/var/log/messages",
+          "log-group-name": "rsyslog/var/log/messages",
           "security-groups": [
             {
               "name": "RsyslogInstanceSG",
               "inbound-rules": [
                 {
-                  "description": "Allow UDP Traffic Inbound",
-                  "type": ["UDP"],
-                  "port": 514,
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                  "description": "Allow Traffic Inbound",
+                  "tcp-ports": [514],
+                  "udp-ports": [514],
+                  "source": ["10.0.0.0/8"]
                 }
               ],
               "outbound-rules": [
