@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { AcceleratorNameTagger } from '.';
+import { AcceleratorNameTagger, AcceleratorProtectedTagger } from '.';
 
 export interface AcceleratorStackProps extends cdk.StackProps {
   acceleratorName: string;
@@ -18,6 +18,7 @@ export class AcceleratorStack extends cdk.Stack {
 
     this.node.applyAspect(new cdk.Tag('Accelerator', this.acceleratorName));
     this.node.applyAspect(new AcceleratorNameTagger());
+    this.node.applyAspect(new AcceleratorProtectedTagger(this.acceleratorName));
   }
 
   static of(construct: cdk.IConstruct): AcceleratorStack {
