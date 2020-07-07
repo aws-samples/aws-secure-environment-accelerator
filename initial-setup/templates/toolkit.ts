@@ -2,7 +2,7 @@ import path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
-import { ToolkitInfo } from 'aws-cdk';
+import { ToolkitInfo, Mode } from 'aws-cdk';
 import { setVerbose } from 'aws-cdk/lib/logging';
 import { bootstrapEnvironment } from 'aws-cdk/lib/api/bootstrap';
 import { Configuration } from 'aws-cdk/lib/settings';
@@ -205,6 +205,18 @@ export class CdkToolkit {
    */
   private async destroyStack(stack: CloudFormationStackArtifact): Promise<void> {
     try {
+      const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
+      const cfn = sdk.cloudFormation();
+      cfn
+        .updateTerminationProtection({
+          StackName: stack.id,
+          EnableTerminationProtection: false,
+        })
+        .promise();
+    } catch (e) {
+      console.warn(`${stack.displayName}: cannot disable stack termination protection`);
+    }
+    try {
       await this.cloudFormation.destroyStack({
         stack,
         deployName: stack.stackName,
@@ -213,10 +225,7 @@ export class CdkToolkit {
       });
     } catch (e) {
       const errorMessage = `${e}`;
-      if (errorMessage.includes('cannot be deleted while TerminationProtection is enabled')) {
-        console.warn(`${stack.displayName}: cannot delete existing stack with stack termination on`);
-        return;
-      } else if (errorMessage.includes('it may need to be manually deleted')) {
+      if (errorMessage.includes('it may need to be manually deleted')) {
         console.warn(`${stack.displayName}: ${e}`);
         return;
       }
