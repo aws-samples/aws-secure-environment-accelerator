@@ -40,7 +40,7 @@ export class MacieEnableAdmin extends cdk.Construct {
         new iam.PolicyStatement({
           actions: ['organizations:*'],
           resources: ['*'],
-        })
+        }),
       ]),
     });
   }
