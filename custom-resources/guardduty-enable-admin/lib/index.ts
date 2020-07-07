@@ -1,6 +1,5 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { HandlerProperties } from '@custom-resources/guardduty-enable-admin-lambda';
@@ -14,7 +13,7 @@ export interface GuardDutyAdminProps {
  * Custom resource implementation that enable admin for Guard Duty
  */
 export class GuardDutyAdmin extends cdk.Construct {
-  private readonly resource: custom.AwsCustomResource;
+  private readonly resource: cdk.CustomResource;
 
   constructor(scope: cdk.Construct, id: string, props: GuardDutyAdminProps) {
     super(scope, id);
