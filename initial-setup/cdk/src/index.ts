@@ -67,10 +67,9 @@ export namespace InitialSetup {
 
       const stack = cdk.Stack.of(this);
 
-      const accountsSecret = new secrets.CfnSecret(this, 'Accounts', {
-        name: 'accelerator/accounts',
+      const accountsSecret = new secrets.Secret(this, 'Accounts', {
+        secretName: 'accelerator/accounts',
         description: 'This secret contains the information about the accounts that are used for deployment.',
-        secretString: '[]',
       });
 
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
@@ -83,10 +82,9 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
-      const organizationsSecret = new secrets.CfnSecret(this, 'Organizations', {
-        name: 'accelerator/organizations',
+      const organizationsSecret = new secrets.Secret(this, 'Organizations', {
+        secretName: 'accelerator/organizations',
         description: 'This secret contains the information about the organizations that are used for deployment.',
-        secretString: '[]',
       });
 
       // This is the maximum time before a build times out
@@ -126,10 +124,10 @@ export namespace InitialSetup {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
-          ACCOUNTS_SECRET_ID: accountsSecret.ref,
+          ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
-          ORGANIZATIONS_SECRET_ID: organizationsSecret.ref,
+          ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
       });
 
@@ -301,7 +299,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          organizationsSecretId: organizationsSecret.ref,
+          organizationsSecretId: organizationsSecret.secretArn,
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
@@ -316,7 +314,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          accountsSecretId: accountsSecret.ref,
+          accountsSecretId: accountsSecret.secretArn,
           'configuration.$': '$.configuration',
         },
         resultPath: '$',
@@ -450,8 +448,8 @@ export namespace InitialSetup {
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
-          accountsSecretId: accountsSecret.ref,
-          organizationsSecretId: organizationsSecret.ref,
+          accountsSecretId: accountsSecret.secretArn,
+          organizationsSecretId: organizationsSecret.secretArn,
           configBranch: props.configBranchName,
         },
         resultPath: '$.configuration.configCommitId',
