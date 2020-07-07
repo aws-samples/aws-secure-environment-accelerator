@@ -155,7 +155,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
-  })
+  });
 
   /**
    * Code to create LogGroups required for DNS Logging
