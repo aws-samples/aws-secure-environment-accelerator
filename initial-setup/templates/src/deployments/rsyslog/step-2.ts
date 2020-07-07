@@ -168,7 +168,7 @@ export function createAsg(
     desiredInstanceHosts: rsyslogConfig['desired-rsyslog-hosts'],
     minInstanceHosts: rsyslogConfig['min-rsyslog-hosts'],
     maxInstanceHosts: rsyslogConfig['max-rsyslog-hosts'],
-    maxInstanceAge: rsyslogConfig["rsyslog-max-instance-age"],
+    maxInstanceAge: rsyslogConfig['rsyslog-max-instance-age'],
   });
 }
 
