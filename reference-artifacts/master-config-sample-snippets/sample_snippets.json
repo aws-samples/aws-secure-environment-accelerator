@@ -1,11 +1,19 @@
-Config File Examples:  {Not in sample config file}
+﻿Config File Examples:  {Not in sample config file}
 ************************************Update Central Logging Kinesis stream shard count as accounts are added
     "central-log-services": {
 	  "kinesis-stream-shard-count": 2,
 ************************************Override default CWL retention period (Add to any account)
      “cwl-retention”: 180
 ************************************future
-************************************future
+************************************CWL subscription exclusions example
+    "central-log-services": {
+      "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],
+      "cwl-exclusions": [
+        {
+          "account": "fun-acct",
+          "exclusions": ["def/*"]
+        }
+      ],
 ************************************cert REQUEST format
       "certificates": [
         {

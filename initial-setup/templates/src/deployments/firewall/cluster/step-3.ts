@@ -9,13 +9,7 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks, AccountStack } from '../../../common/account-stacks';
-import { StructuredOutput } from '../../../common/structured-output';
-import {
-  FirewallVpnConnectionOutputType,
-  FirewallVpnConnection,
-  FirewallInstanceOutput,
-  FirewallInstanceOutputType,
-} from './outputs';
+import { FirewallVpnConnection, CfnFirewallInstanceOutput, FirewallVpnConnectionOutputFinder } from './outputs';
 import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { checkAccountWarming } from '../../account-warming/outputs';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
@@ -79,8 +73,8 @@ export async function step3(props: FirewallStep3Props) {
     }
 
     // Find the firewall VPN connections in the TGW account
-    const firewallVpnConnectionOutputs = StructuredOutput.fromOutputs(outputs, {
-      type: FirewallVpnConnectionOutputType,
+    const firewallVpnConnectionOutputs = FirewallVpnConnectionOutputFinder.findAll({
+      outputs,
       accountKey: attachConfig.account,
     });
     const firewallVpnConnections = firewallVpnConnectionOutputs
@@ -209,13 +203,10 @@ async function createFirewallCluster(props: {
       instancePerAz[az] = instance;
       licenseIndex++;
 
-      new StructuredOutput<FirewallInstanceOutput>(accountStack, `Fgt${pascalCase(az)}Output`, {
-        type: FirewallInstanceOutputType,
-        value: {
-          id: instance.instanceId,
-          name: firewallName,
-          az,
-        },
+      new CfnFirewallInstanceOutput(accountStack, `Fgt${pascalCase(az)}Output`, {
+        id: instance.instanceId,
+        name: firewallName,
+        az,
       });
     }
 
