@@ -31,6 +31,7 @@ import * as firewall from '../deployments/firewall/cluster';
 import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
+import * as macie from '../deployments/macie';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
@@ -442,6 +443,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
   });
+
+  // Macie step 2
+  await macie.step2({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  })
 
   // Central Services step 1
   const shardCount = acceleratorConfig['global-options']['central-log-services']['kinesis-stream-shard-count'];

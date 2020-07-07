@@ -19,6 +19,7 @@ import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as transitGateway from '../deployments/transit-gateway';
+import * as macie from '../deployments/macie';
 import { getAccountId } from '../utils/accounts';
 
 /**
@@ -148,6 +149,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     config: acceleratorConfig,
   });
+
+  // Macie step 1
+  await macie.step1({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  })
 
   /**
    * Code to create LogGroups required for DNS Logging
