@@ -1,6 +1,6 @@
 # PBMM Accelerator Architecture
 
-## 1.0 Introduction
+## I. Introduction
 
 The PBMM Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, network design, and comprehensive logging requirements per ITSG-22 specifications.
 
@@ -28,7 +28,7 @@ Except where absolutely necessary, this document will refrain from referencing t
 
 The central features of the Accelerator Architecture are as follows:
 
-* **AWS Organization with multiple-accounts:** An [AWS Organization][aws_org] is a grouping construct for a number of separate AWS accounts that are controlled by a single customer entity. This provides consolidated billing, organizational units, and facilitates the deployment of pan-Organizational guardrails such as CloudTrail logs and Service Control Policies. The separate accounts provide strong control-plane isolation between workloads and/or environments.
+* **AWS Organization with multiple-accounts:** An [AWS Organization][aws_org] is a grouping construct for a number of separate AWS accounts that are controlled by a single customer entity. This provides consolidated billing, organizational units, and facilitates the deployment of pan-Organizational guardrails such as CloudTrail logs and Service Control Policies. The separate accounts provide strong control-plane and data-plane isolation between workloads and/or environments.
 * **Encryption:** AWS KMS with customer-managed CMKs is used extensively for any data stored at rest, in S3 buckets, EBS volumes, RDS encryption.
 * **Service Control Policies:** [SCPs][aws_scps] provide a guardrail mechanism principally used to deny entire categories of API operations at an AWS account, OU, or Organization level. These can be used to ensure workloads are deployed only in prescribed regions, ensure only whitelisted services are used, or prevent the disablement of detective/preventative controls. Prescriptive SCPs are provided.
 * **Centralized, Isolated Networking:** [Virtual Private Clouds][aws_vpc] (VPCs) are used to create data-plane isolation between workloads, centralized in a shared-network account. Connectivity to on-prem environments, internet egress, shared resources and AWS APIs are mediated at a central point of ingress/egress via the use of [Transit Gateway][aws_tgw], [Site-to-Site VPN][aws_vpn], Next-Gen Firewalls, and [AWS Direct Connect][aws_dc] (where applicable).
@@ -37,11 +37,90 @@ The central features of the Accelerator Architecture are as follows:
 * **Detective Security Controls:** Potential security threats are surfaced across the cloud environment via automatic deployment of detective security controls such as GuardDuty, AWS Config, and Security Hub.
 * **Single-Sign-On**: AWS SSO is used to provide AD-authenticated IAM role assumption into accounts across the Organization for authorized principals.
 
+### 1.3 Document Convention
 
-## I. Account Structure
-## II. Networking
-## III. Authorization and Authentication
-## IV. Logging and Monitoring
+Several conventions are used throughout this document to aid understanding.
+
+#### AWS Account Numbers
+
+AWS account numbers are decimal-digit pseudorandom identifiers with 12 digits (e.g. `651278770121`). This document will use the convention that an AWS master account has the account ID `012345678910`, and child accounts are given by `111111111111`, `222222222222`, etc.
+
+For example the following ARN would refer to a VPC subnet in the `ca-central-1` region in the master account:
+
+
+    arn:aws:ec2:ca-central-1:012345678910:subnet/subnet-024759b61fc305ea3
+
+#### JSON Annotation
+
+Throughout the document, JSON snippets may be annotated with comments (starting with `# `). The JSON language itself does not include comments as part of the specification; these must be removed prior to use in most situations, including the AWS Console and APIs.
+
+For example:
+
+```json
+{
+  "Effect": "Allow",
+  "Principal": {
+    "AWS": "arn:aws:iam::012345678910:root"  # Trust the master account.
+  },
+  "Action": "sts:AssumeRole"
+}
+```
+
+The above is not valid JSON without first removing the comment on the fourth line.
+
+
+## 2. Account Structure
+
+AWS accounts are a strong isolation boundary; by default there is zero control plane or data plane access from one AWS account to another. AWS Organizations is a service that provides centralized billing across a fleet of accounts, and optionally, some integration-points for cross-account guardrails and cross-account resource sharing. The Accelerator Architecture uses these features of AWS Organizations to realize its design.
+
+## Accounts
+
+The Accelerator Architecture includes the following accounts.
+
+### Overview
+
+![Organizations Diagram](./images/organization_structure.drawio.png)
+
+### Master Account
+The AWS Organization resides in the master account. This account is not used for workloads (to the full extent possible) - it functions primarily as a billing aggregator, and a gateway to the entire cloud footprint for a high-trust principal. There exists a trust relationship between child AWS accounts in the Organization and the master account; i.e. the child accounts have a role of this form:
+
+```json
+{
+  "Role": {
+    "Path": "/",
+    "RoleName": "AWSCloudFormationStackSetExecutionRole",
+    "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole",  # Child account.
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "arn:aws:iam::012345678910:root"  # Master account may assume this role.
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    }
+  }
+}
+```
+
+AWS SSO, and an associated AD Connector (AWS Directory Service), reside in this account also.
+
+### Perimeter Account
+### Perimeter Account
+
+## SCPs
+
+## AWS SSO
+
+
+
+
+## 3. Networking
+## 4. Authorization and Authentication
+## 5. Logging and Monitoring
 
 
 
