@@ -7,7 +7,6 @@ import { SecurityGroup } from './security-group';
 import { createIamInstanceProfileName } from './iam-assets';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { trimSpecialCharacters } from '@aws-pbmm/common-outputs/lib/secrets';
-import { boolean } from '@aws-pbmm/common-lambda/node_modules/io-ts';
 
 export interface ADUsersAndGroupsProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
