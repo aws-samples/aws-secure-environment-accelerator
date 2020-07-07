@@ -71,6 +71,7 @@ export namespace InitialSetup {
         secretName: 'accelerator/accounts',
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
+      setSecretValue(accountsSecret, '[]');
 
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
         secretName: 'accelerator/outputs',
@@ -86,6 +87,7 @@ export namespace InitialSetup {
         secretName: 'accelerator/organizations',
         description: 'This secret contains the information about the organizations that are used for deployment.',
       });
+      setSecretValue(organizationsSecret, '[]');
 
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
@@ -788,4 +790,10 @@ export namespace InitialSetup {
       });
     }
   }
+}
+
+function setSecretValue(secret: secrets.Secret, value: string) {
+  const cfnSecret = secret.node.defaultChild as secrets.CfnSecret;
+  cfnSecret.addPropertyOverride('SecretString', value);
+  cfnSecret.addPropertyDeletionOverride('GenerateSecretString');
 }

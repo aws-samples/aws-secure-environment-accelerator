@@ -38,6 +38,7 @@ export async function removeAccount(input: RemoveAccountProps) {
       CONFIG_BRANCH_NAME: configBranch,
       ACCELERATOR_STATEMACHINE_ROLENAME: acceleratorPipelineRole.roleName,
       ACCELERATOR_DEFAULT_REGION: defaultRegion,
+      // TODO Remove hardcoded of accounts secret
       ACCOUNTS_SECRET_ID: 'accelerator/accounts',
     },
     timeout: cdk.Duration.minutes(15),
