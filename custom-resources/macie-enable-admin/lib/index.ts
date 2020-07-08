@@ -6,7 +6,6 @@ import { HandlerProperties } from '@custom-resources/macie-enable-admin-lambda';
 
 export interface MacieEnableAdminProps {
   accountId: string;
-  clientToken?: string;
 }
 
 /**
