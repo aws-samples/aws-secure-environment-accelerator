@@ -82,6 +82,20 @@
       }
     },
     {
+      "Sid": "DenyTag3",
+      "Effect": "Deny",
+      "Action": ["iam:*"],
+      "Resource": "arn:aws:iam::*:role/PBMMAccel-RDGW-Role",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "DenyGDSHFMAAChange",
       "Effect": "Deny",
       "Action": [
