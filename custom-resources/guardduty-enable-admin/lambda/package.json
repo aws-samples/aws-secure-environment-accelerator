@@ -9,8 +9,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "externals": [
-    "aws-lambda",
-    "aws-sdk"
+    "aws-lambda"
   ],
   "devDependencies": {
     "@custom-resources/webpack-base": "workspace:^0.0.1",
@@ -24,6 +23,6 @@
   "dependencies": {
     "@custom-resources/cfn-response": "workspace:^0.0.1",
     "aws-lambda": "1.0.5",
-    "aws-sdk": "2.668.0"
+    "aws-sdk": "2.711.0"
   }
 }
