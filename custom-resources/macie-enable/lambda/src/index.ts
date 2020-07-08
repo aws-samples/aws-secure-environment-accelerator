@@ -61,15 +61,12 @@ async function onCreateOrUpdate(
 
 async function enableMacie(properties: HandlerProperties) {
   try {
-    const enableAdmin = await macie
-      .enableMacie(properties).promise();
+    const enableAdmin = await macie.enableMacie(properties).promise();
 
     return enableAdmin;
   } catch (e) {
     const message = `${e}`;
-    if (
-      message.includes('Macie has already been enabled')
-    ) {
+    if (message.includes('Macie has already been enabled')) {
       console.warn(e);
     } else {
       throw e;
