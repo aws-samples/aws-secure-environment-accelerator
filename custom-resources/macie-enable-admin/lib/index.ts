@@ -4,6 +4,8 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { HandlerProperties } from '@custom-resources/macie-enable-admin-lambda';
 
+const resourceType = 'Custom::MacieAdmin';
+
 export interface MacieEnableAdminProps {
   accountId: string;
 }
@@ -21,14 +23,14 @@ export class MacieEnableAdmin extends cdk.Construct {
     };
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
-      resourceType: 'Custom::MacieAdmin',
+      resourceType,
       serviceToken: this.lambdaFunction.functionArn,
       properties: handlerProperties,
     });
   }
 
   private get lambdaFunction(): lambda.Function {
-    const constructName = `MacieAdminLambda`;
+    const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
     if (existing) {
@@ -38,7 +40,7 @@ export class MacieEnableAdmin extends cdk.Construct {
     const lambdaPath = require.resolve('@custom-resources/macie-enable-admin-lambda');
     const lambdaDir = path.dirname(lambdaPath);
 
-    const role = new iam.Role(stack, `${constructName}Role`, {
+    const role = new iam.Role(stack, `${resourceType}Role`, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
