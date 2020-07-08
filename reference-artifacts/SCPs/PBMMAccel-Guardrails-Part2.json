@@ -82,7 +82,7 @@
       }
     },
     {
-      "Sid": "DenyTag3",
+      "Sid": "DenyRDGWRole",
       "Effect": "Deny",
       "Action": ["iam:*"],
       "Resource": "arn:aws:iam::*:role/PBMMAccel-RDGW-Role",
@@ -127,6 +127,8 @@
         "securityhub:BatchDisableStandards",
         "fms:DisassociateAdminAccount",
         "access-analyzer:DeleteAnalyzer",
+        "account:EnableRegion",
+        "account:DisableRegion",
         "ec2:CreateDefaultVpc"
       ],
       "Resource": "*",
