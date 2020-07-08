@@ -3,7 +3,7 @@ import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { MacieEnableAdmin } from '@custom-resources/macie-enable-admin';
 import { MacieCreateMember } from '@custom-resources/macie-create-member';
-import { MacieEnable, MacieFrequency, MacieStatus } from '@custom-resource/macie-enable';
+import { MacieEnable, MacieFrequency, MacieStatus } from '@custom-resources/macie-enable';
 
 export interface MacieStepProps {
   accountStacks: AccountStacks;
@@ -42,7 +42,7 @@ export async function step1(props: MacieStepProps) {
       }
       const enable = new MacieEnable(masterAccountStack, 'MacieEnable', {
         findingPublishingFrequency,
-        status: MacieStatus.ENABLE,
+        status: MacieStatus.ENABLED,
       });
 
       const admin = new MacieEnableAdmin(masterAccountStack, 'MacieEnableAdmin', {
@@ -71,8 +71,8 @@ export async function step2(props: MacieStepProps) {
       accountId: account.id,
       email: account.email,
     }));
-    const members = new MacieCreateMember(masterAccountStack, 'MacieCreateMember', {
-      accountDetails,
-    });
+    for (const account of accountDetails) {
+      const members = new MacieCreateMember(masterAccountStack, 'MacieCreateMember', account);
+    }
   });
 }
