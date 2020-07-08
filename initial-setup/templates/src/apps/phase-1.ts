@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { FlowLogContainer } from '../common/flow-log-container';
@@ -31,9 +31,11 @@ import * as firewall from '../deployments/firewall/cluster';
 import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
+import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
+import { SecurityHubStack } from '../common/security-hub';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -88,6 +90,26 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     centralLogBucket: logBucket,
     config: acceleratorConfig,
   });
+
+  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
+  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
+  if (!securityMasterAccountStack) {
+    console.warn(`Cannot find security stack`);
+  } else {
+    const globalOptions = acceleratorConfig['global-options'];
+    const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
+    const subAccountIds = accounts.map(account => ({
+      AccountId: account.id,
+      Email: account.email,
+    }));
+
+    // Create Security Hub stack for Master Account in Security Account
+    new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+      account: securityMasterAccount!,
+      standards: globalOptions['security-hub-frameworks'],
+      subAccountIds,
+    });
+  }
 
   /**
    * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
@@ -441,6 +463,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountBuckets,
     accountStacks,
     config: acceleratorConfig,
+  });
+
+  // GuardDuty step 2
+  await guardDutyDeployment.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
   });
 
   // Central Services step 1

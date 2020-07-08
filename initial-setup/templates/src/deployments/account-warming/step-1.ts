@@ -2,7 +2,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import * as cdk from '@aws-cdk/core';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { StructuredOutput } from '../../common/structured-output';
 import { InstanceTimeOutputType, InstanceStatusOutput, getTimeDiffInMinutes } from './outputs';
 import { InstanceLaunchTime } from '@custom-resources/ec2-launch-time';

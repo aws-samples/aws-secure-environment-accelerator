@@ -8,9 +8,10 @@ export async function loadAcceleratorConfig(props: {
   repositoryName: string;
   filePath: string;
   commitId: string;
+  defaultRegion?: string;
 }): Promise<AcceleratorConfig> {
-  const { repositoryName, filePath, commitId } = props;
-  const codecommit = new CodeCommit();
+  const { repositoryName, filePath, commitId, defaultRegion } = props;
+  const codecommit = new CodeCommit(undefined, defaultRegion);
   try {
     const file = await codecommit.getFile(repositoryName, filePath, commitId);
     const source = file.fileContent.toString();

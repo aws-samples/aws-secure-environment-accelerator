@@ -1,6 +1,6 @@
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { ArtifactOutputFinder } from '@aws-pbmm/common-outputs/lib/artifacts';
