@@ -1,13 +1,12 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { FlowLogContainer } from '../common/flow-log-container';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
 import { JsonOutputValue } from '../common/json-output';
-import { TransitGateway } from '../common/transit-gateway';
 import { Limit } from '../utils/limits';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
@@ -32,9 +31,11 @@ import * as firewall from '../deployments/firewall/cluster';
 import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
+import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
+import { SecurityHubStack } from '../common/security-hub';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -67,8 +68,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
 
-  const transitGateways = new Map<string, TransitGateway>();
-
   const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
 
   // Find the central bucket in the outputs
@@ -91,6 +90,26 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     centralLogBucket: logBucket,
     config: acceleratorConfig,
   });
+
+  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
+  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
+  if (!securityMasterAccountStack) {
+    console.warn(`Cannot find security stack`);
+  } else {
+    const globalOptions = acceleratorConfig['global-options'];
+    const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
+    const subAccountIds = accounts.map(account => ({
+      AccountId: account.id,
+      Email: account.email,
+    }));
+
+    // Create Security Hub stack for Master Account in Security Account
+    new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+      account: securityMasterAccount!,
+      standards: globalOptions['security-hub-frameworks'],
+      subAccountIds,
+    });
+  }
 
   /**
    * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
@@ -115,7 +134,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       ),
     });
 
-    peeringRole.addToPolicy(
+    peeringRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         resources: ['*'],
         actions: ['ec2:AcceptVpcPeeringConnection'],
@@ -162,7 +181,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
       vpcProps: props,
-      transitGateways,
+      masterAccountId,
+      outputs,
     });
     const vpc = vpcStack.vpc;
 
@@ -269,6 +289,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       tgwDeployment: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
+      accountStacks,
     });
 
     const pcxConfig = vpcConfig.pcx;
@@ -296,7 +317,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     outputs,
-    transitGateways,
   });
 
   const getIamPoliciesDefinition = async (): Promise<{ [policyName: string]: string } | undefined> => {
@@ -445,11 +465,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
+  // GuardDuty step 2
+  await guardDutyDeployment.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+  });
+
   // Central Services step 1
+  const shardCount = acceleratorConfig['global-options']['central-log-services']['kinesis-stream-shard-count'];
   const logsAccountStack = accountStacks.getOrCreateAccountStack(logAccountKey);
   await cwlCentralLoggingToS3.step1({
     accountStack: logsAccountStack,
     accounts,
     logBucket,
+    shardCount,
   });
 }

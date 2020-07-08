@@ -91,12 +91,12 @@ export const TransitGatewayAttachOption = NonEmptyString; // TODO Define all att
 
 export const TransitGatewayAttachConfigType = t.interface({
   'associate-to-tgw': t.string,
-  account: optional(t.string),
-  'associate-type': optional(t.literal('ATTACH')),
-  'tgw-rt-associate': optional(t.array(NonEmptyString)),
-  'tgw-rt-propagate': optional(t.array(NonEmptyString)),
+  account: t.string,
+  'associate-type': optional(t.union([t.literal('ATTACH'), t.literal('VPN')])),
+  'tgw-rt-associate': t.array(t.string),
+  'tgw-rt-propagate': t.array(t.string),
   'blackhole-route': optional(t.boolean),
-  'attach-subnets': optional(t.array(NonEmptyString)),
+  'attach-subnets': optional(t.array(t.string)),
   options: optional(t.array(TransitGatewayAttachOption)),
 });
 
@@ -251,6 +251,7 @@ export type CertificateConfig = t.TypeOf<typeof CertificateConfigType>;
 
 export const TgwDeploymentConfigType = t.interface({
   name: t.string,
+  region: t.string,
   asn: optional(t.number),
   features: optional(
     t.interface({
@@ -258,7 +259,6 @@ export const TgwDeploymentConfigType = t.interface({
       'VPN-ECMP-support': t.boolean,
       'Default-route-table-association': t.boolean,
       'Default-route-table-propagation': t.boolean,
-      'Auto-accept-sharing-attachments': t.boolean,
     }),
   ),
   'route-tables': optional(t.array(NonEmptyString)),
@@ -401,13 +401,7 @@ export const FirewallConfigType = t.interface({
   'fw-cgw-name': t.string,
   'fw-cgw-asn': t.number,
   'fw-cgw-routing': t.string,
-  'tgw-attach': t.interface({
-    name: t.string,
-    account: t.string,
-    'associate-to-tgw': t.string,
-    'rt-associate': optional(t.array(t.string)),
-    'rt-propagate': optional(t.array(t.string)),
-  }),
+  'tgw-attach': t.union([TransitGatewayAttachConfigType, t.boolean, t.undefined]),
 });
 
 export type FirewallConfig = t.TypeOf<typeof FirewallConfigType>;
@@ -435,6 +429,10 @@ export const LandingZoneAccountConfigType = enumType<typeof LANDING_ZONE_ACCOUNT
 );
 
 export type LandingZoneAccountType = t.TypeOf<typeof LandingZoneAccountConfigType>;
+
+export const BASELINE_TYPES = ['LANDING_ZONE', 'ORGANIZATIONS', 'CONTROL_TOWER'] as const;
+export const BaseLineConfigType = enumType<typeof BASELINE_TYPES[number]>(BASELINE_TYPES);
+export type BaseLineType = t.TypeOf<typeof BaseLineConfigType>;
 
 export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
@@ -472,6 +470,7 @@ export const MandatoryAccountConfigType = t.interface({
   'account-name': t.string,
   email: t.string,
   ou: t.string,
+  'ou-path': optional(t.string),
   'share-mad-from': optional(t.string),
   'enable-s3-public-access': fromNullable(t.boolean, false),
   iam: optional(IamConfigType),
@@ -483,6 +482,8 @@ export const MandatoryAccountConfigType = t.interface({
   'log-retention': optional(t.number),
   budget: optional(BudgetConfigType),
   'account-warming-required': optional(t.boolean),
+  'cwl-retention': optional(t.number),
+  deleted: fromNullable(t.boolean, false),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -551,6 +552,18 @@ export const SecurityHubFrameworksConfigType = t.interface({
   ),
 });
 
+export const IamAccountPasswordPolicyType = t.interface({
+  'allow-users-to-change-password': t.boolean,
+  'hard-expiry': t.boolean,
+  'require-uppercase-characters': t.boolean,
+  'require-lowercase-characters': t.boolean,
+  'require-symbols': t.boolean,
+  'require-numbers': t.boolean,
+  'minimum-password-length': t.number,
+  'password-reuse-prevention': t.number,
+  'max-password-age': t.number,
+});
+
 export const CwlExclusions = t.interface({
   account: t.string,
   exclusions: t.array(t.string),
@@ -560,7 +573,7 @@ export const CentralServicesConfigType = t.interface({
   account: NonEmptyString,
   region: NonEmptyString,
   'security-hub': fromNullable(t.boolean, false),
-  'guard-duty': fromNullable(t.boolean, false),
+  guardduty: fromNullable(t.boolean, false),
   cwl: fromNullable(t.boolean, false),
   'access-analyzer': fromNullable(t.boolean, false),
   'cwl-access-level': optional(t.string),
@@ -568,6 +581,9 @@ export const CentralServicesConfigType = t.interface({
   'ssm-to-s3': optional(t.boolean),
   'ssm-to-cwl': optional(t.boolean),
   'cwl-exclusions': optional(t.array(CwlExclusions)),
+  'kinesis-stream-shard-count': optional(t.number),
+  'config-excl-regions': optional(t.array(t.string)),
+  'config-aggr-excl-regions': optional(t.array(t.string)),
 });
 
 export const ScpsConfigType = t.interface({
@@ -579,6 +595,8 @@ export const ScpsConfigType = t.interface({
 export type ScpConfig = t.TypeOf<typeof ScpsConfigType>;
 
 export const GlobalOptionsConfigType = t.interface({
+  'alz-baseline': t.boolean,
+  'ct-baseline': t.boolean,
   'central-log-retention': t.number,
   'default-log-retention': t.number,
   'central-bucket': NonEmptyString,
@@ -590,6 +608,12 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-services': CentralServicesConfigType,
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
+  'organization-admin-role': NonEmptyString,
+  'supported-regions': t.array(t.string),
+  'keep-default-vpc-regions': t.array(t.string),
+  'iam-password-policies': IamAccountPasswordPolicyType,
+  'default-cwl-retention': t.number,
+  'ignored-ous': optional(t.array(t.string)),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
@@ -691,7 +715,7 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
    * @return [accountKey: string, accountConfig: AccountConfig][]
    */
   getWorkloadAccountConfigs(): [string, AccountConfig][] {
-    return Object.entries(this['workload-account-configs']);
+    return Object.entries(this['workload-account-configs']).filter(([_, value]) => !value.deleted);
   }
 
   /**
@@ -968,4 +992,16 @@ function priorityByOuType(ou1: OrganizationalUnit, ou2: OrganizationalUnit) {
     return -1;
   }
   return 1;
+}
+
+export class AcceleratorUpdateConfig extends AcceleratorConfig {
+  'global-options': GlobalOptionsConfig;
+  'mandatory-account-configs': AccountsConfig;
+  'workload-account-configs': AccountsConfig;
+  'organizational-units': OrganizationalUnitsConfig;
+
+  constructor(values: t.TypeOf<typeof AcceleratorConfigType>) {
+    super(values);
+    Object.assign(this, values);
+  }
 }

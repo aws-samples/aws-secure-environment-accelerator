@@ -2,15 +2,17 @@ import * as aws from 'aws-sdk';
 import { CredentialProviderSource, Mode } from 'aws-cdk/lib/api/aws-auth/credentials';
 import { green } from 'colors/safe';
 
+export interface AssumeRoleProviderSourceProps {
+  name: string;
+  assumeRoleName: string;
+  assumeRoleDuration: number;
+}
+
 export class AssumeRoleProviderSource implements CredentialProviderSource {
-  readonly name: string;
-  private readonly assumeRoleName: string;
+  readonly name = this.props.name;
   private readonly cache: { [accountId: string]: aws.Credentials } = {};
 
-  constructor(name: string, assumeRoleName: string) {
-    this.name = name;
-    this.assumeRoleName = assumeRoleName;
-  }
+  constructor(private readonly props: AssumeRoleProviderSourceProps) {}
 
   async isAvailable(): Promise<boolean> {
     return true;
@@ -25,23 +27,36 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
       return this.cache[accountId];
     }
 
-    const roleArn = `arn:aws:iam::${accountId}:role/${this.assumeRoleName}`;
-    console.log(`Assuming role ${green(roleArn)}`);
+    let assumeRole;
+    try {
+      // Try to assume the role with the given duration
+      assumeRole = await this.assumeRole(accountId, this.props.assumeRoleDuration);
+    } catch (e) {
+      console.warn(`Cannot assume role for ${this.props.assumeRoleDuration} seconds: ${e}`);
+
+      // If that fails, than try to assume the role for one hour
+      assumeRole = await this.assumeRole(accountId, 3600);
+    }
+
+    const credentials = assumeRole.Credentials!;
+    return (this.cache[accountId] = new aws.Credentials({
+      accessKeyId: credentials.AccessKeyId,
+      secretAccessKey: credentials.SecretAccessKey,
+      sessionToken: credentials.SessionToken,
+    }));
+  }
+
+  protected async assumeRole(accountId: string, duration: number): Promise<aws.STS.AssumeRoleResponse> {
+    const roleArn = `arn:aws:iam::${accountId}:role/${this.props.assumeRoleName}`;
+    console.log(`Assuming role ${green(roleArn)} for ${duration} seconds`);
 
     const sts = new aws.STS();
-    const response = await sts
+    return await sts
       .assumeRole({
         RoleArn: roleArn,
         RoleSessionName: this.name,
-        DurationSeconds: 3600,
+        DurationSeconds: duration,
       })
       .promise();
-
-    const result = response.Credentials!;
-    return (this.cache[accountId] = new aws.Credentials({
-      accessKeyId: result.AccessKeyId,
-      secretAccessKey: result.SecretAccessKey,
-      sessionToken: result.SessionToken,
-    }));
   }
 }

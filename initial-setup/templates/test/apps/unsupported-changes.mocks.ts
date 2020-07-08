@@ -3,14 +3,15 @@ import 'jest';
 import * as fs from 'fs';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AccountStacks } from '../../src/common/account-stacks';
 import { Account } from '../../src/utils/accounts';
 import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
+import { Context } from '../../src/utils/context';
 
-export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.App> {
+export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.Stage> {
   const input = createPhaseInput();
   for (const phase of phases) {
     const accountStacks = new AccountStacks({
@@ -91,15 +92,38 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       email: 'test+pbmm-lz-perimeter@amazon.com',
       ou: 'core',
     },
+    {
+      key: 'fun-acct',
+      id: '888888888888',
+      arn: 'arn:aws:organizations::888888888888:account/o-111111111111/888888888888',
+      name: 'test-fun-act',
+      email: 'test+pbmm-fun-act@amazon.com',
+      ou: 'core',
+    },
+    {
+      key: 'mydevacct1',
+      id: '999999999999',
+      arn: 'arn:aws:organizations::999999999999:account/o-111111111111/999999999999',
+      name: 'test-mydevacct1',
+      email: 'test+pbmm-mydevacct1@amazon.com',
+      ou: 'core',
+    },
   ];
 
   const content = fs.readFileSync('../../config.example.json');
   const config = AcceleratorConfig.fromString(content.toString());
 
-  const context = {
+  const context: Context = {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel-',
     acceleratorExecutionRoleName: 'PBMMAccel-PipelineRole',
+    acceleratorBaseline: 'ORGANIZATIONS',
+    acceleratorPipelineRoleName: 'PBMMAccel-PipelineRole',
+    acceleratorStateMachineName: 'PBMMAccel-MainStateMachine_sm',
+    configBranch: '',
+    configCommitId: '',
+    configFilePath: '',
+    configRepositoryName: '',
     defaultRegion: 'ca-central-1',
   };
 
@@ -825,14 +849,14 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           cidrBlock: '10.7.4.0/22',
           additionalCidrBlocks: [],
           subnets: [
-            { subnetId: 'subnet-074afd4fc157a36d3', subnetName: 'Public', az: 'a', cidrBlock: '100.96.250.0/25' },
-            { subnetId: 'subnet-0919b680c624cda7a', subnetName: 'Public', az: 'b', cidrBlock: '100.96.250.128/25' },
+            { subnetId: 'subnet-074afd4fc157a36d3', subnetName: 'Public', az: 'a', cidrBlock: '100.96.250.0/26' },
+            { subnetId: 'subnet-0919b680c624cda7a', subnetName: 'Public', az: 'b', cidrBlock: '100.96.250.128/26' },
             { subnetId: 'subnet-052d9c1787cc451df', subnetName: 'FWMgmt', az: 'a', cidrBlock: '100.96.251.32/27' },
             { subnetId: 'subnet-001239090ca287b94', subnetName: 'FWMgmt', az: 'b', cidrBlock: '100.96.251.160/27' },
             { subnetId: 'subnet-074c58bdde90265f3', subnetName: 'Proxy', az: 'a', cidrBlock: '100.96.251.64/26' },
             { subnetId: 'subnet-064c1ac74779f8ecb', subnetName: 'Proxy', az: 'b', cidrBlock: '100.96.251.192/26' },
-            { subnetId: 'subnet-05bbb12ea281f2c24', subnetName: 'OnPremise', az: 'a', cidrBlock: '100.96.251.0/27' },
-            { subnetId: 'subnet-050d0cafb42104fbe', subnetName: 'OnPremise', az: 'b', cidrBlock: '100.96.251.128/27' },
+            { subnetId: 'subnet-05bbb12ea281f2c24', subnetName: 'OnPremise', az: 'a', cidrBlock: '100.96.250.64/26' },
+            { subnetId: 'subnet-050d0cafb42104fbe', subnetName: 'OnPremise', az: 'b', cidrBlock: '100.96.250.192/26' },
             { subnetId: 'subnet-0fb010dd0735d5d17', subnetName: 'Detonation', az: 'a', cidrBlock: '10.7.4.0/24' },
             { subnetId: 'subnet-01cc2e0ae8555005b', subnetName: 'Detonation', az: 'b', cidrBlock: '10.7.5.0/24' },
           ],
@@ -849,7 +873,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             { securityGroupId: 'sg-06e305933a4bbd75a', securityGroupName: 'Public-Prod-ALB' },
             { securityGroupId: 'sg-0e1d7c2ce7350c63e', securityGroupName: 'Public-DevTest-ALB' },
             { securityGroupId: 'sg-03d7fd5e7ead15cdf', securityGroupName: 'FirewallMgr' },
-            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Firewall' },
+            { securityGroupId: 'sg-0eac52bf396a4226b', securityGroupName: 'Firewalls' },
           ],
         },
       }),
@@ -1078,6 +1102,20 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-funacct-phase1-cacentral1-1qsru3dws5n76',
           bucketName: 'pbmmaccel-funacct-phase1-cacentral1-1qsru3dws5n76',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:934027390063:key/7592bb9b-43d1-45d3-be51-bbc59cb06471',
+        },
+      }),
+    },
+    {
+      accountKey: 'master',
+      outputKey: 'SCPArtifactsOutputmasterSOutputA1DE17D3',
+      outputValue: JSON.stringify({
+        type: 'ArtifactOutput',
+        value: {
+          accountKey: 'master',
+          artifactName: 'SCP',
+          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          keyPrefix: 'scp',
         },
       }),
     },

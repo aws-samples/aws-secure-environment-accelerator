@@ -149,7 +149,7 @@ export class Bucket extends s3.Bucket {
     });
 
     // Grant the replication role the actions to replicate the objects in the bucket
-    replicationRole.addToPolicy(
+    replicationRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
           's3:GetObjectLegalHold',
@@ -174,7 +174,7 @@ export class Bucket extends s3.Bucket {
     }
 
     // Allow the replication role to replicate objects to the destination bucket
-    replicationRole.addToPolicy(
+    replicationRole.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
           's3:GetBucketVersioning',
@@ -191,7 +191,7 @@ export class Bucket extends s3.Bucket {
 
     // Allow the replication role to encrypt with the destination KMS key
     if (this.destinationKmsResources.length > 0) {
-      replicationRole.addToPolicy(
+      replicationRole.addToPrincipalPolicy(
         new iam.PolicyStatement({
           actions: ['kms:Encrypt'],
           resources: this.destinationKmsResources,

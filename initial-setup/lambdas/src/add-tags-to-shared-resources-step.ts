@@ -2,9 +2,9 @@ import * as aws from 'aws-sdk';
 import { TagResources } from '@aws-pbmm/common-lambda/lib/aws/resource-tagging';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
-const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc'];
+const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc', 'tgw-attachment'];
 
 interface CreateTagsRequestInput {
   assumeRoleName: string;
@@ -25,26 +25,17 @@ interface AddTagToResourceOutput {
 
 type AddTagToResourceOutputs = AddTagToResourceOutput[];
 
+const secrets = new SecretsManager();
+const sts = new STS();
+
 export const handler = async (input: CreateTagsRequestInput) => {
   console.log(`Adding tags to shared resource...`);
   console.log(JSON.stringify(input, null, 2));
 
   const { assumeRoleName, stackOutputSecretId } = input;
 
-  const secrets = new SecretsManager();
   const outputsString = await secrets.getSecret(stackOutputSecretId);
   const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
-
-  const sts = new STS();
-  const accountCredentials: { [accountId: string]: aws.Credentials } = {};
-  const getAccountCredentials = async (accountId: string): Promise<aws.Credentials> => {
-    if (accountCredentials[accountId]) {
-      return accountCredentials[accountId];
-    }
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    accountCredentials[accountId] = credentials;
-    return credentials;
-  };
 
   const addTagsToResourcesOutputs: AddTagToResourceOutputs[] = getStackJsonOutput(outputs, {
     outputType: 'AddTagsToResources',
@@ -56,13 +47,17 @@ export const handler = async (input: CreateTagsRequestInput) => {
       for (const targetAccountId of targetAccountIds) {
         console.log(`Tagging resource "${resourceId}" in account "${targetAccountId}"`);
 
-        const credentials = await getAccountCredentials(targetAccountId);
+        const credentials = await sts.getCredentialsForAccountAndRole(targetAccountId, assumeRoleName);
         if (ALLOWED_RESOURCE_TYPES.includes(resourceType)) {
-          const tagResources = new TagResources(credentials);
-          await tagResources.createTags({
-            Resources: [resourceId],
-            Tags: tags.map(t => ({ Key: t.key, Value: t.value })),
-          });
+          try {
+            const tagResources = new TagResources(credentials);
+            await tagResources.createTags({
+              Resources: [resourceId],
+              Tags: tags.map(t => ({ Key: t.key, Value: t.value })),
+            });
+          } catch (e) {
+            console.warn(`Cannot tag resource "${resourceId}" in account "${targetAccountId}": ${e}`);
+          }
         } else {
           console.warn(`Unsupported resource type "${resourceType}"`);
         }

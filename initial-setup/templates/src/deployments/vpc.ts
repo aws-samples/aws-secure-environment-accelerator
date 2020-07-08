@@ -1,4 +1,3 @@
-import * as cdk from '@aws-cdk/core';
 import { Vpc, SecurityGroup, Subnet, RouteTables } from '@aws-pbmm/constructs/lib/vpc';
 import { VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 

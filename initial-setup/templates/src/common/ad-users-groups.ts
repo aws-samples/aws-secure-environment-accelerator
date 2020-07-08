@@ -115,6 +115,7 @@ export class ADUsersAndGroups extends cdk.Construct {
           ebs: {
             volumeSize: 50,
             volumeType: 'gp2',
+            encrypted: true,
           },
         },
       ],

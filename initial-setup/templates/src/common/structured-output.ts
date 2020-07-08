@@ -1,6 +1,6 @@
 import * as t from 'io-ts';
 import * as cdk from '@aws-cdk/core';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { StructuredValue, findValuesFromOutputs } from '@aws-pbmm/common-outputs/lib/structured-output';
 
 export interface StructuredOutputProps<T> {

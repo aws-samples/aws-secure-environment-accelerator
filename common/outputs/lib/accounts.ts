@@ -10,6 +10,7 @@ export interface Account {
   ou: string;
   email: string;
   type?: LandingZoneAccountType;
+  ouPath?: string;
 }
 
 export function getAccountId(accounts: Account[], accountKey: string): string | undefined {

@@ -1,6 +1,7 @@
+import 'jest';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { expect, haveResource } from '@aws-cdk/assert';
+import { expect, haveResource, haveResourceLike } from '@aws-cdk/assert';
 import { AcceleratorNameTagger } from '../../lib/core';
 
 test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
@@ -11,6 +12,9 @@ test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
   });
 
   stack.node.applyAspect(new AcceleratorNameTagger());
+
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
 
   expect(stack).to(
     haveResource('AWS::EC2::VPC', {
@@ -33,8 +37,11 @@ test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
   expect(stack).to(
-    haveResource('AWS::EC2::VPC', {
+    haveResourceLike('AWS::EC2::VPC', {
       Tags: [
         {
           Key: 'Name',
@@ -56,8 +63,11 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
   expect(stack).to(
-    haveResource('AWS::EC2::Subnet', {
+    haveResourceLike('AWS::EC2::Subnet', {
       Tags: [
         {
           Key: 'Name',
@@ -79,8 +89,11 @@ test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
   expect(stack).to(
-    haveResource('AWS::EC2::Subnet', {
+    haveResourceLike('AWS::EC2::Subnet', {
       Tags: [
         {
           Key: 'Name',
@@ -100,12 +113,37 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
   expect(stack).to(
-    haveResource('AWS::EC2::RouteTable', {
+    haveResourceLike('AWS::EC2::RouteTable', {
       Tags: [
         {
           Key: 'Name',
           Value: 'RouteTable1_rt',
+        },
+      ],
+    }),
+  );
+});
+
+test('should add the Name tag with the correct suffix to ec2.CfnTransitGateway', () => {
+  const stack = new cdk.Stack();
+
+  new ec2.CfnTransitGateway(stack, 'Main', {});
+
+  stack.node.applyAspect(new AcceleratorNameTagger());
+
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
+  expect(stack).to(
+    haveResourceLike('AWS::EC2::TransitGateway', {
+      Tags: [
+        {
+          Key: 'Name',
+          Value: 'Main_tgw',
         },
       ],
     }),
@@ -121,8 +159,11 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRo
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
   expect(stack).to(
-    haveResource('AWS::EC2::TransitGatewayRouteTable', {
+    haveResourceLike('AWS::EC2::TransitGatewayRouteTable', {
       Tags: [
         {
           Key: 'Name',
@@ -142,8 +183,11 @@ test('should not add suffix if the suffix is already there', () => {
 
   stack.node.applyAspect(new AcceleratorNameTagger());
 
+  // Make sure the aspects get applied
+  cdk.ConstructNode.prepare(stack.node);
+
   expect(stack).to(
-    haveResource('AWS::EC2::VPC', {
+    haveResourceLike('AWS::EC2::VPC', {
       Tags: [
         {
           Key: 'Name',

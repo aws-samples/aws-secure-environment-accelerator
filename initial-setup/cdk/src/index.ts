@@ -4,7 +4,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
-import * as s3deployment from '@aws-cdk/aws-s3-deployment';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
@@ -12,10 +11,14 @@ import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-pbmm/common-cdk
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CodeTask } from '@aws-pbmm/common-cdk/lib/stepfunction-tasks';
-import { CreateAccountTask } from './tasks/create-account-task';
+import { CreateLandingZoneAccountTask } from './tasks/create-landing-zone-account-task';
+import { CreateOrganizationAccountTask } from './tasks/create-organization-account-task';
 import { CreateStackSetTask } from './tasks/create-stack-set-task';
 import { CreateAdConnectorTask } from './tasks/create-adconnector-task';
 import { BuildTask } from './tasks/build-task';
+import { CreateStackTask } from './tasks/create-stack-task';
+import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
+import * as fs from 'fs';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -68,6 +71,7 @@ export namespace InitialSetup {
         secretName: 'accelerator/accounts',
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
+      setSecretValue(accountsSecret, '[]');
 
       const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
         secretName: 'accelerator/outputs',
@@ -79,6 +83,16 @@ export namespace InitialSetup {
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
       });
 
+      const organizationsSecret = new secrets.Secret(this, 'Organizations', {
+        secretName: 'accelerator/organizations',
+        description: 'This secret contains the information about the organizations that are used for deployment.',
+      });
+      setSecretValue(organizationsSecret, '[]');
+
+      // This is the maximum time before a build times out
+      // The role used by the build should allow this session duration
+      const buildTimeout = cdk.Duration.hours(4);
+
       // The pipeline stage `InstallRoles` will allow the pipeline role to assume a role in the sub accounts
       const pipelineRole = new iam.Role(this, 'Role', {
         roleName: createRoleName('L-SFN-MasterRole'),
@@ -86,8 +100,10 @@ export namespace InitialSetup {
           // TODO Only add root role for development environments
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
+          new iam.ServicePrincipal('events.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
+        maxSessionDuration: buildTimeout,
       });
 
       // Add a suffix to the CodeBuild project so it creates a new project as it's not able to update the `baseImage`
@@ -103,15 +119,17 @@ export namespace InitialSetup {
         projectRoot: props.solutionRoot,
         packageManager: 'pnpm',
         commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
-        timeout: cdk.Duration.hours(4),
+        timeout: buildTimeout,
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
           ACCELERATOR_PREFIX: props.acceleratorPrefix,
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
+          CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
           STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
+          ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
       });
 
@@ -144,16 +162,46 @@ export namespace InitialSetup {
         resultPath: '$.configuration',
       });
 
-      const loadConfigurationTask = new CodeTask(this, 'Load Configuration', {
+      const getBaseLineTask = new CodeTask(this, 'Get Baseline From Configuration', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.loadConfigurationStep',
+          handler: 'index.getBaseline',
           role: pipelineRole,
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
+        },
+        resultPath: '$.configuration',
+      });
+
+      const loadLandingZoneConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadLandingZoneConfigurationStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+          'baseline.$': '$.configuration.baseline',
+        },
+        resultPath: '$.configuration',
+      });
+
+      const loadOrgConfigurationTask = new CodeTask(this, 'Load Organization Configuration', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadOrganizationConfigurationStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+          'baseline.$': '$.configuration.baseline',
         },
         resultPath: '$.configuration',
       });
@@ -176,16 +224,21 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const createAccountStateMachine = new sfn.StateMachine(scope, `${props.acceleratorPrefix}CreateAccount_sm`, {
-        stateMachineName: `${props.acceleratorPrefix}CreateAccount_sm`,
-        definition: new CreateAccountTask(scope, 'Create', {
-          lambdaCode,
-          role: pipelineRole,
-        }),
-      });
+      const createLandingZoneAccountStateMachine = new sfn.StateMachine(
+        scope,
+        `${props.acceleratorPrefix}ALZCreateAccount_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}ALZCreateAccount_sm`,
+          definition: new CreateLandingZoneAccountTask(scope, 'Create ALZ Account', {
+            lambdaCode,
+            role: pipelineRole,
+          }),
+        },
+      );
 
-      const createAccountTask = new sfn.Task(this, 'Create Account', {
-        task: new tasks.StartExecution(createAccountStateMachine, {
+      const createLandingZoneAccountTask = new sfn.Task(this, 'Create Landing Zone Account', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(createLandingZoneAccountStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             avmProductName,
@@ -195,13 +248,66 @@ export namespace InitialSetup {
         }),
       });
 
-      const createAccountsTask = new sfn.Map(this, 'Create Accounts', {
+      const createLandingZoneAccountsTask = new sfn.Map(this, 'Create Landing Zone Accounts', {
         itemsPath: '$.configuration.accounts',
         resultPath: 'DISCARD',
         maxConcurrency: 1,
       });
 
-      createAccountsTask.iterator(createAccountTask);
+      createLandingZoneAccountsTask.iterator(createLandingZoneAccountTask);
+
+      const createOrganizationAccountStateMachine = new sfn.StateMachine(
+        scope,
+        `${props.acceleratorPrefix}OrgCreateAccount_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}OrgCreateAccount_sm`,
+          definition: new CreateOrganizationAccountTask(scope, 'Create Org Account', {
+            lambdaCode,
+            role: pipelineRole,
+          }),
+        },
+      );
+
+      const createOrganizationAccountsTask = new sfn.Map(this, 'Create Organization Accounts', {
+        itemsPath: '$.configuration.accounts',
+        resultPath: 'DISCARD',
+        maxConcurrency: 1,
+        parameters: {
+          'account.$': '$$.Map.Item.Value',
+          'organizationalUnits.$': '$.configuration.organizationalUnits',
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+          acceleratorPrefix: props.acceleratorPrefix,
+        },
+      });
+
+      const createOrganizationAccountTask = new sfn.Task(this, 'Create Organization Account', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(createOrganizationAccountStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'createAccountConfiguration.$': '$',
+          },
+        }),
+      });
+
+      createOrganizationAccountsTask.iterator(createOrganizationAccountTask);
+
+      const loadOrganizationsTask = new CodeTask(this, 'Load Organizational Units', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.loadOrganizations',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          organizationsSecretId: organizationsSecret.secretArn,
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+        },
+        resultPath: '$.configuration.organizationalUnits',
+      });
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
         functionProps: {
@@ -214,6 +320,39 @@ export namespace InitialSetup {
           'configuration.$': '$.configuration',
         },
         resultPath: '$',
+      });
+
+      const installCfnRoleMasterTemplate = new s3assets.Asset(this, 'CloudFormationExecutionRoleTemplate', {
+        path: path.join(__dirname, 'assets', 'cfn-execution-role-master.template.json'),
+      });
+      installCfnRoleMasterTemplate.bucket.grantRead(pipelineRole);
+
+      const installCfnRoleMasterStateMachine = new sfn.StateMachine(
+        this,
+        `${props.acceleratorPrefix}InstallCloudFormationExecutionRoleMaster_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}InstallCfnRoleMaster_sm`,
+          definition: new CreateStackTask(this, 'Install CloudFormation Execution Role', {
+            lambdaCode,
+            role: pipelineRole,
+          }),
+        },
+      );
+
+      const installCfnRoleMasterTask = new sfn.Task(this, 'Install CloudFormation Role in Master', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(installCfnRoleMasterStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            stackName: `${props.acceleratorPrefix}CloudFormationStackSetExecutionRole`,
+            stackCapabilities: ['CAPABILITY_NAMED_IAM'],
+            stackTemplate: {
+              s3BucketName: installCfnRoleMasterTemplate.s3BucketName,
+              s3ObjectKey: installCfnRoleMasterTemplate.s3ObjectKey,
+            },
+          },
+        }),
+        resultPath: 'DISCARD',
       });
 
       const installRoleTemplate = new s3assets.Asset(this, 'ExecutionRoleTemplate', {
@@ -232,6 +371,7 @@ export namespace InitialSetup {
       });
 
       const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(installRolesStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -239,6 +379,7 @@ export namespace InitialSetup {
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackParameters: {
               RoleName: props.stateMachineExecutionRole,
+              MaxSessionDuration: `${buildTimeout.toSeconds()}`,
               // TODO Only add root role for development environments
               AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
             },
@@ -248,6 +389,34 @@ export namespace InitialSetup {
             },
             'instanceAccounts.$': '$.accounts[*].id',
             instanceRegions: [stack.region],
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
+      const deleteVpcSfn = new sfn.StateMachine(this, 'Delete Default Vpcs Sfn', {
+        stateMachineName: `${props.acceleratorPrefix}DeleteDefaultVpcs_sfn`,
+        definition: new RunAcrossAccountsTask(this, 'DeleteDefaultVPCs', {
+          lambdaCode,
+          role: pipelineRole,
+          assumeRoleName: props.stateMachineExecutionRole,
+          lambdaPath: 'index.deleteDefaultVpcs',
+          name: 'Delete Default VPC',
+        }),
+      });
+
+      const deleteVpcTask = new sfn.Task(this, 'Delete Default Vpcs', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(deleteVpcSfn, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            configRepositoryName: props.configRepositoryName,
+            configFilePath: props.configFilePath,
+            'configCommitId.$': '$.configCommitId',
+            'baseline.$': '$.baseline',
+            stackOutputSecretId: stackOutputSecret.secretArn,
+            acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
         resultPath: 'DISCARD',
@@ -270,6 +439,24 @@ export namespace InitialSetup {
         resultPath: '$.limits',
       });
 
+      const validateOuConfiguration = new CodeTask(this, 'OU Validation', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.ouValidation',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          configRepositoryName: props.configRepositoryName,
+          configFilePath: props.configFilePath,
+          'configCommitId.$': '$.configuration.configCommitId',
+          acceleratorPrefix: props.acceleratorPrefix,
+          accountsSecretId: accountsSecret.secretArn,
+          organizationsSecretId: organizationsSecret.secretArn,
+          configBranch: props.configBranchName,
+        },
+        resultPath: '$.configuration.configCommitId',
+      });
+
       const addScpTask = new CodeTask(this, 'Add SCPs to Organization', {
         functionProps: {
           code: lambdaCode,
@@ -288,6 +475,22 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const pass = new sfn.Pass(this, 'Success');
+
+      const detachQuarantineScpTask = new CodeTask(this, 'Detach Quarantine SCP', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.detachQuarantineScp',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          acceleratorPrefix: props.acceleratorPrefix,
+          'accounts.$': '$.accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+      detachQuarantineScpTask.next(pass);
+
       const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
         functionProps: {
           code: lambdaCode,
@@ -296,6 +499,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           'accounts.$': '$.accounts',
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         },
         resultPath: 'DISCARD',
       });
@@ -311,6 +517,7 @@ export namespace InitialSetup {
       // TODO Move this to a separate state machine, including store output task
       const createDeploymentTask = (phase: number) => {
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
+          // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(codeBuildStateMachine, {
             integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
             input: {
@@ -320,6 +527,10 @@ export namespace InitialSetup {
                 'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
                 'CONFIG_FILE_PATH.$': '$.configFilePath',
                 'CONFIG_COMMIT_ID.$': '$.configCommitId',
+                'ACCELERATOR_BASELINE.$': '$.baseline',
+                ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
+                ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
+                CONFIG_BRANCH_NAME: props.configBranchName,
               },
             },
           }),
@@ -357,6 +568,34 @@ export namespace InitialSetup {
       const storePhase4Output = createStoreOutputTask(4);
       const deployPhase5Task = createDeploymentTask(5);
 
+      const createConfigRecorderSfn = new sfn.StateMachine(this, 'Create Config Recorder Sfn', {
+        stateMachineName: `${props.acceleratorPrefix}CreateConfigRecorder_sfn`,
+        definition: new RunAcrossAccountsTask(this, 'CreateConfigRecorder', {
+          lambdaCode,
+          role: pipelineRole,
+          assumeRoleName: props.stateMachineExecutionRole,
+          lambdaPath: 'index.createConfigRecorder',
+          name: 'Create Config Recorder',
+        }),
+      });
+
+      const createConfigRecordersTask = new sfn.Task(this, 'Create Config Recorders', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(createConfigRecorderSfn, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            configRepositoryName: props.configRepositoryName,
+            configFilePath: props.configFilePath,
+            'configCommitId.$': '$.configCommitId',
+            'baseline.$': '$.baseline',
+            stackOutputSecretId: stackOutputSecret.secretArn,
+            acceleratorPrefix: props.acceleratorPrefix,
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+
       // TODO We could put this task in a map task and apply to all accounts individually
       const accountDefaultSettingsTask = new CodeTask(this, 'Account Default Settings', {
         functionProps: {
@@ -371,6 +610,27 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      const rdgwArtifactsFolderPath = path.join(__dirname, '..', '..', '..', 'reference-artifacts', 'scripts');
+      const rdgwScripts = fs.readdirSync(rdgwArtifactsFolderPath);
+
+      const verifyFilesTask = new CodeTask(this, 'Verify Files', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.verifyFilesStep',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          assumeRoleName: props.stateMachineExecutionRole,
+          'accounts.$': '$.accounts',
+          stackOutputSecretId: stackOutputSecret.secretArn,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          rdgwScripts,
         },
         resultPath: 'DISCARD',
       });
@@ -431,6 +691,7 @@ export namespace InitialSetup {
       });
 
       const createAdConnectorTask = new sfn.Task(this, 'Create AD Connector', {
+        // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createAdConnectorStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
@@ -460,36 +721,79 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
+      const baseLineCleanupChoice = new sfn.Choice(this, 'Baseline Clean Up?')
+        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), detachQuarantineScpTask)
+        .otherwise(pass);
+
+      const commonStep1 = addScpTask.startState
+        .next(deployPhase1Task)
+        .next(storePhase1Output)
+        .next(accountDefaultSettingsTask)
+        .next(deployPhase2Task)
+        .next(storePhase2Output)
+        .next(deployPhase3Task)
+        .next(storePhase3Output)
+        .next(deployPhase4Task)
+        .next(storePhase4Output)
+        .next(associateHostedZonesTask)
+        .next(addTagsToSharedResourcesTask)
+        .next(enableDirectorySharingTask)
+        .next(deployPhase5Task)
+        .next(createAdConnectorTask)
+        .next(storeCommitIdTask)
+        .next(baseLineCleanupChoice);
+
+      const enableConfigChoice = new sfn.Choice(this, 'Create Config Recorders?')
+        .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), createConfigRecordersTask.next(commonStep1))
+        .otherwise(commonStep1)
+        .afterwards();
+
+      const commonDefinition = loadOrganizationsTask.startState
+        .next(loadAccountsTask)
+        .next(installRolesTask)
+        .next(deleteVpcTask)
+        .next(loadLimitsTask)
+        .next(enableTrustedAccessForServicesTask)
+        .next(deployPhase0Task)
+        .next(storePhase0Output)
+        .next(enableConfigChoice);
+
+      // Landing Zone Config Setup
+      const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
+        .next(addRoleToServiceCatalog)
+        .next(createLandingZoneAccountsTask)
+        .next(commonDefinition);
+
+      // // Organizations Config Setup
+      const orgConfigDefinition = validateOuConfiguration.startState
+        .next(loadOrgConfigurationTask)
+        .next(installCfnRoleMasterTask)
+        .next(createOrganizationAccountsTask)
+        .next(commonDefinition);
+
+      const baseLineChoice = new sfn.Choice(this, 'Baseline?')
+        .when(sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'), alzConfigDefinition)
+        .when(sfn.Condition.stringEquals('$.configuration.baseline', 'ORGANIZATIONS'), orgConfigDefinition)
+        .otherwise(
+          new sfn.Fail(this, 'Fail', {
+            cause: 'Invalid Baseline supplied',
+          }),
+        )
+        .afterwards();
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
           .next(compareConfigurationsTask)
-          .next(loadConfigurationTask)
-          .next(addRoleToServiceCatalog)
-          .next(createAccountsTask)
-          .next(loadAccountsTask)
-          .next(installRolesTask)
-          .next(loadLimitsTask)
-          .next(enableTrustedAccessForServicesTask)
-          .next(deployPhase0Task)
-          .next(storePhase0Output)
-          .next(addScpTask)
-          .next(deployPhase1Task)
-          .next(storePhase1Output)
-          .next(accountDefaultSettingsTask)
-          .next(deployPhase2Task)
-          .next(storePhase2Output)
-          .next(deployPhase3Task)
-          .next(storePhase3Output)
-          .next(deployPhase4Task)
-          .next(storePhase4Output)
-          .next(associateHostedZonesTask)
-          .next(addTagsToSharedResourcesTask)
-          .next(enableDirectorySharingTask)
-          .next(deployPhase5Task)
-          .next(createAdConnectorTask)
-          .next(storeCommitIdTask),
+          .next(getBaseLineTask)
+          .next(baseLineChoice),
       });
     }
   }
+}
+
+function setSecretValue(secret: secrets.Secret, value: string) {
+  const cfnSecret = secret.node.defaultChild as secrets.CfnSecret;
+  cfnSecret.addPropertyOverride('SecretString', value);
+  cfnSecret.addPropertyDeletionOverride('GenerateSecretString');
 }
