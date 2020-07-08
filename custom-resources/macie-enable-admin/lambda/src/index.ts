@@ -24,6 +24,11 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
       return onCreateOrUpdate(event);
     case 'Update':
       return onCreateOrUpdate(event);
+    case 'Delete':
+      return {
+        physicalResourceId: getPhysicalId(event),
+        data: {},
+      };
   }
 }
 
