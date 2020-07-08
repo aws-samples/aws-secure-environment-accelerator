@@ -4,12 +4,14 @@
 
 The PBMM Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, network design, and comprehensive logging requirements per ITSG-22 specifications.
 
-The Accelerator Architecture is built on the following tenets:
+The Accelerator Architecture has been built with the following design principles in mind:
 
-1. **Infrastructure as Code:**
-2. **Scalability:**
-3. **Guardrails not Blockers:**
-4. **Auditability:**
+1. Maximize agility, scalability, and availability
+2. Enable the full capability of the AWS cloud and do not artificially limit capabilities based on lowest common denominator supported capabilities of other cloud providers
+4. Be adaptable to evolving technological capabilities in the underlying platform being used in the architecture
+5. Allow for seamless auto-scaling and give potentially unlimited bandwidth as bandwidth requirements increase (or decrease) based on actual customer load. This is a key aspect of the value proposition of cloud computing
+6. High availability is paramount: the design stretches across two physical AWS Availability Zones (AZ), such that the loss of any one AZ does not impact application availability. The design can be easily extended to a third availability zone.
+
 
 ### 1.1 Purpose of Document
 
@@ -41,6 +43,7 @@ The central features of the Accelerator Architecture are as follows:
 
 Several conventions are used throughout this document to aid understanding.
 
+
 #### AWS Account Numbers
 
 AWS account numbers are decimal-digit pseudorandom identifiers with 12 digits (e.g. `651278770121`). This document will use the convention that an AWS master account has the account ID `012345678910`, and child accounts are given by `111111111111`, `222222222222`, etc.
@@ -68,6 +71,13 @@ For example:
 
 The above is not valid JSON without first removing the comment on the fourth line.
 
+### 1.4 Department Naming
+
+This document will make no reference to specific Government of Canada departments. Where naming is required (e.g. in domain names), this document will use a placeholder name as needed; e.g. `dept.gc.ca`.
+
+### 1.5 Relationship to AWS Landing Zone
+AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The Accelerator Architecture draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the Accelerator Architecture presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `vTODO`.
+
 
 ## 2. Account Structure
 
@@ -75,9 +85,10 @@ AWS accounts are a strong isolation boundary; by default there is zero control p
 
 ## Accounts
 
-The Accelerator Architecture includes the following accounts.
+The Accelerator Architecture includes the following AWS accounts.
 
-### Overview
+Note that the account structure is strictly a control plane concept - nothing about this structure implies anything about the network design or network flows.
+
 
 ![Organizations Diagram](./images/organization_structure.drawio.png)
 
@@ -106,14 +117,30 @@ The AWS Organization resides in the master account. This account is not used for
 }
 ```
 
-AWS SSO, and an associated AD Connector (AWS Directory Service), reside in this account also.
 
-### Perimeter Account
-### Perimeter Account
+#### AWS SSO
+AWS SSO resides in the master account in the organization, due to a current requirement of the AWS SSO service. This service deploys IAM roles into the accounts in the Organization.
 
-## SCPs
+TODO(Dave): more details on SSO
 
-## AWS SSO
+
+#### Organizational Units
+Underneath the root of the Organization, Organizational Units (OUs) provide an optional mechanism for grouping accounts into logical collections. Aside from the benefit of the grouping itself, these collections serve as the attachment points for SCPs (preventative API-blocking controls), and Resource Access Manager sharing (cross-account resource sharing). Example use cases are as follows:
+
+* An SCP is attached to the core OU to prevent the deletion of Transit Gateway resources in the associated accounts.
+* The shared network account uses RAM sharing to share the development line-of-business VPC with a development OU. This makes the VPC available to a functional account in that OU used by developers, despite residing logically in the shared network account.
+
+OUs may be nested (to a total depth of five), with SCPs and RAM sharing applied at the desired level.
+
+### Core OU
+This OU houses all administrative accounts, such as the core landing zone accounts. No application accounts or application workloads are intended to exist within this OU. This OU also contains the centralized networking infrastructureSharedNetwork
+
+
+### Central OU
+
+### Functional OUs
+
+
 
 
 
