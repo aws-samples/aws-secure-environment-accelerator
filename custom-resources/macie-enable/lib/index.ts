@@ -50,6 +50,12 @@ export class MacieEnable extends cdk.Construct {
           actions: ['macie2:EnableMacie'],
           resources: ['*'],
         }),
+        // need this permission to create service linked role for macie 
+        // see https://docs.aws.amazon.com/macie/latest/user/service-linked-roles.html
+        new iam.PolicyStatement({
+          actions: ['iam:CreateServiceLinkedRole'],
+          resources: ['*'],
+        }),
       ]),
     });
   }

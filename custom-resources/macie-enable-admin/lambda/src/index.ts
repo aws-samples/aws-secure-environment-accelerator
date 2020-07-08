@@ -10,7 +10,6 @@ const macie = new AWS.Macie2();
 
 export interface HandlerProperties {
   accountId: string;
-  clientToken?: string;
 }
 
 export const handler = errorHandler(onEvent);
@@ -50,7 +49,6 @@ async function enableOrgAdmin(properties: HandlerProperties) {
     const enableAdmin = await macie
       .enableOrganizationAdminAccount({
         adminAccountId: properties.accountId,
-        clientToken: properties.clientToken,
       })
       .promise();
 
