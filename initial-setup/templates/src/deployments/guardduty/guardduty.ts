@@ -19,7 +19,7 @@ export interface GuardDutyStepProps {
  */
 export async function step1(props: GuardDutyStepProps) {
   const alzBaseline = props.config['global-options']['alz-baseline'];
-  const enableGuardDuty = props.config['global-options']['central-security-services']['guard-duty'];
+  const enableGuardDuty = props.config['global-options']['central-security-services'].guardduty;
 
   // skipping Guardduty if using ALZ or not enabled from config
   if (alzBaseline || !enableGuardDuty) {
@@ -51,7 +51,7 @@ export async function step1(props: GuardDutyStepProps) {
  */
 export async function step2(props: GuardDutyStepProps) {
   const alzBaseline = props.config['global-options']['alz-baseline'];
-  const enableGuardDuty = props.config['global-options']['central-security-services']['guard-duty'];
+  const enableGuardDuty = props.config['global-options']['central-security-services'].guardduty;
 
   // skipping Guardduty if using ALZ or not enabled from config
   if (alzBaseline || !enableGuardDuty) {
