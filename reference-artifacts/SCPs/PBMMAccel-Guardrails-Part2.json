@@ -82,6 +82,20 @@
       }
     },
     {
+      "Sid": "DenyRDGWRole",
+      "Effect": "Deny",
+      "Action": ["iam:*"],
+      "Resource": "arn:aws:iam::*:role/PBMMAccel-RDGW-Role",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "DenyGDSHFMAAChange",
       "Effect": "Deny",
       "Action": [
@@ -113,6 +127,8 @@
         "securityhub:BatchDisableStandards",
         "fms:DisassociateAdminAccount",
         "access-analyzer:DeleteAnalyzer",
+        "account:EnableRegion",
+        "account:DisableRegion",
         "ec2:CreateDefaultVpc"
       ],
       "Resource": "*",

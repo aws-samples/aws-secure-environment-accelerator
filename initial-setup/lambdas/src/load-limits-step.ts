@@ -41,7 +41,7 @@ const LIMITS: { [limitKey: string]: LimitCode } = {
   },
   [Limit.CloudFormationStackSetPerAdmin]: {
     serviceCode: 'cloudformation',
-    quotaCode: 'L-31709F13',
+    quotaCode: 'L-EC62D81A',
     enabled: true,
   },
   [Limit.OrganizationsMaximumAccounts]: {
