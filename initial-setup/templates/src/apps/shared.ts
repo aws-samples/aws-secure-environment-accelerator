@@ -1,5 +1,5 @@
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { Account } from '../utils/accounts';
 import { Limiter } from '../utils/limits';
 import { Context } from '../utils/context';

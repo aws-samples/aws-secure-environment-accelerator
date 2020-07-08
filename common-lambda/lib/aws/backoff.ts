@@ -17,7 +17,7 @@ export function throttlingBackOff<T>(
 
 // tslint:disable-next-line: no-any
 export const isThrottlingError = (e: any) =>
-  e.errorType === 'TooManyRequestsException' ||
+  e.code === 'TooManyRequestsException' ||
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
   e.retryable === true;

@@ -6,9 +6,10 @@ import { collectAsync } from '../util/generator';
 export class SecretsManager {
   private readonly client: aws.SecretsManager;
 
-  constructor(credentials?: aws.Credentials) {
+  constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.SecretsManager({
       credentials,
+      region,
     });
   }
 

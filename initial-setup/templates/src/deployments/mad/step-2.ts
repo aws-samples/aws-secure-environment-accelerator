@@ -6,7 +6,7 @@ import { Grant as KeyGrant, GrantOperation } from '@custom-resources/kms-grant';
 import { AcceleratorConfig, MadDeploymentConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { getMadUserPasswordSecretArn, getMadRootPasswordSecretArn } from './outputs';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { StructuredOutput } from '../../common/structured-output';
 import { SecretEncryptionKeyOutputType } from '../secrets';
 import { JsonOutputValue } from '../../common/json-output';
