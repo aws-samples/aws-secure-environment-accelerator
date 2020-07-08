@@ -175,13 +175,13 @@ The state machine contains three types of steps:
 
 #### Get or Create Configuration from S3
 
-This step is a Lambda function that finds or creates the configuration repository. Finds the configuration file in the repository. If the configuration file cannot be found in the repository it is copied from the customer's configuration bucket. If the copy is successful then the configuration file in the S3 bucket will be removed.
+This step calls a Lambda function that finds or creates the configuration repository. Finds the configuration file in the repository. If the configuration file cannot be found in the repository it is copied from the customer's configuration bucket. If the copy is successful then the configuration file in the S3 bucket will be removed.
 
 The configuration file is parsed and validated. This step will fail if the configuration file is not valid JSON or does not adhere to the configuration file specification.
 
 #### Compare Configurations
 
-This step is a Lambda function that compares the previous version of the configuration file with the current version of the configuration file. The previous configuration file version is stored in the secret `accelerator/config/last-successful-commit` in AWS Secrets Manager in the master account.
+This step calls a Lambda function that compares the previous version of the configuration file with the current version of the configuration file. The previous configuration file version is stored in the secret `accelerator/config/last-successful-commit` in AWS Secrets Manager in the master account.
 
 The following configuration file changes are not allowed:
 
@@ -223,13 +223,13 @@ The following configuration file changes are not allowed:
 
 #### Get Baseline from Configuration
 
-This step is a Lambda function that gets the `alz-baseline` of the configuration file to decide which path in the state machine will be taken.
+This step calls a Lambda function that gets the `alz-baseline` of the configuration file to decide which path in the state machine will be taken.
 
 #### Load Landing Zone Configuration
 
 _Executed only when using AWS Landing Zone baseline_
 
-This step is a Lambda function that validates the ALZ deployment and configuration.
+This step calls a Lambda function that validates the ALZ deployment and configuration.
 
 This step fails when
 
@@ -246,7 +246,7 @@ This step fails when
 
 _Executed only when using AWS Landing Zone baseline_
 
-This step is a Lambda function that adds the state machine's IAM role to the ALZ Account Vending Machine (AVM) service catalog portfolio.
+This step calls a Lambda function that adds the state machine's IAM role to the ALZ Account Vending Machine (AVM) service catalog portfolio.
 
 #### Create Landing Zone Account
 
@@ -264,7 +264,7 @@ _Executed only when using AWS Organizations baseline_
 
 _Executed only when using AWS Organizations baseline_
 
-This step is a Lambda function that validates the Accelerator deployment and configuration.
+This step calls a Lambda function that validates the Accelerator deployment and configuration.
 
 This step fails when
 
@@ -292,81 +292,124 @@ This step starts the `PBMMAccel-OrgCreateAccount_sm` state machine. This state m
 
 #### Load Accounts
 
-This step is a Lambda function that loads all accounts and organizational units. The accounts and organizational units are stored in the secret `accelerator/accounts` and `accelerator/organizations` in AWS Secrets Manager in the master account. The accounts and organizational units will later be used to deploy stacks in the correct accounts.
+This step calls a Lambda function that loads all accounts and organizational units. The accounts and organizational units are stored in the secret `accelerator/accounts` and `accelerator/organizations` in AWS Secrets Manager in the master account. The accounts and organizational units will later be used to deploy stacks in the correct accounts.
 
 #### Install Execution Roles
 
-This step is a Lambda function that creates stack sets in all Accelerator accounts. This stack sets contains a single resource, i.e. an IAM role `PBMMAccel-PipelineRole` that can be assumed by the `PBMMAccel-L-SFN-MasterRole`. This IAM role allows the master account to administer the Accelerator accounts.
+This step calls a Lambda function that creates stack sets in all Accelerator accounts. This stack sets contains a single resource, i.e. an IAM role `PBMMAccel-PipelineRole` that can be assumed by the `PBMMAccel-L-SFN-MasterRole`. This IAM role allows the master account to administer the Accelerator accounts.
 
 #### Delete Default VPCs
 
-This step is a Lambda function that ...
+This step starts the `PBMMAccel-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for deleting default subnets, internet gateways and VPCs for all regions and accounts in the Accelerator configuration.
+
+This step fails when one or more default VPCs cannot be deleted.
 
 #### Load Limits
 
-This step is a Lambda function that ...
+This step calls a Lambda function that loads service quotas and requests a service quota increase according to the configuration file. When a service quota increase request has been closed but not increased, then the service quota request will be issued again when the creation of the last request was at least two days ago.
 
 #### Enable Trusted Access for Services
 
-This step is a Lambda function that ...
+This step calls a Lambda function that is responsible for
+
+- enabling AWS service access in the organization;
+- enabling AWS Resource Access Manager sharing in the organization;
+- creating a service-linked role for AWS IAM Access Analyzer;
+- setting the security account as delegated administrator for AWS Firewall Manager;
+- setting the security account as delegated administrator for AWS IAM Access Analyzer;
+- setting the security account as delegated administrator for Amazon GuardDuty.
 
 #### Deploy Phase 0
 
+- creates the Accelerator configuration bucket;
+- copies artifacts to the Accelerator configuration bucket:
+  - SCPs;
+  - firewall configuration;
+- copies
+
 #### Store Phase 0 Output
 
-This step is a Lambda function that stores the outputs from the deployed stacks in subaccounts in the secret `accelerator/outputs` in AWS Secrets Manager in the master account.
+This step calls a Lambda function that stores the outputs from the deployed stacks in subaccounts in the secret `accelerator/outputs` in AWS Secrets Manager in the master account.
 
 #### Add SCPs to Organization
 
-This step is a Lambda function that ...
+This step calls a Lambda function that creates and attaches the SCPs listed in the Accelerator configuration. The SCP policies are loaded from the Accelerator configuration bucket.
+
+This step fails when
+
+- an SCP policy cannot be found in the Accelerator configuration bucket;
+- an SCP could not be attached to an organizational unit or account, e.g. when the maximum number of attached SCPs is exceeded
 
 #### Deploy Phase 1
 
 #### Store Phase 1 Output
 
+See [_Deploy Phase 0_](#deploy-phase-0).
+
 #### Account Default Settings
 
-This step is a Lambda function that ...
+This step calls a Lambda function that
+
+- enables and sets EBS default encryption for all accounts in the Accelerator configuration; **TODO**(ggindera): Moved this to phase 0 after merge in branch z48
+- enables S3 object level ALZ Cloudtrail logging;
+- enables Log Insight events;
+- enables KMS encryption using the CMK from the central logging account;
+- sets AWS Systems Manager Session Manager default configuration in every AWS managed account in every region with a VPC.
 
 #### Deploy Phase 2
 
 #### Store Phase 2 Output
 
+See [_Deploy Phase 0_](#deploy-phase-0).
+
 #### Deploy Phase 3
 
 #### Store Phase 3 Output
+
+See [_Deploy Phase 0_](#deploy-phase-0).
 
 #### Deploy Phase 4
 
 #### Store Phase 4 Output
 
+See [_Deploy Phase 0_](#deploy-phase-0).
+
 #### Associate Hosted Zones
 
-This step is a Lambda function that ...
+This step calls a Lambda function that associates the private zones, all the interface endpoint zones, and the resolver rules with each VPC that leverages endpoint services.
 
 #### Add Tags to Shared Resources
 
-This step is a Lambda function that ...
+This step calls a Lambda function that adds tags to shared resources in the share destination account. For example, when a subnet is shared into another account, this step will add the `Name` tag to the subnet in the shared account.
+
+The supported resources are
+
+- VPCs;
+- subnets;
+- security groups;
+- transit gateway attachments.
 
 #### Enable Directory Sharing
 
-This step is a Lambda function that ...
+This step calls a Lambda function that shares Managed Active Directory according to the Accelerator configuration. The directory is shared from the source account to the target account. The directory will be accepted in the target account.
 
 #### Deploy Phase 5
 
 #### Create AD Connector
 
-This step is a Lambda function that ...
+This step starts the `PBMMAccel-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for creating AD connectors according to the Accelerator configuration.
+
+This step fails when one or more AD connectors failed to be created.
 
 #### Store Commit ID
 
-This step is a Lambda function that ...
+This step calls a Lambda function that
 
 #### Detach Quarantine SCP
 
 _Executed only when using AWS Organizations baseline_
 
-This step is a Lambda function that ...
+This step calls a Lambda function that stores the commit ID for which the state machine just ran.
 
 ## Troubleshooting
 
