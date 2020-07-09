@@ -69,7 +69,7 @@ export function createDefaultS3Bucket(props: {
     new iam.PolicyStatement({
       actions: ['s3:GetBucketLocation', 's3:PutObject'],
       principals: [new iam.ServicePrincipal('macie.amazonaws.com')],
-      resources: ['*'],
+      resources: [bucket.bucketArn, bucket.arnForObjects('*')],
     }),
   );
 
