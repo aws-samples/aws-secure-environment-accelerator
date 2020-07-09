@@ -1,3 +1,4 @@
+import * as aws from 'aws-sdk';
 import { Account, OrganizationalUnit } from 'aws-sdk/clients/organizations';
 import { LandingZoneConfig } from '@aws-pbmm/common-lambda/lib/landing-zone/config';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
@@ -5,6 +6,8 @@ import { Organizations } from '@aws-pbmm/common-lambda/lib/aws/organizations';
 import { SSM } from '@aws-pbmm/common-lambda/lib/aws/ssm';
 import { LandingZone } from '@aws-pbmm/common-lambda/lib/landing-zone';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
+
+aws.config.logger = console;
 
 type DeepPartial<T> = {
   // tslint:disable-next-line: array-type
@@ -30,6 +33,7 @@ export const values: MockValues = {
 };
 
 export function install() {
+  // @ts-ignore
   jest.spyOn(LandingZone.prototype, 'findLandingZoneStack').mockImplementation(async () => ({
     version: '2.3.0',
     config: values.landingZoneConfig,
@@ -38,6 +42,12 @@ export function install() {
   jest
     .spyOn(AcceleratorConfig, 'fromString')
     .mockImplementation(() => new AcceleratorConfig(values.acceleratorConfig as AcceleratorConfig));
+
+  jest
+    .spyOn(Organizations.prototype, 'getOrganizationalUnit')
+    .mockImplementation(async (ouId: string) => values.organizationalUnits.find(ou => ou.Id === ouId));
+
+  jest.spyOn(Organizations.prototype, 'listParents').mockImplementation(async (accountId: string) => []);
 
   jest
     .spyOn(Organizations.prototype, 'listOrganizationalUnits')
@@ -56,8 +66,8 @@ export function install() {
   // What we return here does not matter, it should just not be undefined
 
   jest.spyOn(CodeCommit.prototype, 'getFile').mockImplementation(async () => ({
-    commitId: '',
     blobId: '',
+    commitId: '',
     fileContent: '',
     fileMode: '',
     filePath: '',

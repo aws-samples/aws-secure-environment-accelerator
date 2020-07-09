@@ -24,12 +24,13 @@ export function createKeyPairName(name: string): string {
   });
 }
 
-export function createLogGroupName(name: string): string {
+export function createLogGroupName(name: string, suffixLength?: number): string {
   return (
     '/' +
     createName({
       name,
       separator: '/',
+      suffixLength,
     })
   );
 }

@@ -7,7 +7,10 @@ import { Context } from '../utils/context';
 import { Route53Zones } from './r53-zones';
 import { Route53ResolverEndpoint } from './r53-resolver-endpoint';
 import { Route53ResolverRule } from './r53-resolver-rule';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import {
+  StackOutput,
+  getStackJsonOutput,
+} from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from './json-output';
 
 export interface GlobalOptionsProps {

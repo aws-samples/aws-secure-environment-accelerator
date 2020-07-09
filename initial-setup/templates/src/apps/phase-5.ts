@@ -1,15 +1,17 @@
 import * as ssm from '@aws-cdk/aws-ssm';
 import { getAccountId } from '../utils/accounts';
 import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
-import { getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { MadOutput } from '@aws-pbmm/common-outputs/lib/mad';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import { StructuredOutput } from '../common/structured-output';
 import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
+import * as ouValidation from '../deployments/ou-validation-events';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
+import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
@@ -135,4 +137,32 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
+
+  const { acceleratorBaseline } = context;
+
+  if (acceleratorBaseline === 'ORGANIZATIONS') {
+    const masterStack = accountStacks.getOrCreateAccountStack(masterAccountKey, 'us-east-1');
+    if (!masterStack) {
+      console.error(`Not able to create stack for "${masterAccountKey}"`);
+    } else {
+      // Find the SCP artifact output
+      const artifactOutput = ArtifactOutputFinder.findOneByName({
+        outputs,
+        artifactName: 'SCP',
+      });
+      const scpBucketName = artifactOutput.bucketName;
+      const scpBucketPrefix = artifactOutput.keyPrefix;
+      const ignoredOus = acceleratorConfig['global-options']['ignored-ous'] || [];
+      const organizationAdminRole = acceleratorConfig['global-options']['organization-admin-role'];
+
+      await ouValidation.step1({
+        scope: masterStack,
+        context,
+        scpBucketName,
+        scpBucketPrefix,
+        ignoredOus,
+        organizationAdminRole,
+      });
+    }
+  }
 }

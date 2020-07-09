@@ -4,8 +4,11 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { FirewallManager } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks } from '../../../common/account-stacks';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
+import {
+  StackOutput,
+  getStackJsonOutput,
+  OUTPUT_SUBSCRIPTION_REQUIRED,
+} from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface FirewallManagerStep1Props {
   accountStacks: AccountStacks;

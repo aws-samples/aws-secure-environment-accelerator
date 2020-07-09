@@ -3,12 +3,13 @@ import 'jest';
 import * as fs from 'fs';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AccountStacks } from '../../src/common/account-stacks';
 import { Account } from '../../src/utils/accounts';
 import { Limiter } from '../../src/utils/limits';
 import { PhaseInput } from '../../src/apps/shared';
 import { PhaseInfo } from '../../src/app';
+import { Context } from '../../src/utils/context';
 
 export async function* deployPhases(phases: PhaseInfo[]): AsyncIterable<cdk.Stage> {
   const input = createPhaseInput();
@@ -112,10 +113,17 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
   const content = fs.readFileSync('../../config.example.json');
   const config = AcceleratorConfig.fromString(content.toString());
 
-  const context = {
+  const context: Context = {
     acceleratorName: 'PBMM',
     acceleratorPrefix: 'PBMMAccel-',
     acceleratorExecutionRoleName: 'PBMMAccel-PipelineRole',
+    acceleratorBaseline: 'ORGANIZATIONS',
+    acceleratorPipelineRoleName: 'PBMMAccel-PipelineRole',
+    acceleratorStateMachineName: 'PBMMAccel-MainStateMachine_sm',
+    configBranch: '',
+    configCommitId: '',
+    configFilePath: '',
+    configRepositoryName: '',
     defaultRegion: 'ca-central-1',
   };
 
@@ -1170,6 +1178,20 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketName: 'pbmmaccel-funacct-phase1-cacentral1-1qsru3dws5n76',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:934027390063:key/7592bb9b-43d1-45d3-be51-bbc59cb06471',
           region: 'ca-central-1',
+        },
+      }),
+    },
+    {
+      accountKey: 'master',
+      outputKey: 'SCPArtifactsOutputmasterSOutputA1DE17D3',
+      outputValue: JSON.stringify({
+        type: 'ArtifactOutput',
+        value: {
+          accountKey: 'master',
+          artifactName: 'SCP',
+          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          keyPrefix: 'scp',
         },
       }),
     },

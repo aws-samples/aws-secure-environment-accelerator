@@ -1,5 +1,5 @@
 import * as mocks from './load-configuration-step.mocks'; // IMPORTANT! Load the mocks _before_ the module under test!
-import { handler } from '../src/load-configuration-step';
+import { handler } from '../src/configuration/load-landing-zone-config';
 
 beforeAll(() => {
   mocks.install();

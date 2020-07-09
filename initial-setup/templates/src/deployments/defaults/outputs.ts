@@ -5,7 +5,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { Account } from '../../utils/accounts';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { StructuredOutput, createCfnStructuredOutput } from '../../common/structured-output';
 
 export interface RegionalBucket extends s3.IBucket {

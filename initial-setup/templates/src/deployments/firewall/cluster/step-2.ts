@@ -2,7 +2,7 @@ import { pascalCase } from 'pascal-case';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { VpnTunnelOptions } from '@custom-resources/ec2-vpn-tunnel-options';
 import { VpnAttachments } from '@custom-resources/ec2-vpn-attachment';

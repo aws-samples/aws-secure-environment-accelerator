@@ -2,8 +2,15 @@ import * as aws from 'aws-sdk';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { StackOutput, getStackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
-import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import {
+  StackOutput,
+  getStackOutput,
+  AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
+  OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER,
+  OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER,
+  OUTPUT_LOG_ARCHIVE_BUCKET_NAME,
+  OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
+} from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CloudTrail } from '@aws-pbmm/common-lambda/lib/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
@@ -41,7 +48,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const updateCloudTrailSettings = async (accountId: string, accountKey: string): Promise<void> => {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
 
-    const cloudTrailName = outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
+    const cloudTrailName = AWS_LANDING_ZONE_CLOUD_TRAIL_NAME;
     console.log('AWS LZ CloudTrail Name: ' + cloudTrailName);
 
     const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
@@ -49,7 +56,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       console.warn('Cannot find account with type log-archive');
       return;
     }
-    const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
+    const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
     console.log('AWS LZ CloudTrail S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
 
     const cloudTrail = new CloudTrail(credentials);
@@ -86,7 +93,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
           ReadWriteType: 'All',
         },
       ],
-      TrailName: outputKeys.AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
+      TrailName: AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
     };
     const putEventSelectorsResponse = await cloudTrail.putEventSelectors(putEventSelectorsRequest);
     console.log('putEventSelectorsResponse: ', putEventSelectorsResponse);
@@ -131,23 +138,19 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       return;
     }
     const logArchiveAccountKey = logArchiveAccount.key;
-    const bucketName = getStackOutput(outputs, logArchiveAccountKey, outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
+    const bucketName = getStackOutput(outputs, logArchiveAccountKey, OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
     if (!bucketName) {
-      console.warn(`Cannot find output ${outputKeys.OUTPUT_LOG_ARCHIVE_BUCKET_NAME}`);
+      console.warn(`Cannot find output ${OUTPUT_LOG_ARCHIVE_BUCKET_NAME}`);
       return;
     }
-    const ssmKeyId = getStackOutput(outputs, accountKey, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
+    const ssmKeyId = getStackOutput(outputs, accountKey, OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
     if (!ssmKeyId) {
-      console.warn(`Cannot find output ${outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER}`);
+      console.warn(`Cannot find output ${OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER}`);
       return;
     }
-    const logGroupName = getStackOutput(
-      outputs,
-      accountKey,
-      outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER,
-    );
+    const logGroupName = getStackOutput(outputs, accountKey, OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER);
     if (!logGroupName) {
-      console.warn(`Cannot find output ${outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER}`);
+      console.warn(`Cannot find output ${OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER}`);
       return;
     }
 
@@ -219,12 +222,14 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
       continue;
     }
 
-    try {
-      // update AWS LZ cloud trail settings
-      await updateCloudTrailSettings(account.id, account.key);
-    } catch (e) {
-      console.error(`Error while updating CloudTrail settings`);
-      console.error(e);
+    if (acceleratorConfig['global-options']['alz-baseline']) {
+      try {
+        // update AWS LZ cloud trail settings
+        await updateCloudTrailSettings(account.id, account.key);
+      } catch (e) {
+        console.error(`Error while updating CloudTrail settings`);
+        console.error(e);
+      }
     }
 
     try {

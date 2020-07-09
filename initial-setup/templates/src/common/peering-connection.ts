@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PcxRouteConfig, PcxRouteConfigType, ResolvedVpcConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { getVpcConfig } from './get-all-vpcs';
 import { StructuredOutput } from './structured-output';
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';

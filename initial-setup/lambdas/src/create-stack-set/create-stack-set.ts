@@ -117,7 +117,7 @@ export function isStackTemplateLocationArtifact(value: unknown): value is StackT
   return typeof value === 'object' && value !== null && value.hasOwnProperty('artifactBucket');
 }
 
-async function getTemplateBody(location: StackTemplateLocation): Promise<string> {
+export async function getTemplateBody(location: StackTemplateLocation): Promise<string> {
   if (isStackTemplateLocationBody(location)) {
     return location;
   } else if (isStackTemplateLocationS3(location)) {

@@ -13,11 +13,11 @@ import {
   AlbTargetInstanceConfig,
   AlbTargetInstanceFirewallConfigType,
 } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { SecurityGroupsOutput, VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { AccountStacks } from '../../common/account-stacks';
 import { createCertificateSecretName } from '../certificates';
 import { AesBucketOutput } from '../defaults';
 import { FirewallInstanceOutputFinder } from '../firewall/cluster/outputs';

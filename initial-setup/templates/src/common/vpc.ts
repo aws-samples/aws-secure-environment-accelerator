@@ -10,11 +10,11 @@ import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment, TransitGatewayRoute } from '../common/transit-gateway-attachment';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AccountStacks } from '../common/account-stacks';
 import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
-import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface VpcCommonProps {
   /**

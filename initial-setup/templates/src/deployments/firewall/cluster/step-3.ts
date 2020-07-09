@@ -5,11 +5,14 @@ import * as iam from '@aws-cdk/aws-iam';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { InstanceProfile } from '@aws-pbmm/constructs/lib/iam';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import {
+  StackOutput,
+  getStackJsonOutput,
+  OUTPUT_SUBSCRIPTION_REQUIRED,
+} from '@aws-pbmm/common-outputs/lib/stack-output';
 import { FirewallCluster, FirewallInstance } from '@aws-pbmm/constructs/lib/firewall';
 import { AccountStacks, AccountStack } from '../../../common/account-stacks';
 import { FirewallVpnConnection, CfnFirewallInstanceOutput, FirewallVpnConnectionOutputFinder } from './outputs';
-import { OUTPUT_SUBSCRIPTION_REQUIRED } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { checkAccountWarming } from '../../account-warming/outputs';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
 import { RegionalBucket } from '../../defaults';
@@ -96,6 +99,7 @@ export async function step3(props: FirewallStep3Props) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;
     }
+
     await createFirewallCluster({
       accountBucket,
       accountStack,

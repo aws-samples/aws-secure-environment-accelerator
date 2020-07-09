@@ -12,9 +12,16 @@ const testStacks = new AccountStacks({
   phase: 'test',
   accounts: [],
   context: {
-    acceleratorName: 'test',
-    acceleratorPrefix: 'test',
+    acceleratorBaseline: 'LANDING_ZONE',
     acceleratorExecutionRoleName: 'test',
+    acceleratorName: 'test',
+    acceleratorPipelineRoleName: 'test',
+    acceleratorPrefix: 'test',
+    acceleratorStateMachineName: 'test',
+    configBranch: 'master',
+    configCommitId: 'test',
+    configFilePath: 'config.json',
+    configRepositoryName: 'repo',
     defaultRegion: 'test',
   },
 });
