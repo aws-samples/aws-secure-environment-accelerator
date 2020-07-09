@@ -5,9 +5,18 @@ import { MacieEnableAdmin } from '@custom-resources/macie-enable-admin';
 import { MacieCreateMember } from '@custom-resources/macie-create-member';
 import { MacieEnable } from '@custom-resources/macie-enable';
 import { MacieUpdateConfig } from '@custom-resources/macie-update-config';
+import { MacieExportConfig } from '@custom-resources/macie-export-config';
 import { MacieFrequency, MacieStatus } from '@custom-resources/macie-enable-lambda';
+import { AccountBuckets } from '../defaults';
 
 export interface MacieStepProps {
+  accountStacks: AccountStacks;
+  config: AcceleratorConfig;
+  accounts: Account[];
+}
+
+export interface MacieStep2Props {
+  accountBuckets: AccountBuckets;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   accounts: Account[];
@@ -40,8 +49,8 @@ export async function step1(props: MacieStepProps) {
   });
 }
 
-export async function step2(props: MacieStepProps) {
-  const { accountStacks, config, accounts } = props;
+export async function step2(props: MacieStep2Props) {
+  const { accountBuckets, accountStacks, config, accounts } = props;
 
   const enableMacie = config['global-options']['central-security-services'].macie;
 
@@ -83,6 +92,14 @@ export async function step2(props: MacieStepProps) {
     new MacieUpdateConfig(masterAccountStack, 'MacieUpdateConfig', {
       autoEnable: true,
     });
+
+    // configure export S3 bucket
+    const accountBucket = accountBuckets[masterAccountKey];
+    new MacieExportConfig(masterAccountStack, 'MacieExportConfig', {
+      bucketName: accountBucket.bucketName,
+      keyPrefix: 'macie',
+      kmsKeyArn: accountBucket.encryptionKey?.keyArn,
+    })
   });
 }
 

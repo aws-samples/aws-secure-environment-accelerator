@@ -8,7 +8,7 @@ export interface MacieUpdateConfigProps {
 /**
  * Custom resource implementation that enable admin for Guard Duty
  */
-export class GuardDutyUpdateConfig extends cdk.Construct {
+export class MacieUpdateConfig extends cdk.Construct {
   private readonly resource: custom.AwsCustomResource;
 
   constructor(scope: cdk.Construct, id: string, props: MacieUpdateConfigProps) {
