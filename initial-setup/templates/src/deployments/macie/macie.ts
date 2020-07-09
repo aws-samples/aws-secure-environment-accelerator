@@ -15,7 +15,7 @@ export interface MacieStepProps {
   accounts: Account[];
 }
 
-export interface MacieStep2Props {
+export interface MacieStep3Props {
   accountBuckets: AccountBuckets;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
@@ -49,8 +49,8 @@ export async function step1(props: MacieStepProps) {
   });
 }
 
-export async function step2(props: MacieStep2Props) {
-  const { accountBuckets, accountStacks, config, accounts } = props;
+export async function step2(props: MacieStepProps) {
+  const { accountStacks, config, accounts } = props;
 
   const enableMacie = config['global-options']['central-security-services'].macie;
 
@@ -61,12 +61,6 @@ export async function step2(props: MacieStep2Props) {
 
   const masterAccountKey = config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
-  const masterBucket = accountBuckets[masterAccountKey];
-  const macieExportConfig = {
-    bucketName: masterBucket.bucketName,
-    keyPrefix: `${masterAccountId}/macie`,
-    kmsKeyArn: masterBucket.encryptionKey?.keyArn,
-  }
   const regions = await getValidRegions(config);
   regions.map(region => {
     // Macie need to be turned on from macie master account
@@ -101,7 +95,30 @@ export async function step2(props: MacieStep2Props) {
     new MacieUpdateConfig(masterAccountStack, 'MacieUpdateConfig', {
       autoEnable: true,
     });
+  });
+}
 
+export async function step3(props: MacieStep3Props) {
+  const { accountBuckets, accountStacks, config, accounts } = props;
+
+  const enableMacie = config['global-options']['central-security-services'].macie;
+
+  // skipping Macie if not enabled
+  if (!enableMacie) {
+    return;
+  }
+
+  const masterAccountKey = config['global-options']['central-security-services'].account;
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
+  const masterBucket = accountBuckets[masterAccountKey];
+  const macieExportConfig = {
+    bucketName: masterBucket.bucketName,
+    keyPrefix: `${masterAccountId}/macie`,
+    kmsKeyArn: masterBucket.encryptionKey?.keyArn,
+  };
+  const regions = await getValidRegions(config);
+  regions.map(region => {
+    const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
     // configure export S3 bucket
     new MacieExportConfig(masterAccountStack, 'MacieExportConfig', macieExportConfig);
   });

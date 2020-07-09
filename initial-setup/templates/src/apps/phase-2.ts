@@ -21,6 +21,7 @@ import { PhaseInput } from './shared';
 import * as madDeployment from '../deployments/mad';
 import * as createTrail from '../deployments/cloud-trail';
 import * as tgwDeployment from '../deployments/transit-gateway';
+import * as macie from '../deployments/macie';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -259,4 +260,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     outputs,
   });
+
+  await macie.step3({
+    accountBuckets,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  })
 }
