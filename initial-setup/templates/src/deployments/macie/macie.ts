@@ -60,6 +60,13 @@ export async function step2(props: MacieStep2Props) {
   }
 
   const masterAccountKey = config['global-options']['central-security-services'].account;
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
+  const masterBucket = accountBuckets[masterAccountKey];
+  const macieExportConfig = {
+    bucketName: masterBucket.bucketName,
+    keyPrefix: `${masterAccountId}/macie`,
+    kmsKeyArn: masterBucket.encryptionKey?.keyArn,
+  }
   const regions = await getValidRegions(config);
   regions.map(region => {
     // Macie need to be turned on from macie master account
@@ -79,13 +86,15 @@ export async function step2(props: MacieStep2Props) {
       status: MacieStatus.ENABLED,
     });
 
-    // Add org members to Macie
+    // Add org members to Macie except Macie master account
     const accountDetails = accounts.map(account => ({
       accountId: account.id,
       email: account.email,
     }));
     for (const [index, account] of Object.entries(accountDetails)) {
-      const members = new MacieCreateMember(masterAccountStack, `MacieCreateMember${index}`, account);
+      if (account.accountId !== masterAccountId) {
+        const members = new MacieCreateMember(masterAccountStack, `MacieCreateMember${index}`, account);
+      }
     }
 
     // turn on auto enable
@@ -94,12 +103,7 @@ export async function step2(props: MacieStep2Props) {
     });
 
     // configure export S3 bucket
-    const accountBucket = accountBuckets[masterAccountKey];
-    new MacieExportConfig(masterAccountStack, 'MacieExportConfig', {
-      bucketName: accountBucket.bucketName,
-      keyPrefix: 'macie',
-      kmsKeyArn: accountBucket.encryptionKey?.keyArn,
-    });
+    new MacieExportConfig(masterAccountStack, 'MacieExportConfig', macieExportConfig);
   });
 }
 
