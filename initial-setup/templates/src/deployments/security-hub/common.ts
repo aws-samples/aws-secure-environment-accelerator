@@ -1,8 +1,6 @@
 import * as cdk from '@aws-cdk/core';
-import { Account } from '../utils/accounts';
-import * as lambda from '@aws-cdk/aws-lambda';
+import { Account } from '../../utils/accounts';
 import { CfnHub } from '@aws-cdk/aws-securityhub';
-import * as cfn from '@aws-cdk/aws-cloudformation';
 import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { SecurityHubEnable } from '@custom-resources/security-hub-enable';
 import { SecurityHubSendInvites } from '@custom-resources/security-hub-send-invites';
