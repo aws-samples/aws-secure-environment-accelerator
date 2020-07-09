@@ -24,7 +24,7 @@ export class MacieExportConfig extends cdk.Construct {
       parameters: {
         configuration: {
           s3Destination: props,
-        }
+        },
       },
     };
 

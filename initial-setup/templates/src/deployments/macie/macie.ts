@@ -72,7 +72,7 @@ export async function step2(props: MacieStepProps) {
   regions.map(region => {
     // Macie need to be turned on from macie master account
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
-    
+
     const enable = new MacieEnable(masterAccountStack, 'MacieEnable', {
       findingPublishingFrequency,
       status: MacieStatus.ENABLED,
