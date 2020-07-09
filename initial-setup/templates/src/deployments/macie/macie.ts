@@ -27,7 +27,7 @@ export async function step1(props: MacieStepProps) {
 
   const masterAccountKey = config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
-  const regions =  await getValidRegions(config);
+  const regions = await getValidRegions(config);
   regions?.map(region => {
     // Macie admin need to be enabled from master account of the organization
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey, region);
@@ -88,7 +88,7 @@ export async function step2(props: MacieStepProps) {
 
 export async function getValidRegions(config: AcceleratorConfig) {
   const regions = config['global-options']['supported-regions'];
-  const excl = config["global-options"]["central-security-services"]['macie-excl-regions'];
+  const excl = config['global-options']['central-security-services']['macie-excl-regions'];
   const validRegions = regions.filter(x => !excl?.includes(x));
   return validRegions;
 }
