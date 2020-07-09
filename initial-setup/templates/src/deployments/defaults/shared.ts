@@ -64,5 +64,25 @@ export function createDefaultS3Bucket(props: {
     }),
   );
 
+  // Enable Macie access
+  bucket.addToResourcePolicy(new iam.PolicyStatement({
+    actions: ['s3:GetBucketLocation', 's3:PutObject'],
+    principals: [
+      new iam.ServicePrincipal('macie.amazonaws.com'),
+    ],
+    resources: ['*'],
+  }));
+
+  bucket.encryptionKey?.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Allow Macie to use the key',
+      principals: [
+        new iam.ServicePrincipal('macie.amazonaws.com'),
+      ],
+      actions: [ 'kms:GenerateDataKey', 'kms:Encrypt'],
+      resources: ['*'],
+    }),
+  );
+
   return bucket;
 }
