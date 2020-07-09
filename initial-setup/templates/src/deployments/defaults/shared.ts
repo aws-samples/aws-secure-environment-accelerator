@@ -64,7 +64,7 @@ export function createDefaultS3Bucket(props: {
     }),
   );
 
-  // Enable Macie access
+  // Enable Macie access see https://docs.aws.amazon.com/macie/latest/user/discovery-results-repository-s3.html
   bucket.addToResourcePolicy(
     new iam.PolicyStatement({
       actions: ['s3:GetBucketLocation', 's3:PutObject'],
