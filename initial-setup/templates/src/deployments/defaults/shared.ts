@@ -64,23 +64,5 @@ export function createDefaultS3Bucket(props: {
     }),
   );
 
-  // Enable Macie access see https://docs.aws.amazon.com/macie/latest/user/discovery-results-repository-s3.html
-  bucket.addToResourcePolicy(
-    new iam.PolicyStatement({
-      actions: ['s3:GetBucketLocation', 's3:PutObject'],
-      principals: [new iam.ServicePrincipal('macie.amazonaws.com')],
-      resources: [bucket.bucketArn, bucket.arnForObjects('*')],
-    }),
-  );
-
-  bucket.encryptionKey?.addToResourcePolicy(
-    new iam.PolicyStatement({
-      sid: 'Allow Macie to use the key',
-      principals: [new iam.ServicePrincipal('macie.amazonaws.com')],
-      actions: ['kms:GenerateDataKey', 'kms:Encrypt'],
-      resources: ['*'],
-    }),
-  );
-
   return bucket;
 }

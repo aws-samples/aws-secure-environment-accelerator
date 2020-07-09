@@ -467,6 +467,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   // Macie step 2
+  await macie.enableMaciePolicy({
+    accountBuckets,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
   await macie.step2({
     accountStacks,
     accounts,
