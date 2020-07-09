@@ -1,19 +1,14 @@
 import * as cdk from '@aws-cdk/core';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
-import { LogBucketOutputType } from '../defaults/outputs';
-import {
-  StackOutput,
-  getStackOutput,
-  OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
-} from '@aws-pbmm/common-outputs/lib/stack-output';
+import { LogBucketOutput } from '../defaults/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CreateCloudTrail } from '@custom-resources/create-cloud-trail';
 import { Organizations } from '@custom-resources/organization';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as iam from '@aws-cdk/aws-iam';
 import { Context } from '../../utils/context';
-import { StructuredOutput } from '../../common/structured-output';
 
 export interface CreateCloudTrailProps {
   accountStacks: AccountStacks;
@@ -31,19 +26,13 @@ export async function step1(props: CreateCloudTrailProps) {
   const { accountStacks, config, outputs, context } = props;
 
   const logAccountKey = config.getMandatoryAccountKey('central-log');
-  const logBucketOutputs = StructuredOutput.fromOutputs(props.outputs, {
-    accountKey: logAccountKey,
-    type: LogBucketOutputType,
+  const logBucket = LogBucketOutput.getBucket({
+    accountStacks,
+    config,
+    outputs,
   });
-  const logBucketOutput = logBucketOutputs?.[0];
-  if (!logBucketOutput) {
+  if (!logBucket) {
     throw new Error(`Cannot find central log bucket for log account ${logAccountKey}`);
-  }
-
-  const s3KmsKeyArn = getStackOutput(outputs, logAccountKey, OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN);
-  console.log('AWS S3 Bucket KMS Key ARN: ' + s3KmsKeyArn);
-  if (!s3KmsKeyArn) {
-    throw new Error(`cannot find LogArchive account KMS key Arn`);
   }
 
   const masterAccountKey = config.getMandatoryAccountKey('master');
@@ -87,10 +76,10 @@ export async function step1(props: CreateCloudTrailProps) {
 
   const createCloudTrail = new CreateCloudTrail(masterAccountStack, `CreateCloudTrail${masterAccountKey}`, {
     cloudTrailName: 'PBMMAccel-Org-Trail',
-    bucketName: logBucketOutput.bucketName,
+    bucketName: logBucket.bucketName,
     logGroupArn: logGroup.logGroupArn,
     roleArn: cloudTrailLogGroupRole.roleArn,
-    kmsKeyId: s3KmsKeyArn,
+    kmsKeyId: logBucket.encryptionKey!.keyArn,
     s3KeyPrefix: organizationId,
     tagName: 'Accelerator',
     tagValue: context.acceleratorName,

@@ -1183,6 +1183,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'SCPArtifactsOutputmasterSOutputA1DE17D3',
       outputValue: JSON.stringify({
         type: 'ArtifactOutput',
