@@ -26,6 +26,7 @@ async function main() {
     env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
 
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
+  const notificationEmail = env.NOTIFICATION_EMAIL!;
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
@@ -50,6 +51,7 @@ async function main() {
     stateMachineExecutionRole,
     terminationProtection: true,
     enablePrebuiltProject,
+    notificationEmail,
   });
 }
 
