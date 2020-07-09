@@ -1,19 +1,40 @@
 # AWS Secure Environment Accelerator
 
-## Installation - These instructions are intended for v1.0.5
+## Installation - These instructions are intended for v1.1.0
 
 Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitiate installation.
 
-The Accelerator allows for complete customization, based on parameters passed in the configuration file. A sample configuration file is provided that deploys a prescriptive architecture which meets many worlwide government security requirements, in this case they are modelled after the Government of Canada. Installation of the provided sample AWS architecture, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
+The Accelerator allows for complete customization, based on parameters passed in the configuration file. A sample configuration file is provided that deploys a prescriptive architecture which meets many worldwide government security requirements, in this case they are modelled after the Government of Canada. Installation of the provided sample AWS architecture, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
+
+### Relationship with AWS Landing Zone
+
+AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The Accelerator Architecture draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the Accelerator Architecture presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `v1.1.0`.
+
+If your environment has already been built with an ALZ in place, in your config file, set:
+
+```json
+ALZ-baseline=true
+```
+
+Otherwise `false`, for an environment with no ALZ.
+
+
+
 
 ### Prerequisites
 
-You currently need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
 
-If using the ALZ-Takeout branch (Alpha) which removes the ALZ dependencies, before installing, you must first:
+#### If using `ALZ-baseline=false`
 
+which has no ALZ dependencies, before installing, you must first:
+
+- Create a master account
 - Enable AWS Organizations
 - Enable Service Control Policies
+- Verify master account email address in the Organization
+
+#### Otherwise (`ALZ-baseline=true`)
+You currently need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
 
 When deploying the ALZ select:
 
@@ -21,6 +42,8 @@ When deploying the ALZ select:
 2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
 3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,UnClass,Sandbox` (case sensitive)
    - these match the provided sample Accelerator configuration file (config.example.json)
+
+### Internal Accounts
 
 If deploying to an internal AWS account, to successfully install, you need to enable private marketplace before starting:
 
@@ -38,12 +61,102 @@ If deploying to an internal AWS account, to successfully install, you need to en
 
 ## Preparation
 
+#### If using `ALZ-baseline=false`
+
+1. Login to the Organization **Master AWS account** with `AdministratorAccess`.
+2. **_Set the region to `ca-central-1`._**
+3. Create a KMS key named `accelerator-key`, and ensure the master account can both administer and use the key. Sample key policy:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Id": "key-consolepolicy-3",
+    "Statement": [
+        {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::123456789012:root"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow access for Key Administrators",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::123456789012:role/Admin"
+            },
+            "Action": [
+                "kms:Create*",
+                "kms:Describe*",
+                "kms:Enable*",
+                "kms:List*",
+                "kms:Put*",
+                "kms:Update*",
+                "kms:Revoke*",
+                "kms:Disable*",
+                "kms:Get*",
+                "kms:Delete*",
+                "kms:TagResource",
+                "kms:UntagResource",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow use of the key",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::123456789012:root"
+            },
+            "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow attachment of persistent resources",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::123456789012:role/Admin"
+            },
+            "Action": [
+                "kms:CreateGrant",
+                "kms:ListGrants",
+                "kms:RevokeGrant"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "Bool": {
+                    "kms:GrantIsForAWSResource": "true"
+                }
+            }
+        }
+    ]
+}
+```
+
+
+4. Set the config bucket to use `S3-KMS` default encryption with this key.
+
+
+### Otherwise (`ALZ-baseline=true`)
+
 1. Login to the Organization **Master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
 2. **_Set the region to `ca-central-1`._**
 3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
    - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
-4. It is **_extrememly important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts. This information is copied to every new sub-account on creation. Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section. Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
-5. It is also suggested that customers manually enable `"Cost Explorer"` and enable `"Receive Billing Alerts"` in the master account, as this has not been automated
+
+### In both cases
+
+1. It is **_extrememly important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts. This information is copied to every new sub-account on creation. Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section. Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
+2. It is also suggested that customers manually enable `"Cost Explorer"` and enable `"Receive Billing Alerts"` in the master account, as this has not been automated
 
 #### Create a GitHub Personal Access Token.
 
@@ -84,7 +197,7 @@ If deploying to an internal AWS account, to successfully install, you need to en
   - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution
   - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]`
   - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]`
-  - Wildcard DNS certificate for each of the 2 previous zones
+  - Wildcard TLS certificate for each of the 2 previous zones
   - 2 Fortinet Fortigate firewall licenses
   - we also recomend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
@@ -102,7 +215,7 @@ If deploying to an internal AWS account, to successfully install, you need to en
    - Ideally you would generate real certificates using your existing certificate authority
    - Should you wish, instructions are provided to aid in generating your own self-signed certificates
    - Use the examples to demonstrate Accelerator TLS functionality only
-8. Detach **_ALL_** SCP's from all OU's and accounts before proceeding
+8. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
 
 ### Deploy the Accelerator Installer Stack
@@ -128,7 +241,7 @@ If deploying to an internal AWS account, to successfully install, you need to en
 17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
 19. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
-    1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firwall products
+    1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firewall products
     2. Login to the **perimeter** sub-account
     3. Activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
        - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
