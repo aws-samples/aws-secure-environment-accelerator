@@ -806,6 +806,7 @@ export namespace InitialSetup {
           notificationTopicArn: notificationTopic.topicArn,
           'error.$': '$.Error',
           'cause.$': '$.Cause',
+          'executionId.$': '$$.Execution.Id',
         },
         resultPath: 'DISCARD',
       });
