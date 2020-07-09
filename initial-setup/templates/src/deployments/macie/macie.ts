@@ -3,7 +3,9 @@ import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { MacieEnableAdmin } from '@custom-resources/macie-enable-admin';
 import { MacieCreateMember } from '@custom-resources/macie-create-member';
-import { MacieEnable, MacieFrequency, MacieStatus } from '@custom-resources/macie-enable';
+import { MacieEnable } from '@custom-resources/macie-enable';
+import { MacieUpdateConfig } from '@custom-resources/macie-update-config';
+import { MacieFrequency, MacieStatus } from '@custom-resources/macie-enable-lambda';
 
 export interface MacieStepProps {
   accountStacks: AccountStacks;
@@ -25,7 +27,7 @@ export async function step1(props: MacieStepProps) {
 
   const masterAccountKey = config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
-  const regions = config['global-options']['supported-regions'];
+  const regions =  await getValidRegions(config);
   regions?.map(region => {
     // Macie admin need to be enabled from master account of the organization
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey, region);
@@ -49,8 +51,8 @@ export async function step2(props: MacieStepProps) {
   }
 
   const masterAccountKey = config['global-options']['central-security-services'].account;
-  const regions = config['global-options']['supported-regions'];
-  regions?.map(region => {
+  const regions = await getValidRegions(config);
+  regions.map(region => {
     // Macie need to be turned on from macie master account
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
     const frequency = config['global-options']['central-security-services']['macie-frequency'];
@@ -68,12 +70,25 @@ export async function step2(props: MacieStepProps) {
       status: MacieStatus.ENABLED,
     });
 
+    // Add org members to Macie
     const accountDetails = accounts.map(account => ({
       accountId: account.id,
       email: account.email,
     }));
-    for (const account of accountDetails) {
-      const members = new MacieCreateMember(masterAccountStack, 'MacieCreateMember', account);
+    for (const [index, account] of Object.entries(accountDetails)) {
+      const members = new MacieCreateMember(masterAccountStack, `MacieCreateMember${index}`, account);
     }
+
+    // turn on auto enable
+    new MacieUpdateConfig(masterAccountStack, 'MacieUpdateConfig', {
+      autoEnable: true,
+    });
   });
+}
+
+export async function getValidRegions(config: AcceleratorConfig) {
+  const regions = config['global-options']['supported-regions'];
+  const excl = config["global-options"]["central-security-services"]['macie-excl-regions'];
+  const validRegions = regions.filter(x => !excl?.includes(x));
+  return validRegions;
 }

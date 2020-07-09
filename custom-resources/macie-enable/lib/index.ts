@@ -2,18 +2,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { HandlerProperties } from '@custom-resources/macie-enable-lambda';
-
-export enum MacieFrequency {
-  FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
-  ONE_HOUR = 'ONE_HOUR',
-  SIX_HOURS = 'SIX_HOURS',
-}
-
-export enum MacieStatus {
-  ENABLED = 'ENABLED',
-  PAUSED = 'PAUSED',
-}
+import { HandlerProperties, MacieFrequency, MacieStatus } from '@custom-resources/macie-enable-lambda';
 
 const resourceType = 'Custom::MacieEnable';
 

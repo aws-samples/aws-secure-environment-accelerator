@@ -22,7 +22,6 @@ const macie = new AWS.Macie2();
 export interface HandlerProperties {
   findingPublishingFrequency: MacieFrequency;
   status: MacieStatus;
-  clientToken?: string;
 }
 
 export const handler = errorHandler(onEvent);
@@ -61,7 +60,10 @@ async function onCreateOrUpdate(
 
 async function enableMacie(properties: HandlerProperties) {
   try {
-    const enableAdmin = await macie.enableMacie(properties).promise();
+    const enableAdmin = await macie.enableMacie({
+      findingPublishingFrequency: properties.findingPublishingFrequency,
+      status: properties.status
+    }).promise();
 
     return enableAdmin;
   } catch (e) {

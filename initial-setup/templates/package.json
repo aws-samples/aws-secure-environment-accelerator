@@ -93,6 +93,8 @@
     "@custom-resources/macie-enable-admin": "workspace:^0.0.1",
     "@custom-resources/macie-create-member": "workspace:^0.0.1",
     "@custom-resources/macie-enable": "workspace:^0.0.1",
+    "@custom-resources/macie-update-config": "workspace:^0.0.1",
+    "@custom-resources/macie-enable-lambda": "workspace:^0.0.1",
     "@custom-resources/guardduty-list-detector": "workspace:^0.0.1",
     "@custom-resources/guardduty-enable-admin": "workspace:^0.0.1",
     "@custom-resources/guardduty-create-member": "workspace:^0.0.1",
