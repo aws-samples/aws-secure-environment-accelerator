@@ -91,24 +91,26 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
+  const regions = acceleratorConfig['global-options']['supported-regions'];
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
-  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
-  if (!securityMasterAccountStack) {
-    console.warn(`Cannot find security stack`);
-  } else {
-    const globalOptions = acceleratorConfig['global-options'];
-    const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
-    const subAccountIds = accounts.map(account => ({
-      AccountId: account.id,
-      Email: account.email,
-    }));
-
-    // Create Security Hub stack for Master Account in Security Account
-    new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
-      account: securityMasterAccount!,
-      standards: globalOptions['security-hub-frameworks'],
-      subAccountIds,
-    });
+  const globalOptions = acceleratorConfig['global-options'];
+  const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
+  const subAccountIds = accounts.map(account => ({
+    AccountId: account.id,
+    Email: account.email,
+  }));
+  for (const region of regions) {
+    const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey, region);
+    if (!securityMasterAccountStack) {
+      console.warn(`Cannot find security stack in region ${region}`);
+    } else {
+      // Create Security Hub stack for Master Account in Security Account
+      new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
+        account: securityMasterAccount!,
+        standards: globalOptions['security-hub-frameworks'],
+        subAccountIds,
+      });
+    }
   }
 
   /**

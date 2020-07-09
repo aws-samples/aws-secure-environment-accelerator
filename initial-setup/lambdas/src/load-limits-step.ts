@@ -82,7 +82,8 @@ export const handler = async (input: LoadLimitsInput) => {
 
     // First check that all limits in the config exist
     const limitConfig = accountConfig.limits;
-    for (const limitKey of Object.keys(limitConfig)) {
+    const limitKeysFromConfig = Object.keys(limitConfig);
+    for (const limitKey of limitKeysFromConfig) {
       const code = LIMITS[limitKey];
       if (!code) {
         console.warn(`Cannot find limit code with key "${limitKey}"`);
@@ -92,6 +93,10 @@ export const handler = async (input: LoadLimitsInput) => {
 
     // The fetch all supported limits and request an increase if necessary
     for (const [limitKey, limitCode] of Object.entries(LIMITS)) {
+      if (!limitKeysFromConfig.includes(limitKey)) {
+        console.info(`Cannot find limit with key "${limitKey}" in accelerator config`);
+        continue;
+      }
       if (!limitCode.enabled) {
         console.warn(`The limit "${limitKey}" is not enabled`);
         continue;

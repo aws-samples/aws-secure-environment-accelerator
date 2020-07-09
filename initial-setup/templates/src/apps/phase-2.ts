@@ -189,22 +189,25 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Deploy Security Hub
   const globalOptions = acceleratorConfig['global-options'];
+  const regions = globalOptions['supported-regions'];
   const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
 
   for (const account of accounts) {
     if (account.id === securityMasterAccount?.id) {
       continue;
     }
-    const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
-    if (!memberAccountStack) {
-      console.warn(`Cannot find account stack ${account.key}`);
-      continue;
+    for (const region of regions) {
+      const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key, region);
+      if (!memberAccountStack) {
+        console.warn(`Cannot find account stack ${account.key} in region ${region}`);
+        continue;
+      }
+      new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
+        account,
+        standards: globalOptions['security-hub-frameworks'],
+        masterAccountId: securityMasterAccount?.id,
+      });
     }
-    new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
-      account,
-      standards: globalOptions['security-hub-frameworks'],
-      masterAccountId: securityMasterAccount?.id,
-    });
   }
 
   // TODO Find a better way to get VPCs
