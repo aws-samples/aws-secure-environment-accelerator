@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
 
-export interface MacieUpdateExportConfigProps {
+export interface MacieExportConfigProps {
   bucketName: string;
   kmsKeyArn: string;
   keyPrefix?: string;
@@ -10,10 +10,10 @@ export interface MacieUpdateExportConfigProps {
 /**
  * Custom resource implementation that enable admin for Guard Duty
  */
-export class MacieUpdateExportConfig extends cdk.Construct {
+export class MacieExportConfig extends cdk.Construct {
   private readonly resource: custom.AwsCustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: MacieUpdateExportConfigProps) {
+  constructor(scope: cdk.Construct, id: string, props: MacieExportConfigProps) {
     super(scope, id);
 
     const physicalResourceId = custom.PhysicalResourceId.of('PutClassificationExportConfiguration');
