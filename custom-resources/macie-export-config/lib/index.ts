@@ -22,7 +22,7 @@ export class MacieUpdateExportConfig extends cdk.Construct {
       action: 'putClassificationExportConfiguration',
       physicalResourceId,
       parameters: {
-        s3Destination: props
+        s3Destination: props,
       },
     };
 
@@ -42,7 +42,7 @@ export class MacieUpdateExportConfig extends cdk.Construct {
         new iam.PolicyStatement({
           actions: ['kms:*'],
           resources: ['*'],
-        })
+        }),
       ]),
     });
   }

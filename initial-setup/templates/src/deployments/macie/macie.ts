@@ -99,7 +99,7 @@ export async function step2(props: MacieStep2Props) {
       bucketName: accountBucket.bucketName,
       keyPrefix: 'macie',
       kmsKeyArn: accountBucket.encryptionKey?.keyArn,
-    })
+    });
   });
 }
 
