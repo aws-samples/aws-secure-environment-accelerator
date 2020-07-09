@@ -130,11 +130,11 @@ export async function getValidRegions(config: AcceleratorConfig) {
 
 export async function getFrequency(config: AcceleratorConfig) {
   const frequency = config['global-options']['central-security-services']['macie-frequency'];
-  if (frequency === 6) {
+  if (frequency === MacieFrequency.SIX_HOURS) {
     return MacieFrequency.SIX_HOURS;
-  } else if (frequency === 1) {
+  } else if (frequency === MacieFrequency.ONE_HOUR) {
     return MacieFrequency.ONE_HOUR;
-  } else if (frequency === 15) {
+  } else if (frequency === MacieFrequency.FIFTEEN_MINUTES) {
     return MacieFrequency.FIFTEEN_MINUTES;
   } else {
     return MacieFrequency.SIX_HOURS;

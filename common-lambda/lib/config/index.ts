@@ -584,7 +584,7 @@ export const CentralServicesConfigType = t.interface({
   'kinesis-stream-shard-count': optional(t.number),
   macie: fromNullable(t.boolean, false),
   'macie-excl-regions': optional(t.array(t.string)),
-  'macie-frequency': optional(t.number),
+  'macie-frequency': optional(t.string),
   'config-excl-regions': optional(t.array(t.string)),
   'config-aggr-excl-regions': optional(t.array(t.string)),
 });
