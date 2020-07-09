@@ -2,7 +2,7 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { TransitGatewayAttachmentOutputFinder } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { TransitGatewayRoute } from '../../common/transit-gateway-attachment';
 
 export interface TransitGatewayStep2Props {

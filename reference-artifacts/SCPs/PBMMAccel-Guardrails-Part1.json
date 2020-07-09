@@ -13,7 +13,7 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "ec2:ResourceTag/Accelerator": "PBMM"
+          "ec2:ResourceTag/Accel-P": "PBMM"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
@@ -26,7 +26,17 @@
     {
       "Sid": "DenyTag2",
       "Effect": "Deny",
-      "Action": ["iam:*"],
+      "NotAction": [
+        "iam:PassRole",
+        "iam:GetRole",
+        "iam:ListAttachedRolePolicies",
+        "iam:ListInstanceProfilesForRole",
+        "iam:ListRolePolicies",
+        "iam:ListRoles",
+        "iam:GetInstanceProfile",
+        "iam:GetLoginProfile",
+        "iam:ListInstanceProfiles"
+      ],
       "Resource": "*",
       "Condition": {
         "StringEquals": {

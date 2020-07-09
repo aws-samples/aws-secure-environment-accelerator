@@ -2,7 +2,7 @@ import * as aws from 'aws-sdk';
 import { TagResources } from '@aws-pbmm/common-lambda/lib/aws/resource-tagging';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc', 'tgw-attachment'];
 

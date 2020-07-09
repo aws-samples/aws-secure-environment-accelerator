@@ -1,7 +1,7 @@
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
+import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-subscription-filter';
 import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 

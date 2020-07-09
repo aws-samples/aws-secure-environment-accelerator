@@ -168,36 +168,46 @@ export class CdkToolkit {
       return [];
     }
 
-    // Add stack tags to the tags list
-    const tags = this.tags || [];
-    tags.push(...tagsForStack(stack));
+    try {
+      // Add stack tags to the tags list
+      const tags = this.tags || [];
+      tags.push(...tagsForStack(stack));
 
-    const result = await this.cloudFormation.deployStack({
-      stack,
-      deployName: stack.stackName,
-      execute: true,
-      force: true,
-      notificationArns: undefined,
-      reuseAssets: [],
-      roleArn: undefined,
-      tags,
-      toolkitStackName: this.toolkitStackName,
-      usePreviousParameters: false,
-    });
+      const result = await this.cloudFormation.deployStack({
+        stack,
+        deployName: stack.stackName,
+        execute: true,
+        force: true,
+        notificationArns: undefined,
+        reuseAssets: [],
+        roleArn: undefined,
+        tags,
+        toolkitStackName: this.toolkitStackName,
+        usePreviousParameters: false,
+      });
 
-    if (result.noOp) {
-      console.log(`${stack.displayName}: no changes`);
-    } else {
-      console.log(`${stack.displayName}: deploy successful`);
+      if (result.noOp) {
+        console.log(`${stack.displayName}: no changes`);
+      } else {
+        console.log(`${stack.displayName}: deploy successful`);
+      }
+
+      return Object.entries(result.outputs).map(([name, value]) => ({
+        stack: stack.stackName,
+        account: stack.environment.account,
+        region: stack.environment.region,
+        name,
+        value,
+      }));
+    } catch (e) {
+      console.log(`${stack.displayName}: failed to deploy`);
+      if (!stackExists) {
+        console.warn(`${stack.displayName}: deleting newly created failed stack`);
+        await this.destroyStack(stack);
+        console.warn(`${stack.displayName}: deleted newly created failed stack`);
+      }
+      throw e;
     }
-
-    return Object.entries(result.outputs).map(([name, value]) => ({
-      stack: stack.stackName,
-      account: stack.environment.account,
-      region: stack.environment.region,
-      name,
-      value,
-    }));
   }
 
   /**

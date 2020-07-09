@@ -211,7 +211,11 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      principals: [
+        new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
+        new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
+        new iam.ServicePrincipal('config.amazonaws.com'),
+      ],
       actions: ['s3:PutObject'],
       resources: [`${logBucket.bucketArn}/*`],
       conditions: {
@@ -224,7 +228,11 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+      principals: [
+        new iam.ServicePrincipal('delivery.logs.amazonaws.com'),
+        new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
+        new iam.ServicePrincipal('config.amazonaws.com'),
+      ],
       actions: ['s3:GetBucketAcl'],
       resources: [`${logBucket.bucketArn}`],
     }),
@@ -242,6 +250,15 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
           'aws:PrincipalOrgID': organizations.organizationId,
         },
       },
+    }),
+  );
+
+  logBucket.encryptionKey?.addToResourcePolicy(
+    new iam.PolicyStatement({
+      sid: 'Allow CloudTrail to encrypt and describe logs',
+      actions: ['kms:GenerateDataKey*', 'kms:DescribeKey'],
+      principals: [new iam.ServicePrincipal('cloudtrail.amazonaws.com')],
+      resources: ['*'],
     }),
   );
 
