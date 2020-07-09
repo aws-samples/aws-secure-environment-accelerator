@@ -10,9 +10,6 @@ export interface MacieEnableAdminProps {
   accountId: string;
 }
 
-/**
- * Custom resource implementation that retrive IPs for a created DNS Endpoint.
- */
 export class MacieEnableAdmin extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
 

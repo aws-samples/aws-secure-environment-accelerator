@@ -54,7 +54,7 @@ export async function step2(props: MacieStepProps) {
     // Macie need to be turned on from macie master account
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
     const frequency = config['global-options']['central-security-services']['macie-frequency'];
-    
+
     let findingPublishingFrequency = MacieFrequency.SIX_HOURS;
     if (frequency === 6) {
       findingPublishingFrequency = MacieFrequency.SIX_HOURS;

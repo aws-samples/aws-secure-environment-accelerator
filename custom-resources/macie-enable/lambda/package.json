@@ -9,8 +9,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "externals": [
-    "aws-lambda",
-    "aws-sdk"
+    "aws-lambda"
   ],
   "devDependencies": {
     "@custom-resources/webpack-base": "workspace:^0.0.1",
