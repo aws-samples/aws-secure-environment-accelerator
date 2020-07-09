@@ -22,7 +22,9 @@ export class MacieExportConfig extends cdk.Construct {
       action: 'putClassificationExportConfiguration',
       physicalResourceId,
       parameters: {
-        s3Destination: props,
+        configuration: {
+          s3Destination: props,
+        }
       },
     };
 

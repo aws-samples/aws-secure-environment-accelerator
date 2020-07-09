@@ -37,6 +37,7 @@ export async function step1(props: MacieStepProps) {
   const masterAccountKey = config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   const regions = await getValidRegions(config);
+  const findingPublishingFrequency = await getFrequency(config);
   regions?.map(region => {
     // Macie admin need to be enabled from master account of the organization
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey, region);
@@ -44,6 +45,11 @@ export async function step1(props: MacieStepProps) {
     if (masterAccountId) {
       const admin = new MacieEnableAdmin(masterAccountStack, 'MacieEnableAdmin', {
         accountId: masterAccountId,
+      });
+
+      const enable = new MacieEnable(masterAccountStack, 'MacieEnable', {
+        findingPublishingFrequency,
+        status: MacieStatus.ENABLED,
       });
     }
   });
@@ -62,19 +68,11 @@ export async function step2(props: MacieStepProps) {
   const masterAccountKey = config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   const regions = await getValidRegions(config);
+  const findingPublishingFrequency = await getFrequency(config);
   regions.map(region => {
     // Macie need to be turned on from macie master account
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
-    const frequency = config['global-options']['central-security-services']['macie-frequency'];
-
-    let findingPublishingFrequency = MacieFrequency.SIX_HOURS;
-    if (frequency === 6) {
-      findingPublishingFrequency = MacieFrequency.SIX_HOURS;
-    } else if (frequency === 1) {
-      findingPublishingFrequency = MacieFrequency.ONE_HOUR;
-    } else if (frequency === 15) {
-      findingPublishingFrequency = MacieFrequency.FIFTEEN_MINUTES;
-    }
+    
     const enable = new MacieEnable(masterAccountStack, 'MacieEnable', {
       findingPublishingFrequency,
       status: MacieStatus.ENABLED,
@@ -111,16 +109,15 @@ export async function step3(props: MacieStep3Props) {
   const masterAccountKey = config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   const masterBucket = accountBuckets[masterAccountKey];
-  const macieExportConfig = {
-    bucketName: masterBucket.bucketName,
-    keyPrefix: `${masterAccountId}/macie`,
-    kmsKeyArn: masterBucket.encryptionKey?.keyArn,
-  };
   const regions = await getValidRegions(config);
   regions.map(region => {
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
     // configure export S3 bucket
-    new MacieExportConfig(masterAccountStack, 'MacieExportConfig', macieExportConfig);
+    new MacieExportConfig(masterAccountStack, 'MacieExportConfig', {
+      bucketName: masterBucket.bucketName,
+      keyPrefix: `${masterAccountId}/${region}/macie`,
+      kmsKeyArn: masterBucket.encryptionKey?.keyArn,
+    });
   });
 }
 
@@ -129,4 +126,17 @@ export async function getValidRegions(config: AcceleratorConfig) {
   const excl = config['global-options']['central-security-services']['macie-excl-regions'];
   const validRegions = regions.filter(x => !excl?.includes(x));
   return validRegions;
+}
+
+export async function getFrequency(config: AcceleratorConfig) {
+  const frequency = config['global-options']['central-security-services']['macie-frequency'];
+  if (frequency === 6) {
+    return MacieFrequency.SIX_HOURS;
+  } else if (frequency === 1) {
+    return MacieFrequency.ONE_HOUR;
+  } else if (frequency === 15) {
+    return MacieFrequency.FIFTEEN_MINUTES;
+  } else {
+    return MacieFrequency.SIX_HOURS;
+  }
 }

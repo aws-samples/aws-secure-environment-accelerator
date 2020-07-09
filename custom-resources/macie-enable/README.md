@@ -1,19 +1,11 @@
-# Add Macie member account
+# Enable Macie for an account
 
-This is a custom resource to add Macie member account using `createMember` API call.
+This is a custom resource to enable Macie using `enableMacie` API call.
 
 ## Usage
 
-    // Add Macie members for all regions
-    regions?.map(region => {
-      const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
-
-      const accountDetails = accounts.map(account => ({
-        accountId: account.id,
-        email: account.email,
-      }));
-      const members = new MacieCreateMember(masterAccountStack, 'MacieCreateMember', {
-        accountDetails,
-      });
+    const enable = new MacieEnable(masterAccountStack, 'MacieEnable', {
+      findingPublishingFrequency,
+      status: MacieStatus.ENABLED,
     });
 
