@@ -345,6 +345,7 @@
       "account-name": "Operations",
       "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
       "ou": "core",
+      "account-warming-required": true,
       "limits": {},
       "share-mad-from": "",
       "iam": {
@@ -382,6 +383,17 @@
               "PBMMAccel-RDGW-Custom-Policy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "PBMMAccel-Rsyslog-Role",
+            "type": "ec2",
+            "ssm-log-archive-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "CloudWatchAgentServerPolicy",
+              "AmazonS3ReadOnlyAccess"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
@@ -401,6 +413,9 @@
           "share-to-account": "master",
           "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
           "num-rdgw-hosts": 1,
+          "min-rdgw-hosts": 1,
+          "max-rdgw-hosts": 2,
+          "rdgw-max-instance-age": 30,
           "rdgw-instance-type": "t2.large",
           "rdgw-instance-role": "PBMMAccel-RDGW-Role",
           "password-policies": {
@@ -453,6 +468,60 @@
               ]
             }
           ]
+        },
+        "rsyslog": {
+          "deploy": false,
+          "vpc-name": "Central",
+          "region": "ca-central-1",
+          "log-group-name": "rsyslog/var/log/messages",
+          "security-groups": [
+            {
+              "name": "RsyslogInstanceSG",
+              "inbound-rules": [
+                {
+                  "description": "Allow Traffic Inbound",
+                  "tcp-ports": [514],
+                  "udp-ports": [514],
+                  "source": ["10.0.0.0/8"]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "app-subnets": [
+            {
+              "name": "App",
+              "az": "a"
+            },
+            {
+              "name": "App",
+              "az": "b"
+            }
+          ],
+          "web-subnets": [
+            {
+              "name": "Web",
+              "az": "a"
+            },
+            {
+              "name": "Web",
+              "az": "b"
+            }
+          ],
+          "min-rsyslog-hosts": 1,
+          "desired-rsyslog-hosts": 2,
+          "max-rsyslog-hosts": 4,
+          "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2",
+          "rsyslog-instance-type": "t2.large",
+          "rsyslog-instance-role": "PBMMAccel-Rsyslog-Role",
+          "rsyslog-root-volume-size": 100,
+          "rsyslog-max-instance-age": 30
         },
         "ops-dashboard": {
           "deploy": true
