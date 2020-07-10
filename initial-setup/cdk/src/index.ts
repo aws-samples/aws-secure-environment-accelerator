@@ -784,12 +784,12 @@ export namespace InitialSetup {
         )
         .afterwards();
 
-      const notificationTopic = new sns.Topic(this, 'NotificationTopic', {
-        displayName: `${props.acceleratorPrefix}${props.acceleratorName}-Notification_topic`,
-        topicName: `${props.acceleratorPrefix}${props.acceleratorName}-Notification_topic`,
+      const notificationTopic = new sns.Topic(this, 'MainStateMachineStatusTopic', {
+        displayName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
+        topicName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
       });
 
-      new sns.Subscription(this, 'NotificationSubscription', {
+      new sns.Subscription(this, 'MainStateMachineStatusTopicSubscription', {
         topic: notificationTopic,
         protocol: sns.SubscriptionProtocol.EMAIL_JSON,
         endpoint: props.notificationEmail,
