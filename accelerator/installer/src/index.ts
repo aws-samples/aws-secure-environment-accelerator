@@ -61,8 +61,12 @@ async function main() {
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
 
-  const notificationEmail = new cdk.CfnParameter(stack, 'Email', {
+  const approvalEmail = new cdk.CfnParameter(stack, 'Email', {
     description: 'The notification email that will get Code Release notifications.',
+  });
+
+  const notificationEmail = new cdk.CfnParameter(stack, 'Notification Email', {
+    description: 'The notification email that will get Accelerator State Machine execution notifications.',
   });
 
   const stateMachineName = `${acceleratorPrefix}MainStateMachine_sm`;
@@ -180,6 +184,10 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: 'true', // Enable Docker prebuilt project
         },
+        NOTIFICATION_EMAIL: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: notificationEmail,
+        },
       },
     },
   });
@@ -259,7 +267,7 @@ async function main() {
         actions: [
           new actions.ManualApprovalAction({
             actionName: 'Approval',
-            notifyEmails: [notificationEmail.valueAsString],
+            notifyEmails: [approvalEmail.valueAsString],
             role: installerPipelineRole,
           }),
         ],

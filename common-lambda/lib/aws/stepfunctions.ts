@@ -1,4 +1,10 @@
-import { ListExecutionsInput, ExecutionListItem, StartExecutionInput } from 'aws-sdk/clients/stepfunctions';
+import {
+  ListExecutionsInput,
+  ExecutionListItem,
+  StartExecutionInput,
+  GetExecutionHistoryInput,
+  HistoryEventList,
+} from 'aws-sdk/clients/stepfunctions';
 import * as aws from 'aws-sdk';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken } from './next-token';
@@ -27,5 +33,13 @@ export class StepFunctions {
   async startExecution(input: StartExecutionInput): Promise<string> {
     const execution = await throttlingBackOff(() => this.client.startExecution(input).promise());
     return execution.executionArn;
+  }
+
+  /**
+   * get-execution-history
+   */
+  async getExecutionHistory(input: GetExecutionHistoryInput): Promise<HistoryEventList> {
+    const executionHistory = await throttlingBackOff(() => this.client.getExecutionHistory(input).promise());
+    return executionHistory.events;
   }
 }

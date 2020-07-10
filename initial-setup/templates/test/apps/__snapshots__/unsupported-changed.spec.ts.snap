@@ -1525,7 +1525,36 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: Mydevacct1Phase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: OperationsPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: OperationsPhase0 1`] = `
+Array [
+  Object {
+    "LogicalId": "Ec2InstanceAwoperations",
+    "Properties": Object {
+      "AvailabilityZone": undefined,
+      "CpuOptions": undefined,
+      "ElasticGpuSpecifications": undefined,
+      "ElasticInferenceAccelerators": undefined,
+      "HibernationOptions": undefined,
+      "HostResourceGroupArn": undefined,
+      "ImageId": Object {
+        "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestamznamihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter",
+      },
+      "Ipv6AddressCount": undefined,
+      "Ipv6Addresses": undefined,
+      "KeyName": undefined,
+      "LaunchTemplate": undefined,
+      "LicenseSpecifications": undefined,
+      "NetworkInterfaces": undefined,
+      "PlacementGroupName": undefined,
+      "PrivateIpAddress": undefined,
+      "SecurityGroups": undefined,
+      "SubnetId": Object {
+        "Ref": "SubnetAwoperations",
+      },
+    },
+  },
+]
+`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: OperationsPhase1 1`] = `Array []`;
 

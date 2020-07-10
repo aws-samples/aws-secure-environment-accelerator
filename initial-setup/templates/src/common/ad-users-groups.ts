@@ -127,11 +127,19 @@ export class ADUsersAndGroups extends cdk.Construct {
       autoScalingGroupName: `${prefix}-RDGWAutoScalingGroup`,
       launchConfigurationName: launchConfig.ref,
       vpcZoneIdentifier: subnetIds,
-      minSize: `${autoScalingGroupSize}`,
-      maxSize: `${autoScalingGroupSize}`,
+      maxInstanceLifetime: madDeploymentConfig['rdgw-max-instance-age'] * 86400,
+      minSize: `${madDeploymentConfig['min-rdgw-hosts']}`,
+      maxSize: `${madDeploymentConfig['max-rdgw-hosts']}`,
       cooldown: '300',
       desiredCapacity: `${autoScalingGroupSize}`,
       serviceLinkedRoleArn,
+      tags: [
+        {
+          key: 'Name',
+          value: `${stack.acceleratorPrefix}RDGW`,
+          propagateAtLaunch: true,
+        },
+      ],
     });
 
     autoscalingGroup.cfnOptions.creationPolicy = {
