@@ -46,6 +46,7 @@ export const handler = async (input: VerifyFilesInput) => {
   await verifyRdgwFiles(masterAccountKey, rdgwScripts, outputs, errors);
   await verifyCertificates(masterAccountKey, outputs, acceleratorConfig, errors);
   await verifyFirewallFiles(masterAccountKey, outputs, acceleratorConfig, errors);
+  await verifyRsyslogFiles(outputs, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -153,6 +154,18 @@ async function verifyCertificates(
     }
   }
   await verifyFiles(centralBucketOutput.bucketName, certificateFiles, errors);
+}
+
+async function verifyRsyslogFiles(outputs: StackOutput[], errors: string[]): Promise<void> {
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs,
+    artifactName: 'Rsyslog',
+  });
+  const rsyslogBucketName = artifactOutput.bucketName;
+  const rsyslogBucketPrefix = artifactOutput.keyPrefix;
+
+  const rsyslogConfigFile = `${rsyslogBucketPrefix}/rsyslog.conf`;
+  await verifyFiles(rsyslogBucketName, [rsyslogConfigFile], errors);
 }
 
 async function verifyFiles(bucketName: string, fileNames: string[], errors: string[]): Promise<string[]> {
