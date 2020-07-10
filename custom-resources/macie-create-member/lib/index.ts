@@ -8,7 +8,7 @@ export interface MacieCreateMemberProps {
 }
 
 /**
- * Custom resource implementation that retrive IPs for a created DNS Endpoint.
+ * Custom resource implementation that create members for Macie
  */
 export class MacieCreateMember extends cdk.Construct {
   private readonly resource: custom.AwsCustomResource;

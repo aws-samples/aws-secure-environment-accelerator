@@ -8,7 +8,7 @@ export interface MacieExportConfigProps {
   keyPrefix?: string;
 }
 /**
- * Custom resource implementation that enable admin for Guard Duty
+ * Custom resource implementation that set Macie classification export config
  */
 export class MacieExportConfig extends cdk.Construct {
   private readonly resource: custom.AwsCustomResource;

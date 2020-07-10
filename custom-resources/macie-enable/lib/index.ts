@@ -13,7 +13,7 @@ export interface MacieEnableProps {
 }
 
 /**
- * Custom resource implementation that retrive IPs for a created DNS Endpoint.
+ * Custom resource implementation that enable Macie for AWS account.
  */
 export class MacieEnable extends cdk.Construct {
   private readonly resource: cdk.CustomResource;

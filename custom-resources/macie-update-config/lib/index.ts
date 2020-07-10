@@ -6,7 +6,7 @@ export interface MacieUpdateConfigProps {
   autoEnable: boolean;
 }
 /**
- * Custom resource implementation that enable admin for Guard Duty
+ * Custom resource implementation that turn on auto enable for Macie
  */
 export class MacieUpdateConfig extends cdk.Construct {
   private readonly resource: custom.AwsCustomResource;
