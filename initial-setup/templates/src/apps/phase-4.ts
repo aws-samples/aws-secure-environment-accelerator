@@ -1,8 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import { getAccountId } from '../utils/accounts';
 import { pascalCase } from 'pascal-case';
-import { getStackJsonOutput, ResolversOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
-import { InterfaceEndpointConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { getStackJsonOutput, ResolversOutput, MadRuleOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
 import { PhaseInput } from './shared';
 
@@ -20,12 +19,10 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
   // get the list of account IDs with which the resolver rules needs to be shared
   const vpcConfigs = acceleratorConfig.getVpcConfigs();
   const sharedAccountIds: string[] = [];
-  let hostedZonesAccountId: string | undefined;
-  for (const { accountKey, vpcConfig } of vpcConfigs) {
-    if (InterfaceEndpointConfig.is(vpcConfig['interface-endpoints'])) {
-      hostedZonesAccountId = getAccountId(accounts, accountKey);
-    }
 
+  const centralEndpointAccountKey = acceleratorConfig['global-options'].zones.account;
+  const hostedZonesAccountId = getAccountId(accounts, centralEndpointAccountKey);
+  for (const { accountKey, vpcConfig } of vpcConfigs) {
     if (vpcConfig['use-central-endpoints']) {
       const accountId = getAccountId(accounts, accountKey);
       if (accountId && hostedZonesAccountId && accountId !== hostedZonesAccountId) {
@@ -58,6 +55,17 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
         );
         resolverOutput.rules?.onPremRules?.map(x =>
           resolverRuleArns.push(`arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${x}`),
+        );
+      }
+
+      const madRulesOutputs: MadRuleOutput[] = getStackJsonOutput(outputs, {
+        accountKey,
+        outputType: 'MadRulesOutput',
+      });
+      const madRulesOutput = madRulesOutputs.find(x => Object.keys(x)[0] === vpcConfig.name);
+      if (madRulesOutput) {
+        resolverRuleArns.push(
+          `arn:aws:route53resolver:${cdk.Aws.REGION}:${accountId}:resolver-rule/${madRulesOutput[vpcConfig.name]}`,
         );
       }
 
