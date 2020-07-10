@@ -19,6 +19,7 @@ import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 import * as fs from 'fs';
+import * as sns from '@aws-cdk/aws-sns';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -35,6 +36,7 @@ export namespace InitialSetup {
     configS3Bucket: string;
     configS3FileName: string;
     configBranchName: string;
+    notificationEmail: string;
     /**
      * Prebuild Docker image that contains the project with its dependencies already installed.
      */
@@ -756,6 +758,7 @@ export namespace InitialSetup {
         .next(enableTrustedAccessForServicesTask)
         .next(deployPhase0Task)
         .next(storePhase0Output)
+        .next(verifyFilesTask)
         .next(enableConfigChoice);
 
       // Landing Zone Config Setup
@@ -781,12 +784,59 @@ export namespace InitialSetup {
         )
         .afterwards();
 
+      const notificationTopic = new sns.Topic(this, 'MainStateMachineStatusTopic', {
+        displayName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
+        topicName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
+      });
+
+      new sns.Subscription(this, 'MainStateMachineStatusTopicSubscription', {
+        topic: notificationTopic,
+        protocol: sns.SubscriptionProtocol.EMAIL_JSON,
+        endpoint: props.notificationEmail,
+      });
+
+      const fail = new sfn.Fail(this, 'Failed');
+
+      const notifySmFailure = new CodeTask(this, 'Execution Failed', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.notifySMFailure',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          notificationTopicArn: notificationTopic.topicArn,
+          'error.$': '$.Error',
+          'cause.$': '$.Cause',
+          'executionId.$': '$$.Execution.Id',
+        },
+        resultPath: 'DISCARD',
+      });
+      notifySmFailure.next(fail);
+
+      const notifySmSuccess = new CodeTask(this, 'Deploy Success', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.notifySMSuccess',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          notificationTopicArn: notificationTopic.topicArn,
+          'accounts.$': '$[0].accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      // Full StateMachine Execution stats from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
+      getOrCreateConfigurationTask.next(compareConfigurationsTask).next(getBaseLineTask).next(baseLineChoice);
+
+      const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');
+      mainTryCatch.branch(getOrCreateConfigurationTask);
+      mainTryCatch.addCatch(notifySmFailure);
+      mainTryCatch.next(notifySmSuccess);
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
-        definition: sfn.Chain.start(getOrCreateConfigurationTask)
-          .next(compareConfigurationsTask)
-          .next(getBaseLineTask)
-          .next(baseLineChoice),
+        definition: sfn.Chain.start(mainTryCatch),
       });
     }
   }

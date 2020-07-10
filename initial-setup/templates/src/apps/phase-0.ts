@@ -22,6 +22,7 @@ import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
 import * as macie from '../deployments/macie';
 import { getAccountId } from '../utils/accounts';
+import * as rsyslogDeployment from '../deployments/rsyslog';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -123,6 +124,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // MAD creation step 1
   // Needs EBS default keys from the EBS default step
   await madDeployment.step1({
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
+    accountStacks,
+    config: acceleratorConfig,
+  });
+
+  await rsyslogDeployment.step1({
     acceleratorName: context.acceleratorName,
     acceleratorPrefix: context.acceleratorPrefix,
     accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
