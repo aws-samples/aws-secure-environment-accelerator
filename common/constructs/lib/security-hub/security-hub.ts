@@ -17,7 +17,7 @@ export interface Account {
 
 interface SecurityHubStandard {
   name: string;
-  'controls-to-disable': string[];
+  'controls-to-disable': string[] | undefined;
 }
 
 interface SecurityHubStandards {
