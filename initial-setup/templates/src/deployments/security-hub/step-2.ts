@@ -1,11 +1,11 @@
 import { Account } from '../../utils/accounts';
-import * as config from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
-import { SecurityHubStack } from './common';
+import { SecurityHub } from '@aws-pbmm/constructs/lib/security-hub';
 
 export interface SecurityHubStep2Props {
   accounts: Account[];
-  config: config.AcceleratorConfig;
+  config: AcceleratorConfig;
   accountStacks: AccountStacks;
 }
 
@@ -26,7 +26,7 @@ export function step2(props: SecurityHubStep2Props) {
         console.warn(`Cannot find account stack ${account.key} in region ${region}`);
         continue;
       }
-      new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
+      new SecurityHub(memberAccountStack, `SecurityHubMember-${account.key}`, {
         account,
         standards: globalOptions['security-hub-frameworks'],
         masterAccountId: securityMasterAccount?.id,
