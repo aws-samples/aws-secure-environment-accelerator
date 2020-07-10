@@ -142,15 +142,20 @@ export async function step3(props: MacieStep3Props) {
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   const masterBucket = accountBuckets[masterAccountKey];
   const regions = await getValidRegions(config);
-  regions.map(region => {
-    const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
-    // configure export S3 bucket
-    new MacieExportConfig(masterAccountStack, 'MacieExportConfig', {
-      bucketName: masterBucket.bucketName,
-      keyPrefix: `${masterAccountId}/${region}/macie`,
-      kmsKeyArn: masterBucket.encryptionKey?.keyArn,
+  const accountDetails = accounts.map(account => ({
+    accountKey: account.key,
+  }));
+  for ( const [accountKey] of Object.entries(accountDetails)) {
+    regions.map(region => {
+      const accountStack = accountStacks.getOrCreateAccountStack(accountKey, region);
+      // configure export S3 bucket
+      new MacieExportConfig(accountStack, 'MacieExportConfig', {
+        bucketName: masterBucket.bucketName,
+        keyPrefix: `${masterAccountId}/${region}/macie`,
+        kmsKeyArn: masterBucket.encryptionKey?.keyArn,
+      });
     });
-  });
+  }
 }
 
 export async function getValidRegions(config: AcceleratorConfig) {
