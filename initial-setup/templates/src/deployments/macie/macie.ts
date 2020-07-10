@@ -139,19 +139,19 @@ export async function step3(props: MacieStep3Props) {
   }
 
   const masterAccountKey = config['global-options']['central-security-services'].account;
-  const masterAccountId = getAccountId(accounts, masterAccountKey);
   const masterBucket = accountBuckets[masterAccountKey];
   const regions = await getValidRegions(config);
   const accountDetails = accounts.map(account => ({
     accountKey: account.key,
+    accountId: account.id,
   }));
-  for ( const [accountKey] of Object.entries(accountDetails)) {
+  for (const [accountKey, accountId] of Object.entries(accountDetails)) {
     regions.map(region => {
       const accountStack = accountStacks.getOrCreateAccountStack(accountKey, region);
       // configure export S3 bucket
       new MacieExportConfig(accountStack, 'MacieExportConfig', {
         bucketName: masterBucket.bucketName,
-        keyPrefix: `${masterAccountId}/${region}/macie`,
+        keyPrefix: `${accountId}/${region}/macie`,
         kmsKeyArn: masterBucket.encryptionKey?.keyArn,
       });
     });
