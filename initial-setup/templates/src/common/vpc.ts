@@ -16,7 +16,6 @@ import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/comm
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@custom-resources/vpc-default-security-group';
-import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 export interface VpcCommonProps {
   /**
