@@ -183,6 +183,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcProps: props,
       masterAccountId,
       outputs,
+      acceleratorName: accountStack.acceleratorName,
     });
     const vpc = vpcStack.vpc;
 

@@ -15,6 +15,8 @@ import { AccountStacks } from '../common/account-stacks';
 import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-pbmm/common-outputs/lib/transit-gateway';
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
+import { VpcDefaultSecurityGroup } from '@custom-resources/vpc-default-security-group';
+import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 
 export interface VpcCommonProps {
   /**
@@ -93,6 +95,7 @@ export interface VpcStackProps extends NestedStackProps {
   vpcProps: VpcProps;
   masterAccountId: string;
   outputs: StackOutput[];
+  acceleratorName: string;
 }
 
 export class VpcStack extends NestedStack {
@@ -510,6 +513,12 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       limiter,
       vpc: vpcObj,
     });
+
+    const vpcSecurityGroup = new VpcDefaultSecurityGroup(this, 'VpcDefaultSecurityGroup', {
+      vpcId: this.vpcId,
+      acceleratorName: props.acceleratorName,
+    });
+    vpcSecurityGroup.node.addDependency(vpcObj);
   }
 
   get id(): string {
