@@ -21,6 +21,7 @@ import { PhaseInput } from './shared';
 import * as madDeployment from '../deployments/mad';
 import * as createTrail from '../deployments/cloud-trail';
 import * as tgwDeployment from '../deployments/transit-gateway';
+import * as defaultSecurityGroups from '../deployments/default-security-groups';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -257,6 +258,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+    outputs,
+  });
+
+  await defaultSecurityGroups.step1({
+    accountStacks,
+    config: acceleratorConfig,
     outputs,
   });
 }
