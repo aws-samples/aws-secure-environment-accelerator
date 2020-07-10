@@ -158,8 +158,9 @@ export namespace InitialSetup {
         functionPayload: {
           'inputConfig.$': '$',
           region: cdk.Aws.REGION,
+          'baseline.$': '$.configuration.baseline',
         },
-        resultPath: '$.configuration',
+        resultPath: 'DISCARD',
       });
 
       const getBaseLineTask = new CodeTask(this, 'Get Baseline From Configuration', {
@@ -765,12 +766,20 @@ export namespace InitialSetup {
         .next(createLandingZoneAccountsTask)
         .next(commonDefinition);
 
+      const cloudFormationMasterRoleChoice = new sfn.Choice(this, 'Install CloudFormation Role in Master?')
+        .when(
+          sfn.Condition.booleanEquals('$.configuration.installCloudFormationMasterRole', true),
+          installCfnRoleMasterTask,
+        )
+        .otherwise(createOrganizationAccountsTask)
+        .afterwards();
+
+      installCfnRoleMasterTask.next(createOrganizationAccountsTask).next(commonDefinition);
+
       // // Organizations Config Setup
       const orgConfigDefinition = validateOuConfiguration.startState
         .next(loadOrgConfigurationTask)
-        .next(installCfnRoleMasterTask)
-        .next(createOrganizationAccountsTask)
-        .next(commonDefinition);
+        .next(cloudFormationMasterRoleChoice);
 
       const baseLineChoice = new sfn.Choice(this, 'Baseline?')
         .when(sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'), alzConfigDefinition)
@@ -785,8 +794,8 @@ export namespace InitialSetup {
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
         definition: sfn.Chain.start(getOrCreateConfigurationTask)
-          .next(compareConfigurationsTask)
           .next(getBaseLineTask)
+          .next(compareConfigurationsTask)
           .next(baseLineChoice),
       });
     }
