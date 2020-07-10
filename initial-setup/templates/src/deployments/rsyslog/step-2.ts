@@ -4,7 +4,6 @@ import * as s3 from '@aws-cdk/aws-s3';
 import * as nlb from '@aws-cdk/aws-elasticloadbalancingv2';
 import { NetworkLoadBalancer, RsysLogAutoScalingGroup, Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AcceleratorConfig, RsyslogConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput } from '@aws-pbmm/common-lambda/lib/util/outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { SecurityGroup } from '../../common/security-group';
@@ -13,6 +12,7 @@ import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-na
 import { StructuredOutput } from '../../common/structured-output';
 import { CfnRsyslogDnsOutputTypeOutput, RsyslogAutoScalingRoleOutput } from './outputs';
 import { checkAccountWarming } from '../account-warming/outputs';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
