@@ -758,6 +758,7 @@ export namespace InitialSetup {
         .next(enableTrustedAccessForServicesTask)
         .next(deployPhase0Task)
         .next(storePhase0Output)
+        .next(verifyFilesTask)
         .next(enableConfigChoice);
 
       // Landing Zone Config Setup
