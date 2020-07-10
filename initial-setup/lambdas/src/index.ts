@@ -24,8 +24,8 @@ export { handler as detachQuarantineScp } from './detach-quarantine-scp';
 export { handler as ouValidation } from './ou-validation';
 export { handler as loadOrganizations } from './load-organizations-step';
 export { handler as verifyFilesStep } from './verify-files-step';
-export { handler as nofiySMFailure } from './notify-statemachine-failure';
-export { handler as nofiySMSuccess } from './notify-statemachine-success';
+export { handler as notifySMFailure } from './notify-statemachine-failure';
+export { handler as notifySMSuccess } from './notify-statemachine-success';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

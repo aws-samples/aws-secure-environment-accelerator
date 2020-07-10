@@ -800,7 +800,7 @@ export namespace InitialSetup {
       const notifySmFailure = new CodeTask(this, 'Execution Failed', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.nofiySMFailure',
+          handler: 'index.notifySMFailure',
           role: pipelineRole,
         },
         functionPayload: {
@@ -816,7 +816,7 @@ export namespace InitialSetup {
       const notifySmSuccess = new CodeTask(this, 'Deploy Success', {
         functionProps: {
           code: lambdaCode,
-          handler: 'index.nofiySMSuccess',
+          handler: 'index.notifySMSuccess',
           role: pipelineRole,
         },
         functionPayload: {
