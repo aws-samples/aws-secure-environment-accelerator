@@ -160,7 +160,7 @@
       "ou": "core",
       "share-mad-from": "operations",
       "budget": {
-        "name": "Perimeter Budget",
+        "name": "SharedNetwork Budget",
         "period": "Monthly",
         "amount": 2000,
         "include": [

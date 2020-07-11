@@ -131,8 +131,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    3. All new AWS accounts require a unique email address which has never before been used to create an AWS account;
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
    5. For a test deployment, the remainder of the values can be used as-is.
-3. To speed a new deployment, we strongly recommend removing all workload accounts from the configuration file. They can be added at any time in the future.
-   - The ALZ AVM takes 42 minutes per sub-account.
+3. In the ALZ version of the Accelerator, we strongly recommend removing _all_ workload accounts from the configuration file during initial deployment. Workload accounts can be added in the future. The ALZ AVM takes 42 minutes per sub-account. Additionally, importing existing accounts during initial deployment increases the risk of initial deployment failures.
 
 ### Key Production Config File Requirements:
 
@@ -156,7 +155,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 4. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
-   - the bucket should `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the key you created above
+   - the bucket should be `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the key you created above
 5. Place your customized config file, named `config.json`, in your new bucket
 6. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
