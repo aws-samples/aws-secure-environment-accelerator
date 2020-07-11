@@ -118,6 +118,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
     },
     masterAccountId: '',
     outputs: [],
+    acceleratorName: 'test',
   });
 
   // Convert the stack to a CloudFormation template
@@ -239,6 +240,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
       },
       masterAccountId: '',
       outputs: [],
+      acceleratorName: 'test',
     });
   });
 });
@@ -267,6 +269,7 @@ test('the VPC creation should create the internet gateway', () => {
     },
     masterAccountId: '',
     outputs: [],
+    acceleratorName: 'test',
   });
 
   // Convert the stack to a CloudFormation template
@@ -303,6 +306,7 @@ test('the VPC creation should create the VPN gateway', () => {
     },
     masterAccountId: '',
     outputs: [],
+    acceleratorName: 'test',
   });
 
   // Convert the stack to a CloudFormation template
@@ -422,6 +426,7 @@ test('the VPC creation should create the NAT gateway', () => {
     },
     masterAccountId: '',
     outputs: [],
+    acceleratorName: 'test',
   });
 
   // Convert the stack to a CloudFormation template
