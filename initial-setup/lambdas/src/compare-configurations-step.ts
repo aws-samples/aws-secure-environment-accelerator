@@ -17,6 +17,7 @@ export interface ConfigurationInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
+  baseline: string;
 }
 
 export interface CompareConfigurationsOutput {
@@ -47,10 +48,7 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
   };
 
   const { inputConfig, region } = input;
-
-  const configFilePath = inputConfig.configuration.configFilePath;
-  const configRepositoryName = inputConfig.configuration.configRepositoryName;
-  const configCommitId = inputConfig.configuration.configCommitId;
+  const { configFilePath, configRepositoryName, configCommitId, baseline } = inputConfig.configuration;
   const commitSecretId = getCommitIdSecretName();
 
   const secrets = new SecretsManager();
@@ -72,12 +70,21 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
       configCommitId,
     };
   }
-
+  let configOverrides = inputConfig.configOverrides;
+  if (baseline === 'ORGANIZATIONS') {
+    if (!configOverrides) {
+      configOverrides = {};
+    }
+    // Explicitly setting true even if user provides false in overideConfig when baseline is ORGANIZATIONS
+    configOverrides['ov-acct-ou'] = true;
+    configOverrides['ov-ren-accts'] = true;
+    configOverrides['ov-acct-email'] = true;
+  }
   let errors: string[] = [];
-  if (inputConfig.configOverrides) {
-    const keys = Object.keys(overrideConfig);
-    for (const [overrideName, overrideValue] of Object.entries(inputConfig.configOverrides)) {
-      if (overrideValue && keys.includes(overrideName)) {
+  if (configOverrides) {
+    for (const [overrideName, overrideValue] of Object.entries(configOverrides)) {
+      console.log(overrideName, overrideValue);
+      if (overrideValue) {
         overrideConfig[overrideName] = overrideValue;
       }
     }
@@ -98,9 +105,5 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
     throw new Error(`There were errors while comparing the configuration changes:\n${errors.join('\n')}`);
   }
 
-  return {
-    configRepositoryName,
-    configFilePath,
-    configCommitId,
-  };
+  return inputConfig.configuration;
 };
