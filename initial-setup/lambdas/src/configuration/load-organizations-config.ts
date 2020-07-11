@@ -8,12 +8,17 @@ import {
   ConfigurationOrganizationalUnit,
   LoadConfigurationOutput,
 } from '../load-configuration-step';
+import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+
+interface LoadOrganizationConfigurationOutput extends LoadConfigurationOutput {
+  installCloudFormationMasterRole?: boolean;
+}
 
 // Using sts  getCallerIdentity() to get account nunber
 const sts = new STS();
 const organizations = new Organizations();
 
-export const handler = async (input: LoadConfigurationInput): Promise<LoadConfigurationOutput> => {
+export const handler = async (input: LoadConfigurationInput): Promise<LoadOrganizationConfigurationOutput> => {
   console.log(`Loading Organization baseline configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
@@ -174,15 +179,30 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     }
   }
 
+  errors.push(...validateOrganizationSpecificConfiguration(config));
   // Throw all errors at once
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
   }
+
+  const installCloudFormationMasterRole = config['global-options']['install-cloudformation-master-role'];
 
   return {
     ...input,
     organizationalUnits: configurationOus,
     accounts: configurationAccounts,
     warnings,
+    installCloudFormationMasterRole,
   };
 };
+
+function validateOrganizationSpecificConfiguration(config: AcceleratorConfig): string[] {
+  const errors: string[] = [];
+  if (!config['global-options']['iam-password-policies']) {
+    errors.push(`Did not find "global-options/iam-password-policies" in Accelerator Configuration`);
+  }
+  if (!config['global-options']['organization-admin-role']) {
+    errors.push(`Did not find "global-options/organization-admin-role" in Accelerator Configuration`);
+  }
+  return errors;
+}

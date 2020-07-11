@@ -17,6 +17,11 @@ export async function step1(props: IamPasswordPolicyProps) {
   const accountKeys = config.getAccountConfigs().map(([accountKey, _]) => accountKey);
   const passwordPolicy = config['global-options']['iam-password-policies'];
 
+  if (!passwordPolicy) {
+    console.warn(`passwordPolicy configuration is not there in Accelerator Configuration`);
+    return;
+  }
+
   for (const accountKey of accountKeys) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
     if (!accountStack) {

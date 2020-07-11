@@ -160,8 +160,9 @@ export namespace InitialSetup {
         functionPayload: {
           'inputConfig.$': '$',
           region: cdk.Aws.REGION,
+          'baseline.$': '$.configuration.baseline',
         },
-        resultPath: '$.configuration',
+        resultPath: 'DISCARD',
       });
 
       const getBaseLineTask = new CodeTask(this, 'Get Baseline From Configuration', {
@@ -767,12 +768,20 @@ export namespace InitialSetup {
         .next(createLandingZoneAccountsTask)
         .next(commonDefinition);
 
+      const cloudFormationMasterRoleChoice = new sfn.Choice(this, 'Install CloudFormation Role in Master?')
+        .when(
+          sfn.Condition.booleanEquals('$.configuration.installCloudFormationMasterRole', true),
+          installCfnRoleMasterTask,
+        )
+        .otherwise(createOrganizationAccountsTask)
+        .afterwards();
+
+      installCfnRoleMasterTask.next(createOrganizationAccountsTask).next(commonDefinition);
+
       // // Organizations Config Setup
       const orgConfigDefinition = validateOuConfiguration.startState
         .next(loadOrgConfigurationTask)
-        .next(installCfnRoleMasterTask)
-        .next(createOrganizationAccountsTask)
-        .next(commonDefinition);
+        .next(cloudFormationMasterRoleChoice);
 
       const baseLineChoice = new sfn.Choice(this, 'Baseline?')
         .when(sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'), alzConfigDefinition)
@@ -827,7 +836,7 @@ export namespace InitialSetup {
       });
 
       // Full StateMachine Execution stats from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
-      getOrCreateConfigurationTask.next(compareConfigurationsTask).next(getBaseLineTask).next(baseLineChoice);
+      getOrCreateConfigurationTask.next(getBaseLineTask).next(compareConfigurationsTask).next(baseLineChoice);
 
       const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');
       mainTryCatch.branch(getOrCreateConfigurationTask);

@@ -36,7 +36,7 @@ import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
-import { SecurityHubStack } from '../common/security-hub';
+import * as securityHub from '../deployments/security-hub';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -92,25 +92,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
-  const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
-  const securityMasterAccountStack = accountStacks.tryGetOrCreateAccountStack(securityAccountKey);
-  if (!securityMasterAccountStack) {
-    console.warn(`Cannot find security stack`);
-  } else {
-    const globalOptions = acceleratorConfig['global-options'];
-    const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
-    const subAccountIds = accounts.map(account => ({
-      AccountId: account.id,
-      Email: account.email,
-    }));
-
-    // Create Security Hub stack for Master Account in Security Account
-    new SecurityHubStack(securityMasterAccountStack, `SecurityHubMasterAccountSetup`, {
-      account: securityMasterAccount!,
-      standards: globalOptions['security-hub-frameworks'],
-      subAccountIds,
-    });
-  }
+  securityHub.step1({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
 
   /**
    * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
@@ -184,6 +170,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcProps: props,
       masterAccountId,
       outputs,
+      acceleratorName: accountStack.acceleratorName,
     });
     const vpc = vpcStack.vpc;
 

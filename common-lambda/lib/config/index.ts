@@ -638,12 +638,13 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-services': CentralServicesConfigType,
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
-  'organization-admin-role': NonEmptyString,
+  'organization-admin-role': optional(t.string),
   'supported-regions': t.array(t.string),
-  'keep-default-vpc-regions': t.array(t.string),
-  'iam-password-policies': IamAccountPasswordPolicyType,
+  'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
+  'iam-password-policies': optional(IamAccountPasswordPolicyType),
   'default-cwl-retention': t.number,
   'ignored-ous': optional(t.array(t.string)),
+  'install-cloudformation-master-role': fromNullable(t.boolean, true),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

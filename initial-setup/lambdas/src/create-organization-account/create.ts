@@ -28,7 +28,7 @@ export const handler = async (input: CreateOrganizationAccountInput): Promise<Cr
     commitId: configCommitId,
   });
 
-  const roleName = config['global-options']['organization-admin-role'];
+  const roleName = config['global-options']['organization-admin-role']!;
   console.log(
     `Account Creation initiated for Email "${emailAddress}", Account Name "${accountName}, Role Name ${roleName}"`,
   );
