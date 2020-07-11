@@ -159,6 +159,41 @@
       "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
+      "budget": {
+        "name": "Perimeter Budget",
+        "period": "Monthly",
+        "amount": 2000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          }
+        ]
+      },
       "iam": {
         "users": [],
         "policies": [
@@ -335,7 +370,7 @@
             "VPN-ECMP-support": true,
             "Default-route-table-association": false,
             "Default-route-table-propagation": false,
-            "Auto-accept-sharing-attachments": false
+            "Auto-accept-sharing-attachments": true
           },
           "route-tables": ["core", "segregated", "shared", "standalone"]
         }
@@ -414,7 +449,7 @@
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
-          "ad-groups": ["aws-Provisioning"],
+          "ad-groups": ["aws-Provisioning", "aws-Billing"],
           "ad-per-account-groups": ["*-Admin", "*-PowerUser", "*-View"],
           "adc-group": "ADConnector-grp",
           "ad-users": [
@@ -1214,7 +1249,7 @@
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
-        "amount": 100,
+        "amount": 500,
         "include": [
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
@@ -2140,7 +2175,7 @@
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
-        "amount": 200,
+        "amount": 1000,
         "include": [
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
