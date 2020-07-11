@@ -1,4 +1,4 @@
-# AWS Secure Environment Accelerator v1.1.0
+# AWS Secure Environment Accelerator v1.1.0 and above
 
 The AWS Accelerator is a tool designed to deploy and operate secure multi-account AWS environments. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
