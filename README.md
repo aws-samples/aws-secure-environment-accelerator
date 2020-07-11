@@ -28,7 +28,7 @@ Installation of the provided prescriptive AWS architecture, as-is, requires a li
 
 These installation instructions assume the prescribed architecture is being deployed.
 
-### Prerequisites
+## Prerequisites
 
 - Master or Root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
 - Limit increase to support a minimum of 6 sub-accounts plus any additional workload accounts
@@ -37,7 +37,7 @@ These installation instructions assume the prescribed architecture is being depl
 - Valid configuration file, updated to reflect your deployment (see below)
 - Determine your primary or Accelerator 'control' region. These instructions have been written assuming ca-central-1, but any supported region can be substituted.
 
-#### Standalone Accelerator Installation (No ALZ base)
+### Standalone Accelerator Installation (No ALZ base)
 
 Before installing, you must first:
 
@@ -57,7 +57,7 @@ Before installing, you must first:
   - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
 - Click Finish
 
-#### ALZ Based Accelerator Installation
+### ALZ Based Accelerator Installation
 
 You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. It is strongly encouraged to upgrade to ALZ v2.4.0 before deploying the Accelerator.
 
@@ -76,7 +76,7 @@ Before installing, you must first:
 4. Enable IAM permissions to control access to use the `AwsLandingZoneKMSKey` KMS key.
    - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
 
-#### BOTH Installation Types
+### BOTH Installation Types
 
 In the Master or root AWS account, manually:
 
@@ -171,7 +171,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
 
-### Deploy the Accelerator Installer Stack
+## Deploy the Accelerator Installer Stack
 
 1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
@@ -222,7 +222,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
     3. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
     4. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
-## Configuration File Notes
+## Notes
+
+### Configuration File Notes
 
 - You cannot supply (or change) configuration file values to something not supported by the AWS platform
   - For example, CWL retention only supports specific retention values (not any number)
@@ -237,13 +239,13 @@ If deploying to an internal AWS account, to successfully install the entire solu
 - The firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
 
-## General Notes
+### General Notes
 
 - Do not mess with _any_ buckets in the master account
 - While likely protected, do not mess with CDK, CFN, or PBMMAccel- buckets in _any_ sub-accounts
 - Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
 
-## Known limitations/purposeful exclusions:
+### Known limitations/purposeful exclusions:
 
 - ALB automated deployments currently only supports Forward and not redirect rules
 - Amazon Detective - not included
