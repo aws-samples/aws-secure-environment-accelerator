@@ -20,6 +20,7 @@ import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
+import * as macie from '../deployments/macie';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 
@@ -159,6 +160,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Transit Gateway step 1
   await transitGateway.step1({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
+
+  // Macie step 1
+  await macie.step1({
     accountStacks,
     accounts,
     config: acceleratorConfig,

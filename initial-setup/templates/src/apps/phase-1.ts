@@ -31,6 +31,7 @@ import * as firewall from '../deployments/firewall/cluster';
 import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
+import * as macie from '../deployments/macie';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
@@ -449,6 +450,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   await reports.step1({
     accountBuckets,
     accountStacks,
+    config: acceleratorConfig,
+  });
+
+  // Macie step 2
+  await macie.enableMaciePolicy({
+    accountBuckets,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
+  await macie.step2({
+    accountStacks,
+    accounts,
     config: acceleratorConfig,
   });
 

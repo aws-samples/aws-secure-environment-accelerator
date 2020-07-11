@@ -21,6 +21,7 @@ import { PhaseInput } from './shared';
 import * as madDeployment from '../deployments/mad';
 import * as createTrail from '../deployments/cloud-trail';
 import * as tgwDeployment from '../deployments/transit-gateway';
+import * as macie from '../deployments/macie';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 
 /**
@@ -246,6 +247,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
     outputs,
+  });
+
+  await macie.step3({
+    accountBuckets,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
   });
 
   await rsyslogDeployment.step2({

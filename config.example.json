@@ -41,7 +41,10 @@
       "cwl": true,
       "access-analyzer": true,
       "config-excl-regions": [],
-      "config-aggr-excl-regions": []
+      "config-aggr-excl-regions": [],
+      "macie": true,
+      "macie-excl-regions": [],
+      "macie-frequency": "SIX_HOURS"
     },
     "central-operations-services": {
       "account": "operations",
