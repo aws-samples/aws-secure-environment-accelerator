@@ -46,12 +46,12 @@ Several conventions are used throughout this document to aid understanding.
 
 #### AWS Account Numbers
 
-AWS account numbers are decimal-digit pseudorandom identifiers with 12 digits (e.g. `651278770121`). This document will use the convention that an AWS master account has the account ID `012345678910`, and child accounts are given by `111111111111`, `222222222222`, etc.
+AWS account numbers are decimal-digit pseudorandom identifiers with 12 digits (e.g. `651278770121`). This document will use the convention that an AWS master account has the account ID `123456789012`, and child accounts are given by `111111111111`, `222222222222`, etc.
 
 For example the following ARN would refer to a VPC subnet in the `ca-central-1` region in the master account:
 
 
-    arn:aws:ec2:ca-central-1:012345678910:subnet/subnet-024759b61fc305ea3
+    arn:aws:ec2:ca-central-1:123456789012:subnet/subnet-024759b61fc305ea3
 
 #### JSON Annotation
 
@@ -63,7 +63,7 @@ For example:
 {
   "Effect": "Allow",
   "Principal": {
-    "AWS": "arn:aws:iam::012345678910:root"  # Trust the master account.
+    "AWS": "arn:aws:iam::123456789012:root"  # Trust the master account.
   },
   "Action": "sts:AssumeRole"
 }
@@ -107,7 +107,7 @@ The AWS Organization resides in the master account. This account is not used for
         {
           "Effect": "Allow",
           "Principal": {
-            "AWS": "arn:aws:iam::012345678910:root"  # Master account may assume this role.
+            "AWS": "arn:aws:iam::123456789012:root"  # Master account may assume this role.
           },
           "Action": "sts:AssumeRole"
         }
