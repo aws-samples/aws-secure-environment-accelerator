@@ -173,7 +173,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
         },
         resultPath: '$.configuration',
@@ -187,7 +187,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
         },
@@ -202,7 +202,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
         },
@@ -279,7 +279,7 @@ export namespace InitialSetup {
           'account.$': '$$.Map.Item.Value',
           'organizationalUnits.$': '$.configuration.organizationalUnits',
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
         },
@@ -306,7 +306,7 @@ export namespace InitialSetup {
         functionPayload: {
           organizationsSecretId: organizationsSecret.secretArn,
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
         },
         resultPath: '$.configuration.organizationalUnits',
@@ -415,7 +415,7 @@ export namespace InitialSetup {
           input: {
             'accounts.$': '$.accounts',
             configRepositoryName: props.configRepositoryName,
-            configFilePath: props.configFilePath,
+            'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
             stackOutputSecretId: stackOutputSecret.secretArn,
@@ -450,7 +450,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
           accountsSecretId: accountsSecret.secretArn,
@@ -589,7 +589,7 @@ export namespace InitialSetup {
           input: {
             'accounts.$': '$.accounts',
             configRepositoryName: props.configRepositoryName,
-            configFilePath: props.configFilePath,
+            'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
             stackOutputSecretId: stackOutputSecret.secretArn,

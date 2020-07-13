@@ -6,6 +6,7 @@ import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
+import { prepareRawConfig } from './get-or-create-config';
 
 export interface ValdationInput {
   configFilePath: string;
@@ -51,6 +52,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const previousConfigString = configCommit.fileContent.toString();
   const previousConfig = JSON.parse(previousConfigString);
 
+  const rootConfigString = await getConfigFromCodeCommit(configRepositoryName, configCommitId, 'config.json');
   let config = previousConfig;
   const previousAccounts = await loadAccounts(accountsSecretId);
   const previousOrganizationalUnits = await loadOrganizations(organizationsSecretId);
@@ -84,7 +86,14 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   // change config based on rename Accounts
   config = updateRenamedAccounts(config, previousAccounts, awsAccounts);
   // change config based on rename Organizational Units
-  config = updateRenamedOrganizationalUnits(config, previousOrganizationalUnits, awsOusWithPath);
+  config = await updateRenamedOrganizationalUnits(
+    config, 
+    previousOrganizationalUnits, 
+    awsOusWithPath, 
+    rootConfigString,
+    configRepositoryName,
+    configBranch,
+  );
 
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
@@ -167,7 +176,15 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       }
     }
   }
-  const commitStatus = await createCommit(config, configCommitId, configBranch, configRepositoryName, configFilePath);
+  // Preparing Raw config to hadle any errors on previous execution
+  const rawConfig = await prepareRawConfig({
+    branchName: configBranch,
+    configRootPath: configFilePath,
+    configString: config,
+    repositoryName: configRepositoryName,
+    source: 'codecommit',
+  });
+  const commitStatus = await updateConfig(rawConfig, configBranch, configRepositoryName, configFilePath);
   return commitStatus || configCommitId;
 };
 
@@ -193,7 +210,6 @@ async function createCommit(
     console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
     return commitId;
   } catch (error) {
-    console.error(error);
     if (error.code === 'NoChangeException') {
       return;
     } else {
@@ -234,13 +250,11 @@ const updateRenamedAccounts = (
     const currentAccount = awsAccounts.find(acc => acc.Id === previousAccount.id);
     if (!currentAccount) {
       console.log(`Account "${previousAccount.id}" is removed from Orfanizations`);
-      // TODO Remove account from load account if needed
       continue;
     }
     if (!isAccountChanged(previousAccount, currentAccount)) {
       continue;
     }
-    // TODO Update Account Config
     let isMandatoryAccount = true;
     let accountConfig = mandatoryAccountConfigs.find(([_, value]) => value.email === previousAccount.email);
     if (!accountConfig) {
@@ -257,12 +271,14 @@ const updateRenamedAccounts = (
       updatedAccountConfig['account-name'] = currentAccount.Name!;
       updatedAccountConfig.email = currentAccount.Email!;
       updateMandatoryAccounts[accountConfig[0]] = updatedAccountConfig;
+      // TODO update accountConfig in mandatory-account-config __LOAD
     } else {
       // Update Account in Workload Accounts
       const updatedAccountConfig = updateWorkLoadAccounts[accountConfig[0]];
       updatedAccountConfig['account-name'] = currentAccount.Name!;
       updatedAccountConfig.email = currentAccount.Email!;
       updateWorkLoadAccounts[accountConfig[0]] = updatedAccountConfig;
+      // TODO update accountConfig in workload-account-config __LOAD
     }
   }
   config['mandatory-account-configs'] = updateMandatoryAccounts;
@@ -279,11 +295,14 @@ const isAccountChanged = (previousAccount: Account, currentAccount: org.Account)
   return isChanged;
 };
 
-const updateRenamedOrganizationalUnits = (
+async function updateRenamedOrganizationalUnits(
   config: AcceleratorUpdateConfig,
   previousOrganizationalUnits: ConfigOrganizationalUnit[],
   awsOus: OrganizationalUnit[],
-): AcceleratorConfig => {
+  rootConfigString: string,
+  configRepositoryName: string,
+  configBranch: string,
+): Promise<AcceleratorConfig> {
   const updateMandatoryAccounts = config['mandatory-account-configs'];
   const updateWorkLoadAccounts = config['workload-account-configs'];
   const updateOrganizationalUnits = config['organizational-units'];
@@ -292,6 +311,9 @@ const updateRenamedOrganizationalUnits = (
   const workLoadAccountsConfig = Object.entries(config['workload-account-configs']).filter(
     ([_, value]) => !value.deleted,
   );
+  const rootConfig = JSON.parse(rootConfigString);
+  let changeInMandatoryAccount = false;
+  let changeInWorkLoadAccount = false;
   for (const previousOu of previousOrganizationalUnits) {
     const currentOu = awsOus.find(ou => ou.Id === previousOu.ouId);
     if (!currentOu) {
@@ -309,12 +331,35 @@ const updateRenamedOrganizationalUnits = (
       const updatedOuConfig = updateOrganizationalUnits[previousOu.ouPath];
       delete updateOrganizationalUnits[previousOu.ouPath];
       updateOrganizationalUnits[currentOu.Path] = updatedOuConfig;
+
+      // Splited config updation
+      const previousOuRootConfig = rootConfig['organizational-units'][previousOu.ouPath];
+      console.log(previousOuRootConfig, previousOu.ouPath, rootConfig);
+      delete rootConfig['organizational-units'][previousOu.ouPath];
+      const prevousOuConfigFile = previousOuRootConfig['__LOAD'];
+      previousOuRootConfig['__LOAD'] = previousOuRootConfig['__LOAD'].replace(`${previousOu.ouPath}.json`, `${currentOu.Path}.json`);
+      rootConfig['organizational-units'][currentOu.Path] = previousOuRootConfig;
+      let parentCommitId = await updateConfig(JSON.stringify(rootConfig, null, 2), configBranch, configRepositoryName, 'config.json');
+      if (!updateConfig) {
+        const latestCommit = await codecommit.getBranch(configRepositoryName, configBranch);
+        parentCommitId = latestCommit.branch?.commitId;
+      }
+      // Delete old OU File
+      await codecommit.deleteFile({
+        branchName: configBranch,
+        filePath: prevousOuConfigFile,
+        parentCommitId: parentCommitId!,
+        repositoryName: configRepositoryName,
+        commitMessage: `Removing Old Config file since ou got renamed ${previousOu.ouPath}`,
+      });
+      await updateConfig(JSON.stringify(updatedOuConfig, null, 2), configBranch,configRepositoryName,previousOuRootConfig['__LOAD'])
     }
     // Check for ou occurence in Mandatory accounts
     const mandatoryAccountsConfigPerOu = mandatoryAccountConfigs.filter(
       ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
     );
     for (const [accountKey, mandatoryAccount] of mandatoryAccountsConfigPerOu) {
+      changeInMandatoryAccount = true;
       const updateMandatoryAccountConfig = mandatoryAccount;
       updateMandatoryAccountConfig.ou = currentOu.Path.split('/')[0];
       updateMandatoryAccountConfig['ou-path'] = currentOu.Path;
@@ -335,6 +380,14 @@ const updateRenamedOrganizationalUnits = (
   config['mandatory-account-configs'] = updateMandatoryAccounts;
   config['workload-account-configs'] = updateWorkLoadAccounts;
   config['organizational-units'] = updateOrganizationalUnits;
+  if (changeInMandatoryAccount) {
+    await updateConfig(
+      JSON.stringify(updateMandatoryAccounts, null, 2),
+      configBranch,
+      configRepositoryName,
+      rootConfig['mandatory-account-configs']['__LOAD']
+    );
+  }
   return config;
 };
 
@@ -417,3 +470,48 @@ async function createOrganizstionalUnits(
   }
   return result;
 }
+
+async function getConfigFromCodeCommit(repositoryName: string, commitId: string, filePath: string): Promise<string> {
+  const config = await codecommit.getFile(repositoryName, filePath, commitId);
+  return config.fileContent.toString();
+}
+
+async function updateConfig(
+  config: string,
+  configBranch: string,
+  configRepositoryName: string,
+  configFilePath: string,
+): Promise<string | undefined> {
+  try {
+    const currentCommit = await codecommit.getBranch(configRepositoryName, configBranch);
+    const parentCommitId = currentCommit.branch?.commitId;
+    const commit = await codecommit.putFile({
+      branchName: configBranch,
+      repositoryName: configRepositoryName,
+      parentCommitId,
+      fileContent: config,
+      filePath: configFilePath,
+      commitMessage: `Updating Configuration as part of OU Validation because of Organization Rename`,
+    });
+    console.log(`Updated Configuration file in CodeCommit ${configFilePath} CommitId: ${commit.commitId}`);
+    return commit.commitId;
+  } catch (error) {
+    console.error(error);
+    if (error.code === 'NoChangeException' || error.code === 'SameFileContentException') {
+      return;
+    } else {
+      throw new Error(error);
+    }
+  }
+}
+
+
+handler({
+  "configRepositoryName": "PBMMAccel-Config-Repo",
+  "acceleratorPrefix": "PBMMAccel-",
+  "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-5ZA3VN",
+  "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-V3JLHk",
+  "configBranch": "master",
+  "configFilePath": "raw/config.json",
+  "configCommitId": "a43eb241d5ada3fe2bde5226d580953755443e1a"
+});
