@@ -18,11 +18,10 @@ export interface GuardDutyStepProps {
  * @param props accountStacks and config passed from phases
  */
 export async function step1(props: GuardDutyStepProps) {
-  const alzBaseline = props.config['global-options']['alz-baseline'];
   const enableGuardDuty = props.config['global-options']['central-security-services'].guardduty;
 
-  // skipping Guardduty if using ALZ or not enabled from config
-  if (alzBaseline || !enableGuardDuty) {
+  // skipping Guardduty if not enabled from config
+  if (!enableGuardDuty) {
     return;
   }
 
@@ -30,7 +29,7 @@ export async function step1(props: GuardDutyStepProps) {
 
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(props.accounts, masterAccountKey);
-  const regions = props.config['global-options']['supported-regions'];
+  const regions = await getValidRegions(props.config);
   regions?.map(region => {
     // Guard duty need to be enabled from master account of the organization
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterOrgKey, region);
@@ -50,16 +49,15 @@ export async function step1(props: GuardDutyStepProps) {
  * @param props accountStacks and config passed from phases
  */
 export async function step2(props: GuardDutyStepProps) {
-  const alzBaseline = props.config['global-options']['alz-baseline'];
   const enableGuardDuty = props.config['global-options']['central-security-services'].guardduty;
 
-  // skipping Guardduty if using ALZ or not enabled from config
-  if (alzBaseline || !enableGuardDuty) {
+  // skipping Guardduty if not enabled from config
+  if (!enableGuardDuty) {
     return;
   }
 
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
-  const regions = props.config['global-options']['supported-regions'];
+  const regions = await getValidRegions(props.config);
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
 
@@ -82,4 +80,11 @@ export async function step2(props: GuardDutyStepProps) {
     });
     updateConfig.node.addDependency(members);
   });
+}
+
+export async function getValidRegions(config: AcceleratorConfig) {
+  const regions = config['global-options']['supported-regions'];
+  const excl = config['global-options']['central-security-services']['guardduty-excl-regions'];
+  const validRegions = regions.filter(x => !excl?.includes(x));
+  return validRegions;
 }
