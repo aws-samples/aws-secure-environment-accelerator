@@ -803,7 +803,7 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase1 1`] = `
 Array [
   Object {
-    "LogicalId": "DefaultCoreBudget2890563D",
+    "LogicalId": "SharedNetworkBudget43476CAE",
     "Properties": Object {
       "NotificationsWithSubscribers": Array [
         Object {
