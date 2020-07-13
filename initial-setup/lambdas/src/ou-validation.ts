@@ -506,12 +506,12 @@ async function updateConfig(
 }
 
 
-handler({
-  "configRepositoryName": "PBMMAccel-Config-Repo",
-  "acceleratorPrefix": "PBMMAccel-",
-  "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-5ZA3VN",
-  "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-V3JLHk",
-  "configBranch": "master",
-  "configFilePath": "raw/config.json",
-  "configCommitId": "a43eb241d5ada3fe2bde5226d580953755443e1a"
-});
+// handler({
+//   "configRepositoryName": "PBMMAccel-Config-Repo",
+//   "acceleratorPrefix": "PBMMAccel-",
+//   "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-5ZA3VN",
+//   "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-V3JLHk",
+//   "configBranch": "master",
+//   "configFilePath": "raw/config.json",
+//   "configCommitId": "81bd35b77dd04adf189c32d1497a1384879ea2dc"
+// });
