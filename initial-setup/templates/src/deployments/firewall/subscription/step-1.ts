@@ -34,7 +34,7 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
       console.log(
         `Skipping firewall marketplace image subscription check because of missing VPC "${firewallConfig.vpc}"`,
       );
-      return;
+      continue;
     }
 
     const subnetId = vpc.subnets[0].id;
@@ -43,7 +43,7 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
-      return;
+      continue;
     }
 
     const firewallAmiSubOutput: AmiSubscriptionOutput = {
