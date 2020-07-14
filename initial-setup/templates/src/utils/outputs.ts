@@ -1,7 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
+
+const s3 = new S3();
 
 export async function loadStackOutputs(): Promise<StackOutput[]> {
   if (process.env.CONFIG_MODE === 'development') {
@@ -13,20 +15,25 @@ export async function loadStackOutputs(): Promise<StackOutput[]> {
     return JSON.parse(contents.toString());
   }
 
-  const secretId = process.env.STACK_OUTPUT_SECRET_ID;
-  if (!secretId) {
-    throw new Error(`The environment variable "STACK_OUTPUT_SECRET_ID" needs to be set`);
+  const bucketName = process.env.STACK_OUTPUTS_BUCKET_NAME;
+  const bucketKey = process.env.STACK_OUTPUTS_BUCKET_KEY;
+  if (!bucketName || !bucketKey) {
+    console.warn(`The environment variable "STACK_OUTPUTS_BUCKET_NAME" and "STACK_OUTPUTS_BUCKET_KEY" need to be set`);
+    return [];
   }
-  const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(secretId);
-  if (!secret) {
-    console.warn(`Cannot find output secret with ID "${secretId}"`);
+
+  const outputsJson = await s3.getObjectBodyAsString({
+    Bucket: bucketName,
+    Key: bucketKey,
+  });
+  if (!outputsJson) {
+    console.warn(`Cannot find outputs "s3://${bucketName}${bucketKey}"`);
     return [];
   }
   try {
-    return JSON.parse(secret.SecretString!);
+    return JSON.parse(outputsJson);
   } catch (e) {
-    console.warn(`Cannot parse output secret with ID "${secretId}"`);
+    console.warn(`Cannot parse outputs "s3://${bucketName}${bucketKey}"`);
     return [];
   }
 }

@@ -1,14 +1,14 @@
-import * as aws from 'aws-sdk';
 import { TagResources } from '@aws-pbmm/common-lambda/lib/aws/resource-tagging';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc', 'tgw-attachment'];
 
 interface CreateTagsRequestInput {
   assumeRoleName: string;
-  stackOutputSecretId: string;
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
 }
 
 interface Tag {
@@ -25,17 +25,20 @@ interface AddTagToResourceOutput {
 
 type AddTagToResourceOutputs = AddTagToResourceOutput[];
 
-const secrets = new SecretsManager();
+const s3 = new S3();
 const sts = new STS();
 
 export const handler = async (input: CreateTagsRequestInput) => {
   console.log(`Adding tags to shared resource...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, stackOutputSecretId } = input;
+  const { assumeRoleName, stackOutputBucketName, stackOutputBucketKey } = input;
 
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+  });
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   const addTagsToResourcesOutputs: AddTagToResourceOutputs[] = getStackJsonOutput(outputs, {
     outputType: 'AddTagsToResources',

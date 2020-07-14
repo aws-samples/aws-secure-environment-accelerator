@@ -18,21 +18,35 @@ import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cl
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { UpdateDocumentRequest, CreateDocumentRequest } from 'aws-sdk/clients/ssm';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 
 interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
   accounts: Account[];
-  stackOutputSecretId: string;
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
 }
+
+const s3 = new S3();
 
 export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, accounts, configRepositoryName, stackOutputSecretId, configFilePath, configCommitId } = input;
+  const {
+    assumeRoleName,
+    accounts,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+    stackOutputBucketName,
+    stackOutputBucketKey,
+  } = input;
 
-  const secrets = new SecretsManager();
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+  });
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -43,7 +57,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
 
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   const sts = new STS();
 

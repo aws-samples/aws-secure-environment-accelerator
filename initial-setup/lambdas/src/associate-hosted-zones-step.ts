@@ -1,6 +1,5 @@
-import * as aws from 'aws-sdk';
 import * as r53 from 'aws-sdk/clients/route53';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { getStackJsonOutput, StackOutput, ResolversOutput, VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
@@ -13,7 +12,8 @@ import { throttlingBackOff } from '@aws-pbmm/common-lambda/lib/aws/backoff';
 interface AssociateHostedZonesInput extends LoadConfigurationInput {
   accounts: Account[];
   assumeRoleName: string;
-  stackOutputSecretId: string;
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
 }
 
 type ResolversOutputs = ResolversOutput[];
@@ -40,13 +40,22 @@ interface AccountRule {
 // Hosted zone ID is in the form of `/hostedzone/Z0181099DGX53XMU1D7S`
 const hostedZoneIdRegex = /\/hostedzone\/([\d\w]+)/;
 
+const s3 = new S3();
 const sts = new STS();
 
 export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configRepositoryName, accounts, assumeRoleName, stackOutputSecretId, configCommitId, configFilePath } = input;
+  const {
+    configRepositoryName,
+    accounts,
+    assumeRoleName,
+    configCommitId,
+    configFilePath,
+    stackOutputBucketName,
+    stackOutputBucketKey,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -55,9 +64,11 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     commitId: configCommitId,
   });
 
-  const secrets = new SecretsManager();
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+  });
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   // get the private zones from global-options
   const globalOptionsConfig = config['global-options'];

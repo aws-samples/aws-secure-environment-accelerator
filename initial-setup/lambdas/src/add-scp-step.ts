@@ -2,7 +2,7 @@ import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { OrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { ArtifactOutputFinder } from '@aws-pbmm/common-outputs/lib/artifacts';
 import { ServiceControlPolicy } from '@aws-pbmm/common-lambda/lib/scp';
@@ -11,9 +11,12 @@ interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
   accounts: Account[];
   organizationalUnits: OrganizationalUnit[];
-  stackOutputSecretId: string;
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
 }
-const secrets = new SecretsManager();
+
+const s3 = new S3();
+
 export const handler = async (input: AddScpInput) => {
   console.log(`Adding service control policy to organization...`);
   console.log(JSON.stringify(input, null, 2));
@@ -25,7 +28,8 @@ export const handler = async (input: AddScpInput) => {
     configRepositoryName,
     configFilePath,
     configCommitId,
-    stackOutputSecretId,
+    stackOutputBucketName,
+    stackOutputBucketKey
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -37,8 +41,11 @@ export const handler = async (input: AddScpInput) => {
   const organizationAdminRole = config['global-options']['organization-admin-role']!;
   const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole);
 
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+  });
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   // Find the SCP artifact output
   const artifactOutput = ArtifactOutputFinder.findOneByName({

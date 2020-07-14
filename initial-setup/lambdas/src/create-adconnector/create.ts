@@ -1,5 +1,6 @@
 import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-service';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
@@ -16,7 +17,8 @@ interface AdConnectorInput extends LoadConfigurationInput {
   configRepositoryName: string;
   configFilePath: string;
   configCommitId: string;
-  stackOutputSecretId: string;
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
 }
 
 interface MadOutput {
@@ -46,6 +48,10 @@ export interface AdConnectorOutput {
   assumeRoleName: string;
 }
 
+const s3 = new S3();
+const secrets = new SecretsManager();
+const sts = new STS();
+
 export const handler = async (input: AdConnectorInput) => {
   console.log(`Creating AD Connector in account ...`);
   console.log(JSON.stringify(input, null, 2));
@@ -57,7 +63,8 @@ export const handler = async (input: AdConnectorInput) => {
     configRepositoryName,
     configFilePath,
     configCommitId,
-    stackOutputSecretId,
+    stackOutputBucketName,
+    stackOutputBucketKey,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -67,11 +74,11 @@ export const handler = async (input: AdConnectorInput) => {
     commitId: configCommitId,
   });
 
-  const secrets = new SecretsManager();
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
-
-  const sts = new STS();
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+  });
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   const adConnectorOutputs: AdConnectorOutput[] = [];
   for (const [accountKey, mandatoryConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {

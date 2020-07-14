@@ -1,5 +1,4 @@
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { LoadConfigurationInput } from './load-configuration-step';
@@ -8,8 +7,9 @@ import { CentralBucketOutputFinder } from '@aws-pbmm/common-outputs/lib/central-
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 
 interface VerifyFilesInput extends LoadConfigurationInput {
-  stackOutputSecretId: string;
   rdgwScripts: string[];
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
 }
 
 interface RdgwArtifactsOutput {
@@ -20,14 +20,25 @@ interface RdgwArtifactsOutput {
 }
 
 const s3 = new S3();
-const secrets = new SecretsManager();
 
 export const handler = async (input: VerifyFilesInput) => {
   console.log('Validate existence of all required files ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { configRepositoryName, stackOutputSecretId, configFilePath, configCommitId, rdgwScripts } = input;
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
+  const {
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+    rdgwScripts,
+    stackOutputBucketName,
+    stackOutputBucketKey,
+  } = input;
+
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+  });
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -35,7 +46,6 @@ export const handler = async (input: VerifyFilesInput) => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
 
   const errors: string[] = [];
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
