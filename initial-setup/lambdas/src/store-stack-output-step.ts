@@ -15,12 +15,7 @@ export const handler = async (input: StoreStackOutputInput) => {
   console.log(`Storing stack output...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    acceleratorPrefix,
-    stackOutputSecretId,
-    assumeRoleName,
-    accounts,
-  } = input;
+  const { acceleratorPrefix, stackOutputSecretId, assumeRoleName, accounts } = input;
 
   const outputs: StackOutput[] = [];
   for (const account of accounts) {
