@@ -177,14 +177,14 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     }
   }
   // Preparing Raw config to hadle any errors on previous execution
-  const rawConfig = await prepareRawConfig({
-    branchName: configBranch,
-    configRootPath: configFilePath,
-    configString: config,
-    repositoryName: configRepositoryName,
-    source: 'codecommit',
-  });
-  const commitStatus = await updateConfig(rawConfig, configBranch, configRepositoryName, configFilePath);
+  // const rawConfig = await prepareRawConfig({
+  //   branchName: configBranch,
+  //   configRootPath: configFilePath,
+  //   configString: config,
+  //   repositoryName: configRepositoryName,
+  //   source: 'codecommit',
+  // });
+  const commitStatus = await updateConfig(JSON.stringify(config, null, 2), configBranch, configRepositoryName, configFilePath);
   return commitStatus || configCommitId;
 };
 
@@ -335,24 +335,26 @@ async function updateRenamedOrganizationalUnits(
       // Splited config updation
       const previousOuRootConfig = rootConfig['organizational-units'][previousOu.ouPath];
       console.log(previousOuRootConfig, previousOu.ouPath, rootConfig);
-      delete rootConfig['organizational-units'][previousOu.ouPath];
-      const prevousOuConfigFile = previousOuRootConfig['__LOAD'];
-      previousOuRootConfig['__LOAD'] = previousOuRootConfig['__LOAD'].replace(`${previousOu.ouPath}.json`, `${currentOu.Path}.json`);
-      rootConfig['organizational-units'][currentOu.Path] = previousOuRootConfig;
-      let parentCommitId = await updateConfig(JSON.stringify(rootConfig, null, 2), configBranch, configRepositoryName, 'config.json');
-      if (!updateConfig) {
-        const latestCommit = await codecommit.getBranch(configRepositoryName, configBranch);
-        parentCommitId = latestCommit.branch?.commitId;
+      if (previousOuRootConfig) {
+        delete rootConfig['organizational-units'][previousOu.ouPath];
+        const prevousOuConfigFile = previousOuRootConfig['__LOAD'];
+        previousOuRootConfig['__LOAD'] = previousOuRootConfig['__LOAD'].replace(`${previousOu.ouPath}.json`, `${currentOu.Path}.json`);
+        rootConfig['organizational-units'][currentOu.Path] = previousOuRootConfig;
+        let parentCommitId = await updateConfig(JSON.stringify(rootConfig, null, 2), configBranch, configRepositoryName, 'config.json');
+        if (!updateConfig) {
+          const latestCommit = await codecommit.getBranch(configRepositoryName, configBranch);
+          parentCommitId = latestCommit.branch?.commitId;
+        }
+        // Delete old OU File
+        await codecommit.deleteFile({
+          branchName: configBranch,
+          filePath: prevousOuConfigFile,
+          parentCommitId: parentCommitId!,
+          repositoryName: configRepositoryName,
+          commitMessage: `Removing Old Config file since ou got renamed ${previousOu.ouPath}`,
+        });
+        await updateConfig(JSON.stringify(updatedOuConfig, null, 2), configBranch,configRepositoryName,previousOuRootConfig['__LOAD'])
       }
-      // Delete old OU File
-      await codecommit.deleteFile({
-        branchName: configBranch,
-        filePath: prevousOuConfigFile,
-        parentCommitId: parentCommitId!,
-        repositoryName: configRepositoryName,
-        commitMessage: `Removing Old Config file since ou got renamed ${previousOu.ouPath}`,
-      });
-      await updateConfig(JSON.stringify(updatedOuConfig, null, 2), configBranch,configRepositoryName,previousOuRootConfig['__LOAD'])
     }
     // Check for ou occurence in Mandatory accounts
     const mandatoryAccountsConfigPerOu = mandatoryAccountConfigs.filter(
@@ -496,7 +498,6 @@ async function updateConfig(
     console.log(`Updated Configuration file in CodeCommit ${configFilePath} CommitId: ${commit.commitId}`);
     return commit.commitId;
   } catch (error) {
-    console.error(error);
     if (error.code === 'NoChangeException' || error.code === 'SameFileContentException') {
       return;
     } else {
@@ -506,12 +507,12 @@ async function updateConfig(
 }
 
 
-// handler({
-//   "configRepositoryName": "PBMMAccel-Config-Repo",
-//   "acceleratorPrefix": "PBMMAccel-",
-//   "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-5ZA3VN",
-//   "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-V3JLHk",
-//   "configBranch": "master",
-//   "configFilePath": "raw/config.json",
-//   "configCommitId": "81bd35b77dd04adf189c32d1497a1384879ea2dc"
-// });
+handler({
+  "configRepositoryName": "PBMMAccel-Config-Repo",
+  "acceleratorPrefix": "PBMMAccel-",
+  "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-5ZA3VN",
+  "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-V3JLHk",
+  "configBranch": "master",
+  "configFilePath": "raw/config.json",
+  "configCommitId": "master"
+});
