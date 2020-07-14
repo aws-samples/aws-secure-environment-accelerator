@@ -554,6 +554,9 @@ export namespace InitialSetup {
             stackOutputSecretId: stackOutputSecret.secretArn,
             assumeRoleName: props.stateMachineExecutionRole,
             'accounts.$': '$.accounts',
+            'configRepositoryName.$': '$.configRepositoryName',
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
           },
           resultPath: 'DISCARD',
         });
