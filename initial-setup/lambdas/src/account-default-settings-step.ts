@@ -25,6 +25,7 @@ interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   accounts: Account[];
   stackOutputBucketName: string;
   stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
 
 const s3 = new S3();
@@ -41,11 +42,13 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     configCommitId,
     stackOutputBucketName,
     stackOutputBucketKey,
+    stackOutputVersion,
   } = input;
 
   const outputsString = await s3.getObjectBodyAsString({
     Bucket: stackOutputBucketName,
     Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
   });
 
   // Retrieve Configuration from Code Commit with specific commitId

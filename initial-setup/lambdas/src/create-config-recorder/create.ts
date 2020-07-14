@@ -13,6 +13,7 @@ interface ConfigServiceInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
   stackOutputBucketName: string;
   stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
 
 interface LogBucketOutputType {
@@ -47,11 +48,13 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     acceleratorPrefix,
     stackOutputBucketName,
     stackOutputBucketKey,
+    stackOutputVersion,
   } = input;
 
   const outputsString = await s3.getObjectBodyAsString({
     Bucket: stackOutputBucketName,
     Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
   });
   const outputs = JSON.parse(outputsString) as StackOutput[];
 

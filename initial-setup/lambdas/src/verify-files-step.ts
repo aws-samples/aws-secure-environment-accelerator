@@ -10,6 +10,7 @@ interface VerifyFilesInput extends LoadConfigurationInput {
   rdgwScripts: string[];
   stackOutputBucketName: string;
   stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
 
 interface RdgwArtifactsOutput {
@@ -32,11 +33,13 @@ export const handler = async (input: VerifyFilesInput) => {
     rdgwScripts,
     stackOutputBucketName,
     stackOutputBucketKey,
+    stackOutputVersion,
   } = input;
 
   const outputsString = await s3.getObjectBodyAsString({
     Bucket: stackOutputBucketName,
     Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
   });
   const outputs = JSON.parse(outputsString) as StackOutput[];
 

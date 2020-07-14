@@ -15,25 +15,29 @@ export async function loadStackOutputs(): Promise<StackOutput[]> {
     return JSON.parse(contents.toString());
   }
 
-  const bucketName = process.env.STACK_OUTPUTS_BUCKET_NAME;
-  const bucketKey = process.env.STACK_OUTPUTS_BUCKET_KEY;
-  if (!bucketName || !bucketKey) {
-    console.warn(`The environment variable "STACK_OUTPUTS_BUCKET_NAME" and "STACK_OUTPUTS_BUCKET_KEY" need to be set`);
+  const outputBucketName = process.env.STACK_OUTPUT_BUCKET_NAME;
+  const outputBucketKey = process.env.STACK_OUTPUT_BUCKET_KEY;
+  const outputVersion = process.env.STACK_OUTPUT_VERSION;
+  if (!outputBucketName || !outputBucketKey || !outputVersion) {
+    console.warn(
+      `The environment variable "STACK_OUTPUT_BUCKET_NAME", "STACK_OUTPUT_BUCKET_KEY", "STACK_OUTPUT_VERSION" need to be set`,
+    );
     return [];
   }
 
   const outputsJson = await s3.getObjectBodyAsString({
-    Bucket: bucketName,
-    Key: bucketKey,
+    Bucket: outputBucketName,
+    Key: outputBucketKey,
+    VersionId: outputVersion,
   });
   if (!outputsJson) {
-    console.warn(`Cannot find outputs "s3://${bucketName}${bucketKey}"`);
+    console.warn(`Cannot find outputs "s3://${outputBucketName}${outputBucketKey}"`);
     return [];
   }
   try {
     return JSON.parse(outputsJson);
   } catch (e) {
-    console.warn(`Cannot parse outputs "s3://${bucketName}${bucketKey}"`);
+    console.warn(`Cannot parse outputs "s3://${outputBucketName}${outputBucketKey}"`);
     return [];
   }
 }

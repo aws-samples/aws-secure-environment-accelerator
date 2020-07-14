@@ -14,6 +14,7 @@ interface AssociateHostedZonesInput extends LoadConfigurationInput {
   assumeRoleName: string;
   stackOutputBucketName: string;
   stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
 
 type ResolversOutputs = ResolversOutput[];
@@ -55,6 +56,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     configFilePath,
     stackOutputBucketName,
     stackOutputBucketKey,
+    stackOutputVersion,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -67,6 +69,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   const outputsString = await s3.getObjectBodyAsString({
     Bucket: stackOutputBucketName,
     Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
   });
   const outputs = JSON.parse(outputsString) as StackOutput[];
 

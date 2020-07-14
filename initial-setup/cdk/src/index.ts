@@ -466,8 +466,9 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           'organizationalUnits.$': '$.organizationalUnits',
           'accounts.$': '$.accounts',
-          'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -524,8 +525,9 @@ export namespace InitialSetup {
           CONFIG_BRANCH_NAME: props.configBranchName,
         };
         if (loadOutputs) {
-          environment['STACK_OUTPUTS_BUCKET_NAME.$'] = '$.storeOutput.outputsBucketName';
-          environment['STACK_OUTPUTS_BUCKET_KEY.$'] = '$.storeOutput.outputsBucketKey';
+          environment['STACK_OUTPUT_BUCKET_NAME.$'] = '$.storeOutput.outputBucketName';
+          environment['STACK_OUTPUT_BUCKET_KEY.$'] = '$.storeOutput.outputBucketKey';
+          environment['STACK_OUTPUT_VERSION.$'] = '$.storeOutput.outputVersion';
         }
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
           // tslint:disable-next-line: deprecation
@@ -578,8 +580,9 @@ export namespace InitialSetup {
           lambdaPath: 'index.createConfigRecorder',
           name: 'Create Config Recorder',
           functionPayload: {
-            'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-            'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+            'stackOutputVersion.$': '$.storeOutput.outputVersion',
           }
         }),
       });
@@ -594,8 +597,9 @@ export namespace InitialSetup {
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
-            'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-            'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+            'stackOutputVersion.$': '$.storeOutput.outputVersion',
             acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
@@ -615,8 +619,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -636,8 +641,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
           rdgwScripts,
         },
         resultPath: 'DISCARD',
@@ -655,8 +661,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -669,8 +676,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -687,8 +695,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -712,8 +721,9 @@ export namespace InitialSetup {
             'configRepositoryName.$': '$.configRepositoryName',
             'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
-            'stackOutputBucketName.$': '$.storeOutput.outputsBucketName',
-            'stackOutputBucketKey.$': '$.storeOutput.outputsBucketKey',
+            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+            'stackOutputVersion.$': '$.storeOutput.outputVersion',
           },
         }),
         resultPath: 'DISCARD',

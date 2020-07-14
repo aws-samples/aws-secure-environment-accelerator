@@ -9,6 +9,7 @@ interface CreateTagsRequestInput {
   assumeRoleName: string;
   stackOutputBucketName: string;
   stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
 
 interface Tag {
@@ -32,11 +33,12 @@ export const handler = async (input: CreateTagsRequestInput) => {
   console.log(`Adding tags to shared resource...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, stackOutputBucketName, stackOutputBucketKey } = input;
+  const { assumeRoleName, stackOutputBucketName, stackOutputBucketKey, stackOutputVersion } = input;
 
   const outputsString = await s3.getObjectBodyAsString({
     Bucket: stackOutputBucketName,
     Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
   });
   const outputs = JSON.parse(outputsString) as StackOutput[];
 

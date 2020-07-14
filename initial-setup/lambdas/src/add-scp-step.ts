@@ -13,6 +13,7 @@ interface AddScpInput extends LoadConfigurationInput {
   organizationalUnits: OrganizationalUnit[];
   stackOutputBucketName: string;
   stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
 
 const s3 = new S3();
@@ -29,7 +30,8 @@ export const handler = async (input: AddScpInput) => {
     configFilePath,
     configCommitId,
     stackOutputBucketName,
-    stackOutputBucketKey
+    stackOutputBucketKey,
+    stackOutputVersion,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -44,6 +46,7 @@ export const handler = async (input: AddScpInput) => {
   const outputsString = await s3.getObjectBodyAsString({
     Bucket: stackOutputBucketName,
     Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
   });
   const outputs = JSON.parse(outputsString) as StackOutput[];
 

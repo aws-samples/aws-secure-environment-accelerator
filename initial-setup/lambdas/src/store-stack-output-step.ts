@@ -65,7 +65,7 @@ export const handler = async (input: StoreStackOutputInput) => {
   console.log(`Writing outputs to s3://${centralBucketOutput.bucketName}/outputs.json`);
 
   // Store outputs on S3
-  await s3.putObject({
+  const response = await s3.putObject({
     Bucket: centralBucketOutput.bucketName,
     Key: 'outputs.json',
     Body: JSON.stringify(outputs),
@@ -73,7 +73,8 @@ export const handler = async (input: StoreStackOutputInput) => {
 
   return {
     status: 'SUCCESS',
-    outputsBucketName: centralBucketOutput.bucketName,
-    outputsBucketKey: 'outputs.json',
+    outputBucketName: centralBucketOutput.bucketName,
+    outputBucketKey: 'outputs.json',
+    outputVersion: response.VersionId,
   };
 };
