@@ -1,51 +1,97 @@
-# AWS Secure Environment Accelerator
+# AWS Secure Environment Accelerator v1.1.0 and above
 
-## Installation - These instructions are intended for v1.1.0
+The AWS Accelerator is a tool designed to deploy and operate secure multi-account AWS environments. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
-Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitiate installation.
+While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to meet the security requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to meet the requirements of a broad range of governments and public sector organizations.
 
-The Accelerator allows for complete customization, based on parameters passed in the configuration file. A sample configuration file is provided that deploys a prescriptive architecture which meets many worldwide government security requirements, in this case they are modelled after the Government of Canada. Installation of the provided sample AWS architecture, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
+Installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
 
-### Relationship with AWS Landing Zone
+### Relationship with AWS Landing Zone Solution (ALZ)
 
-AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The Accelerator Architecture draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the Accelerator Architecture presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `v1.1.0`.
+The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ.
 
-If your environment has already been built with an ALZ in place, in your config file, set:
+The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`.
 
-```json
-ALZ-baseline=true
-```
+While the option remains to deploy the AWS Accelerator on top of the ALZ, all new customers are strongly encourage to let the AWS Accelerator deploy and manage the entire environment by performing a standalone installation of the AWS Accelerator.
 
-Otherwise `false`, for an environment with no ALZ.
+### Relationship with AWS Control Tower
 
+AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Towers limited regional coverage, limited functionality and lack of customizability has made it unsuitable in meeting their requirements.
 
+When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we allow with the ALZ today.
 
+## Installation
 
-### Prerequisites
+**_Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitate installation._**
 
+Installation of the provided prescriptive AWS architecture, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
 
-#### If using `ALZ-baseline=false`
+These installation instructions assume the prescribed architecture is being deployed.
 
-which has no ALZ dependencies, before installing, you must first:
+## Prerequisites
 
-- Create a master account
-- Enable AWS Organizations
-- Enable Service Control Policies
-- Verify master account email address in the Organization
+- Master or Root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
+- Limit increase to support a minimum of 6 sub-accounts plus any additional workload accounts
+- Determine if you will install on top of ALZ or as a standalone installation
+  - We recommend customers with deployed ALZ's consider uninstalling the ALZ and proceeding with a standalone installation
+- Valid configuration file, updated to reflect your deployment (see below)
+- Determine your primary or Accelerator 'control' region. These instructions have been written assuming ca-central-1, but any supported region can be substituted.
 
-#### Otherwise (`ALZ-baseline=true`)
-You currently need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. If you plan to upgrade to ALZ v2.4.0, we suggest you upgrade before deploying the Accelerator.
+### Standalone Accelerator Installation (No ALZ base)
+
+Before installing, you must first:
+
+1. Login to the Organization **Master AWS account** with `AdministratorAccess`.
+2. **_Set the region to `ca-central-1`._**
+3. Enable AWS Organizations
+4. Enable Service Control Policies
+5. In AWS Organizations, "Verify" the master account email address (this is a technical process)
+6. Set `alz-baseline=false` in the configuration file
+7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
+
+- AWS Key Managerment Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
+  (Accel-Source-Bucket), Next
+- Select a key administrator (Admin Role or Group for the master account), Next
+- Select key users (Admin Role or Group for the master account), Next
+- Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
+  - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
+- Click Finish
+
+### ALZ Based Accelerator Installation
+
+You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. It is strongly encouraged to upgrade to ALZ v2.4.0 before deploying the Accelerator.
 
 When deploying the ALZ select:
 
 1. Set `Lock StackSetExecution Role` to `No`
 2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
 3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,UnClass,Sandbox` (case sensitive)
-   - these match the provided sample Accelerator configuration file (config.example.json)
+   - these match the provided prescriptive Accelerator configuration file (config.example.json)
 
-### Internal Accounts
+Before installing, you must first:
 
-If deploying to an internal AWS account, to successfully install, you need to enable private marketplace before starting:
+1. Set `alz-baseline=true` in the configuration file
+2. Login to the Organization **Master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
+3. **_Set the region to `ca-central-1`._**
+4. Enable IAM permissions to control access to use the `AwsLandingZoneKMSKey` KMS key.
+   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
+
+### BOTH Installation Types
+
+In the Master or root AWS account, manually:
+
+1. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
+2. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
+3. It is **_extremely important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts.
+
+- This information is copied to every new sub-account on creation.
+- Subsequent changes to this information require manually updating it in **\*each** sub-account.
+- Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
+- Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
+
+### AWS Internal Accounts Only
+
+If deploying to an internal AWS account, to successfully install the entire solution, you need to enable private marketplace before starting:
 
 1. In the master account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click Create Marketplace
@@ -56,109 +102,22 @@ If deploying to an internal AWS account, to successfully install, you need to en
 7. Unselect the `Approved Products` filter and then select:
    - `Fortinet FortiGate (BYOL) Next-Generation Firewall`
 8. Select "Add to Private Marketplace" in the top right
-9. Wait a couple of minutes while it adds itm to your PMP - do NOT subscribe or accept the EULA
+9. Wait a couple of minutes while it adds item to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
 
 ## Preparation
 
-#### If using `ALZ-baseline=false`
-
-1. Login to the Organization **Master AWS account** with `AdministratorAccess`.
-2. **_Set the region to `ca-central-1`._**
-3. Create a KMS key named `accelerator-key`, and ensure the master account can both administer and use the key. Sample key policy:
-
-```json
-{
-  "Version": "2012-10-17",
-  "Id": "key-policy",
-  "Statement": [
-    {
-      "Sid": "Enable IAM User Permissions",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::123456789012:root"
-      },
-      "Action": "kms:*",
-      "Resource": "*"
-    },
-    {
-      "Sid": "Allow access for Key Administrators",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::123456789012:role/Admin"
-      },
-      "Action": [
-        "kms:Create*",
-        "kms:Describe*",
-        "kms:Enable*",
-        "kms:List*",
-        "kms:Put*",
-        "kms:Update*",
-        "kms:Revoke*",
-        "kms:Disable*",
-        "kms:Get*",
-        "kms:Delete*",
-        "kms:TagResource",
-        "kms:UntagResource",
-        "kms:ScheduleKeyDeletion",
-        "kms:CancelKeyDeletion"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Sid": "Allow use of the key",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::123456789012:root"
-      },
-      "Action": ["kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*", "kms:GenerateDataKey*", "kms:DescribeKey"],
-      "Resource": "*"
-    },
-    {
-      "Sid": "Allow attachment of persistent resources",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::123456789012:role/Admin"
-      },
-      "Action": ["kms:CreateGrant", "kms:ListGrants", "kms:RevokeGrant"],
-      "Resource": "*",
-      "Condition": {
-        "Bool": {
-          "kms:GrantIsForAWSResource": "true"
-        }
-      }
-    }
-  ]
-}
-
-```
-
-
-4. Set the config bucket to use `S3-KMS` default encryption with this key.
-
-
-### Otherwise (`ALZ-baseline=true`)
-
-1. Login to the Organization **Master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
-2. **_Set the region to `ca-central-1`._**
-3. Grant all users in the master account access to use the `AwsLandingZoneKMSKey` KMS key.
-   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
-
-### In both cases
-
-1. It is **_extrememly important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts. This information is copied to every new sub-account on creation. Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section. Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
-2. It is also suggested that customers manually enable `"Cost Explorer"` and enable `"Receive Billing Alerts"` in the master account, as this has not been automated
-
 #### Create a GitHub Personal Access Token.
 
-1. You can find the instructions on how to create a personal access token here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
-2. Select the scope `repo: Full control over private repositories`.
-3. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token`.
+1. You require a Github access token to access the code repository
+2. Instructions on how to create a personal access token are located here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+3. Select the scope `repo: Full control over private repositories`.
+4. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token` (case sensitive).
    - Via AWS console
      - Store a new secret, and select `Other type of secrets`, `Plaintext`
      - Paste your secret with no formatting no leading or trailing spaces
      - Select `DefaultEncryptionKey`,
-     - Set the secret name to `accelerator/github-token`
+     - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
 ## Accelerator Configuration
@@ -172,17 +131,18 @@ If deploying to an internal AWS account, to successfully install, you need to en
    3. All new AWS accounts require a unique email address which has never before been used to create an AWS account;
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
    5. For a test deployment, the remainder of the values can be used as-is.
-3. To speed a new deployment, we strongly recommend removing all workload accounts from the configuration file. They can be added at any time in the future.
-   - The ALZ AVM takes 42 minutes per sub-account.
+3. In the ALZ version of the Accelerator, we strongly recommend removing _all_ workload accounts from the configuration file during initial deployment. Workload accounts can be added in the future. The ALZ AVM takes 42 minutes per sub-account. Additionally, importing existing accounts during initial deployment increases the risk of initial deployment failures.
 
 ### Key Production Config File Requirements:
 
 - **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
-  - Plan your OU structure (if it does not match the suggested structure)
-  - 6 \* RFC1918 Class B address blocks (CIDR's) which do not conflict with on-premise networks
-    (for Central, Dev, Test, Prod, Unclass, Endpoint VPC's) (Recommend class B's, half class B's possible)
+  - Plan your OU structure, we are suggesting:
+    - core, Central, Sandbox, Unclass, Dev, Test, Prod
+  - 6 \* RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
+    - (one for each OU, except Sandbox which is not routable)
+    - core Class B range will be split to support the Endpoint VPC and Perimeter VPC
   - 3 \* RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
-    (MAD, perimeter underlay, perimeter overlay)(non-GC customers can use address space from the endpoint CIDR class B range)
+    - (MAD, perimeter underlay, perimeter overlay)(non-GC customers can use address space from the core CIDR range)
   - 3 \* BGP ASN's (TGW, FW Cluster, VGW)
   - A Unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.)
   - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution
@@ -190,11 +150,12 @@ If deploying to an internal AWS account, to successfully install, you need to en
   - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]`
   - Wildcard TLS certificate for each of the 2 previous zones
   - 2 Fortinet Fortigate firewall licenses
-  - we also recomend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
+  - we also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
 4. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
+   - the bucket should be `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the key you created above
 5. Place your customized config file, named `config.json`, in your new bucket
 6. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
@@ -209,7 +170,7 @@ If deploying to an internal AWS account, to successfully install, you need to en
 8. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
 
-### Deploy the Accelerator Installer Stack
+## Deploy the Accelerator Installer Stack
 
 1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
@@ -252,44 +213,46 @@ If deploying to an internal AWS account, to successfully install, you need to en
        - Update firewall configuration per your organizations security best practices
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
-23. During the installation we request required limit increases, resources dependant on these limits were not deployed
+23. During the installation we request required limit increases, resources dependent on these limits were not deployed
     1. You should receive emails from support confirming the limit increases
     2. Unfortunately, once the VPC endpoint limit is increased, it does not properly register in AWS Quota tool
-       - If and when you receive confirmation from support that the **VPC endpopint** limit in the shared network account has been increased
+       - If and when you receive confirmation from support that the **VPC Endpoint** limit in the shared network account has been increased
        - Set `"customer-confirm-inplace"` to **true** in the config file for the limit `"Amazon VPC/Interface VPC endpoints per VPC"` in the shared network account
     3. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
     4. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
-## Configuration File Notes
+## Notes
+
+### Configuration File Notes
 
 - You cannot supply (or change) configuration file values to something not supported by the AWS platform
   - For example, CWL retention only supports specific retention values (not any number)
   - Shard count - can only increase/reduce by 1/2 the current limit. can change 1-2,2-3, 4-6
 - Always add any new items to the END of all lists or sections in the config file, otherwise
   - update validation checks will fail (vpc's, subnets, share-to, etc.)
-  - vpc endpoint deployments to blow up - do NOT re-order or insert VPC endpoints (unless you first remove them completely, execute SM, and then re-add them, run SM)
+  - VPC endpoint deployments to blow up - do NOT re-order or insert VPC endpoints (unless you first remove them completely, execute SM, and then re-add them, run SM)
 - To skip, remove or uninstall a component, you can simply change the section header
   - change "deployments"/"firewall" to "deployments"/"xxfirewall" and it will uninstall the firewalls
-- As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have it's capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
+- As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have its capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (100 to 101) or they will fail to update
 - The firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
 
-## Other Notes
+### General Notes
 
 - Do not mess with _any_ buckets in the master account
-- While likely protected, do not mess with cdk, CFN, or PBMMAccel- buckets in _any_ sub-accounts
-- Log group deletion is prevented for security purposes - Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
+- While likely protected, do not mess with CDK, CFN, or PBMMAccel- buckets in _any_ sub-accounts
+- Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
 
-## Known limitations/purposeful exclusions:
+### Known limitations/purposeful exclusions:
 
 - ALB automated deployments currently only supports Forward and not redirect rules
 - Amazon Detective - not included
 - Only 1 auto-deployed MAD per account is supported
 - Only 1 auto-deployed TGW per account is supported
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
-- If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC
-- Firewall updates are to be performed using the firewall OS based update capabailities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment)
+- If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC and it won't cause issues.
+- Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment)
 
 # **STOP HERE, YOU ARE DONE, ENJOY!**
 
