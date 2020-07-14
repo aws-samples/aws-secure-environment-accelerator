@@ -2,14 +2,14 @@
 
 ## I. Introduction
 
-The PBMM Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, network design, and comprehensive logging requirements per ITSG-22 specifications.
+The PBMM Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-22 specifications.
 
 The Accelerator Architecture has been built with the following design principles in mind:
 
 1. Maximize agility, scalability, and availability
 2. Enable the full capability of the AWS cloud and do not artificially limit capabilities based on lowest common denominator supported capabilities of other cloud providers
 4. Be adaptable to evolving technological capabilities in the underlying platform being used in the architecture
-5. Allow for seamless auto-scaling and give potentially unlimited bandwidth as bandwidth requirements increase (or decrease) based on actual customer load. This is a key aspect of the value proposition of cloud computing
+5. Allow for seamless auto-scaling and provide unbounded bandwidth as bandwidth requirements increase (or decrease) based on actual customer load (a key aspect of the value proposition of cloud computing)
 6. High availability is paramount: the design stretches across two physical AWS Availability Zones (AZ), such that the loss of any one AZ does not impact application availability. The design can be easily extended to a third availability zone.
 
 
@@ -55,7 +55,7 @@ For example the following ARN would refer to a VPC subnet in the `ca-central-1` 
 
 #### JSON Annotation
 
-Throughout the document, JSON snippets may be annotated with comments (starting with `# `). The JSON language itself does not include comments as part of the specification; these must be removed prior to use in most situations, including the AWS Console and APIs.
+Throughout the document, JSON snippets may be annotated with comments (starting with `# `). The JSON language itself does not define comments as part of the specification; these must be removed prior to use in most situations, including the AWS Console and APIs.
 
 For example:
 
@@ -125,20 +125,75 @@ TODO(Dave): more details on SSO
 
 
 #### Organizational Units
-Underneath the root of the Organization, Organizational Units (OUs) provide an optional mechanism for grouping accounts into logical collections. Aside from the benefit of the grouping itself, these collections serve as the attachment points for SCPs (preventative API-blocking controls), and Resource Access Manager sharing (cross-account resource sharing). Example use cases are as follows:
+Underneath the root of the Organization, Organizational Units (OUs) provide an optional mechanism for grouping accounts into logical collections. Aside from the benefit of the grouping itself, these collections serve as the attachment points for SCPs (preventative API-blocking controls), and Resource Access Manager sharing (cross-account resource sharing).
+
+![OUs](./images/ous.png)
+
+Example use cases are as follows:
+
 
 * An SCP is attached to the core OU to prevent the deletion of Transit Gateway resources in the associated accounts.
 * The shared network account uses RAM sharing to share the development line-of-business VPC with a development OU. This makes the VPC available to a functional account in that OU used by developers, despite residing logically in the shared network account.
 
-OUs may be nested (to a total depth of five), with SCPs and RAM sharing applied at the desired level.
+OUs may be nested (to a total depth of five), with SCPs and RAM sharing applied at the desired level. A typical Accelerator Architecture environment will have the following OUs:
 
-### Core OU
-This OU houses all administrative accounts, such as the core landing zone accounts. No application accounts or application workloads are intended to exist within this OU. This OU also contains the centralized networking infrastructureSharedNetwork
+##### Core OU
+This OU houses all administrative accounts, such as the core landing zone accounts. No application accounts or application workloads are intended to exist within this OU. This OU also contains the centralized networking infrastructure in the `SharedNetwork` account.
 
 
-### Central OU
+##### Central OU
+This OU houses accounts containing centralized resources, such as a shared AWS Directory Service (Microsoft AD) instance. Other shared resources such as software development tooling (source control, testing infrastructure), or asset repositories should be created in this OU.
 
-### Functional OUs
+##### Functional OU: Sandbox
+This OU contains a set of Sandbox accounts used by development teams for proof of concept / prototyping work. These accounts are isolated at a network level and are not connected to the VPCs hosting development, test and production workloads. These accounts have direct internet access via an internet gateway (IGW). They do not route through the Perimeter Security services VPC for internet access.
+
+##### Functional OU: UnClass
+Accounts in this OU host unclassified application solutions. These accounts have internet access via the Perimeter firewall. This is an appropriate place to do cross-account unclassified collaboration with other departments or entities, or test services that are not available in the Canadian region.
+
+##### Functional OU: Dev
+Accounts in this OU host development tools and line of business application solutions that are part of approved releases and projects. These accounts have internet access via the Perimeter firewall.
+
+##### Functional OU: Test
+Accounts in this OU host test tools and line of business application solutions that are part of approved releases and projects. These accounts have internet access via the Perimeter firewall.
+
+##### Functional OU: Prod
+Accounts in this OU host production tools and line of business application solutions that are part of approved releases and projects. These accounts have internet access via the Perimeter firewall. Accounts in this OU are locked down with only specific Operations and Security personnel having access.
+
+##### Suspended OU
+A suspended OU is created to act as a container for end-of-life accounts or accounts with suspected credential leakage. The `DenyAll` SCP is applied, which prevents all control-plane API operations from taking place by any account principal.
+
+### Mandatory Accounts
+The Accelerator Architecture is an opinionated design, which partly manifests in the accounts that are deemed mandatory within the Organization. The following accounts are assumed to exist, and each has an important function with respect to the goals of the overall Architecture (mandatory in red)
+
+![Mandatory Accounts](./images/accounts.png)
+
+#### Master
+As discussed above, the master account functions as the root of the AWS Organization, the billing aggregator, attachment point for SCPs. Workloads are not intended to run in this account.
+
+**Note:** Customers deploying the Accelerator Architecture via the PBMM Accelerator tool will deploy into this account. See the [Operations Guide][ops_guide] for more details.
+
+#### Perimeter
+The perimeter account, and in particular the perimeter VPC therein, functions as the single point of ingress/egress from the PBMM cloud environment to the public internet and/or on-premises network. This provides a central point of network control through which all workload-generated traffic, ingress and egress, must transit. The perimeter VPC hosts next-generation firewall instances that provide security services such as virus scanning, malware protection, intrusion protection, TLS inspection, and web application firewall functionality. More details on can be found in the Networking section of this document.
+
+#### Shared Network
+The shared network account hosts the vast majority of the AWS-side of the networking resources throughout the Architecture. Workload-scoped VPCs (`Dev`, `Test`, `Prod`, etc) are defined here, and shared via RAM sharing to the respective OUs in the Organization. A Transit Gateway provides connectivity from the workloads to the internet or on-prem, without permitting cross-environment (AKA "East:West traffic") traffic (e.g. there is no Transit Gateway route from the `Dev` VPC to the `Prod` VPC). More details on can be found in the Networking section of this document.
+
+#### Operations
+The operations account provides a central location for the cloud team to provide cloud operation services to other AWS accounts within the Organization; for example CICD, developer tooling, and a managed Active Directory installation.
+
+
+#### Log Archive
+The log archive account is provide a central aggregation and secure storage point for all audit logs created within the AWS Organization. This account contains a centralized location for copies of every account’s Audit and Configuration compliance logs. It also provides a storage location for any other audit/compliance logs, as well as application/OS logs.
+
+The AWS CloudTrail service provides a full audit history of all actions taken against AWS services, including users logging into accounts. We recommend access to this account be restricted to auditors or security teams for compliance and forensic investigations related to account activity. Additional CloudTrail trails for operational use can be created in each account.
+
+
+#### Security
+
+
+
+### Functional Accounts
+
 
 
 
