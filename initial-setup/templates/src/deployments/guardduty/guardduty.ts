@@ -111,7 +111,7 @@ export async function step3(props: GuardDutyStep3Props) {
         detectorId: detector.detectorId,
         destinationArn: logBucket.bucketArn,
         kmsKeyArn: logBucket.encryptionKey?.keyArn,
-      })
+      });
     }
   }
 }

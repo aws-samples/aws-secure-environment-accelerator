@@ -27,7 +27,7 @@ export class GuardDutyCreatePublish extends cdk.Construct {
         DestinationProperties: {
           DestinationArn: props.destinationArn,
           KmsKeyArn: props.kmsKeyArn,
-        }
+        },
       },
     };
 
@@ -47,7 +47,7 @@ export class GuardDutyCreatePublish extends cdk.Construct {
         new iam.PolicyStatement({
           actions: ['kms:ListAliases'],
           resources: ['*'],
-        })
+        }),
       ]),
     });
   }

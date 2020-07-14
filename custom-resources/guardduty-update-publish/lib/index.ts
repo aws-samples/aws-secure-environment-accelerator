@@ -28,7 +28,7 @@ export class GuardDutyUpdatePublish extends cdk.Construct {
         DestinationProperties: {
           DestinationArn: props.destinationArn,
           KmsKeyArn: props.kmsKeyArn,
-        }
+        },
       },
     };
 
