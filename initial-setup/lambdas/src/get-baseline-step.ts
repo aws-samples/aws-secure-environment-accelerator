@@ -1,11 +1,6 @@
 import { arrayEqual } from '@aws-pbmm/common-lambda/lib/util/arrays';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
-
-export interface LoadConfigurationInput {
-  configFilePath: string;
-  configRepositoryName: string;
-  configCommitId: string;
-}
+import { LoadConfigurationInput} from './load-configuration-step';
 
 export interface LoadConfigurationOutput {
   configCommitId: string;

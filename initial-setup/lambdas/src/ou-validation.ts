@@ -7,11 +7,9 @@ import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-pbmm/common
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { prepareRawConfig } from './get-or-create-config';
+import { LoadConfigurationInput } from './load-configuration-step'
 
-export interface ValdationInput {
-  configFilePath: string;
-  configRepositoryName: string;
-  configCommitId: string;
+export interface ValdationInput extends LoadConfigurationInput{
   acceleratorPrefix: string;
   accountsSecretId: string;
   organizationsSecretId: string;
