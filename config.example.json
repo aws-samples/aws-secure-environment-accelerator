@@ -511,7 +511,7 @@
           "deploy": true,
           "vpc-name": "Central",
           "region": "ca-central-1",
-          "log-group-name": "PBMMAccel/rsyslog/var/log/messages",
+          "log-group-name": "rsyslog/var/log/messages",
           "security-groups": [
             {
               "name": "rsyslog",
