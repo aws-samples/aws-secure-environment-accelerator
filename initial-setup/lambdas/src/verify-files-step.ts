@@ -118,14 +118,16 @@ async function verifyFirewallFiles(
 
   const firewallFiles: string[] = [];
   for (const [_, accountConfig] of config.getAccountConfigs()) {
-    const firewallConfig = accountConfig.deployments?.firewall;
-    if (!firewallConfig) {
+    const firewallConfigs = accountConfig.deployments?.firewalls;
+    if (!firewallConfigs || firewallConfigs.length === 0) {
       continue;
     }
-    if (firewallConfig.license) {
-      firewallFiles.push(...firewallConfig.license);
+    for (const firewallConfig of firewallConfigs) {
+      if (firewallConfig.license) {
+        firewallFiles.push(...firewallConfig.license);
+      }
+      firewallFiles.push(firewallConfig.config);
     }
-    firewallFiles.push(firewallConfig.config);
   }
   await verifyFiles(centralBucketOutput.bucketName, firewallFiles, errors);
 }
