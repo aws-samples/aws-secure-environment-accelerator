@@ -259,16 +259,7 @@ async function main() {
             branch: githubBranch.valueAsString,
             oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
             output: sourceArtifact,
-          }),
-        ],
-      },
-      {
-        stageName: 'ManualApproval',
-        actions: [
-          new actions.ManualApprovalAction({
-            actionName: 'Approval',
-            notifyEmails: [approvalEmail.valueAsString],
-            role: installerPipelineRole,
+            trigger: actions.GitHubTrigger.NONE,
           }),
         ],
       },
