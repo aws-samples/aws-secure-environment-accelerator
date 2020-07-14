@@ -554,7 +554,7 @@
           ],
           "min-rsyslog-hosts": 1,
           "desired-rsyslog-hosts": 2,
-          "max-rsyslog-hosts": 4,
+          "max-rsyslog-hosts": 2,
           "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2",
           "rsyslog-instance-type": "t2.large",
           "rsyslog-instance-role": "PBMMAccel-Rsyslog-Role",
