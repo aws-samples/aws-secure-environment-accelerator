@@ -17,7 +17,7 @@ export class GuardDutyCreatePublish extends cdk.Construct {
     super(scope, id);
 
     const physicalResourceId = custom.PhysicalResourceId.of('CreatePublishingDestination');
-    const onCreateOrUpdate: custom.AwsSdkCall = {
+    const onCreate: custom.AwsSdkCall = {
       service: 'GuardDuty',
       action: 'createPublishingDestination',
       physicalResourceId,
@@ -33,15 +33,22 @@ export class GuardDutyCreatePublish extends cdk.Construct {
 
     this.resource = new custom.AwsCustomResource(this, 'Resource', {
       resourceType: 'Custom::GuardDutyCreatePublish',
-      onCreate: onCreateOrUpdate,
-      onUpdate: onCreateOrUpdate,
+      onCreate,
       policy: custom.AwsCustomResourcePolicy.fromStatements([
         new iam.PolicyStatement({
           actions: ['guardduty:createPublishingDestination'],
           resources: ['*'],
         }),
         new iam.PolicyStatement({
-          actions: ['s3:*'],
+          actions: [
+            's3:CreateBucket',
+            's3:GetBucketLocation',
+            's3:ListAllMyBuckets',
+            's3:PutBucketAcl',
+            's3:PutBucketPublicAccessBlock',
+            's3:PutBucketPolicy',
+            's3:PutObject'
+          ],
           resources: ['*'],
         }),
         new iam.PolicyStatement({
