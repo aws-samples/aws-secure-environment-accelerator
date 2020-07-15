@@ -8,6 +8,7 @@ import { MacieEnable } from '@custom-resources/macie-enable';
 import { MacieUpdateConfig } from '@custom-resources/macie-update-config';
 import { MacieExportConfig } from '@custom-resources/macie-export-config';
 import { MacieFrequency, MacieStatus } from '@custom-resources/macie-enable-lambda';
+import { MacieUpdateSession } from '@custom-resources/macie-update-session';
 import { AccountBuckets } from '../defaults';
 
 export interface MacieStepProps {
@@ -140,8 +141,10 @@ export async function step3(props: MacieStep3Props) {
 
   const masterAccountKey = config['global-options']['central-security-services'].account;
   const masterBucket = accountBuckets[masterAccountKey];
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
   const regions = await getValidRegions(config);
   const masterBucketKeyArn = masterBucket.encryptionKey?.keyArn;
+  const findingPublishingFrequency = await getFrequency(config);
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const accountId = getAccountId(accounts, accountKey);
     for (const region of regions) {
@@ -150,10 +153,16 @@ export async function step3(props: MacieStep3Props) {
       if (masterBucketKeyArn) {
         new MacieExportConfig(accountStack, 'MacieExportConfig', {
           bucketName: masterBucket.bucketName,
-          keyPrefix: `${accountId}/${region}/macie`,
+          keyPrefix: `${masterAccountId}`,
           kmsKeyArn: masterBucketKeyArn,
         });
       }
+
+      // update frequency based on config
+      new MacieUpdateSession(accountStack, 'MacieUpdateSession', {
+        findingPublishingFrequency,
+        status: MacieStatus.ENABLED,
+      });
     }
   }
 }
