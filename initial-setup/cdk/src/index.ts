@@ -580,10 +580,10 @@ export namespace InitialSetup {
           lambdaPath: 'index.createConfigRecorder',
           name: 'Create Config Recorder',
           functionPayload: {
-            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-            'stackOutputVersion.$': '$.storeOutput.outputVersion',
-          }
+            'stackOutputBucketName.$': '$.stackOutputBucketName',
+            'stackOutputBucketKey.$': '$.stackOutputBucketKey',
+            'stackOutputVersion.$': '$.stackOutputVersion',
+          },
         }),
       });
 
