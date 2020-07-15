@@ -101,6 +101,7 @@ export async function step3(props: GuardDutyStep3Props) {
     return;
   }
 
+  const logBucketKeyArn = logBucket.encryptionKey?.keyArn;
   const regions = await getValidRegions(props.config);
   for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
     for (const region of regions) {
@@ -110,7 +111,7 @@ export async function step3(props: GuardDutyStep3Props) {
       const createPublish = new GuardDutyCreatePublish(accountStack, 'GuardDutyPublish', {
         detectorId: detector.detectorId,
         destinationArn: logBucket.bucketArn,
-        kmsKeyArn: logBucket.encryptionKey?.keyArn,
+        kmsKeyArn: logBucketKeyArn,
       });
     }
   }
