@@ -47,7 +47,7 @@ export class GuardDutyCreatePublish extends cdk.Construct {
             's3:PutBucketAcl',
             's3:PutBucketPublicAccessBlock',
             's3:PutBucketPolicy',
-            's3:PutObject'
+            's3:PutObject',
           ],
           resources: ['*'],
         }),
