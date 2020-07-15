@@ -22,6 +22,12 @@ interface LogBucketOutputType {
   encryptionKeyArn: string;
 }
 
+interface IamRoleOutputType {
+  key: string;
+  arn: string;
+  name: string;
+}
+
 const CustomErrorMessage = [
   {
     code: 'AuthFailure',
@@ -85,6 +91,19 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   }
 
   const errors: string[] = [];
+
+  const iamRolesOutpus: IamRoleOutputType[] = getStackJsonOutput(outputs, {
+    accountKey: account.key,
+    outputType: 'IamRole',
+  });
+
+  const configRecorderRole = iamRolesOutpus.find(r => r.key === 'ConfigRecorderRole');
+  if (!configRecorderRole) {
+    console.log(`${accountId}:: No ConfigRecorderRole created in Master Account ${account.key}`);
+    errors.push(`${accountId}:: No ConfigRecorderRole created in Master Account ${account.key}`);
+    return errors;
+  }
+
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   for (const region of regions) {
     console.log(`Creating Config Recorder in ${region}`);
@@ -99,6 +118,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
           region,
           centralSecurityRegion,
           acceleratorPrefix,
+          configRecorderRole.arn,
         );
         errors.push(...createConfig);
       }
@@ -137,9 +157,14 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   }
 
   if (account.key === masterAccountKey) {
-    const configService = new ConfigService(credentials, centralSecurityRegion);
-    const enableAggregator = await createAggregator(configService, accountId, centralSecurityRegion, acceleratorPrefix);
-    errors.push(...enableAggregator);
+    const configAggregatorRole = iamRolesOutpus.find(r => r.key === 'ConfigAggregatorRole');
+    if (!configAggregatorRole) {
+      errors.push(`${accountId}:: No Aggregaror Role created in Master Account ${account.key}`);
+    } else {
+      const configService = new ConfigService(credentials, centralSecurityRegion);
+      const enableAggregator = await createAggregator(configService, accountId, centralSecurityRegion, acceleratorPrefix, configAggregatorRole.arn);
+      errors.push(...enableAggregator);
+    }
   }
 
   console.log(`${accountId}: Errors `, JSON.stringify(errors, null, 2));
@@ -152,6 +177,7 @@ async function createConfigRecorder(
   region: string,
   centralSecurityRegion: string,
   acceleratorPrefix: string,
+  roleArn: string,
 ): Promise<string[]> {
   const errors: string[] = [];
   console.log('in createConfigRecorder function', region);
@@ -160,7 +186,7 @@ async function createConfigRecorder(
     await configService.createRecorder({
       ConfigurationRecorder: {
         name: createConfigRecorderName(acceleratorPrefix),
-        roleARN: `arn:aws:iam::${accountId}:role/${acceleratorPrefix}ConfigRecorderRole`,
+        roleARN: roleArn,
         recordingGroup: {
           allSupported: true,
           includeGlobalResourceTypes: region === centralSecurityRegion ? true : false,
@@ -221,6 +247,7 @@ async function createAggregator(
   accountId: string,
   region: string,
   acceleratorPrefix: string,
+  roleArn: string,
 ): Promise<string[]> {
   const errors: string[] = [];
 
@@ -229,7 +256,7 @@ async function createAggregator(
     await configService.createAggregator({
       ConfigurationAggregatorName: createAggregatorName(acceleratorPrefix),
       OrganizationAggregationSource: {
-        RoleArn: `arn:aws:iam::${accountId}:role/${acceleratorPrefix}ConfigAggregatorRole`,
+        RoleArn: roleArn,
         AllAwsRegions: true,
       },
     });
