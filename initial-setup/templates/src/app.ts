@@ -58,6 +58,12 @@ export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
     useTempOutputDir,
   });
 
+  for (const account of accounts) {
+    for (const supportedRegion of acceleratorConfig["global-options"]["supported-regions"]) {
+      accountStacks.tryGetOrCreateAccountStack(account.key, supportedRegion);
+    }
+  }
+
   const runner = await phase.runner();
   await runner({
     acceleratorConfig,
