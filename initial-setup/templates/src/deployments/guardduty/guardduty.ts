@@ -130,7 +130,7 @@ export async function enableGuardDutyPolicy(props: GuardDutyStep3Props) {
 
   logBucket.encryptionKey?.addToResourcePolicy(
     new iam.PolicyStatement({
-      sid: 'Allow Macie to use the key',
+      sid: 'Allow Guardduty to use the key',
       principals: [new iam.ServicePrincipal('guardduty.amazonaws.com')],
       actions: ['kms:GenerateDataKey', 'kms:Encrypt'],
       resources: ['*'],

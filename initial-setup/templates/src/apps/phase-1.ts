@@ -472,12 +472,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
   });
-  await guardDutyDeployment.enableGuardDutyPolicy({
-    accountStacks,
-    config: acceleratorConfig,
-    accounts,
-    logBucket,
-  });
   await guardDutyDeployment.step3({
     accountStacks,
     config: acceleratorConfig,
