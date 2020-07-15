@@ -2,7 +2,7 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import * as iam from '@aws-cdk/aws-iam';
 import { AccountStacks } from '../../common/account-stacks';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import { JsonOutputValue } from '../../common/json-output';
+import { CfnIamRoleOutput } from './outputs';
 
 export interface IamConfigServiceRoleProps {
   acceleratorPrefix: string;
@@ -28,13 +28,11 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
       assumedBy: new iam.ServicePrincipal('config.amazonaws.com'),
       managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSConfigRole')],
     });
-    new JsonOutputValue(accountStack, `ConfigRecorderRoleOutput`, {
-      type: 'IamRole',
-      value: {
-        key: 'ConfigRecorderRole',
-        arn: configRecorderRole.roleArn,
-        name: configRecorderRole.roleName,
-      },
+
+    new CfnIamRoleOutput(accountStack, `ConfigRecorderRoleOutput`, {
+      roleName: configRecorderRole.roleName,
+      roleArn: configRecorderRole.roleArn,
+      roleKey: 'ConfigRecorderRole',
     });
   }
 
@@ -48,12 +46,10 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
     assumedBy: new iam.ServicePrincipal('config.amazonaws.com'),
     managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSConfigRoleForOrganizations')],
   });
-  new JsonOutputValue(masterAccountStack, `ConfigAggregatorRoleOutput`, {
-    type: 'IamRole',
-    value: {
-      key: 'ConfigAggregatorRole',
-      arn: configAggregatorRole.roleArn,
-      name: configAggregatorRole.roleName,
-    },
+
+  new CfnIamRoleOutput(masterAccountStack, `ConfigAggregatorRoleOutput`, {
+    roleName: configAggregatorRole.roleName,
+    roleArn: configAggregatorRole.roleArn,
+    roleKey: 'ConfigAggregatorRole',
   });
 }

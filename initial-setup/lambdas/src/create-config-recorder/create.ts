@@ -6,6 +6,7 @@ import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
 import { createConfigRecorderName, createAggregatorName } from '@aws-pbmm/common-outputs/lib/config';
+import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
 
 interface ConfigServiceInput extends LoadConfigurationInput {
   account: Account;
@@ -20,12 +21,6 @@ interface LogBucketOutputType {
   bucketName: string;
   bucketArn: string;
   encryptionKeyArn: string;
-}
-
-interface IamRoleOutputType {
-  key: string;
-  arn: string;
-  name: string;
 }
 
 const CustomErrorMessage = [
@@ -92,15 +87,14 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
 
   const errors: string[] = [];
 
-  const iamRolesOutpus: IamRoleOutputType[] = getStackJsonOutput(outputs, {
+  const configRecorderRole = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
     accountKey: account.key,
-    outputType: 'IamRole',
+    roleKey: 'ConfigRecorderRole',
   });
 
-  const configRecorderRole = iamRolesOutpus.find(r => r.key === 'ConfigRecorderRole');
   if (!configRecorderRole) {
-    console.log(`${accountId}:: No ConfigRecorderRole created in Master Account ${account.key}`);
-    errors.push(`${accountId}:: No ConfigRecorderRole created in Master Account ${account.key}`);
+    errors.push(`${accountId}:: No ConfigRecorderRole created in Account "${account.key}"`);
     return errors;
   }
 
@@ -109,17 +103,25 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     console.log(`Creating Config Recorder in ${region}`);
     try {
       const configService = new ConfigService(credentials, region);
+      const configRecorderName = createConfigRecorderName(acceleratorPrefix);
       const describeRecorders = await configService.DescribeConfigurationRecorder({});
       console.log('configurationRecorders', describeRecorders, region);
-      if (!describeRecorders.ConfigurationRecorders || describeRecorders.ConfigurationRecorders?.length === 0) {
-        const createConfig = await createConfigRecorder(
+      const acceleratorRecorder = describeRecorders.ConfigurationRecorders?.find(
+        rec => rec.name === configRecorderName,
+      );
+      if (
+        !describeRecorders.ConfigurationRecorders ||
+        describeRecorders.ConfigurationRecorders?.length === 0 ||
+        acceleratorRecorder
+      ) {
+        const createConfig = await createConfigRecorder({
+          configRecorderName,
           configService,
           accountId,
           region,
           centralSecurityRegion,
-          acceleratorPrefix,
-          configRecorderRole.arn,
-        );
+          roleArn: configRecorderRole.roleArn,
+        });
         errors.push(...createConfig);
       }
 
@@ -157,7 +159,11 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   }
 
   if (account.key === masterAccountKey) {
-    const configAggregatorRole = iamRolesOutpus.find(r => r.key === 'ConfigAggregatorRole');
+    const configAggregatorRole = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey: account.key,
+      roleKey: 'ConfigAggregatorRole',
+    });
     if (!configAggregatorRole) {
       errors.push(`${accountId}:: No Aggregaror Role created in Master Account ${account.key}`);
     } else {
@@ -167,7 +173,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
         accountId,
         centralSecurityRegion,
         acceleratorPrefix,
-        configAggregatorRole.arn,
+        configAggregatorRole.roleArn,
       );
       errors.push(...enableAggregator);
     }
@@ -177,21 +183,22 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   return errors;
 };
 
-async function createConfigRecorder(
-  configService: ConfigService,
-  accountId: string,
-  region: string,
-  centralSecurityRegion: string,
-  acceleratorPrefix: string,
-  roleArn: string,
-): Promise<string[]> {
+async function createConfigRecorder(props: {
+  configRecorderName: string;
+  configService: ConfigService;
+  accountId: string;
+  region: string;
+  centralSecurityRegion: string;
+  roleArn: string;
+}): Promise<string[]> {
   const errors: string[] = [];
+  const { accountId, centralSecurityRegion, configService, region, roleArn, configRecorderName } = props;
   console.log('in createConfigRecorder function', region);
   // Create Config Recorder
   try {
     await configService.createRecorder({
       ConfigurationRecorder: {
-        name: createConfigRecorderName(acceleratorPrefix),
+        name: configRecorderName,
         roleARN: roleArn,
         recordingGroup: {
           allSupported: true,

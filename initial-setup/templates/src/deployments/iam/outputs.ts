@@ -1,6 +1,11 @@
 import * as cdk from '@aws-cdk/core';
 import { createFixedSecretName } from '@aws-pbmm/common-outputs/lib/secrets';
 
+import { createCfnStructuredOutput } from '../../common/structured-output';
+import { IamRoleOutput } from '@aws-pbmm/common-outputs/lib/iam-role';
+
+export const CfnIamRoleOutput = createCfnStructuredOutput(IamRoleOutput);
+
 export function createIamUserPasswordSecretName({
   acceleratorPrefix,
   accountKey,
