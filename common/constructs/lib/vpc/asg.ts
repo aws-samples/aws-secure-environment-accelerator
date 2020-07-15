@@ -26,7 +26,7 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
 
     const launchConfig = new LaunchConfiguration(this, 'RsyslogLaunchConfiguration', {
       launchConfigurationName: `${props.acceleratorPrefix}RsyslogLaunchConfiguration`,
-      associatePublicIpAddress: false,
+      associatePublicIpAddress: true,
       imageId: props.latestRsyslogAmiId,
       securityGroups: [props.securityGroupId],
       iamInstanceProfile: createIamInstanceProfileName(props.instanceRole),
