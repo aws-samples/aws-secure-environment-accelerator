@@ -10,7 +10,11 @@ import {
 import { CreateCloudTrail } from '@custom-resources/create-cloud-trail';
 import { Organizations } from '@custom-resources/organization';
 import { LogGroup } from '@custom-resources/logs-log-group';
-import { createLogGroupName, createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import {
+  createLogGroupName,
+  createRoleName,
+  createName,
+} from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as iam from '@aws-cdk/aws-iam';
 import { Context } from '../../utils/context';
 import { StructuredOutput } from '../../common/structured-output';
@@ -87,7 +91,7 @@ export async function step1(props: CreateCloudTrailProps) {
 
   const createCloudTrail = new CreateCloudTrail(masterAccountStack, `CreateCloudTrail${masterAccountKey}`, {
     cloudTrailName: createName({
-      name: 'Org-Trail'      
+      name: 'Org-Trail',
     }),
     bucketName: logBucketOutput.bucketName,
     logGroupArn: logGroup.logGroupArn,

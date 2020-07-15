@@ -162,7 +162,13 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
       errors.push(`${accountId}:: No Aggregaror Role created in Master Account ${account.key}`);
     } else {
       const configService = new ConfigService(credentials, centralSecurityRegion);
-      const enableAggregator = await createAggregator(configService, accountId, centralSecurityRegion, acceleratorPrefix, configAggregatorRole.arn);
+      const enableAggregator = await createAggregator(
+        configService,
+        accountId,
+        centralSecurityRegion,
+        acceleratorPrefix,
+        configAggregatorRole.arn,
+      );
       errors.push(...enableAggregator);
     }
   }
