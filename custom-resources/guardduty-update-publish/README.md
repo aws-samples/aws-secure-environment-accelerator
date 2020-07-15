@@ -1,14 +1,17 @@
-# Update Guard Duty config
+# Update Guard Duty Publish Config
 
-This is a custom resource to update Guard Duty config from `UpdateOrganizationConfiguration` API call.
+This is a custom resource to update Guard Duty publish config from `UpdatePublishingDestination` API call.
 
 ## Usage
 
-    // Update Guard Duty config using detector id
-    const detector = new GuardDutyDetector(masterAccountStack, 'GuardDutyDetector');
+    // Update Guard Duty publish config using detector id
+    const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
+    const detector = new GuardDutyDetector(accountStack, 'GuardDutyPublishDetector');
 
-    const updateConfig = new GuardDutyUpdateConfig(masterAccountStack, 'GuardDutyUpdateConfig', {
-      autoEnable: true,
+    const updatePublish = new GuardDutyUpdatePublish(accountStack, 'GuardDutyPublish', {
+      destinationId: destinationId,
       detectorId: detector.detectorId,
+      destinationArn: logBucket.bucketArn,
+      kmsKeyArn: logBucket.encryptionKey?.keyArn,
     });
 
