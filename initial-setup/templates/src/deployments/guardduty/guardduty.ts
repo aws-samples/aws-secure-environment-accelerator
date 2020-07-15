@@ -108,7 +108,7 @@ export async function step3(props: GuardDutyStep3Props) {
       const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
       const detector = new GuardDutyDetector(accountStack, 'GuardDutyPublishDetector');
 
-      if(logBucketKeyArn) {
+      if (logBucketKeyArn) {
         const createPublish = new GuardDutyCreatePublish(accountStack, 'GuardDutyPublish', {
           detectorId: detector.detectorId,
           destinationArn: logBucket.bucketArn,
