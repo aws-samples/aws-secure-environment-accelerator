@@ -75,11 +75,6 @@ export namespace InitialSetup {
       });
       setSecretValue(accountsSecret, '[]');
 
-      const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
-        secretName: 'accelerator/outputs',
-        description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
-      });
-
       const limitsSecret = new secrets.Secret(this, 'Limits', {
         secretName: 'accelerator/limits',
         description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
@@ -129,7 +124,6 @@ export namespace InitialSetup {
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
-          STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
           ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
@@ -418,7 +412,6 @@ export namespace InitialSetup {
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
-            stackOutputSecretId: stackOutputSecret.secretArn,
             acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
@@ -473,7 +466,9 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           'organizationalUnits.$': '$.organizationalUnits',
           'accounts.$': '$.accounts',
-          stackOutputSecretId: stackOutputSecret.secretArn,
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -518,23 +513,29 @@ export namespace InitialSetup {
       });
 
       // TODO Move this to a separate state machine, including store output task
-      const createDeploymentTask = (phase: number) => {
+      const createDeploymentTask = (phase: number, loadOutputs: boolean = true) => {
+        const environment: { [name: string]: string } = {
+          ACCELERATOR_PHASE: `${phase}`,
+          'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
+          'CONFIG_FILE_PATH.$': '$.configFilePath',
+          'CONFIG_COMMIT_ID.$': '$.configCommitId',
+          'ACCELERATOR_BASELINE.$': '$.baseline',
+          ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
+          ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
+          CONFIG_BRANCH_NAME: props.configBranchName,
+        };
+        if (loadOutputs) {
+          environment['STACK_OUTPUT_BUCKET_NAME.$'] = '$.storeOutput.outputBucketName';
+          environment['STACK_OUTPUT_BUCKET_KEY.$'] = '$.storeOutput.outputBucketKey';
+          environment['STACK_OUTPUT_VERSION.$'] = '$.storeOutput.outputVersion';
+        }
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
           // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(codeBuildStateMachine, {
             integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
             input: {
               codeBuildProjectName: project.projectName,
-              environment: {
-                ACCELERATOR_PHASE: `${phase}`,
-                'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
-                'CONFIG_FILE_PATH.$': '$.configFilePath',
-                'CONFIG_COMMIT_ID.$': '$.configCommitId',
-                'ACCELERATOR_BASELINE.$': '$.baseline',
-                ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
-                ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
-                CONFIG_BRANCH_NAME: props.configBranchName,
-              },
+              environment,
             },
           }),
           resultPath: 'DISCARD',
@@ -551,15 +552,14 @@ export namespace InitialSetup {
           },
           functionPayload: {
             acceleratorPrefix: props.acceleratorPrefix,
-            stackOutputSecretId: stackOutputSecret.secretArn,
             assumeRoleName: props.stateMachineExecutionRole,
             'accounts.$': '$.accounts',
           },
-          resultPath: 'DISCARD',
+          resultPath: '$.storeOutput',
         });
 
       // TODO Create separate state machine for deployment
-      const deployPhase0Task = createDeploymentTask(0);
+      const deployPhase0Task = createDeploymentTask(0, false);
       const storePhase0Output = createStoreOutputTask(0);
       const deployPhase1Task = createDeploymentTask(1);
       const storePhase1Output = createStoreOutputTask(1);
@@ -579,6 +579,11 @@ export namespace InitialSetup {
           assumeRoleName: props.stateMachineExecutionRole,
           lambdaPath: 'index.createConfigRecorder',
           name: 'Create Config Recorder',
+          functionPayload: {
+            'stackOutputBucketName.$': '$.stackOutputBucketName',
+            'stackOutputBucketKey.$': '$.stackOutputBucketKey',
+            'stackOutputVersion.$': '$.stackOutputVersion',
+          },
         }),
       });
 
@@ -592,7 +597,9 @@ export namespace InitialSetup {
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
-            stackOutputSecretId: stackOutputSecret.secretArn,
+            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+            'stackOutputVersion.$': '$.storeOutput.outputVersion',
             acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
@@ -609,10 +616,12 @@ export namespace InitialSetup {
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
-          stackOutputSecretId: stackOutputSecret.secretArn,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -629,10 +638,12 @@ export namespace InitialSetup {
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
-          stackOutputSecretId: stackOutputSecret.secretArn,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
           rdgwScripts,
         },
         resultPath: 'DISCARD',
@@ -647,10 +658,12 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
-          stackOutputSecretId: stackOutputSecret.secretArn,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -663,7 +676,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          stackOutputSecretId: stackOutputSecret.secretArn,
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -680,7 +695,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          stackOutputSecretId: stackOutputSecret.secretArn,
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -704,7 +721,9 @@ export namespace InitialSetup {
             'configRepositoryName.$': '$.configRepositoryName',
             'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
-            stackOutputSecretId: stackOutputSecret.secretArn,
+            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+            'stackOutputVersion.$': '$.storeOutput.outputVersion',
           },
         }),
         resultPath: 'DISCARD',
