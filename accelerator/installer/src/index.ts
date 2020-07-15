@@ -61,10 +61,6 @@ async function main() {
     description: 'The branch of the Github repository containing the Accelerator code.',
   });
 
-  const approvalEmail = new cdk.CfnParameter(stack, 'Email', {
-    description: 'The notification email that will get Code Release notifications.',
-  });
-
   const notificationEmail = new cdk.CfnParameter(stack, 'Notification Email', {
     description: 'The notification email that will get Accelerator State Machine execution notifications.',
   });
@@ -259,16 +255,7 @@ async function main() {
             branch: githubBranch.valueAsString,
             oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
             output: sourceArtifact,
-          }),
-        ],
-      },
-      {
-        stageName: 'ManualApproval',
-        actions: [
-          new actions.ManualApprovalAction({
-            actionName: 'Approval',
-            notifyEmails: [approvalEmail.valueAsString],
-            role: installerPipelineRole,
+            trigger: actions.GitHubTrigger.NONE,
           }),
         ],
       },

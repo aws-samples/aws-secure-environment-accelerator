@@ -14,6 +14,7 @@ export namespace RunAcrossAccountsTask {
     name: string;
     permissions?: string[];
     baselineCheck?: boolean;
+    functionPayload?: { [key: string]: string };
   }
 }
 
@@ -56,8 +57,8 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
-        'stackOutputSecretId.$': '$.stackOutputSecretId',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
+        ...props.functionPayload,
       },
     });
 
@@ -72,8 +73,8 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
-        'stackOutputSecretId.$': '$.stackOutputSecretId',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
+        ...props.functionPayload,
       },
     });
     mapTask.iterator(runTask);
