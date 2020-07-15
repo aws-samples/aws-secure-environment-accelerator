@@ -1,8 +1,5 @@
 import * as AWS from 'aws-sdk';
-import {
-  CloudFormationCustomResourceEvent,
-  CloudFormationCustomResourceCreateEvent,
-} from 'aws-lambda';
+import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceCreateEvent } from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
 
 const guardduty = new AWS.GuardDuty();
@@ -59,7 +56,9 @@ async function createPublishDestination(properties: HandlerProperties) {
     const message = `${e}`;
     // if publish destination already exist, do not error out
     if (
-      message.includes(`The request failed because a publishingDestination already exists with the destinationType value provided in the request`)
+      message.includes(
+        `The request failed because a publishingDestination already exists with the destinationType value provided in the request`,
+      )
     ) {
       console.warn(message);
     } else {
