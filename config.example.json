@@ -150,9 +150,9 @@
         "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
       },
       {
-        "name": "Quarantine-Deny-All",
+        "name": "Quarantine-New-Object",
         "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
-        "policy": "Quarantine-Deny-All.json"
+        "policy": "Quarantine-New-Object.json"
       }
     ]
   },
