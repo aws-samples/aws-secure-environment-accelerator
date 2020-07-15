@@ -2,7 +2,7 @@
 
 ## I. Introduction
 
-The PBMM Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-22 specifications.
+The PBMM Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-33 specifications.
 
 The Accelerator Architecture has been built with the following design principles in mind:
 
@@ -189,15 +189,16 @@ The AWS CloudTrail service provides a full audit history of all actions taken ag
 
 
 #### Security
-
+The security account is restricted to authorized security and compliance personnel, and related security or audit tools. This is an aggregation point for security services, including AWS Security Hub, and serves as the master for Amazon Guard Duty.
 
 
 ### Functional Accounts
 
+Functional accounts are created on demand, and placed into an appropriate OU in the Organization structure. The purpose of functional accounts is to provide a secure and managed environment where project teams can use AWS resources. They provide an isolated control plane so that the actions of one team in one account cannot inadvertently affect the work of other teams in other accounts.
 
+Functional accounts will gain access to the RAM shared resources of their respective parent OU. Accounts created for `systemA` and `systemB` in the `Dev` OU would have control plane isolation from each other; however these would both have access to the `Dev` VPC (shared from the `SharedNetwork` account).
 
-
-
+Data plane isolation within the same VPC is achieved by default, by using appropriate security groups whenever ingress is warranted. For example, the app tier of `systemA` should only permit ingress from the `systemA-web` security group, not an overly broad range such as `0.0.0.0/0`, or even the VPC range.
 
 
 ## 3. Networking
