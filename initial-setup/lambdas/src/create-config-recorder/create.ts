@@ -1,5 +1,5 @@
 import { ConfigService } from '@aws-pbmm/common-lambda/lib/aws/configservice';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { LoadConfigurationInput } from '../load-configuration-step';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
@@ -10,8 +10,10 @@ import { createConfigRecorderName, createAggregatorName } from '@aws-pbmm/common
 interface ConfigServiceInput extends LoadConfigurationInput {
   account: Account;
   assumeRoleName: string;
-  stackOutputSecretId: string;
   acceleratorPrefix: string;
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
 
 interface LogBucketOutputType {
@@ -32,7 +34,7 @@ const CustomErrorMessage = [
 ];
 
 const sts = new STS();
-const secrets = new SecretsManager();
+const s3 = new S3();
 
 export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   console.log(`Enable Config Recorder in account ...`);
@@ -43,12 +45,18 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     configRepositoryName,
     configFilePath,
     configCommitId,
-    stackOutputSecretId,
     acceleratorPrefix,
+    stackOutputBucketName,
+    stackOutputBucketKey,
+    stackOutputVersion,
   } = input;
 
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
+  });
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
