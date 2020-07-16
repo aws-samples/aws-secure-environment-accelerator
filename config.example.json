@@ -510,19 +510,19 @@
           ]
         },
         "rsyslog": {
-          "deploy": false,
+          "deploy": true,
           "vpc-name": "Central",
           "region": "ca-central-1",
           "log-group-name": "rsyslog/var/log/messages",
           "security-groups": [
             {
-              "name": "RsyslogInstanceSG",
+              "name": "rsyslog",
               "inbound-rules": [
                 {
                   "description": "Allow Traffic Inbound",
                   "tcp-ports": [514],
                   "udp-ports": [514],
-                  "source": ["10.0.0.0/8"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
@@ -556,22 +556,12 @@
           ],
           "min-rsyslog-hosts": 1,
           "desired-rsyslog-hosts": 2,
-          "max-rsyslog-hosts": 4,
+          "max-rsyslog-hosts": 2,
           "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2",
           "rsyslog-instance-type": "t2.large",
           "rsyslog-instance-role": "PBMMAccel-Rsyslog-Role",
           "rsyslog-root-volume-size": 100,
           "rsyslog-max-instance-age": 30
-        },
-        "ops-dashboard": {
-          "deploy": true
-        },
-        "syslog": {
-          "deploy": true
-        },
-        "rdweb-pwd": {
-          "deploy": true,
-          "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
         }
       }
     },

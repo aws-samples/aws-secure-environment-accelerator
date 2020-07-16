@@ -124,6 +124,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 1. You can use the [`config.example.json`](./config.example.json) file as base
    - Use the version from the branch you are deploying from as some parameters have changed over time
+   - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
    - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
    1. For existing accounts, they must match identically to the ones defined in your AWS Landing Zone;
@@ -222,6 +223,14 @@ If deploying to an internal AWS account, to successfully install the entire solu
     4. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
 ## Notes
+
+### UPGRADES
+
+- Always compare your configuration file with the config file from the latest release to validate new or changed parameters
+- Upgrades to v1.0.6 (or above) will redeploy the TGW. This will drop the FW tunnels, to automatically re-establish FW configuration, drop the fw deployment before upgrade (i.e. comment out FW's and rerun state machine). Add the firewalls back to the config file when doing the 'upgrade' State Machine execution. \*\* See below.
+- Upgrades to v1.1.3?? will fail if you do not drop the fw deployment before upgrade (i.e. comment out FW's and rerun state machine). Add the firewalls back to the config file when doing the 'upgrade' State Machine execution. \*\* See below.
+
+\*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your changes automatically redeployed, add them into the appropriate firewall-example.txt configuration file.
 
 ### Configuration File Notes
 
