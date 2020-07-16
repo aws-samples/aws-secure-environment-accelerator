@@ -121,7 +121,7 @@ async function deletePublishDestination(properties: HandlerProperties) {
     // only one destination should be established for guard duty
     DestinationId: destinations.Destinations[0].DestinationId,
     DetectorId: properties.detectorId,
-  }
+  };
 
   return guardduty.deletePublishingDestination(params).promise();
 }
