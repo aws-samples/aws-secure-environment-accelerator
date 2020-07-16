@@ -1,6 +1,10 @@
+import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
+import { HandlerProperties } from '@custom-resources/macie-export-config-lambda';
+
+const resourceType = 'Custom::MacieExportConfig';
 
 export interface MacieExportConfigProps {
   bucketName: string;
@@ -11,42 +15,60 @@ export interface MacieExportConfigProps {
  * Custom resource implementation that set Macie classification export config
  */
 export class MacieExportConfig extends cdk.Construct {
-  private readonly resource: custom.AwsCustomResource;
+  private readonly resource: cdk.CustomResource;
 
   constructor(scope: cdk.Construct, id: string, props: MacieExportConfigProps) {
     super(scope, id);
 
-    const physicalResourceId = custom.PhysicalResourceId.of('PutClassificationExportConfiguration');
-    const onCreateOrUpdate: custom.AwsSdkCall = {
-      service: 'Macie2',
-      action: 'putClassificationExportConfiguration',
-      physicalResourceId,
-      parameters: {
-        configuration: {
-          s3Destination: props,
-        },
-      },
-      apiVersion: '2.710.0',
-    };
+    const handlerProperties: HandlerProperties = props;
 
-    this.resource = new custom.AwsCustomResource(this, 'Resource', {
-      resourceType: 'Custom::MacieUpdateExportConfig',
-      onCreate: onCreateOrUpdate,
-      onUpdate: onCreateOrUpdate,
-      policy: custom.AwsCustomResourcePolicy.fromStatements([
-        new iam.PolicyStatement({
-          actions: ['macie2:putClassificationExportConfiguration'],
-          resources: ['*'],
-        }),
-        new iam.PolicyStatement({
-          actions: ['s3:*'],
-          resources: ['*'],
-        }),
-        new iam.PolicyStatement({
-          actions: ['kms:*'],
-          resources: ['*'],
-        }),
-      ]),
+    this.resource = new cdk.CustomResource(this, 'Resource', {
+      resourceType,
+      serviceToken: this.lambdaFunction.functionArn,
+      properties: handlerProperties,
+    });
+  }
+
+  private get lambdaFunction(): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@custom-resources/macie-export-config-lambda');
+    const lambdaDir = path.dirname(lambdaPath);
+
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['macie2:putClassificationExportConfiguration'],
+        resources: ['*'],
+      }),
+    );
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:*'],
+        resources: ['*'],
+      }),
+    );
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['kms:*'],
+        resources: ['*'],
+      }),
+    );
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.seconds(10),
     });
   }
 }
