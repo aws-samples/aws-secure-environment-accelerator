@@ -138,6 +138,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       limiter,
       vpcConfigs,
       accountStacks,
+      acceleratorName,
     } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
@@ -513,7 +514,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
     const vpcSecurityGroup = new VpcDefaultSecurityGroup(this, 'VpcDefaultSecurityGroup', {
       vpcId: this.vpcId,
-      acceleratorName: props.acceleratorName,
+      acceleratorName,
     });
     vpcSecurityGroup.node.addDependency(vpcObj);
   }

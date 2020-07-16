@@ -5,11 +5,12 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnSleep } from '@custom-resources/cfn-sleep';
 import { AccountStacks } from '../../common/account-stacks';
 import { CfnRsyslogAutoScalingRoleOutput } from './outputs';
+import { AccountRegionEbsEncryptionKeys } from '../defaults';
 
 export interface RsyslogStep1Props {
   acceleratorName: string;
   acceleratorPrefix: string;
-  accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
+  accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
 }
@@ -22,7 +23,8 @@ export async function step1(props: RsyslogStep1Props) {
       continue;
     }
 
-    const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey];
+    const region = rsyslogDeploymentConfig.region;
+    const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey]?.[region];
     if (!accountEbsEncryptionKey) {
       console.warn(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
       continue;

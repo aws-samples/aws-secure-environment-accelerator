@@ -67,6 +67,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
 
+  const { acceleratorName } = context;
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
     accountStacks,
@@ -230,6 +231,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
       outputs,
+      acceleratorName,
     });
 
     const pcxConfig = vpcConfig.pcx;
