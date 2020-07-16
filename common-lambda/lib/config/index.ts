@@ -461,11 +461,11 @@ export const BaseLineConfigType = enumType<typeof BASELINE_TYPES[number]>(BASELI
 export type BaseLineType = t.TypeOf<typeof BaseLineConfigType>;
 
 export const DeploymentConfigType = t.interface({
-  tgw: optional(TgwDeploymentConfigType),
+  tgw: optional(t.array(TgwDeploymentConfigType)),
   mad: optional(MadConfigType),
   rsyslog: optional(RsyslogConfig),
   adc: optional(AdcConfigType),
-  firewall: optional(FirewallConfigType),
+  firewalls: optional(t.array(FirewallConfigType)),
   'firewall-manager': optional(FirewallManagerConfigType),
 });
 

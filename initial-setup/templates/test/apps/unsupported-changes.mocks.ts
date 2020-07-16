@@ -673,6 +673,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'FirewallVpnConnectionOutput',
         value: [
           {
+            firewallName: 'Firewall',
             name: 'Public',
             subnetName: 'Public',
             az: 'a',
@@ -694,6 +695,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             },
           },
           {
+            firewallName: 'Firewall',
             name: 'OnPremise',
             subnetName: 'OnPremise',
             az: 'a',
@@ -702,6 +704,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             transitGatewayId: 'tgw-03d0ad93aa8d6262c',
           },
           {
+            firewallName: 'Firewall',
             name: 'FWMgmt',
             subnetName: 'FWMgmt',
             az: 'a',
@@ -710,6 +713,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             transitGatewayId: 'tgw-03d0ad93aa8d6262c',
           },
           {
+            firewallName: 'Firewall',
             name: 'Proxy',
             subnetName: 'Proxy',
             az: 'a',
@@ -718,6 +722,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             transitGatewayId: 'tgw-03d0ad93aa8d6262c',
           },
           {
+            firewallName: 'Firewall',
             name: 'Public',
             subnetName: 'Public',
             az: 'b',
@@ -739,6 +744,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             },
           },
           {
+            firewallName: 'Firewall',
             name: 'OnPremise',
             subnetName: 'OnPremise',
             az: 'b',
@@ -747,6 +753,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             transitGatewayId: 'tgw-03d0ad93aa8d6262c',
           },
           {
+            firewallName: 'Firewall',
             name: 'FWMgmt',
             subnetName: 'FWMgmt',
             az: 'b',
@@ -755,6 +762,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
             transitGatewayId: 'tgw-03d0ad93aa8d6262c',
           },
           {
+            firewallName: 'Firewall',
             name: 'Proxy',
             subnetName: 'Proxy',
             az: 'b',

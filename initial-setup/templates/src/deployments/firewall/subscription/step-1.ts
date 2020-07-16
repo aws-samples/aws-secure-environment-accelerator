@@ -23,45 +23,58 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
   const { accountKey, deployments, vpc, accountStacks } = props;
 
   const managerConfig = deployments?.['firewall-manager'];
-  const firewallConfig = deployments?.firewall;
-  if (!firewallConfig) {
-    return;
-  }
-
   const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpc.region);
   if (!accountStack) {
     console.warn(`Cannot find account stack ${accountStack}`);
+  }
+  const firewallConfigs = deployments?.firewalls;
+  if (!firewallConfigs || firewallConfigs.length === 0) {
     return;
   }
 
-  const subnetId = vpc.subnets[0].id;
-  const firewallImageId = firewallConfig['image-id'];
+  for (const [index, firewallConfig] of Object.entries(firewallConfigs)) {
+    if (!vpc) {
+      console.log(
+        `Skipping firewall marketplace image subscription check because of missing VPC "${firewallConfig.vpc}"`,
+      );
+      continue;
+    }
 
-  const firewallAmiSubOutput: AmiSubscriptionOutput = {
-    imageId: firewallImageId,
-    status: checkStatus(accountStack, firewallImageId, subnetId, 'FirewallAmiSubCheck'),
-  };
-  new JsonOutputValue(accountStack, `FirewallSubscriptionsOutput${accountKey}`, {
-    type: 'AmiSubscriptionStatus',
-    value: firewallAmiSubOutput,
-  });
+    const subnetId = vpc.subnets[0].id;
+    const firewallImageId = firewallConfig['image-id'];
 
-  if (managerConfig) {
-    const firewallManagerAmiSubOutput: AmiSubscriptionOutput = {
-      imageId: managerConfig['image-id'],
-      status: checkStatus(accountStack, managerConfig['image-id'], subnetId, 'ManagerAmiSubCheck'),
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${accountStack}`);
+      continue;
+    }
+
+    const firewallAmiSubOutput: AmiSubscriptionOutput = {
+      imageId: firewallImageId,
+      status: checkStatus(accountStack, firewallImageId, subnetId, `FirewallAmiSubCheck${index}`),
     };
-    new JsonOutputValue(accountStack, `FirewallManagerSubscriptionsOutput${accountKey}`, {
+    new JsonOutputValue(accountStack, `FirewallSubscriptionsOutput${accountKey}${index}`, {
       type: 'AmiSubscriptionStatus',
-      value: firewallManagerAmiSubOutput,
+      value: firewallAmiSubOutput,
     });
+
+    if (managerConfig) {
+      const firewallManagerAmiSubOutput: AmiSubscriptionOutput = {
+        imageId: managerConfig['image-id'],
+        status: checkStatus(accountStack, managerConfig['image-id'], subnetId, `ManagerAmiSubCheck${index}`),
+      };
+      new JsonOutputValue(accountStack, `FirewallManagerSubscriptionsOutput${accountKey}${index}`, {
+        type: 'AmiSubscriptionStatus',
+        value: firewallManagerAmiSubOutput,
+      });
+    }
   }
 }
 
 const checkStatus = (scope: cdk.Construct, imageId: string, subnetId: string, id: string): string => {
-  const subscritionCheckResponse = new Ec2MarketPlaceSubscriptionCheck(scope, id, {
+  const subscriptionCheckResponse = new Ec2MarketPlaceSubscriptionCheck(scope, id, {
     imageId,
     subnetId,
   });
-  return subscritionCheckResponse.status;
+  return subscriptionCheckResponse.status;
 };

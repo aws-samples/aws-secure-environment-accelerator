@@ -20,30 +20,32 @@ export async function step1(props: FirewallStep1Props) {
   const { accountStacks, config } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
-    const firewallConfig = accountConfig.deployments?.firewall;
-    if (!firewallConfig) {
+    const firewallConfigs = accountConfig.deployments?.firewalls;
+    if (!firewallConfigs || firewallConfigs.length === 0) {
       continue;
     }
 
-    const vpcConfigs = config.getVpcConfigs();
-    const vpcConfig = vpcConfigs.map(obj => obj.vpcConfig).find(v => v.name === firewallConfig.vpc);
-    if (!vpcConfig) {
-      console.log(`Skipping firewall deployment because of missing VPC "${firewallConfig.vpc}"`);
-      continue;
-    }
+    for (const firewallConfig of firewallConfigs) {
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
-    }
+      const vpcConfigs = config.getVpcConfigs();
+      const vpcConfig = vpcConfigs.map(obj => obj.vpcConfig).find(v => v.name === firewallConfig.vpc);
+      if (!vpcConfig) {
+        console.log(`Skipping firewall deployment because of missing VPC "${firewallConfig.vpc}"`);
+        continue;
+      }
 
-    // TODO We could create a nested stack here
-    await createFirewallEips({
-      scope: accountStack,
-      vpcConfig,
-      firewallConfig,
-    });
+      // TODO We could create a nested stack here
+      await createFirewallEips({
+        scope: accountStack,
+        vpcConfig,
+        firewallConfig,
+      });
+    }
   }
 }
 
@@ -75,6 +77,7 @@ async function createFirewallEips(props: {
       }
 
       ports.push({
+        firewallName: firewallConfig.name,
         name: port.name,
         subnetName: port.subnet,
         az,
@@ -85,5 +88,5 @@ async function createFirewallEips(props: {
     }
   }
 
-  new CfnFirewallPortOutput(scope, 'FirewallPortOutput', ports);
+  new CfnFirewallPortOutput(scope, `FirewallPortOutput${firewallConfig.name}`, ports);
 }

@@ -19,6 +19,7 @@ export const FirewallInstanceOutputFinder = createStructuredOutputFinder(Firewal
 export const CfnFirewallInstanceOutput = createCfnStructuredOutput(FirewallInstanceOutput);
 
 export const FirewallPort = t.interface({
+  firewallName: t.string,
   name: t.string,
   subnetName: t.string,
   az: t.string,
