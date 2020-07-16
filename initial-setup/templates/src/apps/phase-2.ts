@@ -4,7 +4,6 @@ import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
-import { ImportedVpc } from '../deployments/vpc';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
@@ -202,7 +201,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Import all VPCs from all outputs
   const allVpcOutputs = VpcOutputFinder.findAll({ outputs });
-  const allVpcs = allVpcOutputs.map(ImportedVpc.fromOutput);
+  const allVpcs = allVpcOutputs.map(vpcDeployment.ImportedVpc.fromOutput);
 
   // Find the account buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({

@@ -1,7 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
-import { MadRuleOutput, ResolverRulesOutput, ResolversOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { Account } from '../utils/accounts';
 import { Context } from '../utils/context';
 import { Route53Zones } from './r53-zones';
@@ -10,6 +9,9 @@ import { Route53ResolverRule } from './r53-resolver-rule';
 import {
   StackOutput,
   getStackJsonOutput,
+  MadRuleOutput,
+  ResolverRulesOutput,
+  ResolversOutput,
 } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { JsonOutputValue } from './json-output';
 
