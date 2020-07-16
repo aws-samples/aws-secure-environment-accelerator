@@ -55,7 +55,7 @@ export const handler = async (input: PolicyChangeEvent) => {
     defaultRegion,
   });
 
-  const organizationAdminRole = config['global-options']['organization-admin-role'];
+  const organizationAdminRole = config['global-options']['organization-admin-role']!;
   const configScps = config['global-options'].scps;
   const scpNames = configScps.map(scp =>
     ServiceControlPolicy.policyNameToAcceleratorPolicyName({

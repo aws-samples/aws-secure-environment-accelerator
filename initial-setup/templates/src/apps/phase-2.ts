@@ -12,7 +12,7 @@ import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
 import * as firewallManagement from '../deployments/firewall/manager';
 import * as firewallCluster from '../deployments/firewall/cluster';
-import { SecurityHubStack } from '../common/security-hub';
+import * as securityHub from '../deployments/security-hub';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
 import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
@@ -22,6 +22,8 @@ import * as madDeployment from '../deployments/mad';
 import * as vpcDeployment from '../deployments/vpc';
 import * as createTrail from '../deployments/cloud-trail';
 import * as tgwDeployment from '../deployments/transit-gateway';
+import * as macie from '../deployments/macie';
+import * as rsyslogDeployment from '../deployments/rsyslog';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -191,25 +193,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
   }
 
-  // Deploy Security Hub
-  const globalOptions = acceleratorConfig['global-options'];
-  const securityMasterAccount = accounts.find(a => a.key === securityAccountKey);
-
-  for (const account of accounts) {
-    if (account.id === securityMasterAccount?.id) {
-      continue;
-    }
-    const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
-    if (!memberAccountStack) {
-      console.warn(`Cannot find account stack ${account.key}`);
-      continue;
-    }
-    new SecurityHubStack(memberAccountStack, `SecurityHubMember-${account.key}`, {
-      account,
-      standards: globalOptions['security-hub-frameworks'],
-      masterAccountId: securityMasterAccount?.id,
-    });
-  }
+  // Deploy Security Hub Step-2
+  securityHub.step2({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
 
   // Import all VPCs from all outputs
   const allVpcOutputs = VpcOutputFinder.findAll({ outputs });
@@ -265,5 +254,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     outputs,
+  });
+
+  await macie.step3({
+    accountBuckets,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
+
+  await rsyslogDeployment.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    vpcs: allVpcs,
+    centralBucket,
   });
 }

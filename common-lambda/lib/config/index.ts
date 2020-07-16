@@ -301,6 +301,9 @@ export const MadConfigType = t.interface({
   'rdgw-instance-type': t.string,
   'rdgw-instance-role': t.string,
   'num-rdgw-hosts': t.number,
+  'rdgw-max-instance-age': t.number,
+  'min-rdgw-hosts': t.number,
+  'max-rdgw-hosts': t.number,
   'password-policies': PasswordPolicyType,
   'ad-groups': t.array(t.string),
   'ad-per-account-groups': t.array(t.string),
@@ -308,6 +311,29 @@ export const MadConfigType = t.interface({
   'ad-users': t.array(ADUserConfig),
   'security-groups': t.array(SecurityGroupConfigType),
   'password-secret-name': optional(t.string),
+});
+
+export const RsyslogSubnetConfig = t.interface({
+  name: t.string,
+  az: t.string,
+});
+
+export const RsyslogConfig = t.interface({
+  deploy: t.boolean,
+  'vpc-name': t.string,
+  region: t.string,
+  'log-group-name': t.string,
+  'security-groups': t.array(SecurityGroupConfigType),
+  'app-subnets': t.array(RsyslogSubnetConfig),
+  'web-subnets': t.array(RsyslogSubnetConfig),
+  'min-rsyslog-hosts': t.number,
+  'desired-rsyslog-hosts': t.number,
+  'max-rsyslog-hosts': t.number,
+  'ssm-image-id': t.string,
+  'rsyslog-instance-type': t.string,
+  'rsyslog-instance-role': t.string,
+  'rsyslog-root-volume-size': t.number,
+  'rsyslog-max-instance-age': t.number,
 });
 
 export const AlbTargetInstanceFirewallConfigType = t.interface({
@@ -437,6 +463,7 @@ export type BaseLineType = t.TypeOf<typeof BaseLineConfigType>;
 export const DeploymentConfigType = t.interface({
   tgw: optional(TgwDeploymentConfigType),
   mad: optional(MadConfigType),
+  rsyslog: optional(RsyslogConfig),
   adc: optional(AdcConfigType),
   firewall: optional(FirewallConfigType),
   'firewall-manager': optional(FirewallManagerConfigType),
@@ -582,6 +609,9 @@ export const CentralServicesConfigType = t.interface({
   'ssm-to-cwl': optional(t.boolean),
   'cwl-exclusions': optional(t.array(CwlExclusions)),
   'kinesis-stream-shard-count': optional(t.number),
+  macie: fromNullable(t.boolean, false),
+  'macie-excl-regions': optional(t.array(t.string)),
+  'macie-frequency': optional(t.string),
   'config-excl-regions': optional(t.array(t.string)),
   'config-aggr-excl-regions': optional(t.array(t.string)),
 });
@@ -608,12 +638,13 @@ export const GlobalOptionsConfigType = t.interface({
   'central-log-services': CentralServicesConfigType,
   'aws-org-master': CentralServicesConfigType,
   scps: t.array(ScpsConfigType),
-  'organization-admin-role': NonEmptyString,
+  'organization-admin-role': optional(t.string),
   'supported-regions': t.array(t.string),
-  'keep-default-vpc-regions': t.array(t.string),
-  'iam-password-policies': IamAccountPasswordPolicyType,
+  'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
+  'iam-password-policies': optional(IamAccountPasswordPolicyType),
   'default-cwl-retention': t.number,
   'ignored-ous': optional(t.array(t.string)),
+  'install-cloudformation-master-role': fromNullable(t.boolean, true),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
@@ -630,6 +661,8 @@ export const AcceleratorConfigType = t.interface({
 export type OrganizationalUnit = t.TypeOf<typeof OrganizationalUnitConfigType>;
 
 export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
+
+export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
 
 export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
 

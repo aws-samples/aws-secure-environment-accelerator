@@ -41,7 +41,10 @@
       "cwl": true,
       "access-analyzer": true,
       "config-excl-regions": [],
-      "config-aggr-excl-regions": []
+      "config-aggr-excl-regions": [],
+      "macie": true,
+      "macie-excl-regions": [],
+      "macie-frequency": "SIX_HOURS"
     },
     "central-operations-services": {
       "account": "operations",
@@ -159,6 +162,41 @@
       "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
+      "budget": {
+        "name": "SharedNetwork Budget",
+        "period": "Monthly",
+        "amount": 2000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          }
+        ]
+      },
       "iam": {
         "users": [],
         "policies": [
@@ -335,7 +373,7 @@
             "VPN-ECMP-support": true,
             "Default-route-table-association": false,
             "Default-route-table-propagation": false,
-            "Auto-accept-sharing-attachments": false
+            "Auto-accept-sharing-attachments": true
           },
           "route-tables": ["core", "segregated", "shared", "standalone"]
         }
@@ -345,6 +383,7 @@
       "account-name": "Operations",
       "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
       "ou": "core",
+      "account-warming-required": true,
       "limits": {},
       "share-mad-from": "",
       "iam": {
@@ -382,6 +421,17 @@
               "PBMMAccel-RDGW-Custom-Policy"
             ],
             "boundary-policy": "Default-Boundary-Policy"
+          },
+          {
+            "role": "PBMMAccel-Rsyslog-Role",
+            "type": "ec2",
+            "ssm-log-archive-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "CloudWatchAgentServerPolicy",
+              "AmazonS3ReadOnlyAccess"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
           }
         ]
       },
@@ -401,6 +451,9 @@
           "share-to-account": "master",
           "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
           "num-rdgw-hosts": 1,
+          "min-rdgw-hosts": 1,
+          "max-rdgw-hosts": 2,
+          "rdgw-max-instance-age": 30,
           "rdgw-instance-type": "t2.large",
           "rdgw-instance-role": "PBMMAccel-RDGW-Role",
           "password-policies": {
@@ -414,7 +467,7 @@
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
-          "ad-groups": ["aws-Provisioning"],
+          "ad-groups": ["aws-Provisioning", "aws-Billing"],
           "ad-per-account-groups": ["*-Admin", "*-PowerUser", "*-View"],
           "adc-group": "ADConnector-grp",
           "ad-users": [
@@ -454,15 +507,59 @@
             }
           ]
         },
-        "ops-dashboard": {
-          "deploy": true
-        },
-        "syslog": {
-          "deploy": true
-        },
-        "rdweb-pwd": {
+        "rsyslog": {
           "deploy": true,
-          "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+          "vpc-name": "Central",
+          "region": "ca-central-1",
+          "log-group-name": "rsyslog/var/log/messages",
+          "security-groups": [
+            {
+              "name": "rsyslog",
+              "inbound-rules": [
+                {
+                  "description": "Allow Traffic Inbound",
+                  "tcp-ports": [514],
+                  "udp-ports": [514],
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "app-subnets": [
+            {
+              "name": "App",
+              "az": "a"
+            },
+            {
+              "name": "App",
+              "az": "b"
+            }
+          ],
+          "web-subnets": [
+            {
+              "name": "Web",
+              "az": "a"
+            },
+            {
+              "name": "Web",
+              "az": "b"
+            }
+          ],
+          "min-rsyslog-hosts": 1,
+          "desired-rsyslog-hosts": 2,
+          "max-rsyslog-hosts": 2,
+          "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2",
+          "rsyslog-instance-type": "t2.large",
+          "rsyslog-instance-role": "PBMMAccel-Rsyslog-Role",
+          "rsyslog-root-volume-size": 100,
+          "rsyslog-max-instance-age": 30
         }
       }
     },
@@ -1214,7 +1311,7 @@
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
-        "amount": 100,
+        "amount": 500,
         "include": [
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
@@ -2140,7 +2237,7 @@
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
-        "amount": 200,
+        "amount": 1000,
         "include": [
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",

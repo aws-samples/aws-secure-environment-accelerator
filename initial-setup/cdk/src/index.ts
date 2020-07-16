@@ -19,6 +19,7 @@ import { BuildTask } from './tasks/build-task';
 import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 import * as fs from 'fs';
+import * as sns from '@aws-cdk/aws-sns';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -35,6 +36,7 @@ export namespace InitialSetup {
     configS3Bucket: string;
     configS3FileName: string;
     configBranchName: string;
+    notificationEmail: string;
     /**
      * Prebuild Docker image that contains the project with its dependencies already installed.
      */
@@ -72,11 +74,6 @@ export namespace InitialSetup {
         description: 'This secret contains the information about the accounts that are used for deployment.',
       });
       setSecretValue(accountsSecret, '[]');
-
-      const stackOutputSecret = new secrets.Secret(this, 'StackOutput', {
-        secretName: 'accelerator/outputs',
-        description: 'This secret contains a copy of the outputs of the Accelerator stacks.',
-      });
 
       const limitsSecret = new secrets.Secret(this, 'Limits', {
         secretName: 'accelerator/limits',
@@ -127,7 +124,6 @@ export namespace InitialSetup {
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
           ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
-          STACK_OUTPUT_SECRET_ID: stackOutputSecret.secretArn,
           LIMITS_SECRET_ID: limitsSecret.secretArn,
           ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
@@ -158,8 +154,9 @@ export namespace InitialSetup {
         functionPayload: {
           'inputConfig.$': '$',
           region: cdk.Aws.REGION,
+          'baseline.$': '$.configuration.baseline',
         },
-        resultPath: '$.configuration',
+        resultPath: 'DISCARD',
       });
 
       const getBaseLineTask = new CodeTask(this, 'Get Baseline From Configuration', {
@@ -415,7 +412,6 @@ export namespace InitialSetup {
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
-            stackOutputSecretId: stackOutputSecret.secretArn,
             acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
@@ -470,7 +466,9 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           'organizationalUnits.$': '$.organizationalUnits',
           'accounts.$': '$.accounts',
-          stackOutputSecretId: stackOutputSecret.secretArn,
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -515,23 +513,29 @@ export namespace InitialSetup {
       });
 
       // TODO Move this to a separate state machine, including store output task
-      const createDeploymentTask = (phase: number) => {
+      const createDeploymentTask = (phase: number, loadOutputs: boolean = true) => {
+        const environment: { [name: string]: string } = {
+          ACCELERATOR_PHASE: `${phase}`,
+          'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
+          'CONFIG_FILE_PATH.$': '$.configFilePath',
+          'CONFIG_COMMIT_ID.$': '$.configCommitId',
+          'ACCELERATOR_BASELINE.$': '$.baseline',
+          ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
+          ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
+          CONFIG_BRANCH_NAME: props.configBranchName,
+        };
+        if (loadOutputs) {
+          environment['STACK_OUTPUT_BUCKET_NAME.$'] = '$.storeOutput.outputBucketName';
+          environment['STACK_OUTPUT_BUCKET_KEY.$'] = '$.storeOutput.outputBucketKey';
+          environment['STACK_OUTPUT_VERSION.$'] = '$.storeOutput.outputVersion';
+        }
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
           // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(codeBuildStateMachine, {
             integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
             input: {
               codeBuildProjectName: project.projectName,
-              environment: {
-                ACCELERATOR_PHASE: `${phase}`,
-                'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
-                'CONFIG_FILE_PATH.$': '$.configFilePath',
-                'CONFIG_COMMIT_ID.$': '$.configCommitId',
-                'ACCELERATOR_BASELINE.$': '$.baseline',
-                ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
-                ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
-                CONFIG_BRANCH_NAME: props.configBranchName,
-              },
+              environment,
             },
           }),
           resultPath: 'DISCARD',
@@ -548,16 +552,15 @@ export namespace InitialSetup {
           },
           functionPayload: {
             acceleratorPrefix: props.acceleratorPrefix,
-            stackOutputSecretId: stackOutputSecret.secretArn,
             assumeRoleName: props.stateMachineExecutionRole,
             'accounts.$': '$.accounts',
             'regions.$': '$.regions',
           },
-          resultPath: 'DISCARD',
+          resultPath: '$.storeOutput',
         });
 
       // TODO Create separate state machine for deployment
-      const deployPhase0Task = createDeploymentTask(0);
+      const deployPhase0Task = createDeploymentTask(0, false);
       const storePhase0Output = createStoreOutputTask(0);
       const deployPhase1Task = createDeploymentTask(1);
       const storePhase1Output = createStoreOutputTask(1);
@@ -577,6 +580,11 @@ export namespace InitialSetup {
           assumeRoleName: props.stateMachineExecutionRole,
           lambdaPath: 'index.createConfigRecorder',
           name: 'Create Config Recorder',
+          functionPayload: {
+            'stackOutputBucketName.$': '$.stackOutputBucketName',
+            'stackOutputBucketKey.$': '$.stackOutputBucketKey',
+            'stackOutputVersion.$': '$.stackOutputVersion',
+          },
         }),
       });
 
@@ -590,7 +598,9 @@ export namespace InitialSetup {
             configFilePath: props.configFilePath,
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
-            stackOutputSecretId: stackOutputSecret.secretArn,
+            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+            'stackOutputVersion.$': '$.storeOutput.outputVersion',
             acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
@@ -607,10 +617,12 @@ export namespace InitialSetup {
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
-          stackOutputSecretId: stackOutputSecret.secretArn,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -627,10 +639,12 @@ export namespace InitialSetup {
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
-          stackOutputSecretId: stackOutputSecret.secretArn,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
           rdgwScripts,
         },
         resultPath: 'DISCARD',
@@ -645,10 +659,12 @@ export namespace InitialSetup {
         functionPayload: {
           'accounts.$': '$.accounts',
           assumeRoleName: props.stateMachineExecutionRole,
-          stackOutputSecretId: stackOutputSecret.secretArn,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -661,7 +677,9 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          stackOutputSecretId: stackOutputSecret.secretArn,
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -678,7 +696,9 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          stackOutputSecretId: stackOutputSecret.secretArn,
+          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+          'stackOutputVersion.$': '$.storeOutput.outputVersion',
         },
         resultPath: 'DISCARD',
       });
@@ -702,7 +722,9 @@ export namespace InitialSetup {
             'configRepositoryName.$': '$.configRepositoryName',
             'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
-            stackOutputSecretId: stackOutputSecret.secretArn,
+            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
+            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
+            'stackOutputVersion.$': '$.storeOutput.outputVersion',
           },
         }),
         resultPath: 'DISCARD',
@@ -757,6 +779,7 @@ export namespace InitialSetup {
         .next(enableTrustedAccessForServicesTask)
         .next(deployPhase0Task)
         .next(storePhase0Output)
+        .next(verifyFilesTask)
         .next(enableConfigChoice);
 
       // Landing Zone Config Setup
@@ -765,12 +788,20 @@ export namespace InitialSetup {
         .next(createLandingZoneAccountsTask)
         .next(commonDefinition);
 
+      const cloudFormationMasterRoleChoice = new sfn.Choice(this, 'Install CloudFormation Role in Master?')
+        .when(
+          sfn.Condition.booleanEquals('$.configuration.installCloudFormationMasterRole', true),
+          installCfnRoleMasterTask,
+        )
+        .otherwise(createOrganizationAccountsTask)
+        .afterwards();
+
+      installCfnRoleMasterTask.next(createOrganizationAccountsTask).next(commonDefinition);
+
       // // Organizations Config Setup
       const orgConfigDefinition = validateOuConfiguration.startState
         .next(loadOrgConfigurationTask)
-        .next(installCfnRoleMasterTask)
-        .next(createOrganizationAccountsTask)
-        .next(commonDefinition);
+        .next(cloudFormationMasterRoleChoice);
 
       const baseLineChoice = new sfn.Choice(this, 'Baseline?')
         .when(sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'), alzConfigDefinition)
@@ -782,12 +813,59 @@ export namespace InitialSetup {
         )
         .afterwards();
 
+      const notificationTopic = new sns.Topic(this, 'MainStateMachineStatusTopic', {
+        displayName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
+        topicName: `${props.acceleratorPrefix}-MainStateMachine-Status_topic`,
+      });
+
+      new sns.Subscription(this, 'MainStateMachineStatusTopicSubscription', {
+        topic: notificationTopic,
+        protocol: sns.SubscriptionProtocol.EMAIL_JSON,
+        endpoint: props.notificationEmail,
+      });
+
+      const fail = new sfn.Fail(this, 'Failed');
+
+      const notifySmFailure = new CodeTask(this, 'Execution Failed', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.notifySMFailure',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          notificationTopicArn: notificationTopic.topicArn,
+          'error.$': '$.Error',
+          'cause.$': '$.Cause',
+          'executionId.$': '$$.Execution.Id',
+        },
+        resultPath: 'DISCARD',
+      });
+      notifySmFailure.next(fail);
+
+      const notifySmSuccess = new CodeTask(this, 'Deploy Success', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.notifySMSuccess',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          notificationTopicArn: notificationTopic.topicArn,
+          'accounts.$': '$[0].accounts',
+        },
+        resultPath: 'DISCARD',
+      });
+
+      // Full StateMachine Execution stats from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
+      getOrCreateConfigurationTask.next(getBaseLineTask).next(compareConfigurationsTask).next(baseLineChoice);
+
+      const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');
+      mainTryCatch.branch(getOrCreateConfigurationTask);
+      mainTryCatch.addCatch(notifySmFailure);
+      mainTryCatch.next(notifySmSuccess);
+
       new sfn.StateMachine(this, 'StateMachine', {
         stateMachineName: props.stateMachineName,
-        definition: sfn.Chain.start(getOrCreateConfigurationTask)
-          .next(compareConfigurationsTask)
-          .next(getBaseLineTask)
-          .next(baseLineChoice),
+        definition: sfn.Chain.start(mainTryCatch),
       });
     }
   }

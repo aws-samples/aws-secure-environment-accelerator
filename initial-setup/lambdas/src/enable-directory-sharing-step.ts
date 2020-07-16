@@ -1,5 +1,5 @@
 import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-service';
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { MadOutput } from '@aws-pbmm/common-outputs/lib/mad';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
@@ -9,15 +9,28 @@ import { LoadConfigurationInput } from './load-configuration-step';
 
 interface ShareDirectoryInput extends LoadConfigurationInput {
   accounts: Account[];
-  stackOutputSecretId: string;
   assumeRoleName: string;
+  stackOutputBucketName: string;
+  stackOutputBucketKey: string;
+  stackOutputVersion: string;
 }
+
+const s3 = new S3();
 
 export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD to another account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, assumeRoleName, stackOutputSecretId, configRepositoryName, configFilePath, configCommitId } = input;
+  const {
+    accounts,
+    assumeRoleName,
+    configRepositoryName,
+    configFilePath,
+    configCommitId,
+    stackOutputBucketName,
+    stackOutputBucketKey,
+    stackOutputVersion,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -26,9 +39,12 @@ export const handler = async (input: ShareDirectoryInput) => {
     commitId: configCommitId,
   });
 
-  const secrets = new SecretsManager();
-  const outputsString = await secrets.getSecret(stackOutputSecretId);
-  const outputs = JSON.parse(outputsString.SecretString!) as StackOutput[];
+  const outputsString = await s3.getObjectBodyAsString({
+    Bucket: stackOutputBucketName,
+    Key: stackOutputBucketKey,
+    VersionId: stackOutputVersion,
+  });
+  const outputs = JSON.parse(outputsString) as StackOutput[];
 
   const sts = new STS();
 

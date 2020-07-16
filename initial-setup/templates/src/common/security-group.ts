@@ -206,7 +206,7 @@ export class SecurityGroup extends cdk.Construct {
         );
       }
       for (const port of udpPorts || []) {
-        const ipProtocol = ec2.Protocol.TCP;
+        const ipProtocol = ec2.Protocol.UDP;
         const toPort = port;
         const fromPort = port;
         ruleProps = ruleProps.concat(

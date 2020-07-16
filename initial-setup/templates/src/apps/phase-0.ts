@@ -20,7 +20,9 @@ import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
+import * as macie from '../deployments/macie';
 import { getAccountId } from '../utils/accounts';
+import * as rsyslogDeployment from '../deployments/rsyslog';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -129,6 +131,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
+  await rsyslogDeployment.step1({
+    acceleratorName: context.acceleratorName,
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountEbsEncryptionKeys: defaultsResult.accountEbsEncryptionKeys,
+    accountStacks,
+    config: acceleratorConfig,
+  });
+
   // Firewall creation step 1
   await firewallCluster.step1({
     accountStacks,
@@ -150,6 +160,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Transit Gateway step 1
   await transitGateway.step1({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
+
+  // Macie step 1
+  await macie.step1({
     accountStacks,
     accounts,
     config: acceleratorConfig,

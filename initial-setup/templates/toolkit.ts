@@ -170,8 +170,9 @@ export class CdkToolkit {
 
     try {
       // Add stack tags to the tags list
-      const tags = this.tags || [];
-      tags.push(...tagsForStack(stack));
+      // const tags = this.tags || [];
+      const tags = [...tagsForStack(stack)];
+      console.log(tags.length);
 
       const result = await this.cloudFormation.deployStack({
         stack,

@@ -47,6 +47,16 @@ export async function step1(props: ArtifactsStep1Props) {
     centralBucket,
     destinationKeyPrefix: 'config/scripts',
   });
+
+  // upload Rsyslog Artifacts
+  uploadArtifacts({
+    accountStack: masterAccountStack,
+    artifactName: 'Rsyslog',
+    artifactFolderName: 'rsyslog',
+    artifactKeyPrefix: 'rsyslog',
+    centralBucket,
+    destinationKeyPrefix: 'rsyslog',
+  });
 }
 
 function uploadArtifacts(props: {

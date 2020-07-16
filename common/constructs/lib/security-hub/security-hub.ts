@@ -1,9 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { Account } from '../utils/accounts';
-import * as lambda from '@aws-cdk/aws-lambda';
 import { CfnHub } from '@aws-cdk/aws-securityhub';
-import * as cfn from '@aws-cdk/aws-cloudformation';
-import * as config from '@aws-pbmm/common-lambda/lib/config';
 import { SecurityHubEnable } from '@custom-resources/security-hub-enable';
 import { SecurityHubSendInvites } from '@custom-resources/security-hub-send-invites';
 import { SecurityHubAcceptInvites } from '@custom-resources/security-hub-accept-invites';
@@ -12,14 +8,30 @@ export interface SubAccount {
   AccountId: string;
   Email: string;
 }
+
+export interface Account {
+  key: string;
+  id: string;
+  name: string;
+}
+
+interface SecurityHubStandard {
+  name: string;
+  'controls-to-disable': string[] | undefined;
+}
+
+interface SecurityHubStandards {
+  standards: SecurityHubStandard[];
+}
+
 export interface SecurityHubProps {
   account: Account;
-  standards: config.SecurityHubFrameworksConfig;
+  standards: SecurityHubStandards;
   subAccountIds?: SubAccount[];
   masterAccountId?: string;
 }
 
-export class SecurityHubStack extends cdk.Construct {
+export class SecurityHub extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string, props: SecurityHubProps) {
     super(scope, name);
     const { account, subAccountIds, masterAccountId, standards } = props;

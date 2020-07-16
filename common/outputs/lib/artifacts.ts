@@ -3,7 +3,7 @@ import { enumType } from '@aws-pbmm/common-types';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
 
-export const ARTIFACT_NAMES = ['SCP', 'Rdgw', 'IamPolicy'] as const;
+export const ARTIFACT_NAMES = ['SCP', 'Rdgw', 'IamPolicy', 'Rsyslog'] as const;
 
 export const ArtifactNameType = enumType<typeof ARTIFACT_NAMES[number]>(ARTIFACT_NAMES, 'ArtifactName');
 
