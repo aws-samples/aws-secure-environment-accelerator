@@ -25,6 +25,7 @@ export class MacieUpdateSession extends cdk.Construct {
         findingPublishingFrequency: props.findingPublishingFrequency,
         status: props.status,
       },
+      apiVersion: '2.710.0',
     };
 
     this.resource = new custom.AwsCustomResource(this, 'Resource', {

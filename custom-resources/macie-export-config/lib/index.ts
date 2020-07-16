@@ -26,6 +26,7 @@ export class MacieExportConfig extends cdk.Construct {
           s3Destination: props,
         },
       },
+      apiVersion: '2.710.0',
     };
 
     this.resource = new custom.AwsCustomResource(this, 'Resource', {
