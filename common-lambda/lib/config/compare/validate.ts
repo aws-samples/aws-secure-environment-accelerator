@@ -284,22 +284,22 @@ export async function validateAccountSubnets(differences: Diff<LHS, RHS>[], erro
  */
 export async function validateTgw(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
   // the below function checks vpc name of the account
-  const tgwName = validateConfig.matchEditedConfigDependency(differences, TGW_NAME, 5);
+  const tgwName = validateConfig.matchEditedConfigDependency(differences, TGW_NAME, 6);
   if (tgwName) {
     errors.push(...tgwName);
   }
 
-  const tgwAsn = validateConfig.matchEditedConfigDependency(differences, TGW_ASN, 5);
+  const tgwAsn = validateConfig.matchEditedConfigDependency(differences, TGW_ASN, 6);
   if (tgwAsn) {
     errors.push(...tgwAsn);
   }
 
-  const tgwRegion = validateConfig.matchEditedConfigDependency(differences, TGW_REGION, 5);
+  const tgwRegion = validateConfig.matchEditedConfigDependency(differences, TGW_REGION, 6);
   if (tgwRegion) {
     errors.push(...tgwRegion);
   }
 
-  const tgwFeatures = validateConfig.matchEditedConfigPathValues(differences, TGW_FEATURES, false, 6);
+  const tgwFeatures = validateConfig.matchEditedConfigPathValues(differences, TGW_FEATURES, false, 7);
   if (tgwFeatures) {
     errors.push(...tgwFeatures);
   }

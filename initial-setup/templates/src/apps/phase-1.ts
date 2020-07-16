@@ -274,7 +274,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       limiter,
       accounts,
       vpcConfig,
-      tgwDeployment: deployments?.tgw,
+      tgwDeployments: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
       accountStacks,
