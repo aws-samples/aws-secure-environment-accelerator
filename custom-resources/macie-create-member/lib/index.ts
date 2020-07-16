@@ -19,7 +19,7 @@ export class MacieCreateMember extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, props: MacieCreateMemberProps) {
     super(scope, id);
-    
+
     const handlerProperties: HandlerProperties = props;
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
