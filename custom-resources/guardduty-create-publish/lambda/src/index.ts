@@ -1,5 +1,10 @@
 import * as AWS from 'aws-sdk';
-import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceCreateEvent, CloudFormationCustomResourceUpdateEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
+import {
+  CloudFormationCustomResourceEvent,
+  CloudFormationCustomResourceCreateEvent,
+  CloudFormationCustomResourceUpdateEvent,
+  CloudFormationCustomResourceDeleteEvent,
+} from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
 
 const guardduty = new AWS.GuardDuty();
@@ -39,18 +44,14 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   return {
     physicalResourceId: getPhysicalId(event),
     data: {
-      DestinationId: response?.DestinationId
+      DestinationId: response?.DestinationId,
     },
   };
 }
 
-async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
+async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {}
 
-}
-
-async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-
-}
+async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {}
 
 async function createPublishDestination(properties: HandlerProperties) {
   const params = {
@@ -84,7 +85,7 @@ async function createPublishDestination(properties: HandlerProperties) {
 async function updatePublishDestination(properties: HandlerProperties) {
   const listParam = {
     DetectorId: properties.detectorId,
-  }
+  };
   const destination = guardduty.listPublishingDestinations(listParam).promise();
 
   const params = {
@@ -94,11 +95,9 @@ async function updatePublishDestination(properties: HandlerProperties) {
       DestinationArn: properties.destinationArn,
       KmsKeyArn: properties.kmsKeyArn,
     },
-  }
+  };
 
   return guardduty.updatePublishingDestination(params).promise();
 }
 
-async function deletePublishDestination(properties: HandlerProperties) {
-  
-}
+async function deletePublishDestination(properties: HandlerProperties) {}
