@@ -63,7 +63,12 @@ export class GuardDutyCreatePublish extends cdk.Construct {
     );
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ['guardduty:createPublishingDestination'],
+        actions: [
+          'guardduty:createPublishingDestination',
+          'guardduty:updatePublishingDestination',
+          'guardduty:deletePublishingDestination',
+          'guardduty:listPublishingDestinations',
+        ],
         resources: ['*'],
       }),
     );
