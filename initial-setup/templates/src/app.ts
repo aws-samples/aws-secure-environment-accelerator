@@ -58,14 +58,6 @@ export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
     useTempOutputDir,
   });
 
-  // Making sure CDK knows all stacks in all regions and accounts
-  // This makes sure CDK removes stacks that would otherwise not get deleted
-  for (const account of accounts) {
-    for (const supportedRegion of acceleratorConfig['global-options']['supported-regions']) {
-      accountStacks.tryGetOrCreateAccountStack(account.key, supportedRegion);
-    }
-  }
-
   const runner = await phase.runner();
   await runner({
     acceleratorConfig,

@@ -1,5 +1,6 @@
 import hashSum from 'hash-sum';
 import * as cdk from '@aws-cdk/core';
+import * as ssm from '@aws-cdk/aws-ssm';
 import * as autoscaling from '@aws-cdk/aws-autoscaling';
 
 export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
@@ -16,5 +17,10 @@ export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
     this.launchConfigurationName = props.launchConfigurationName
       ? `${props.launchConfigurationName}-${hash}`
       : undefined;
+    this.imageId = ssm.StringParameter.valueForTypedStringParameter(
+      this,
+      props.imageId,
+      ssm.ParameterType.AWS_EC2_IMAGE_ID,
+    );
   }
 }
