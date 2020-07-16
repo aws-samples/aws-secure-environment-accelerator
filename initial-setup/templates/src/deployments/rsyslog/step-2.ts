@@ -145,7 +145,7 @@ export function createAsg(
   });
 
   new RsysLogAutoScalingGroup(accountStack, `RsyslogAsg${accountKey}`, {
-    latestRsyslogAmiId: rsyslogConfig["ssm-image-id"],
+    latestRsyslogAmiId: rsyslogConfig['ssm-image-id'],
     subnetIds: instanceSubnetIds,
     serviceLinkedRoleArn: rsyslogAutoScalingRoleOutput.roleArn,
     acceleratorPrefix: accountStack.acceleratorPrefix,
