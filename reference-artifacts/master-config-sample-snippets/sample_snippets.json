@@ -4,7 +4,9 @@
 	  "kinesis-stream-shard-count": 2,
 ************************************Override default CWL retention period (Add to any account)
      “cwl-retention”: 180
-************************************future
+************************************Macie Frequency values:
+      "macie-frequency": "SIX_HOURS" ---> FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS
+	  
 ************************************CWL subscription exclusions example
     "central-log-services": {
       "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],

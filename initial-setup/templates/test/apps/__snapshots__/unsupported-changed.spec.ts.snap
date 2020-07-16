@@ -2415,7 +2415,7 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PerimeterPhase2 1`] = `
 Array [
   Object {
-    "LogicalId": "FirewallInstance047ED1D8C",
+    "LogicalId": "FirewallFirewallInstance0D5D1EA8B",
     "Properties": Object {
       "AvailabilityZone": undefined,
       "CpuOptions": undefined,
@@ -2433,25 +2433,25 @@ Array [
         Object {
           "DeviceIndex": "0",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance0Eni08F98C237",
+            "Ref": "FirewallFirewallInstance0Eni0AC5E4581",
           },
         },
         Object {
           "DeviceIndex": "1",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance0Eni10A6A7290",
+            "Ref": "FirewallFirewallInstance0Eni1E1DD159B",
           },
         },
         Object {
           "DeviceIndex": "2",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance0Eni2D5DFF8E9",
+            "Ref": "FirewallFirewallInstance0Eni27735B38E",
           },
         },
         Object {
           "DeviceIndex": "3",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance0Eni33A70E7D8",
+            "Ref": "FirewallFirewallInstance0Eni37CB730B6",
           },
         },
       ],
@@ -2462,7 +2462,7 @@ Array [
     },
   },
   Object {
-    "LogicalId": "FirewallInstance14FE67CEF",
+    "LogicalId": "FirewallFirewallInstance108D4AC89",
     "Properties": Object {
       "AvailabilityZone": undefined,
       "CpuOptions": undefined,
@@ -2480,25 +2480,25 @@ Array [
         Object {
           "DeviceIndex": "0",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance1Eni0030B2EA0",
+            "Ref": "FirewallFirewallInstance1Eni0F306CFC9",
           },
         },
         Object {
           "DeviceIndex": "1",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance1Eni1C35979EF",
+            "Ref": "FirewallFirewallInstance1Eni15EB9994D",
           },
         },
         Object {
           "DeviceIndex": "2",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance1Eni208BA0551",
+            "Ref": "FirewallFirewallInstance1Eni2DEDA30B5",
           },
         },
         Object {
           "DeviceIndex": "3",
           "NetworkInterfaceId": Object {
-            "Ref": "FirewallInstance1Eni31E1A4BA3",
+            "Ref": "FirewallFirewallInstance1Eni34E595DAC",
           },
         },
       ],

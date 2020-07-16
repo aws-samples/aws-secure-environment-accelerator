@@ -35,13 +35,8 @@ export async function step2(props: FirewallStep2Props) {
   const { accountStacks, config, outputs } = props;
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
-    const firewallConfig = accountConfig.deployments?.firewall;
-    if (!firewallConfig) {
-      continue;
-    }
-
-    const attachConfig = firewallConfig['tgw-attach'];
-    if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
+    const firewallConfigs = accountConfig.deployments?.firewalls;
+    if (!firewallConfigs || firewallConfigs.length === 0) {
       continue;
     }
 
@@ -57,32 +52,39 @@ export async function step2(props: FirewallStep2Props) {
       continue;
     }
 
-    const tgwAccountKey = attachConfig.account;
-    const tgwName = attachConfig['associate-to-tgw'];
-    const transitGateway = TransitGatewayOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey: tgwAccountKey,
-      name: tgwName,
-    });
-    if (!transitGateway) {
-      console.warn(`Cannot find transit gateway "${tgwName}" in account "${tgwAccountKey}"`);
-      continue;
-    }
+    for (const firewallConfig of firewallConfigs) {
+      const attachConfig = firewallConfig['tgw-attach'];
+      if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
+        continue;
+      }
 
-    const tgwAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAccountKey);
-    if (!tgwAccountStack) {
-      console.warn(`Cannot find account stack ${tgwAccountKey}`);
-      continue;
-    }
+      const tgwAccountKey = attachConfig.account;
+      const tgwName = attachConfig['associate-to-tgw'];
+      const transitGateway = TransitGatewayOutputFinder.tryFindOneByName({
+        outputs,
+        accountKey: tgwAccountKey,
+        name: tgwName,
+      });
+      if (!transitGateway) {
+        console.warn(`Cannot find transit gateway "${tgwName}" in account "${tgwAccountKey}"`);
+        continue;
+      }
 
-    await createCustomerGateways({
-      scope: tgwAccountStack,
-      firewallAccountKey: accountKey,
-      firewallConfig,
-      firewallPorts,
-      transitGateway,
-      attachConfig,
-    });
+      const tgwAccountStack = accountStacks.tryGetOrCreateAccountStack(tgwAccountKey, firewallConfig.region);
+      if (!tgwAccountStack) {
+        console.warn(`Cannot find account stack ${tgwAccountKey}`);
+        continue;
+      }
+
+      await createCustomerGateways({
+        scope: tgwAccountStack,
+        firewallAccountKey: accountKey,
+        firewallConfig,
+        firewallPorts,
+        transitGateway,
+        attachConfig,
+      });
+    }
   }
 }
 
@@ -109,6 +111,10 @@ async function createCustomerGateways(props: {
   const addTagsToResources: AddTagsToResource[] = [];
 
   for (const [index, port] of Object.entries(firewallPorts)) {
+    if (port.firewallName !== firewallConfig.name) {
+      continue;
+    }
+
     let customerGateway;
     let vpnConnection;
     let vpnTunnelOptions;
@@ -194,12 +200,12 @@ async function createCustomerGateways(props: {
 
   // Output the tags that need to be added to the VPN attachments
   if (addTagsToResources.length > 0) {
-    new AddTagsToResourcesOutput(scope, `VpnAttachmentsTags`, {
+    new AddTagsToResourcesOutput(scope, `VpnAttachmentsTags${firewallConfig.name}`, {
       dependencies: addTagsDependencies,
       produceResources: () => addTagsToResources,
     });
   }
 
   // Store the firewall VPN connections as outputs
-  new CfnFirewallVpnConnectionOutput(scope, 'FirewallVpnConnections', vpnConnections);
+  new CfnFirewallVpnConnectionOutput(scope, `FirewallVpnConnections${firewallConfig.name}`, vpnConnections);
 }
