@@ -32,7 +32,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-  return `UpdateOrganizationConfiguration${properties.autoEnable}`;
+  return `UpdateOrganizationConfiguration`;
 }
 
 async function onCreateOrUpdate(
