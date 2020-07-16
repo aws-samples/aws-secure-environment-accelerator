@@ -38,7 +38,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
   const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
-  const awsAccounts: org.Account[] = [];
+
+  // Store the accounts in a simple list as well
+  const awsAccounts: org.Account[] = await organizations.listAccounts();
 
   // Store organizational units and their accounts
   for (const organizationalUnit of awsOus) {
@@ -47,9 +49,6 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
 
     // Associate accounts to organizational unit
     awsOuAccountMap[ouId] = accountsInOu;
-
-    // Store the accounts in a simple list as well
-    awsAccounts.push(...accountsInOu);
   }
 
   const awsOusWithPath: OrganizationalUnit[] = [];
@@ -62,7 +61,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
 
   // Keep track of errors and warnings instead of failing immediately
   const errors = [];
-  const warnings = [];
+  const warnings: string[] = [];
 
   // Store the discovered accounts and OUs in these objects
   const configurationAccounts: ConfigurationAccount[] = [];
@@ -170,9 +169,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
     const acceleratorAccountsInOu = configurationAccounts.filter(account => account.ouPath === organizationalUnit.Path);
     if (accountsInOu.length !== acceleratorAccountsInOu.length) {
-      warnings.push(
+      errors.push(
         `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Name}" while there are only ` +
-          `${acceleratorAccountsInOu.length} accounts in the Landing Zone and Accelerator configuration\n` +
+          `${acceleratorAccountsInOu.length} accounts in the Organizations and Accelerator configuration\n` +
           `  Accounts in OU:     ${accountsInOu.map(a => a.Name).join(', ')}\n` +
           `  Accounts in config: ${acceleratorAccountsInOu.map(a => a.accountName).join(', ')}\n`,
       );
