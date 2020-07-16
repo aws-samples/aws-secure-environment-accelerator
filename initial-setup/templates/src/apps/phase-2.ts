@@ -33,9 +33,18 @@ import * as rsyslogDeployment from '../deployments/rsyslog';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
+  
+  // Find the account buckets in the outputs
+  const accountBuckets = AccountBucketOutput.getAccountBuckets({
+    accounts,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
 
   if (!acceleratorConfig['global-options']['alz-baseline']) {
     await createTrail.step1({
+      accountBuckets,
       accountStacks,
       config: acceleratorConfig,
       outputs,
@@ -202,14 +211,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // Import all VPCs from all outputs
   const allVpcOutputs = VpcOutputFinder.findAll({ outputs });
   const allVpcs = allVpcOutputs.map(vpcDeployment.ImportedVpc.fromOutput);
-
-  // Find the account buckets in the outputs
-  const accountBuckets = AccountBucketOutput.getAccountBuckets({
-    accounts,
-    accountStacks,
-    config: acceleratorConfig,
-    outputs,
-  });
 
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({

@@ -9,8 +9,10 @@ import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as iam from '@aws-cdk/aws-iam';
 import { Context } from '../../utils/context';
+import { AccountBuckets } from '../defaults';
 
 export interface CreateCloudTrailProps {
+  accountBuckets: AccountBuckets;
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
@@ -23,14 +25,10 @@ export interface CreateCloudTrailProps {
  *
  */
 export async function step1(props: CreateCloudTrailProps) {
-  const { accountStacks, config, outputs, context } = props;
+  const { accountBuckets, accountStacks, config, outputs, context } = props;
 
   const logAccountKey = config.getMandatoryAccountKey('central-log');
-  const logBucket = LogBucketOutput.getBucket({
-    accountStacks,
-    config,
-    outputs,
-  });
+  const logBucket = accountBuckets[logAccountKey];
   if (!logBucket) {
     throw new Error(`Cannot find central log bucket for log account ${logAccountKey}`);
   }
