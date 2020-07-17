@@ -112,6 +112,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
         configService,
         recorders: describeRecorders.ConfigurationRecorders,
         region,
+        roleArn: configRecorderRole.roleArn,
       });
       errors.push(...disableAndDeleteRecorders);
 
@@ -289,13 +290,18 @@ async function disableAndDeleteConfigRecorders(props: {
   accountId: string;
   region: string;
   acceleratorRecorderName: string;
+  roleArn: string;
 }): Promise<string[]> {
-  const { configService, recorders, accountId, region, acceleratorRecorderName } = props;
+  const { configService, recorders, accountId, region, acceleratorRecorderName, roleArn } = props;
   const errors: string[] = [];
   if (!recorders) {
     return errors;
   }
   for (const recorder of recorders) {
+    if (acceleratorRecorderName === recorder.name && recorder.roleARN === roleArn) {
+      console.log(`${accountId}::${region}:: Skipping disable Config Recorder as there is not change.`)
+      continue;
+    }
     try {
       await configService.stopRecorder({
         ConfigurationRecorderName: recorder.name!,
@@ -303,9 +309,7 @@ async function disableAndDeleteConfigRecorders(props: {
     } catch (error) {
       console.warn(`${accountId}:${region}: ${error.code}: ${error.message}`);
     }
-    if (acceleratorRecorderName === recorder.name) {
-      continue;
-    }
+    
     try {
       console.log(
         `${accountId}::${region}:: Deleting Config Recorder "${recorder.name}" which is not managed by Accelerator`,
