@@ -352,8 +352,8 @@ export function createTargetGroupName(props: { albName: string; targetGroupName:
 }
 
 /**
- * This function will check the accountKey and if valid
- * returns the same otherwise the Account Id
+ * This function will check the accountKey characters and
+ * if valid returns the same otherwise the Account Id
  * @param accountKey
  */
 function validateOrGetAccountId(accountKey: string) {
@@ -366,6 +366,7 @@ function validateOrGetAccountId(accountKey: string) {
 /**
  * This function will return true if the accountKey
  * has only alphanumeric and dashes (a-z, A-Z, 0-9, -)
+ * otherwise returns false
  * @param accountKey
  */
 function isNameAllowed(accountKey: string) {
