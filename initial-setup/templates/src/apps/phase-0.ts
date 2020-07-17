@@ -120,6 +120,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
   });
+  const logBucket = defaultsResult.centralLogBucket;
+  await guardDutyDeployment.enableGuardDutyPolicy({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+    logBucket,
+  });
 
   // MAD creation step 1
   // Needs EBS default keys from the EBS default step
