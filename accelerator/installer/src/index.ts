@@ -211,7 +211,7 @@ async function main() {
         },
         SOURCE_COMMIT_ID: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubAction.variables.commitId.toString(),
+          value: githubAction.variables.commitId,
         },
       },
     },
