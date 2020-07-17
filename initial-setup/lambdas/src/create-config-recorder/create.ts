@@ -299,7 +299,7 @@ async function disableAndDeleteConfigRecorders(props: {
   }
   for (const recorder of recorders) {
     if (acceleratorRecorderName === recorder.name && recorder.roleARN === roleArn) {
-      console.log(`${accountId}::${region}:: Skipping disable Config Recorder as there is not change.`)
+      console.log(`${accountId}::${region}:: Skipping disable Config Recorder as there is not change.`);
       continue;
     }
     try {
@@ -309,7 +309,7 @@ async function disableAndDeleteConfigRecorders(props: {
     } catch (error) {
       console.warn(`${accountId}:${region}: ${error.code}: ${error.message}`);
     }
-    
+
     try {
       console.log(
         `${accountId}::${region}:: Deleting Config Recorder "${recorder.name}" which is not managed by Accelerator`,
