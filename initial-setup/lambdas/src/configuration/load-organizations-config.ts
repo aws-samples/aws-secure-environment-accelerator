@@ -179,7 +179,6 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   }
 
   errors.push(...validateOrganizationSpecificConfiguration(config));
-  console.log(JSON.stringify(awsOuAccountMap, null, 2));
   // Throw all errors at once
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
