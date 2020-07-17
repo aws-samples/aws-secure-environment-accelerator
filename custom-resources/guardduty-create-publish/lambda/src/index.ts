@@ -100,10 +100,10 @@ async function updatePublishDestination(properties: HandlerProperties) {
   const listParam = {
     DetectorId: properties.detectorId,
   };
-  const destination = guardduty.listPublishingDestinations(listParam).promise();
+  const destination = await guardduty.listPublishingDestinations(listParam).promise();
 
   const params = {
-    DestinationId: (await destination).Destinations[0].DestinationId,
+    DestinationId: destination.Destinations[0].DestinationId,
     DetectorId: properties.detectorId,
     DestinationProperties: {
       DestinationArn: properties.destinationArn,
