@@ -170,8 +170,8 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     const acceleratorAccountsInOu = configurationAccounts.filter(account => account.ouPath === organizationalUnit.Path);
     if (accountsInOu.length !== acceleratorAccountsInOu.length) {
       errors.push(
-        `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Name}" while there are only ` +
-          `${acceleratorAccountsInOu.length} accounts in the Organizations and Accelerator configuration\n` +
+        `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Path}" while there are only ` +
+          `${acceleratorAccountsInOu.length} accounts in the Accelerator configuration\n` +
           `  Accounts in OU:     ${accountsInOu.map(a => a.Name).join(', ')}\n` +
           `  Accounts in config: ${acceleratorAccountsInOu.map(a => a.accountName).join(', ')}\n`,
       );
@@ -179,6 +179,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   }
 
   errors.push(...validateOrganizationSpecificConfiguration(config));
+  console.log(JSON.stringify(awsOuAccountMap, null, 2));
   // Throw all errors at once
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
