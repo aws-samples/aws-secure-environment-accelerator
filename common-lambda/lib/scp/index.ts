@@ -7,12 +7,6 @@ import { OrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
-interface ConfigurationOrganizationalUnit {
-  ouId: string;
-  ouKey: string;
-  ouName: string;
-}
-
 export class ServiceControlPolicy {
   private readonly org: Organizations;
   private readonly s3: S3;
