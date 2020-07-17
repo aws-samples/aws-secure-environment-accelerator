@@ -104,7 +104,6 @@ export class ConfigService {
     return describeRecorderStatus;
   }
 
-
   /**
    * Stop Configuration Recorder
    */
@@ -112,23 +111,29 @@ export class ConfigService {
     await throttlingBackOff(() => this.client.stopConfigurationRecorder(input).promise());
   }
 
-
   /**
    * Delete Configuration Recorder
    */
   async deleteConfigurationRecorder(recorderName: string): Promise<void> {
-    await throttlingBackOff(() => this.client.deleteConfigurationRecorder({
-      ConfigurationRecorderName: recorderName,
-    }).promise());
+    await throttlingBackOff(() =>
+      this.client
+        .deleteConfigurationRecorder({
+          ConfigurationRecorderName: recorderName,
+        })
+        .promise(),
+    );
   }
-
 
   /**
    * Delete Delivery Channel
    */
   async deleteDeliveryChannel(name: string): Promise<void> {
-    await throttlingBackOff(() => this.client.deleteDeliveryChannel({
-      DeliveryChannelName: name,
-    }).promise());
+    await throttlingBackOff(() =>
+      this.client
+        .deleteDeliveryChannel({
+          DeliveryChannelName: name,
+        })
+        .promise(),
+    );
   }
 }
