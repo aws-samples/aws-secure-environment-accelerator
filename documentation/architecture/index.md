@@ -200,8 +200,26 @@ Functional accounts will gain access to the RAM shared resources of their respec
 
 Data plane isolation within the same VPC is achieved by default, by using appropriate security groups whenever ingress is warranted. For example, the app tier of `systemA` should only permit ingress from the `systemA-web` security group, not an overly broad range such as `0.0.0.0/0`, or even the VPC range.
 
-
 ## 3. Networking
+
+### Overview
+The Accelerator Architecture networking is built on a principle of centralized on-premises and Internet ingress/egress, while enforcing data plane isolation between workloads in different environments. Connectivity to on-prem environments, internet egress, shared resources and AWS APIs are mediated at a central point of ingress/egress via the use of a [Transit Gateway][aws_tgw]. Consider the following overall network diagram:
+
+![Mandatory Accounts](./images/network_architecture.drawio.png)
+
+### Perimeter
+
+### Shared Network
+
+#### Transit Gateway
+
+#### Endpoint VPC
+
+#### Workload VPCs
+
+
+
+
 ## 4. Authorization and Authentication
 ## 5. Logging and Monitoring
 
