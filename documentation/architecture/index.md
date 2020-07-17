@@ -71,6 +71,13 @@ For example:
 
 The above is not valid JSON without first removing the comment on the fourth line.
 
+#### IP Addresses
+
+ The design makes use of [RFC1918][1918] addresses and [RFC6598][6598] for various networks; these will be labeled accordingly. Any specific range or IP shown is purely for illustration purposes only.
+
+[1918]: https://tools.ietf.org/html/rfc1918
+[6598]: https://tools.ietf.org/html/rfc6598
+
 ### 1.4 Department Naming
 
 This document will make no reference to specific Government of Canada departments. Where naming is required (e.g. in domain names), this document will use a placeholder name as needed; e.g. `dept.gc.ca`.
@@ -206,6 +213,10 @@ Data plane isolation within the same VPC is achieved by default, by using approp
 The Accelerator Architecture networking is built on a principle of centralized on-premises and Internet ingress/egress, while enforcing data plane isolation between workloads in different environments. Connectivity to on-prem environments, internet egress, shared resources and AWS APIs are mediated at a central point of ingress/egress via the use of a [Transit Gateway][aws_tgw]. Consider the following overall network diagram:
 
 ![Mandatory Accounts](./images/network_architecture.drawio.png)
+
+All functional accounts
+
+
 
 ### Perimeter
 
