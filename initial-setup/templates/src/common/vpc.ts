@@ -33,7 +33,7 @@ export interface VpcCommonProps {
   /**
    * Transit gateway deployment.
    */
-  tgwDeployment?: config.TgwDeploymentConfig;
+  tgwDeployments?: config.TgwDeploymentConfig[];
   /**
    * The name of the organizational unit if this VPC is in an organizational unit account.
    */

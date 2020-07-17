@@ -274,7 +274,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       limiter,
       accounts,
       vpcConfig,
-      tgwDeployment: deployments?.tgw,
+      tgwDeployments: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
       accountStacks,
@@ -471,6 +471,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+  await guardDutyDeployment.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+    logBucket,
   });
 
   // Central Services step 1

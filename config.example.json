@@ -150,9 +150,9 @@
         "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
       },
       {
-        "name": "Quarantine-Deny-All",
+        "name": "Quarantine-New-Object",
         "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
-        "policy": "Quarantine-Deny-All.json"
+        "policy": "Quarantine-New-Object.json"
       }
     ]
   },
@@ -364,19 +364,21 @@
         }
       ],
       "deployments": {
-        "tgw": {
-          "name": "Main",
-          "asn": 65521,
-          "region": "ca-central-1",
-          "features": {
-            "DNS-support": true,
-            "VPN-ECMP-support": true,
-            "Default-route-table-association": false,
-            "Default-route-table-propagation": false,
-            "Auto-accept-sharing-attachments": true
-          },
-          "route-tables": ["core", "segregated", "shared", "standalone"]
-        }
+        "tgw": [
+          {
+            "name": "Main",
+            "asn": 65521,
+            "region": "ca-central-1",
+            "features": {
+              "DNS-support": true,
+              "VPN-ECMP-support": true,
+              "Default-route-table-association": false,
+              "Default-route-table-propagation": false,
+              "Auto-accept-sharing-attachments": false
+            },
+            "route-tables": ["core", "segregated", "shared", "standalone"]
+          }
+        ]
       }
     },
     "operations": {
@@ -1032,7 +1034,8 @@
         }
       ],
       "deployments": {
-        "firewall": {
+        "firewalls": [
+          {
           "name": "Firewall",
           "image-id": "ami-047aac44951feb9fb",
           "instance-sizes": "c5n.2xlarge",
@@ -1081,8 +1084,9 @@
             "blackhole-route": false,
             "attach-subnets": [],
             "options": ["DNS-support"]
+            }
           }
-        },
+        ],
         "firewall-manager": {
           "name": "FirewallMgr",
           "image-id": "ami-06fa2a9e6f8fae9f2",
