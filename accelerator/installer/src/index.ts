@@ -212,7 +212,7 @@ async function main() {
         SOURCE_COMMIT_ID: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: githubAction.variables.commitId,
-        }
+        },
       },
     },
   });
@@ -273,9 +273,7 @@ async function main() {
     stages: [
       {
         stageName: 'Source',
-        actions: [
-          githubAction,
-        ],
+        actions: [githubAction],
       },
       {
         stageName: 'Deploy',
