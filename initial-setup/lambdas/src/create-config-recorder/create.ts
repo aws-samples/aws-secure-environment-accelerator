@@ -1,4 +1,5 @@
 import { ConfigService } from '@aws-pbmm/common-lambda/lib/aws/configservice';
+import { ConfigurationRecorder} from 'aws-sdk/clients/configservice';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { LoadConfigurationInput } from '../load-configuration-step';
@@ -103,51 +104,53 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     console.log(`Creating Config Recorder in ${region}`);
     try {
       const configService = new ConfigService(credentials, region);
-      const configRecorderName = createConfigRecorderName(acceleratorPrefix);
+      const acceleratorRecorderName = createConfigRecorderName(acceleratorPrefix);
       const describeRecorders = await configService.DescribeConfigurationRecorder({});
-      console.log('configurationRecorders', describeRecorders, region);
-      const acceleratorRecorder = describeRecorders.ConfigurationRecorders?.find(
-        rec => rec.name === configRecorderName,
-      );
-      if (
-        !describeRecorders.ConfigurationRecorders ||
-        describeRecorders.ConfigurationRecorders?.length === 0 ||
-        acceleratorRecorder
-      ) {
-        const createConfig = await createConfigRecorder({
-          configRecorderName,
-          configService,
-          accountId,
-          region,
-          centralSecurityRegion,
-          roleArn: configRecorderRole.roleArn,
-        });
-        errors.push(...createConfig);
-      }
+      const disableAndDeleteRecorders = await disableAndDeleteConfigRecorders({
+        acceleratorRecorderName,
+        accountId,
+        configService,
+        recorders: describeRecorders.ConfigurationRecorders,
+        region,
+      });
+      errors.push(...disableAndDeleteRecorders);
+
+      const createConfig = await createConfigRecorder({
+        configRecorderName: acceleratorRecorderName,
+        configService,
+        accountId,
+        region,
+        centralSecurityRegion,
+        roleArn: configRecorderRole.roleArn,
+      });
+      errors.push(...createConfig);
 
       const describeChannels = await configService.DescribeDeliveryChannelStatus({});
       console.log('deliveryChannels', describeChannels);
-      if (!describeChannels.DeliveryChannelsStatus || describeChannels.DeliveryChannelsStatus.length === 0) {
-        const createChannel = await createDeliveryChannel(
-          configService,
-          accountId,
-          region,
-          logBucketOutput.bucketName,
-          acceleratorPrefix,
-        );
-        errors.push(...createChannel);
+      if (describeChannels.DeliveryChannelsStatus && describeChannels.DeliveryChannelsStatus.length > 0 ) {
+        for (const channel of describeChannels.DeliveryChannelsStatus) {
+          if (channel.name === acceleratorRecorderName) {
+            continue;
+          }
+          try {
+            await configService.deleteDeliveryChannel(channel.name!);
+          } catch(error) {
+            errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
+          }
+        }
       }
+      const createChannel = await createDeliveryChannel(
+        configService,
+        accountId,
+        region,
+        logBucketOutput.bucketName,
+        acceleratorRecorderName,
+      );
+      errors.push(...createChannel);
 
-      const describeRecordingStatus = await configService.DescribeConfigurationRecorderStatus({});
-      console.log('describeRecordingStatus', describeRecordingStatus);
-      if (
-        describeRecordingStatus.ConfigurationRecordersStatus &&
-        describeRecordingStatus.ConfigurationRecordersStatus.length > 0 &&
-        !describeRecordingStatus.ConfigurationRecordersStatus[0].recording
-      ) {
-        const enableConfig = await enableConfigRecorder(configService, accountId, region, acceleratorPrefix);
-        errors.push(...enableConfig);
-      }
+      console.log(`${account.id}::${region}:: Enabling Config Recorder`)
+      const enableConfig = await enableConfigRecorder(configService, accountId, region, acceleratorRecorderName);
+      errors.push(...enableConfig);
     } catch (error) {
       errors.push(
         `${accountId}:${region}: ${error.code}: ${
@@ -217,7 +220,7 @@ async function createDeliveryChannel(
   accountId: string,
   region: string,
   bucketName: string,
-  acceleratorPrefix: string,
+  recorderName: string,
 ): Promise<string[]> {
   const errors: string[] = [];
   console.log('in createDeliveryChannel function', region);
@@ -225,7 +228,7 @@ async function createDeliveryChannel(
   try {
     await configService.createDeliveryChannel({
       DeliveryChannel: {
-        name: createConfigRecorderName(acceleratorPrefix),
+        name: recorderName,
         s3BucketName: bucketName,
         configSnapshotDeliveryProperties: {
           deliveryFrequency: 'TwentyFour_Hours',
@@ -242,13 +245,13 @@ async function enableConfigRecorder(
   configService: ConfigService,
   accountId: string,
   region: string,
-  acceleratorPrefix: string,
+  recorderName: string,
 ): Promise<string[]> {
   const errors: string[] = [];
   console.log('in enableConfigRecorder function', region);
   // Start Recorder
   try {
-    await configService.startRecorder({ ConfigurationRecorderName: createConfigRecorderName(acceleratorPrefix) });
+    await configService.startRecorder({ ConfigurationRecorderName: recorderName });
   } catch (error) {
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
@@ -277,5 +280,40 @@ async function createAggregator(
     errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
   }
 
+  return errors;
+}
+
+
+async function disableAndDeleteConfigRecorders(props: {
+  configService: ConfigService,
+  recorders: ConfigurationRecorder[] | undefined,
+  accountId: string,
+  region: string,
+  acceleratorRecorderName: string
+}): Promise<string[]> {
+  const { configService, recorders, accountId, region, acceleratorRecorderName } = props;
+  const errors: string[] = [];
+  if (!recorders) {
+    return errors;
+  }
+  for (const recorder of recorders) {
+    try {
+      await configService.stopRecorder({
+        ConfigurationRecorderName: recorder.name!,
+      });
+    } catch (error) {
+      console.warn(`${accountId}:${region}: ${error.code}: ${error.message}`);
+    }
+    if (acceleratorRecorderName === recorder.name) {
+      continue;
+    }
+    try {
+      console.log(`${accountId}::${region}:: Deleting Config Recorder "${recorder.name}" which is not managed by Accelerator`);
+      await configService.deleteConfigurationRecorder(recorder.name!);
+    } catch (error) {
+      errors.push(`${accountId}:${region}: ${error.code}: ${error.message}`);
+    }
+    
+  }
   return errors;
 }
