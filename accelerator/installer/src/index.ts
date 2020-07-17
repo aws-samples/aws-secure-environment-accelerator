@@ -124,6 +124,19 @@ async function main() {
     }),
   );
 
+  // This artifact is used as output for the Github code and as input for the build step
+  const sourceArtifact = new codepipeline.Artifact();
+
+  const githubAction = new actions.GitHubSourceAction({
+    actionName: 'GithubSource',
+    owner: githubOwner.valueAsString,
+    repo: githubRepository.valueAsString,
+    branch: githubBranch.valueAsString,
+    oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
+    output: sourceArtifact,
+    trigger: actions.GitHubTrigger.NONE,
+  });
+
   // Define a build specification to build the initial setup templates
   const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
     projectName: `${acceleratorPrefix}InstallerProject_pl`,
@@ -196,6 +209,10 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: githubOwner,
         },
+        SOURCE_COMMIT_ID: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: githubAction.variables.commitId,
+        }
       },
     },
   });
@@ -231,9 +248,6 @@ async function main() {
     handler: 'index.handler',
   });
 
-  // This artifact is used as output for the Github code and as input for the build step
-  const sourceArtifact = new codepipeline.Artifact();
-
   // Role that is used by the CodePipeline
   // Permissions for
   //   - accessing the artifacts bucket
@@ -260,15 +274,7 @@ async function main() {
       {
         stageName: 'Source',
         actions: [
-          new actions.GitHubSourceAction({
-            actionName: 'GithubSource',
-            owner: githubOwner.valueAsString,
-            repo: githubRepository.valueAsString,
-            branch: githubBranch.valueAsString,
-            oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
-            output: sourceArtifact,
-            trigger: actions.GitHubTrigger.NONE,
-          }),
+          githubAction,
         ],
       },
       {

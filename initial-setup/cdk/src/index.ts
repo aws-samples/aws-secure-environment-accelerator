@@ -50,6 +50,10 @@ export namespace InitialSetup {
      */
     sourceOwner: string;
     /**
+     * Commit id of the repo
+     */
+    sourceCommitId: string;
+    /**
      * The start time of the build
      */
     startTime: string;
@@ -155,6 +159,7 @@ export namespace InitialSetup {
           sourceRepo: props.sourceRepo,
           sourceBranch: props.sourceBranch,
           sourceOwner: props.sourceOwner,
+          sourceCommitId: props.sourceCommitId,
           startTime: props.startTime,
         },
         resultPath: 'DISCARD',

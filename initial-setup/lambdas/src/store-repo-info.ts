@@ -4,6 +4,7 @@ interface StoreRepoInfoInput {
   sourceRepo: string;
   sourceBranch: string;
   sourceOwner: string;
+  sourceCommitId: string;
   startTime: string;
 }
 
@@ -13,7 +14,7 @@ export const handler = async (input: StoreRepoInfoInput) => {
   console.log(`Storing Repo input...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const repoInfo = [input.sourceRepo, input.sourceBranch, input.sourceOwner, input.startTime];
+  const repoInfo = [input.sourceOwner, input.sourceRepo, input.sourceBranch, input.sourceCommitId, input.startTime];
   const param = await ssm.putParameter('/accelerator/version', repoInfo.join(','), 'StringList');
   console.log('Sucessfully put param:', param);
 };

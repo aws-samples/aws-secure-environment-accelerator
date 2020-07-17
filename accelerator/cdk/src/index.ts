@@ -28,6 +28,7 @@ async function main() {
   const sourceRepo = env.SOURCE_REPO || 'local';
   const sourceBranch = env.SOURCE_BRANCH || 'master';
   const sourceOwner = env.SOURCE_OWNER || 'unknown';
+  const sourceCommitId = env.SOURCE_COMMIT_ID || 'unknown';
   const currentTime = new Date();
   const startTime = env.START_TIME || currentTime.toString();
 
@@ -61,6 +62,7 @@ async function main() {
     sourceRepo,
     sourceBranch,
     sourceOwner,
+    sourceCommitId,
     startTime,
   });
 }
