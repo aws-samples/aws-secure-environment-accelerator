@@ -195,7 +195,7 @@ async function main() {
         SOURCE_OWNER: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: githubOwner,
-        }
+        },
       },
     },
   });

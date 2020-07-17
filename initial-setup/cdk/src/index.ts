@@ -887,10 +887,10 @@ export namespace InitialSetup {
 
       // Full StateMachine Execution starts from storeRepoInfoTask and wrapped in parallel task for try/catch
       storeRepoInfoTask
-      .next(getOrCreateConfigurationTask)
-      .next(getBaseLineTask)
-      .next(compareConfigurationsTask)
-      .next(baseLineChoice);
+        .next(getOrCreateConfigurationTask)
+        .next(getBaseLineTask)
+        .next(compareConfigurationsTask)
+        .next(baseLineChoice);
 
       const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');
       mainTryCatch.branch(storeRepoInfoTask);

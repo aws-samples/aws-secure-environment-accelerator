@@ -14,6 +14,6 @@ export const handler = async (input: StoreRepoInfoInput) => {
   console.log(JSON.stringify(input, null, 2));
 
   const repoInfo = [input.sourceRepo, input.sourceBranch, input.sourceOwner, input.startTime];
-  const param = await ssm.putParameter('/accelerator/version', repoInfo.join(','),'StringList');
+  const param = await ssm.putParameter('/accelerator/version', repoInfo.join(','), 'StringList');
   console.log('Sucessfully put param:', param);
-}
+};

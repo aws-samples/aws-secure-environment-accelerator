@@ -20,11 +20,13 @@ export class SSM {
   }
 
   async putParameter(name: string, value: string, type: string): Promise<sts.PutParameterResult> {
-    return this.client.putParameter({
-      Name: name,
-      Value: value,
-      Type: type,
-      Overwrite: true,
-    }).promise();
+    return this.client
+      .putParameter({
+        Name: name,
+        Value: value,
+        Type: type,
+        Overwrite: true,
+      })
+      .promise();
   }
 }
