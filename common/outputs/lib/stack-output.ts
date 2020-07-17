@@ -16,6 +16,9 @@ export const OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN = 'LogArchiveEncryptionKey';
 export const OUTPUT_SUBSCRIPTION_REQUIRED = 'OptInRequired';
 export const OUTPUT_SUBSCRIPTION_DONE = 'Subscribed';
 
+// Regular expression of ALB name allowed characters
+export const ALB_NAME_REGEXP = /^[A-Za-z0-9-]*$/;
+
 export interface StackOutput {
   accountKey: string;
   outputKey?: string;
