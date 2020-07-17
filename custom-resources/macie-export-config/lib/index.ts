@@ -59,7 +59,7 @@ export class MacieExportConfig extends cdk.Construct {
           's3:PutBucketAcl',
           's3:PutBucketPolicy',
           's3:PutBucketPublicAccessBlock',
-          's3:PutObject'
+          's3:PutObject',
         ],
         resources: ['*'],
       }),
