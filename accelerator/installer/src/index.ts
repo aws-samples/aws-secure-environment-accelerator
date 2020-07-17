@@ -184,6 +184,18 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: notificationEmail,
         },
+        SOURCE_REPO: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: githubRepository,
+        },
+        SOURCE_BRANCH: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: githubBranch,
+        },
+        SOURCE_OWNER: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: githubOwner,
+        }
       },
     },
   });

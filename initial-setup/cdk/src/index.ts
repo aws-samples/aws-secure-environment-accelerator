@@ -38,6 +38,22 @@ export namespace InitialSetup {
     configBranchName: string;
     notificationEmail: string;
     /**
+     * The name of the Github repository containing the Accelerator code.
+     */
+    sourceRepo: string;
+    /**
+     * The branch of the Github repository containing the Accelerator code.
+     */
+    sourceBranch: string;
+    /**
+     * The owner of the Github repository containing the Accelerator code.
+     */
+    sourceOwner: string;
+    /**
+     * The start time of the build
+     */
+    startTime: string;
+    /**
      * Prebuild Docker image that contains the project with its dependencies already installed.
      */
     enablePrebuiltProject?: boolean;
@@ -127,6 +143,21 @@ export namespace InitialSetup {
           LIMITS_SECRET_ID: limitsSecret.secretArn,
           ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
         },
+      });
+
+      const storeRepoInfoTask = new CodeTask(this, 'Store code repository info to Parameter Store', {
+        functionProps: {
+          code: lambdaCode,
+          handler: 'index.storeRepoInfo',
+          role: pipelineRole,
+        },
+        functionPayload: {
+          sourceRepo: props.sourceRepo,
+          sourceBranch: props.sourceBranch,
+          sourceOwner: props.sourceOwner,
+          startTime: props.startTime,
+        },
+        resultPath: 'DISCARD',
       });
 
       const getOrCreateConfigurationTask = new CodeTask(this, 'Get or Create Configuration from S3', {
@@ -854,11 +885,15 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      // Full StateMachine Execution stats from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
-      getOrCreateConfigurationTask.next(getBaseLineTask).next(compareConfigurationsTask).next(baseLineChoice);
+      // Full StateMachine Execution starts from storeRepoInfoTask and wrapped in parallel task for try/catch
+      storeRepoInfoTask
+      .next(getOrCreateConfigurationTask)
+      .next(getBaseLineTask)
+      .next(compareConfigurationsTask)
+      .next(baseLineChoice);
 
       const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');
-      mainTryCatch.branch(getOrCreateConfigurationTask);
+      mainTryCatch.branch(storeRepoInfoTask);
       mainTryCatch.addCatch(notifySmFailure);
       mainTryCatch.next(notifySmSuccess);
 

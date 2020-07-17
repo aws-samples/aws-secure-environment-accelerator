@@ -26,6 +26,7 @@ export { handler as loadOrganizations } from './load-organizations-step';
 export { handler as verifyFilesStep } from './verify-files-step';
 export { handler as notifySMFailure } from './notify-statemachine-failure';
 export { handler as notifySMSuccess } from './notify-statemachine-success';
+export { handler as storeRepoInfo } from './store-repo-info';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

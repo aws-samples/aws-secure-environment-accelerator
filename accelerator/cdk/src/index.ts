@@ -25,6 +25,12 @@ async function main() {
   const configS3Bucket =
     env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
 
+  const sourceRepo = env.SOURCE_REPO || 'local';
+  const sourceBranch = env.SOURCE_BRANCH || 'master';
+  const sourceOwner = env.SOURCE_OWNER || 'unknown';
+  const currentTime = new Date();
+  const startTime = env.START_TIME || currentTime.toString();
+
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
   const notificationEmail = env.NOTIFICATION_EMAIL || 'user@test.com';
 
@@ -52,6 +58,10 @@ async function main() {
     terminationProtection: true,
     enablePrebuiltProject,
     notificationEmail,
+    sourceRepo,
+    sourceBranch,
+    sourceOwner,
+    startTime,
   });
 }
 
