@@ -52,13 +52,21 @@ export class MacieExportConfig extends cdk.Construct {
     );
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ['s3:*'],
+        actions: [
+          's3:CreateBucket',
+          's3:GetBucketLocation',
+          's3:ListAllMyBuckets',
+          's3:PutBucketAcl',
+          's3:PutBucketPolicy',
+          's3:PutBucketPublicAccessBlock',
+          's3:PutObject'
+        ],
         resources: ['*'],
       }),
     );
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ['kms:*'],
+        actions: ['kms:ListAliases'],
         resources: ['*'],
       }),
     );
