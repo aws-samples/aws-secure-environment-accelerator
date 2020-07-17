@@ -38,13 +38,8 @@ export async function step3(props: FirewallStep3Props) {
   const vpcConfigs = config.getVpcConfigs();
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
-    const firewallConfig = accountConfig.deployments?.firewall;
-    if (!firewallConfig) {
-      continue;
-    }
-
-    const attachConfig = firewallConfig['tgw-attach'];
-    if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
+    const firewallConfigs = accountConfig.deployments?.firewalls;
+    if (!firewallConfigs || firewallConfigs.length === 0) {
       continue;
     }
 
@@ -53,61 +48,69 @@ export async function step3(props: FirewallStep3Props) {
       continue;
     }
 
-    const subscriptionOutputs = getStackJsonOutput(outputs, {
-      outputType: 'AmiSubscriptionStatus',
-      accountKey,
-    });
-    const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig['image-id']);
-    if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REQUIRED) {
-      console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig['image-id']}`);
-      continue;
-    }
-
-    const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === firewallConfig.vpc)?.vpcConfig;
-    if (!vpcConfig) {
-      console.log(`Skipping firewall deployment because of missing VPC config "${firewallConfig.vpc}"`);
-      continue;
-    }
-
-    const vpc = vpcs.find(v => v.name === firewallConfig.vpc);
-    if (!vpc) {
-      console.log(`Skipping firewall deployment because of missing VPC "${firewallConfig.vpc}"`);
-      continue;
-    }
-
-    // Find the firewall VPN connections in the TGW account
-    const firewallVpnConnectionOutputs = FirewallVpnConnectionOutputFinder.findAll({
-      outputs,
-      accountKey: attachConfig.account,
-    });
-    const firewallVpnConnections = firewallVpnConnectionOutputs
-      .flatMap(array => array)
-      .filter(conn => conn.firewallAccountKey === accountKey);
-    if (firewallVpnConnections.length === 0) {
-      console.warn(`Cannot find firewall VPN connection outputs`);
-      continue;
-    }
-
     const accountBucket = accountBuckets[accountKey];
     if (!accountBucket) {
       throw new Error(`Cannot find default account bucket for account ${accountKey}`);
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountStack}`);
-      continue;
-    }
-
-    await createFirewallCluster({
-      accountBucket,
-      accountStack,
-      centralBucket,
-      firewallConfig,
-      firewallVpnConnections,
-      vpc,
-      vpcConfig,
+    const subscriptionOutputs = getStackJsonOutput(outputs, {
+      outputType: 'AmiSubscriptionStatus',
+      accountKey,
     });
+
+    for (const firewallConfig of firewallConfigs) {
+      const attachConfig = firewallConfig['tgw-attach'];
+      if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
+        continue;
+      }
+
+      const subscriptionStatus = subscriptionOutputs.find(sub => sub.imageId === firewallConfig['image-id']);
+      if (subscriptionStatus && subscriptionStatus.status === OUTPUT_SUBSCRIPTION_REQUIRED) {
+        console.log(`AMI Marketplace subscription required for ImageId: ${firewallConfig['image-id']}`);
+        continue;
+      }
+
+      const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === firewallConfig.vpc)?.vpcConfig;
+      if (!vpcConfig) {
+        console.log(`Skipping firewall deployment because of missing VPC config "${firewallConfig.vpc}"`);
+        continue;
+      }
+
+      const vpc = vpcs.find(v => v.name === firewallConfig.vpc);
+      if (!vpc) {
+        console.log(`Skipping firewall deployment because of missing VPC "${firewallConfig.vpc}"`);
+        continue;
+      }
+
+      // Find the firewall VPN connections in the TGW account
+      const firewallVpnConnectionOutputs = FirewallVpnConnectionOutputFinder.findAll({
+        outputs,
+        accountKey: attachConfig.account,
+      });
+      const firewallVpnConnections = firewallVpnConnectionOutputs
+        .flatMap(array => array)
+        .filter(conn => conn.firewallAccountKey === accountKey && conn.firewallName === firewallConfig.name);
+      if (firewallVpnConnections.length === 0) {
+        console.warn(`Cannot find firewall VPN connection outputs`);
+        continue;
+      }
+
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, firewallConfig.region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountStack}`);
+        continue;
+      }
+
+      await createFirewallCluster({
+        accountBucket,
+        accountStack,
+        centralBucket,
+        firewallConfig,
+        firewallVpnConnections,
+        vpc,
+        vpcConfig,
+      });
+    }
   }
 }
 
@@ -143,18 +146,18 @@ async function createFirewallCluster(props: {
 
   // Import role from a previous phase
   const instanceRoleArn = `arn:aws:iam::${accountStack.accountId}:role/${instanceRoleName}`;
-  const instanceRole = iam.Role.fromRoleArn(accountStack, 'FirewallRole', instanceRoleArn, {
+  const instanceRole = iam.Role.fromRoleArn(accountStack, `FirewallRole${firewallName}`, instanceRoleArn, {
     mutable: true,
   });
 
   // Import instance profile from a previous phase
-  const instanceProfile = InstanceProfile.fromInstanceRoleName(accountStack, 'FirewallInstanceProfile', {
+  const instanceProfile = InstanceProfile.fromInstanceRoleName(accountStack, `FirewallInstanceProfile${firewallName}`, {
     instanceProfileName: createIamInstanceProfileName(instanceRoleName),
   });
 
   // TODO Condition to check if `firewallConfig.license` and `firewallConfig.config` exist
 
-  const cluster = new FirewallCluster(accountStack, 'Firewall', {
+  const cluster = new FirewallCluster(accountStack, `Firewall${firewallName}`, {
     vpcCidrBlock: vpc.cidrBlock,
     additionalCidrBlocks: vpc.additionalCidrBlocks,
     imageId,
@@ -207,7 +210,7 @@ async function createFirewallCluster(props: {
       instancePerAz[az] = instance;
       licenseIndex++;
 
-      new CfnFirewallInstanceOutput(accountStack, `Fgt${pascalCase(az)}Output`, {
+      new CfnFirewallInstanceOutput(accountStack, `Fgt${firewallName}${pascalCase(az)}Output`, {
         id: instance.instanceId,
         name: firewallName,
         az,
@@ -241,7 +244,7 @@ async function createFirewallCluster(props: {
           console.warn(`Cannot find route table with name "${routeTableName}" in VPC ${vpc.name}`);
           continue;
         }
-        new ec2.CfnRoute(accountStack, `${routeTableName}_eni_${vpnConnection.name}_${az}`, {
+        new ec2.CfnRoute(accountStack, `${firewallName}${routeTableName}_eni_${vpnConnection.name}_${az}`, {
           routeTableId,
           destinationCidrBlock: route.destination as string,
           networkInterfaceId: networkInterface.ref,
