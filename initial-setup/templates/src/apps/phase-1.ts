@@ -436,6 +436,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
   });
+  await guardDutyDeployment.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+    logBucket,
+  });
 
   // Central Services step 1
   const shardCount = acceleratorConfig['global-options']['central-log-services']['kinesis-stream-shard-count'];

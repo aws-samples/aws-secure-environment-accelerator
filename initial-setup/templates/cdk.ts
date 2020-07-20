@@ -51,7 +51,7 @@ async function main() {
   }
   if (commands.includes('deploy')) {
     const outputs = await toolkit.deployAllStacks({
-      parallel: args.parallel,
+      parallel,
     });
     console.log(outputs);
   }

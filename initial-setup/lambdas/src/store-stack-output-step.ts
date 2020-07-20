@@ -33,9 +33,19 @@ export const handler = async (input: StoreStackOutputInput) => {
   const outputs = await collectAsync(outputsAsyncIterable);
 
   // Find the central output bucket in outputs
-  const centralBucketOutput = CentralBucketOutputFinder.findOne({
+  const centralBucketOutput = CentralBucketOutputFinder.tryFindOne({
     outputs,
   });
+
+  if (!centralBucketOutput) {
+    console.log(`Didn't find "centralBucket" in existing outputs, might be first run of Accelerator`);
+    return {
+      status: 'SUCCESS',
+      outputBucketName: '',
+      outputBucketKey: '',
+      outputVersion: '',
+    };
+  }
 
   console.log(`Writing outputs to s3://${centralBucketOutput.bucketName}/outputs.json`);
 
