@@ -210,10 +210,6 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: githubOwner,
         },
-        SOURCE_COMMIT_ID: {
-          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubAction.variables.commitId,
-        },
       },
     },
   });
@@ -284,6 +280,12 @@ async function main() {
             project: installerProject,
             input: sourceArtifact,
             role: installerPipelineRole,
+            environmentVariables: {
+              SOURCE_COMMIT_ID: {
+                type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+                value: githubAction.variables.commitId,
+              },
+            },
           }),
         ],
       },
