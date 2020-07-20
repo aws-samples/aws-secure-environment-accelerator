@@ -228,15 +228,33 @@ This VPC has four subnets per AZ, each of which hosts a port used by the NGFW de
 * **Public**: This subnet is the public-access zone for the perimeter VPC. It hosts the public interface of the firewalls, as well as application load balancers that are used to balance traffic across the firewall pair. There is one Elastic IPv4 address per public subnet that corresponds to the IPSec Customer Gateway (CGW) for the VPN connection into the Transit Gateway in Shared Networking.
 
 ### Shared Network
+The shared network account, and the AWS networking resources therein, form the core of the cloud networking infrastructure across the account structure. Rather than the individual accounts define their own networks, these are instead centralized here and shared out to the relevant OUs. Principals in a Dev OU will have access to a Dev VPC, Test OU will have access to a Test VPC and so on - all of which are owned by this account.
 
 #### Transit Gateway
+The Transit Gateway is a central hub that performs several core functions within the Shared Network account:
+
+1. Routing of permitted flows; for example a Workload to On-premises via the Perimeter VPC.
+    * All routing tables in SharedNetwork VPCs send `0.0.0.0/0` traffic to the TGW, where its handling will be determined by the TGW Route Table (TGW-RT) that its attachment is associated with. For example:
+        * an HTTP request to `registry.hub.docker.com` from the Test VPC will go to the TGW
+        * The Segregated TGW RT will direct that traffic to the Perimeter VPC via the IPsec VPNs
+        * The request will be proxied to the internet, via GC-CAP if appropriate
+        * The return traffic will again transit the IPsec VPNs
+        * The `10.3.0.0/16` bound response traffic will arrive at the Core TGW RT, where a propagation in that TGW RT will direct the response back to the Test VPC.
+2. Defining separate routing domains that prohibit undesired east-west flows at the network level; for example, by prohibiting Dev to Prod traffic. For example:
+    * All routing tables in SharedNetwork VPCs send `0.0.0.0/0` traffic to the TGW, which defines where the next permissible hop is. For example, `10.2.0.0/16` Dev traffic destined for the `10.0.4.0/16` Prod VPC will be blocked by the blackhole route in the Segregated TGW RT.
+3. Enabling centralization of shared resources; namely a shared Microsoft AD installation in the Central VPC, and access to shared VPC Endpoints in the Endpoint VPC.
+    * The Central VPC, and the Endpoint VPC are routable from Workload VPCs. This provides an economical way to share Organization wide resources that are nonetheless isolated into their own VPCs.
 
 #### Endpoint VPC
 
 #### Workload VPCs
 
+#### Central VPC
 
+### Security Groups
 
+### NACLs
+Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth measure.
 
 ## 4. Authorization and Authentication
 ## 5. Logging and Monitoring
