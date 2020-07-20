@@ -150,9 +150,9 @@
         "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
       },
       {
-        "name": "Quarantine-Deny-All",
+        "name": "Quarantine-New-Object",
         "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
-        "policy": "Quarantine-Deny-All.json"
+        "policy": "Quarantine-New-Object.json"
       }
     ]
   },
@@ -162,6 +162,41 @@
       "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
+      "budget": {
+        "name": "SharedNetwork Budget",
+        "period": "Monthly",
+        "amount": 2000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          }
+        ]
+      },
       "iam": {
         "users": [],
         "policies": [
@@ -329,19 +364,21 @@
         }
       ],
       "deployments": {
-        "tgw": {
-          "name": "Main",
-          "asn": 65521,
-          "region": "ca-central-1",
-          "features": {
-            "DNS-support": true,
-            "VPN-ECMP-support": true,
-            "Default-route-table-association": false,
-            "Default-route-table-propagation": false,
-            "Auto-accept-sharing-attachments": false
-          },
-          "route-tables": ["core", "segregated", "shared", "standalone"]
-        }
+        "tgw": [
+          {
+            "name": "Main",
+            "asn": 65521,
+            "region": "ca-central-1",
+            "features": {
+              "DNS-support": true,
+              "VPN-ECMP-support": true,
+              "Default-route-table-association": false,
+              "Default-route-table-propagation": false,
+              "Auto-accept-sharing-attachments": false
+            },
+            "route-tables": ["core", "segregated", "shared", "standalone"]
+          }
+        ]
       }
     },
     "operations": {
@@ -432,7 +469,7 @@
             "lockout-duration": 30,
             "lockout-attempts-reset": 30
           },
-          "ad-groups": ["aws-Provisioning"],
+          "ad-groups": ["aws-Provisioning", "aws-Billing"],
           "ad-per-account-groups": ["*-Admin", "*-PowerUser", "*-View"],
           "adc-group": "ADConnector-grp",
           "ad-users": [
@@ -473,19 +510,19 @@
           ]
         },
         "rsyslog": {
-          "deploy": false,
+          "deploy": true,
           "vpc-name": "Central",
           "region": "ca-central-1",
           "log-group-name": "rsyslog/var/log/messages",
           "security-groups": [
             {
-              "name": "RsyslogInstanceSG",
+              "name": "rsyslog",
               "inbound-rules": [
                 {
                   "description": "Allow Traffic Inbound",
                   "tcp-ports": [514],
                   "udp-ports": [514],
-                  "source": ["10.0.0.0/8"]
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
                 }
               ],
               "outbound-rules": [
@@ -519,22 +556,12 @@
           ],
           "min-rsyslog-hosts": 1,
           "desired-rsyslog-hosts": 2,
-          "max-rsyslog-hosts": 4,
-          "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn-ami-hvm-x86_64-gp2",
+          "max-rsyslog-hosts": 2,
+          "ssm-image-id": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2",
           "rsyslog-instance-type": "t2.large",
           "rsyslog-instance-role": "PBMMAccel-Rsyslog-Role",
           "rsyslog-root-volume-size": 100,
           "rsyslog-max-instance-age": 30
-        },
-        "ops-dashboard": {
-          "deploy": true
-        },
-        "syslog": {
-          "deploy": true
-        },
-        "rdweb-pwd": {
-          "deploy": true,
-          "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
         }
       }
     },
@@ -1007,7 +1034,8 @@
         }
       ],
       "deployments": {
-        "firewall": {
+        "firewalls": [
+          {
           "name": "Firewall",
           "image-id": "ami-047aac44951feb9fb",
           "instance-sizes": "c5n.2xlarge",
@@ -1056,8 +1084,9 @@
             "blackhole-route": false,
             "attach-subnets": [],
             "options": ["DNS-support"]
+            }
           }
-        },
+        ],
         "firewall-manager": {
           "name": "FirewallMgr",
           "image-id": "ami-06fa2a9e6f8fae9f2",
@@ -1286,7 +1315,7 @@
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
-        "amount": 100,
+        "amount": 500,
         "include": [
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",
@@ -2212,7 +2241,7 @@
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
-        "amount": 200,
+        "amount": 1000,
         "include": [
           "Upfront-reservation-fees",
           "Recurring-reservation-charges",

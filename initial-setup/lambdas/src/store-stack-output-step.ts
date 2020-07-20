@@ -1,25 +1,27 @@
-import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { CloudFormation } from '@aws-pbmm/common-lambda/lib/aws/cloudformation';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { CentralBucketOutputFinder } from '@aws-pbmm/common-outputs/lib/central-bucket';
+import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 
 export interface StoreStackOutputInput {
   acceleratorPrefix: string;
-  stackOutputSecretId: string;
   assumeRoleName: string;
   accounts: Account[];
 }
+
+const s3 = new S3();
+const sts = new STS();
 
 export const handler = async (input: StoreStackOutputInput) => {
   console.log(`Storing stack output...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, stackOutputSecretId, assumeRoleName, accounts } = input;
+  const { acceleratorPrefix, assumeRoleName, accounts } = input;
 
   const outputs: StackOutput[] = [];
   for (const account of accounts) {
-    const sts = new STS();
     const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
 
     const cfn = new CloudFormation(credentials);
@@ -55,14 +57,34 @@ export const handler = async (input: StoreStackOutputInput) => {
     }
   }
 
-  // Store a the output in the output secret
-  const secrets = new SecretsManager();
-  await secrets.putSecretValue({
-    SecretId: stackOutputSecretId,
-    SecretString: JSON.stringify(outputs),
+  // Find the central output bucket in outputs
+  const centralBucketOutput = CentralBucketOutputFinder.tryFindOne({
+    outputs,
+  });
+
+  if (!centralBucketOutput) {
+    console.log(`Didn't find "centralBucket" in existing outputs, might be first run of Accelerator`);
+    return {
+      status: 'SUCCESS',
+      outputBucketName: '',
+      outputBucketKey: '',
+      outputVersion: '',
+    };
+  }
+
+  console.log(`Writing outputs to s3://${centralBucketOutput.bucketName}/outputs.json`);
+
+  // Store outputs on S3
+  const response = await s3.putObject({
+    Bucket: centralBucketOutput.bucketName,
+    Key: 'outputs.json',
+    Body: JSON.stringify(outputs),
   });
 
   return {
     status: 'SUCCESS',
+    outputBucketName: centralBucketOutput.bucketName,
+    outputBucketKey: 'outputs.json',
+    outputVersion: response.VersionId,
   };
 };

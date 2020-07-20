@@ -7,6 +7,7 @@ import * as actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -59,10 +60,6 @@ async function main() {
     // Otherwise fall back to 'release'
     default: process.env.GITHUB_DEFAULT_BRANCH || 'release',
     description: 'The branch of the Github repository containing the Accelerator code.',
-  });
-
-  const approvalEmail = new cdk.CfnParameter(stack, 'Email', {
-    description: 'The notification email that will get Code Release notifications.',
   });
 
   const notificationEmail = new cdk.CfnParameter(stack, 'Notification Email', {
@@ -259,16 +256,7 @@ async function main() {
             branch: githubBranch.valueAsString,
             oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
             output: sourceArtifact,
-          }),
-        ],
-      },
-      {
-        stageName: 'ManualApproval',
-        actions: [
-          new actions.ManualApprovalAction({
-            actionName: 'Approval',
-            notifyEmails: [approvalEmail.valueAsString],
-            role: installerPipelineRole,
+            trigger: actions.GitHubTrigger.NONE,
           }),
         ],
       },
