@@ -214,11 +214,18 @@ The Accelerator Architecture networking is built on a principle of centralized o
 
 ![Mandatory Accounts](./images/network_architecture.drawio.png)
 
-All functional accounts
-
-
+All functional accounts use RAM-shared networking infrastructure as depicted above. The line of business VPCs (Dev, Test, Prod, etc) are hosted in the Shared Network account and made available to the appropriate OU in the Organization.
 
 ### Perimeter
+The perimeter VPC hosts the Organization's perimeter security services. The Perimeter VPC is used to control the flow of traffic between AWS Accounts and external networks:  both public and private via GC CAP and GC TIP. This VPC hosts Next Generation Firewalls that provide perimeter security services including virus scanning / malware protection, Intrusion Protection services, TLS Inspection and Web Application Firewall protection.  If applicable, this VPC also hosts reverse proxy servers.
+
+This VPC has four subnets per AZ, each of which hosts a port used by the NGFW devices, which are deployed in an HA pair. The purpose of these subnets is as follows:
+
+* **Detonation**: This is an unused subnet reserved for future use with malware detonation capabilities of the NGFW devices.
+* **Proxy**: This subnet hosts reverse proxy services for web and other protocols. It also contains the [three interface endpoints][ssm_endpoints] necessary for AWS Systems Manager Session Manager, which enables SSH-less CLI access to authorized and authenticated principals in the perimeter account.
+* **On-Premises**: This subnet hosts the private interfaces of the firewalls, corresponding to connections from the on-premises network.
+* **FW-Management**: This subnet is used to host management tools and the management of the Firewalls itself.
+* **Public**: This subnet is the public-access zone for the perimeter VPC. It hosts the public interface of the firewalls, as well as application load balancers that are used to balance traffic across the firewall pair. There is one Elastic IPv4 address per public subnet that corresponds to the IPSec Customer Gateway (CGW) for the VPN connection into the Transit Gateway in Shared Networking.
 
 ### Shared Network
 
@@ -247,3 +254,4 @@ All functional accounts
 [aws_vpc]: https://aws.amazon.com/TODO
 [aws_tgw]: https://aws.amazon.com/TODO
 [aws_r53]: https://aws.amazon.com/route53/
+[ssm_endpoints]: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/
