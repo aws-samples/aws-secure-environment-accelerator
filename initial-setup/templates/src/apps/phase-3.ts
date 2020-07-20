@@ -2,6 +2,10 @@ import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { PhaseInput } from './shared';
 import * as alb from '../deployments/alb';
+import * as rsyslogDeployment from '../deployments/rsyslog';
+import { VpcOutput, ImportedVpc } from '../deployments/vpc';
+import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { CentralBucketOutput } from '../deployments/defaults';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   /**
@@ -50,5 +54,26 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     outputs,
+  });
+
+  // Import all VPCs from all outputs
+  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    outputType: 'VpcOutput',
+  });
+  const allVpcs = allVpcOutputs.map(ImportedVpc.fromOutput);
+
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await rsyslogDeployment.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    vpcs: allVpcs,
+    centralBucket,
   });
 }

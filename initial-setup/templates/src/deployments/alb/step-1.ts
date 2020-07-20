@@ -13,7 +13,7 @@ import {
   AlbTargetInstanceConfig,
   AlbTargetInstanceFirewallConfigType,
 } from '@aws-pbmm/common-lambda/lib/config';
-import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { StackOutput, getStackJsonOutput, ALB_NAME_REGEXP } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { createCertificateSecretName } from '../certificates';
@@ -135,7 +135,10 @@ export function createAlb(
   }
 
   const balancer = new ApplicationLoadBalancer(accountStack, `Alb${albConfig.name}`, {
-    albName: createAlbName({ albName: albConfig.name, accountKey }),
+    albName: createAlbName({
+      albName: albConfig.name,
+      accountKey: validateOrGetAccountId(accountKey),
+    }),
     scheme: albConfig.scheme,
     subnetIds: subnets.map(s => s.subnetId),
     securityGroupIds: [securityGroupId],
@@ -346,4 +349,27 @@ export function createTargetGroupName(props: { albName: string; targetGroupName:
     return albName.substring(0, partLength - 1) + '-' + targetGroupName.substring(0, partLength);
   }
   return result;
+}
+
+/**
+ * This function will check the accountKey characters and
+ * if valid returns the same otherwise the Account Id
+ * @param accountKey
+ */
+function validateOrGetAccountId(accountKey: string) {
+  if (!isNameAllowed(accountKey)) {
+    return cdk.Aws.ACCOUNT_ID;
+  }
+  return accountKey;
+}
+
+/**
+ * This function will return true if the accountKey
+ * has only alphanumeric and dashes (a-z, A-Z, 0-9, -)
+ * otherwise returns false
+ * @param accountKey
+ */
+function isNameAllowed(accountKey: string) {
+  const match = accountKey.match(ALB_NAME_REGEXP);
+  return match ? true : false;
 }
