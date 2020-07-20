@@ -70,11 +70,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       userSecrets.push({ user: adUser.user, passwordSecretArn });
     }
 
-    const latestRdgwAmiId = ssm.StringParameter.valueForTypedStringParameter(
-      stack,
-      '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base',
-      ssm.ParameterType.AWS_EC2_IMAGE_ID,
-    );
+    const latestRdgwAmiId = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base';
 
     const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
       accountKey: masterAccountKey,

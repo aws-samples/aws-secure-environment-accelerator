@@ -1,6 +1,8 @@
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import * as iam from '@aws-cdk/aws-iam';
 import { AccountStacks } from '../../common/account-stacks';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { CfnIamRoleOutput } from './outputs';
 
 export interface IamConfigServiceRoleProps {
   acceleratorPrefix: string;
@@ -20,11 +22,17 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
     }
 
     // Creating role for Config Recorder
-    new iam.Role(accountStack, `IAM-ConfigRecorderRole-${accountKey}`, {
-      roleName: `${acceleratorPrefix}ConfigRecorderRole`,
+    const configRecorderRole = new iam.Role(accountStack, `IAM-ConfigRecorderRole-${accountKey}`, {
+      roleName: createRoleName(`ConfigRecorderRole`),
       description: `${acceleratorPrefix} Config Recorder Role`,
       assumedBy: new iam.ServicePrincipal('config.amazonaws.com'),
       managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSConfigRole')],
+    });
+
+    new CfnIamRoleOutput(accountStack, `ConfigRecorderRoleOutput`, {
+      roleName: configRecorderRole.roleName,
+      roleArn: configRecorderRole.roleArn,
+      roleKey: 'ConfigRecorderRole',
     });
   }
 
@@ -32,10 +40,16 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
   // Creating role for Config Organization Aggregator
-  new iam.Role(masterAccountStack, `IAM-ConfigAggregatorRole-${masterAccountKey}`, {
-    roleName: `${acceleratorPrefix}ConfigAggregatorRole`,
+  const configAggregatorRole = new iam.Role(masterAccountStack, `IAM-ConfigAggregatorRole-${masterAccountKey}`, {
+    roleName: createRoleName(`ConfigAggregatorRole`),
     description: `${acceleratorPrefix} Config Aggregator Role`,
     assumedBy: new iam.ServicePrincipal('config.amazonaws.com'),
     managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSConfigRoleForOrganizations')],
+  });
+
+  new CfnIamRoleOutput(masterAccountStack, `ConfigAggregatorRoleOutput`, {
+    roleName: configAggregatorRole.roleName,
+    roleArn: configAggregatorRole.roleArn,
+    roleKey: 'ConfigAggregatorRole',
   });
 }
