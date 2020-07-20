@@ -7,12 +7,17 @@ import {
 } from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
 
+const physicalResourceId = 'GuardDutyCreatePublishToCentralAccountS3';
+
 const guardduty = new AWS.GuardDuty();
 
 export interface HandlerProperties {
-  detectorId: string;
   destinationArn: string;
   kmsKeyArn: string;
+}
+
+export interface PublishingProps extends HandlerProperties {
+  detectorId: string;
 }
 
 export const handler = errorHandler(onEvent);
@@ -32,17 +37,22 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   }
 }
 
-function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-
-  return `${properties.detectorId}${properties.destinationArn}${properties.kmsKeyArn}`;
-}
-
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await createPublishDestination(properties);
+  const detectorId = await getDetectorId();
+  if (!detectorId) {
+    console.warn(`Skipping Publishing Setup for GuardDuty as DetectorId not found`);
+    return {
+      physicalResourceId,
+      data: {},
+    };
+  }
+  const response = await createPublishDestination({
+    ...properties,
+    detectorId,
+  });
   return {
-    physicalResourceId: getPhysicalId(event),
+    physicalResourceId,
     data: {
       DestinationId: response?.DestinationId,
     },
@@ -51,29 +61,50 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await updatePublishDestination(properties);
+  const detectorId = await getDetectorId();
+  if (!detectorId) {
+    return {
+      physicalResourceId,
+      data: {},
+    };
+  }
+  await updatePublishDestination({
+    ...properties,
+    detectorId,
+  });
   return {
-    physicalResourceId: getPhysicalId(event),
+    physicalResourceId,
     data: {},
   };
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await deletePublishDestination(properties);
+  const detectorId = await getDetectorId();
+  if (!detectorId) {
+    return {
+      physicalResourceId,
+      data: {},
+    };
+  }
+  await deletePublishDestination({
+    ...properties,
+    detectorId,
+  });
   return {
-    physicalResourceId: getPhysicalId(event),
+    physicalResourceId,
     data: {},
   };
 }
 
-async function createPublishDestination(properties: HandlerProperties) {
+async function createPublishDestination(properties: PublishingProps) {
+  const { destinationArn, kmsKeyArn, detectorId } = properties;
   const params = {
     DestinationType: 'S3', // currently only S3 is supported
-    DetectorId: properties.detectorId,
+    DetectorId: detectorId,
     DestinationProperties: {
-      DestinationArn: properties.destinationArn,
-      KmsKeyArn: properties.kmsKeyArn,
+      DestinationArn: destinationArn,
+      KmsKeyArn: kmsKeyArn,
     },
   };
 
@@ -96,7 +127,7 @@ async function createPublishDestination(properties: HandlerProperties) {
   }
 }
 
-async function updatePublishDestination(properties: HandlerProperties) {
+async function updatePublishDestination(properties: PublishingProps) {
   const listParam = {
     DetectorId: properties.detectorId,
   };
@@ -114,7 +145,7 @@ async function updatePublishDestination(properties: HandlerProperties) {
   return guardduty.updatePublishingDestination(params).promise();
 }
 
-async function deletePublishDestination(properties: HandlerProperties) {
+async function deletePublishDestination(properties: PublishingProps) {
   const destinations = await guardduty.listPublishingDestinations().promise();
 
   const params = {
@@ -124,4 +155,16 @@ async function deletePublishDestination(properties: HandlerProperties) {
   };
 
   return guardduty.deletePublishingDestination(params).promise();
+}
+
+async function getDetectorId(): Promise<string | undefined> {
+  try {
+    const detectors = await guardduty.listDetectors().promise();
+    if (detectors.DetectorIds && detectors.DetectorIds.length > 0) {
+      return detectors.DetectorIds[0];
+    }
+  } catch (e) {
+    console.error(`Error Occured while listing Detectors ${e.code}: ${e.message}`);
+    return;
+  }
 }

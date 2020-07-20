@@ -87,6 +87,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       config: acceleratorConfig,
       accountStacks,
     });
+
+    // GuardDuty step 1
+    // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
+    await guardDutyDeployment.step1({
+      accountStacks,
+      config: acceleratorConfig,
+      accounts,
+    });
   }
 
   // Create MAD secrets
@@ -113,14 +121,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     });
   }
 
-  // GuardDuty step 1
-  // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
-  await guardDutyDeployment.step1({
-    accountStacks,
-    config: acceleratorConfig,
-    accounts,
-  });
   const logBucket = defaultsResult.centralLogBucket;
+  // Updating LogArchive Account Bucket policy for GuardDuty usage
   await guardDutyDeployment.enableGuardDutyPolicy({
     accountStacks,
     config: acceleratorConfig,

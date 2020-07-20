@@ -7,7 +7,6 @@ import { HandlerProperties } from '@custom-resources/guardduty-create-publish-la
 const resourceType = 'Custom::GuardDutyCreatePublish';
 
 export interface GuardDutyCreatePublishProps {
-  detectorId: string;
   destinationArn: string;
   kmsKeyArn: string;
 }
@@ -21,7 +20,6 @@ export class GuardDutyCreatePublish extends cdk.Construct {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = {
-      detectorId: props.detectorId,
       destinationArn: props.destinationArn,
       kmsKeyArn: props.kmsKeyArn,
     };
@@ -46,6 +44,13 @@ export class GuardDutyCreatePublish extends cdk.Construct {
     const role = new iam.Role(stack, `${resourceType}Role`, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
