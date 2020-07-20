@@ -1,0 +1,35 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Configure the AWSCloudFormationStackSetExecutionRole to enable use of your
+  account as a target instance in AWS CloudFormation StackSet.
+Parameters:
+  MasterAccountId:
+    Type: String
+    Description: Master account Id where StackSet will be created
+    MaxLength: 12
+    MinLength: 12
+  OrgAdminRoleName:
+    Type: String
+    Default: AWSCloudFormationStackSetExecutionRole
+    Description: Organization admin role name
+Resources:
+  ExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref OrgAdminRoleName
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Join 
+                  - ''
+                  - - 'arn:aws:iam::'
+                    - !Ref MasterAccountId
+                    - ':role/AWSCloudFormationStackSetAdministrationRole'
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess'
