@@ -37,8 +37,8 @@ async function main() {
     phaseId: `${phase}`,
     region: args.region,
     accountKey: args['account-key'],
-    // Make sure assets do not build in to the same directory when running in parallel
-    useTempOutputDir: parallel,
+    // Make sure assets do not build in to the same directory
+    useTempOutputDir: true,
   });
 
   const toolkit = await CdkToolkit.create(apps);
@@ -51,7 +51,7 @@ async function main() {
   }
   if (commands.includes('deploy')) {
     const outputs = await toolkit.deployAllStacks({
-      parallel: args.parallel,
+      parallel,
     });
     console.log(outputs);
   }

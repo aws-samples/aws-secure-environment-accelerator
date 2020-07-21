@@ -10,6 +10,7 @@ import {
   DescribeDeliveryChannelStatusResponse,
   StartConfigurationRecorderRequest,
   PutConfigurationAggregatorRequest,
+  StopConfigurationRecorderRequest,
 } from 'aws-sdk/clients/configservice';
 import { throttlingBackOff } from './backoff';
 
@@ -101,5 +102,38 @@ export class ConfigService {
       this.client.describeConfigurationRecorderStatus(input).promise(),
     );
     return describeRecorderStatus;
+  }
+
+  /**
+   * Stop Configuration Recorder
+   */
+  async stopRecorder(input: StopConfigurationRecorderRequest): Promise<void> {
+    await throttlingBackOff(() => this.client.stopConfigurationRecorder(input).promise());
+  }
+
+  /**
+   * Delete Configuration Recorder
+   */
+  async deleteConfigurationRecorder(recorderName: string): Promise<void> {
+    await throttlingBackOff(() =>
+      this.client
+        .deleteConfigurationRecorder({
+          ConfigurationRecorderName: recorderName,
+        })
+        .promise(),
+    );
+  }
+
+  /**
+   * Delete Delivery Channel
+   */
+  async deleteDeliveryChannel(name: string): Promise<void> {
+    await throttlingBackOff(() =>
+      this.client
+        .deleteDeliveryChannel({
+          DeliveryChannelName: name,
+        })
+        .promise(),
+    );
   }
 }

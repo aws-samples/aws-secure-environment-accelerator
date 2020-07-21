@@ -10,7 +10,11 @@ import {
 import { CreateCloudTrail } from '@custom-resources/create-cloud-trail';
 import { Organizations } from '@custom-resources/organization';
 import { LogGroup } from '@custom-resources/logs-log-group';
-import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import {
+  createLogGroupName,
+  createRoleName,
+  createName,
+} from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import * as iam from '@aws-cdk/aws-iam';
 import { Context } from '../../utils/context';
 import { StructuredOutput } from '../../common/structured-output';
@@ -61,7 +65,7 @@ export async function step1(props: CreateCloudTrailProps) {
   });
 
   const cloudTrailLogGroupRole = new iam.Role(masterAccountStack, `TrailLogGroupRole${masterAccountKey}`, {
-    roleName: 'PBMMAccel-CT-to-CWL',
+    roleName: createRoleName('CT-to-CWL'),
     assumedBy: new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
   });
 
@@ -86,7 +90,9 @@ export async function step1(props: CreateCloudTrailProps) {
   );
 
   const createCloudTrail = new CreateCloudTrail(masterAccountStack, `CreateCloudTrail${masterAccountKey}`, {
-    cloudTrailName: 'PBMMAccel-Org-Trail',
+    cloudTrailName: createName({
+      name: 'Org-Trail',
+    }),
     bucketName: logBucketOutput.bucketName,
     logGroupArn: logGroup.logGroupArn,
     roleArn: cloudTrailLogGroupRole.roleArn,

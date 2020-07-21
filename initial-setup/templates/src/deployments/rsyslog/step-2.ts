@@ -144,14 +144,8 @@ export function createAsg(
     logGroupName: createLogGroupName(rsyslogConfig['log-group-name']),
   });
 
-  const latestRsyslogAmiId = ssm.StringParameter.valueForTypedStringParameter(
-    accountStack,
-    rsyslogConfig['ssm-image-id'],
-    ssm.ParameterType.AWS_EC2_IMAGE_ID,
-  );
-
   new RsysLogAutoScalingGroup(accountStack, `RsyslogAsg${accountKey}`, {
-    latestRsyslogAmiId,
+    latestRsyslogAmiId: rsyslogConfig['ssm-image-id'],
     subnetIds: instanceSubnetIds,
     serviceLinkedRoleArn: rsyslogAutoScalingRoleOutput.roleArn,
     acceleratorPrefix: accountStack.acceleratorPrefix,
