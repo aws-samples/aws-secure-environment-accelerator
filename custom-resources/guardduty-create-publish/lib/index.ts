@@ -77,6 +77,7 @@ export class GuardDutyCreatePublish extends cdk.Construct {
           'guardduty:updatePublishingDestination',
           'guardduty:deletePublishingDestination',
           'guardduty:listPublishingDestinations',
+          'guardduty:ListDetectors',
         ],
         resources: ['*'],
       }),
