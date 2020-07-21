@@ -114,7 +114,6 @@ async function updateConfig(detectorId: string) {
   }
 }
 
-
 // describe-organization-configuration to check if security hub is already enabled in org level or not
 async function isConfigurationAutoEnabled(detectorId: string): Promise<boolean> {
   try {

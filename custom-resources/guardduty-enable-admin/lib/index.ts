@@ -56,6 +56,12 @@ export class GuardDutyAdmin extends cdk.Construct {
         resources: ['*'],
       }),
     );
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,

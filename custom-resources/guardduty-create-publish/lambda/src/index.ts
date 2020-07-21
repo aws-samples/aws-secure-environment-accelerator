@@ -29,15 +29,17 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   // tslint:disable-next-line: switch-default
   switch (event.RequestType) {
     case 'Create':
-      return onCreate(event);
+      return onCreateOrUpdate(event);
     case 'Update':
-      return onUpdate(event);
+      return onCreateOrUpdate(event);
     case 'Delete':
       return onDelete(event);
   }
 }
 
-async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
+async function onCreateOrUpdate(
+  event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
+) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const detectorId = await getDetectorId();
   if (!detectorId) {
@@ -47,7 +49,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
       data: {},
     };
   }
-  const response = await createPublishDestination({
+  const response = await createOrUpdatePublishDestination({
     ...properties,
     detectorId,
   });
@@ -56,25 +58,6 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
     data: {
       DestinationId: response?.DestinationId,
     },
-  };
-}
-
-async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const detectorId = await getDetectorId();
-  if (!detectorId) {
-    return {
-      physicalResourceId,
-      data: {},
-    };
-  }
-  await updatePublishDestination({
-    ...properties,
-    detectorId,
-  });
-  return {
-    physicalResourceId,
-    data: {},
   };
 }
 
@@ -97,21 +80,40 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   };
 }
 
-async function createPublishDestination(properties: PublishingProps) {
+async function createOrUpdatePublishDestination(properties: PublishingProps) {
   const { destinationArn, kmsKeyArn, detectorId } = properties;
-  const params = {
-    DestinationType: 'S3', // currently only S3 is supported
-    DetectorId: detectorId,
-    DestinationProperties: {
-      DestinationArn: destinationArn,
-      KmsKeyArn: kmsKeyArn,
-    },
-  };
-
   try {
-    const createPublish = await guardduty.createPublishingDestination(params).promise();
+    const destination = await guardduty
+      .listPublishingDestinations({
+        DetectorId: detectorId,
+      })
+      .promise();
 
-    return createPublish;
+    if (destination.Destinations && destination.Destinations.length > 0) {
+      const updateParams = {
+        DestinationId: destination.Destinations[0].DestinationId,
+        DetectorId: properties.detectorId,
+        DestinationProperties: {
+          DestinationArn: properties.destinationArn,
+          KmsKeyArn: properties.kmsKeyArn,
+        },
+      };
+      await guardduty.updatePublishingDestination(updateParams).promise();
+      return destination.Destinations[0];
+    } else {
+      const createParams = {
+        DestinationType: 'S3', // currently only S3 is supported
+        DetectorId: detectorId,
+        DestinationProperties: {
+          DestinationArn: destinationArn,
+          KmsKeyArn: kmsKeyArn,
+        },
+      };
+
+      const createPublish = await guardduty.createPublishingDestination(createParams).promise();
+      console.log(`Created Publishing Destination for detectorId "${detectorId}"`);
+      return createPublish;
+    }
   } catch (e) {
     const message = `${e}`;
     // if publish destination already exist, do not error out
@@ -125,24 +127,6 @@ async function createPublishDestination(properties: PublishingProps) {
       throw e;
     }
   }
-}
-
-async function updatePublishDestination(properties: PublishingProps) {
-  const listParam = {
-    DetectorId: properties.detectorId,
-  };
-  const destination = await guardduty.listPublishingDestinations(listParam).promise();
-
-  const params = {
-    DestinationId: destination.Destinations[0].DestinationId,
-    DetectorId: properties.detectorId,
-    DestinationProperties: {
-      DestinationArn: properties.destinationArn,
-      KmsKeyArn: properties.kmsKeyArn,
-    },
-  };
-
-  return guardduty.updatePublishingDestination(params).promise();
 }
 
 async function deletePublishDestination(properties: PublishingProps) {

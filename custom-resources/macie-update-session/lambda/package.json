@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@custom-resources/cfn-response": "workspace:^0.0.1",
+    "@custom-resources/macie-enable-lambda": "workspace:^0.0.1",
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.710.0"
   }

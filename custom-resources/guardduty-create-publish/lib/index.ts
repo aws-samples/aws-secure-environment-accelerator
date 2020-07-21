@@ -26,7 +26,11 @@ export class GuardDutyCreatePublish extends cdk.Construct {
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: handlerProperties,
+      properties: {
+        ...handlerProperties,
+        // Add a dummy value that is a random number to update the resource every time
+        forceUpdate: Math.round(Math.random() * 1000000),
+      },
     });
   }
 

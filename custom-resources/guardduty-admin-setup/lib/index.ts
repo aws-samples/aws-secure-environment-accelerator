@@ -59,8 +59,8 @@ export class GuardDutyAdminSetup extends cdk.Construct {
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
-          'guardduty:ListDetectors', 
-          'guardduty:CreateMembers', 
+          'guardduty:ListDetectors',
+          'guardduty:CreateMembers',
           'guardduty:UpdateOrganizationConfiguration',
           'guardduty:DescribeOrganizationConfiguration',
         ],
