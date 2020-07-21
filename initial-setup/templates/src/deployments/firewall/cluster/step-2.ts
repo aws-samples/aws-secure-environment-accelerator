@@ -119,7 +119,7 @@ async function createCustomerGateways(props: {
     let vpnConnection;
     let vpnTunnelOptions;
     if (port.eipIpAddress && port.createCustomerGateway) {
-      const prefix = `${firewallCgwName}_az${pascalCase(port.az)}_${index}`;
+      const prefix = `${firewallCgwName}_${port.subnetName}_az${pascalCase(port.az)}`;
 
       customerGateway = new ec2.CfnCustomerGateway(scope, `${prefix}_cgw`, {
         type: 'ipsec.1',
