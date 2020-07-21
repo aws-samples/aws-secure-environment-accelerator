@@ -5,6 +5,8 @@ import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { AcceleratorConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
+import { pascalCase } from 'pascal-case';
+import * as crypto from 'crypto';
 
 interface MoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -50,13 +52,17 @@ export const handler = async (input: MoveAccountOrganization) => {
   if (sourceParentId === rootOrgId) {
     // Account is moving from Root Organization to another
     const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
-    const destinationRootOrg = destinationOrg.Path.split('/')[0];
+    const destinationRootOrg = destinationOrg.Name!;
+    if (ignoredOus.includes(destinationRootOrg)) {
+      console.log(`Movement is to IgnoredOu from ROOT, So no need to add it into configuration`);
+      return 'IGNORE';
+    }
     updatestatus = await updateAccountConfig(account, destinationOrg, destinationRootOrg);
   } else if (destinationParentId === rootOrgId) {
     const parentOrg = await organizations.getOrganizationalUnitWithPath(sourceParentId);
     if (ignoredOus.includes(parentOrg.Name!)) {
-      console.log(`Movement is to IgnoredOu from ROOT, So no need to add it into configuration`);
-      return 'SUCCESS';
+      console.log(`Movement is to ROOT from ignoredOu, So no need to add it into configuration`);
+      return 'IGNORE';
     }
     // Move account back to source and don't update config
     console.log(`Invalid moveAccount from ${sourceParentId} to ROOT Organization`);
@@ -134,7 +140,7 @@ async function updateAccountConfig(
       'ou-path': destinationOrg.Path,
     };
   }
-  accountKey = accountKey || account.Name!;
+  accountKey = accountKey || `${pascalCase(account.Name!)}-${hashName(account.Name!, 6)}`;
   if (mandatoryAccountConfig) {
     mandatoryAccounts[accountKey] = accountConfig;
     updateConfig['mandatory-account-configs'] = mandatoryAccounts;
@@ -184,4 +190,10 @@ async function startStateMachine(stateMachineArn: string): Promise<string> {
     return 'SM_ALREADY_RUNNING';
   }
   return 'SUCCESS';
+}
+
+
+function hashName(name: string, length: number) {
+  const hash = crypto.createHash('md5').update(name).digest('hex');
+  return hash.slice(0, length).toUpperCase();
 }
