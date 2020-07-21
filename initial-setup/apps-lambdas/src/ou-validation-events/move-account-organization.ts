@@ -192,7 +192,6 @@ async function startStateMachine(stateMachineArn: string): Promise<string> {
   return 'SUCCESS';
 }
 
-
 function hashName(name: string, length: number) {
   const hash = crypto.createHash('md5').update(name).digest('hex');
   return hash.slice(0, length).toUpperCase();
