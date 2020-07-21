@@ -214,10 +214,13 @@ The Accelerator Architecture networking is built on a principle of centralized o
 
 ![Mandatory Accounts](./images/network_architecture.drawio.png)
 
-All functional accounts use RAM-shared networking infrastructure as depicted above. The line of business VPCs (Dev, Test, Prod, etc) are hosted in the Shared Network account and made available to the appropriate OU in the Organization.
+All functional accounts use RAM-shared networking infrastructure as depicted above. The workload VPCs (Dev, Test, Prod, etc) are hosted in the Shared Network account and made available to the appropriate OU in the Organization.
 
 ### Perimeter
-The perimeter VPC hosts the Organization's perimeter security services. The Perimeter VPC is used to control the flow of traffic between AWS Accounts and external networks:  both public and private via GC CAP and GC TIP. This VPC hosts Next Generation Firewalls that provide perimeter security services including virus scanning / malware protection, Intrusion Protection services, TLS Inspection and Web Application Firewall protection.  If applicable, this VPC also hosts reverse proxy servers.
+The perimeter VPC hosts the Organization's perimeter security services. The Perimeter VPC is used to control the flow of traffic between AWS Accounts and external networks:  both public and private via GC CAP and GC TIP. This VPC hosts Next Generation Firewalls that provide perimeter security services including virus scanning / malware protection, Intrusion Protection services, TLS Inspection and Web Application Firewall protection. If applicable, this VPC also hosts reverse proxy servers.
+
+
+![Endpoints](./images/perimeter.drawio.png)
 
 This VPC has four subnets per AZ, each of which hosts a port used by the NGFW devices, which are deployed in an HA pair. The purpose of these subnets is as follows:
 
@@ -227,11 +230,15 @@ This VPC has four subnets per AZ, each of which hosts a port used by the NGFW de
 * **FW-Management**: This subnet is used to host management tools and the management of the Firewalls itself.
 * **Public**: This subnet is the public-access zone for the perimeter VPC. It hosts the public interface of the firewalls, as well as application load balancers that are used to balance traffic across the firewall pair. There is one Elastic IPv4 address per public subnet that corresponds to the IPSec Customer Gateway (CGW) for the VPN connection into the Transit Gateway in Shared Networking.
 
+Outbound internet connections (for software updates, etc.) can be initiated from within the workload VPCs, and use the transparent proxy feature of the next-gen Firewalls.
+
 ### Shared Network
 The shared network account, and the AWS networking resources therein, form the core of the cloud networking infrastructure across the account structure. Rather than the individual accounts define their own networks, these are instead centralized here and shared out to the relevant OUs. Principals in a Dev OU will have access to a Dev VPC, Test OU will have access to a Test VPC and so on - all of which are owned by this account.
 
+You can share AWS Transit Gateways, Subnets, AWS License Manager configurations, and Amazon Route 53 Resolver rules resources with AWS Resource Access Manager (RAM). The RAM service eliminates the need to create duplicate resources in multiple accounts, reducing the operational overhead of managing those resources in every single account.
+
 #### Transit Gateway
-The Transit Gateway is a central hub that performs several core functions within the Shared Network account:
+The Transit Gateway is a central hub that performs several core functions within the Shared Network account.
 
 1. Routing of permitted flows; for example a Workload to On-premises via the Perimeter VPC.
     * All routing tables in SharedNetwork VPCs send `0.0.0.0/0` traffic to the TGW, where its handling will be determined by the TGW Route Table (TGW-RT) that its attachment is associated with. For example:
@@ -243,18 +250,106 @@ The Transit Gateway is a central hub that performs several core functions within
 2. Defining separate routing domains that prohibit undesired east-west flows at the network level; for example, by prohibiting Dev to Prod traffic. For example:
     * All routing tables in SharedNetwork VPCs send `0.0.0.0/0` traffic to the TGW, which defines where the next permissible hop is. For example, `10.2.0.0/16` Dev traffic destined for the `10.0.4.0/16` Prod VPC will be blocked by the blackhole route in the Segregated TGW RT.
 3. Enabling centralization of shared resources; namely a shared Microsoft AD installation in the Central VPC, and access to shared VPC Endpoints in the Endpoint VPC.
-    * The Central VPC, and the Endpoint VPC are routable from Workload VPCs. This provides an economical way to share Organization wide resources that are nonetheless isolated into their own VPCs.
+    * The Central VPC, and the Endpoint VPC are routable from Workload VPCs. This provides an economical way to share Organization wide resources that are nonetheless isolated into their own VPCs. For example:
+        * a `git` request in the `Dev` VPC to `git.private-domain.ca` resolves to a `10.1.0.0/16` address in the `Central` VPC.
+        * The request from the `Dev` VPC will go to the TGW due to the VPC routing table associated with that subnet
+        * The TGW will send the request to the `Central` VPC via an entry in the Segregated TGW RT
+        * The `git` response will go to the TGW due to the VPC routing table associated with that subnet
+        * The Shared TGW RT will direct the response back to the `Dev` VPC
+
+The four TGW RTs exist to serve the following main functions:
+
+* **Segregated TGW RT**: Used as the association table for the workload VPCs; prevents  east-west traffic, except to shared resources.
+* **Core TGW RT**: Used for internet/on-premises response traffic, and Endpoint VPC egress.
+* **Shared TGW RT**: Used to provide `Central` VPC access east-west for the purposes of response traffic to shared workloads
+* **Standalone TGW RT**: Reserved for future use. Prevents TGW routing except to the Endpoint VPC.
 
 #### Endpoint VPC
 
-#### Workload VPCs
+DNS functionality for the network architecture is centralized in the Endpoint VPC:
+
+![Endpoints](./images/dns.drawio.png)
+
+#### Endpoint VPC: Interface Endpoints
+
+The endpoint VPC hosts VPC Interface Endpoints (VPCEs) and associated Route 53 private hosted zones for all applicable services in the `ca-central-1` region. This permits traffic destined for an eligible AWS service; for example SQS, to remain entirely within the SharedNetwork account rather than transiting via the IPv4 public endpoint for the service:
+
+![Endpoints](./images/endpoints.png)
+
+From within an associated workload VPC such as `Dev`, the service endpoint (e.g. `sqs.ca-central-1.amazonaws.com`) will resolve to an IP in the `Endpoint` VPC:
+
+```bash
+sh-4.2$ nslookup sqs.ca-central-1.amazonaws.com
+Server:         10.2.0.2                  # Dev VPC's .2 resolver.
+Address:        10.2.0.2#53
+
+Non-authoritative answer:
+Name:   sqs.ca-central-1.amazonaws.com
+Address: 10.7.1.190                       # IP in Endpoint VPC - AZ-a.
+Name:   sqs.ca-central-1.amazonaws.com
+Address: 10.7.0.135                       # IP in Endpoint VPC - AZ-b.
+```
+
+This cross-VPC resolution of the service-specific private hosted zone functions via the association of each VPC to each private hosted zone, as depicted above.
+
+#### Endpoint VPC: Hybrid DNS
+
+The Endpoint also VPC hosts the common DNS infrastructure used to resolve DNS queries:
+
+* within the cloud
+* from the cloud to on-premises
+* from on-premises to the cloud
+
+
+##### Within The Cloud
+In-cloud DNS resolution applies beyond the DNS infrastructure that is put in place to support the Interface Endpoints for the AWS services in-region. Other DNS zones, associated with the Endpoint VPC, are resolvable the same way via an association to workload VPCs.
+
+##### From Cloud to On-Premises
+DNS Resolution from the cloud to on-premises is handled via the use of a Route 53 Outbound Endpoint, deployed in the Endpoint VPC, with an associated Resolver rule that fowards DNS traffic to the outbound endpoint. Each VPC is associated to this rule.
+
+![Endpoints](./images/resolver-rule.png)
+
+##### From On-Premises to Cloud
+Conditional forwarding from on-premises networks is made possible via the use of a Route 53 Inbound Endpoint. On-prem networks send resolution requests for relevant domains to the endpoints deployed in the Endpoint VPC:
+
+![Endpoints](./images/inbound-resolver.png)
+
 
 #### Central VPC
+The Central VPC is a network for localizing operational infrastructure that may be needed across the Organization, such as code repositories, artifact repositories, and notably, the managed Directory Service (Microsoft AD). Instances that are domain joined will connect to this AD domain - a network flow that is made possible from anywhere in the network structure due to the inclusion of the Central VPC in all relevant association TGW RTs.
 
-### Security Groups
+Note that this VPC also contains a peering relationship to the `ForSSO` VPC in the master account. This exists purely to support connectivity from an AD-Connector instance in the master account, which in turn enables AWS SSO for federated login to the AWS control plane.
 
-### NACLs
-Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth measure.
+![Endpoints](./images/central.drawio.png)
+
+#### Workload VPCs
+The workload VPCs are where line of business applications ultimately reside, segmented by environment (`Dev`, `Test`, `Prod`, etc).
+
+![Endpoints](./images/workload.drawio.png)
+
+Note that security groups are recommended as the primary data-plane isolation mechanism between applications that may coexist in the same VPC. It is anticipated that unrelated applications would coexist in their respective tiers without ever permitting east-west traffic flows.
+
+Gateway Endpoints for relevant services (Amazon S3, Amazon DynamoDB) are installed in the route tables of all Workload VPCs.
+
+
+##### Security Groups
+Security Groups are instance level firewalls, and represent a foundational unit of network segmentation across AWS networking. Security groups are stateful, and support ingress/egress rules based on protocols and source/destinations. While CIDR ranges are supported by the latter, it is preferable to instead use other security groups as source/destinations. This permits a higher level of expressiveness that is not coupled to particular CIDR choices and works well with autoscaling; e.g.
+
+>  "permit port 3306 traffic from the `App` tier to the `Data` tier"
+
+versus
+
+> "permit port 3306 traffic from `10.0.1.0/24`  to `10.0.2.0/24`.
+
+Note that in practice, egress rules are generally used in 'allow all' mode, with the focus primarily being on whitelisting certain ingress traffic.
+
+##### NACLs
+Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth measure. Given that each network flow requires potentially four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral), the marginal security value of exhaustive NACL use is not worth the administrative complexity. The architecture recommends NACLs as a segmentation mechanism for `Data` subnets; i.e. `DENY` all inbound traffic to such a subnet except that which originates in the `App` subnet for the same VPC.
+
+#### Sandbox VPC
+A sandbox VPC, not depicted, may be included in the architecture. This is **not** connected to the Transit Gateway, Perimeter VPC, on-premises network, or other common infrastructure. It contains its own Internet Gateway, and is an entirely separate VPC with respect to the rest of the architecture.
+
+The sandbox VPC should be used exclusively for time-limited experimentation, and never used for any line of business workload or data.
 
 ## 4. Authorization and Authentication
 ## 5. Logging and Monitoring
