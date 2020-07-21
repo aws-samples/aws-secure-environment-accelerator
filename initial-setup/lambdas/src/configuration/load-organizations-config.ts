@@ -56,6 +56,12 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     awsOusWithPath.push(await organizations.getOrganizationalUnitWithPath(awsOu.Id!));
   }
 
+  const ignoredOus = config['global-options']['ignored-ous'] || [];
+  const ignoredOuIds: string[] = [];
+  for (const ignoredOu of ignoredOus) {
+    ignoredOuIds.push(...awsOusWithPath.filter(ou => ou.Name === ignoredOu).map(o => o.Id!));
+  }
+
   console.log(`Found organizational units:`);
   console.log(JSON.stringify(awsOusWithPath, null, 2));
 
@@ -65,6 +71,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
 
   // Store the discovered accounts and OUs in these objects
   const configurationAccounts: ConfigurationAccount[] = [];
+  const accountsInIgnoredOus: ConfigurationAccount[] = [];
   const configurationOus: ConfigurationOrganizationalUnit[] = [];
 
   // -------------------------------- \\
@@ -104,7 +111,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     }
     configurationOus.push({
       ouId: awsOu.Id!,
-      ouName: awsOu.Path,
+      ouName: awsOu.Name!,
       ouKey: acceleratorOu,
       ouPath: awsOu.Path,
     });
@@ -153,6 +160,19 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
       }
     }
 
+    if (ignoredOus.includes(organizationalUnit.Name!)) {
+      // Accounts under ignoredOus
+      accountsInIgnoredOus.push({
+        accountId: account?.Id,
+        accountKey,
+        accountName: accountConfigName,
+        emailAddress: accountConfig.email,
+        organizationalUnit: organizationalUnitName,
+        isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
+        ouPath: organizationalUnitPath,
+      });
+    }
+
     configurationAccounts.push({
       accountId: account?.Id,
       accountKey,
@@ -167,6 +187,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   // Verify if there are additional accounts in the OU that are not managed by Accelerator
   for (const organizationalUnit of awsOusWithPath) {
     const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
+    if (ignoredOuIds.includes(organizationalUnit.Id!)) {
+      continue;
+    }
     const acceleratorAccountsInOu = configurationAccounts.filter(account => account.ouPath === organizationalUnit.Path);
     if (accountsInOu.length !== acceleratorAccountsInOu.length) {
       errors.push(
@@ -178,6 +201,12 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     }
   }
 
+  if (accountsInIgnoredOus.length > 0) {
+    errors.push(
+      `There are ${accountsInIgnoredOus.length} accounts under ignored OUs which is in configuration ` +
+        `  Accounts in config: ${accountsInIgnoredOus.map(a => a.accountName).join(', ')}\n`,
+    );
+  }
   errors.push(...validateOrganizationSpecificConfiguration(config));
   // Throw all errors at once
   if (errors.length > 0) {

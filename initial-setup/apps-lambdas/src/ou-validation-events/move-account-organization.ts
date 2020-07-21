@@ -43,12 +43,21 @@ export const handler = async (input: MoveAccountOrganization) => {
   const rootOrg = await organizations.listRoots();
   const rootOrgId = rootOrg[0].Id;
   let updatestatus: string;
+
+  const configResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
+  const config = JSON.parse(configResponse.fileContent.toString());
+  const ignoredOus: string[] = config['global-options']['ignored-ous'] || [];
   if (sourceParentId === rootOrgId) {
     // Account is moving from Root Organization to another
     const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
     const destinationRootOrg = destinationOrg.Path.split('/')[0];
     updatestatus = await updateAccountConfig(account, destinationOrg, destinationRootOrg);
   } else if (destinationParentId === rootOrgId) {
+    const parentOrg = await organizations.getOrganizationalUnitWithPath(sourceParentId);
+    if (ignoredOus.includes(parentOrg.Name!)) {
+      console.log(`Movement is to IgnoredOu from ROOT, So no need to add it into configuration`);
+      return 'SUCCESS';
+    }
     // Move account back to source and don't update config
     console.log(`Invalid moveAccount from ${sourceParentId} to ROOT Organization`);
     await organizations.moveAccount({
@@ -62,7 +71,7 @@ export const handler = async (input: MoveAccountOrganization) => {
     const destinationOrg = await organizations.getOrganizationalUnitWithPath(destinationParentId);
     const parentRootOrg = parentOrg.Path.split('/')[0];
     const destinationRootOrg = destinationOrg.Path.split('/')[0];
-    if (parentRootOrg !== destinationRootOrg) {
+    if (parentRootOrg !== destinationRootOrg && !ignoredOus.includes(parentRootOrg)) {
       // Move account back to source and don't change config
       console.log(`Invalid moveAccount from ${parentOrg.Path} to ${destinationOrg.Path}`);
       await organizations.moveAccount({
