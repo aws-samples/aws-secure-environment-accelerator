@@ -3,7 +3,7 @@ import { AccountStacks } from '../../../common/account-stacks';
 import { Account } from '../../../utils/accounts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CentralLoggingSubscriptionFilter } from '@custom-resources/logs-add-subscription-filter';
-import { createName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { createName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface CentralLoggingToS3Step2Props {
   accountStacks: AccountStacks;
@@ -48,11 +48,14 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         account: false,
         region: false,
       });
+
+      const roleName = createRoleName('CL-Subscription-Filter');
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${accountKey}`, {
         logDestinationArn,
         globalExclusions,
         ruleName,
         logRetention,
+        roleName,
       });
     }
   }

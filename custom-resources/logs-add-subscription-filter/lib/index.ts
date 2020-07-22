@@ -11,6 +11,7 @@ export interface CentralLoggingSubscriptionFilterProps {
   globalExclusions?: string[];
   ruleName: string;
   logRetention: number;
+  roleName: string;
 }
 
 /**
@@ -21,14 +22,22 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly cloudWatchEnventLambdaPath =
     '@custom-resources/logs-add-subscription-filter-cloudwatch-event-lambda';
   private readonly cloudFormationCustomLambaPath = '@custom-resources/logs-add-subscription-filter-lambda';
+  private readonly subscriptionRole: iam.IRole;
 
   constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);
 
+    const centralSubscriptionLambda = this.ensureLambdaFunction(
+      this.cloudFormationCustomLambaPath,
+      resourceType,
+      `${props.roleName}-CSF-Role`,
+    );
+    this.subscriptionRole = centralSubscriptionLambda.role!;
+
     // Custom Resource to add subscriptin filter to existing logGroups
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: this.lambdaFunction.functionArn,
+      serviceToken: centralSubscriptionLambda.functionArn,
       properties: {
         ...props,
       },
@@ -43,6 +52,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     const addSubscriptionLambda = this.ensureLambdaFunction(
       this.cloudWatchEnventLambdaPath,
       `AddSubscriptionFilter`,
+      `${props.roleName}-ASF-Role`,
       envVariables,
     );
     const eventPattern = {
@@ -74,17 +84,14 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     });
   }
 
-  get lambdaFunction(): lambda.Function {
-    return this.ensureLambdaFunction(this.cloudFormationCustomLambaPath, resourceType);
-  }
-
   get role(): iam.IRole {
-    return this.lambdaFunction.role!;
+    return this.subscriptionRole!;
   }
 
   private ensureLambdaFunction(
     lambdaLocation: string,
     name: string,
+    roleName: string,
     environment?: { [key: string]: string },
   ): lambda.Function {
     const constructName = `${name}Lambda`;
@@ -98,6 +105,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     const lambdaDir = path.dirname(lambdaPath);
 
     const role = new iam.Role(stack, `${name}Role`, {
+      roleName,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
