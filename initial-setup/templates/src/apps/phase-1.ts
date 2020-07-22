@@ -467,7 +467,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   if (!acceleratorConfig['global-options']['alz-baseline']) {
-    // GuardDuty step 2
+    /**
+     * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+     * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+     *
+     * @param props accountStacks and config passed from phases
+     */
     await guardDutyDeployment.step2({
       accountStacks,
       config: acceleratorConfig,

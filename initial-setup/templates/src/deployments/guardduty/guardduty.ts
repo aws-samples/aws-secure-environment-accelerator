@@ -73,10 +73,6 @@ export async function step2(props: GuardDutyStepProps) {
   }));
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
-    /**
-     * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-     * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-     */
     new GuardDutyAdminSetup(masterAccountStack, 'GuardDutyAdminSetup', {
       memberAccounts: accountDetails,
     });
