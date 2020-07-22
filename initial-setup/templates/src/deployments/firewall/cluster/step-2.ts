@@ -174,14 +174,14 @@ async function createCustomerGateways(props: {
       const tgwRoutePropagates = propagateConfig.map(route => transitGateway.tgwRouteTableNameToIdMap[route]);
 
       for (const [routeIndex, route] of tgwRouteAssociates?.entries()) {
-        new ec2.CfnTransitGatewayRouteTableAssociation(scope, `tgw_associate_${index}_${routeIndex}`, {
+        new ec2.CfnTransitGatewayRouteTableAssociation(scope, `tgw_associate_${prefix}_${routeIndex}`, {
           transitGatewayAttachmentId: attachments.getTransitGatewayAttachmentId(0), // one vpn connection should only have one attachment
           transitGatewayRouteTableId: route,
         });
       }
 
       for (const [routeIndex, route] of tgwRoutePropagates?.entries()) {
-        new ec2.CfnTransitGatewayRouteTablePropagation(scope, `tgw_propagate_${index}_${routeIndex}`, {
+        new ec2.CfnTransitGatewayRouteTablePropagation(scope, `tgw_propagate_${prefix}_${routeIndex}`, {
           transitGatewayAttachmentId: attachments.getTransitGatewayAttachmentId(0), // one vpn connection should only have one attachment
           transitGatewayRouteTableId: route,
         });
