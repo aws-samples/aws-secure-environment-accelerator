@@ -77,7 +77,7 @@ async function getDetectorId(): Promise<string | undefined> {
       return detectors.DetectorIds[0];
     }
   } catch (e) {
-    console.error(`Error Occured while listing Detectors ${e.code}: ${e.message}`);
+    console.error(`Error Occurred while listing Detectors ${e.code}: ${e.message}`);
     return;
   }
 }
@@ -93,7 +93,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
       .promise();
   } catch (error) {
     console.error(
-      `Error Occured while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
+      `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
     );
   }
 }
@@ -109,7 +109,7 @@ async function updateConfig(detectorId: string) {
       .promise();
   } catch (error) {
     console.error(
-      `Error Occured while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
+      `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
     );
   }
 }
@@ -125,7 +125,7 @@ async function isConfigurationAutoEnabled(detectorId: string): Promise<boolean> 
     return response.AutoEnable;
   } catch (error) {
     console.error(
-      `Error Occured while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
+      `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
     );
     return false;
   }
