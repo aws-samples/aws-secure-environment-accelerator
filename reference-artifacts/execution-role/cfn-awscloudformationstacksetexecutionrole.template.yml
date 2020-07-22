@@ -23,11 +23,7 @@ Resources:
           - Effect: Allow
             Principal:
               AWS:
-                - !Join 
-                  - ''
-                  - - 'arn:aws:iam::'
-                    - !Ref MasterAccountId
-                    - ':role/AWSCloudFormationStackSetAdministrationRole'
+                - !Ref MasterAccountId
             Action:
               - 'sts:AssumeRole'
       Path: /
