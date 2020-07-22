@@ -75,8 +75,7 @@ The above is not valid JSON without first removing the comment on the fourth lin
 
  The design makes use of [RFC1918][1918] addresses and [RFC6598][6598] for various networks; these will be labeled accordingly. Any specific range or IP shown is purely for illustration purposes only.
 
-[1918]: https://tools.ietf.org/html/rfc1918
-[6598]: https://tools.ietf.org/html/rfc6598
+
 
 ### 1.4 Department Naming
 
@@ -123,6 +122,8 @@ The AWS Organization resides in the master account. This account is not used for
   }
 }
 ```
+
+Note that this is a different role name than the default installed by AWS Organizations (`OrganizationAccountAccessRole`).
 
 
 #### AWS SSO
@@ -217,18 +218,24 @@ The Accelerator Architecture networking is built on a principle of centralized o
 All functional accounts use RAM-shared networking infrastructure as depicted above. The workload VPCs (Dev, Test, Prod, etc) are hosted in the Shared Network account and made available to the appropriate OU in the Organization.
 
 ### Perimeter
-The perimeter VPC hosts the Organization's perimeter security services. The Perimeter VPC is used to control the flow of traffic between AWS Accounts and external networks:  both public and private via GC CAP and GC TIP. This VPC hosts Next Generation Firewalls that provide perimeter security services including virus scanning / malware protection, Intrusion Protection services, TLS Inspection and Web Application Firewall protection. If applicable, this VPC also hosts reverse proxy servers.
+The perimeter VPC hosts the Organization's perimeter security services. The Perimeter VPC is used to control the flow of traffic between AWS Accounts and external networks: both public and private via GC CAP and GC TIP. This VPC hosts Next Generation Firewalls (NGFW) that provide perimeter security services including virus scanning / malware protection, Intrusion Protection services, TLS Inspection and Web Application Firewall protection. If applicable, this VPC also hosts reverse proxy servers.
 
+The Architecture recommends that the perimeter VPC have a primary range in the [RFC1918][1918] block (e.g. `10.7.4.0/22`) for the detonation subnet, and a secondary range in the [RFC6598][6598] block (e.g. `100.96.250.0/23`) used for the overlay network (NGFW devices inside VPN tunnel) for all other subnets. This secondary range is assigned by an external entity (e.g. Shared Services Canada).
 
 ![Endpoints](./images/perimeter.drawio.png)
 
-This VPC has four subnets per AZ, each of which hosts a port used by the NGFW devices, which are deployed in an HA pair. The purpose of these subnets is as follows:
+This VPC has four subnets per AZ, each of which hosts a port used by the NGFW devices, which are deployed in an HA pair. The purpose of these subnets is as follows.
 
 * **Detonation**: This is an unused subnet reserved for future use with malware detonation capabilities of the NGFW devices.
+    * e.g. `10.7.4.0/24` - not routable except local.
 * **Proxy**: This subnet hosts reverse proxy services for web and other protocols. It also contains the [three interface endpoints][ssm_endpoints] necessary for AWS Systems Manager Session Manager, which enables SSH-less CLI access to authorized and authenticated principals in the perimeter account.
+    * e.g. `100.96.251.64/26`
 * **On-Premises**: This subnet hosts the private interfaces of the firewalls, corresponding to connections from the on-premises network.
+    * e.g. `100.96.250.192/26`
 * **FW-Management**: This subnet is used to host management tools and the management of the Firewalls itself.
+    * e.g. `100.96.251.160/27` - a smaller subnet is permissible due to modest IP requirements for management instances.
 * **Public**: This subnet is the public-access zone for the perimeter VPC. It hosts the public interface of the firewalls, as well as application load balancers that are used to balance traffic across the firewall pair. There is one Elastic IPv4 address per public subnet that corresponds to the IPSec Customer Gateway (CGW) for the VPN connection into the Transit Gateway in Shared Networking.
+    * e.g. `100.96.250.0/26`
 
 Outbound internet connections (for software updates, etc.) can be initiated from within the workload VPCs, and use the transparent proxy feature of the next-gen Firewalls.
 
@@ -266,7 +273,7 @@ The four TGW RTs exist to serve the following main functions:
 
 #### Endpoint VPC
 
-DNS functionality for the network architecture is centralized in the Endpoint VPC:
+DNS functionality for the network architecture is centralized in the Endpoint VPC. It is recommended that the Endpoint VPC use a [RFC1918][1918] range - e.g. `10.7.0.0/22` with sufficient capacity to support 60+ AWS services and future endpoint expansion, and inbound and outbound resolvers (all figures per AZ).
 
 ![Endpoints](./images/dns.drawio.png)
 
@@ -315,19 +322,21 @@ Conditional forwarding from on-premises networks is made possible via the use of
 ![Endpoints](./images/inbound-resolver.png)
 
 
-#### Central VPC
-The Central VPC is a network for localizing operational infrastructure that may be needed across the Organization, such as code repositories, artifact repositories, and notably, the managed Directory Service (Microsoft AD). Instances that are domain joined will connect to this AD domain - a network flow that is made possible from anywhere in the network structure due to the inclusion of the Central VPC in all relevant association TGW RTs.
-
-Note that this VPC also contains a peering relationship to the `ForSSO` VPC in the master account. This exists purely to support connectivity from an AD-Connector instance in the master account, which in turn enables AWS SSO for federated login to the AWS control plane.
-
-![Endpoints](./images/central.drawio.png)
 
 #### Workload VPCs
-The workload VPCs are where line of business applications ultimately reside, segmented by environment (`Dev`, `Test`, `Prod`, etc).
+The workload VPCs are where line of business applications ultimately reside, segmented by environment (`Dev`, `Test`, `Prod`, etc). It is recommended that the Workload VPC use a [RFC1918][1918] range (e.g. `10.2.0.0/16` for `Dev`, `10.3.0.0/16` for `Test`, etc).
 
 ![Endpoints](./images/workload.drawio.png)
 
 Note that security groups are recommended as the primary data-plane isolation mechanism between applications that may coexist in the same VPC. It is anticipated that unrelated applications would coexist in their respective tiers without ever permitting east-west traffic flows.
+
+The following subnets are defined by the Architecture:
+
+* **TGW subnet**: This subnet hosts the elastic-network interfaces for the TGW attachment. A `/27` subnet is sufficient.
+* **Web subnet**: This subnet hosts front-end or otherwise 'client' facing infrastructure. A `/20` or larger subnet is recommended to facilitate auto-scaling.
+* **App subnet**: This subnet hosts app-tier code (EC2, containers, etc). A `/19` or larger subnet is recommended to facilitate auto-scaling.
+* **Data subnet**:  This subnet hosts data-tier code (RDS instances, ElastiCache instances). A `/21` or larger subnet is recommended.
+* **Mgmt subnet**: This subnet hosts bastion or other management instances. A `/21` or larger subnet is recommended.
 
 Gateway Endpoints for relevant services (Amazon S3, Amazon DynamoDB) are installed in the route tables of all Workload VPCs.
 
@@ -344,14 +353,60 @@ versus
 Note that in practice, egress rules are generally used in 'allow all' mode, with the focus primarily being on whitelisting certain ingress traffic.
 
 ##### NACLs
-Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth measure. Given that each network flow requires potentially four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral), the marginal security value of exhaustive NACL use is not worth the administrative complexity. The architecture recommends NACLs as a segmentation mechanism for `Data` subnets; i.e. `DENY` all inbound traffic to such a subnet except that which originates in the `App` subnet for the same VPC.
+Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth measure. Given that each network flow requires potentially four NACL entries (egress from ephemeral, ingress to destination, egress from destination, ingress to ephemeral), the marginal security value of exhaustive NACL use is generally not worth the administrative complexity. The architecture recommends NACLs as a segmentation mechanism for `Data` subnets; i.e. `DENY` all inbound traffic to such a subnet except that which originates in the `App` subnet for the same VPC.
+
+
+#### Central VPC
+The Central VPC is a network for localizing operational infrastructure that may be needed across the Organization, such as code repositories, artifact repositories, and notably, the managed Directory Service (Microsoft AD). Instances that are domain joined will connect to this AD domain - a network flow that is made possible from anywhere in the network structure due to the inclusion of the Central VPC in all relevant association TGW RTs.
+
+It is recommended that the Central VPC use a [RFC1918][1918] range (e.g. `10.1.0.0/16`) for the purposes of routing from the workload VPCs, and a secondary range from the [RFC6598][6598] block (e.g. 100.96.252.0/23) to support the Microsoft AD workload.
+
+Note that this VPC also contains a peering relationship to the `ForSSO` VPC in the master account. This exists purely to support connectivity from an AD-Connector instance in the master account, which in turn enables AWS SSO for federated login to the AWS control plane.
+
+![Endpoints](./images/central.drawio.png)
 
 #### Sandbox VPC
 A sandbox VPC, not depicted, may be included in the architecture. This is **not** connected to the Transit Gateway, Perimeter VPC, on-premises network, or other common infrastructure. It contains its own Internet Gateway, and is an entirely separate VPC with respect to the rest of the architecture.
 
-The sandbox VPC should be used exclusively for time-limited experimentation, and never used for any line of business workload or data.
+The sandbox VPC should be used exclusively for time-limited experimentation, particularly with out-of-region services, and never used for any line of business workload or data.
 
 ## 4. Authorization and Authentication
+The Accelerator Architecture makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrailing objectives of the architecture.
+
+### Relationship Between Accounts
+
+AWS accounts, as a default position, are entirely self-contained with respect to IAM principals - their Users, Roles, Groups therein. Having access to one AWS account, even with Administrator privileges, does not imply any access to another, even within the same Organization or OU. There is one notable exception to this statement: the master account of the Organization. Accounts created by AWS Organizations deploy a default role with a trust policy back to the master:
+
+```json
+{
+  "Role": {
+    "Path": "/",
+    "RoleName": "OrganizationAccountAccessRole",
+    "Arn": "arn:aws:iam::111111111111:role/OrganizationAccountAccessRole",  # Child account.
+    "AssumeRolePolicyDocument": {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Principal": {
+            "AWS": "arn:aws:iam::123456789012:root"  # Master account may assume this role.
+          },
+          "Action": "sts:AssumeRole"
+        }
+      ]
+    }
+  }
+}
+```
+
+The Accelerator Architecture replaces this role with another,
+
+ have an entirely separate control plane
+
+Although the control  As discussed in section (2) the Organization master account acts as a gateway to the
+
+
+
 ## 5. Logging and Monitoring
 
 
@@ -368,3 +423,5 @@ The sandbox VPC should be used exclusively for time-limited experimentation, and
 [aws_tgw]: https://aws.amazon.com/TODO
 [aws_r53]: https://aws.amazon.com/route53/
 [ssm_endpoints]: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/
+[1918]: https://tools.ietf.org/html/rfc1918
+[6598]: https://tools.ietf.org/html/rfc6598
