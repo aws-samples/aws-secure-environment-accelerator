@@ -4,10 +4,9 @@ import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { GuardDutyAdmin } from '@custom-resources/guardduty-enable-admin';
-import { GuardDutyCreateMember } from '@custom-resources/guardduty-create-member';
-import { GuardDutyDetector } from '@custom-resources/guardduty-list-detector';
-import { GuardDutyUpdateConfig } from '@custom-resources/guardduty-update-config';
+import { GuardDutyDetector } from '@custom-resources/guardduty-get-detector';
 import { GuardDutyCreatePublish } from '@custom-resources/guardduty-create-publish';
+import { GuardDutyAdminSetup } from '@custom-resources/guardduty-admin-setup';
 
 export interface GuardDutyStepProps {
   accountStacks: AccountStacks;
@@ -68,32 +67,24 @@ export async function step2(props: GuardDutyStepProps) {
 
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
   const regions = await getValidRegions(props.config);
+  const accountDetails = props.accounts.map(account => ({
+    AccountId: account.id,
+    Email: account.email,
+  }));
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
-
-    const detector = new GuardDutyDetector(masterAccountStack, 'GuardDutyDetector');
-
-    // Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-    const accountDetails = props.accounts.map(account => ({
-      AccountId: account.id,
-      Email: account.email,
-    }));
-    const members = new GuardDutyCreateMember(masterAccountStack, 'GuardDutyCreateMember', {
-      accountDetails,
-      detectorId: detector.detectorId,
+    /**
+     * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+     * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+     */
+    new GuardDutyAdminSetup(masterAccountStack, 'GuardDutyAdminSetup', {
+      memberAccounts: accountDetails,
     });
-
-    // Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-    const updateConfig = new GuardDutyUpdateConfig(masterAccountStack, 'GuardDutyUpdateConfig', {
-      autoEnable: true,
-      detectorId: detector.detectorId,
-    });
-    updateConfig.node.addDependency(members);
   });
 }
 
 export async function step3(props: GuardDutyStep3Props) {
-  const { accountStacks, config, accounts, logBucket } = props;
+  const { logBucket } = props;
   const enableGuardDuty = props.config['global-options']['central-security-services'].guardduty;
 
   // skipping Guardduty if not enabled from config
@@ -103,7 +94,7 @@ export async function step3(props: GuardDutyStep3Props) {
 
   const logBucketKeyArn = logBucket.encryptionKey?.keyArn;
   const regions = await getValidRegions(props.config);
-  for (const [accountKey, accountConfig] of props.config.getAccountConfigs()) {
+  for (const [accountKey, _] of props.config.getAccountConfigs()) {
     for (const region of regions) {
       const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
       const detector = new GuardDutyDetector(accountStack, 'GuardDutyPublishDetector');
@@ -114,13 +105,14 @@ export async function step3(props: GuardDutyStep3Props) {
           destinationArn: logBucket.bucketArn,
           kmsKeyArn: logBucketKeyArn,
         });
+        createPublish.node.addDependency(detector);
       }
     }
   }
 }
 
 export async function enableGuardDutyPolicy(props: GuardDutyStep3Props) {
-  const { accountStacks, config, accounts, logBucket } = props;
+  const { logBucket } = props;
 
   // Grant GuardDuty permission to logBucket: https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_exportfindings.html
   logBucket.addToResourcePolicy(

@@ -466,12 +466,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
-  // GuardDuty step 2
-  await guardDutyDeployment.step2({
-    accountStacks,
-    config: acceleratorConfig,
-    accounts,
-  });
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    // GuardDuty step 2
+    await guardDutyDeployment.step2({
+      accountStacks,
+      config: acceleratorConfig,
+      accounts,
+    });
+  }
+  
   await guardDutyDeployment.step3({
     accountStacks,
     config: acceleratorConfig,
