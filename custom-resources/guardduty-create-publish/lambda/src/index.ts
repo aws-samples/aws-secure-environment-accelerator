@@ -7,7 +7,7 @@ import {
 } from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
 
-const physicalResourceId = 'GuardDutyPublishFindingsToCentralS3Bucket';
+const physicalResourceId = 'GuardDutyCreatePublishToCentralAccountS3';
 
 const guardduty = new AWS.GuardDuty();
 

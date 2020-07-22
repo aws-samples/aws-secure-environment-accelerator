@@ -4,7 +4,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import { HandlerProperties } from '@custom-resources/guardduty-create-publish-lambda';
 
-const resourceType = 'Custom::GuardDutyPublishFindingsToCentralBucket';
+const resourceType = 'Custom::GuardDutyCreatePublish';
 
 export interface GuardDutyCreatePublishProps {
   destinationArn: string;
