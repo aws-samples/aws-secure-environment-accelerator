@@ -49,6 +49,7 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         region: false,
       });
 
+      // Creating role name for central logging subscription filter
       const roleName = createRoleName('CL-Subscription-Filter');
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${accountKey}`, {
         logDestinationArn,
