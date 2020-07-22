@@ -474,7 +474,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       accounts,
     });
   }
-  
+
   await guardDutyDeployment.step3({
     accountStacks,
     config: acceleratorConfig,

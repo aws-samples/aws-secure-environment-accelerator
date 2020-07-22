@@ -4,7 +4,6 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as path from 'path';
 
-
 const resourceType = 'Custom::GetDetectorId';
 /**
  * Custom resource implementation that retrive IPs for a created DNS Endpoint.
@@ -18,10 +17,10 @@ export class GuardDutyDetector extends cdk.Construct {
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties:{
+      properties: {
         // Add a dummy value that is a random number to update the resource every time
         forceUpdate: Math.round(Math.random() * 1000000),
-      }
+      },
     });
   }
 

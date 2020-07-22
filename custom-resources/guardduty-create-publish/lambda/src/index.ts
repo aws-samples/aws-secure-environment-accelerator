@@ -57,7 +57,7 @@ async function onCreateOrUpdate(
     return {
       physicalResourceId: getPhysicalId(event),
       data: {},
-    }
+    };
   }
   const response = await createOrUpdatePublishDestination({
     ...properties,
@@ -126,10 +126,12 @@ async function deletePublishDestination(properties: HandlerProperties) {
     console.warn(`DetecrorId Not Found, Skipping creation of publisher`);
     return;
   }
-  try{
-    const destinations = await guardduty.listPublishingDestinations({
-      DetectorId: detectorId,
-    }).promise();
+  try {
+    const destinations = await guardduty
+      .listPublishingDestinations({
+        DetectorId: detectorId,
+      })
+      .promise();
 
     const params = {
       // only one destination should be established for guard duty
@@ -138,7 +140,7 @@ async function deletePublishDestination(properties: HandlerProperties) {
     };
 
     return guardduty.deletePublishingDestination(params).promise();
-  } catch (error){
+  } catch (error) {
     console.error(error);
     return;
   }
