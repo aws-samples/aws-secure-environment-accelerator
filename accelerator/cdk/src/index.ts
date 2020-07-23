@@ -28,7 +28,7 @@ async function main() {
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
   const notificationEmail = env.NOTIFICATION_EMAIL || 'user@test.com';
 
-  // Make Sure we change versionin "package.json" with respect to code releases
+  // Make Sure we change version in "package.json" with respect to code releases
   const acceleratorVersion = env.npm_package_version || '1.1.4';
 
   console.log(`Found accelerator context:`);

@@ -301,20 +301,14 @@ async function main() {
             project: installerProject,
             input: sourceArtifact,
             role: installerPipelineRole,
-            environmentVariables: {
-              SOURCE_COMMIT_ID: {
-                type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-                value: githubAction.variables.commitId,
-              },
-            },
           }),
         ],
       },
       {
-        stageName: 'SaveApplicationVersion',
+        stageName: 'UpdateVersion',
         actions: [
           new actions.LambdaInvokeAction({
-            actionName: 'SaveApplicationVersion',
+            actionName: 'UpdateVersion',
             lambda: saveApplicationVersionLambda,
             role: installerPipelineRole,
             userParameters: {
@@ -335,10 +329,6 @@ async function main() {
             role: installerPipelineRole,
             userParameters: {
               stateMachineArn,
-              commitId: githubAction.variables.commitId,
-              repository: githubRepository,
-              owner: githubOwner,
-              branch: githubBranch,
             },
           }),
         ],
