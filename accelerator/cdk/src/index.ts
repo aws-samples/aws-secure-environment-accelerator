@@ -25,15 +25,11 @@ async function main() {
   const configS3Bucket =
     env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
 
-  const sourceRepo = env.SOURCE_REPO || 'local';
-  const sourceBranch = env.SOURCE_BRANCH || 'master';
-  const sourceOwner = env.SOURCE_OWNER || 'unknown';
-  const sourceCommitId = env.SOURCE_COMMIT_ID || 'unknown';
-  const currentTime = new Date();
-  const startTime = env.START_TIME || currentTime.toString();
-
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
   const notificationEmail = env.NOTIFICATION_EMAIL || 'user@test.com';
+
+  // Make Sure we change versionin "package.json" with respect to code releases
+  const acceleratorVersion = env.npm_package_version || '1.1.4';
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
@@ -59,11 +55,7 @@ async function main() {
     terminationProtection: true,
     enablePrebuiltProject,
     notificationEmail,
-    sourceRepo,
-    sourceBranch,
-    sourceOwner,
-    sourceCommitId,
-    startTime,
+    acceleratorVersion,
   });
 }
 

@@ -38,25 +38,9 @@ export namespace InitialSetup {
     configBranchName: string;
     notificationEmail: string;
     /**
-     * The name of the Github repository containing the Accelerator code.
+     * Current Accelerator version
      */
-    sourceRepo: string;
-    /**
-     * The branch of the Github repository containing the Accelerator code.
-     */
-    sourceBranch: string;
-    /**
-     * The owner of the Github repository containing the Accelerator code.
-     */
-    sourceOwner: string;
-    /**
-     * Commit id of the repo
-     */
-    sourceCommitId: string;
-    /**
-     * The start time of the build
-     */
-    startTime: string;
+    acceleratorVersion?: string;
     /**
      * Prebuild Docker image that contains the project with its dependencies already installed.
      */
@@ -149,22 +133,6 @@ export namespace InitialSetup {
         },
       });
 
-      const storeRepoInfoTask = new CodeTask(this, 'Store code repository info to Parameter Store', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.storeRepoInfo',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          sourceRepo: props.sourceRepo,
-          sourceBranch: props.sourceBranch,
-          sourceOwner: props.sourceOwner,
-          sourceCommitId: props.sourceCommitId,
-          startTime: props.startTime,
-        },
-        resultPath: 'DISCARD',
-      });
-
       const getOrCreateConfigurationTask = new CodeTask(this, 'Get or Create Configuration from S3', {
         functionProps: {
           code: lambdaCode,
@@ -177,6 +145,7 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           s3FileName: props.configS3FileName,
           branchName: props.configBranchName,
+          acceleratorVersion: props.acceleratorVersion!,
         },
         resultPath: '$.configuration',
       });
@@ -205,7 +174,9 @@ export namespace InitialSetup {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
+        // TODO return only BASELINE & COMMITID from this and assign to $.configuration.baseline object and use it accross SM
         resultPath: '$.configuration',
       });
 
@@ -220,6 +191,7 @@ export namespace InitialSetup {
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
         resultPath: '$.configuration',
       });
@@ -235,6 +207,7 @@ export namespace InitialSetup {
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
         resultPath: '$.configuration',
       });
@@ -888,19 +861,16 @@ export namespace InitialSetup {
         functionPayload: {
           notificationTopicArn: notificationTopic.topicArn,
           'accounts.$': '$[0].accounts',
+          'acceleratorVersion.$': '$[0].acceleratorVersion',
         },
         resultPath: 'DISCARD',
       });
 
-      // Full StateMachine Execution starts from storeRepoInfoTask and wrapped in parallel task for try/catch
-      storeRepoInfoTask
-        .next(getOrCreateConfigurationTask)
-        .next(getBaseLineTask)
-        .next(compareConfigurationsTask)
-        .next(baseLineChoice);
+      // Full StateMachine Execution starts from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
+      getOrCreateConfigurationTask.next(getBaseLineTask).next(compareConfigurationsTask).next(baseLineChoice);
 
       const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');
-      mainTryCatch.branch(storeRepoInfoTask);
+      mainTryCatch.branch(getOrCreateConfigurationTask);
       mainTryCatch.addCatch(notifySmFailure);
       mainTryCatch.next(notifySmSuccess);
 

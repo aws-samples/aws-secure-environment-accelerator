@@ -74,6 +74,11 @@ async function main() {
   // Use the `start-execution.js` script in the assets folder
   const stateMachineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
+  // Use the `save-application-version.js` script in the assets folder
+  const saveApplicationVersionCode = fs.readFileSync(
+    path.join(__dirname, '..', 'assets', 'save-application-version.js'),
+  );
+
   // Role that is used by the CodeBuild project
   const installerProjectRole = new iam.Role(stack, 'InstallerProjectRole', {
     roleName: `${acceleratorPrefix}CB-Installer`,
@@ -228,6 +233,13 @@ async function main() {
     }),
   );
 
+  stateMachineExecutionRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['ssm:PutParameter'],
+      resources: ['*'],
+    }),
+  );
+
   // Grant permissions to start the state machine
   stateMachineExecutionRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
@@ -242,6 +254,15 @@ async function main() {
     role: stateMachineExecutionRole,
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(stateMachineStartExecutionCode.toString()),
+    handler: 'index.handler',
+  });
+
+  // Create the Lambda function that is responsible for launching the state machine
+  const saveApplicationVersionLambda = new lambda.Function(stack, 'SaveApplicationVersionLambda', {
+    functionName: `${acceleratorPrefix}Installer-SaveApplicationVersion`,
+    role: stateMachineExecutionRole,
+    runtime: lambda.Runtime.NODEJS_12_X,
+    code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
     handler: 'index.handler',
   });
 
@@ -290,6 +311,22 @@ async function main() {
         ],
       },
       {
+        stageName: 'SaveApplicationVersion',
+        actions: [
+          new actions.LambdaInvokeAction({
+            actionName: 'SaveApplicationVersion',
+            lambda: saveApplicationVersionLambda,
+            role: installerPipelineRole,
+            userParameters: {
+              commitId: githubAction.variables.commitId,
+              repository: githubRepository,
+              owner: githubOwner,
+              branch: githubBranch,
+            },
+          }),
+        ],
+      },
+      {
         stageName: 'Execute',
         actions: [
           new actions.LambdaInvokeAction({
@@ -298,6 +335,10 @@ async function main() {
             role: installerPipelineRole,
             userParameters: {
               stateMachineArn,
+              commitId: githubAction.variables.commitId,
+              repository: githubRepository,
+              owner: githubOwner,
+              branch: githubBranch,
             },
           }),
         ],
