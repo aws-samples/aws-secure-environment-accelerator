@@ -206,6 +206,12 @@ Functional accounts will gain access to the RAM shared resources of their respec
 
 Data plane isolation within the same VPC is achieved by default, by using appropriate security groups whenever ingress is warranted. For example, the app tier of `systemA` should only permit ingress from the `systemA-web` security group, not an overly broad range such as `0.0.0.0/0`, or even the VPC range.
 
+### Account Level Settings
+The Accelerator Architecture recommends the enabling of certain account-wide features on account creation. Namely, these include:
+
+1. [S3 Public Access Block][s3-block]
+2. [By-default encryption of EBS volumes][ebs-encryption].
+
 ## 3. Networking
 
 ### Overview
@@ -466,7 +472,7 @@ The Accelerator Architecture recommends the following SCPs in the Organization:
 #### PBMM Only
 This is a comprehensive policy whose main goal is to provide a PBMM-compliant cloud environment, namely prohibiting any non-centralized networking, and mandating data residency in Canada. It should be attached to all non-`Unclass` OUs.
 
-| Policy SID | Description |
+| Policy Statement ID (SID) | Description |
 | --- | --- |
 | `DenyNetworkPBMMONLY` | Prevents the creation of any networking infrastructure in the workload accounts such as VPCs, NATs, VPC peers, etc. |
 | `DenyAllOutsideCanadaPBMMONLY` | Prevents the use of any service in any non-Canadian AWS region with the exception of services that are considered global; e.g. CloudFront, IAM, STS, etc |
@@ -475,7 +481,7 @@ This is a comprehensive policy whose main goal is to provide a PBMM-compliant cl
 #### PBMM Unclass Only
 This is broadly similar to `PBMM Only`; however it relaxes the requirement for Canadian region usage, and does not prohibit network infrastructure creation (e.g. VPCs, IGWs). This is appropriate for OUs in which AWS service experimentation is taking place.
 
-| Policy SID | Description |
+| Policy Statement ID (SID) | Description |
 | --- | --- |
 | `DenyUnclass` | Prevents the deletion of KMS encryption keys and IAM password policies |
 | `DenyAllOutsideCanadaUS` | Prevents the use of any service in any region that is not `ca-central-1` or `us-east-1`, with the exception of services that are considered global; e.g. CloudFront, IAM, STS, etc |
@@ -483,7 +489,7 @@ This is broadly similar to `PBMM Only`; however it relaxes the requirement for C
 #### PBMM Guardrails (Parts 1 and 2)
 PBMM Guardrails apply across the Organization. These guardrails protect key infrastructure, mandate encryption at rest, and prevent other non-PBMM configurations. Note that this guardrail is split into two parts due to a current limitation of SCP sizing, but logically it should be considered a single policy.
 
-| Policy SID | Description |
+| Policy Statement ID (SID) | Description |
 | --- | --- |
 | `DenyTag1` | Prevents modification of any protected security group |
 | `DenyTag2` | Prevents modification of any protected IAM resource |
@@ -512,7 +518,7 @@ Note that the `*Encryption*` SCP statements above, taken together, mandate encry
 
 This policy can be attached to an account to 'quarantine' it - to prevent any AWS operation from taking place. This is useful in the case of an account with credentials which are believed to have been compromised.
 
-| Policy SID | Description |
+| Policy Statement ID (SID) | Description |
 | --- | --- |
 | `DenyAllAWSServicesExceptBreakglassRoles` | Blanket denial on all AWS control plane operations for all non-break-glass roles |
 
@@ -520,23 +526,34 @@ This policy can be attached to an account to 'quarantine' it - to prevent any AW
 
 This policy is applied to new accounts upon creation. After the installation of guardrails, it is removed. In the meantime, it prevents all AWS control plane operations except by principals required to deploy guardrails.
 
-| Policy SID | Description |
+| Policy Statement ID (SID) | Description |
 | --- | --- |
 | `DenyAllAWSServicesExceptBreakglassRoles` | Blanket denial on all AWS control plane operations for all non-break-glass roles |
 
 
 ## 5. Logging and Monitoring
 
-The Accelerator architecture recommends the following detective controls across the Organization. These controls, taken together, provide a comprehensive picture of...
-
+The Accelerator architecture recommends the following detective controls across the Organization. These controls, taken together, provide a comprehensive picture of the full set of control plane and data plane operations across the set of accounts.
 
 ### CloudTrail
-
-### GuardDuty
-
-### Config
+A CloudTrail Organizational trail should be deployed into the Organization. For each account, this captures management events and optionally S3 data plane events taking place by every principal in the account. These records are sent to an S3 bucket in the log archive account, and the trail itself cannot be modified or deleted by any principal in any child account. This provides an audit trail for detective purposes in the event of the need for forensic analysis into account usage. The logs themselves provide an integrity guarantee: every hour, CloudTrail produces a digest of that hour's logs files, and signs with its own private key. The authenticity of the logs may be verified using the corresponding public key. This process is [detailed here][ct-digest].
 
 ### VPC Flow Logs
+VPC Flow Logs capture information about the IP traffic going to and from network interfaces in an AWS Account VPC such as source and destination IPs, protocol, ports, and success/failure of the flow. The Accelerator Architecture recommends enabling `ALL` (i.e. both accepted and rejected traffic) logs for all VPCs in the Shared Network account with an S3 destination in the log-archive account. More details about VPC Flow Logs are [available here][flow].
+
+Note that certain categories of network flows are not captured, including traffic to and from Traffic to and from `169.254.169.254` for instance metadata, and DNS traffic with an Amazon VPC resolver.
+
+### GuardDuty
+Amazon GuardDuty is a threat detection service that continuously monitors for malicious activity and unauthorized behavior to protect your AWS accounts and workloads. The service uses machine learning, anomaly detection, and integrated threat intelligence to identify and prioritize potential threats. GuardDuty uses a number of data sources including VPC Flow Logs and CloudTrail logs.
+
+The Accelerator Architecture recommends enabling GuardDuty [at the Organization level][gd-org], and delegating the security account as the GuardDuty master. The GuardDuty master should be auto-enabled to add new accounts as they come online. Note that this should be done in every region as a defense in depth measure, with the understanding that the PBMM SCP will prevent service usage in all other regions.
+
+### Config
+[AWS Config][config] provides a detailed view of the resources associated with each account in the AWS Organization, including how they are configured, how they are related to one another, and how the configurations have changed on a recurring basis. Resources can be evaluated on the basis of their compliance with Config Rules - for example, a Config Rule might continually examine EBS volumes and check that they are encrypted.
+
+
+
+### Cloudwatch Logs
 
 ### SecurityHub
 
@@ -557,3 +574,9 @@ The Accelerator architecture recommends the following detective controls across 
 [root]: https://docs.aws.amazon.com/general/latest/gr/aws_tasks-that-require-root.html
 [iam_flow]: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html
 [scps]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps-about.html
+[ct-digest]: https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-intro.html
+[ebs-encryption]: https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html#encryption-by-default
+[s3-block]: https://docs.aws.amazon.com/AmazonS3/latest/dev/access-control-block-public-access.html#access-control-block-public-access-options
+[flow]: https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
+[gd-org]: https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+[config]: https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html
