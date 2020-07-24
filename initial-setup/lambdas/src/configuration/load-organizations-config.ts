@@ -234,12 +234,3 @@ function validateOrganizationSpecificConfiguration(config: AcceleratorConfig): s
   }
   return errors;
 }
-
-
-handler({
-  "configRepositoryName": "PBMMAccel-Config-Repo",
-  "configFilePath": "config.json",
-  "configCommitId": "b6c4ba5cfd48ee8f10da64bec9003721cc3d32b6",
-  "acceleratorVersion": "1.1.4",
-  "baseline": "ORGANIZATIONS"
-});
