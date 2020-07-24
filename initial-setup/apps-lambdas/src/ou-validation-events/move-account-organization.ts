@@ -110,12 +110,8 @@ async function updateAccountConfig(
   const updateConfig = JSON.parse(config);
   const workLoadAccounts: AccountsConfig = updateConfig['workload-account-configs'];
   const mandatoryAccounts: AccountsConfig = updateConfig['mandatory-account-configs'];
-  const workLoadAccountConfig = Object.entries(workLoadAccounts).find(
-    ([_, value]) => value.email === account.Email!,
-  );
-  const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(
-    ([_, value]) => value.email === account.Email!,
-  );
+  const workLoadAccountConfig = Object.entries(workLoadAccounts).find(([_, value]) => value.email === account.Email!);
+  const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(([_, value]) => value.email === account.Email!);
   // tslint:disable-next-line: no-any
   let accountConfig: any;
   let accountKey: string = '';
