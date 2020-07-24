@@ -191,7 +191,14 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
       continue;
     }
     const acceleratorAccountsInOu = configurationAccounts.filter(account => account.ouPath === organizationalUnit.Path);
-    if (accountsInOu.length !== acceleratorAccountsInOu.length) {
+    if (accountsInOu.length > acceleratorAccountsInOu.length) {
+      errors.push(
+        `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Path}" while there are only ` +
+          `${acceleratorAccountsInOu.length} accounts in the Accelerator configuration\n` +
+          `  Accounts in OU:     ${accountsInOu.map(a => a.Name).join(', ')}\n` +
+          `  Accounts in config: ${acceleratorAccountsInOu.map(a => a.accountName).join(', ')}\n`,
+      );
+    } else if (accountsInOu.length !== acceleratorAccountsInOu.length) {
       warnings.push(
         `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Path}" while there are only ` +
           `${acceleratorAccountsInOu.length} accounts in the Accelerator configuration\n` +
