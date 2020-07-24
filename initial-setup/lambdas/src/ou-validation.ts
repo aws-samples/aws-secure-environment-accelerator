@@ -6,6 +6,7 @@ import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
+import { applyPrettier } from '@aws-pbmm/common-lambda/lib/util/prettier';
 
 export interface ValdationInput {
   configFilePath: string;
@@ -186,7 +187,7 @@ async function createCommit(
       putFiles: [
         {
           filePath: configFilePath,
-          fileContent: JSON.stringify(config, null, 2),
+          fileContent: applyPrettier(config),
         },
       ],
     });

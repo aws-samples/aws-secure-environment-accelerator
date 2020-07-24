@@ -3,6 +3,7 @@ import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { AcceleratorConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { applyPrettier } from '@aws-pbmm/common-lambda/lib/util/prettier';
 
 interface RemoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -93,7 +94,7 @@ async function createCommit(config: AcceleratorConfig, parentCommitId: string): 
       putFiles: [
         {
           filePath: configFilePath,
-          fileContent: JSON.stringify(config, null, 2),
+          fileContent: applyPrettier(config),
         },
       ],
     });

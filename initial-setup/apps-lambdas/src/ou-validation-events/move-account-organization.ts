@@ -7,6 +7,7 @@ import { AcceleratorConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/c
 import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 import { pascalCase } from 'pascal-case';
 import * as crypto from 'crypto';
+import { applyPrettier } from '@aws-pbmm/common-lambda/lib/util/prettier';
 
 interface MoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -161,7 +162,7 @@ async function createCommit(config: AcceleratorConfig, parentCommitId: string): 
       putFiles: [
         {
           filePath: configFilePath,
-          fileContent: JSON.stringify(config, null, 2),
+          fileContent: applyPrettier(config),
         },
       ],
     });
