@@ -1,8 +1,18 @@
-# PBMM Accelerator Architecture
+# AWS Secure Environment Accelerator Architecture
 
-## I. Introduction
+## Table of Contents
+1. [Introduction](#introduction)
+1. [Account Structure](#AccountStructure)
+1. [Networking](#Networking)
+1. [Authorization and Authentication](#AA)
+1. [Logging and Monitoring](#LM)
 
-The PBMM Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-33 specifications.
+
+<a name="Introduction"/>
+
+## 1. Introduction
+
+The AWS Secure Environment Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-33 specifications.
 
 The Accelerator Architecture has been built with the following design principles in mind:
 
@@ -21,8 +31,8 @@ While the central purpose of the _PBMM Accelerator_ is to establish an Accelerat
 
 Comprehensive details on the tool itself are available elsewhere:
 
-1. [PBMM Accelerator Operations & Troubleshooting Guide][ops_guide]
-2. [PBMM Accelerator Developer Guide][dev_guide]
+1. [AWS Secure Environment Accelerator Operations & Troubleshooting Guide][ops_guide]
+2. [AWS Secure Environment Accelerator Developer Guide][dev_guide]
 
 Except where absolutely necessary, this document will refrain from referencing the _PBMM Accelerator_ further.
 
@@ -73,7 +83,7 @@ The above is not valid JSON without first removing the comment on the fourth lin
 
 #### IP Addresses
 
- The design makes use of [RFC1918][1918] addresses and [RFC6598][6598] for various networks; these will be labeled accordingly. Any specific range or IP shown is purely for illustration purposes only.
+ The design makes use of [RFC1918][1918] addresses (e.g. `10.1.0.0/16`) and [RFC6598][6598] (e.g. `100.96.250.0/23`) for various networks; these will be labeled accordingly. Any specific range or IP shown is purely for illustration purposes only.
 
 
 
@@ -85,6 +95,7 @@ This document will make no reference to specific Government of Canada department
 AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The Accelerator Architecture draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the Accelerator Architecture presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `vTODO`.
 
 
+<a name="AccountStructure"/>
 ## 2. Account Structure
 
 AWS accounts are a strong isolation boundary; by default there is zero control plane or data plane access from one AWS account to another. AWS Organizations is a service that provides centralized billing across a fleet of accounts, and optionally, some integration-points for cross-account guardrails and cross-account resource sharing. The Accelerator Architecture uses these features of AWS Organizations to realize its design.
@@ -176,7 +187,7 @@ The Accelerator Architecture is an opinionated design, which partly manifests in
 #### Master
 As discussed above, the master account functions as the root of the AWS Organization, the billing aggregator, attachment point for SCPs. Workloads are not intended to run in this account.
 
-**Note:** Customers deploying the Accelerator Architecture via the PBMM Accelerator tool will deploy into this account. See the [Operations Guide][ops_guide] for more details.
+**Note:** Customers deploying the Accelerator Architecture via the AWS Secure Environment Accelerator tool will deploy into this account. See the [Operations Guide][ops_guide] for more details.
 
 #### Perimeter
 The perimeter account, and in particular the perimeter VPC therein, functions as the single point of ingress/egress from the PBMM cloud environment to the public internet and/or on-premises network. This provides a central point of network control through which all workload-generated traffic, ingress and egress, must transit. The perimeter VPC hosts next-generation firewall instances that provide security services such as virus scanning, malware protection, intrusion protection, TLS inspection, and web application firewall functionality. More details on can be found in the Networking section of this document.
@@ -212,6 +223,12 @@ The Accelerator Architecture recommends the enabling of certain account-wide fea
 1. [S3 Public Access Block][s3-block]
 2. [By-default encryption of EBS volumes][ebs-encryption].
 
+### Private Marketplace
+The Accelerator Architecture recommends that the AWS Private Marketplace is enabled for the Organization. Private Marketplace helps administrators govern which products they want their users to run on AWS by making it possible to see only products that comply with their organization's procurement policy. When Private Marketplace is enabled, it will replace the standard AWS Marketplace for all users.
+
+![PMP](./images/pmp.png)
+
+<a name="Networking"/>
 ## 3. Networking
 
 ### Overview
@@ -365,7 +382,7 @@ Network Access-Control Lists (NACLs) are used sparingly as a defense-in-depth me
 #### Central VPC
 The Central VPC is a network for localizing operational infrastructure that may be needed across the Organization, such as code repositories, artifact repositories, and notably, the managed Directory Service (Microsoft AD). Instances that are domain joined will connect to this AD domain - a network flow that is made possible from anywhere in the network structure due to the inclusion of the Central VPC in all relevant association TGW RTs.
 
-It is recommended that the Central VPC use a [RFC1918][1918] range (e.g. `10.1.0.0/16`) for the purposes of routing from the workload VPCs, and a secondary range from the [RFC6598][6598] block (e.g. 100.96.252.0/23) to support the Microsoft AD workload.
+It is recommended that the Central VPC use a [RFC1918][1918] range (e.g. `10.1.0.0/16`) for the purposes of routing from the workload VPCs, and a secondary range from the [RFC6598][6598] block (e.g. `100.96.252.0/23`) to support the Microsoft AD workload.
 
 Note that this VPC also contains a peering relationship to the `ForSSO` VPC in the master account. This exists purely to support connectivity from an AD-Connector instance in the master account, which in turn enables AWS SSO for federated login to the AWS control plane.
 
@@ -385,6 +402,8 @@ An EC2 instance deployed in the Workload VPCs can join the domain corresponding 
 A sandbox VPC, not depicted, may be included in the architecture. This is **not** connected to the Transit Gateway, Perimeter VPC, on-premises network, or other common infrastructure. It contains its own Internet Gateway, and is an entirely separate VPC with respect to the rest of the architecture.
 
 The sandbox VPC should be used exclusively for time-limited experimentation, particularly with out-of-region services, and never used for any line of business workload or data.
+
+<a name="AA"/>
 
 ## 4. Authorization and Authentication
 The Accelerator Architecture makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrailing objectives of the architecture, and govern access to the set of accounts that makes up the Organization.
@@ -530,7 +549,7 @@ This policy is applied to new accounts upon creation. After the installation of 
 | --- | --- |
 | `DenyAllAWSServicesExceptBreakglassRoles` | Blanket denial on all AWS control plane operations for all non-break-glass roles |
 
-
+<a name="LM"/>
 ## 5. Logging and Monitoring
 
 The Accelerator architecture recommends the following detective controls across the Organization. These controls, taken together, provide a comprehensive picture of the full set of control plane and data plane operations across the set of accounts.
@@ -551,11 +570,23 @@ The Accelerator Architecture recommends enabling GuardDuty [at the Organization 
 ### Config
 [AWS Config][config] provides a detailed view of the resources associated with each account in the AWS Organization, including how they are configured, how they are related to one another, and how the configurations have changed on a recurring basis. Resources can be evaluated on the basis of their compliance with Config Rules - for example, a Config Rule might continually examine EBS volumes and check that they are encrypted.
 
+Config may be [enabled at the Organization][config-org] level - this provides an overall view of the compliance status of all resources across the Organization.
 
+_Note: At the time of writing, the Config Multi-Account Multi-Region Data Aggregation sits in the master account. The Accelerator Architecture will recommend that this be situated in the security account, once that becomes easily-configurable in Organizations._
 
 ### Cloudwatch Logs
+CloudWatch Logs is AWS' logging aggregator service, used to monitor, store, and access log files from EC2 instances, AWS CloudTrail, Route 53, and other sources. The Accelerator Architecture recommends that log subscriptions are created for all log groups in all workload accounts, and streamed into S3 in the log-archive account (via Kinesis) for analysis and long-term audit purposes.
 
 ### SecurityHub
+The primary dashboard for Operators to assess the security posture of the AWS footprint is the centralized AWS Security Hub service. Security Hub should be configured to aggregate findings from Amazon GuardDuty, AWS Config and IAM Access Analyzers. Events from security integrations are correlated and displayed on the Security Hub dashboard as 'findings' with a severity level (informational, low, medium, high, critical).
+
+The Accelerator Architecture recommends that certain Security Hub frameworks be enabled, specifically:
+
+* [AWS Foundational Security Best Practices v1.0.0][found]
+* [PCI DSS v3.2.1][pci]
+* [CIS AWS Foundations Benchmark v1.2.0][cis]
+
+These frameworks will perform checks against the accounts via Config Rules that are evaluated against the AWS Config resources in scope. See the above links for a definition of the associated controls.
 
 
 [ops_guide]: https://TODO
@@ -580,3 +611,7 @@ The Accelerator Architecture recommends enabling GuardDuty [at the Organization 
 [flow]: https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs.html
 [gd-org]: https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
 [config]: https://docs.aws.amazon.com/config/latest/developerguide/WhatIsConfig.html
+[config-org]: https://docs.aws.amazon.com/organizations/latest/userguide/services-that-can-integrate-config.html
+[found]: https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-fsbp-controls.html
+[pci]: https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-pci-controls.html
+[cis]: https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-cis-controls.html
