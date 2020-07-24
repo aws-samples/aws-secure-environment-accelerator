@@ -5,6 +5,7 @@ export interface LoadConfigurationInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
+  acceleratorVersion?: string;
 }
 
 export interface LoadConfigurationOutput {
