@@ -12,7 +12,7 @@
 
 ## 1. Introduction
 
-The AWS Secure Environment Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, designed for use within the Government of Canada for PBMM workloads. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-33 specifications.
+The AWS Secure Environment Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, initially designed for use within the Government of Canada for [PBMM workloads][pbmm]. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-33 specifications.
 
 The Accelerator Architecture has been built with the following design principles in mind:
 
@@ -25,16 +25,16 @@ The Accelerator Architecture has been built with the following design principles
 
 ### 1.1 Purpose of Document
 
-This document is intended to outline the technical measures that are delivered by the Accelerator Architecture that make it suitable for PBMM workloads. An explicit **non-goal** of this document is to explain the delivery architecture of the [_PBMM Accelerator_][accel_tool] tool itself, an open-source software project built by AWS.
+This document is intended to outline the technical measures that are delivered by the Accelerator Architecture that make it suitable for PBMM workloads. An explicit **non-goal** of this document is to explain the delivery architecture of the [_AWS Secure Environment Accelerator tool_][accel_tool] itself, an open-source software project built by AWS.
 
-While the central purpose of the _PBMM Accelerator_ is to establish an Accelerator Architecture into an AWS account footprint, this amounts to an implementation detail as far as the Accelerator Architecture is concerned. The Architecture is a standalone design, irrespective of how it was delivered into a customer AWS environment. It is nonetheless anticipated that most customers will choose to realize their Accelerator Architecture via the delivery mechanism of the _PBMM Accelerator_.
+While the central purpose of the _AWS Secure Environment Accelerator tool_ is to establish an Accelerator Architecture into an AWS account footprint, this amounts to an implementation detail as far as the Accelerator Architecture is concerned. The Architecture is a standalone design, irrespective of how it was delivered into a customer AWS environment. It is nonetheless anticipated that most customers will choose to realize their Accelerator Architecture via the delivery mechanism of the _AWS Secure Environment Accelerator tool_.
 
 Comprehensive details on the tool itself are available elsewhere:
 
-1. [AWS Secure Environment Accelerator Operations & Troubleshooting Guide][ops_guide]
-2. [AWS Secure Environment Accelerator Developer Guide][dev_guide]
+1. [AWS Secure Environment Accelerator tool Operations & Troubleshooting Guide][ops_guide]
+2. [AWS Secure Environment Accelerator tool Developer Guide][dev_guide]
 
-Except where absolutely necessary, this document will refrain from referencing the _PBMM Accelerator_ further.
+Except where absolutely necessary, this document will refrain from referencing the _AWS Secure Environment Accelerator tool_ further.
 
 ### 1.2 Overview
 
@@ -96,6 +96,7 @@ AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud archi
 
 
 <a name="AccountStructure"/>
+
 ## 2. Account Structure
 
 AWS accounts are a strong isolation boundary; by default there is zero control plane or data plane access from one AWS account to another. AWS Organizations is a service that provides centralized billing across a fleet of accounts, and optionally, some integration-points for cross-account guardrails and cross-account resource sharing. The Accelerator Architecture uses these features of AWS Organizations to realize its design.
@@ -229,6 +230,7 @@ The Accelerator Architecture recommends that the AWS Private Marketplace is enab
 ![PMP](./images/pmp.png)
 
 <a name="Networking"/>
+
 ## 3. Networking
 
 ### Overview
@@ -550,6 +552,7 @@ This policy is applied to new accounts upon creation. After the installation of 
 | `DenyAllAWSServicesExceptBreakglassRoles` | Blanket denial on all AWS control plane operations for all non-break-glass roles |
 
 <a name="LM"/>
+
 ## 5. Logging and Monitoring
 
 The Accelerator architecture recommends the following detective controls across the Organization. These controls, taken together, provide a comprehensive picture of the full set of control plane and data plane operations across the set of accounts.
@@ -588,7 +591,7 @@ The Accelerator Architecture recommends that certain Security Hub frameworks be 
 
 These frameworks will perform checks against the accounts via Config Rules that are evaluated against the AWS Config resources in scope. See the above links for a definition of the associated controls.
 
-
+[pbmm]: https://www.canada.ca/en/government/system/digital-government/modern-emerging-technologies/cloud-services/government-canada-security-control-profile-cloud-based-it-services.html#toc4
 [ops_guide]: https://TODO
 [dev_guide]: https://TODO
 [accel_tool]: https://github.com/aws-samples/aws-pbmm-accelerator
