@@ -38,7 +38,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
   const awsOuAccountMap: { [ouId: string]: org.Account[] } = {};
-  const awsAccounts: org.Account[] = [];
+
+  // Store the accounts in a simple list as well
+  const awsAccounts: org.Account[] = await organizations.listAccounts();
 
   // Store organizational units and their accounts
   for (const organizationalUnit of awsOus) {
@@ -47,9 +49,6 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
 
     // Associate accounts to organizational unit
     awsOuAccountMap[ouId] = accountsInOu;
-
-    // Store the accounts in a simple list as well
-    awsAccounts.push(...accountsInOu);
   }
 
   const awsOusWithPath: OrganizationalUnit[] = [];
@@ -57,15 +56,22 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     awsOusWithPath.push(await organizations.getOrganizationalUnitWithPath(awsOu.Id!));
   }
 
+  const ignoredOus = config['global-options']['ignored-ous'] || [];
+  const ignoredOuIds: string[] = [];
+  for (const ignoredOu of ignoredOus) {
+    ignoredOuIds.push(...awsOusWithPath.filter(ou => ou.Name === ignoredOu).map(o => o.Id!));
+  }
+
   console.log(`Found organizational units:`);
   console.log(JSON.stringify(awsOusWithPath, null, 2));
 
   // Keep track of errors and warnings instead of failing immediately
   const errors = [];
-  const warnings = [];
+  const warnings: string[] = [];
 
   // Store the discovered accounts and OUs in these objects
   const configurationAccounts: ConfigurationAccount[] = [];
+  const accountsInIgnoredOus: ConfigurationAccount[] = [];
   const configurationOus: ConfigurationOrganizationalUnit[] = [];
 
   // -------------------------------- \\
@@ -105,7 +111,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     }
     configurationOus.push({
       ouId: awsOu.Id!,
-      ouName: awsOu.Path,
+      ouName: awsOu.Name!,
       ouKey: acceleratorOu,
       ouPath: awsOu.Path,
     });
@@ -154,6 +160,19 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
       }
     }
 
+    if (ignoredOus.includes(organizationalUnit.Name!)) {
+      // Accounts under ignoredOus
+      accountsInIgnoredOus.push({
+        accountId: account?.Id,
+        accountKey,
+        accountName: accountConfigName,
+        emailAddress: accountConfig.email,
+        organizationalUnit: organizationalUnitName,
+        isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
+        ouPath: organizationalUnitPath,
+      });
+    }
+
     configurationAccounts.push({
       accountId: account?.Id,
       accountKey,
@@ -168,17 +187,26 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   // Verify if there are additional accounts in the OU that are not managed by Accelerator
   for (const organizationalUnit of awsOusWithPath) {
     const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
+    if (ignoredOuIds.includes(organizationalUnit.Id!)) {
+      continue;
+    }
     const acceleratorAccountsInOu = configurationAccounts.filter(account => account.ouPath === organizationalUnit.Path);
     if (accountsInOu.length !== acceleratorAccountsInOu.length) {
-      warnings.push(
-        `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Name}" while there are only ` +
-          `${acceleratorAccountsInOu.length} accounts in the Landing Zone and Accelerator configuration\n` +
+      errors.push(
+        `There are ${accountsInOu.length} accounts in OU "${organizationalUnit.Path}" while there are only ` +
+          `${acceleratorAccountsInOu.length} accounts in the Accelerator configuration\n` +
           `  Accounts in OU:     ${accountsInOu.map(a => a.Name).join(', ')}\n` +
           `  Accounts in config: ${acceleratorAccountsInOu.map(a => a.accountName).join(', ')}\n`,
       );
     }
   }
 
+  if (accountsInIgnoredOus.length > 0) {
+    errors.push(
+      `There are ${accountsInIgnoredOus.length} accounts under ignored OUs which is in configuration ` +
+        `  Accounts in config: ${accountsInIgnoredOus.map(a => a.accountName).join(', ')}\n`,
+    );
+  }
   errors.push(...validateOrganizationSpecificConfiguration(config));
   // Throw all errors at once
   if (errors.length > 0) {

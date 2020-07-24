@@ -30,15 +30,21 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 
 function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-
   return `UpdateOrganizationConfiguration`;
+}
+
+function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  if (typeof properties.autoEnable === 'string') {
+    properties.autoEnable = properties.autoEnable === 'true';
+  }
+  return properties;
 }
 
 async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const properties = getPropertiesFromEvent(event);
   const response = await configExport(properties);
   return {
     physicalResourceId: getPhysicalId(event),

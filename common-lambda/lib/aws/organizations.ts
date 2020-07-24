@@ -355,8 +355,11 @@ export class Organizations {
       .map(parent => parent.Name)
       .join('/');
     return {
-      ...organizationalUnit,
+      Arn: organizationalUnit?.Arn,
+      Id: organizationalUnit?.Id,
       Path: orgPath,
+      // Changing Name of Organization to Parent Org which is under ROOT Ou to match with account from config
+      Name: orgPath.split('/')[0],
     };
   }
 

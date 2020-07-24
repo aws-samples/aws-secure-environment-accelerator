@@ -24,9 +24,9 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   // tslint:disable-next-line: switch-default
   switch (event.RequestType) {
     case 'Create':
-      return onCreate(event);
+      return onCreateOrUpdate(event);
     case 'Update':
-      return onUpdate(event);
+      return onCreateOrUpdate(event);
     case 'Delete':
       return onDelete(event);
   }
@@ -38,9 +38,31 @@ function getPhysicalId(event: CloudFormationCustomResourceEvent): string {
   return `${properties.detectorId}${properties.destinationArn}${properties.kmsKeyArn}`;
 }
 
-async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
+async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await createPublishDestination(properties);
+  await deletePublishDestination(properties);
+  return {
+    physicalResourceId: getPhysicalId(event),
+    data: {},
+  };
+}
+
+async function onCreateOrUpdate(
+  event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
+) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { detectorId } = properties;
+  if (detectorId === 'NotFound') {
+    console.warn(`DetecrorId Not Found, Skipping creation of publisher`);
+    return {
+      physicalResourceId: getPhysicalId(event),
+      data: {},
+    };
+  }
+  const response = await createOrUpdatePublishDestination({
+    ...properties,
+    detectorId,
+  });
   return {
     physicalResourceId: getPhysicalId(event),
     data: {
@@ -49,38 +71,40 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   };
 }
 
-async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await updatePublishDestination(properties);
-  return {
-    physicalResourceId: getPhysicalId(event),
-    data: {},
-  };
-}
-
-async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await deletePublishDestination(properties);
-  return {
-    physicalResourceId: getPhysicalId(event),
-    data: {},
-  };
-}
-
-async function createPublishDestination(properties: HandlerProperties) {
-  const params = {
-    DestinationType: 'S3', // currently only S3 is supported
-    DetectorId: properties.detectorId,
-    DestinationProperties: {
-      DestinationArn: properties.destinationArn,
-      KmsKeyArn: properties.kmsKeyArn,
-    },
-  };
-
+async function createOrUpdatePublishDestination(properties: HandlerProperties) {
+  const { destinationArn, kmsKeyArn, detectorId } = properties;
   try {
-    const createPublish = await guardduty.createPublishingDestination(params).promise();
+    const destination = await guardduty
+      .listPublishingDestinations({
+        DetectorId: detectorId,
+      })
+      .promise();
 
-    return createPublish;
+    if (destination.Destinations && destination.Destinations.length > 0) {
+      const updateParams = {
+        DestinationId: destination.Destinations[0].DestinationId,
+        DetectorId: properties.detectorId,
+        DestinationProperties: {
+          DestinationArn: properties.destinationArn,
+          KmsKeyArn: properties.kmsKeyArn,
+        },
+      };
+      await guardduty.updatePublishingDestination(updateParams).promise();
+      return destination.Destinations[0];
+    } else {
+      const createParams = {
+        DestinationType: 'S3', // currently only S3 is supported
+        DetectorId: detectorId,
+        DestinationProperties: {
+          DestinationArn: destinationArn,
+          KmsKeyArn: kmsKeyArn,
+        },
+      };
+
+      const createPublish = await guardduty.createPublishingDestination(createParams).promise();
+      console.log(`Created Publishing Destination for detectorId "${detectorId}"`);
+      return createPublish;
+    }
   } catch (e) {
     const message = `${e}`;
     // if publish destination already exist, do not error out
@@ -96,32 +120,28 @@ async function createPublishDestination(properties: HandlerProperties) {
   }
 }
 
-async function updatePublishDestination(properties: HandlerProperties) {
-  const listParam = {
-    DetectorId: properties.detectorId,
-  };
-  const destination = await guardduty.listPublishingDestinations(listParam).promise();
-
-  const params = {
-    DestinationId: destination.Destinations[0].DestinationId,
-    DetectorId: properties.detectorId,
-    DestinationProperties: {
-      DestinationArn: properties.destinationArn,
-      KmsKeyArn: properties.kmsKeyArn,
-    },
-  };
-
-  return guardduty.updatePublishingDestination(params).promise();
-}
-
 async function deletePublishDestination(properties: HandlerProperties) {
-  const destinations = await guardduty.listPublishingDestinations().promise();
+  const { detectorId } = properties;
+  if (detectorId === 'NotFound') {
+    console.warn(`DetecrorId Not Found, Skipping creation of publisher`);
+    return;
+  }
+  try {
+    const destinations = await guardduty
+      .listPublishingDestinations({
+        DetectorId: detectorId,
+      })
+      .promise();
 
-  const params = {
-    // only one destination should be established for guard duty
-    DestinationId: destinations.Destinations[0].DestinationId,
-    DetectorId: properties.detectorId,
-  };
+    const params = {
+      // only one destination should be established for guard duty
+      DestinationId: destinations.Destinations[0].DestinationId,
+      DetectorId: properties.detectorId,
+    };
 
-  return guardduty.deletePublishingDestination(params).promise();
+    return guardduty.deletePublishingDestination(params).promise();
+  } catch (error) {
+    console.error(error);
+    return;
+  }
 }
