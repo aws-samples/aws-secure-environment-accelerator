@@ -57,8 +57,8 @@ async function cwlSettingsInLogArchive(props: {
   });
 
   // Create IAM Role for reading logs from stream and push to destination
-  const logsRole = new iam.Role(scope, 'CWL-Logs-Stream-Role', {
-    roleName: createRoleName('CWL-Stream-Role'),
+  const logsRole = new iam.Role(scope, 'CloudWatch-Logs-Stream-Role', {
+    roleName: createRoleName('CWL-Logs-Stream-Role'),
     assumedBy: new iam.ServicePrincipal('logs.amazonaws.com'),
   });
 
