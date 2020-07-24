@@ -208,12 +208,16 @@ If deploying to an internal AWS account, to successfully install the entire solu
     2. we were not able to fully activate your account before we were ready to deploy your firewalls
     3. In these cases, simply select the `PBMMAccel-MainStateMachine_sm` in Step Functions and select `Start Execution`
 22. The Accelerator installation is complete, but several manual steps remain:
+
     1. recover root passwords for all sub-accounts
     2. enable MFA for **all** IAM users and **all** root users
     3. Login to the firewalls and firewall manager appliance and set default passwords
        - Update firewall configuration per your organizations security best practices
+       - manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
+       - manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
+
 23. During the installation we request required limit increases, resources dependent on these limits were not deployed
     1. You should receive emails from support confirming the limit increases
     2. Unfortunately, once the VPC endpoint limit is increased, it does not properly register in AWS Quota tool
@@ -226,9 +230,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### UPGRADES
 
-- Always compare your configuration file with the config file from the latest release to validate new or changed parameters
-- Upgrades to v1.0.6 (or above) will redeploy the TGW. This will drop the FW tunnels, to automatically re-establish FW configuration, drop the fw deployment before upgrade (i.e. comment out FW's and rerun state machine). Add the firewalls back to the config file when doing the 'upgrade' State Machine execution. \*\* See below.
-- Upgrades to v1.1.3?? will fail if you do not drop the fw deployment before upgrade (i.e. comment out FW's and rerun state machine). Add the firewalls back to the config file when doing the 'upgrade' State Machine execution. \*\* See below.
+- Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats
+- Upgrades from v1.0.5rc5 to v1.0.6 (or above) will redeploy the TGW. This will drop the FW tunnels. To automatically re-establish FW configuration, drop the fw deployment before upgrade (i.e. comment out FW's and rerun state machine). Add the firewalls back to the config file when doing the 'upgrade' State Machine execution. \*\* See below.
+- Upgrades from versions prior to v1.1.4 require dropping the fw deployment before upgrade (i.e. comment out FW's and run state machine). You can redeploy the firewalls during the 'upgrade' State Machine execution. \*\* See below. If you miss this step, simply remove the FW config from the config file and continue.
 
 \*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your changes automatically redeployed, add them into the appropriate firewall-example.txt configuration file.
 
@@ -239,26 +243,26 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - Shard count - can only increase/reduce by 1/2 the current limit. can change 1-2,2-3, 4-6
 - Always add any new items to the END of all lists or sections in the config file, otherwise
   - update validation checks will fail (vpc's, subnets, share-to, etc.)
-  - VPC endpoint deployments to blow up - do NOT re-order or insert VPC endpoints (unless you first remove them completely, execute SM, and then re-add them, run SM)
+  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute SM, and then re-add them, run SM)
 - To skip, remove or uninstall a component, you can simply change the section header
-  - change "deployments"/"firewall" to "deployments"/"xxfirewall" and it will uninstall the firewalls
+  - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls
 - As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have its capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (100 to 101) or they will fail to update
 - The firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
+- Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ous must all be unique throughout the entire configuration file
 
 ### General Notes
 
-- Do not mess with _any_ buckets in the master account
-- While likely protected, do not mess with CDK, CFN, or PBMMAccel- buckets in _any_ sub-accounts
+- Do not delete, or change _any_ buckets in the master account
+- While likely protected, do not delete/update/change s3 buckets with CDK, CFN, or PBMMAccel- in _any_ sub-accounts
 - Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
 
 ### Known limitations/purposeful exclusions:
 
 - ALB automated deployments currently only supports Forward and not redirect rules
 - Amazon Detective - not included
-- Only 1 auto-deployed MAD per account is supported
-- Only 1 auto-deployed TGW per account is supported
+- Only 1 auto-deployed MAD per AWS account is supported
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
 - If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC and it won't cause issues.
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment)

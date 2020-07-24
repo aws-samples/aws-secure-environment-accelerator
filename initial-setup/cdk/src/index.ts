@@ -38,6 +38,10 @@ export namespace InitialSetup {
     configBranchName: string;
     notificationEmail: string;
     /**
+     * Current Accelerator version
+     */
+    acceleratorVersion?: string;
+    /**
      * Prebuild Docker image that contains the project with its dependencies already installed.
      */
     enablePrebuiltProject?: boolean;
@@ -141,6 +145,7 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           s3FileName: props.configS3FileName,
           branchName: props.configBranchName,
+          acceleratorVersion: props.acceleratorVersion!,
         },
         resultPath: '$.configuration',
       });
@@ -169,7 +174,9 @@ export namespace InitialSetup {
           configRepositoryName: props.configRepositoryName,
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
+        // TODO return only BASELINE & COMMITID from this and assign to $.configuration.baseline object and use it accross SM
         resultPath: '$.configuration',
       });
 
@@ -184,6 +191,7 @@ export namespace InitialSetup {
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
         resultPath: '$.configuration',
       });
@@ -199,6 +207,7 @@ export namespace InitialSetup {
           configFilePath: props.configFilePath,
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
         resultPath: '$.configuration',
       });
@@ -852,11 +861,12 @@ export namespace InitialSetup {
         functionPayload: {
           notificationTopicArn: notificationTopic.topicArn,
           'accounts.$': '$[0].accounts',
+          'acceleratorVersion.$': '$[0].acceleratorVersion',
         },
         resultPath: 'DISCARD',
       });
 
-      // Full StateMachine Execution stats from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
+      // Full StateMachine Execution starts from getOrCreateConfigurationTask and wrapped in parallel task for try/catch
       getOrCreateConfigurationTask.next(getBaseLineTask).next(compareConfigurationsTask).next(baseLineChoice);
 
       const mainTryCatch = new sfn.Parallel(this, 'Main Try Catch block to Notify users');

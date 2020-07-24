@@ -28,6 +28,9 @@ async function main() {
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
   const notificationEmail = env.NOTIFICATION_EMAIL || 'user@test.com';
 
+  // Make Sure we change version in "package.json" with respect to code releases
+  const acceleratorVersion = env.npm_package_version || '1.1.4';
+
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
   console.log(`  Prefix: ${acceleratorPrefix}`);
@@ -52,6 +55,7 @@ async function main() {
     terminationProtection: true,
     enablePrebuiltProject,
     notificationEmail,
+    acceleratorVersion,
   });
 }
 
