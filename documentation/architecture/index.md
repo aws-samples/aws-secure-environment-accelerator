@@ -505,6 +505,9 @@ PBMM Guardrails apply across the Organization. These guardrails protect key infr
 | `DenyRDGWRole` | Prevents the modification of a role used for Remote Desktop Gateway |
 | `DenyGDSHFMAAChange` | Prevents the modification of GuardDuty & Security Hub |
 
+##### Encryption at Rest
+Note that the `*Encryption*` SCP statements above, taken together, mandate encryption at rest for block storage volumes used in EC2 and RDS instances.
+
 #### Quarantine Deny All
 
 This policy can be attached to an account to 'quarantine' it - to prevent any AWS operation from taking place. This is useful in the case of an account with credentials which are believed to have been compromised.
