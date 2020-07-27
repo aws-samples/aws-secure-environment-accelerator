@@ -59,11 +59,9 @@ export const handler = async (input: MoveAccountOrganization) => {
       return 'IGNORE';
     }
     updatestatus = await updateConfig({
-      account: account,
-      destinationOrg: destinationOrg,
-      destinationRootOrg: destinationRootOrg,
-      configBranch,
-      configRepository: configRepositoryName,
+      account,
+      destinationOrg,
+      destinationRootOrg
     });
   } else if (destinationParentId === rootOrgId) {
     const parentOrg = await organizations.getOrganizationalUnitWithPath(sourceParentId);
@@ -96,11 +94,9 @@ export const handler = async (input: MoveAccountOrganization) => {
     } else {
       // Update Config
       updatestatus = await updateConfig({
-        account: account,
-        destinationOrg: destinationOrg,
-        destinationRootOrg: destinationRootOrg,
-        configBranch,
-        configRepository: configRepositoryName,
+        account,
+        destinationOrg,
+        destinationRootOrg,
       });
     }
   }
@@ -113,20 +109,19 @@ export const handler = async (input: MoveAccountOrganization) => {
 
 async function updateConfig(props: {
   account: org.Account;
-  configRepository: string;
-  configBranch: string;
   destinationOrg: OrganizationalUnit;
   destinationRootOrg: string;
 }) {
-  const { configBranch, configRepository, account, destinationOrg, destinationRootOrg } = props;
-  const configResponse = await codecommit.getFile(configRepository, 'config.json', configBranch);
+  const { account, destinationOrg, destinationRootOrg } = props;
+  const configResponse = await codecommit.getFile(configRepositoryName, 'config.json', configBranch);
   const config = JSON.parse(configResponse.fileContent.toString());
-  const mandatoryAccountsPath = config['mandatory-account-configs']['__LOAD'];
+  const mandatoryAccountsPath = config['mandatory-account-configs'].__LOAD;
   const mandatoryAccountsResponse = await codecommit.getFile(
-    configRepository,
+    configRepositoryName,
     mandatoryAccountsPath,
     configResponse.commitId,
   );
+  // tslint:disable-next-line: no-any
   const mandatoryAccounts: { [accountKey: string]: any } = JSON.parse(mandatoryAccountsResponse.fileContent.toString());
   const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(([_, value]) => value.email === account.Email!);
   let newAccount = true;
@@ -140,7 +135,7 @@ async function updateConfig(props: {
     try {
       await codecommit.commit({
         branchName: configBranch,
-        repositoryName: configRepository,
+        repositoryName: configRepositoryName,
         putFiles: [
           {
             filePath: mandatoryAccountsPath,
@@ -157,13 +152,14 @@ async function updateConfig(props: {
       }
     }
   } else {
-    const workLoadAccountsFiles = config['workload-account-configs']['__LOAD'];
+    const workLoadAccountsFiles = config['workload-account-configs'].__LOAD;
     for (const workLoadAccountFile of workLoadAccountsFiles) {
       const localConfig = await codecommit.getFile(
-        configRepository,
+        configRepositoryName,
         workLoadAccountFile,
         mandatoryAccountsResponse.commitId,
       );
+      // tslint:disable-next-line: no-any
       const workLoadAccounts: { [accountKey: string]: any } = JSON.parse(localConfig.fileContent.toString());
       const workLoadAccountConfig = Object.entries(workLoadAccounts).find(
         ([_, value]) => value.email === account.Email!,
@@ -178,7 +174,7 @@ async function updateConfig(props: {
         try {
           await codecommit.commit({
             branchName: configBranch,
-            repositoryName: configRepository,
+            repositoryName: configRepositoryName,
             putFiles: [
               {
                 filePath: workLoadAccountFile,
@@ -201,13 +197,13 @@ async function updateConfig(props: {
 
   if (newAccount) {
     const accountNamePrefix = config['workload-account-configs']['append-to-prefix'];
-    const workLoadAccountsFiles: string[] = config['workload-account-configs']['__LOAD'];
+    const workLoadAccountsFiles: string[] = config['workload-account-configs'].__LOAD;
     let suffix = 1;
     // TODO change w.r.t YAML
-    let fileFormat = 'json';
+    const fileFormat = 'json';
     for (const acc of workLoadAccountsFiles) {
       if (acc.startsWith(accountNamePrefix)) {
-        const s = parseInt(acc.split(accountNamePrefix)[1].split('.')[0]);
+        const s = parseInt(acc.split(accountNamePrefix)[1].split('.')[0], 10);
         if (s > suffix) {
           suffix = s;
         }
@@ -221,7 +217,7 @@ async function updateConfig(props: {
       'ou-path': destinationOrg.Path,
     };
     const accountsConfigFileResponse = await codecommit.getFile(
-      configRepository,
+      configRepositoryName,
       `${accountNamePrefix}${suffix}.${fileFormat}`,
       configBranch,
     );
@@ -231,13 +227,13 @@ async function updateConfig(props: {
       suffix++;
       const filePath = `${accountNamePrefix}${suffix}.${fileFormat}`;
       workLoadAccountsFiles.push(filePath);
-      config['workload-account-configs']['__LOAD'] = workLoadAccountsFiles;
+      config['workload-account-configs'].__LOAD = workLoadAccountsFiles;
       const accontsConfig: { [key: string]: unknown } = {};
       accontsConfig[accountKey] = accountConfig;
       try {
         await codecommit.commit({
           branchName: configBranch,
-          repositoryName: configRepository,
+          repositoryName: configRepositoryName,
           putFiles: [
             {
               filePath,
@@ -263,7 +259,7 @@ async function updateConfig(props: {
       try {
         await codecommit.commit({
           branchName: configBranch,
-          repositoryName: configRepository,
+          repositoryName: configRepositoryName,
           putFiles: [
             {
               filePath: `${accountNamePrefix}${suffix}.${fileFormat}`,
