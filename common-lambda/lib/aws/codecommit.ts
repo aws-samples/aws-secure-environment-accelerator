@@ -6,7 +6,9 @@ import {
   GetBranchOutput,
   CreateRepositoryOutput,
   BatchGetRepositoriesOutput,
-  CreateCommitInput, DeleteFileInput, DeleteFileOutput
+  CreateCommitInput,
+  DeleteFileInput,
+  DeleteFileOutput,
 } from 'aws-sdk/clients/codecommit';
 import { throttlingBackOff } from './backoff';
 

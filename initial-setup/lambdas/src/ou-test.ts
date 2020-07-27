@@ -571,3 +571,13 @@ async function getConfigFromCodeCommit(repositoryName: string, commitId: string,
   const config = await codecommit.getFile(repositoryName, filePath, commitId);
   return config.fileContent.toString();
 }
+
+handler({
+  configRepositoryName: 'PBMMAccel-Repo-Config',
+  acceleratorPrefix: 'PBMMAccel-',
+  accountsSecretId: 'arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/accounts-5ZA3VN',
+  organizationsSecretId: 'arn:aws:secretsmanager:ca-central-1:131599432352:secret:accelerator/organizations-V3JLHk',
+  configBranch: 'master',
+  configFilePath: 'raw/config.json',
+  configCommitId: 'a9f9649070768625956e58fc09f50cb2d31921d1',
+});

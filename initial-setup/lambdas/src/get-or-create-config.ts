@@ -1,6 +1,7 @@
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { config } from 'aws-sdk';
+import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 
 interface GetOrCreateConfigInput {
   repositoryName: string;
@@ -19,9 +20,6 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   // console.log(JSON.stringify(input, null, 2));
 
   const { repositoryName, filePath, s3Bucket, s3FileName, branchName, acceleratorVersion } = input;
-  const s3FilePaths = s3FileName.split('/');
-  const s3ConfigPaths = s3FilePaths.slice(0, s3FilePaths.length - 1);
-  const configRootPath = `${s3ConfigPaths.join('/')}`;
   const rawConfigPath = 'raw/config.json';
 
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
@@ -39,37 +37,48 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     const configString = configFile.fileContent.toString();
     const rawConfig = await prepareRawConfig({
       branchName,
-      configRootPath,
       configString,
       repositoryName,
       s3Bucket,
       source: 'codecommit',
     });
-
-    const currentCommit = await codecommit.getBranch(repositoryName, branchName);
-    let commitId = currentCommit.branch?.commitId;
+    const putFiles: PutFileEntry[] = [];
+    putFiles.push({
+      filePath: 'raw/config.json',
+      fileContent: rawConfig.config,
+    });
+    let configCommitId;
     try {
-      const commit = await codecommit.putFile({
+      configCommitId = await codecommit.commit({
         branchName,
         repositoryName,
-        filePath: rawConfigPath,
-        fileContent: rawConfig,
-        parentCommitId: commitId,
-        commitMessage: `Initial raw configuration file generated from s3://${s3Bucket}/${s3FileName}`,
+        putFiles: putFiles,
+        commitMessage: `Updating Raw Config in SM`,
+        parentCommitId: configFile.commitId,
       });
-      commitId = commit.commitId;
-    } catch (e) {
-      if (e.code === 'SameFileContentException') {
-        console.log(`Nothing changed in configuration`);
+    } catch (error) {
+      if (error.code === 'NoChangeException') {
+        console.log(`No Change in Configuration form Previous Execution`);
       } else {
-        throw new Error(e);
+        throw new Error(error);
       }
     }
-
+    console.log(
+      JSON.stringify(
+        {
+          configRepositoryName: repositoryName,
+          configFilePath: rawConfigPath,
+          configCommitId: configCommitId || configFile.commitId,
+          acceleratorVersion,
+        },
+        null,
+        2,
+      ),
+    );
     return {
       configRepositoryName: repositoryName,
-      configFilePath: filePath,
-      configCommitId: configFile.commitId,
+      configFilePath: rawConfigPath,
+      configCommitId: configCommitId || configFile.commitId,
       acceleratorVersion,
     };
   } catch (e) {
@@ -80,7 +89,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     // Retrieve file from S3 and push to Code Commit Config Repo
     console.log(`No config found in branch "${branchName}", creating one`);
     const s3 = new S3();
-    
+
     const configString = await s3.getObjectBodyAsString({
       Bucket: s3Bucket,
       Key: s3FileName,
@@ -88,7 +97,6 @@ export const handler = async (input: GetOrCreateConfigInput) => {
 
     const rawConfig = await prepareRawConfig({
       branchName,
-      configRootPath,
       configString,
       repositoryName,
       s3Bucket,
@@ -96,132 +104,155 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       newRepo: true,
     });
 
-    // Push Root config file to repository
-    const currentCommit = await codecommit.getBranch(repositoryName, branchName);
-    const commit = await codecommit.putFile({
-      branchName,
-      repositoryName,
-      filePath,
+    const putFiles: PutFileEntry[] = [];
+    putFiles.push(...rawConfig.loadFiles);
+    putFiles.push({
+      filePath: 'config.json',
       fileContent: configString,
-      parentCommitId: currentCommit.branch?.commitId,
-      commitMessage: `Initial Root configuration file copied from s3://${s3Bucket}/${s3FileName}`,
     });
-    
-    const rawCommit = await codecommit.putFile({
+    putFiles.push({
+      filePath: 'raw/config.json',
+      fileContent: rawConfig.config,
+    });
+
+    const configCommitId = await codecommit.commit({
       branchName,
       repositoryName,
-      filePath: rawConfigPath,
-      fileContent: rawConfig,
-      parentCommitId: commit.commitId,
-      commitMessage: `Initial Raw configuration file generated from s3://${s3Bucket}/${s3FileName}`,
+      putFiles: putFiles,
+      commitMessage: `Initial push through SM from S3 to CodeCommit`,
     });
-
-    console.log(`CommitID for config file is "${rawCommit.commitId}"`);
-
-    // Remove the S3 config object
-    await s3.deleteObject({
-      Bucket: s3Bucket,
-      Key: s3FileName,
-    });
-
+    console.log(
+      JSON.stringify(
+        {
+          configRepositoryName: repositoryName,
+          configFilePath: rawConfigPath,
+          configCommitId,
+          acceleratorVersion,
+        },
+        null,
+        2,
+      ),
+    );
     return {
       configRepositoryName: repositoryName,
-      configFilePath: filePath,
-      configCommitId: commit.commitId,
+      configFilePath: rawConfigPath,
+      configCommitId,
       acceleratorVersion,
     };
   }
 };
 
+interface ConfigOutput {
+  filePath: string;
+  fileContent: string;
+}
 export async function prepareRawConfig(props: {
-  configString: string; 
-  configRootPath: string; 
-  source : string;
+  configString: string;
+  source: string;
   repositoryName: string;
   branchName: string;
   s3Bucket?: string;
   newRepo?: boolean;
-}): Promise<string> {
-  const { configRootPath, configString, source, repositoryName, branchName, newRepo, s3Bucket } = props;
+}): Promise<{
+  config: string;
+  loadFiles: ConfigOutput[];
+}> {
+  const loadFiles: ConfigOutput[] = [];
+  const { configString, source, repositoryName, branchName, newRepo, s3Bucket } = props;
   const config = JSON.parse(configString);
   const globalOptionsFile = config['global-options'];
 
   if (Object.keys(globalOptionsFile).includes('__LOAD')) {
+    const key = `${globalOptionsFile['__LOAD']}`;
     console.log(`Loading Global Options from ${source}`);
     const localConfig = await getConfigFromFile({
       source,
       branchName,
-      filePath: `${configRootPath}${globalOptionsFile['__LOAD']}`,
+      filePath: key,
       repositoryName,
       s3Bucket,
-      newRepo,
     });
-    config['global-options'] = localConfig;
+    config['global-options'] = JSON.parse(localConfig);
+    loadFiles.push({
+      filePath: key,
+      fileContent: localConfig,
+    });
   }
   const mandatoryAccountsFile = config['mandatory-account-configs'];
   if (Object.keys(mandatoryAccountsFile).includes('__LOAD')) {
+    const key = `${mandatoryAccountsFile['__LOAD']}`;
     console.log(`Loading Mandatory Accounts from ${source}`);
     const localConfig = await getConfigFromFile({
       source,
       branchName,
-      filePath: `${configRootPath}${mandatoryAccountsFile['__LOAD']}`,
+      filePath: key,
       repositoryName,
       s3Bucket,
-      newRepo,
     });
-    config['mandatory-account-configs'] = localConfig;
+    config['mandatory-account-configs'] = JSON.parse(localConfig);
+    loadFiles.push({
+      filePath: key,
+      fileContent: localConfig,
+    });
   }
   const organizationalUnitsLoadConfig = config['organizational-units'];
   for (const key of Object.keys(organizationalUnitsLoadConfig)) {
     console.log(`Loading Organizational Units from ${source}`);
     if (Object.keys(organizationalUnitsLoadConfig[key]).includes('__LOAD')) {
+      const filePath = `${organizationalUnitsLoadConfig[key]['__LOAD']}`;
       const localConfig = await getConfigFromFile({
         source,
         branchName,
-        filePath: `${configRootPath}${organizationalUnitsLoadConfig[key]['__LOAD']}`,
+        filePath,
         repositoryName,
         s3Bucket,
-        newRepo,
       });
-      organizationalUnitsLoadConfig[key] = localConfig;
+      organizationalUnitsLoadConfig[key] = JSON.parse(localConfig);
+      loadFiles.push({
+        filePath,
+        fileContent: localConfig,
+      });
     }
   }
   config['organizational-units'] = organizationalUnitsLoadConfig;
 
   if (Object.keys(config['workload-account-configs']).includes('__LOAD')) {
     console.log(`Loading WorkLoad Accounts from ${source}`);
-    let workLoadAccountsConfig: { [accountKey: string] : string } = {};
+    let workLoadAccountsConfig: { [accountKey: string]: string } = {};
     const workLoadAccountsFiles = config['workload-account-configs']['__LOAD'];
     for (const workLoadAccountFile of workLoadAccountsFiles) {
-      // console.log(workLoadAccountFile);
       const localConfig = await getConfigFromFile({
         source,
         branchName,
-        filePath: `${configRootPath}${workLoadAccountFile}`,
+        filePath: workLoadAccountFile,
         repositoryName,
         s3Bucket,
-        newRepo,
       });
       workLoadAccountsConfig = {
         ...workLoadAccountsConfig,
-        ...localConfig,
-      }
+        ...JSON.parse(localConfig),
+      };
+      loadFiles.push({
+        filePath: workLoadAccountFile,
+        fileContent: localConfig,
+      });
     }
     config['workload-account-configs'] = workLoadAccountsConfig;
   }
-  
-  return JSON.stringify(config, null, 2);
+  return {
+    config: JSON.stringify(config, null, 2),
+    loadFiles,
+  };
 }
 
-async function getConfigFromFile (props: {
-  source: string; 
-  filePath: string; 
+async function getConfigFromFile(props: {
+  source: string;
+  filePath: string;
   repositoryName: string;
   branchName: string;
   s3Bucket?: string;
-  newRepo?: boolean;
 }) {
-  const { source, branchName, filePath, repositoryName, s3Bucket, newRepo } = props;
+  const { source, branchName, filePath, repositoryName, s3Bucket } = props;
   let config;
   if (source === 's3') {
     console.log(`Reading file ${filePath} from Bucket ${s3Bucket}`);
@@ -229,35 +260,19 @@ async function getConfigFromFile (props: {
       Bucket: s3Bucket!,
       Key: filePath,
     });
-    config = JSON.parse(configString);
-    if (newRepo) {
-      let parentCommitId;
-      try {
-        const currentCommit = await codecommit.getBranch(repositoryName, branchName);
-        parentCommitId = currentCommit.branch?.commitId;
-      } catch (e) {
-        if (e.code === 'BranchDoesNotExistException') {
-          console.log(`First Commit to repo`);
-        } else {
-          throw new Error(e);
-        }
-      }
-      await codecommit.putFile({
-        branchName,
-        repositoryName,
-        filePath,
-        fileContent: JSON.stringify(config, null, 2),
-        parentCommitId,
-        commitMessage: `Initial configuration file copied from s3://${s3Bucket}/${filePath}`,
-      });
-      await s3.deleteObject({
-        Bucket: s3Bucket!,
-        Key: filePath,
-      });
-    }
+    config = configString;
   } else {
+    console.log(`Reading file ${filePath} from Repository ${repositoryName}`);
     const configResponse = await codecommit.getFile(repositoryName, filePath, branchName);
-    config = JSON.parse(configResponse.fileContent.toString());
+    config = configResponse.fileContent.toString();
   }
   return config;
 }
+
+handler({
+  repositoryName: 'PBMMAccel-Config-Repo',
+  filePath: 'config.json',
+  s3Bucket: 'pbmmaccel-131599432352-ca-central-1-config',
+  s3FileName: 'config.json',
+  branchName: 'master',
+});
