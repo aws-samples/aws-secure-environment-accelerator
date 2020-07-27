@@ -8,6 +8,7 @@ interface GetOrCreateConfigInput {
   s3Bucket: string;
   s3FileName: string;
   branchName: string;
+  acceleratorVersion?: string;
 }
 
 const codecommit = new CodeCommit();
@@ -17,7 +18,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   // console.log(`Get or Create Config from S3 file...`);
   // console.log(JSON.stringify(input, null, 2));
 
-  const { repositoryName, filePath, s3Bucket, s3FileName, branchName } = input;
+  const { repositoryName, filePath, s3Bucket, s3FileName, branchName, acceleratorVersion } = input;
   const s3FilePaths = s3FileName.split('/');
   const s3ConfigPaths = s3FilePaths.slice(0, s3FilePaths.length - 1);
   const configRootPath = `${s3ConfigPaths.join('/')}`;
@@ -67,8 +68,9 @@ export const handler = async (input: GetOrCreateConfigInput) => {
 
     return {
       configRepositoryName: repositoryName,
-      configFilePath: rawConfigPath,
-      configCommitId: commitId,
+      configFilePath: filePath,
+      configCommitId: configFile.commitId,
+      acceleratorVersion,
     };
   } catch (e) {
     if (e.code !== 'FileDoesNotExistException' && e.code !== 'CommitDoesNotExistException') {
@@ -124,8 +126,9 @@ export const handler = async (input: GetOrCreateConfigInput) => {
 
     return {
       configRepositoryName: repositoryName,
-      configFilePath: rawConfigPath,
-      configCommitId: rawCommit.commitId,
+      configFilePath: filePath,
+      configCommitId: commit.commitId,
+      acceleratorVersion,
     };
   }
 };

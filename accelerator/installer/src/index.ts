@@ -74,6 +74,11 @@ async function main() {
   // Use the `start-execution.js` script in the assets folder
   const stateMachineStartExecutionCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'start-execution.js'));
 
+  // Use the `save-application-version.js` script in the assets folder
+  const saveApplicationVersionCode = fs.readFileSync(
+    path.join(__dirname, '..', 'assets', 'save-application-version.js'),
+  );
+
   // Role that is used by the CodeBuild project
   const installerProjectRole = new iam.Role(stack, 'InstallerProjectRole', {
     roleName: `${acceleratorPrefix}CB-Installer`,
@@ -124,6 +129,19 @@ async function main() {
       },
     }),
   );
+
+  // This artifact is used as output for the Github code and as input for the build step
+  const sourceArtifact = new codepipeline.Artifact();
+
+  const githubAction = new actions.GitHubSourceAction({
+    actionName: 'GithubSource',
+    owner: githubOwner.valueAsString,
+    repo: githubRepository.valueAsString,
+    branch: githubBranch.valueAsString,
+    oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
+    output: sourceArtifact,
+    trigger: actions.GitHubTrigger.NONE,
+  });
 
   // Define a build specification to build the initial setup templates
   const installerProject = new codebuild.PipelineProject(stack, 'InstallerProject', {
@@ -185,6 +203,18 @@ async function main() {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
           value: notificationEmail,
         },
+        SOURCE_REPO: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: githubRepository,
+        },
+        SOURCE_BRANCH: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: githubBranch,
+        },
+        SOURCE_OWNER: {
+          type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
+          value: githubOwner,
+        },
       },
     },
   });
@@ -199,6 +229,13 @@ async function main() {
   stateMachineExecutionRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      resources: ['*'],
+    }),
+  );
+
+  stateMachineExecutionRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['ssm:PutParameter'],
       resources: ['*'],
     }),
   );
@@ -220,8 +257,14 @@ async function main() {
     handler: 'index.handler',
   });
 
-  // This artifact is used as output for the Github code and as input for the build step
-  const sourceArtifact = new codepipeline.Artifact();
+  // Create the Lambda function that is responsible for launching the state machine
+  const saveApplicationVersionLambda = new lambda.Function(stack, 'SaveApplicationVersionLambda', {
+    functionName: `${acceleratorPrefix}Installer-SaveApplicationVersion`,
+    role: stateMachineExecutionRole,
+    runtime: lambda.Runtime.NODEJS_12_X,
+    code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
+    handler: 'index.handler',
+  });
 
   // Role that is used by the CodePipeline
   // Permissions for
@@ -248,17 +291,7 @@ async function main() {
     stages: [
       {
         stageName: 'Source',
-        actions: [
-          new actions.GitHubSourceAction({
-            actionName: 'GithubSource',
-            owner: githubOwner.valueAsString,
-            repo: githubRepository.valueAsString,
-            branch: githubBranch.valueAsString,
-            oauthToken: cdk.SecretValue.secretsManager(githubOauthSecretId.valueAsString),
-            output: sourceArtifact,
-            trigger: actions.GitHubTrigger.NONE,
-          }),
-        ],
+        actions: [githubAction],
       },
       {
         stageName: 'Deploy',
@@ -268,6 +301,22 @@ async function main() {
             project: installerProject,
             input: sourceArtifact,
             role: installerPipelineRole,
+          }),
+        ],
+      },
+      {
+        stageName: 'UpdateVersion',
+        actions: [
+          new actions.LambdaInvokeAction({
+            actionName: 'UpdateVersion',
+            lambda: saveApplicationVersionLambda,
+            role: installerPipelineRole,
+            userParameters: {
+              commitId: githubAction.variables.commitId,
+              repository: githubRepository,
+              owner: githubOwner,
+              branch: githubBranch,
+            },
           }),
         ],
       },
