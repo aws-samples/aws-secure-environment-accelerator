@@ -8,6 +8,7 @@
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
+	"ignored-ous": [],
     "supported-regions": [
       "ap-northeast-1",
       "ap-northeast-2",
@@ -44,7 +45,7 @@
       "config-aggr-excl-regions": [],
       "macie": true,
       "macie-excl-regions": [],
-      "macie-frequency": "SIX_HOURS"
+      "macie-frequency": "FIFTEEN_MINUTES"
     },
     "central-operations-services": {
       "account": "operations",
@@ -374,7 +375,7 @@
               "VPN-ECMP-support": true,
               "Default-route-table-association": false,
               "Default-route-table-propagation": false,
-              "Auto-accept-sharing-attachments": false
+              "Auto-accept-sharing-attachments": true
             },
             "route-tables": ["core", "segregated", "shared", "standalone"]
           }

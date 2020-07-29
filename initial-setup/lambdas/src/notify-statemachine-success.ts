@@ -4,6 +4,7 @@ import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 interface NotifyErrorInput {
   notificationTopicArn: string;
   accounts: Account[];
+  acceleratorVersion?: string;
 }
 
 const sns = new SNS();
@@ -11,7 +12,11 @@ const sns = new SNS();
 export const handler = async (input: NotifyErrorInput): Promise<string> => {
   console.log(`State Machine Execution Success...`);
   console.log(JSON.stringify(input, null, 2));
-  const errorCause = input.accounts;
+  const { accounts, acceleratorVersion } = input;
+  const errorCause = {
+    acceleratorVersion,
+    accounts,
+  };
   await sns.publish({
     Message: JSON.stringify(errorCause),
     TopicArn: input.notificationTopicArn,
