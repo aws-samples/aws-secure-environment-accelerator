@@ -231,10 +231,18 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### UPGRADES
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats
-- Upgrades from v1.0.5rc5 to v1.0.6 (or above) will redeploy the TGW. This will drop the FW tunnels. To automatically re-establish FW configuration, drop the fw deployment before upgrade (i.e. comment out FW's and rerun state machine). Add the firewalls back to the config file when doing the 'upgrade' State Machine execution. \*\* See below.
-- Upgrades from versions prior to v1.1.4 require dropping the fw deployment before upgrade (i.e. comment out FW's and run state machine). You can redeploy the firewalls during the 'upgrade' State Machine execution. \*\* See below. If you miss this step, simply remove the FW config from the config file and continue.
+- Upgrades from v1.0.5rc5 to v1.0.6 (or above) will redeploy the TGW. This will drop the FW tunnels. To automatically re-establish FW configuration, drop the fw deployment during upgrade (i.e. comment out FW) and redeploy following the upgrade. \*\* See below.
+- Upgrades from versions prior to v1.1.4 require dropping the fw AND fwMgr deployments during the upgrade (i.e. comment out fw and fwmgr sections before upgrade). \*\* See below. You can redeploy the firewalls after upgrade. If you miss this step, the perimeter stack will likely fail to rollback and require manual intervention before rerunning the state machine without the fws and fwmgr.
 
 \*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your changes automatically redeployed, add them into the appropriate firewall-example.txt configuration file.
+
+#### Steps (to v1.1.4)
+
+- Ensure a valid git token is stored in secrets manager
+- Update the config file with new parameters and updated parameter types
+- Remove the **_fw_** AND **_fwmgr_** from the config file
+- Delete the Installer CFN stack (take note of the s3 bucket name first)
+- Redeploy the Installer CFN stack using the latest template
 
 ### Configuration File Notes
 
