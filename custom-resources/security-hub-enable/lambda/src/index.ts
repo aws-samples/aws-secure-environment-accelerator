@@ -1,10 +1,13 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { backOff } from 'exponential-backoff';
+import { errorHandler } from '@custom-resources/cfn-response';
 
 const hub = new AWS.SecurityHub();
 
-export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+export const handler = errorHandler(onEvent);
+
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Enabling Security Hub Standards...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -17,7 +20,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
     case 'Delete':
       return onDelete(event);
   }
-};
+}
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const standards = event.ResourceProperties.standards;

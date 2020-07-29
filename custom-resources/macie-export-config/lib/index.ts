@@ -10,6 +10,7 @@ export interface MacieExportConfigProps {
   bucketName: string;
   kmsKeyArn: string;
   keyPrefix?: string;
+  roleArn: string;
 }
 /**
  * Custom resource implementation that set Macie classification export config
@@ -21,15 +22,16 @@ export class MacieExportConfig extends cdk.Construct {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = props;
+    const exportConfig = this.lambdaFunction(props.roleArn);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: this.lambdaFunction.functionArn,
+      serviceToken: exportConfig.functionArn,
       properties: handlerProperties,
     });
   }
 
-  private get lambdaFunction(): lambda.Function {
+  private lambdaFunction(roleArn: string): lambda.Function {
     const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
@@ -39,44 +41,14 @@ export class MacieExportConfig extends cdk.Construct {
 
     const lambdaPath = require.resolve('@custom-resources/macie-export-config-lambda');
     const lambdaDir = path.dirname(lambdaPath);
-
-    const role = new iam.Role(stack, `${resourceType}Role`, {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['macie2:putClassificationExportConfiguration'],
-        resources: ['*'],
-      }),
-    );
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          's3:CreateBucket',
-          's3:GetBucketLocation',
-          's3:ListAllMyBuckets',
-          's3:PutBucketAcl',
-          's3:PutBucketPolicy',
-          's3:PutBucketPublicAccessBlock',
-          's3:PutObject',
-        ],
-        resources: ['*'],
-      }),
-    );
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['kms:ListAliases'],
-        resources: ['*'],
-      }),
-    );
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.minutes(10),
     });
   }
 }

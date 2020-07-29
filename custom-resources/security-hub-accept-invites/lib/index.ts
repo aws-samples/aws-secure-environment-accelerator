@@ -1,11 +1,13 @@
 import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 
-const resourceType = 'Custom::SecurityHubAcceptInvites';
+const resourceType = 'Custom::SecurityHubAcceptInvitesSettings';
 
 export interface SecurityHubAcceptInvitesProps {
   masterAccountId: string;
+  roleArn: string;
 }
 
 /**
@@ -17,26 +19,34 @@ export class SecurityHubAcceptInvites extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: SecurityHubAcceptInvitesProps) {
     super(scope, id);
 
-    const lambdaPath = require.resolve('@custom-resources/security-hub-accept-invites-lambda');
-    const lambdaDir = path.dirname(lambdaPath);
-
-    const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
-      runtime: cdk.CustomResourceProviderRuntime.NODEJS_12,
-      codeDirectory: lambdaDir,
-      policyStatements: [
-        new iam.PolicyStatement({
-          actions: ['securityhub:*'],
-          resources: ['*'],
-        }).toJSON(),
-      ],
-    });
-
+    const acceptInvites = this.lambdaFunction(props.roleArn);
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: provider,
+      serviceToken: acceptInvites.functionArn,
       properties: {
         masterAccountId: props.masterAccountId,
       },
+    });
+  }
+
+  private lambdaFunction(roleArn: string): lambda.Function {
+    const constructName = `${resourceType}`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@custom-resources/security-hub-accept-invites-lambda');
+    const lambdaDir = path.dirname(lambdaPath);
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.minutes(15),
     });
   }
 }
