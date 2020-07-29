@@ -5,7 +5,7 @@ export function applyPrettier(config: AcceleratorConfig) {
   return prettier.format(JSON.stringify(config, null, 2), {
     parser: 'json',
     tabWidth: 2,
-    printWidth: 100,
+    printWidth: 120,
     singleQuote: true,
     trailingComma: 'all',
     arrowParens: 'avoid',
