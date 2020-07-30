@@ -23,10 +23,6 @@ export async function step1(props: FirewallSubscriptionStep1Props) {
   const { accountKey, deployments, vpc, accountStacks } = props;
 
   const managerConfig = deployments?.['firewall-manager'];
-  const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpc.region);
-  if (!accountStack) {
-    console.warn(`Cannot find account stack ${accountStack}`);
-  }
   const firewallConfigs = deployments?.firewalls;
   if (!firewallConfigs || firewallConfigs.length === 0) {
     return;
