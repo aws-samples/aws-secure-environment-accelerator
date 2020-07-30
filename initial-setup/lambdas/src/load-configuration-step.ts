@@ -5,6 +5,7 @@ export interface LoadConfigurationInput {
   configRepositoryName: string;
   configCommitId: string;
   baseline?: BaseLineType;
+  acceleratorVersion?: string;
 }
 
 export interface LoadConfigurationOutput {
@@ -13,6 +14,7 @@ export interface LoadConfigurationOutput {
   regions: string[];
   warnings: string[];
   configCommitId: string;
+  acceleratorVersion?: string;
 }
 
 export interface ConfigurationAccount {
