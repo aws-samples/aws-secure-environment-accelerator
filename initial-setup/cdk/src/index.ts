@@ -177,7 +177,7 @@ export namespace InitialSetup {
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
         // TODO return only BASELINE & COMMITID from this and assign to $.configuration.baseline object and use it accross SM
-        resultPath: '$.configuration',
+        resultPath: '$.configuration.baseline',
       });
 
       const loadLandingZoneConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
@@ -192,6 +192,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$.configuration',
       });
@@ -208,6 +209,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$.configuration',
       });
@@ -458,6 +460,7 @@ export namespace InitialSetup {
           accountsSecretId: accountsSecret.secretArn,
           organizationsSecretId: organizationsSecret.secretArn,
           configBranch: props.configBranchName,
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$.configuration.configCommitId',
       });
@@ -529,6 +532,7 @@ export namespace InitialSetup {
           'CONFIG_FILE_PATH.$': '$.configFilePath',
           'CONFIG_COMMIT_ID.$': '$.configCommitId',
           'ACCELERATOR_BASELINE.$': '$.baseline',
+          'CONFIG_ROOT_FILE_PATH.$': '$.configRootFilePath',
           ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,

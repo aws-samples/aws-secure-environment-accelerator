@@ -14,6 +14,7 @@ export interface RemoveAccountProps {
   defaultRegion: string;
   acceleratorPipelineRole: iam.IRole;
   lambdaCode: lambda.Code;
+  configRootFilePath: string;
 }
 
 export async function removeAccount(input: RemoveAccountProps) {
@@ -25,6 +26,7 @@ export async function removeAccount(input: RemoveAccountProps) {
     configRepositoryName,
     defaultRegion,
     lambdaCode,
+    configRootFilePath,
   } = input;
 
   const removeAccountFunc = new lambda.Function(scope, 'removeAccountFromOrganization', {
@@ -40,6 +42,7 @@ export async function removeAccount(input: RemoveAccountProps) {
       ACCELERATOR_DEFAULT_REGION: defaultRegion,
       // TODO Remove hardcoded of accounts secret
       ACCOUNTS_SECRET_ID: 'accelerator/accounts',
+      CONFIG_ROOT_FILE_PATH: configRootFilePath,
     },
     timeout: cdk.Duration.minutes(15),
   });
