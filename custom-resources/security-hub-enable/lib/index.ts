@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 
-const resourceType = 'Custom::SecurityHubEnableSettings';
+const resourceType = 'Custom::SecurityHubEnable';
 
 export interface SecurityHubEnableProps {
   standards: unknown;
@@ -30,7 +30,7 @@ export class SecurityHubEnable extends cdk.Construct {
   }
 
   private lambdaFunction(roleArn: string): lambda.Function {
-    const constructName = `${resourceType}`;
+    const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
     if (existing) {

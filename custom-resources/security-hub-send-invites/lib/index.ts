@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 
-const resourceType = 'Custom::SecurityHubSendInvitesSettings';
+const resourceType = 'Custom::SecurityHubSendInvites';
 
 export interface Account {
   AccountId: string;
@@ -35,7 +35,7 @@ export class SecurityHubSendInvites extends cdk.Construct {
   }
 
   private lambdaFunction(roleArn: string): lambda.Function {
-    const constructName = `${resourceType}`;
+    const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
     if (existing) {
