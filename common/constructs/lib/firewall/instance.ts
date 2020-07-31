@@ -142,6 +142,7 @@ export class FirewallInstance extends cdk.Construct {
         allocationId: eipAllocationId,
         privateIpAddress: networkInterface.attrPrimaryPrivateIpAddress,
       });
+      // Sleep 60 seconds after creation of the Ec2 instance
       const roleSleep = new CfnSleep(this, `ClusterEipAssocSleep${index}`, {
         sleep: 60 * 1000,
       });
