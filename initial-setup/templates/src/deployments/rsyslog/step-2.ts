@@ -10,7 +10,11 @@ import { SecurityGroup } from '../../common/security-group';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { StructuredOutput } from '../../common/structured-output';
-import { CfnRsyslogDnsOutputTypeOutput, RsyslogAutoScalingRoleOutput, RsyslogAutoScalingImageIdOutput } from './outputs';
+import {
+  CfnRsyslogDnsOutputTypeOutput,
+  RsyslogAutoScalingRoleOutput,
+  RsyslogAutoScalingImageIdOutput,
+} from './outputs';
 import { checkAccountWarming } from '../account-warming/outputs';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 

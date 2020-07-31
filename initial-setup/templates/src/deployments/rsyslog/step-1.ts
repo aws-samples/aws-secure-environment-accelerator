@@ -82,12 +82,12 @@ export async function step1(props: RsyslogStep1Props) {
 
     const imageId = ssm.StringParameter.valueForTypedStringParameter(
       accountStack,
-      rsyslogDeploymentConfig["ssm-image-id"],
+      rsyslogDeploymentConfig['ssm-image-id'],
       ssm.ParameterType.AWS_EC2_IMAGE_ID,
     );
 
     new CfnRsyslogImageIdOutputTypeOutput(accountStack, 'RsyslogImageIdOutput', {
-        imageId,
+      imageId,
     });
   }
 }

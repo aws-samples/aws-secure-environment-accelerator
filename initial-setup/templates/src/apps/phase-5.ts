@@ -5,7 +5,11 @@ import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import { StructuredOutput } from '../common/structured-output';
-import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn, MadAutoScalingImageIdOutput } from '../deployments/mad';
+import {
+  MadAutoScalingRoleOutputType,
+  getMadUserPasswordSecretArn,
+  MadAutoScalingImageIdOutput,
+} from '../deployments/mad';
 import * as ouValidation from '../deployments/ou-validation-events';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
