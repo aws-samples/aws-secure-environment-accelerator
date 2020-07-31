@@ -8,7 +8,8 @@ import { pascalCase } from 'pascal-case';
 import * as crypto from 'crypto';
 import { pretty } from '@aws-pbmm/common-lambda/lib/util/perttier';
 import { getFormatedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/utils';
-import { AcceleratorConfig, AcceleratorUpdateConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorUpdateConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 
 interface MoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -25,11 +26,11 @@ interface AccountInfo {
 
 const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
 const acceleratorStateMachinearn = process.env.ACCELERATOR_STATE_MACHINE_ARN!;
-const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME! || 'PBMMAccel-Config-Repo-Testing';
+const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
 const configFilePath = process.env.CONFIG_FILE_PATH! || 'raw/config.json';
-const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH! || 'config.json';
-const configBranch = process.env.CONFIG_BRANCH_NAME! || 'master';
-const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME! || 'PBMMAccel-MainStateMachine_sm';
+const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
+const configBranch = process.env.CONFIG_BRANCH_NAME!;
+const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
 
 const organizations = new Organizations();
 const codecommit = new CodeCommit(undefined, defaultRegion);
@@ -72,7 +73,6 @@ export const handler = async (input: MoveAccountOrganization) => {
     updatestatus = await updateConfig({
       account,
       destinationOrg,
-      destinationRootOrg,
     });
   } else if (destinationParentId === rootOrgId) {
     const parentOrg = await organizations.getOrganizationalUnitWithPath(sourceParentId);
@@ -107,7 +107,6 @@ export const handler = async (input: MoveAccountOrganization) => {
       updatestatus = await updateConfig({
         account,
         destinationOrg,
-        destinationRootOrg,
       });
     }
   }
@@ -121,26 +120,26 @@ export const handler = async (input: MoveAccountOrganization) => {
 async function updateConfig(props: {
   account: org.Account;
   destinationOrg: OrganizationalUnit;
-  destinationRootOrg: string;
 }) {
   const { account, destinationOrg } = props;
   let newAccount = true;
   const extension = configRootFilePath?.split('.').slice(-1)[0];
   const format = extension === 'json' ? 'json' : 'yaml';
   // RAW Config
-  const rawConfigResponse = await codecommit.getFile(configRepositoryName, configRootFilePath, configBranch);
-  const rootConfigResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
+  const rootConfigResponse = await codecommit.getFile(configRepositoryName, configRootFilePath, configBranch);
+  const rootConfig = getFormatedObject(rootConfigResponse.fileContent.toString(), format);
+  const rawConfigResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   const rawConfig: AcceleratorUpdateConfig = getFormatedObject(rawConfigResponse.fileContent.toString(), format);
   let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
     ([_, ac]) => ac.email === account.Email!,
   );
   const accountConfig: { [key: string]: AccountInfo } = {};
   const accountPrefix = rawConfig['global-options']['workloadaccounts-prefix'];
-  let accountSuffix = rawConfig['global-options']['workloadaccounts-suffix']!;
+  let accountSuffix = rawConfig['global-options']['workloadaccounts-suffix']!;  
   let useNewConfigFile = false;
   let accountKey = '';
   if (accountInfo) {
-    // Check Account in Mandatory Account Config
+    // Account found in Mandatory Account Config
     newAccount = false;
     accountKey = accountInfo[0];
     accountConfig[accountInfo[0]] = {
@@ -170,7 +169,6 @@ async function updateConfig(props: {
       accountKey = `${pascalCase(account.Name!)}-${hashName(account.Email!, 6)}`;
       if (`${accountPrefix}.${format}` === configRootFilePath) {
         console.log(`Account Found in Root Path`);
-        accountKey = accountKey;
         accountConfig[accountKey] = {
           filename: configRootFilePath,
           type: 'workload',
@@ -187,7 +185,7 @@ async function updateConfig(props: {
             configBranch,
           );
           const workLoadAccount = pretty(tempConfigResponse.fileContent.toString(), format);
-          if (workLoadAccount.split('/n').length + 7 > 10) {
+          if (workLoadAccount.split('\n').length + 7 > 10) {
             useNewConfigFile = true;
           }
         } catch (error) {
@@ -195,7 +193,7 @@ async function updateConfig(props: {
             useNewConfigFile = false;
           }
         }
-        if (!useNewConfigFile) {
+        if (useNewConfigFile) {
           accountSuffix += 1;
         }
         accountConfig[accountKey] = {
@@ -218,7 +216,7 @@ async function updateConfig(props: {
     try {
       if (accConfigObject.filename === configRootFilePath) {
         // If Accounts in Single Configuration File handling seperatly since we need to go to specific key
-        const accountsInConfig = getFormatedObject(rootConfigResponse.fileContent.toString(), format);
+        const accountsInConfig = getFormatedObject(rawConfigResponse.fileContent.toString(), format);
         if (newAccount) {
           // New Account will go under WorkLoad Account
           accountsInConfig['workload-account-configs'][accKey] = {
@@ -241,7 +239,6 @@ async function updateConfig(props: {
             accountsInConfig['workload-account-configs'][accKey]['ou-path'] = destinationOrg.Path;
           }
         }
-        console.log(`Update Account in main Config`);
         await codecommit.commit({
           branchName: configBranch,
           repositoryName: configRepositoryName,
@@ -255,13 +252,23 @@ async function updateConfig(props: {
         });
       } else {
         // Account Config will go to existing seperate Config File, either new account ot existing account
-        const accountFileResponse = await codecommit.getFile(
-          configRepositoryName,
-          accConfigObject.filename,
-          configBranch,
-        );
-        const accountFileString = accountFileResponse.fileContent.toString();
-        const accountFile = getFormatedObject(accountFileString, format);
+        let accountFileString;
+        let accountFile;
+        try {
+          const accountFileResponse = await codecommit.getFile(
+            configRepositoryName,
+            accConfigObject.filename,
+            configBranch,
+          );
+          accountFileString = accountFileResponse.fileContent.toString();
+          accountFile = getFormatedObject(accountFileString, format);
+        } catch (error) {
+          if (error.code === 'FileDoesNotExistException') {
+            accountFile = {};
+          } else {
+            throw new Error(error);
+          }
+        }
         if (newAccount) {
           accountFile[accKey] = {
             'account-name': accConfigObject.name!,
@@ -285,7 +292,7 @@ async function updateConfig(props: {
               fileContent: pretty(getStringFromObject(accountFile, format), format),
             },
           ],
-          parentCommitId: accountFileResponse.commitId,
+          parentCommitId: rawConfigResponse.commitId,
         });
       }
     } catch (error) {
@@ -297,13 +304,7 @@ async function updateConfig(props: {
     }
   } else {
     // Config will go to new account based on prefix and suffix in global options and also update global options
-    const globalOptionsResponse = await codecommit.getFile(
-      configRepositoryName,
-      rawConfig['global-options']['file-name'],
-      configBranch,
-    );
-    const globalOptions = getFormatedObject(globalOptionsResponse.fileContent.toLocaleString(), format);
-    globalOptions['workloadaccounts-suffix'] = accountSuffix;
+    const updateFiles: PutFileEntry[] = [];
     const wlaConfig: { [key: string]: unknown } = {};
     wlaConfig[accountKey] = {
       'account-name': accountConfig[accountKey].name,
@@ -312,23 +313,39 @@ async function updateConfig(props: {
       'ou-path': accountConfig[accountKey]['ou-path'],
       'file-name': accountConfig[accountKey].filename,
     };
+    updateFiles.push({
+      filePath: accountConfig[accountKey].filename,
+      fileContent: pretty(getStringFromObject(wlaConfig, format), format),
+    });
+    rootConfig['workload-account-configs'].__LOAD.push(accountConfig[accountKey].filename);
+    if (configRootFilePath === rawConfig['global-options']['file-name']) {
+      rootConfig['global-options']['workloadaccounts-suffix'] = accountSuffix;
+    } else {
+      const globalOptionsResponse = await codecommit.getFile(
+        configRepositoryName,
+        rawConfig['global-options']['file-name'],
+        configBranch,
+      );
+      const globalOptions = getFormatedObject(globalOptionsResponse.fileContent.toString(), format);
+      globalOptions['workloadaccounts-suffix'] = accountSuffix;
+      updateFiles.push({
+        filePath: rawConfig['global-options']['file-name'],
+        fileContent: pretty(getStringFromObject(globalOptions, format), format),
+      });
+    }
+    updateFiles.push({
+      filePath: configRootFilePath,
+      fileContent: pretty(getStringFromObject(rootConfig, format), format),
+    });
+    
     try {
       console.log(`Adding account to configuration through Move-Account: ${accountConfig[accountKey].filename}`);
       await codecommit.commit({
         branchName: configBranch,
         repositoryName: configRepositoryName,
-        putFiles: [
-          {
-            filePath: accountConfig[accountKey].filename,
-            fileContent: pretty(getStringFromObject(wlaConfig, format), format),
-          },
-          {
-            filePath: rawConfig['global-options']['file-name'],
-            fileContent: pretty(getStringFromObject(globalOptions, format), format),
-          },
-        ],
+        putFiles: updateFiles,
         commitMessage: `Adding account to configuration through Move-Account`,
-        parentCommitId: globalOptionsResponse.commitId,
+        parentCommitId: rawConfigResponse.commitId,
       });
     } catch (error) {
       if (error.code === 'NoChangeException') {
@@ -361,53 +378,3 @@ function hashName(name: string, length: number) {
   const hash = crypto.createHash('md5').update(name).digest('hex');
   return hash.slice(0, length).toUpperCase();
 }
-
-// handler({
-//   "version": "0",
-//   "id": "579d06ba-c104-8760-5882-bd2a3275791d",
-//   "detail-type": "AWS API Call via CloudTrail",
-//   "source": "aws.organizations",
-//   "account": "538235518685",
-//   "time": "2020-07-28T11:35:28Z",
-//   "region": "us-east-1",
-//   "resources": [],
-//   "detail": {
-//       "eventVersion": "1.05",
-//       "userIdentity": {
-//           "type": "AssumedRole",
-//           "principalId": "AROAX2UKWH3O4FA6K6N3J:nkoppula-Isengard",
-//           "arn": "arn:aws:sts::538235518685:assumed-role/Admin/nkoppula-Isengard",
-//           "accountId": "538235518685",
-//           "accessKeyId": "ASIAX2UKWH3OXR2UVS5V",
-//           "sessionContext": {
-//               "sessionIssuer": {
-//                   "type": "Role",
-//                   "principalId": "AROAX2UKWH3O4FA6K6N3J",
-//                   "arn": "arn:aws:iam::538235518685:role/Admin",
-//                   "accountId": "538235518685",
-//                   "userName": "Admin"
-//               },
-//               "webIdFederationData": {},
-//               "attributes": {
-//                   "mfaAuthenticated": "false",
-//                   "creationDate": "2020-07-28T06:04:09Z"
-//               }
-//           }
-//       },
-//       "eventTime": "2020-07-28T11:35:28Z",
-//       "eventSource": "organizations.amazonaws.com",
-//       "eventName": "MoveAccount",
-//       "awsRegion": "us-east-1",
-//       "sourceIPAddress": "72.21.198.64",
-//       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0) Gecko/20100101 Firefox/68.0, aws-internal/3 aws-sdk-java/1.11.820 Linux/4.9.217-0.1.ac.205.84.332.metal1.x86_64 OpenJDK_64-Bit_Server_VM/25.252-b09 java/1.8.0_252 vendor/Oracle_Corporation",
-//       "requestParameters": {
-//           "accountId": "549271133721",
-//           "destinationParentId": "ou-yjkv-lmdswesj",
-//           "sourceParentId": "ou-yjkv-hhd1qqua"
-//       },
-//       "responseElements": null,
-//       "requestID": "3a2c6bcf-e07b-4767-8aa7-409759a53b05",
-//       "eventID": "4256d14a-380d-40d2-9a4f-b10a9bab1ce6",
-//       "eventType": "AwsApiCall"
-//   }
-// });

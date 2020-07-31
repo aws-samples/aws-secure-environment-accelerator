@@ -8,6 +8,9 @@
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
+    "workloadaccounts-suffix" : 1,
+    "workloadaccounts-prefix" : "config.example",
+    "file-name": "config.example.json",
 	"ignored-ous": [],
     "supported-regions": [
       "ap-northeast-1",
@@ -163,6 +166,7 @@
       "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
+      "file-name": "config.example.json",
       "budget": {
         "name": "SharedNetwork Budget",
         "period": "Monthly",
@@ -388,6 +392,7 @@
       "ou": "core",
       "account-warming-required": true,
       "limits": {},
+      "file-name": "config.example.json",
       "share-mad-from": "",
       "iam": {
         "users": [],
@@ -571,6 +576,7 @@
       "email": "myemail+pbmmT-perimeter@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "account-warming-required": true,
+      "file-name": "config.example.json",
       "limits": {
         "Amazon EC2/Number of EIPs": {
           "value": 5,
@@ -1110,6 +1116,7 @@
       "ou": "core",
       "landing-zone-account-type": "primary",
       "share-mad-from": "operations",
+      "file-name": "config.example.json",
       "budget": {
         "name": "Organization Budget",
         "period": "Monthly",
@@ -1242,18 +1249,21 @@
       "account-name": "log-archive",
       "ou": "core",
       "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
+      "file-name": "config.example.json",
       "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
       "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
+      "file-name": "config.example.json",
       "landing-zone-account-type": "security"
     },
     "shared-services": {
       "account-name": "shared-services",
       "ou": "core",
       "email": "myemail+pbmmT-ss@example.com---------------------REPLACE----------------------",
+      "file-name": "config.example.json",
       "landing-zone-account-type": "shared-services"
     }
   },
@@ -1261,11 +1271,13 @@
     "fun-acct": {
       "account-name": "TheFunAccount",
       "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
+      "file-name": "config.example.json",
       "ou": "Sandbox"
     },
     "mydevacct1": {
       "account-name": "MyDev1",
       "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
+      "file-name": "config.example.json",
       "ou": "Dev"
     }
   },
