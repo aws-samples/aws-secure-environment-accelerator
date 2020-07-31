@@ -7,9 +7,10 @@ import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-pbmm/common
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { LoadConfigurationInput } from './load-configuration-step';
-import { pretty } from '@aws-pbmm/common-lambda/lib/util/perttier';
-import { getFormatedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/utils';
+import { FormatType, pretty } from '@aws-pbmm/common-lambda/lib/util/perttier';
+import { getFormattedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/common';
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
+import { JSON_FORMAT, YAML_FORMAT } from '@aws-pbmm/common-lambda/lib/util/constants';
 
 export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -54,8 +55,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
 
   const rootConfigString = await getConfigFromCodeCommit(configRepositoryName, configCommitId, configRootFilePath!);
   const extension = configRootFilePath?.split('.').slice(-1)[0];
-  const format = extension === 'json' ? 'json' : 'yaml';
-  let rootConfig = getFormatedObject(rootConfigString, format);
+  const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
+  let rootConfig = getFormattedObject(rootConfigString, format);
 
   let config = previousConfig;
   const previousAccounts = await loadAccounts(accountsSecretId);
@@ -102,7 +103,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     updatedAccounts: updateAccountResponse.updatedAccounts,
   });
   config = updateOrgResponse.config;
-  rootConfig = getFormatedObject(updateOrgResponse.rootConfig, format);
+  rootConfig = getFormattedObject(updateOrgResponse.rootConfig, format);
   // Update Config from 'updateRenamedAccouns' and 'updateRenamedOrganizations'
   const updatedAccounts = updateOrgResponse.updatedAccounts;
   const updateAccountFilenames = [...new Set(Object.entries(updatedAccounts).map(([_, accInfo]) => accInfo.filename))];
@@ -125,7 +126,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       }
     } else {
       const accountResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
-      const accountObject = getFormatedObject(accountResponse.fileContent.toString(), format);
+      const accountObject = getFormattedObject(accountResponse.fileContent.toString(), format);
       for (const [accKey, accountInFile] of accountsInFile) {
         accountObject[accKey] = updateAccountConfig(accountObject[accKey], accountInFile);
       }
@@ -143,7 +144,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   updateFiles.push({
     filePath: configFilePath,
     // Raw Config file alway be "json" irrespective of Configuration Format
-    fileContent: pretty(getStringFromObject(config, 'json'), 'json'),
+    fileContent: pretty(getStringFromObject(config, JSON_FORMAT), JSON_FORMAT),
   });
   let latestCommitId = '';
   try {
@@ -375,7 +376,7 @@ async function updateRenamedOrganizationalUnits(props: {
   awsOus: OrganizationalUnit[];
   rootConfigString: string;
   updatedAccounts: UpdateAccountsOutput;
-  format: 'json' | 'yaml';
+  format: FormatType;
 }): Promise<{
   config: AcceleratorUpdateConfig;
   rootConfig: string;
@@ -390,7 +391,7 @@ async function updateRenamedOrganizationalUnits(props: {
   const workLoadAccountsConfig = Object.entries(config['workload-account-configs']).filter(
     ([_, value]) => !value.deleted,
   );
-  const rootConfig = getFormatedObject(rootConfigString, format);
+  const rootConfig = getFormattedObject(rootConfigString, format);
   for (const previousOu of previousOrganizationalUnits) {
     const currentOu = awsOus.find(ou => ou.Id === previousOu.ouId);
     if (!currentOu) {
@@ -555,13 +556,3 @@ async function getConfigFromCodeCommit(repositoryName: string, commitId: string,
   const config = await codecommit.getFile(repositoryName, filePath, commitId);
   return config.fileContent.toString();
 }
-// handler({
-//   "configRepositoryName": "PBMMAccel-Config-Repo-Testing",
-//   "acceleratorPrefix": "PBMMAccel-",
-//   "accountsSecretId": "arn:aws:secretsmanager:ca-central-1:538235518685:secret:accelerator/accounts-ui02cP",
-//   "organizationsSecretId": "arn:aws:secretsmanager:ca-central-1:538235518685:secret:accelerator/organizations-GtomBV",
-//   "configBranch": "master",
-//   "configFilePath": "raw/config.json",
-//   "configCommitId": "39bd222e8d9eaf7a7ecf501f0ccdccfae5809f9e",
-//   "configRootFilePath": "config.json"
-// })

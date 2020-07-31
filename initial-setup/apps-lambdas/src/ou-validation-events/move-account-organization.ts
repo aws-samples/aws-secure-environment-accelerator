@@ -7,8 +7,9 @@ import { delay } from '@aws-pbmm/common-lambda/lib/util/delay';
 import { pascalCase } from 'pascal-case';
 import * as crypto from 'crypto';
 import { pretty } from '@aws-pbmm/common-lambda/lib/util/perttier';
-import { getFormatedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/utils';
+import { getFormattedObject, getStringFromObject, RawConfig } from '@aws-pbmm/common-lambda/lib/util/common';
 import { AcceleratorUpdateConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { JSON_FORMAT, YAML_FORMAT } from '@aws-pbmm/common-lambda/lib/util/constants';
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 
 interface MoveAccountOrganization extends ScheduledEvent {
@@ -27,7 +28,7 @@ interface AccountInfo {
 const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
 const acceleratorStateMachinearn = process.env.ACCELERATOR_STATE_MACHINE_ARN!;
 const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
-const configFilePath = process.env.CONFIG_FILE_PATH! || 'raw/config.json';
+const configFilePath = process.env.CONFIG_FILE_PATH!;
 const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
 const configBranch = process.env.CONFIG_BRANCH_NAME!;
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
@@ -49,7 +50,6 @@ export const handler = async (input: MoveAccountOrganization) => {
   }
   console.log(`Reading organization and account information from request`);
   const { accountId, destinationParentId, sourceParentId } = requestDetail.requestParameters;
-
   const account = await organizations.getAccount(accountId);
   if (!account) {
     console.error(`Account did not find in Organizations "${accountId}"`);
@@ -60,7 +60,7 @@ export const handler = async (input: MoveAccountOrganization) => {
   let updatestatus: string;
 
   const configResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
-  const config = getFormatedObject(configResponse.fileContent.toString(), 'json');
+  const config = getFormattedObject(configResponse.fileContent.toString(), JSON_FORMAT);
   const ignoredOus: string[] = config['global-options']['ignored-ous'] || [];
   if (sourceParentId === rootOrgId) {
     // Account is moving from Root Organization to another
@@ -121,12 +121,13 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
   const { account, destinationOrg } = props;
   let newAccount = true;
   const extension = configRootFilePath?.split('.').slice(-1)[0];
-  const format = extension === 'json' ? 'json' : 'yaml';
+  const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
   // RAW Config
   const rootConfigResponse = await codecommit.getFile(configRepositoryName, configRootFilePath, configBranch);
-  const rootConfig = getFormatedObject(rootConfigResponse.fileContent.toString(), format);
+  const rootConfig = getFormattedObject(rootConfigResponse.fileContent.toString(), format);
   const rawConfigResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
-  const rawConfig: AcceleratorUpdateConfig = getFormatedObject(rawConfigResponse.fileContent.toString(), format);
+  let latestCommitId = rawConfigResponse.commitId;
+  const rawConfig: AcceleratorUpdateConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
   let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
     ([_, ac]) => ac.email === account.Email!,
   );
@@ -213,7 +214,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     try {
       if (accConfigObject.filename === configRootFilePath) {
         // If Accounts in Single Configuration File handling seperatly since we need to go to specific key
-        const accountsInConfig = getFormatedObject(rawConfigResponse.fileContent.toString(), format);
+        const accountsInConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
         if (newAccount) {
           // New Account will go under WorkLoad Account
           accountsInConfig['workload-account-configs'][accKey] = {
@@ -236,7 +237,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
             accountsInConfig['workload-account-configs'][accKey]['ou-path'] = destinationOrg.Path;
           }
         }
-        await codecommit.commit({
+        latestCommitId = await codecommit.commit({
           branchName: configBranch,
           repositoryName: configRepositoryName,
           putFiles: [
@@ -258,7 +259,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
             configBranch,
           );
           accountFileString = accountFileResponse.fileContent.toString();
-          accountFile = getFormatedObject(accountFileString, format);
+          accountFile = getFormattedObject(accountFileString, format);
         } catch (error) {
           if (error.code === 'FileDoesNotExistException') {
             accountFile = {};
@@ -280,7 +281,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
           accountFile[accKey]['account-name'] = accConfigObject.name;
           accountFile[accKey].email = accConfigObject.email;
         }
-        await codecommit.commit({
+        latestCommitId = await codecommit.commit({
           branchName: configBranch,
           repositoryName: configRepositoryName,
           putFiles: [
@@ -323,7 +324,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
         rawConfig['global-options']['file-name'],
         configBranch,
       );
-      const globalOptions = getFormatedObject(globalOptionsResponse.fileContent.toString(), format);
+      const globalOptions = getFormattedObject(globalOptionsResponse.fileContent.toString(), format);
       globalOptions['workloadaccounts-suffix'] = accountSuffix;
       updateFiles.push({
         filePath: rawConfig['global-options']['file-name'],
@@ -337,7 +338,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
 
     try {
       console.log(`Adding account to configuration through Move-Account: ${accountConfig[accountKey].filename}`);
-      await codecommit.commit({
+      latestCommitId = await codecommit.commit({
         branchName: configBranch,
         repositoryName: configRepositoryName,
         putFiles: updateFiles,
@@ -350,6 +351,32 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
       } else {
         throw new Error(error);
       }
+    }
+  }
+
+  // Updating Raw Config
+  const rawConfigObject = new RawConfig({
+    branchName: configBranch,
+    configFilePath: configRootFilePath,
+    format,
+    repositoryName: configRepositoryName,
+    source: 'codecommit',
+  });
+  const config = await rawConfigObject.prepare();
+
+  try {
+    await codecommit.commit({
+      branchName: configBranch,
+      repositoryName: configRepositoryName,
+      putFiles: config.loadFiles,
+      commitMessage: `Updating Raw Config in SM after Move Account`,
+      parentCommitId: latestCommitId,
+    });
+  } catch (error) {
+    if (error.code === 'NoChangeException') {
+      console.log(`No Change in Configuration form Previous Execution`);
+    } else {
+      throw new Error(error);
     }
   }
   return 'SUCCESS';

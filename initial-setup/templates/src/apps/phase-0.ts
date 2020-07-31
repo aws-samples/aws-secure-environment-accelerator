@@ -15,7 +15,7 @@ import * as madDeployment from '../deployments/mad';
 import * as secretsDeployment from '../deployments/secrets';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
-import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
+import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-pbmm/common-lambda/lib/util/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as passwordPolicy from '../deployments/iam-password-policy';

@@ -3,8 +3,9 @@ import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
 import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
-import { getFormatedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/utils';
+import { getFormattedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/common';
 import { pretty } from '@aws-pbmm/common-lambda/lib/util/perttier';
+import { JSON_FORMAT, YAML_FORMAT } from '@aws-pbmm/common-lambda/lib/util/constants';
 
 interface RemoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -12,7 +13,7 @@ interface RemoveAccountOrganization extends ScheduledEvent {
 
 const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION! || 'ca-central-1';
 const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME! || 'PBMMAccel-Config-Repo';
-const configFilePath = process.env.CONFIG_FILE_PATH! || 'raw/config.json';
+const configFilePath = process.env.CONFIG_FILE_PATH!;
 const configBranch = process.env.CONFIG_BRANCH_NAME! || 'master';
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
 const acceleratorAccountsSecretId = process.env.ACCOUNTS_SECRET_ID! || 'accelerator/accounts';
@@ -49,10 +50,10 @@ export const handler = async (input: RemoveAccountOrganization) => {
 async function removeAccountConfig(account: Account): Promise<string> {
   console.log(`Removing Account "${account.name}" from Configuration`);
   const extension = configRootFilePath?.split('.').slice(-1)[0];
-  const format = extension === 'json' ? 'json' : 'yaml';
+  const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
 
   const rawConfigResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
-  const rawConfig: AcceleratorConfig = getFormatedObject(rawConfigResponse.fileContent.toString(), format);
+  const rawConfig: AcceleratorConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
   let isMandatoryAccount = true;
   let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
     ([_, accConfig]) => accConfig.email === account.email,
@@ -75,7 +76,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
   const filename = accountInfo[1]['file-name'];
   if (filename === configRootFilePath) {
     const configResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
-    const config: AcceleratorUpdateConfig = getFormatedObject(configResponse.fileContent.toString(), format);
+    const config: AcceleratorUpdateConfig = getFormattedObject(configResponse.fileContent.toString(), format);
     if (isMandatoryAccount) {
       const accountConfig = Object.entries(config['mandatory-account-configs']).find(
         ([_, accConfig]) => accConfig.email === account.email,
@@ -122,7 +123,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
   } else {
     const accountConfigResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
     // tslint:disable-next-line: no-any
-    const accountsConfig: { [accountKey: string]: any } = getFormatedObject(
+    const accountsConfig: { [accountKey: string]: any } = getFormattedObject(
       accountConfigResponse.fileContent.toString(),
       format,
     );
