@@ -23,7 +23,7 @@ const testStacks = new AccountStacks({
     configFilePath: 'raw/config.json',
     configRepositoryName: 'repo',
     defaultRegion: 'test',
-    configRootFilePath: 'config.json'
+    configRootFilePath: 'config.json',
   },
 });
 

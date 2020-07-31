@@ -117,10 +117,7 @@ export const handler = async (input: MoveAccountOrganization) => {
   return 'SUCCESS';
 };
 
-async function updateConfig(props: {
-  account: org.Account;
-  destinationOrg: OrganizationalUnit;
-}) {
+async function updateConfig(props: { account: org.Account; destinationOrg: OrganizationalUnit }) {
   const { account, destinationOrg } = props;
   let newAccount = true;
   const extension = configRootFilePath?.split('.').slice(-1)[0];
@@ -135,7 +132,7 @@ async function updateConfig(props: {
   );
   const accountConfig: { [key: string]: AccountInfo } = {};
   const accountPrefix = rawConfig['global-options']['workloadaccounts-prefix'];
-  let accountSuffix = rawConfig['global-options']['workloadaccounts-suffix']!;  
+  let accountSuffix = rawConfig['global-options']['workloadaccounts-suffix']!;
   let useNewConfigFile = false;
   let accountKey = '';
   if (accountInfo) {
@@ -337,7 +334,7 @@ async function updateConfig(props: {
       filePath: configRootFilePath,
       fileContent: pretty(getStringFromObject(rootConfig, format), format),
     });
-    
+
     try {
       console.log(`Adding account to configuration through Move-Account: ${accountConfig[accountKey].filename}`);
       await codecommit.commit({
