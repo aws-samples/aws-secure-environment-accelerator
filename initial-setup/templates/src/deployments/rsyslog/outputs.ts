@@ -17,6 +17,7 @@ export const RsyslogDnsOutputTypeOutput = t.interface(
 export const RsyslogAutoScalingImageIdOutput = t.interface(
   {
     imageId: t.string,
+    imagePath: t.string,
   },
   'RsyslogAutoScalingImageId',
 );

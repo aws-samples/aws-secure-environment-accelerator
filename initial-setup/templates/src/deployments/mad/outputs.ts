@@ -16,6 +16,7 @@ export type MadAutoScalingRoleOutput = t.TypeOf<typeof MadAutoScalingRoleOutputT
 export const MadAutoScalingImageIdOutput = t.interface(
   {
     imageId: t.string,
+    imagePath: t.string,
   },
   'MadAutoScalingImageId',
 );

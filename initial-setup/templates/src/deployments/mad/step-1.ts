@@ -94,6 +94,7 @@ export async function step1(props: MadStep1Props) {
 
     new CfnMadImageIdOutputTypeOutput(accountStack, 'MadImageIdOutput', {
       imageId,
+      imagePath: imageIdPath,
     });
   }
 }
