@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { SecurityGroup, Subnet } from '../vpc';
+import { CfnSleep } from '@custom-resources/cfn-sleep';
 
 export interface FirewallManagerProps {
   name: string;
@@ -58,10 +59,15 @@ export class FirewallManager extends cdk.Construct {
 
     // Create EIP if needed
     if (eipAllocationId) {
-      new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${index}`, {
+      const eipAssociation = new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${index}`, {
         networkInterfaceId: networkInterface.ref,
         allocationId: eipAllocationId,
       });
+      const roleSleep = new CfnSleep(this, `ClusterEipAssocSleep${index}`, {
+        sleep: 60 * 1000,
+      });
+      roleSleep.node.addDependency(this.resource);
+      eipAssociation.node.addDependency(roleSleep);
     }
   }
 

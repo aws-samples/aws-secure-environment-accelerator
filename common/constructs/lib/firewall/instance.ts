@@ -6,6 +6,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 import { S3Template } from '@custom-resources/s3-template';
 import { IInstanceProfile } from '../iam';
 import { Subnet, SecurityGroup } from '../vpc';
+import { CfnSleep } from '@custom-resources/cfn-sleep';
 
 export interface FirewallVpnTunnelOptions {
   cgwTunnelInsideAddress1: string;
@@ -136,11 +137,16 @@ export class FirewallInstance extends cdk.Construct {
 
     // Create EIP if needed
     if (eipAllocationId) {
-      new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${index}`, {
+      const eipAssociation = new ec2.CfnEIPAssociation(this, `ClusterEipAssoc${index}`, {
         networkInterfaceId: networkInterface.ref,
         allocationId: eipAllocationId,
         privateIpAddress: networkInterface.attrPrimaryPrivateIpAddress,
       });
+      const roleSleep = new CfnSleep(this, `ClusterEipAssocSleep${index}`, {
+        sleep: 60 * 1000,
+      });
+      roleSleep.node.addDependency(this.resource);
+      eipAssociation.node.addDependency(roleSleep);
     }
 
     const cidrBlock = IPv4CidrRange.fromCidr(subnet.cidrBlock);
