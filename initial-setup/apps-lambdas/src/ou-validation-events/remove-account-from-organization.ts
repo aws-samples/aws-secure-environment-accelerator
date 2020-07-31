@@ -11,13 +11,13 @@ interface RemoveAccountOrganization extends ScheduledEvent {
   version?: string;
 }
 
-const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION! || 'ca-central-1';
-const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME! || 'PBMMAccel-Config-Repo';
+const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
+const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
 const configFilePath = process.env.CONFIG_FILE_PATH!;
-const configBranch = process.env.CONFIG_BRANCH_NAME! || 'master';
+const configBranch = process.env.CONFIG_BRANCH_NAME!;
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
-const acceleratorAccountsSecretId = process.env.ACCOUNTS_SECRET_ID! || 'accelerator/accounts';
-const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH! || 'config.yaml';
+const acceleratorAccountsSecretId = process.env.ACCOUNTS_SECRET_ID!;
+const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
 
 const codecommit = new CodeCommit(undefined, defaultRegion);
 const secrets = new SecretsManager(undefined, defaultRegion);
@@ -156,51 +156,3 @@ async function removeAccountConfig(account: Account): Promise<string> {
   }
   return 'SUCCESS';
 }
-
-// handler({
-//   "version": "0",
-//   "id": "063896d5-6665-37db-9f42-336a79948386",
-//   "detail-type": "AWS API Call via CloudTrail",
-//   "source": "aws.organizations",
-//   "account": "538235518685",
-//   "time": "2020-07-28T12:42:51Z",
-//   "region": "us-east-1",
-//   "resources": [],
-//   "detail": {
-//       "eventVersion": "1.05",
-//       "userIdentity": {
-//           "type": "AssumedRole",
-//           "principalId": "AROAX2UKWH3O4FA6K6N3J:nkoppula-Isengard",
-//           "arn": "arn:aws:sts::538235518685:assumed-role/Admin/nkoppula-Isengard",
-//           "accountId": "538235518685",
-//           "accessKeyId": "ASIAX2UKWH3O37T7SPYF",
-//           "sessionContext": {
-//               "sessionIssuer": {
-//                   "type": "Role",
-//                   "principalId": "AROAX2UKWH3O4FA6K6N3J",
-//                   "arn": "arn:aws:iam::538235518685:role/Admin",
-//                   "accountId": "538235518685",
-//                   "userName": "Admin"
-//               },
-//               "webIdFederationData": {},
-//               "attributes": {
-//                   "mfaAuthenticated": "false",
-//                   "creationDate": "2020-07-28T12:42:02Z"
-//               }
-//           }
-//       },
-//       "eventTime": "2020-07-28T12:42:51Z",
-//       "eventSource": "organizations.amazonaws.com",
-//       "eventName": "RemoveAccountFromOrganization",
-//       "awsRegion": "us-east-1",
-//       "sourceIPAddress": "72.21.198.64",
-//       "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:68.0) Gecko/20100101 Firefox/68.0, aws-internal/3 aws-sdk-java/1.11.820 Linux/4.9.217-0.1.ac.205.84.332.metal1.x86_64 OpenJDK_64-Bit_Server_VM/25.252-b09 java/1.8.0_252 vendor/Oracle_Corporation",
-//       "requestParameters": {
-//           "accountId": "588801414845"
-//       },
-//       "responseElements": null,
-//       "requestID": "c2f84452-62c8-47f5-9b17-597fa9ddf55b",
-//       "eventID": "43ce4997-99b8-4e3b-a243-f34ec6bbd7e5",
-//       "eventType": "AwsApiCall"
-//   }
-// });
