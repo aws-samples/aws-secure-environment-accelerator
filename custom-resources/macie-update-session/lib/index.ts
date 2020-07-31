@@ -10,6 +10,7 @@ const resourceType = 'Custom::MacieUpdateSession';
 export interface MacieUpdateSessionProps {
   findingPublishingFrequency: MacieFrequency;
   status: MacieStatus;
+  roleArn: string;
 }
 /**
  * Custom resource implementation that turn on auto enable for Macie
@@ -21,15 +22,16 @@ export class MacieUpdateSession extends cdk.Construct {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = props;
+    const updateSession = this.lambdaFunction(props.roleArn);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: this.lambdaFunction.functionArn,
+      serviceToken: updateSession.functionArn,
       properties: handlerProperties,
     });
   }
 
-  private get lambdaFunction(): lambda.Function {
+  private lambdaFunction(roleArn: string): lambda.Function {
     const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
@@ -39,24 +41,14 @@ export class MacieUpdateSession extends cdk.Construct {
 
     const lambdaPath = require.resolve('@custom-resources/macie-update-session-lambda');
     const lambdaDir = path.dirname(lambdaPath);
-
-    const role = new iam.Role(stack, `${resourceType}Role`, {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['macie2:UpdateMacieSession'],
-        resources: ['*'],
-      }),
-    );
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.minutes(10),
     });
   }
 }

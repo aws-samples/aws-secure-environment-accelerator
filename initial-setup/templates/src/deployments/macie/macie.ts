@@ -10,11 +10,21 @@ import { MacieExportConfig } from '@custom-resources/macie-export-config';
 import { MacieFrequency, MacieStatus } from '@custom-resources/macie-enable-lambda';
 import { MacieUpdateSession } from '@custom-resources/macie-update-session';
 import { AccountBuckets } from '../defaults';
+import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface MacieStepProps {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   accounts: Account[];
+  outputs: StackOutput[];
+}
+
+export interface MacieStep2Props {
+  accountStacks: AccountStacks;
+  config: AcceleratorConfig;
+  accounts: Account[];
+  outputs: StackOutput[];
 }
 
 export interface MacieStep3Props {
@@ -22,6 +32,7 @@ export interface MacieStep3Props {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   accounts: Account[];
+  outputs: StackOutput[];
 }
 
 export async function enableMaciePolicy(props: MacieStep3Props) {
@@ -56,7 +67,7 @@ export async function enableMaciePolicy(props: MacieStep3Props) {
 }
 
 export async function step1(props: MacieStepProps) {
-  const { accountStacks, config, accounts } = props;
+  const { accountStacks, config, accounts, outputs } = props;
 
   const enableMacie = config['global-options']['central-security-services'].macie;
 
@@ -71,6 +82,25 @@ export async function step1(props: MacieStepProps) {
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   const regions = await getValidRegions(config);
   const findingPublishingFrequency = await getFrequency(config);
+
+  const macieAdminRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: masterOrgKey,
+    roleKey: 'MacieAdminRole',
+  });
+  if (!macieAdminRoleOutput) {
+    return;
+  }
+
+  const macieEnableRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: masterOrgKey,
+    roleKey: 'MacieEnableRole',
+  });
+  if (!macieEnableRoleOutput) {
+    return;
+  }
+
   regions?.map(region => {
     // Macie admin need to be enabled from master account of the organization
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey, region);
@@ -78,18 +108,20 @@ export async function step1(props: MacieStepProps) {
     if (masterAccountId) {
       const admin = new MacieEnableAdmin(masterAccountStack, 'MacieEnableAdmin', {
         accountId: masterAccountId,
+        roleArn: macieAdminRoleOutput.roleArn,
       });
 
       const enable = new MacieEnable(masterAccountStack, 'MacieEnable', {
         findingPublishingFrequency,
         status: MacieStatus.ENABLED,
+        roleArn: macieEnableRoleOutput.roleArn,
       });
     }
   });
 }
 
-export async function step2(props: MacieStepProps) {
-  const { accountStacks, config, accounts } = props;
+export async function step2(props: MacieStep2Props) {
+  const { accountStacks, config, accounts, outputs } = props;
 
   const enableMacie = config['global-options']['central-security-services'].macie;
 
@@ -102,6 +134,34 @@ export async function step2(props: MacieStepProps) {
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   const regions = await getValidRegions(config);
   const findingPublishingFrequency = await getFrequency(config);
+
+  const macieEnableRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+    roleKey: 'MacieEnableRole',
+  });
+  if (!macieEnableRoleOutput) {
+    return;
+  }
+
+  const macieUpdateConfigRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+    roleKey: 'MacieUpdateConfigRole',
+  });
+  if (!macieUpdateConfigRoleOutput) {
+    return;
+  }
+
+  const macieMemberRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+    roleKey: 'MacieMemberRole',
+  });
+  if (!macieMemberRoleOutput) {
+    return;
+  }
+
   regions.map(region => {
     // Macie need to be turned on from macie master account
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey, region);
@@ -109,12 +169,14 @@ export async function step2(props: MacieStepProps) {
     const enable = new MacieEnable(masterAccountStack, 'MacieEnable', {
       findingPublishingFrequency,
       status: MacieStatus.ENABLED,
+      roleArn: macieEnableRoleOutput.roleArn,
     });
 
     // Add org members to Macie except Macie master account
     const accountDetails = accounts.map(account => ({
       accountId: account.id,
       email: account.email,
+      roleArn: macieMemberRoleOutput.roleArn,
     }));
     for (const [index, account] of Object.entries(accountDetails)) {
       if (account.accountId !== masterAccountId) {
@@ -125,12 +187,13 @@ export async function step2(props: MacieStepProps) {
     // turn on auto enable
     new MacieUpdateConfig(masterAccountStack, 'MacieUpdateConfig', {
       autoEnable: true,
+      roleArn: macieUpdateConfigRoleOutput.roleArn,
     });
   });
 }
 
 export async function step3(props: MacieStep3Props) {
-  const { accountBuckets, accountStacks, config, accounts } = props;
+  const { accountBuckets, accountStacks, config, accounts, outputs } = props;
 
   const enableMacie = config['global-options']['central-security-services'].macie;
 
@@ -146,7 +209,24 @@ export async function step3(props: MacieStep3Props) {
   const masterBucketKeyArn = masterBucket.encryptionKey?.keyArn;
   const findingPublishingFrequency = await getFrequency(config);
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
-    const accountId = getAccountId(accounts, accountKey);
+    const macieExportConfigRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey,
+      roleKey: 'MacieExportConfigRole',
+    });
+    if (!macieExportConfigRoleOutput) {
+      continue;
+    }
+
+    const macieUpdateSessionOutput = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey,
+      roleKey: 'MacieUpdateSessionRole',
+    });
+    if (!macieUpdateSessionOutput) {
+      continue;
+    }
+
     for (const region of regions) {
       const accountStack = accountStacks.getOrCreateAccountStack(accountKey, region);
       // configure export S3 bucket
@@ -155,6 +235,7 @@ export async function step3(props: MacieStep3Props) {
           bucketName: masterBucket.bucketName,
           keyPrefix: `${masterAccountId}`,
           kmsKeyArn: masterBucketKeyArn,
+          roleArn: macieExportConfigRoleOutput.roleArn,
         });
       }
 
@@ -162,6 +243,7 @@ export async function step3(props: MacieStep3Props) {
       new MacieUpdateSession(accountStack, 'MacieUpdateSession', {
         findingPublishingFrequency,
         status: MacieStatus.ENABLED,
+        roleArn: macieUpdateSessionOutput.roleArn,
       });
     }
   }

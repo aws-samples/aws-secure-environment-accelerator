@@ -10,6 +10,7 @@ export interface MacieEnableProps {
   findingPublishingFrequency: MacieFrequency;
   status: MacieStatus;
   clientToken?: string;
+  roleArn: string;
 }
 
 /**
@@ -22,15 +23,16 @@ export class MacieEnable extends cdk.Construct {
     super(scope, id);
 
     const handlerProperties: HandlerProperties = props;
+    const enableMacie = this.lambdaFunction(props.roleArn);
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: this.lambdaFunction.functionArn,
+      serviceToken: enableMacie.functionArn,
       properties: handlerProperties,
     });
   }
 
-  private get lambdaFunction(): lambda.Function {
+  private lambdaFunction(roleArn: string): lambda.Function {
     const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
@@ -40,30 +42,14 @@ export class MacieEnable extends cdk.Construct {
 
     const lambdaPath = require.resolve('@custom-resources/macie-enable-lambda');
     const lambdaDir = path.dirname(lambdaPath);
-
-    const role = new iam.Role(stack, `${resourceType}Role`, {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['iam:CreateServiceLinkedRole'],
-        resources: ['*'],
-      }),
-    );
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['macie2:EnableMacie'],
-        resources: ['*'],
-      }),
-    );
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.minutes(10),
     });
   }
 }
