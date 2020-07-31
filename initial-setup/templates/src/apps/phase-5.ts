@@ -5,16 +5,13 @@ import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import { StructuredOutput } from '../common/structured-output';
-import {
-  MadAutoScalingRoleOutputType,
-  getMadUserPasswordSecretArn,
-  MadAutoScalingImageIdOutput,
-} from '../deployments/mad';
+import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
 import * as ouValidation from '../deployments/ou-validation-events';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
+import { ImageIdOutputFinder } from '@aws-pbmm/common-outputs/lib/ami-output';
 
 interface MadOutput {
   id: number;
@@ -74,15 +71,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       userSecrets.push({ user: adUser.user, passwordSecretArn });
     }
 
-    const madAutoScalingImageIdOutputs = StructuredOutput.fromOutputs(outputs, {
+    const madAutoScalingImageIdOutput = ImageIdOutputFinder.tryFindOneByName({
+      outputs,
       accountKey,
-      type: MadAutoScalingImageIdOutput,
+      imageKey: 'MadAutoScalingImageId',
     });
-    if (madAutoScalingImageIdOutputs.length === 0) {
+    if (!madAutoScalingImageIdOutput) {
       console.warn(`Cannot find required auto scaling Image Id in account "${accountKey}"`);
       continue;
     }
-    const madAutoScalingImageIdOutput = madAutoScalingImageIdOutputs[0];
 
     const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
       accountKey: masterAccountKey,

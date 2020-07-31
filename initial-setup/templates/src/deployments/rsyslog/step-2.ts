@@ -10,13 +10,10 @@ import { SecurityGroup } from '../../common/security-group';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { StructuredOutput } from '../../common/structured-output';
-import {
-  CfnRsyslogDnsOutputTypeOutput,
-  RsyslogAutoScalingRoleOutput,
-  RsyslogAutoScalingImageIdOutput,
-} from './outputs';
+import { CfnRsyslogDnsOutputTypeOutput, RsyslogAutoScalingRoleOutput } from './outputs';
 import { checkAccountWarming } from '../account-warming/outputs';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { ImageIdOutputFinder } from '@aws-pbmm/common-outputs/lib/ami-output';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -135,15 +132,15 @@ export function createAsg(
   }
   const rsyslogAutoScalingRoleOutput = rsyslogAutoScalingRoleOutputs[0];
 
-  const rsyslogAutoScalingImageIdOutputs = StructuredOutput.fromOutputs(outputs, {
+  const rsyslogAutoScalingImageIdOutput = ImageIdOutputFinder.tryFindOneByName({
+    outputs,
     accountKey,
-    type: RsyslogAutoScalingImageIdOutput,
+    imageKey: 'RsyslogAutoScalingImageId',
   });
-  if (rsyslogAutoScalingImageIdOutputs.length === 0) {
+  if (!rsyslogAutoScalingImageIdOutput) {
     console.warn(`Cannot find required auto scaling Image Id in account "${accountKey}"`);
     return;
   }
-  const rsyslogAutoScalingImageIdOutput = rsyslogAutoScalingImageIdOutputs[0];
 
   // creating security group for the instance
   const securityGroup = new SecurityGroup(accountStack, `RsysLogSG${accountKey}`, {

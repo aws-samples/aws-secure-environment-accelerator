@@ -89,6 +89,7 @@ export async function step1(props: RsyslogStep1Props) {
     new CfnRsyslogImageIdOutputTypeOutput(accountStack, 'RsyslogImageIdOutput', {
       imageId,
       imagePath: rsyslogDeploymentConfig['ssm-image-id'],
+      imageKey: 'RsyslogAutoScalingImageId',
     });
   }
 }
