@@ -1,11 +1,14 @@
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
+import * as ssm from '@aws-cdk/aws-ssm';
 import { ServiceLinkedRole } from '@aws-pbmm/constructs/lib/iam';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnSleep } from '@custom-resources/cfn-sleep';
 import { AccountStacks } from '../../common/account-stacks';
 import { StructuredOutput } from '../../common/structured-output';
-import { MadAutoScalingRoleOutput, MadAutoScalingRoleOutputType } from './outputs';
+import { MadAutoScalingRoleOutput, MadAutoScalingRoleOutputType, CfnMadImageIdOutputTypeOutput } from './outputs';
+
+const imageIdPath = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base';
 
 export interface MadStep1Props {
   acceleratorName: string;
@@ -81,6 +84,16 @@ export async function step1(props: MadStep1Props) {
       value: {
         roleArn: role.roleArn,
       },
+    });
+
+    const imageId = ssm.StringParameter.valueForTypedStringParameter(
+      accountStack,
+      imageIdPath,
+      ssm.ParameterType.AWS_EC2_IMAGE_ID,
+    );
+
+    new CfnMadImageIdOutputTypeOutput(accountStack, 'MadImageIdOutput', {
+      imageId,
     });
   }
 }

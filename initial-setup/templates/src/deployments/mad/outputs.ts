@@ -1,6 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as t from 'io-ts';
 import { createMadPasswordSecretName, createMadUserPasswordSecretName } from '@aws-pbmm/common-outputs/lib/mad';
+import { createCfnStructuredOutput } from '../../common/structured-output';
 export { createMadPasswordSecretName, createMadUserPasswordSecretName } from '@aws-pbmm/common-outputs/lib/mad';
 
 export const MadAutoScalingRoleOutputType = t.interface(
@@ -11,6 +12,14 @@ export const MadAutoScalingRoleOutputType = t.interface(
 );
 
 export type MadAutoScalingRoleOutput = t.TypeOf<typeof MadAutoScalingRoleOutputType>;
+
+export const MadAutoScalingImageIdOutput = t.interface(
+  {
+    imageId: t.string,
+  },
+  'MadAutoScalingImageId',
+);
+export type MadAutoScalingImageIdOutput = t.TypeOf<typeof MadAutoScalingImageIdOutput>;
 
 /**
  * Get the fixed secret name that stores the MAD password.
@@ -53,3 +62,5 @@ export function getSecretArn(props: { secretAccountId: string; secretAccountRegi
   const { secretAccountId, secretAccountRegion = cdk.Aws.REGION, secretName } = props;
   return `arn:${cdk.Aws.PARTITION}:secretsmanager:${secretAccountRegion}:${secretAccountId}:secret:${secretName}`;
 }
+
+export const CfnMadImageIdOutputTypeOutput = createCfnStructuredOutput(MadAutoScalingImageIdOutput);

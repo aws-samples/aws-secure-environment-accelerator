@@ -14,7 +14,16 @@ export const RsyslogDnsOutputTypeOutput = t.interface(
   },
   'RsyslogNlbDns',
 );
+export const RsyslogAutoScalingImageIdOutput = t.interface(
+  {
+    imageId: t.string,
+  },
+  'RsyslogAutoScalingImageId',
+);
+
+export type RsyslogAutoScalingImageIdOutput = t.TypeOf<typeof RsyslogAutoScalingImageIdOutput>;
 export type RsyslogAutoScalingRoleOutput = t.TypeOf<typeof RsyslogAutoScalingRoleOutput>;
 export type RsyslogDnsOutputTypeOutput = t.TypeOf<typeof RsyslogDnsOutputTypeOutput>;
 export const CfnRsyslogAutoScalingRoleOutput = createCfnStructuredOutput(RsyslogAutoScalingRoleOutput);
 export const CfnRsyslogDnsOutputTypeOutput = createCfnStructuredOutput(RsyslogDnsOutputTypeOutput);
+export const CfnRsyslogImageIdOutputTypeOutput = createCfnStructuredOutput(RsyslogAutoScalingImageIdOutput);

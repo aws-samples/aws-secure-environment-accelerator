@@ -5,7 +5,7 @@ import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorKeypair } from '@aws-pbmm/common-cdk/lib/core/key-pair';
 import { UserSecret, ADUsersAndGroups } from '../common/ad-users-groups';
 import { StructuredOutput } from '../common/structured-output';
-import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn } from '../deployments/mad';
+import { MadAutoScalingRoleOutputType, getMadUserPasswordSecretArn, MadAutoScalingImageIdOutput } from '../deployments/mad';
 import * as ouValidation from '../deployments/ou-validation-events';
 import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
@@ -70,7 +70,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       userSecrets.push({ user: adUser.user, passwordSecretArn });
     }
 
-    const latestRdgwAmiId = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base';
+    const madAutoScalingImageIdOutputs = StructuredOutput.fromOutputs(outputs, {
+      accountKey,
+      type: MadAutoScalingImageIdOutput,
+    });
+    if (madAutoScalingImageIdOutputs.length === 0) {
+      console.warn(`Cannot find required auto scaling Image Id in account "${accountKey}"`);
+      continue;
+    }
+    const madAutoScalingImageIdOutput = madAutoScalingImageIdOutputs[0];
 
     const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
       accountKey: masterAccountKey,
@@ -112,7 +120,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
     const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
       madDeploymentConfig,
-      latestRdgwAmiId,
+      latestRdgwAmiId: madAutoScalingImageIdOutput.imageId,
       vpcId,
       vpcName,
       keyPairName: keyPair.keyName,

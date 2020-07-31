@@ -10,7 +10,7 @@ import { SecurityGroup } from '../../common/security-group';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { StructuredOutput } from '../../common/structured-output';
-import { CfnRsyslogDnsOutputTypeOutput, RsyslogAutoScalingRoleOutput } from './outputs';
+import { CfnRsyslogDnsOutputTypeOutput, RsyslogAutoScalingRoleOutput, RsyslogAutoScalingImageIdOutput } from './outputs';
 import { checkAccountWarming } from '../account-warming/outputs';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
@@ -131,6 +131,16 @@ export function createAsg(
   }
   const rsyslogAutoScalingRoleOutput = rsyslogAutoScalingRoleOutputs[0];
 
+  const rsyslogAutoScalingImageIdOutputs = StructuredOutput.fromOutputs(outputs, {
+    accountKey,
+    type: RsyslogAutoScalingImageIdOutput,
+  });
+  if (rsyslogAutoScalingImageIdOutputs.length === 0) {
+    console.warn(`Cannot find required auto scaling Image Id in account "${accountKey}"`);
+    return;
+  }
+  const rsyslogAutoScalingImageIdOutput = rsyslogAutoScalingImageIdOutputs[0];
+
   // creating security group for the instance
   const securityGroup = new SecurityGroup(accountStack, `RsysLogSG${accountKey}`, {
     securityGroups: rsyslogConfig['security-groups'],
@@ -145,7 +155,7 @@ export function createAsg(
   });
 
   new RsysLogAutoScalingGroup(accountStack, `RsyslogAsg${accountKey}`, {
-    latestRsyslogAmiId: rsyslogConfig['ssm-image-id'],
+    latestRsyslogAmiId: rsyslogAutoScalingImageIdOutput.imageId,
     subnetIds: instanceSubnetIds,
     serviceLinkedRoleArn: rsyslogAutoScalingRoleOutput.roleArn,
     acceleratorPrefix: accountStack.acceleratorPrefix,
