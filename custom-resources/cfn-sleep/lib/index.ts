@@ -58,13 +58,13 @@ export class CfnSleep extends cdk.Construct {
   }
 
   private ensureRole(): iam.Role {
-    const roleConstructName = 'Role';
+    const roleConstructName = `${resourceType}Role`;
     const stack = cdk.Stack.of(this);
     const existingRole = stack.node.tryFindChild(roleConstructName);
     if (existingRole) {
       return existingRole as iam.Role;
     }
-    const role = new iam.Role(stack, 'Role', {
+    const role = new iam.Role(stack, roleConstructName, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
