@@ -13,6 +13,7 @@ export class AcceleratorStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props: AcceleratorStackProps) {
     super(scope, id, props);
 
+    console.log('AccountStack Props', props);
     this.acceleratorName = props.acceleratorName;
     this.acceleratorPrefix = props.acceleratorPrefix;
 
