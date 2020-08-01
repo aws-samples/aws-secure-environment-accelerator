@@ -568,6 +568,7 @@ export namespace InitialSetup {
         });
 
       // TODO Create separate state machine for deployment
+      const deployPhaseRolesTask = createDeploymentTask(-1, false);
       const storePreviousOutput = createStoreOutputTask(-1);
       const deployPhase0Task = createDeploymentTask(0);
       const storePhase0Output = createStoreOutputTask(0);
@@ -785,6 +786,7 @@ export namespace InitialSetup {
         .next(deleteVpcTask)
         .next(loadLimitsTask)
         .next(enableTrustedAccessForServicesTask)
+        .next(deployPhaseRolesTask)
         .next(storePreviousOutput)
         .next(deployPhase0Task)
         .next(storePhase0Output)

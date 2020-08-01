@@ -10,6 +10,7 @@ export interface GuardDutyCreatePublishProps {
   detectorId: string;
   destinationArn: string;
   kmsKeyArn: string;
+  roleArn: string;
 }
 /**
  * Custom resource implementation that enable admin for Guard Duty
@@ -25,14 +26,15 @@ export class GuardDutyCreatePublish extends cdk.Construct {
       destinationArn: props.destinationArn,
       kmsKeyArn: props.kmsKeyArn,
     };
+    const guardDutyCreate = this.lambdaFunction(props.roleArn);
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: this.lambdaFunction.functionArn,
+      serviceToken: guardDutyCreate.functionArn,
       properties: handlerProperties,
     });
   }
 
-  private get lambdaFunction(): lambda.Function {
+  private lambdaFunction(roleArn: string): lambda.Function {
     const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
@@ -42,56 +44,14 @@ export class GuardDutyCreatePublish extends cdk.Construct {
 
     const lambdaPath = require.resolve('@custom-resources/guardduty-create-publish-lambda');
     const lambdaDir = path.dirname(lambdaPath);
-
-    const role = new iam.Role(stack, `${resourceType}Role`, {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          's3:CreateBucket',
-          's3:GetBucketLocation',
-          's3:ListAllMyBuckets',
-          's3:PutBucketAcl',
-          's3:PutBucketPublicAccessBlock',
-          's3:PutBucketPolicy',
-          's3:PutObject',
-        ],
-        resources: ['*'],
-      }),
-    );
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          'guardduty:createPublishingDestination',
-          'guardduty:updatePublishingDestination',
-          'guardduty:deletePublishingDestination',
-          'guardduty:listPublishingDestinations',
-        ],
-        resources: ['*'],
-      }),
-    );
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['kms:ListAliases'],
-        resources: ['*'],
-      }),
-    );
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-        resources: ['*'],
-      }),
-    );
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      timeout: cdk.Duration.seconds(10),
+      timeout: cdk.Duration.minutes(10),
     });
   }
 }
