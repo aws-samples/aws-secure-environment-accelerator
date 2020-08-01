@@ -94,7 +94,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       accountStacks,
       config: acceleratorConfig,
       accounts,
-      outputs,
     });
   }
 
@@ -129,7 +128,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
     logBucket,
-    outputs,
   });
 
   // MAD creation step 1
@@ -181,7 +179,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
-    outputs,
   });
 
   /**

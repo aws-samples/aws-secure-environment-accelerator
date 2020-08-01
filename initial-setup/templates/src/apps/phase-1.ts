@@ -92,11 +92,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
-  await securityHub.step1({
+  securityHub.step1({
     accountStacks,
     accounts,
     config: acceleratorConfig,
-    outputs,
   });
 
   /**
@@ -460,13 +459,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
-    outputs,
   });
   await macie.step2({
     accountStacks,
     accounts,
     config: acceleratorConfig,
-    outputs,
   });
 
   if (!acceleratorConfig['global-options']['alz-baseline']) {
@@ -480,7 +477,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       accountStacks,
       config: acceleratorConfig,
       accounts,
-      outputs,
     });
   }
 
@@ -489,7 +485,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
     logBucket,
-    outputs,
   });
 
   // Central Services step 1

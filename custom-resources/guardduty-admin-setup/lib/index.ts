@@ -2,6 +2,7 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
+// import { HandlerProperties } from '@custom-resources/guardduty-enable-admin-lambda';
 
 const resourceType = 'Custom::GuardDutyAdminSetup';
 
@@ -12,7 +13,6 @@ export interface AccountDetail {
 
 export interface GuardDutyAdminSetupProps {
   memberAccounts: AccountDetail[];
-  roleArn: string;
 }
 
 /**
@@ -30,10 +30,9 @@ export class GuardDutyAdminSetup extends cdk.Construct {
       memberAccounts: props.memberAccounts,
     };
 
-    const adminSetup = this.lambdaFunction(props.roleArn);
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: adminSetup.functionArn,
+      serviceToken: this.lambdaFunction.functionArn,
       properties: {
         ...handlerProperties,
         // Add a dummy value that is a random number to update the resource every time
@@ -42,7 +41,7 @@ export class GuardDutyAdminSetup extends cdk.Construct {
     });
   }
 
-  private lambdaFunction(roleArn: string): lambda.Function {
+  private get lambdaFunction(): lambda.Function {
     const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
@@ -52,14 +51,36 @@ export class GuardDutyAdminSetup extends cdk.Construct {
 
     const lambdaPath = require.resolve('@custom-resources/guardduty-admin-setup-lambda');
     const lambdaDir = path.dirname(lambdaPath);
-    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
+
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: [
+          'guardduty:ListDetectors',
+          'guardduty:CreateMembers',
+          'guardduty:UpdateOrganizationConfiguration',
+          'guardduty:DescribeOrganizationConfiguration',
+        ],
+        resources: ['*'],
+      }),
+    );
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
       role,
-      timeout: cdk.Duration.minutes(10),
+      timeout: cdk.Duration.seconds(10),
     });
   }
 }

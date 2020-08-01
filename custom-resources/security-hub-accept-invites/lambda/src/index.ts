@@ -1,12 +1,9 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { errorHandler } from '@custom-resources/cfn-response';
 
 const hub = new AWS.SecurityHub();
 
-export const handler = errorHandler(onEvent);
-
-async function onEvent(event: CloudFormationCustomResourceEvent) {
+export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
   console.log(`Sending Security Hub Invites to Sub Accounts...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -19,7 +16,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
     case 'Delete':
       return onDelete(event);
   }
-}
+};
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const masterAccountId = event.ResourceProperties.masterAccountId;

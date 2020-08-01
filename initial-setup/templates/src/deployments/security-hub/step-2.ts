@@ -2,18 +2,15 @@ import { Account } from '../../utils/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { SecurityHub } from '@aws-pbmm/constructs/lib/security-hub';
-import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
-import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface SecurityHubStep2Props {
   accounts: Account[];
   config: AcceleratorConfig;
   accountStacks: AccountStacks;
-  outputs: StackOutput[];
 }
 
-export async function step2(props: SecurityHubStep2Props) {
-  const { accounts, accountStacks, config, outputs } = props;
+export function step2(props: SecurityHubStep2Props) {
+  const { accounts, accountStacks, config } = props;
   const globalOptions = config['global-options'];
   const regions = globalOptions['supported-regions'];
   const securityAccountKey = config.getMandatoryAccountKey('central-security');
@@ -23,16 +20,6 @@ export async function step2(props: SecurityHubStep2Props) {
     if (account.id === securityMasterAccount?.id) {
       continue;
     }
-
-    const securityHubRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey: account.key,
-      roleKey: 'SecurityHubRole',
-    });
-    if (!securityHubRoleOutput) {
-      continue;
-    }
-
     for (const region of regions) {
       const memberAccountStack = accountStacks.tryGetOrCreateAccountStack(account.key, region);
       if (!memberAccountStack) {
@@ -43,7 +30,6 @@ export async function step2(props: SecurityHubStep2Props) {
         account,
         standards: globalOptions['security-hub-frameworks'],
         masterAccountId: securityMasterAccount?.id,
-        roleArn: securityHubRoleOutput.roleArn,
       });
     }
   }

@@ -189,11 +189,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }
 
   // Deploy Security Hub Step-2
-  await securityHub.step2({
+  securityHub.step2({
     accountStacks,
     accounts,
     config: acceleratorConfig,
-    outputs,
   });
 
   // TODO Find a better way to get VPCs
@@ -254,6 +253,5 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
-    outputs,
   });
 }

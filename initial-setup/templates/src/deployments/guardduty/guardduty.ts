@@ -1,20 +1,17 @@
 import { IBucket } from '@aws-cdk/aws-s3';
 import * as iam from '@aws-cdk/aws-iam';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AccountStacks, AccountStack } from '../../common/account-stacks';
+import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
 import { GuardDutyAdmin } from '@custom-resources/guardduty-enable-admin';
 import { GuardDutyDetector } from '@custom-resources/guardduty-get-detector';
 import { GuardDutyCreatePublish } from '@custom-resources/guardduty-create-publish';
 import { GuardDutyAdminSetup } from '@custom-resources/guardduty-admin-setup';
-import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
-import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 
 export interface GuardDutyStepProps {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   accounts: Account[];
-  outputs: StackOutput[];
 }
 
 export interface GuardDutyStep3Props {
@@ -22,7 +19,6 @@ export interface GuardDutyStep3Props {
   config: AcceleratorConfig;
   accounts: Account[];
   logBucket: IBucket;
-  outputs: StackOutput[];
 }
 
 /**
@@ -43,16 +39,6 @@ export async function step1(props: GuardDutyStepProps) {
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
   const masterAccountId = getAccountId(props.accounts, masterAccountKey);
   const regions = await getValidRegions(props.config);
-  const adminRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-    outputs: props.outputs,
-    accountKey: masterOrgKey,
-    roleKey: 'GuardDutyAdminRole',
-  });
-  if (!adminRoleOutput) {
-    return;
-  }
-
-  // const adminRole = await createAdminRole(masterAccountStack);
   regions?.map(region => {
     // Guard duty need to be enabled from master account of the organization
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterOrgKey, region);
@@ -60,7 +46,6 @@ export async function step1(props: GuardDutyStepProps) {
     if (masterAccountId) {
       const admin = new GuardDutyAdmin(masterAccountStack, 'GuardDutyAdmin', {
         accountId: masterAccountId,
-        roleArn: adminRoleOutput.roleArn,
       });
     }
   });
@@ -86,25 +71,16 @@ export async function step2(props: GuardDutyStepProps) {
     AccountId: account.id,
     Email: account.email,
   }));
-  const adminSetupRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-    outputs: props.outputs,
-    accountKey: masterAccountKey,
-    roleKey: 'GuardDutyAdminSetupRole',
-  });
-  if (!adminSetupRoleOutput) {
-    return;
-  }
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
     new GuardDutyAdminSetup(masterAccountStack, 'GuardDutyAdminSetup', {
       memberAccounts: accountDetails,
-      roleArn: adminSetupRoleOutput.roleArn,
     });
   });
 }
 
 export async function step3(props: GuardDutyStep3Props) {
-  const { logBucket, outputs } = props;
+  const { logBucket } = props;
   const enableGuardDuty = props.config['global-options']['central-security-services'].guardduty;
 
   // skipping Guardduty if not enabled from config
@@ -115,36 +91,15 @@ export async function step3(props: GuardDutyStep3Props) {
   const logBucketKeyArn = logBucket.encryptionKey?.keyArn;
   const regions = await getValidRegions(props.config);
   for (const [accountKey, _] of props.config.getAccountConfigs()) {
-    const detectorRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey,
-      roleKey: 'GuardDutyDetectorRole',
-    });
-    if (!detectorRoleOutput) {
-      continue;
-    }
-
-    const createPublishOutput = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey,
-      roleKey: 'GuardDutyPublishRole',
-    });
-    if (!createPublishOutput) {
-      continue;
-    }
-
     for (const region of regions) {
       const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
-      const detector = new GuardDutyDetector(accountStack, 'GuardDutyPublishDetector', {
-        roleArn: detectorRoleOutput.roleArn,
-      });
+      const detector = new GuardDutyDetector(accountStack, 'GuardDutyPublishDetector');
 
       if (logBucketKeyArn) {
         const createPublish = new GuardDutyCreatePublish(accountStack, 'GuardDutyPublish', {
           detectorId: detector.detectorId,
           destinationArn: logBucket.bucketArn,
           kmsKeyArn: logBucketKeyArn,
-          roleArn: createPublishOutput.roleArn,
         });
         createPublish.node.addDependency(detector);
       }
