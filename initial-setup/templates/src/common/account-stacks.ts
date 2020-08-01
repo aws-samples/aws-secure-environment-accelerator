@@ -126,7 +126,7 @@ export class AccountStacks {
   protected createStackName(accountKey: string, region: string) {
     // BE CAREFUL CHANGING THE STACK NAME
     // When changed, it will create a new stack and delete the old one!
-    const accountPrettyName = pascalCase(accountKey);
+    const accountPrettyName = pascalCase(accountKey).replace('_', '');
     console.log('accountKey', 'accountPrettyName', accountKey, accountPrettyName);
     return `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
   }
