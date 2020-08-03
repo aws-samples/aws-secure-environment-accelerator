@@ -3,6 +3,7 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import * as iam from '@aws-cdk/aws-iam';
 import { Account, getAccountId } from '../../utils/accounts';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 export interface CentralServicesStep2Props {
   accountStacks: AccountStacks;
@@ -113,7 +114,7 @@ async function centralLoggingShareDataSettings(props: {
   }
 
   new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
-    roleName: 'CloudWatch-CrossAccountSharingRole',
+    roleName: createRoleName('CWL-CrossAccountSharingRole'),
     assumedBy: new iam.CompositePrincipal(...accountPrincipals),
     managedPolicies: logPermission.permissions.map(permission =>
       iam.ManagedPolicy.fromAwsManagedPolicyName(permission),
