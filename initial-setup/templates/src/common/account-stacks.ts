@@ -102,7 +102,6 @@ export class AccountStacks {
     }
 
     const stackName = this.createStackName(accountKey, regionOrDefault);
-    console.log('stackName', stackName);
     const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
 
@@ -127,7 +126,6 @@ export class AccountStacks {
     // BE CAREFUL CHANGING THE STACK NAME
     // When changed, it will create a new stack and delete the old one!
     const accountPrettyName = pascalCase(accountKey).replace('_', '');
-    console.log('accountKey', 'accountPrettyName', accountKey, accountPrettyName);
     return `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
   }
 

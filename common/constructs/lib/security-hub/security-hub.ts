@@ -37,8 +37,6 @@ export class SecurityHub extends cdk.Construct {
     super(scope, name);
     const { account, subAccountIds, masterAccountId, standards, roleArn } = props;
 
-    // const enableHub = new CfnHub(this, `EnableSecurityHub-${account.key}`, {});
-
     const enableSecurityHubResource = new SecurityHubEnable(
       this,
       `EnableSecurityHubStandards-${account.key}-Settings`,
@@ -47,8 +45,6 @@ export class SecurityHub extends cdk.Construct {
         roleArn,
       },
     );
-
-    // enableSecurityHubResource.node.addDependency(enableHub);
 
     if (subAccountIds) {
       // Send Invites to subaccounts

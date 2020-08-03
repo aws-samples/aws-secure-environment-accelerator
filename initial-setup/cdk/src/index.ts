@@ -758,7 +758,8 @@ export namespace InitialSetup {
         .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), detachQuarantineScpTask)
         .otherwise(pass);
 
-      const commonStep1 = deployPhase1Task
+      const commonStep1 = addScpTask.startState
+        .next(deployPhase1Task)
         .next(storePhase1Output)
         .next(accountDefaultSettingsTask)
         .next(deployPhase2Task)

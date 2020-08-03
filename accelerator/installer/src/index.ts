@@ -21,8 +21,8 @@ async function main() {
     terminationProtection: true,
   });
 
-  const acceleratorName = 'PBMMNew';
-  const acceleratorPrefix = 'PBMMAccelNew-';
+  const acceleratorName = 'PBMM';
+  const acceleratorPrefix = 'PBMMAccel-';
 
   const acceleratorConfigS3Bucket = new cdk.CfnParameter(stack, 'ConfigS3Bucket', {
     default: 'pbmmaccel-config',
