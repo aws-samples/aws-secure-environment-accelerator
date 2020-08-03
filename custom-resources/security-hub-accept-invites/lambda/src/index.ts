@@ -23,6 +23,14 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const masterAccountId = event.ResourceProperties.masterAccountId;
+  try {
+    const masterAccount = await hub.getMasterAccount().promise();
+    if (masterAccount.Master?.AccountId !== masterAccountId) {
+      await hub.disassociateFromMasterAccount().promise();
+    }
+  } catch (error) {
+    console.log('The current account is not associated to a master account');
+  }
 
   // Check for pending invitations from Master
   const invitations = await hub.listInvitations().promise();
