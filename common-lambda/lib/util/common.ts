@@ -7,7 +7,7 @@ import { RAW_CONFIG_FILE, JSON_FORMAT } from './constants';
 
 export function getFormattedObject(input: string, format: FormatType) {
   if (!input || input === '') {
-    return null;
+    return {};
   }
   if (format === JSON_FORMAT) {
     return JSON.parse(input);
