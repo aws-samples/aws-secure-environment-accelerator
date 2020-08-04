@@ -315,7 +315,9 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
       filePath: accountConfig[accountKey].filename,
       fileContent: pretty(getStringFromObject(wlaConfig, format), format),
     });
-    rootConfig['workload-account-configs'].__LOAD.push(accountConfig[accountKey].filename);
+    if (!rootConfig['workload-account-configs'].__LOAD.includes(accountConfig[accountKey].filename)) {
+      rootConfig['workload-account-configs'].__LOAD.push(accountConfig[accountKey].filename);
+    }
     if (configRootFilePath === rawConfig['global-options']['file-name']) {
       rootConfig['global-options']['workloadaccounts-suffix'] = accountSuffix;
     } else {
@@ -361,6 +363,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     format,
     repositoryName: configRepositoryName,
     source: 'codecommit',
+    region: defaultRegion,
   });
   const config = await rawConfigObject.prepare();
 
