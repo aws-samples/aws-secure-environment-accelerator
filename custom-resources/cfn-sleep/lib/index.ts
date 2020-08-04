@@ -47,7 +47,24 @@ export class CfnSleep extends cdk.Construct {
     const lambdaPath = require.resolve('@custom-resources/cfn-sleep-lambda');
     const lambdaDir = path.dirname(lambdaPath);
 
-    const role = new iam.Role(stack, 'Role', {
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role: this.ensureRole(),
+      // Set timeout to maximum timeout
+      timeout: cdk.Duration.minutes(15),
+    });
+  }
+
+  private ensureRole(): iam.Role {
+    const roleConstructName = `${resourceType}Role`;
+    const stack = cdk.Stack.of(this);
+    const existingRole = stack.node.tryFindChild(roleConstructName);
+    if (existingRole) {
+      return existingRole as iam.Role;
+    }
+    const role = new iam.Role(stack, roleConstructName, {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
 
@@ -57,14 +74,6 @@ export class CfnSleep extends cdk.Construct {
         resources: ['*'],
       }),
     );
-
-    return new lambda.Function(stack, constructName, {
-      runtime: lambda.Runtime.NODEJS_12_X,
-      code: lambda.Code.fromAsset(lambdaDir),
-      handler: 'index.handler',
-      role,
-      // Set timeout to maximum timeout
-      timeout: cdk.Duration.minutes(15),
-    });
+    return role;
   }
 }

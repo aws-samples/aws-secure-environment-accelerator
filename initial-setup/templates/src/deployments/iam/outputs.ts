@@ -1,8 +1,10 @@
 import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
 import { createFixedSecretName } from '@aws-pbmm/common-outputs/lib/secrets';
 
 import { createCfnStructuredOutput } from '../../common/structured-output';
 import { IamRoleOutput } from '@aws-pbmm/common-outputs/lib/iam-role';
+import { AccountStack } from '../../common/account-stacks';
 
 export const CfnIamRoleOutput = createCfnStructuredOutput(IamRoleOutput);
 
@@ -40,4 +42,12 @@ export function getIamUserPasswordSecretValue({
   return cdk.SecretValue.secretsManager(
     `arn:${cdk.Aws.PARTITION}:secretsmanager:${cdk.Aws.REGION}:${secretAccountId}:secret:${secretName}`,
   );
+}
+
+export function createIamRoleOutput(stack: AccountStack, role: iam.IRole, outputName: string) {
+  new CfnIamRoleOutput(stack, `${outputName}Output`, {
+    roleName: role.roleName,
+    roleArn: role.roleArn,
+    roleKey: outputName,
+  });
 }
