@@ -16,15 +16,19 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   console.log(`State Machine Execution Failed...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { cause, executionId, notificationTopicArn } = input;
+  const { cause, executionId, notificationTopicArn, acceleratorVersion } = input;
   const errorCause = JSON.parse(cause);
+
   try {
-    console.log(`Trying to convert JSON Input string to JSON object`);
-    errorCause.Input = JSON.parse(errorCause.Input);
+    if (errorCause.Input) {
+      console.log(`Trying to convert JSON Input string to JSON object`);
+      errorCause.Input = JSON.parse(errorCause.Input);
+    }
   } catch (error) {
-    console.error(`Error while converting JSON Input string to JSON Object`);
+    console.error(`Error while converting JSON string to JSON Object`);
     console.error(error.message);
   }
+
   // Retriving Failed State
   try {
     const failedState = await getFailedState(executionId);
