@@ -849,6 +849,7 @@ export namespace InitialSetup {
           'error.$': '$.Error',
           'cause.$': '$.Cause',
           'executionId.$': '$$.Execution.Id',
+          acceleratorVersion,
         },
         resultPath: 'DISCARD',
       });

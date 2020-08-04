@@ -6,6 +6,7 @@ interface NotifyErrorInput {
   cause: string;
   notificationTopicArn: string;
   executionId: string;
+  acceleratorVersion: string;
 }
 
 const sns = new SNS();
@@ -20,16 +21,21 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   try {
     console.log(`Trying to convert JSON Input string to JSON object`);
     errorCause.Input = JSON.parse(errorCause.Input);
-  } catch(error) {
+  } catch (error) {
     console.error(`Error while converting JSON Input string to JSON Object`);
     console.error(error.message);
   }
+  // Retriving Failed State
   try {
     const failedState = await getFailedState(executionId);
     errorCause.FailedState = failedState!;
   } catch (error) {
     console.error(error);
   }
+
+  // Adding Code Version to email JSON
+  errorCause.acceleratorVersion = acceleratorVersion;
+
   console.log(`Publishing Error to SNS Topic`);
   console.log(JSON.stringify(errorCause, null, 2));
   await sns.publish({
