@@ -832,7 +832,7 @@ export namespace InitialSetup {
 
       new sns.Subscription(this, 'MainStateMachineStatusTopicSubscription', {
         topic: notificationTopic,
-        protocol: sns.SubscriptionProtocol.EMAIL_JSON,
+        protocol: sns.SubscriptionProtocol.EMAIL,
         endpoint: props.notificationEmail,
       });
 

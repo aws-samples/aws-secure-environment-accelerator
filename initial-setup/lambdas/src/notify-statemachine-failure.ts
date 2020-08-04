@@ -18,6 +18,13 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   const { cause, executionId, notificationTopicArn } = input;
   const errorCause = JSON.parse(cause);
   try {
+    console.log(`Trying to convert JSON Input string to JSON object`);
+    errorCause.Input = JSON.parse(errorCause.Input);
+  } catch(error) {
+    console.error(`Error while converting JSON Input string to JSON Object`);
+    console.error(error.message);
+  }
+  try {
     const failedState = await getFailedState(executionId);
     errorCause.FailedState = failedState!;
   } catch (error) {
@@ -26,6 +33,7 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   console.log(`Publishing Error to SNS Topic`);
   console.log(JSON.stringify(errorCause, null, 2));
   await sns.publish({
+    // TODO Use Pretty when we merge "6.10"
     Message: JSON.stringify(errorCause),
     TopicArn: notificationTopicArn,
     MessageStructure: 'email-json',
