@@ -10,7 +10,7 @@
     "default-cwl-retention": 731,
     "workloadaccounts-suffix" : 1,
     "workloadaccounts-prefix" : "config.example",
-    "file-name": "config.example.json",
+    "workloadaccount-suffix-file-name": "config.example.json",
 	"ignored-ous": [],
     "supported-regions": [
       "ap-northeast-1",

@@ -649,7 +649,7 @@ export const GlobalOptionsConfigType = t.interface({
   'install-cloudformation-master-role': fromNullable(t.boolean, true),
   'workloadaccounts-prefix': optional(t.string),
   'workloadaccounts-suffix': optional(t.number),
-  'file-name': t.string,
+  'workloadaccount-suffix-file-name': t.string,
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

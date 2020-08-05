@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
@@ -28,13 +27,8 @@ export namespace InitialSetup {
     solutionRoot: string;
     stateMachineName: string;
     stateMachineExecutionRole: string;
-    /**
-     * Parameters for configuration file
-     */
-    configFilePath: string;
     configRepositoryName: string;
     configS3Bucket: string;
-    configS3FileName: string;
     configBranchName: string;
     notificationEmail: string;
     /**
@@ -141,9 +135,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           repositoryName: props.configRepositoryName,
-          filePath: props.configFilePath,
           s3Bucket: props.configS3Bucket,
-          s3FileName: props.configS3FileName,
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
         },
@@ -176,7 +168,6 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
-        // TODO return only BASELINE & COMMITID from this and assign to $.configuration.baseline object and use it accross SM
         resultPath: '$.configuration.baseline',
       });
 

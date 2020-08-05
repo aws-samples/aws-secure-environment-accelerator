@@ -134,6 +134,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
   const accountConfig: { [key: string]: AccountInfo } = {};
   const accountPrefix = rawConfig['global-options']['workloadaccounts-prefix'];
   let accountSuffix = rawConfig['global-options']['workloadaccounts-suffix']!;
+  const wlaSuffixFileName = rawConfig['global-options']['workloadaccount-suffix-file-name'];
   let useNewConfigFile = false;
   let accountKey = '';
   if (accountInfo) {
@@ -327,18 +328,14 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     if (!rootConfig['workload-account-configs'].__LOAD.includes(accountConfig[accountKey].filename)) {
       rootConfig['workload-account-configs'].__LOAD.push(accountConfig[accountKey].filename);
     }
-    if (configRootFilePath === rawConfig['global-options']['file-name']) {
+    if (configRootFilePath === wlaSuffixFileName) {
       rootConfig['global-options']['workloadaccounts-suffix'] = accountSuffix;
     } else {
-      const globalOptionsResponse = await codecommit.getFile(
-        configRepositoryName,
-        rawConfig['global-options']['file-name'],
-        configBranch,
-      );
+      const globalOptionsResponse = await codecommit.getFile(configRepositoryName, wlaSuffixFileName, configBranch);
       const globalOptions = getFormattedObject(globalOptionsResponse.fileContent.toString(), format);
       globalOptions['workloadaccounts-suffix'] = accountSuffix;
       updateFiles.push({
-        filePath: rawConfig['global-options']['file-name'],
+        filePath: wlaSuffixFileName,
         fileContent: pretty(getStringFromObject(globalOptions, format), format),
       });
     }

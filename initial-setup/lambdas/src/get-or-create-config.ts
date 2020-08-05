@@ -5,20 +5,19 @@ import { JSON_FORMAT, RAW_CONFIG_FILE, YAML_FORMAT } from '@aws-pbmm/common-lamb
 
 interface GetOrCreateConfigInput {
   repositoryName: string;
-  filePath: string;
   s3Bucket: string;
-  s3FileName: string;
   branchName: string;
   acceleratorVersion?: string;
 }
 
 const codecommit = new CodeCommit();
+const s3 = new S3();
 
 export const handler = async (input: GetOrCreateConfigInput) => {
   console.log(`Get or Create Config from S3 file...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { repositoryName, filePath, s3Bucket, s3FileName, branchName, acceleratorVersion } = input;
+  const { repositoryName, s3Bucket, branchName, acceleratorVersion } = input;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
     console.log(`Creating repository "${repositoryName}" for Config file`);
@@ -28,9 +27,49 @@ export const handler = async (input: GetOrCreateConfigInput) => {
 
   console.log(`Retrieving config file from config Repo`);
   try {
-    // TODO Get previous commit in order to compare config files
     console.log(`Trying to retrieve existing config from branch "${branchName}"`);
-    const configFile = await codecommit.getFile(repositoryName, filePath, branchName);
+    const yamlFileStatus = await isFileExist({
+      source: 'codecommit',
+      branchName,
+      repositoryName,
+      fileName: 'config.yaml',
+    });
+    const jsonFileStatus = await isFileExist({
+      source: 'codecommit',
+      branchName,
+      repositoryName,
+      fileName: 'config.json',
+    });
+    let filePath: string = '';
+    if (yamlFileStatus) {
+      filePath = 'config.yaml';
+    } else if (jsonFileStatus) {
+      filePath = 'config.json';
+    }
+    if (!filePath) {
+      console.log(`Empty Repository exists, retriving config from S3Bucket: ${s3Bucket}`);
+      // Load S3 Config
+      const s3LoadResponse = await loadConfigFromS3({
+        branchName,
+        repositoryName,
+        s3Bucket,
+      });
+      console.log(
+        JSON.stringify(
+          {
+            ...s3LoadResponse,
+            acceleratorVersion,
+          },
+          null,
+          2,
+        ),
+      );
+      return {
+        ...s3LoadResponse,
+        acceleratorVersion,
+      };
+    }
+    const currnetCommit = await codecommit.getBranch(repositoryName, branchName);
     const extension = filePath.split('.').slice(-1)[0];
     const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
     const rawConfigObject = new RawConfig({
@@ -51,7 +90,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         repositoryName,
         putFiles: rawConfig.loadFiles,
         commitMessage: `Updating Raw Config in SM`,
-        parentCommitId: configFile.commitId,
+        parentCommitId: currnetCommit.branch?.commitId,
       });
     } catch (error) {
       if (error.code === 'NoChangeException') {
@@ -60,47 +99,13 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         throw new Error(error);
       }
     }
-    return {
-      configRepositoryName: repositoryName,
-      configFilePath: RAW_CONFIG_FILE,
-      configCommitId: configCommitId || configFile.commitId,
-      acceleratorVersion,
-      configRootFilePath: filePath,
-    };
-  } catch (e) {
-    if (e.code !== 'FileDoesNotExistException' && e.code !== 'CommitDoesNotExistException') {
-      throw new Error(e);
-    }
-
-    // Retrieve file from S3 and push to Code Commit Config Repo
-    console.log(`No config found in branch "${branchName}", creating one`);
-
-    const extension = s3FileName.split('.').slice(-1)[0];
-    const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
-    const rawConfigObject = new RawConfig({
-      branchName,
-      configFilePath: s3FileName,
-      format,
-      repositoryName,
-      source: 's3',
-      s3Bucket,
-    });
-
-    const rawConfig = await rawConfigObject.prepare();
-
-    const configCommitId = await codecommit.commit({
-      branchName,
-      repositoryName,
-      putFiles: rawConfig.loadFiles,
-      commitMessage: `Initial push through SM from S3 to CodeCommit`,
-    });
 
     console.log(
       JSON.stringify(
         {
           configRepositoryName: repositoryName,
           configFilePath: RAW_CONFIG_FILE,
-          configCommitId,
+          configCommitId: configCommitId || currnetCommit.branch?.commitId,
           acceleratorVersion,
           configRootFilePath: filePath,
         },
@@ -108,12 +113,137 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         2,
       ),
     );
+
     return {
       configRepositoryName: repositoryName,
       configFilePath: RAW_CONFIG_FILE,
-      configCommitId,
+      configCommitId: configCommitId || currnetCommit.branch?.commitId,
       acceleratorVersion,
       configRootFilePath: filePath,
     };
+  } catch (e) {
+    if (e.code !== 'FileDoesNotExistException' && e.code !== 'CommitDoesNotExistException') {
+      throw new Error(e);
+    }
+    const s3LoadResponse = await loadConfigFromS3({
+      branchName,
+      repositoryName,
+      s3Bucket,
+    });
+
+    console.log(
+      JSON.stringify(
+        {
+          ...s3LoadResponse,
+          acceleratorVersion,
+        },
+        null,
+        2,
+      ),
+    );
+
+    return {
+      ...s3LoadResponse,
+      acceleratorVersion,
+    };
   }
 };
+
+async function loadConfigFromS3(props: { branchName: string; repositoryName: string; s3Bucket: string }) {
+  const { branchName, repositoryName, s3Bucket } = props;
+  let s3FileName = '';
+  const yamlFileStatus = await isFileExist({
+    source: 's3',
+    branchName,
+    repositoryName,
+    s3Bucket,
+    fileName: 'config.yaml',
+  });
+  const jsonFileStatus = await isFileExist({
+    source: 's3',
+    branchName,
+    repositoryName,
+    s3Bucket,
+    fileName: 'config.json',
+  });
+  if (yamlFileStatus && jsonFileStatus) {
+    throw new Error(`Both "config.yaml" and "config.json" exists in S3Bucket: "${s3Bucket}"`);
+  } else if (yamlFileStatus) {
+    s3FileName = 'config.yaml';
+  } else {
+    s3FileName = 'config.json';
+  }
+  // Retrieve file from S3 and push to Code Commit Config Repo
+  console.log(`No config found in branch "${branchName}", creating one`);
+
+  const extension = s3FileName.split('.').slice(-1)[0];
+  const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
+  const rawConfigObject = new RawConfig({
+    branchName,
+    configFilePath: s3FileName,
+    format,
+    repositoryName,
+    source: 's3',
+    s3Bucket,
+  });
+
+  const rawConfig = await rawConfigObject.prepare();
+
+  const configCommitId = await codecommit.commit({
+    branchName,
+    repositoryName,
+    putFiles: rawConfig.loadFiles,
+    commitMessage: `Initial push through SM from S3 to CodeCommit`,
+  });
+
+  // Delete Config from S3Bucket
+  console.log(`Deleting configuration files from S3Bucket: ${s3Bucket}`);
+  for (const configFile of rawConfig.loadFiles) {
+    await s3.deleteObject({
+      Bucket: s3Bucket,
+      Key: configFile.filePath,
+    });
+  }
+  return {
+    configRepositoryName: repositoryName,
+    configFilePath: RAW_CONFIG_FILE,
+    configCommitId,
+    configRootFilePath: s3FileName,
+  };
+}
+async function isFileExist(props: {
+  source: 's3' | 'codecommit';
+  fileName: string;
+  s3Bucket?: string;
+  repositoryName?: string;
+  branchName?: string;
+}) {
+  const { fileName, source, branchName, repositoryName, s3Bucket } = props;
+  if (source === 's3') {
+    try {
+      await s3.getObjectBodyAsString({
+        Bucket: s3Bucket!,
+        Key: fileName,
+      });
+      return true;
+    } catch (error) {
+      if (error.code === 'NoSuchKey') {
+        return false;
+      }
+      throw new Error(error);
+    }
+  }
+  try {
+    await codecommit.getFile(repositoryName!, fileName, branchName);
+    return true;
+  } catch (error) {
+    if (
+      error.code === 'FileDoesNotExistException' ||
+      error.code === 'CommitDoesNotExistException' ||
+      error.code === 'BranchDoesNotExistException'
+    ) {
+      return false;
+    }
+    throw new Error(error);
+  }
+}
