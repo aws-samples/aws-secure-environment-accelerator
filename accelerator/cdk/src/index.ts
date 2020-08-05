@@ -38,11 +38,9 @@ async function main() {
 
   // Create the initial setup pipeline stack
   new InitialSetup(app, `${acceleratorPrefix}InitialSetup`, {
-    // configFilePath,
     configRepositoryName,
     configBranchName,
     configS3Bucket,
-    // configS3FileName,
     acceleratorPrefix,
     acceleratorName,
     solutionRoot,

@@ -28,8 +28,8 @@ interface RawConfigProps {
   source: string;
   repositoryName: string;
   branchName: string;
-  s3Bucket?: string;
   format: FormatType;
+  s3Bucket?: string;
   region?: string;
 }
 
@@ -121,19 +121,16 @@ export class RawConfig {
 
   async getFromFile(filePath: string) {
     const { source, branchName, repositoryName, s3Bucket } = this.props;
-    let config;
     if (source === 's3') {
       console.log(`Reading file ${filePath} from Bucket ${s3Bucket}`);
       const configString = await this.s3.getObjectBodyAsString({
         Bucket: s3Bucket!,
         Key: filePath,
       });
-      config = configString;
-    } else {
-      console.log(`Reading file ${filePath} from Repository ${repositoryName}`);
-      const configResponse = await this.codecommit.getFile(repositoryName, filePath, branchName);
-      config = configResponse.fileContent.toString();
+      return configString;
     }
-    return config;
+    console.log(`Reading file ${filePath} from Repository ${repositoryName}`);
+    const configResponse = await this.codecommit.getFile(repositoryName, filePath, branchName);
+    return configResponse.fileContent.toString();
   }
 }

@@ -40,13 +40,12 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       repositoryName,
       fileName: 'config.json',
     });
-    let filePath: string = '';
+    let filePath: string;
     if (yamlFileStatus) {
       filePath = 'config.yaml';
     } else if (jsonFileStatus) {
       filePath = 'config.json';
-    }
-    if (!filePath) {
+    } else {
       console.log(`Empty Repository exists, retriving config from S3Bucket: ${s3Bucket}`);
       // Load S3 Config
       const s3LoadResponse = await loadConfigFromS3({
@@ -69,7 +68,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         acceleratorVersion,
       };
     }
-    const currnetCommit = await codecommit.getBranch(repositoryName, branchName);
+    const currentCommit = await codecommit.getBranch(repositoryName, branchName);
     const extension = filePath.split('.').slice(-1)[0];
     const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
     const rawConfigObject = new RawConfig({
@@ -83,14 +82,14 @@ export const handler = async (input: GetOrCreateConfigInput) => {
 
     const rawConfig = await rawConfigObject.prepare();
 
-    let configCommitId;
+    let configCommitId: string;
     try {
       configCommitId = await codecommit.commit({
         branchName,
         repositoryName,
         putFiles: rawConfig.loadFiles,
         commitMessage: `Updating Raw Config in SM`,
-        parentCommitId: currnetCommit.branch?.commitId,
+        parentCommitId: currentCommit.branch?.commitId,
       });
     } catch (error) {
       if (error.code === 'NoChangeException') {
@@ -105,7 +104,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         {
           configRepositoryName: repositoryName,
           configFilePath: RAW_CONFIG_FILE,
-          configCommitId: configCommitId || currnetCommit.branch?.commitId,
+          configCommitId: configCommitId! || currentCommit.branch?.commitId,
           acceleratorVersion,
           configRootFilePath: filePath,
         },
@@ -117,7 +116,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     return {
       configRepositoryName: repositoryName,
       configFilePath: RAW_CONFIG_FILE,
-      configCommitId: configCommitId || currnetCommit.branch?.commitId,
+      configCommitId: configCommitId! || currentCommit.branch?.commitId,
       acceleratorVersion,
       configRootFilePath: filePath,
     };
@@ -151,7 +150,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
 
 async function loadConfigFromS3(props: { branchName: string; repositoryName: string; s3Bucket: string }) {
   const { branchName, repositoryName, s3Bucket } = props;
-  let s3FileName = '';
+  let s3FileName: string;
   const yamlFileStatus = await isFileExist({
     source: 's3',
     branchName,
