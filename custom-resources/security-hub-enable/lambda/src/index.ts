@@ -24,13 +24,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
-    await backOff(() =>
-      hub
-        .enableSecurityHub({
-          EnableDefaultStandards: false,
-        })
-        .promise(),
-    );
+    await backOff(() => hub.enableSecurityHub().promise());
   } catch (error) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');

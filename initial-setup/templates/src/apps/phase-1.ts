@@ -24,7 +24,6 @@ import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
 import * as budget from '../deployments/billing/budget';
-import * as centralServices from '../deployments/central-services';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
 import * as firewall from '../deployments/firewall/cluster';
@@ -36,7 +35,6 @@ import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
-import * as securityHub from '../deployments/security-hub';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -90,13 +88,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     centralLogBucket: logBucket,
     config: acceleratorConfig,
-  });
-
-  await securityHub.step1({
-    accountStacks,
-    accounts,
-    config: acceleratorConfig,
-    outputs,
   });
 
   /**
@@ -431,13 +422,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     centralBucket,
     config: acceleratorConfig,
-  });
-
-  // Central Services step 1
-  await centralServices.step2({
-    accountStacks,
-    config: acceleratorConfig,
-    accounts,
   });
 
   // SSM config step 1

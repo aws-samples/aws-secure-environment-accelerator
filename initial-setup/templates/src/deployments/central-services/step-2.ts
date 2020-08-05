@@ -3,12 +3,14 @@ import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import * as iam from '@aws-cdk/aws-iam';
 import { Account, getAccountId } from '../../utils/accounts';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { IamCreateRole } from '@custom-resources/iam-create-role';
+import { Context } from '../../utils/context';
 
 export interface CentralServicesStep2Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   accounts: Account[];
+  context: Context;
 }
 
 const LOG_PERMISSIONS = [
@@ -37,7 +39,7 @@ const LOG_PERMISSIONS = [
  * - Share Data in Sub Accounts to Monitoring Accounts
  */
 export async function step2(props: CentralServicesStep2Props) {
-  const { accountStacks, config, accounts } = props;
+  const { accountStacks, config, accounts, context } = props;
 
   const centralSecurityServices = config['global-options']['central-security-services'];
   const centralOperationsServices = config['global-options']['central-operations-services'];
@@ -79,6 +81,7 @@ export async function step2(props: CentralServicesStep2Props) {
       scope: accountStack,
       monitoringAccountIds,
       accessLevel,
+      tagValue: context.acceleratorName,
     });
   }
 }
@@ -102,22 +105,21 @@ async function centralLoggingShareDataSettings(props: {
   scope: cdk.Construct;
   monitoringAccountIds: string[];
   accessLevel: string;
+  tagValue: string;
 }) {
-  const { scope, monitoringAccountIds, accessLevel } = props;
-  const accountPrincipals: iam.PrincipalBase[] = monitoringAccountIds.map(
-    accountId => new iam.AccountPrincipal(accountId),
-  );
+  const { scope, monitoringAccountIds, accessLevel, tagValue } = props;
+
   const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
   if (!logPermission) {
     console.warn('Invalid Log Level Access given for CWL Central logging');
     return;
   }
 
-  new iam.Role(scope, 'CloudWatch-CrossAccountDataSharingRole', {
-    roleName: createRoleName('CWL-CrossAccountSharingRole'),
-    assumedBy: new iam.CompositePrincipal(...accountPrincipals),
-    managedPolicies: logPermission.permissions.map(permission =>
-      iam.ManagedPolicy.fromAwsManagedPolicyName(permission),
-    ),
+  new IamCreateRole(scope, 'CloudWatch-CrossAccountDataSharingRole', {
+    roleName: 'CloudWatch-CrossAccountSharingRole',
+    accountIds: monitoringAccountIds,
+    managedPolicies: logPermission.permissions.map(permission => permission),
+    tagName: 'Accelerator',
+    tagValue,
   });
 }
