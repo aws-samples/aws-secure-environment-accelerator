@@ -169,8 +169,12 @@ async function loadConfigFromS3(props: { branchName: string; repositoryName: str
     throw new Error(`Both "config.yaml" and "config.json" exists in S3Bucket: "${s3Bucket}"`);
   } else if (yamlFileStatus) {
     s3FileName = 'config.yaml';
-  } else {
+  } else if (jsonFileStatus) {
     s3FileName = 'config.json';
+  } else {
+    throw new Error(
+      `No Configuratin found in S3Bucket: "${s3Bucket}". Either "config.yaml" or "config.json" is required`,
+    );
   }
   // Retrieve file from S3 and push to Code Commit Config Repo
   console.log(`No config found in branch "${branchName}", creating one`);
