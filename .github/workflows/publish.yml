@@ -16,7 +16,7 @@ jobs:
       - name: Format Branch Name
         id: format
         env:
-          GITHUB_REF: ${{ github.ref }}  # This will be the tag; i.e. ref/tags/v1.1.1
+          GITHUB_REF: ${{ github.ref }} # This will be the tag; i.e. ref/tags/v1.1.1
         run: |
           git fetch --tags
           echo ::set-output name=branch_name::"release/$(echo "${GITHUB_REF}" | cut -d/ -f3-)"
