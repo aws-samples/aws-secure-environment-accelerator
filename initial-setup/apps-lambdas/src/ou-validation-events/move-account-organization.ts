@@ -165,7 +165,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
       };
     } else {
       // New Account
-      accountKey = `${pascalCase(account.Name!)}-${hashName(account.Email!, 6)}`;
+      accountKey = `${pascalCase(account.Name!).replace('_', '')}-${hashName(account.Email!, 6)}`;
       if (`${accountPrefix}.${format}` === configRootFilePath) {
         console.log(`Account Found in Root Path`);
         accountConfig[accountKey] = {
@@ -184,7 +184,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
             configBranch,
           );
           const workLoadAccount = pretty(tempConfigResponse.fileContent.toString(), format);
-          if (workLoadAccount.split('\n').length + 7 > 10) {
+          if (workLoadAccount.split('\n').length + 7 > 2000) {
             useNewConfigFile = true;
           }
         } catch (error) {
