@@ -82,7 +82,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
 
     const rawConfig = await rawConfigObject.prepare();
 
-    let configCommitId: string;
+    let configCommitId: string = '';
     try {
       configCommitId = await codecommit.commit({
         branchName,
@@ -104,7 +104,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         {
           configRepositoryName: repositoryName,
           configFilePath: RAW_CONFIG_FILE,
-          configCommitId: configCommitId! || currentCommit.branch?.commitId,
+          configCommitId: configCommitId || currentCommit.branch?.commitId,
           acceleratorVersion,
           configRootFilePath: filePath,
         },
@@ -116,7 +116,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     return {
       configRepositoryName: repositoryName,
       configFilePath: RAW_CONFIG_FILE,
-      configCommitId: configCommitId! || currentCommit.branch?.commitId,
+      configCommitId: configCommitId || currentCommit.branch?.commitId,
       acceleratorVersion,
       configRootFilePath: filePath,
     };
