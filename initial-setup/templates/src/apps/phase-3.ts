@@ -3,7 +3,8 @@ import { GlobalOptionsDeployment } from '../common/global-options';
 import { PhaseInput } from './shared';
 import * as alb from '../deployments/alb';
 import * as rsyslogDeployment from '../deployments/rsyslog';
-import { VpcOutput, ImportedVpc } from '../deployments/vpc';
+import { ImportedVpc } from '../deployments/vpc';
+import { VpcOutput } from '@aws-pbmm/common-outputs/lib/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CentralBucketOutput } from '../deployments/defaults';
 
