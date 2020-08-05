@@ -23,7 +23,6 @@ export class IamCreateRole extends cdk.Construct {
 
     const lambdaPath = require.resolve('@custom-resources/iam-create-role-lambda');
     const lambdaDir = path.dirname(lambdaPath);
-    const stack = cdk.Stack.of(this);
 
     const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
       runtime: cdk.CustomResourceProviderRuntime.NODEJS_12,
