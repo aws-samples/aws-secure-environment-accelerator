@@ -201,10 +201,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }
 
   // Deploy Security Hub Step-2
-  securityHub.step2({
+  await securityHub.step2({
     accountStacks,
     accounts,
     config: acceleratorConfig,
+    outputs,
   });
 
   // Import all VPCs from all outputs
@@ -260,5 +261,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
+    outputs,
   });
 }

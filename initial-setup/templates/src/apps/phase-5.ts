@@ -12,6 +12,7 @@ import { PhaseInput } from './shared';
 import { RdgwArtifactsOutput } from './phase-4';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
+import { ImageIdOutputFinder } from '@aws-pbmm/common-outputs/lib/ami-output';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
@@ -63,7 +64,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       userSecrets.push({ user: adUser.user, passwordSecretArn });
     }
 
-    const latestRdgwAmiId = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base';
+    const madAutoScalingImageIdOutput = ImageIdOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey,
+      imageKey: 'MadAutoScalingImageId',
+    });
+    if (!madAutoScalingImageIdOutput) {
+      console.warn(`Cannot find required auto scaling Image Id in account "${accountKey}"`);
+      continue;
+    }
 
     const rdgwScriptsOutput: RdgwArtifactsOutput[] = getStackJsonOutput(outputs, {
       accountKey: masterAccountKey,
@@ -105,7 +114,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
     const adUsersAndGroups = new ADUsersAndGroups(stack, 'RDGWHost', {
       madDeploymentConfig: madConfig,
-      latestRdgwAmiId,
+      latestRdgwAmiId: madAutoScalingImageIdOutput.imageId,
       vpcId,
       vpcName,
       keyPairName: keyPair.keyName,

@@ -1,10 +1,10 @@
 import * as iam from '@aws-cdk/aws-iam';
-import * as kms from '@aws-cdk/aws-kms';
+import * as ssm from '@aws-cdk/aws-ssm';
 import { ServiceLinkedRole } from '@aws-pbmm/constructs/lib/iam';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { CfnSleep } from '@custom-resources/cfn-sleep';
 import { AccountStacks } from '../../common/account-stacks';
-import { CfnRsyslogAutoScalingRoleOutput } from './outputs';
+import { CfnRsyslogAutoScalingRoleOutput, CfnRsyslogImageIdOutputTypeOutput } from './outputs';
 import { AccountRegionEbsEncryptionKeys } from '../defaults';
 
 export interface RsyslogStep1Props {
@@ -79,6 +79,18 @@ export async function step1(props: RsyslogStep1Props) {
 
     new CfnRsyslogAutoScalingRoleOutput(accountStack, 'RsyslogSlrOutput', {
       roleArn: role.roleArn,
+    });
+
+    const imageId = ssm.StringParameter.valueForTypedStringParameter(
+      accountStack,
+      rsyslogDeploymentConfig['ssm-image-id'],
+      ssm.ParameterType.AWS_EC2_IMAGE_ID,
+    );
+
+    new CfnRsyslogImageIdOutputTypeOutput(accountStack, 'RsyslogImageIdOutput', {
+      imageId,
+      imagePath: rsyslogDeploymentConfig['ssm-image-id'],
+      imageKey: 'RsyslogAutoScalingImageId',
     });
   }
 }
