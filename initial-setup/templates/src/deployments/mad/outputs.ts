@@ -1,7 +1,9 @@
 import * as cdk from '@aws-cdk/core';
 import * as t from 'io-ts';
 import { createMadPasswordSecretName, createMadUserPasswordSecretName } from '@aws-pbmm/common-outputs/lib/mad';
+import { createCfnStructuredOutput } from '../../common/structured-output';
 export { createMadPasswordSecretName, createMadUserPasswordSecretName } from '@aws-pbmm/common-outputs/lib/mad';
+import { ImageIdOutput } from '@aws-pbmm/common-outputs/lib/ami-output';
 
 export const MadAutoScalingRoleOutputType = t.interface(
   {
@@ -53,3 +55,5 @@ export function getSecretArn(props: { secretAccountId: string; secretAccountRegi
   const { secretAccountId, secretAccountRegion = cdk.Aws.REGION, secretName } = props;
   return `arn:${cdk.Aws.PARTITION}:secretsmanager:${secretAccountRegion}:${secretAccountId}:secret:${secretName}`;
 }
+
+export const CfnMadImageIdOutputTypeOutput = createCfnStructuredOutput(ImageIdOutput);
