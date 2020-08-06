@@ -511,7 +511,7 @@ export const MandatoryAccountConfigType = t.interface({
   'account-warming-required': optional(t.boolean),
   'cwl-retention': optional(t.number),
   deleted: fromNullable(t.boolean, false),
-  'file-name': t.string,
+  'src-filename': t.string,
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -649,7 +649,7 @@ export const GlobalOptionsConfigType = t.interface({
   'install-cloudformation-master-role': fromNullable(t.boolean, true),
   'workloadaccounts-prefix': optional(t.string),
   'workloadaccounts-suffix': optional(t.number),
-  'workloadaccount-suffix-file-name': t.string,
+  'workloadaccounts-param-filename': t.string,
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
