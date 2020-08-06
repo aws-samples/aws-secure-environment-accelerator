@@ -83,7 +83,7 @@ export async function step2(props: CentralServicesStep2Props) {
     if (!iamCreateRoleOutput) {
       continue;
     }
-  
+
     const monitoringAccountIds = monitoringAccountKeys
       .filter(accountKey => accountKey !== account.key)
       .map(a => {
