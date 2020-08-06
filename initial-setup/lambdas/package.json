@@ -36,7 +36,9 @@
     "webpack": "4.42.1",
     "webpack-cli": "3.3.11",
     "@types/js-base64": "2.3.1",
-    "js-base64": "2.5.2"
+    "js-base64": "2.5.2",
+    "@types/js-yaml": "3.12.3",
+    "js-yaml": "3.13.1"
   },
   "dependencies": {
     "@aws-pbmm/common-lambda": "workspace:^0.0.1",
