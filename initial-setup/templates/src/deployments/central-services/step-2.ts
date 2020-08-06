@@ -5,12 +5,15 @@ import * as iam from '@aws-cdk/aws-iam';
 import { Account, getAccountId } from '../../utils/accounts';
 import { IamCreateRole } from '@custom-resources/iam-create-role';
 import { Context } from '../../utils/context';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
 
 export interface CentralServicesStep2Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   accounts: Account[];
   context: Context;
+  outputs: StackOutput[];
 }
 
 const LOG_PERMISSIONS = [
@@ -39,7 +42,7 @@ const LOG_PERMISSIONS = [
  * - Share Data in Sub Accounts to Monitoring Accounts
  */
 export async function step2(props: CentralServicesStep2Props) {
-  const { accountStacks, config, accounts, context } = props;
+  const { accountStacks, config, accounts, context, outputs } = props;
 
   const centralSecurityServices = config['global-options']['central-security-services'];
   const centralOperationsServices = config['global-options']['central-operations-services'];
@@ -72,6 +75,15 @@ export async function step2(props: CentralServicesStep2Props) {
       continue;
     }
 
+    const iamCreateRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey: account.key,
+      roleKey: 'IamCreateRole',
+    });
+    if (!iamCreateRoleOutput) {
+      continue;
+    }
+    console.log('iamCreateRoleOutput', iamCreateRoleOutput);
     const monitoringAccountIds = monitoringAccountKeys
       .filter(accountKey => accountKey !== account.key)
       .map(a => {
@@ -82,6 +94,7 @@ export async function step2(props: CentralServicesStep2Props) {
       monitoringAccountIds,
       accessLevel,
       tagValue: context.acceleratorName,
+      roleArn: iamCreateRoleOutput.roleArn,
     });
   }
 }
@@ -106,8 +119,9 @@ async function centralLoggingShareDataSettings(props: {
   monitoringAccountIds: string[];
   accessLevel: string;
   tagValue: string;
+  roleArn: string;
 }) {
-  const { scope, monitoringAccountIds, accessLevel, tagValue } = props;
+  const { scope, monitoringAccountIds, accessLevel, tagValue, roleArn } = props;
 
   const logPermission = LOG_PERMISSIONS.find(lp => lp.level === accessLevel);
   if (!logPermission) {
@@ -121,5 +135,6 @@ async function centralLoggingShareDataSettings(props: {
     managedPolicies: logPermission.permissions.map(permission => permission),
     tagName: 'Accelerator',
     tagValue,
+    lambdaRoleArn: roleArn,
   });
 }

@@ -203,6 +203,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     accounts,
     context,
+    outputs,
   });
 
   // TODO Find a better way to get VPCs
