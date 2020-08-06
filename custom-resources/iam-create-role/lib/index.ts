@@ -1,47 +1,32 @@
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as path from 'path';
+import * as lambda from '@aws-cdk/aws-lambda';
 
 const resourceType = 'Custom::IAMCreateRole';
 
-export interface PasswordPolicyProperties {
+export interface IamCreateRoleProperties {
   roleName: string;
   accountIds: string[];
   managedPolicies: string[];
   tagName: string;
   tagValue: string;
+  lambdaRoleArn: string;
 }
 
 /**
  * Custom resource implementation that creates IAM role
  */
 export class IamCreateRole extends cdk.Construct {
-  constructor(scope: cdk.Construct, id: string, props: PasswordPolicyProperties) {
+  constructor(scope: cdk.Construct, id: string, props: IamCreateRoleProperties) {
     super(scope, id);
 
-    const { roleName, accountIds, managedPolicies, tagName, tagValue } = props;
+    const { roleName, accountIds, managedPolicies, tagName, tagValue, lambdaRoleArn } = props;
 
-    const lambdaPath = require.resolve('@custom-resources/iam-create-role-lambda');
-    const lambdaDir = path.dirname(lambdaPath);
-
-    const provider = cdk.CustomResourceProvider.getOrCreate(this, resourceType, {
-      runtime: cdk.CustomResourceProviderRuntime.NODEJS_12,
-      codeDirectory: lambdaDir,
-      policyStatements: [
-        new iam.PolicyStatement({
-          actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-          resources: ['*'],
-        }).toJSON(),
-        new iam.PolicyStatement({
-          actions: ['iam:GetRole', 'iam:CreateRole', 'iam:AttachRolePolicy', 'iam:TagRole'],
-          resources: ['*'],
-        }).toJSON(),
-      ],
-    });
-
+    const createRole = this.lambdaFunction(lambdaRoleArn);
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: provider,
+      serviceToken: createRole.functionArn,
       properties: {
         roleName,
         accountIds,
@@ -49,6 +34,27 @@ export class IamCreateRole extends cdk.Construct {
         tagName,
         tagValue,
       },
+    });
+  }
+
+  private lambdaFunction(roleArn: string): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@custom-resources/iam-create-role-lambda');
+    const lambdaDir = path.dirname(lambdaPath);
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.minutes(10),
     });
   }
 }

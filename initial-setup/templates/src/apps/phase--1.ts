@@ -8,6 +8,7 @@ import * as customResourceRoles from '../deployments/iam';
  *   - Creating required roles for macie custom resources
  *   - Creating required roles for guardDuty custom resources
  *   - Creating required roles for securityHub custom resources
+ *   - Creating required roles for IamCreateRole custom resource
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts }: PhaseInput) {
   // creates roles for macie custom resources
@@ -24,6 +25,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
 
   // creates roles for securityHub custom resources
   await customResourceRoles.createSecurityHubRoles({
+    accountStacks,
+    accounts,
+  });
+
+  // Creates roles for IamCreateRole custom resource
+  await customResourceRoles.createIamRole({
     accountStacks,
     accounts,
   });
