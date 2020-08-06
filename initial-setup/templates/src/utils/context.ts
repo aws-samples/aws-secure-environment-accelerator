@@ -13,6 +13,7 @@ export interface Context {
   configCommitId: string;
   configBranch: string;
   acceleratorStateMachineName: string;
+  configRootFilePath: string;
 }
 
 export function loadContext(): Context {
@@ -37,5 +38,6 @@ export function loadContext(): Context {
     configCommitId: process.env.CONFIG_COMMIT_ID!,
     configFilePath: process.env.CONFIG_FILE_PATH!,
     acceleratorStateMachineName: process.env.ACCELERATOR_STATE_MACHINE_NAME!,
+    configRootFilePath: process.env.CONFIG_ROOT_FILE_PATH!,
   };
 }
