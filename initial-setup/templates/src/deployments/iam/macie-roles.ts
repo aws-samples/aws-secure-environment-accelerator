@@ -21,14 +21,21 @@ export async function createMacieRoles(props: IamRoleProps): Promise<void> {
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey);
 
   const macieAdminRole = await createMacieAdminRole(masterAccountStack);
-  const macieEnableRole = await createMacieEnableRole(masterAccountStack);
-  const macieUpdateConfigRole = await createMacieUpdateConfigRole(masterAccountStack);
-  const macieMemberRole = await createMacieCreateMember(masterAccountStack);
+  const macieMasterEnableRole = await createMacieEnableRole(masterAccountStack);
 
   createIamRoleOutput(masterAccountStack, macieAdminRole, 'MacieAdminRole');
-  createIamRoleOutput(masterAccountStack, macieEnableRole, 'MacieEnableRole');
-  createIamRoleOutput(masterAccountStack, macieUpdateConfigRole, 'MacieUpdateConfigRole');
-  createIamRoleOutput(masterAccountStack, macieMemberRole, 'MacieMemberRole');
+  createIamRoleOutput(masterAccountStack, macieMasterEnableRole, 'MacieEnableRole');
+
+  const securityMasterKey = props.config['global-options']['central-security-services'].account;
+  const securityMasterStack = props.accountStacks.getOrCreateAccountStack(securityMasterKey);
+
+  const macieEnableRole = await createMacieEnableRole(securityMasterStack);
+  const macieUpdateConfigRole = await createMacieUpdateConfigRole(securityMasterStack);
+  const macieMemberRole = await createMacieCreateMember(securityMasterStack);
+
+  createIamRoleOutput(securityMasterStack, macieEnableRole, 'MacieEnableRole');
+  createIamRoleOutput(securityMasterStack, macieUpdateConfigRole, 'MacieUpdateConfigRole');
+  createIamRoleOutput(securityMasterStack, macieMemberRole, 'MacieMemberRole');
 
   for (const [accountKey, _] of config.getAccountConfigs()) {
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
