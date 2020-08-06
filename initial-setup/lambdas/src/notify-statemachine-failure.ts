@@ -45,7 +45,6 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   await sns.publish({
     Message: JSON.stringify(errorCause),
     TopicArn: notificationTopicArn,
-    MessageStructure: 'email-json',
     Subject: 'Accelerator State Machine Failure',
   });
   return 'SUCCESS';

@@ -40,7 +40,6 @@ export const handler = async (input: NotifySuccessInput): Promise<string> => {
   await sns.publish({
     Message: successReturnStr,
     TopicArn: input.notificationTopicArn,
-    MessageStructure: 'email-json',
     Subject: 'Accelerator State Machine Execution Success',
   });
   return 'SUCCESS';
