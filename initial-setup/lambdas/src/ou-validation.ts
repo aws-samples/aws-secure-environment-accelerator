@@ -336,7 +336,7 @@ const updateRenamedAccounts = (props: {
       updatedAccounts[accountConfig[0]] = {
         email: currentAccount.Email,
         name: currentAccount.Name,
-        filename: accountConfig[1]['file-name'],
+        filename: accountConfig[1]['src-filename'],
         type: 'mandatory',
       };
     } else {
@@ -347,7 +347,7 @@ const updateRenamedAccounts = (props: {
       updatedAccounts[accountConfig[0]] = {
         email: currentAccount.Email,
         name: currentAccount.Name,
-        filename: accountConfig[1]['file-name'],
+        filename: accountConfig[1]['src-filename'],
         type: 'workload',
       };
     }
@@ -434,7 +434,7 @@ async function updateRenamedOrganizationalUnits(props: {
           type: 'mandatory',
           'ou-path': currentOu.Path,
           ou: currentOu.Name,
-          filename: mandatoryAccount['file-name'],
+          filename: mandatoryAccount['src-filename'],
         };
       }
     }
@@ -456,7 +456,7 @@ async function updateRenamedOrganizationalUnits(props: {
           type: 'workload',
           'ou-path': currentOu.Path,
           ou: currentOu.Name,
-          filename: workLoadAccount['file-name'],
+          filename: workLoadAccount['src-filename'],
         };
       }
     }

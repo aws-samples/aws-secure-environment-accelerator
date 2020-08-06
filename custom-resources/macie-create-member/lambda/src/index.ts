@@ -40,7 +40,7 @@ async function onCreateOrUpdate(
   event: CloudFormationCustomResourceCreateEvent | CloudFormationCustomResourceUpdateEvent,
 ) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const response = await createMember(properties);
+  await createMember(properties);
   return {
     physicalResourceId: getPhysicalId(event),
     data: {},
@@ -48,12 +48,18 @@ async function onCreateOrUpdate(
 }
 
 async function createMember(properties: HandlerProperties) {
-  return macie
-    .createMember({
-      account: {
-        accountId: properties.accountId,
-        email: properties.email,
-      },
-    })
-    .promise();
+  try {
+    await macie
+      .createMember({
+        account: {
+          accountId: properties.accountId,
+          email: properties.email,
+        },
+      })
+      .promise();
+  } catch (error) {
+    if (error.code === 'ValidationException') {
+      console.log('Already a member');
+    }
+  }
 }

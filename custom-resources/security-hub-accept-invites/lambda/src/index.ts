@@ -24,6 +24,15 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const masterAccountId = event.ResourceProperties.masterAccountId;
 
+  // get the master account associated to the account
+  const masterAccount = await hub.getMasterAccount().promise();
+  const securityHubMaster = masterAccount.Master;
+  // check if master account is a valid association
+  if (securityHubMaster && securityHubMaster.AccountId !== masterAccountId) {
+    // If not valid, disassociate the master account invitation
+    await hub.disassociateFromMasterAccount().promise();
+  }
+
   // Check for pending invitations from Master
   const invitations = await hub.listInvitations().promise();
   if (!invitations.Invitations) {

@@ -37,8 +37,6 @@ export class SecurityHub extends cdk.Construct {
     super(scope, name);
     const { account, subAccountIds, masterAccountId, standards, roleArn } = props;
 
-    const enableHub = new CfnHub(this, `EnableSecurityHub-${account.key}`, {});
-
     const enableSecurityHubResource = new SecurityHubEnable(
       this,
       `EnableSecurityHubStandards-${account.key}-Settings`,
@@ -47,8 +45,6 @@ export class SecurityHub extends cdk.Construct {
         roleArn,
       },
     );
-
-    enableSecurityHubResource.node.addDependency(enableHub);
 
     if (subAccountIds) {
       // Send Invites to subaccounts
@@ -60,7 +56,7 @@ export class SecurityHub extends cdk.Construct {
           roleArn,
         },
       );
-      sendInviteSecurityHubResource.node.addDependency(enableHub);
+      sendInviteSecurityHubResource.node.addDependency(enableSecurityHubResource);
     } else {
       // Accept Invite in sub account
       if (!masterAccountId) {
@@ -74,7 +70,7 @@ export class SecurityHub extends cdk.Construct {
             roleArn,
           },
         );
-        acceptInviteSecurityHubResource.node.addDependency(enableHub);
+        acceptInviteSecurityHubResource.node.addDependency(enableSecurityHubResource);
       }
     }
   }

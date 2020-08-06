@@ -7,7 +7,6 @@ import * as actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);

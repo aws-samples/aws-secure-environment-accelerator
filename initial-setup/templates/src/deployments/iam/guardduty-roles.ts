@@ -16,10 +16,12 @@ export async function createGuardDutyRoles(props: IamRoleProps): Promise<void> {
   const masterOrgKey = config.getMandatoryAccountKey('master');
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey);
   const guardDutyAdminRole = await createAdminRole(masterAccountStack);
-  const guardDutyAdminSetupRole = await createAdminSetupRole(masterAccountStack);
-
   createIamRoleOutput(masterAccountStack, guardDutyAdminRole, 'GuardDutyAdminRole');
-  createIamRoleOutput(masterAccountStack, guardDutyAdminSetupRole, 'GuardDutyAdminSetupRole');
+
+  const securityMasterKey = props.config['global-options']['central-security-services'].account;
+  const securityMasterStack = props.accountStacks.getOrCreateAccountStack(securityMasterKey);
+  const guardDutyAdminSetupRole = await createAdminSetupRole(securityMasterStack);
+  createIamRoleOutput(securityMasterStack, guardDutyAdminSetupRole, 'GuardDutyAdminSetupRole');
 
   for (const [accountKey, _] of config.getAccountConfigs()) {
     const accountStack = accountStacks.getOrCreateAccountStack(accountKey);
