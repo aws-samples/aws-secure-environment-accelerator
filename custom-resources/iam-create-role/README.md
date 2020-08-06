@@ -11,6 +11,7 @@ This is a custom resource to create the iam role using the `createRole` and `att
     const managedPolicies = ...;
     const tagName = ...;
     const tagValue = ...;
+    const lambdaRoleArn = ...;
 
     new IamCreateRole(this, 'IamCreateRole', {
       roleName,
@@ -18,4 +19,5 @@ This is a custom resource to create the iam role using the `createRole` and `att
       managedPolicies,
       tagName,
       tagValue,
+      lambdaRoleArn,
     });
