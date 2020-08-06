@@ -1,16 +1,18 @@
 import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-pbmm/common-lambda/lib/aws/organizations';
-import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, AcceleratorUpdateConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-pbmm/common-lambda/lib/scp';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-pbmm/common-outputs/lib/organizations';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
+import { LoadConfigurationInput } from './load-configuration-step';
+import { FormatType, pretty } from '@aws-pbmm/common-lambda/lib/util/perttier';
+import { getFormattedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/common';
+import { PutFileEntry } from 'aws-sdk/clients/codecommit';
+import { JSON_FORMAT, YAML_FORMAT } from '@aws-pbmm/common-lambda/lib/util/constants';
 
-export interface ValdationInput {
-  configFilePath: string;
-  configRepositoryName: string;
-  configCommitId: string;
+export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
   accountsSecretId: string;
   organizationsSecretId: string;
@@ -42,14 +44,19 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     accountsSecretId,
     organizationsSecretId,
     configBranch,
+    configRootFilePath,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   // Reading directly from CodeCommit because of cidr objects
-  // TODO: Might need a common method when we start using multiple configuration files
   const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configCommitId);
   const previousConfigString = configCommit.fileContent.toString();
   const previousConfig = JSON.parse(previousConfigString);
+
+  const rootConfigString = await getConfigFromCodeCommit(configRepositoryName, configCommitId, configRootFilePath!);
+  const extension = configRootFilePath?.split('.').slice(-1)[0];
+  const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
+  let rootConfig = getFormattedObject(rootConfigString, format);
 
   let config = previousConfig;
   const previousAccounts = await loadAccounts(accountsSecretId);
@@ -78,13 +85,84 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     awsAccounts.push(...accountsInOu);
   }
 
-  console.log(`Found organizational units:`);
-  console.log(JSON.stringify(awsOusWithPath, null, 2));
-
   // change config based on rename Accounts
-  config = updateRenamedAccounts(config, previousAccounts, awsAccounts);
+  const updateAccountResponse = updateRenamedAccounts({
+    config,
+    previousAccounts,
+    awsAccounts,
+  });
+  config = updateAccountResponse.config;
+
   // change config based on rename Organizational Units
-  config = updateRenamedOrganizationalUnits(config, previousOrganizationalUnits, awsOusWithPath);
+  const updateOrgResponse = await updateRenamedOrganizationalUnits({
+    config,
+    previousOrganizationalUnits,
+    awsOus: awsOusWithPath,
+    rootConfigString,
+    format,
+    updatedAccounts: updateAccountResponse.updatedAccounts,
+  });
+  config = updateOrgResponse.config;
+  rootConfig = getFormattedObject(updateOrgResponse.rootConfig, format);
+  // Update Config from 'updateRenamedAccouns' and 'updateRenamedOrganizations'
+  const updatedAccounts = updateOrgResponse.updatedAccounts;
+  const updateAccountFilenames = [...new Set(Object.entries(updatedAccounts).map(([_, accInfo]) => accInfo.filename))];
+  const updateFiles: { filePath: string; fileContent: string }[] = [];
+  for (const filename of updateAccountFilenames) {
+    const accountsInFile = Object.entries(updatedAccounts).filter(([_, accInfo]) => accInfo.filename === filename);
+    if (filename === configRootFilePath) {
+      for (const [accKey, accountInFile] of accountsInFile) {
+        if (accountInFile.type === 'mandatory') {
+          rootConfig['mandatory-account-configs'][accKey] = updateAccountConfig(
+            rootConfig['mandatory-account-configs'][accKey],
+            accountInFile,
+          );
+        } else {
+          rootConfig['workload-account-configs'][accKey] = updateAccountConfig(
+            rootConfig['workload-account-configs'][accKey],
+            accountInFile,
+          );
+        }
+      }
+    } else {
+      const accountResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
+      const accountObject = getFormattedObject(accountResponse.fileContent.toString(), format);
+      for (const [accKey, accountInFile] of accountsInFile) {
+        accountObject[accKey] = updateAccountConfig(accountObject[accKey], accountInFile);
+      }
+      updateFiles.push({
+        filePath: filename,
+        fileContent: pretty(getStringFromObject(accountObject, format), format),
+      });
+    }
+  }
+  updateFiles.push({
+    filePath: configRootFilePath!,
+    fileContent: pretty(getStringFromObject(rootConfig, format), format),
+  });
+
+  updateFiles.push({
+    filePath: configFilePath,
+    // Raw Config file alway be "json" irrespective of Configuration Format
+    fileContent: pretty(getStringFromObject(config, JSON_FORMAT), JSON_FORMAT),
+  });
+  let latestCommitId = '';
+  try {
+    console.log(`Updating Configuration in Code Commit`);
+    latestCommitId = await codecommit.commit({
+      branchName: configBranch,
+      repositoryName: configRepositoryName,
+      commitMessage: 'Updating through Ou-Validation Operation (Handling Renamed Accounts and Renamed Organizations)',
+      putFiles: updateFiles,
+      parentCommitId: configCommitId,
+    });
+  } catch (error) {
+    if (error.code === 'NoChangeException') {
+      console.log(`No Change in Configuration form Previous Execution`);
+    } else {
+      throw new Error(error);
+    }
+  }
 
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
@@ -98,7 +176,6 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   }
 
   // List Suspended Accounts
-  // TODO Testing
   for (const [ouId, accounts] of Object.entries(awsOuAccountMap)) {
     const suspendedAccounts = accounts.filter(account => account.Status === 'SUSPENDED');
     for (const suspendedAccount of suspendedAccounts) {
@@ -167,41 +244,25 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       }
     }
   }
-  const commitStatus = await createCommit(config, configCommitId, configBranch, configRepositoryName, configFilePath);
-  return commitStatus || configCommitId;
+  return latestCommitId || configCommitId;
 };
 
-async function createCommit(
-  config: AcceleratorConfig,
-  parentCommitId: string,
-  configBranch: string,
-  configRepositoryName: string,
-  configFilePath: string,
-): Promise<string | undefined> {
-  try {
-    const commitId = await codecommit.commit({
-      branchName: configBranch,
-      repositoryName: configRepositoryName,
-      parentCommitId,
-      putFiles: [
-        {
-          filePath: configFilePath,
-          fileContent: JSON.stringify(config, null, 2),
-        },
-      ],
-    });
-    console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
-    return commitId;
-  } catch (error) {
-    console.error(error);
-    if (error.code === 'NoChangeException') {
-      return;
-    } else {
-      throw new Error(error);
-    }
+// tslint:disable-next-line:no-any
+function updateAccountConfig(accountConfig: any, accountInfo: UpdateAccountOutput) {
+  if (accountInfo.email) {
+    accountConfig.email = accountInfo.email;
   }
+  if (accountInfo.name) {
+    accountConfig['account-name'] = accountInfo.name;
+  }
+  if (accountInfo.ou) {
+    accountConfig.ou = accountInfo.ou;
+  }
+  if (accountInfo['ou-path']) {
+    accountConfig['ou-path'] = accountInfo['ou-path'];
+  }
+  return accountConfig;
 }
-
 async function loadAccounts(accountsSecretId: string): Promise<Account[]> {
   const secret = await secrets.getSecret(accountsSecretId);
   if (!secret) {
@@ -218,11 +279,28 @@ async function loadOrganizations(organizationsSecretId: string): Promise<ConfigO
   return JSON.parse(secret.SecretString!);
 }
 
-const updateRenamedAccounts = (
-  config: AcceleratorUpdateConfig,
-  previousAccounts: Account[],
-  awsAccounts: org.Account[],
-): AcceleratorConfig => {
+interface UpdateAccountsOutput {
+  [accountKey: string]: UpdateAccountOutput;
+}
+
+interface UpdateAccountOutput {
+  name?: string;
+  email?: string;
+  filename: string;
+  ou?: string;
+  'ou-path'?: string;
+  type: 'mandatory' | 'workload';
+}
+
+const updateRenamedAccounts = (props: {
+  config: AcceleratorUpdateConfig;
+  previousAccounts: Account[];
+  awsAccounts: org.Account[];
+}): {
+  config: AcceleratorConfig;
+  updatedAccounts: UpdateAccountsOutput;
+} => {
+  const { awsAccounts, config, previousAccounts } = props;
   // Directly reading from config instead of using methods to create actual config objects
   const updateMandatoryAccounts = config['mandatory-account-configs'];
   const updateWorkLoadAccounts = config['workload-account-configs'];
@@ -230,17 +308,16 @@ const updateRenamedAccounts = (
   const workLoadAccountsConfig = Object.entries(config['workload-account-configs']).filter(
     ([_, value]) => !value.deleted,
   );
+  const updatedAccounts: UpdateAccountsOutput = {};
   for (const previousAccount of previousAccounts) {
     const currentAccount = awsAccounts.find(acc => acc.Id === previousAccount.id);
     if (!currentAccount) {
-      console.log(`Account "${previousAccount.id}" is removed from Orfanizations`);
-      // TODO Remove account from load account if needed
+      console.log(`Account "${previousAccount.id}" is removed from Organizations`);
       continue;
     }
     if (!isAccountChanged(previousAccount, currentAccount)) {
       continue;
     }
-    // TODO Update Account Config
     let isMandatoryAccount = true;
     let accountConfig = mandatoryAccountConfigs.find(([_, value]) => value.email === previousAccount.email);
     if (!accountConfig) {
@@ -253,21 +330,35 @@ const updateRenamedAccounts = (
     }
     if (isMandatoryAccount) {
       // Update Account in Mandatory Accounts
-      const updatedAccountConfig = updateMandatoryAccounts[accountConfig[0]];
-      updatedAccountConfig['account-name'] = currentAccount.Name!;
-      updatedAccountConfig.email = currentAccount.Email!;
-      updateMandatoryAccounts[accountConfig[0]] = updatedAccountConfig;
+      updateMandatoryAccounts[accountConfig[0]]['account-name'] = currentAccount.Name!;
+      updateMandatoryAccounts[accountConfig[0]].email = currentAccount.Email!;
+      // Storing account changes for updating actual configuration
+      updatedAccounts[accountConfig[0]] = {
+        email: currentAccount.Email,
+        name: currentAccount.Name,
+        filename: accountConfig[1]['file-name'],
+        type: 'mandatory',
+      };
     } else {
       // Update Account in Workload Accounts
-      const updatedAccountConfig = updateWorkLoadAccounts[accountConfig[0]];
-      updatedAccountConfig['account-name'] = currentAccount.Name!;
-      updatedAccountConfig.email = currentAccount.Email!;
-      updateWorkLoadAccounts[accountConfig[0]] = updatedAccountConfig;
+      updateWorkLoadAccounts[accountConfig[0]]['account-name'] = currentAccount.Name!;
+      updateWorkLoadAccounts[accountConfig[0]].email = currentAccount.Email!;
+      // Storing account changes for updating actual configuration
+      updatedAccounts[accountConfig[0]] = {
+        email: currentAccount.Email,
+        name: currentAccount.Name,
+        filename: accountConfig[1]['file-name'],
+        type: 'workload',
+      };
     }
   }
+
   config['mandatory-account-configs'] = updateMandatoryAccounts;
   config['workload-account-configs'] = updateWorkLoadAccounts;
-  return config;
+  return {
+    config,
+    updatedAccounts,
+  };
 };
 
 const isAccountChanged = (previousAccount: Account, currentAccount: org.Account): boolean => {
@@ -279,11 +370,19 @@ const isAccountChanged = (previousAccount: Account, currentAccount: org.Account)
   return isChanged;
 };
 
-const updateRenamedOrganizationalUnits = (
-  config: AcceleratorUpdateConfig,
-  previousOrganizationalUnits: ConfigOrganizationalUnit[],
-  awsOus: OrganizationalUnit[],
-): AcceleratorConfig => {
+async function updateRenamedOrganizationalUnits(props: {
+  config: AcceleratorUpdateConfig;
+  previousOrganizationalUnits: ConfigOrganizationalUnit[];
+  awsOus: OrganizationalUnit[];
+  rootConfigString: string;
+  updatedAccounts: UpdateAccountsOutput;
+  format: FormatType;
+}): Promise<{
+  config: AcceleratorUpdateConfig;
+  rootConfig: string;
+  updatedAccounts: UpdateAccountsOutput;
+}> {
+  const { awsOus, config, previousOrganizationalUnits, rootConfigString, updatedAccounts, format } = props;
   const updateMandatoryAccounts = config['mandatory-account-configs'];
   const updateWorkLoadAccounts = config['workload-account-configs'];
   const updateOrganizationalUnits = config['organizational-units'];
@@ -292,6 +391,7 @@ const updateRenamedOrganizationalUnits = (
   const workLoadAccountsConfig = Object.entries(config['workload-account-configs']).filter(
     ([_, value]) => !value.deleted,
   );
+  const rootConfig = getFormattedObject(rootConfigString, format);
   for (const previousOu of previousOrganizationalUnits) {
     const currentOu = awsOus.find(ou => ou.Id === previousOu.ouId);
     if (!currentOu) {
@@ -309,16 +409,34 @@ const updateRenamedOrganizationalUnits = (
       const updatedOuConfig = updateOrganizationalUnits[previousOu.ouPath];
       delete updateOrganizationalUnits[previousOu.ouPath];
       updateOrganizationalUnits[currentOu.Path] = updatedOuConfig;
+
+      // Changes for splited Config
+      const previousOuRootConfig = rootConfig['organizational-units'][previousOu.ouPath];
+      rootConfig['organizational-units'][currentOu.Path] = previousOuRootConfig;
+      delete rootConfig['organizational-units'][previousOu.ouPath];
     }
     // Check for ou occurence in Mandatory accounts
     const mandatoryAccountsConfigPerOu = mandatoryAccountConfigs.filter(
       ([_, value]) => value.ou === previousOu.ouName && (!value['ou-path'] || value['ou-path'] === previousOu.ouPath),
     );
+
+    // Updating in RAW Config for ou-validation usage
     for (const [accountKey, mandatoryAccount] of mandatoryAccountsConfigPerOu) {
       const updateMandatoryAccountConfig = mandatoryAccount;
-      updateMandatoryAccountConfig.ou = currentOu.Path.split('/')[0];
+      updateMandatoryAccountConfig.ou = currentOu.Name!;
       updateMandatoryAccountConfig['ou-path'] = currentOu.Path;
       updateMandatoryAccounts[accountKey] = updateMandatoryAccountConfig;
+      if (updatedAccounts[accountKey]) {
+        updatedAccounts[accountKey].ou = currentOu.Name;
+        updatedAccounts[accountKey]['ou-path'] = currentOu.Path;
+      } else {
+        updatedAccounts[accountKey] = {
+          type: 'mandatory',
+          'ou-path': currentOu.Path,
+          ou: currentOu.Name,
+          filename: mandatoryAccount['file-name'],
+        };
+      }
     }
 
     // Check for ou occurence in Mandatory accounts
@@ -327,16 +445,32 @@ const updateRenamedOrganizationalUnits = (
     );
     for (const [accountKey, workLoadAccount] of workLoadAccountsConfigPerOu) {
       const updateWorkLoadAccountConfig = workLoadAccount;
-      updateWorkLoadAccountConfig.ou = currentOu.Path.split('/')[0];
+      updateWorkLoadAccountConfig.ou = currentOu.Name!;
       updateWorkLoadAccountConfig['ou-path'] = currentOu.Path;
       updateWorkLoadAccounts[accountKey] = updateWorkLoadAccountConfig;
+      if (updatedAccounts[accountKey]) {
+        updatedAccounts[accountKey].ou = currentOu.Name;
+        updatedAccounts[accountKey]['ou-path'] = currentOu.Path;
+      } else {
+        updatedAccounts[accountKey] = {
+          type: 'workload',
+          'ou-path': currentOu.Path,
+          ou: currentOu.Name,
+          filename: workLoadAccount['file-name'],
+        };
+      }
     }
   }
+
   config['mandatory-account-configs'] = updateMandatoryAccounts;
   config['workload-account-configs'] = updateWorkLoadAccounts;
   config['organizational-units'] = updateOrganizationalUnits;
-  return config;
-};
+  return {
+    config,
+    updatedAccounts,
+    rootConfig: getStringFromObject(rootConfig, format),
+  };
+}
 
 async function createSuspendedOu(suspendedOuName: string, rootId: string): Promise<OrganizationalUnit> {
   const suspendedOu = await organizations.createOrganizationalUnit(suspendedOuName, rootId);
@@ -416,4 +550,9 @@ async function createOrganizstionalUnits(
     }
   }
   return result;
+}
+
+async function getConfigFromCodeCommit(repositoryName: string, commitId: string, filePath: string): Promise<string> {
+  const config = await codecommit.getFile(repositoryName, filePath, commitId);
+  return config.fileContent.toString();
 }

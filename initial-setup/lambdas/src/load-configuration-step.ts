@@ -6,6 +6,7 @@ export interface LoadConfigurationInput {
   configCommitId: string;
   baseline?: BaseLineType;
   acceleratorVersion?: string;
+  configRootFilePath?: string;
 }
 
 export interface LoadConfigurationOutput {
