@@ -43,7 +43,6 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   console.log(`Publishing Error to SNS Topic`);
   console.log(JSON.stringify(errorCause, null, 2));
   await sns.publish({
-    // TODO Use Pretty when we merge "6.10"
     Message: JSON.stringify(errorCause),
     TopicArn: notificationTopicArn,
     MessageStructure: 'email-json',
