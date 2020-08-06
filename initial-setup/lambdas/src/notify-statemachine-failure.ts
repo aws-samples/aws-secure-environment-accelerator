@@ -13,7 +13,7 @@ const sns = new SNS();
 const sfn = new StepFunctions();
 
 export const handler = async (input: NotifyErrorInput): Promise<string> => {
-  console.log(`State Machine Execution Failed...`);
+  console.log('State Machine Execution Failed...');
   console.log(JSON.stringify(input, null, 2));
 
   const { cause, executionId, notificationTopicArn, acceleratorVersion } = input;
@@ -21,11 +21,11 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
 
   try {
     if (errorCause.Input) {
-      console.log(`Trying to convert JSON Input string to JSON object`);
+      console.log('Trying to convert JSON Input string to JSON object');
       errorCause.Input = JSON.parse(errorCause.Input);
     }
   } catch (error) {
-    console.error(`Error while converting JSON string to JSON Object`);
+    console.error('Error while converting JSON string to JSON Object');
     console.error(error.message);
   }
 
@@ -40,13 +40,13 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   // Adding Code Version to email JSON
   errorCause.acceleratorVersion = acceleratorVersion;
 
-  console.log(`Publishing Error to SNS Topic`);
+  console.log('Publishing Error to SNS Topic');
   console.log(JSON.stringify(errorCause, null, 2));
   await sns.publish({
     Message: JSON.stringify(errorCause),
     TopicArn: notificationTopicArn,
     MessageStructure: 'email-json',
-    Subject: `Accelerator State Machine Failure`,
+    Subject: 'Accelerator State Machine Failure',
   });
   return 'SUCCESS';
 };

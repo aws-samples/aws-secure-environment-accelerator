@@ -4,7 +4,7 @@ import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 const MAX_SNS_PUBLISH_CHAR = 255500;
 const AVG_CHARS_PER_ACCOUNT = 100;
 
-interface NotifyErrorInput {
+interface NotifySuccessInput {
   notificationTopicArn: string;
   accounts: Account[];
   acceleratorVersion?: string;
@@ -12,8 +12,8 @@ interface NotifyErrorInput {
 
 const sns = new SNS();
 
-export const handler = async (input: NotifyErrorInput): Promise<string> => {
-  console.log(`State Machine Execution Success...`);
+export const handler = async (input: NotifySuccessInput): Promise<string> => {
+  console.log('State Machine Execution Success...');
   console.log(JSON.stringify(input, null, 2));
   const { accounts, acceleratorVersion } = input;
   const responseAccounts = accounts.map(acc => ({
@@ -22,26 +22,26 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
     ouPath: acc.ouPath,
     name: acc.name,
   }));
-  let errorCause = {
+  let successReturn = {
     allAccounts: 'Yes',
     acceleratorVersion,
     accounts: responseAccounts,
   };
-  let errorCauseStr = JSON.stringify(errorCause);
-  while (errorCauseStr.length > MAX_SNS_PUBLISH_CHAR) {
-    const avgRemoveAccounts = Math.ceil((errorCauseStr.length - MAX_SNS_PUBLISH_CHAR) / AVG_CHARS_PER_ACCOUNT);
-    errorCause = {
+  let successReturnStr = JSON.stringify(successReturn);
+  while (successReturnStr.length > MAX_SNS_PUBLISH_CHAR) {
+    const avgRemoveAccounts = Math.ceil((successReturnStr.length - MAX_SNS_PUBLISH_CHAR) / AVG_CHARS_PER_ACCOUNT);
+    successReturn = {
       allAccounts: 'No',
       acceleratorVersion,
-      accounts: errorCause.accounts.slice(0, errorCause.accounts.length - avgRemoveAccounts),
+      accounts: successReturn.accounts.slice(0, successReturn.accounts.length - avgRemoveAccounts),
     };
-    errorCauseStr = JSON.stringify(errorCause);
+    successReturnStr = JSON.stringify(successReturn);
   }
   await sns.publish({
-    Message: errorCauseStr,
+    Message: successReturnStr,
     TopicArn: input.notificationTopicArn,
     MessageStructure: 'email-json',
-    Subject: `Accelerator State Machine Execution Success`,
+    Subject: 'Accelerator State Machine Execution Success',
   });
   return 'SUCCESS';
 };
