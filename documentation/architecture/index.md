@@ -1,4 +1,4 @@
-# AWS Secure Environment Accelerator Architecture
+# AWS Secure Environment Architecture
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -12,22 +12,23 @@
 
 ## 1. Introduction
 
-The AWS Secure Environment Accelerator Architecture is a comprehensive, multi-account AWS cloud architecture, initially designed for use within the Government of Canada for [PBMM workloads][pbmm]. The Accelerator Architecture has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per ITSG-33 specifications.
+The *AWS Secure Environment Architecture* is a comprehensive, multi-account AWS cloud architecture, initially designed for use within the Government of Canada for [PBMM workloads][pbmm]. The *AWS Secure Environment Architecture* has been designed to address central identity and access management, governance, data security, comprehensive logging, and network design/segmentation per Canadian Centre for Cyber Security ITSG-33 specifications.
 
-The Accelerator Architecture has been built with the following design principles in mind:
+The *AWS Secure Environment Architecture* has been built with the following design principles in mind:
 
 1. Maximize agility, scalability, and availability
 2. Enable the full capability of the AWS cloud and do not artificially limit capabilities based on lowest common denominator supported capabilities of other cloud providers
 4. Be adaptable to evolving technological capabilities in the underlying platform being used in the architecture
 5. Allow for seamless auto-scaling and provide unbounded bandwidth as bandwidth requirements increase (or decrease) based on actual customer load (a key aspect of the value proposition of cloud computing)
 6. High availability is paramount: the design stretches across two physical AWS Availability Zones (AZ), such that the loss of any one AZ does not impact application availability. The design can be easily extended to a third availability zone.
+7. Least Privilege: all principals in the accounts are intended to operate with the lowest-feasible permission set.
 
 
 ### 1.1 Purpose of Document
 
-This document is intended to outline the technical measures that are delivered by the Accelerator Architecture that make it suitable for PBMM workloads. An explicit **non-goal** of this document is to explain the delivery architecture of the [_AWS Secure Environment Accelerator tool_][accel_tool] itself, an open-source software project built by AWS.
+This document is intended to outline the technical measures that are delivered by the *AWS Secure Environment Architecture* that make it suitable for PBMM workloads. An explicit **non-goal** of this document is to explain the delivery architecture of the [AWS Secure Environment Accelerator tool][accel_tool] itself, an open-source software project built by AWS.
 
-While the central purpose of the _AWS Secure Environment Accelerator tool_ is to establish an Accelerator Architecture into an AWS account footprint, this amounts to an implementation detail as far as the Accelerator Architecture is concerned. The Architecture is a standalone design, irrespective of how it was delivered into a customer AWS environment. It is nonetheless anticipated that most customers will choose to realize their Accelerator Architecture via the delivery mechanism of the _AWS Secure Environment Accelerator tool_.
+While the central purpose of the [AWS Secure Environment Accelerator][accel_tool] is to establish an *AWS Secure Environment Architecture* into an AWS account footprint, this amounts to an implementation detail as far as the *AWS Secure Environment Architecture* is concerned. The Architecture is a standalone design, irrespective of how it was delivered into a customer AWS environment. It is nonetheless anticipated that most customers will choose to realize their *AWS Secure Environment Architecture* via the delivery mechanism of the _AWS Secure Environment Accelerator tool_.
 
 Comprehensive details on the tool itself are available elsewhere:
 
@@ -38,7 +39,7 @@ Except where absolutely necessary, this document will refrain from referencing t
 
 ### 1.2 Overview
 
-The central features of the Accelerator Architecture are as follows:
+The central features of the *AWS Secure Environment Architecture* are as follows:
 
 * **AWS Organization with multiple-accounts:** An [AWS Organization][aws_org] is a grouping construct for a number of separate AWS accounts that are controlled by a single customer entity. This provides consolidated billing, organizational units, and facilitates the deployment of pan-Organizational guardrails such as CloudTrail logs and Service Control Policies. The separate accounts provide strong control-plane and data-plane isolation between workloads and/or environments.
 * **Encryption:** AWS KMS with customer-managed CMKs is used extensively for any data stored at rest, in S3 buckets, EBS volumes, RDS encryption.
@@ -92,18 +93,18 @@ The above is not valid JSON without first removing the comment on the fourth lin
 This document will make no reference to specific Government of Canada departments. Where naming is required (e.g. in domain names), this document will use a placeholder name as needed; e.g. `dept.gc.ca`.
 
 ### 1.5 Relationship to AWS Landing Zone
-AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The Accelerator Architecture draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the Accelerator Architecture presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `vTODO`.
+AWS Landing Zone is an AWS Solution designed to deploy multi-account cloud architectures for customers. The *AWS Secure Environment Architecture* draws on design patterns from Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it. An earlier internal release of the *AWS Secure Environment Architecture* presupposed the existence of an AWS Landing Zone in the Organization; this requirement has since been removed as of release `v1.1.0`.
 
 
 <a name="AccountStructure"/>
 
 ## 2. Account Structure
 
-AWS accounts are a strong isolation boundary; by default there is zero control plane or data plane access from one AWS account to another. AWS Organizations is a service that provides centralized billing across a fleet of accounts, and optionally, some integration-points for cross-account guardrails and cross-account resource sharing. The Accelerator Architecture uses these features of AWS Organizations to realize its design.
+AWS accounts are a strong isolation boundary; by default there is zero control plane or data plane access from one AWS account to another. AWS Organizations is a service that provides centralized billing across a fleet of accounts, and optionally, some integration-points for cross-account guardrails and cross-account resource sharing. The *AWS Secure Environment Architecture* uses these features of AWS Organizations to realize its design.
 
 ## Accounts
 
-The Accelerator Architecture includes the following AWS accounts.
+The *AWS Secure Environment Architecture* includes the following AWS accounts.
 
 Note that the account structure is strictly a control plane concept - nothing about this structure implies anything about the network design or network flows.
 
@@ -153,7 +154,7 @@ Example use cases are as follows:
 * An SCP is attached to the core OU to prevent the deletion of Transit Gateway resources in the associated accounts.
 * The shared network account uses RAM sharing to share the development line-of-business VPC with a development OU. This makes the VPC available to a functional account in that OU used by developers, despite residing logically in the shared network account.
 
-OUs may be nested (to a total depth of five), with SCPs and RAM sharing applied at the desired level. A typical Accelerator Architecture environment will have the following OUs:
+OUs may be nested (to a total depth of five), with SCPs and RAM sharing applied at the desired level. A typical *AWS Secure Environment Architecture* environment will have the following OUs:
 
 ##### Core OU
 This OU houses all administrative accounts, such as the core landing zone accounts. No application accounts or application workloads are intended to exist within this OU. This OU also contains the centralized networking infrastructure in the `SharedNetwork` account.
@@ -181,14 +182,14 @@ Accounts in this OU host production tools and line of business application solut
 A suspended OU is created to act as a container for end-of-life accounts or accounts with suspected credential leakage. The `DenyAll` SCP is applied, which prevents all control-plane API operations from taking place by any account principal.
 
 ### Mandatory Accounts
-The Accelerator Architecture is an opinionated design, which partly manifests in the accounts that are deemed mandatory within the Organization. The following accounts are assumed to exist, and each has an important function with respect to the goals of the overall Architecture (mandatory in red)
+The *AWS Secure Environment Architecture* is an opinionated design, which partly manifests in the accounts that are deemed mandatory within the Organization. The following accounts are assumed to exist, and each has an important function with respect to the goals of the overall Architecture (mandatory in red)
 
 ![Mandatory Accounts](./images/accounts.png)
 
 #### Master
 As discussed above, the master account functions as the root of the AWS Organization, the billing aggregator, attachment point for SCPs. Workloads are not intended to run in this account.
 
-**Note:** Customers deploying the Accelerator Architecture via the AWS Secure Environment Accelerator tool will deploy into this account. See the [Operations Guide][ops_guide] for more details.
+**Note:** Customers deploying the *AWS Secure Environment Architecture* via the [AWS Secure Environment Accelerator][accel_tool] will deploy into this account. See the [Operations Guide][ops_guide] for more details.
 
 #### Perimeter
 The perimeter account, and in particular the perimeter VPC therein, functions as the single point of ingress/egress from the PBMM cloud environment to the public internet and/or on-premises network. This provides a central point of network control through which all workload-generated traffic, ingress and egress, must transit. The perimeter VPC hosts next-generation firewall instances that provide security services such as virus scanning, malware protection, intrusion protection, TLS inspection, and web application firewall functionality. More details on can be found in the Networking section of this document.
@@ -201,7 +202,7 @@ The operations account provides a central location for the cloud team to provide
 
 
 #### Log Archive
-The log archive account is provide a central aggregation and secure storage point for all audit logs created within the AWS Organization. This account contains a centralized location for copies of every account’s Audit and Configuration compliance logs. It also provides a storage location for any other audit/compliance logs, as well as application/OS logs.
+The log archive account provides a central aggregation and secure storage point for all audit logs created within the AWS Organization. This account contains a centralized location for copies of every account’s Audit and Configuration compliance logs. It also provides a storage location for any other audit/compliance logs, as well as application/OS logs.
 
 The AWS CloudTrail service provides a full audit history of all actions taken against AWS services, including users logging into accounts. We recommend access to this account be restricted to auditors or security teams for compliance and forensic investigations related to account activity. Additional CloudTrail trails for operational use can be created in each account.
 
@@ -219,13 +220,13 @@ Functional accounts will gain access to the RAM shared resources of their respec
 Data plane isolation within the same VPC is achieved by default, by using appropriate security groups whenever ingress is warranted. For example, the app tier of `systemA` should only permit ingress from the `systemA-web` security group, not an overly broad range such as `0.0.0.0/0`, or even the VPC range.
 
 ### Account Level Settings
-The Accelerator Architecture recommends the enabling of certain account-wide features on account creation. Namely, these include:
+The *AWS Secure Environment Architecture* recommends the enabling of certain account-wide features on account creation. Namely, these include:
 
 1. [S3 Public Access Block][s3-block]
 2. [By-default encryption of EBS volumes][ebs-encryption].
 
 ### Private Marketplace
-The Accelerator Architecture recommends that the AWS Private Marketplace is enabled for the Organization. Private Marketplace helps administrators govern which products they want their users to run on AWS by making it possible to see only products that comply with their organization's procurement policy. When Private Marketplace is enabled, it will replace the standard AWS Marketplace for all users.
+The *AWS Secure Environment Architecture* recommends that the AWS Private Marketplace is enabled for the Organization. Private Marketplace helps administrators govern which products they want their users to run on AWS by making it possible to see only products that comply with their organization's procurement policy. When Private Marketplace is enabled, it will replace the standard AWS Marketplace for all users.
 
 ![PMP](./images/pmp.png)
 
@@ -234,7 +235,7 @@ The Accelerator Architecture recommends that the AWS Private Marketplace is enab
 ## 3. Networking
 
 ### Overview
-The Accelerator Architecture networking is built on a principle of centralized on-premises and Internet ingress/egress, while enforcing data plane isolation between workloads in different environments. Connectivity to on-prem environments, internet egress, shared resources and AWS APIs are mediated at a central point of ingress/egress via the use of a [Transit Gateway][aws_tgw]. Consider the following overall network diagram:
+The *AWS Secure Environment Architecture* networking is built on a principle of centralized on-premises and Internet ingress/egress, while enforcing data plane isolation between workloads in different environments. Connectivity to on-prem environments, internet egress, shared resources and AWS APIs are mediated at a central point of ingress/egress via the use of a [Transit Gateway][aws_tgw]. Consider the following overall network diagram:
 
 ![Mandatory Accounts](./images/network_architecture.drawio.png)
 
@@ -263,7 +264,7 @@ This VPC has four subnets per AZ, each of which hosts a port used by the NGFW de
 Outbound internet connections (for software updates, etc.) can be initiated from within the workload VPCs, and use the transparent proxy feature of the next-gen Firewalls.
 
 ### Shared Network
-The shared network account, and the AWS networking resources therein, form the core of the cloud networking infrastructure across the account structure. Rather than the individual accounts define their own networks, these are instead centralized here and shared out to the relevant OUs. Principals in a Dev OU will have access to a Dev VPC, Test OU will have access to a Test VPC and so on - all of which are owned by this account.
+The shared network account, and the AWS networking resources therein, form the core of the cloud networking infrastructure across the account structure. Rather than the individual accounts defining their own networks, these are instead centralized here and shared out to the relevant OUs. Principals in a Dev OU will have access to a Dev VPC, Test OU will have access to a Test VPC and so on - all of which are owned by this account.
 
 You can share AWS Transit Gateways, Subnets, AWS License Manager configurations, and Amazon Route 53 Resolver rules resources with AWS Resource Access Manager (RAM). The RAM service eliminates the need to create duplicate resources in multiple accounts, reducing the operational overhead of managing those resources in every single account.
 
@@ -326,7 +327,7 @@ This cross-VPC resolution of the service-specific private hosted zone functions 
 
 #### Endpoint VPC: Hybrid DNS
 
-The Endpoint also VPC hosts the common DNS infrastructure used to resolve DNS queries:
+The Endpoint VPC also hosts the common DNS infrastructure used to resolve DNS queries:
 
 * within the cloud
 * from the cloud to on-premises
@@ -395,7 +396,7 @@ Note that this VPC also contains a peering relationship to the `ForSSO` VPC in t
 An EC2 instance deployed in the Workload VPCs can join the domain corresponding to the Microsoft AD in `Central` provided the following conditions are all true:
 
 1. The instance needs a network path to the Central VPC (given by the Segregated TGW RT), and appropriate security group assignment
-2. The Microsoft AD should be 'shared' with the account the EC2 instance resides in (The Accelerator Architecture recommends these directories are shared  to workload accounts)
+2. The Microsoft AD should be 'shared' with the account the EC2 instance resides in (The *AWS Secure Environment Architecture* recommends these directories are shared  to workload accounts)
 3. The instance has the AWS managed policies `AmazonSSMManagedInstanceCore` and `AmazonSSMDirectoryServiceAccess` attached to its IAM role, or runs under a role with at least the permission policies given by the combination of these two managed policies.
 4. The EC2's VPC has an associated resolver rule that directs DNS queries for the AD domain to the Central VPC.
 
@@ -408,11 +409,11 @@ The sandbox VPC should be used exclusively for time-limited experimentation, par
 <a name="AA"/>
 
 ## 4. Authorization and Authentication
-The Accelerator Architecture makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrailing objectives of the architecture, and govern access to the set of accounts that makes up the Organization.
+The *AWS Secure Environment Architecture* makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrailing objectives of the architecture, and govern access to the set of accounts that makes up the Organization.
 
 ### Relationship to the Master Account
 
-AWS accounts, as a default position, are entirely self-contained with respect to IAM principals - their Users, Roles, Groups are independent and scoped only to themselves. Accounts created by AWS Organizations deploy a default role with a trust policy back to the master. By default, this role is named the `OrganizationAccountAccessRole`; by contrast, the Accelerator recommends that this role by replaced by `AWSCloudFormationStackSetExecutionRole`:
+AWS accounts, as a default position, are entirely self-contained with respect to IAM principals - their Users, Roles, Groups are independent and scoped only to themselves. Accounts created by AWS Organizations deploy a default role with a trust policy back to the master. By default, this role is named the `OrganizationAccountAccessRole`; by contrast, the *AWS Secure Environment Architecture* recommends that this role be replaced by `AWSCloudFormationStackSetExecutionRole`:
 
 
 ```json
@@ -473,14 +474,14 @@ Having assumed a role, a user’s permission-level within an AWS account with re
 Having an `Allow` to a particular API operation from the Role (i.e. Session Policy) does not necessarily imply that API operation will succeed. As depicted above, **Deny** may result due to another evaluation stage in the logic; for example a restrictive permission boundary or an explicit `Deny` at the Resource or SCP (account) level. SCPs are used extensively as a guardrailing mechanism in the Architecture, and are discussed in a later section.
 
 ###	Root Authorization
-Root credentials for individual accounts in an AWS organization may be created on demand via a password reset process on the unique account email address; however, the Accelerator architecture specifically denies this via SCP. Root credentials authorize all actions for all AWS services and for all resources in the account (except anything denied by SCPs). There are some actions which only root has the capability to perform which are found within the [AWS online documentation][root]. These are typically rare operations (e.g. creation of X.509 keys), and should not be required in the normal course of business. Any root credentials, if ever they need to be created, should be handled with extreme diligence, with U2F MFA enabled.
+Root credentials for individual accounts in an AWS organization may be created on demand via a password reset process on the unique account email address; however, the *AWS Secure Environment Architecture* specifically denies this via SCP. Root credentials authorize all actions for all AWS services and for all resources in the account (except anything denied by SCPs). There are some actions which only root has the capability to perform which are found within the [AWS online documentation][root]. These are typically rare operations (e.g. creation of X.509 keys), and should not be required in the normal course of business. Any root credentials, if ever they need to be created, should be handled with extreme diligence, with U2F MFA enabled.
 
 ### Service Roles
 A service role is an IAM Role that a service assumes to perform actions in an account on the user’s behalf. When a user sets up AWS service environments, the user must define an IAM Role for the service to assume. This service role must include all the permissions that are required for the service to access the AWS resources that it needs. Service roles provide access only within a single account and cannot be used to grant access to services in other accounts. Users can create, modify, and delete a service role from within the IAM service. For example, a user can create a role that allows Amazon Redshift to access an Amazon S3 bucket on the user’s behalf and then load data from that bucket into an Amazon Redshift cluster. In the case of SSO, during the process in which AWS SSO is enabled, the AWS Organizations service grants AWS SSO the necessary permissions to create subsequent IAM Roles.
 
 ### Service Control Policies
 
-Service Control Policies are a key preventative control recommended by the Accelerator Architecture. It is crucial to note that SCPs, by themselves, never _grant_ permissions. They are most often used to `Deny` certain actions at a root, OU, or account level within an AWS Organization. Since `Deny` always overrides `Allow` in the IAM policy evaluation logic, SCPs can have a powerful effect on all principals in an account, and can wholesale deny entire categories of actions irrespective of the permission policy attached to the principal itself - even the root user of the account.
+Service Control Policies are a key preventative control recommended by the *AWS Secure Environment Architecture*. It is crucial to note that SCPs, by themselves, never _grant_ permissions. They are most often used to `Deny` certain actions at a root, OU, or account level within an AWS Organization. Since `Deny` always overrides `Allow` in the IAM policy evaluation logic, SCPs can have a powerful effect on all principals in an account, and can wholesale deny entire categories of actions irrespective of the permission policy attached to the principal itself - even the root user of the account.
 
 SCPs follow an inheritance pattern from the root of the Organization:
 
@@ -488,7 +489,7 @@ SCPs follow an inheritance pattern from the root of the Organization:
 
 In order for any principal to be able to perform an action A, it is necessary (but not sufficient) that there is an `Allow` on action A from all levels of the hierarchy down to the account, and no explicit `Deny` anywhere. This is discussed in further detail in [How SCPs Work][scps].
 
-The Accelerator Architecture recommends the following SCPs in the Organization:
+The *AWS Secure Environment Architecture* recommends the following SCPs in the Organization:
 
 #### PBMM Only
 This is a comprehensive policy whose main goal is to provide a PBMM-compliant cloud environment, namely prohibiting any non-centralized networking, and mandating data residency in Canada. It should be attached to all non-`Unclass` OUs.
@@ -515,10 +516,10 @@ PBMM Guardrails apply across the Organization. These guardrails protect key infr
 | `DenyTag1` | Prevents modification of any protected security group |
 | `DenyTag2` | Prevents modification of any protected IAM resource |
 | `DenyS3` | Prevents modification of any S3 bucket used for Accelerator purposes |
-| `ProtectCloudFormation` | Prevents modification of any CloudFormation stack used for Accelerator purposes |
+| `ProtectCloudFormation` | Prevents modification of any CloudFormation stack used for Accelerator tool purposes |
 | `DenyAlarmDeletion` | Prevents modification of any cloudwatch alarm used to alert on significant control plane events |
-| `ProtectKeyRoles` | Prevents any IAM operation on Accelerator IAM roles |
-| `DenySSMDel` | Prevents modification of any ssm resource used for Accelerator purposes  |
+| `ProtectKeyRoles` | Prevents any IAM operation on Accelerator tool IAM roles |
+| `DenySSMDel` | Prevents modification of any ssm resource used for Accelerator tool purposes  |
 | `DenyLogDel` | Prevents the deletion of any log resource in Cloudwatch Logs |
 | `DenyLeaveOrg` | Prevents an account from leaving the Organization |
 | `DenyLambdaDel` | Prevents the modification of any guardrail Lambda function |
@@ -555,35 +556,35 @@ This policy is applied to new accounts upon creation. After the installation of 
 
 ## 5. Logging and Monitoring
 
-The Accelerator architecture recommends the following detective controls across the Organization. These controls, taken together, provide a comprehensive picture of the full set of control plane and data plane operations across the set of accounts.
+The *AWS Secure Environment Architecture* recommends the following detective controls across the Organization. These controls, taken together, provide a comprehensive picture of the full set of control plane and data plane operations across the set of accounts.
 
 ### CloudTrail
 A CloudTrail Organizational trail should be deployed into the Organization. For each account, this captures management events and optionally S3 data plane events taking place by every principal in the account. These records are sent to an S3 bucket in the log archive account, and the trail itself cannot be modified or deleted by any principal in any child account. This provides an audit trail for detective purposes in the event of the need for forensic analysis into account usage. The logs themselves provide an integrity guarantee: every hour, CloudTrail produces a digest of that hour's logs files, and signs with its own private key. The authenticity of the logs may be verified using the corresponding public key. This process is [detailed here][ct-digest].
 
 ### VPC Flow Logs
-VPC Flow Logs capture information about the IP traffic going to and from network interfaces in an AWS Account VPC such as source and destination IPs, protocol, ports, and success/failure of the flow. The Accelerator Architecture recommends enabling `ALL` (i.e. both accepted and rejected traffic) logs for all VPCs in the Shared Network account with an S3 destination in the log-archive account. More details about VPC Flow Logs are [available here][flow].
+VPC Flow Logs capture information about the IP traffic going to and from network interfaces in an AWS Account VPC such as source and destination IPs, protocol, ports, and success/failure of the flow. The *AWS Secure Environment Architecture* recommends enabling `ALL` (i.e. both accepted and rejected traffic) logs for all VPCs in the Shared Network account with an S3 destination in the log-archive account. More details about VPC Flow Logs are [available here][flow].
 
 Note that certain categories of network flows are not captured, including traffic to and from Traffic to and from `169.254.169.254` for instance metadata, and DNS traffic with an Amazon VPC resolver.
 
 ### GuardDuty
 Amazon GuardDuty is a threat detection service that continuously monitors for malicious activity and unauthorized behavior to protect your AWS accounts and workloads. The service uses machine learning, anomaly detection, and integrated threat intelligence to identify and prioritize potential threats. GuardDuty uses a number of data sources including VPC Flow Logs and CloudTrail logs.
 
-The Accelerator Architecture recommends enabling GuardDuty [at the Organization level][gd-org], and delegating the security account as the GuardDuty master. The GuardDuty master should be auto-enabled to add new accounts as they come online. Note that this should be done in every region as a defense in depth measure, with the understanding that the PBMM SCP will prevent service usage in all other regions.
+The *AWS Secure Environment Architecture* recommends enabling GuardDuty [at the Organization level][gd-org], and delegating the security account as the GuardDuty master. The GuardDuty master should be auto-enabled to add new accounts as they come online. Note that this should be done in every region as a defense in depth measure, with the understanding that the PBMM SCP will prevent service usage in all other regions.
 
 ### Config
 [AWS Config][config] provides a detailed view of the resources associated with each account in the AWS Organization, including how they are configured, how they are related to one another, and how the configurations have changed on a recurring basis. Resources can be evaluated on the basis of their compliance with Config Rules - for example, a Config Rule might continually examine EBS volumes and check that they are encrypted.
 
 Config may be [enabled at the Organization][config-org] level - this provides an overall view of the compliance status of all resources across the Organization.
 
-_Note: At the time of writing, the Config Multi-Account Multi-Region Data Aggregation sits in the master account. The Accelerator Architecture will recommend that this be situated in the security account, once that becomes easily-configurable in Organizations._
+_Note: At the time of writing, the Config Multi-Account Multi-Region Data Aggregation sits in the master account. The *AWS Secure Environment Architecture* will recommend that this be situated in the security account, once that becomes easily-configurable in Organizations._
 
 ### Cloudwatch Logs
-CloudWatch Logs is AWS' logging aggregator service, used to monitor, store, and access log files from EC2 instances, AWS CloudTrail, Route 53, and other sources. The Accelerator Architecture recommends that log subscriptions are created for all log groups in all workload accounts, and streamed into S3 in the log-archive account (via Kinesis) for analysis and long-term audit purposes.
+CloudWatch Logs is AWS' logging aggregator service, used to monitor, store, and access log files from EC2 instances, AWS CloudTrail, Route 53, and other sources. The *AWS Secure Environment Architecture* recommends that log subscriptions are created for all log groups in all workload accounts, and streamed into S3 in the log-archive account (via Kinesis) for analysis and long-term audit purposes.
 
 ### SecurityHub
 The primary dashboard for Operators to assess the security posture of the AWS footprint is the centralized AWS Security Hub service. Security Hub should be configured to aggregate findings from Amazon GuardDuty, AWS Config and IAM Access Analyzers. Events from security integrations are correlated and displayed on the Security Hub dashboard as 'findings' with a severity level (informational, low, medium, high, critical).
 
-The Accelerator Architecture recommends that certain Security Hub frameworks be enabled, specifically:
+The *AWS Secure Environment Architecture* recommends that certain Security Hub frameworks be enabled, specifically:
 
 * [AWS Foundational Security Best Practices v1.0.0][found]
 * [PCI DSS v3.2.1][pci]
