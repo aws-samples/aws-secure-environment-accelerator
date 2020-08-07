@@ -66,7 +66,7 @@ For example the following ARN would refer to a VPC subnet in the `ca-central-1` 
 
 #### JSON Annotation
 
-Throughout the document, JSON snippets may be annotated with comments (starting with `# `). The JSON language itself does not define comments as part of the specification; these must be removed prior to use in most situations, including the AWS Console and APIs.
+Throughout the document, JSON snippets may be annotated with comments (starting with `// `). The JSON language itself does not define comments as part of the specification; these must be removed prior to use in most situations, including the AWS Console and APIs.
 
 For example:
 
@@ -74,7 +74,7 @@ For example:
 {
   "Effect": "Allow",
   "Principal": {
-    "AWS": "arn:aws:iam::123456789012:root"  # Trust the master account.
+    "AWS": "arn:aws:iam::123456789012:root"  // Trust the master account.
   },
   "Action": "sts:AssumeRole"
 }
@@ -119,14 +119,14 @@ The AWS Organization resides in the master account. This account is not used for
   "Role": {
     "Path": "/",
     "RoleName": "AWSCloudFormationStackSetExecutionRole",
-    "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole",  # Child account.
+    "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole",  // Child account.
     "AssumeRolePolicyDocument": {
       "Version": "2012-10-17",
       "Statement": [
         {
           "Effect": "Allow",
           "Principal": {
-            "AWS": "arn:aws:iam::123456789012:root"  # Master account may assume this role.
+            "AWS": "arn:aws:iam::123456789012:root"  // Master account may assume this role.
           },
           "Action": "sts:AssumeRole"
         }
@@ -423,14 +423,14 @@ AWS accounts, as a default position, are entirely self-contained with respect to
   "Role": {
     "Path": "/",
     "RoleName": "AWSCloudFormationStackSetExecutionRole",
-    "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole",  # Child account.
+    "Arn": "arn:aws:iam::111111111111:role/AWSCloudFormationStackSetExecutionRole",  // Child account.
     "AssumeRolePolicyDocument": {
       "Version": "2012-10-17",
       "Statement": [
         {
           "Effect": "Allow",
           "Principal": {
-            "AWS": "arn:aws:iam::123456789012:root"  # Master account may assume this role.
+            "AWS": "arn:aws:iam::123456789012:root"  // Master account may assume this role.
           },
           "Action": "sts:AssumeRole"
         }
