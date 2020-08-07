@@ -23,6 +23,10 @@ $credential = New-Object System.Management.Automation.PSCredential $DomainAdminU
 $groupsArray = $GroupNames -split ','
 
 for ($i=0; $i -lt $groupsArray.Length; $i++) {
-    #Create Group
-    New-ADGroup -Name $groupsArray[$i] -GroupCategory Security -GroupScope Global -Credential $credential
+    $groupName = $groupsArray[$i]
+    $groupExists = Get-ADGroup -Filter {Name -eq $groupName} -Credential $credential
+    if($null -eq $groupExists) {
+        #Create Group
+        New-ADGroup -Name $groupName -GroupCategory Security -GroupScope Global -Credential $credential
+    }
 }
