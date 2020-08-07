@@ -20,9 +20,10 @@ const testStacks = new AccountStacks({
     acceleratorStateMachineName: 'test',
     configBranch: 'master',
     configCommitId: 'test',
-    configFilePath: 'config.json',
+    configFilePath: 'raw/config.json',
     configRepositoryName: 'repo',
     defaultRegion: 'test',
+    configRootFilePath: 'config.json',
   },
 });
 

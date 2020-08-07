@@ -27,6 +27,7 @@ interface SecurityHubStandards {
 export interface SecurityHubProps {
   account: Account;
   standards: SecurityHubStandards;
+  roleArn: string;
   subAccountIds?: SubAccount[];
   masterAccountId?: string;
 }
@@ -34,26 +35,28 @@ export interface SecurityHubProps {
 export class SecurityHub extends cdk.Construct {
   constructor(scope: cdk.Construct, name: string, props: SecurityHubProps) {
     super(scope, name);
-    const { account, subAccountIds, masterAccountId, standards } = props;
+    const { account, subAccountIds, masterAccountId, standards, roleArn } = props;
 
-    const enableHub = new CfnHub(this, `EnableSecurityHub-${account.key}`, {});
-
-    const enableSecurityHubResource = new SecurityHubEnable(this, `EnableSecurityHubStandards-${account.key}`, {
-      standards: standards.standards,
-    });
-
-    enableSecurityHubResource.node.addDependency(enableHub);
+    const enableSecurityHubResource = new SecurityHubEnable(
+      this,
+      `EnableSecurityHubStandards-${account.key}-Settings`,
+      {
+        standards: standards.standards,
+        roleArn,
+      },
+    );
 
     if (subAccountIds) {
       // Send Invites to subaccounts
       const sendInviteSecurityHubResource = new SecurityHubSendInvites(
         this,
-        `InviteMembersSecurityHubStandards-${account.key}`,
+        `InviteMembersSecurityHubStandards-${account.key}-Settings`,
         {
           memberAccounts: subAccountIds?.filter(x => x.AccountId !== account.id),
+          roleArn,
         },
       );
-      sendInviteSecurityHubResource.node.addDependency(enableHub);
+      sendInviteSecurityHubResource.node.addDependency(enableSecurityHubResource);
     } else {
       // Accept Invite in sub account
       if (!masterAccountId) {
@@ -61,12 +64,13 @@ export class SecurityHub extends cdk.Construct {
       } else {
         const acceptInviteSecurityHubResource = new SecurityHubAcceptInvites(
           this,
-          `AcceptInviteSecurityHubStandards-${account.key}`,
+          `AcceptInviteSecurityHubStandards-${account.key}-Settings`,
           {
             masterAccountId,
+            roleArn,
           },
         );
-        acceptInviteSecurityHubResource.node.addDependency(enableHub);
+        acceptInviteSecurityHubResource.node.addDependency(enableSecurityHubResource);
       }
     }
   }

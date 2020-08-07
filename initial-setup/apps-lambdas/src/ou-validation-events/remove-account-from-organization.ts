@@ -1,8 +1,11 @@
 import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-pbmm/common-lambda/lib/aws/codecommit';
-import { AcceleratorConfig, AccountsConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { SecretsManager } from '@aws-pbmm/common-lambda/lib/aws/secrets-manager';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { getFormattedObject, getStringFromObject } from '@aws-pbmm/common-lambda/lib/util/common';
+import { pretty } from '@aws-pbmm/common-lambda/lib/util/perttier';
+import { JSON_FORMAT, YAML_FORMAT } from '@aws-pbmm/common-lambda/lib/util/constants';
 
 interface RemoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -14,6 +17,8 @@ const configFilePath = process.env.CONFIG_FILE_PATH!;
 const configBranch = process.env.CONFIG_BRANCH_NAME!;
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
 const acceleratorAccountsSecretId = process.env.ACCOUNTS_SECRET_ID!;
+const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
+
 const codecommit = new CodeCommit(undefined, defaultRegion);
 const secrets = new SecretsManager(undefined, defaultRegion);
 
@@ -44,66 +49,110 @@ export const handler = async (input: RemoveAccountOrganization) => {
 
 async function removeAccountConfig(account: Account): Promise<string> {
   console.log(`Removing Account "${account.name}" from Configuration`);
-  const configCommit = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
-  const parentCommitId = configCommit.commitId;
-  const config = configCommit.fileContent.toString();
-  const updatedConfig = JSON.parse(config);
-  const workLoadAccounts: AccountsConfig = updatedConfig['workload-account-configs'];
-  const mandatoryAccounts: AccountsConfig = updatedConfig['mandatory-account-configs'];
-  const workLoadAccountConfig = Object.entries(workLoadAccounts).find(
-    ([_, value]) => value['account-name'] === account.name,
-  );
-  const mandatoryAccountConfig = Object.entries(mandatoryAccounts).find(
-    ([_, value]) => value['account-name'] === account.name,
-  );
-  // tslint:disable-next-line: no-any
-  let accountConfig: any;
-  let accountKey: string = '';
-  let isMandatoryAccount = false;
-  if (workLoadAccountConfig) {
-    accountKey = workLoadAccountConfig[0];
-    accountConfig = workLoadAccountConfig[1];
-    accountConfig.deleted = true;
-  } else if (mandatoryAccountConfig) {
-    accountKey = mandatoryAccountConfig[0];
-    accountConfig = mandatoryAccountConfig[1];
-    accountConfig.deleted = true;
-    isMandatoryAccount = true;
-  } else {
-    console.log(`Account Config not found in Accelerator Configuration ${account.id}`);
-  }
-  accountKey = accountKey || account.name;
-  if (isMandatoryAccount) {
-    console.log(`Mandatory Account is deleted nothing to perform`);
-    return 'SUCCESS';
-  } else {
-    workLoadAccounts[accountKey] = accountConfig;
-    updatedConfig['workload-account-configs'] = workLoadAccounts;
-    const commitStatus = await createCommit(updatedConfig, parentCommitId);
-    return commitStatus;
-  }
-}
+  const extension = configRootFilePath?.split('.').slice(-1)[0];
+  const format = extension === JSON_FORMAT ? JSON_FORMAT : YAML_FORMAT;
 
-async function createCommit(config: AcceleratorConfig, parentCommitId: string): Promise<string> {
-  try {
-    const commitId = await codecommit.commit({
-      branchName: configBranch,
-      repositoryName: configRepositoryName,
-      parentCommitId,
-      putFiles: [
-        {
-          filePath: configFilePath,
-          fileContent: JSON.stringify(config, null, 2),
-        },
-      ],
-    });
-    console.log(`Updated Configuration file in CodeCommit CommitId: ${commitId}`);
-    return 'SUCCESS';
-  } catch (error) {
-    if (error.code === 'NoChangeException') {
-      return 'NoChangeException';
+  const rawConfigResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
+  const rawConfig: AcceleratorConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
+  let isMandatoryAccount = true;
+  let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
+    ([_, accConfig]) => accConfig.email === account.email,
+  );
+  if (!accountInfo) {
+    isMandatoryAccount = false;
+    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(
+      ([_, accConfig]) => accConfig.email === account.email,
+    );
+  }
+  console.log(
+    accountInfo,
+    isMandatoryAccount,
+    account,
+    Object.entries(rawConfig['mandatory-account-configs']).find(([_, accConfig]) => accConfig.email === account.email),
+  );
+  if (!accountInfo) {
+    return 'NO_ACCOUNT_FOUND';
+  }
+  const filename = accountInfo[1]['src-filename'];
+  if (filename === configRootFilePath) {
+    const configResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
+    const config: AcceleratorUpdateConfig = getFormattedObject(configResponse.fileContent.toString(), format);
+    if (isMandatoryAccount) {
+      const accountConfig = Object.entries(config['mandatory-account-configs']).find(
+        ([_, accConfig]) => accConfig.email === account.email,
+      );
+      if (!accountConfig) {
+        return 'NO_ACCOUNT_FOUND';
+      }
+      const accountKey = accountConfig[0];
+      const accountConfigObject = accountConfig[1];
+      accountConfigObject.deleted = true;
+      config['mandatory-account-configs'][accountKey] = accountConfigObject;
     } else {
-      throw new Error(error);
+      const accountConfig = Object.entries(config['workload-account-configs']).find(
+        ([_, accConfig]) => accConfig.email === account.email,
+      );
+      if (!accountConfig) {
+        return 'NO_ACCOUNT_FOUND';
+      }
+      const accountKey = accountConfig[0];
+      const accountConfigObject = accountConfig[1];
+      accountConfigObject.deleted = true;
+      config['workload-account-configs'][accountKey] = accountConfigObject;
+    }
+    try {
+      console.log('Commiting');
+      await codecommit.commit({
+        branchName: configBranch,
+        repositoryName: configRepositoryName,
+        putFiles: [
+          {
+            filePath: filename,
+            fileContent: pretty(getStringFromObject(config, format), format),
+          },
+        ],
+        parentCommitId: configResponse.commitId,
+      });
+    } catch (error) {
+      if (error.code === 'NoChangeException') {
+        console.log(`Config is already update for account: ${account.email}`);
+      } else {
+        throw Error(error);
+      }
+    }
+  } else {
+    const accountConfigResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
+    // tslint:disable-next-line: no-any
+    const accountsConfig: { [accountKey: string]: any } = getFormattedObject(
+      accountConfigResponse.fileContent.toString(),
+      format,
+    );
+    const accountConfig = Object.entries(accountsConfig).find(([_, accConfig]) => accConfig.email === account.email);
+    if (accountConfig) {
+      const accountKey = accountConfig[0];
+      const accountConfigObject = accountConfig[1];
+      accountConfigObject.deleted = true;
+      accountsConfig[accountKey] = accountConfigObject;
+      try {
+        await codecommit.commit({
+          branchName: configBranch,
+          repositoryName: configRepositoryName,
+          putFiles: [
+            {
+              filePath: filename,
+              fileContent: pretty(getStringFromObject(accountsConfig, format), format),
+            },
+          ],
+          parentCommitId: accountConfigResponse.commitId,
+        });
+      } catch (error) {
+        if (error.code === 'NoChangeException') {
+          console.log(`Config is already update for account: ${accountKey}`);
+        } else {
+          throw Error(error);
+        }
+      }
     }
   }
+  return 'SUCCESS';
 }

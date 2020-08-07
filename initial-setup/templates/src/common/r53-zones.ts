@@ -2,7 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as r53 from '@aws-cdk/aws-route53';
 
 import { GlobalOptionsZonesConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { DNS_LOGGING_LOG_GROUP_REGION } from '../utils/constants';
+import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-pbmm/common-lambda/lib/util/constants';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
 import { trimSpecialCharacters } from '@aws-pbmm/common-outputs/lib/secrets';
 

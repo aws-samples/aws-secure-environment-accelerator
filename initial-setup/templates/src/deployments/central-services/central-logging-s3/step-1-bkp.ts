@@ -4,7 +4,6 @@ import { createRoleName, createName } from '@aws-pbmm/common-cdk/lib/core/accele
 import * as kinesisfirehose from '@aws-cdk/aws-kinesisfirehose';
 import { AccountStack } from '../../../common/account-stacks';
 import { JsonOutputValue } from '../../../common/json-output';
-import { CLOUD_WATCH_CENTRAL_LOGGING_BUCKET_PREFIX } from '../../../utils/constants';
 
 export interface CentralLoggingToS3Step1Props {
   accountStack: AccountStack;

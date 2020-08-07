@@ -7,6 +7,8 @@ import {
   CreateRepositoryOutput,
   BatchGetRepositoriesOutput,
   CreateCommitInput,
+  DeleteFileInput,
+  DeleteFileOutput,
 } from 'aws-sdk/clients/codecommit';
 import { throttlingBackOff } from './backoff';
 
@@ -89,5 +91,13 @@ export class CodeCommit {
   async commit(input: CreateCommitInput): Promise<string> {
     const response = await throttlingBackOff(() => this.client.createCommit(input).promise());
     return response.commitId!;
+  }
+
+  /**
+   * Put File from Code Commit
+   * @param putFileInput
+   */
+  async deleteFile(input: DeleteFileInput): Promise<DeleteFileOutput> {
+    return this.client.deleteFile(input).promise();
   }
 }

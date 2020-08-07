@@ -1,9 +1,12 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { errorHandler } from '@custom-resources/cfn-response';
 
 const hub = new AWS.SecurityHub();
 
-export const handler = async (event: CloudFormationCustomResourceEvent): Promise<unknown> => {
+export const handler = errorHandler(onEvent);
+
+async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Sending Security Hub Invites to Sub Accounts...`);
   console.log(JSON.stringify(event, null, 2));
 
@@ -16,10 +19,19 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
     case 'Delete':
       return onDelete(event);
   }
-};
+}
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const masterAccountId = event.ResourceProperties.masterAccountId;
+
+  // get the master account associated to the account
+  const masterAccount = await hub.getMasterAccount().promise();
+  const securityHubMaster = masterAccount.Master;
+  // check if master account is a valid association
+  if (securityHubMaster && securityHubMaster.AccountId !== masterAccountId) {
+    // If not valid, disassociate the master account invitation
+    await hub.disassociateFromMasterAccount().promise();
+  }
 
   // Check for pending invitations from Master
   const invitations = await hub.listInvitations().promise();
