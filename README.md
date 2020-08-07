@@ -1,12 +1,106 @@
 # AWS Secure Environment Accelerator v1.1.0 and above
 
-The AWS Accelerator is a tool designed to deploy and operate secure multi-account AWS environments. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
+The AWS Accelerator is a tool designed to deploy and operate secure multi-account AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
-While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to meet the security requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to meet the requirements of a broad range of governments and public sector organizations.
+While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to meet the requirements of a broad range of governments and public sector organizations.
 
-Installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform. A DRAFT version of the Accelerator PBMM Prescriptive Architecture Design Document can be found [here](https://github.com/aws-samples/aws-pbmm-accelerator/blob/feature/8.35-architecture-document-v2/documentation/architecture/index.md)
+Installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
 
-### Relationship with AWS Landing Zone Solution (ALZ)
+## What does the Accelerator deploy and manage?
+
+A common misconception is that the AWS Secure Environment Accelerator only deploys security services, not true. The Accelerator is capable of deploying a complete end-to-end hybrid enterprise cloud environment.
+
+Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with mininal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
+
+Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded:
+
+### Creates AWS Account
+
+- Core Accounts - as many or as few as your organization requires, using the naming you desire
+  - Shared Network
+  - Operations
+  - Perimeter
+  - Log-Archive
+  - Security-Audit
+- Workload Accounts - automate mass account creation, or use AWS organizations to scale one account at a time
+- Supports AWS Organizations nested ou's and importing existing AWS accounts
+- Performs 'account warming' to establish initial limits, when required
+- Automatically submits limit increases, when required (complies with initial limits until increased)
+
+### Creates Networking
+
+- Transit Gateways and TGW route tables
+- Centralized and/or Local VPC's
+- Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
+- VPC Endpoints (Gateway and Interface, Centralized or Local)
+- Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
+- All completely and indivdiually customizable (per account, VPC, or OU)
+- Deletes default VPC's (worldwide)
+
+### Object Cross-Account Sharing
+
+- VPC and Subnet sharing, including account level retagging (Per account security group 'replication')
+- VPC attachments and peering (local and cross-account)
+- Zone sharing and VPC associations
+- Managed Active Directory sharing, including R53 DNS resolver rule creation/sharing
+- (automated TGW inter-region peering on roadmap)
+
+### Identity
+
+- Creates Directory services (Managed Active Directory and Active Directory Connectors)
+- Creates Windows admin bastion host auto-scaling group
+- Set Windows domain password policies
+- Set IAM account password policies
+- Creates Windows domain users and groups (initial installation only)
+- Creates IAM Policies, Roles, Users, and Groups
+- Fully integrates with and leverages AWS SSO for centralized and federated login
+
+### Cloud Security Services
+
+- Enables and configures the following AWS services, worldwide w/central designated admin account:
+  - Guardduty
+  - Security Hub (Enables designated security standards, and disables individual controls)
+  - Firewall Manager
+  - CloudTrail w/Insights and S3 data plane logging
+  - Config Recorders/Aggregator
+  - Macie
+  - IAM Access Analyzer
+  - CloudWatch access from central designated admin account (and setting Log group retentions)
+
+### Other Security Capabilities
+
+- Creates, deploys and applies Service Control Policies
+- Creates Customer Managed KMS Keys (SSM, EBS, S3)
+- Enables account level default EBS encryption and S3 Block Public Access
+- Configures Systems Manager Session Manager w/KMS encryption and centralized logging
+- Creates and configures AWS budgets (customizable per ou and per account)
+- Imports or requests certificates into AWS Certificate Manager
+- Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
+- Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup
+- Protects Accelerator deployed and managed objects
+
+### Centralized Logging
+
+- Deploys an rsyslog auto-scaling cluster behind an NLB, all syslogs forwarded to CWL
+- Centralizes logging to a single centralize S3 bucket (enables, configures and centralizes)
+  - VPC Flow logs (Enhanced metadata fields and CWL destination coming soon)
+  - Organizational Cost and Usage Reports
+  - CloudTrail Logs including S3 Data Plane Logs (also sent to CWL)
+  - All CloudWatch Logs (includes rsyslog logs)
+  - Config History and Snapshots
+  - Route 53 Public Zone Logs
+  - GuardDuty Findings
+  - Macie Discovery results
+  - ALB Logs
+  - SSM Session Logs
+- Centralized access to "Cloud Security Service" Consoles from designated AWS account
+
+### Summary
+
+- Everything is controlled, enabled, disabled and configured through the main configuration file
+- AWS account level configuration can be provided from the OU configuration (requiring minimal per account configuration), from the account configuration, or from both to provide extensive customizability
+
+## Relationship with AWS Landing Zone Solution (ALZ)
 
 The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ.
 
@@ -14,13 +108,13 @@ The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Ac
 
 While the option remains to deploy the AWS Accelerator on top of the ALZ, all new customers are strongly encourage to let the AWS Accelerator deploy and manage the entire environment by performing a standalone installation of the AWS Accelerator.
 
-### Relationship with AWS Control Tower
+## Relationship with AWS Control Tower
 
 AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Towers limited regional coverage, limited functionality and lack of customizability has made it unsuitable in meeting their requirements.
 
 When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we allow with the ALZ today.
 
-## Installation
+# Installation
 
 **_Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitate installation._**
 
@@ -123,7 +217,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ## Preparation
 
-#### Create a GitHub Personal Access Token.
+### Create a GitHub Personal Access Token.
 
 1. You require a GitHub access token to access the code repository
 2. Instructions on how to create a personal access token are located here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
@@ -136,7 +230,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
-## Accelerator Configuration
+### Accelerator Configuration
 
 1. You can use the [`config.example.json`](./config.example.json) file as base
    - Use the version from the branch you are deploying from as some parameters have changed over time
@@ -187,7 +281,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
 
-## Deploy the Accelerator Installer Stack
+### Deploy the Accelerator Installer Stack
 
 1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
@@ -244,7 +338,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
     3. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
     4. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
-# COMMON QUESTIONS
+# Accelerator Operation
 
 ### How do I add new AWS accounts to my AWS Organization?
 
@@ -279,17 +373,17 @@ If deploying to an internal AWS account, to successfully install the entire solu
     - users can change SCP's on non-top-level ou's and accounts as they please
   - move an AWS account between top-level ou's (i.e. `Sandbox` to `Prod` is a security violation)
     - moving between `Prod/sub-ou-1` to `Prod/sub-ou2` or `Prod/sub-ou2/sub-ou2a/sub-ou2ab` is fully supported
-  - create a top-level ou (need to validate, but they do need a config file entry)
+  - create a top-level ou (need to validate, as they require config file entries)
   - remove quarantine SCP from newly created accounts
-  - we do not support `/` in ou names, even though the AWS platform does
-- Can you clarify in more detail:
+  - we do not support forward slashes (`/`) in ou names, even though the AWS platform does
+- More details:
   - If you edit an Accelerator controlled SCP through Organizations, we will reset it per what is defined in the Accelerator configuration files.
   - If you add/remove an SCP from a top-level ou, we will put them back as defined in the Accelerator configuration file.
   - If you move an account between top-level ou's, we will put it back to its original designated top-level ou.
   - The Accelerator fully supports nested ou's, customers can create any depth ou structure in AWS Organizations and add/remove/change SCP's _below_ the top-level as they desire or move accounts between these ou's without restriction. Users can create ou's to the full AWS ou structure/depth.
   - Except for the Quarantine SCP applied to specific accounts, we do not 'control' SCP's below the top level, customers can add/create/customize SCP's
 
-### How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?
+### How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?\*
 
 - Ensure you have valid administrative privileges for the account to be invited/added
 - Add the account to your AWS Organization using standard processes (i.e. Invite/Accept)
@@ -306,7 +400,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - Assume an administrative role into the account
   - Execute the Accelerator provided CloudFormation template to create the required Accelerator bootstrapping role
 
-### How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS accounts or executes?
+\* A slightly different process exists for ALZ versions of the Accelerator
+
+### How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
 
 Flexibility:
 
@@ -327,24 +423,46 @@ Extensibility:
 Example:
 
 - One of our early adopter customers has developed a custom user interface which allows their clients to request new AWS environments. Clients provide items like cost center, budget, and select their environment requirements (i.e. Sandbox, Unclass or full PBMM SDLC account set). On appropriate approval, this pushes the changes to the Accelerator configuration file and triggers the state machine.
-- Once the state machine completes, the SNS topic triggers their follow-up workflow, validates the requested accounts were provisioned, updates the customer's account database, and then executes a collection of customer specific follow-up workflow actions on newly provisioned accounts.
+- Once the state machine completes, the SNS topic triggers their follow-up workflow, validates the requested accounts were provisioned, updates the customer's account database, and then executes a collection of customer specific follow-up workflow actions on any newly provisioned accounts.
+
+### What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
+
+If your state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
+
+Ensuring the integrity of deployed guardrails is critical in operating and maintaining an environment hosting protected data. Based on customer feedback and security best practices, we purposely fail the state machine if we cannot successfuly deploy guardrails.
+
+Additionally, with millions of active customers each supporting different and diverse use cases and with the rapid rate of evolution of the AWS platform, sometimes we will encounter unexpected circumstances and the state machine might fail.
+
+We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As we find new issues, we continue to adjust the codebase to handle these situations smoothly and prevent state machine failures when it makes sense.
+
+Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
+
+### How do I make changes to items I defined in the Accelerator configuration file?
+
+Simply update your configuration file and rerun the state machine! In most cases, it is that simple.
+
+If you ask the Accelerator to do something that is not supported by the AWS platform, the state machine will fail, so it needs to be a supported capability. For example, the platform does not allow you to change the CIDR block on a VPC, but you can accomplish this as you would today by using the Accelerator to deploy a new second VPC, manually migrating workloads, and then removing the deprecated VPC from the Accelerator configuration.
+
+Below we have also documented additional considerations when creating or updating the configuration file.
+
+It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide overide switches to allow these changes to be attempted forcefully.
 
 # Notes
 
 ## UPGRADES
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats
-- Upgrades from v1.0.5rc5 to v1.0.6 (or above) will redeploy the TGW. This will drop the FW tunnels. To automatically re-establish FW configuration, drop the fw deployment during upgrade (i.e. comment out FW) and redeploy following the upgrade. \*\* See below.
-- Upgrades from versions prior to v1.1.4 require dropping the fw AND fwMgr deployments during the upgrade (i.e. comment out fw and fwmgr sections before upgrade). \*\* See below. You can redeploy the firewalls after upgrade. If you miss this step, the perimeter stack will likely fail to rollback and require manual intervention before rerunning the state machine without the fws and fwmgr.
+- Upgrades from versions prior to v1.1.4 require dropping the fw AND fwMgr deployments during the upgrade (i.e. simply comment out the fw and fwmgr sections before upgrade). \*\* See below. You can redeploy the firewalls using the Accelerator after the upgrade. If you miss this step, the perimeter stack will likely fail to rollback and require manual intervention before you can re-run the state machine without the fws and fwmgr configurations.
 
-\*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your changes automatically redeployed, add them into the appropriate firewall-example.txt configuration file.
+\*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your fw customizations automatically redeployed, simply add them into the appropriate firewall-example.txt configuration file.
 
-### Upgrade Steps (to v1.1.4)
+### Summary of Upgrade Steps (to v1.1.4)
 
 - Ensure a valid Github token is stored in secrets manager
 - Update the config file with new parameters and updated parameter types
 - Remove the **_fw_** AND **_fwmgr_** from the config file
 - Delete the Installer CFN stack (take note of the s3 bucket name first)
+  - If you are using a pre-existing GitHub token, you can simply Update the stack
 - Redeploy the Installer CFN stack using the latest template
 
 ## Configuration File Notes
@@ -359,25 +477,27 @@ Example:
   - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls
 - As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have its capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (`100` to `101`) or they will fail to update
-- The firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
+- The sample firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
 - Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ou's must all be unique throughout the entire configuration file
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
 - The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.
 - You cannot move an account between top-level ou's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.
-- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. Once YAML is suppported we will be provided a version of the config file with comments describing the purpose of each configuration item.
+- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. Once YAML is suppported we will be providing a version of the config file with comments describing the purpose of each configuration item
+- Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
+- We only support the subset of yaml that converts to JSON (we do not support anchors)
 
 ## General Notes
 
-- Do not delete, or change _any_ buckets in the master account
 - The master account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the master account unless you are certain as to what you are doing.
+- More specifically, do NOT delete, or change _any_ buckets in the master account
 - While likely protected, do not delete/update/change s3 buckets with CDK, CFN, or PBMMAccel- in _any_ sub-accounts
 - Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
 
 ## Known limitations/purposeful exclusions:
 
 - ALB automated deployments currently only supports Forward and not redirect rules
-- AWS Config Aggregator is deployed in the Organization master account as enabling through Organizations is much simpler to implement. Organizations only supports deploying the Aggregator in the Org master account and not in a designated master account at this time.
+- AWS Config Aggregator is deployed in the Organization master account as enabling through Organizations is much simpler to implement. Organizations only supports deploying the Aggregator in the Org master account and not in a designated master account at this time. Once supported, we will update the code to move the Aggregator master account.
 - Amazon Detective - not included
 - Only 1 auto-deployed MAD per AWS account is supported today
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
@@ -398,14 +518,12 @@ Example:
 5. Prune the commits that have been added to the release (e.g. remove any low-information commits)
 6. Publish the release - this creates the git tag in the repo and marks the release as latest.
 
-# Accelerator Developer Guide **_EARLY DRAFT_**
+# **Additional Accelerator Documentation**
 
-- An early DRAFT version of the Accelerator Developer guide can be found [here](https://github.com/aws-samples/aws-pbmm-accelerator/wiki/Developer-Guide)
+An **_EARLY DRAFT_** of the following documents are available by following the below links.
 
-# Accelerator Operations/Troubleshooting Guide **_EARLY DRAFT_**
+### [Accelerator Developer Guide](https://github.com/aws-samples/aws-pbmm-accelerator/wiki/Developer-Guide) (linked)
 
-- An early DRAFT version of the Accelerator Operations and Troubleshooting guide can be found [here](https://github.com/aws-samples/aws-pbmm-accelerator/wiki/Operations-Guide)
+### [Accelerator Operations/Troubleshooting Guide](https://github.com/aws-samples/aws-pbmm-accelerator/wiki/Operations-Guide) (linked)
 
-# Accelerator Prescriptive PBMM Architecture Design Doc. **_DRAFT_**
-
-- A DRAFT version of the Accelerator Prescriptive PBMM Architecture Design Document can be found [here](https://github.com/aws-samples/aws-pbmm-accelerator/blob/feature/8.35-architecture-document-v2/documentation/architecture/index.md)
+### [Prescriptive PBMM Architecture Design Document.](https://github.com/aws-samples/aws-pbmm-accelerator/blob/feature/8.35-architecture-document-v2/documentation/architecture/index.md) (linked)
