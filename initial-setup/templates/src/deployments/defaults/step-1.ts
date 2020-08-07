@@ -6,13 +6,14 @@ import { EbsDefaultEncryption } from '@custom-resources/ec2-ebs-default-encrypti
 import { S3CopyFiles } from '@custom-resources/s3-copy-files';
 import { S3PublicAccessBlock } from '@custom-resources/s3-public-access-block';
 import { Organizations } from '@custom-resources/organization';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { createEncryptionKeyName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
+import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
 
 export type AccountRegionEbsEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
 
@@ -326,46 +327,52 @@ function createAesLogBucket(props: DefaultsStep1Props) {
 }
 
 function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegionEbsEncryptionKeys {
-  const { accountStacks, config } = props;
+  const { accountStacks, config, accounts } = props;
 
   // Create an EBS encryption key for every account and region that has a VPC
   const accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys = {};
-  for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
+  for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
     const region = vpcConfig.region;
-    if (accountEbsEncryptionKeys[accountKey]?.[region]) {
-      continue;
+    const vpcSharedTo = getVpcSharedAccountKeys(accounts, vpcConfig, ouKey);
+    vpcSharedTo.push(accountKey);
+    const accountKeys = Array.from(new Set(vpcSharedTo));
+    for (const localAccountKey of accountKeys) {
+      if (accountEbsEncryptionKeys[localAccountKey]?.[region]) {
+        console.log(`EBSEncryptionKey is already created in account ${localAccountKey} and region ${region}`);
+        continue;
+      }
+  
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(localAccountKey, region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${localAccountKey}`);
+        continue;
+      }
+  
+      // Default EBS encryption key
+      const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
+        alias: 'alias/' + createEncryptionKeyName('EBS-Key'),
+        description: 'Key used to encrypt/decrypt EBS by default',
+      });
+  
+      key.addToResourcePolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
+          actions: ['kms:*'],
+          resources: ['*'],
+        }),
+      );
+  
+      // Enable default EBS encryption
+      new EbsDefaultEncryption(accountStack, 'EbsDefaultEncryptionSet', {
+        key,
+      });
+  
+      accountEbsEncryptionKeys[localAccountKey] = {
+        ...accountEbsEncryptionKeys[localAccountKey],
+        [region]: key,
+      };
     }
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
-    }
-
-    // Default EBS encryption key
-    const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
-      alias: 'alias/' + createEncryptionKeyName('EBS-Key'),
-      description: 'Key used to encrypt/decrypt EBS by default',
-    });
-
-    key.addToResourcePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
-        actions: ['kms:*'],
-        resources: ['*'],
-      }),
-    );
-
-    // Enable default EBS encryption
-    new EbsDefaultEncryption(accountStack, 'EbsDefaultEncryptionSet', {
-      key,
-    });
-
-    accountEbsEncryptionKeys[accountKey] = {
-      ...accountEbsEncryptionKeys[accountKey],
-      [region]: key,
-    };
   }
   return accountEbsEncryptionKeys;
 }
