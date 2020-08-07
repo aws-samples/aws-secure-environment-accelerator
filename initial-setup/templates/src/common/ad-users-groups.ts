@@ -64,6 +64,10 @@ export class ADUsersAndGroups extends cdk.Construct {
         }`,
     );
 
+    adUsersCommand.push(
+      `C:\\cfn\\scripts\\AD-user-setup.ps1 -UserName admin -Password ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString) -DomainAdminUser ${madDeploymentConfig['netbios-domain']}\\admin -DomainAdminPassword ((Get-SECSecretValue -SecretId ${adminPasswordArn}).SecretString) -PasswordNeverExpires Yes`,
+    );
+
     // Creating AD Groups command
     const configGroups = madDeploymentConfig['ad-groups']
       .concat(madDeploymentConfig['ad-per-account-groups'])
