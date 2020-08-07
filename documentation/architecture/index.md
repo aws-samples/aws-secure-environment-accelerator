@@ -70,7 +70,7 @@ Throughout the document, JSON snippets may be annotated with comments (starting 
 
 For example:
 
-```json
+```jsonc
 {
   "Effect": "Allow",
   "Principal": {
@@ -114,7 +114,7 @@ Note that the account structure is strictly a control plane concept - nothing ab
 ### Master Account
 The AWS Organization resides in the master account. This account is not used for workloads (to the full extent possible) - it functions primarily as a billing aggregator, and a gateway to the entire cloud footprint for a high-trust principal. There exists a trust relationship between child AWS accounts in the Organization and the master account; i.e. the child accounts have a role of this form:
 
-```json
+```jsonc
 {
   "Role": {
     "Path": "/",
@@ -418,7 +418,7 @@ The *AWS Secure Environment Architecture* makes extensive use of AWS authorizati
 AWS accounts, as a default position, are entirely self-contained with respect to IAM principals - their Users, Roles, Groups are independent and scoped only to themselves. Accounts created by AWS Organizations deploy a default role with a trust policy back to the master. By default, this role is named the `OrganizationAccountAccessRole`; by contrast, the *AWS Secure Environment Architecture* recommends that this role be replaced by `AWSCloudFormationStackSetExecutionRole`:
 
 
-```json
+```jsonc
 {
   "Role": {
     "Path": "/",
@@ -600,10 +600,10 @@ These frameworks will perform checks against the accounts via Config Rules that 
 [accel_tool]: https://github.com/aws-samples/aws-pbmm-accelerator
 [aws_org]: https://aws.amazon.com/organizations/
 [aws_scps]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_type-auth.html#orgs_manage_policies_scp
-[aws_vpn]: https://aws.amazon.com/TODO
-[aws_dc]: https://aws.amazon.com/TODO
-[aws_vpc]: https://aws.amazon.com/TODO
-[aws_tgw]: https://aws.amazon.com/TODO
+[aws_vpn]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
+[aws_dc]: https://aws.amazon.com/directconnect/
+[aws_vpc]: https://aws.amazon.com/vpc/
+[aws_tgw]: https://aws.amazon.com/transit-gateway/
 [aws_r53]: https://aws.amazon.com/route53/
 [ssm_endpoints]: https://aws.amazon.com/premiumsupport/knowledge-center/ec2-systems-manager-vpc-endpoints/
 [1918]: https://tools.ietf.org/html/rfc1918
