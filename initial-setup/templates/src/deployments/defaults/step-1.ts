@@ -341,19 +341,19 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
         console.log(`EBSEncryptionKey is already created in account ${localAccountKey} and region ${region}`);
         continue;
       }
-  
+
       const accountStack = accountStacks.tryGetOrCreateAccountStack(localAccountKey, region);
       if (!accountStack) {
         console.warn(`Cannot find account stack ${localAccountKey}`);
         continue;
       }
-  
+
       // Default EBS encryption key
       const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
         alias: 'alias/' + createEncryptionKeyName('EBS-Key'),
         description: 'Key used to encrypt/decrypt EBS by default',
       });
-  
+
       key.addToResourcePolicy(
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
@@ -362,12 +362,12 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
           resources: ['*'],
         }),
       );
-  
+
       // Enable default EBS encryption
       new EbsDefaultEncryption(accountStack, 'EbsDefaultEncryptionSet', {
         key,
       });
-  
+
       accountEbsEncryptionKeys[localAccountKey] = {
         ...accountEbsEncryptionKeys[localAccountKey],
         [region]: key,
