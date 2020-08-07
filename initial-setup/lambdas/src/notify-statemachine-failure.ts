@@ -19,16 +19,6 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   const { cause, executionId, notificationTopicArn, acceleratorVersion } = input;
   const errorCause = JSON.parse(cause);
 
-  try {
-    if (errorCause.Input) {
-      console.log('Trying to convert JSON Input string to JSON object');
-      errorCause.Input = JSON.parse(errorCause.Input);
-    }
-  } catch (error) {
-    console.error('Error while converting JSON string to JSON Object');
-    console.error(error.message);
-  }
-
   // Retriving Failed State
   try {
     const failedState = await getFailedState(executionId);
@@ -39,6 +29,16 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
 
   // Adding Code Version to email JSON
   errorCause.acceleratorVersion = acceleratorVersion;
+
+  try {
+    if (errorCause.Input) {
+      console.log('Trying to convert JSON Input string to JSON object');
+      errorCause.Input = JSON.parse(errorCause.Input);
+    }
+  } catch (error) {
+    console.error('Error while converting JSON string to JSON Object');
+    console.error(error.message);
+  }
 
   console.log('Publishing Error to SNS Topic');
   console.log(JSON.stringify(errorCause, null, 2));
