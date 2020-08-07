@@ -125,6 +125,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     configFilePath: '',
     configRepositoryName: '',
     defaultRegion: 'ca-central-1',
+    configRootFilePath: '',
   };
 
   const limiter = new Limiter([]);

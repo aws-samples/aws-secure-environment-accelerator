@@ -33,6 +33,7 @@
     "@aws-pbmm/common-types": "workspace:^0.0.1",
     "@types/deep-diff": "^1.0.0",
     "adm-zip": "0.4.14",
+    "@types/prettier": "^2.0.2",
     "archiver": "3.1.1",
     "aws-sdk": "2.668.0",
     "deep-diff": "^1.0.2",

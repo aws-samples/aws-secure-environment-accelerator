@@ -2,7 +2,6 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
-import * as s3 from '@aws-cdk/aws-s3';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
@@ -28,13 +27,8 @@ export namespace InitialSetup {
     solutionRoot: string;
     stateMachineName: string;
     stateMachineExecutionRole: string;
-    /**
-     * Parameters for configuration file
-     */
-    configFilePath: string;
     configRepositoryName: string;
     configS3Bucket: string;
-    configS3FileName: string;
     configBranchName: string;
     notificationEmail: string;
     /**
@@ -141,9 +135,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           repositoryName: props.configRepositoryName,
-          filePath: props.configFilePath,
           s3Bucket: props.configS3Bucket,
-          s3FileName: props.configS3FileName,
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
         },
@@ -172,12 +164,11 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
         },
-        // TODO return only BASELINE & COMMITID from this and assign to $.configuration.baseline object and use it accross SM
-        resultPath: '$.configuration',
+        resultPath: '$.configuration.baseline',
       });
 
       const loadLandingZoneConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
@@ -188,10 +179,11 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$.configuration',
       });
@@ -204,10 +196,11 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           'baseline.$': '$.configuration.baseline',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$.configuration',
       });
@@ -282,7 +275,7 @@ export namespace InitialSetup {
           'account.$': '$$.Map.Item.Value',
           'organizationalUnits.$': '$.configuration.organizationalUnits',
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
         },
@@ -309,7 +302,7 @@ export namespace InitialSetup {
         functionPayload: {
           organizationsSecretId: organizationsSecret.secretArn,
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
         },
         resultPath: '$.configuration.organizationalUnits',
@@ -418,7 +411,7 @@ export namespace InitialSetup {
           input: {
             'accounts.$': '$.accounts',
             configRepositoryName: props.configRepositoryName,
-            configFilePath: props.configFilePath,
+            'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
             acceleratorPrefix: props.acceleratorPrefix,
@@ -452,12 +445,13 @@ export namespace InitialSetup {
         },
         functionPayload: {
           configRepositoryName: props.configRepositoryName,
-          configFilePath: props.configFilePath,
+          'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
           accountsSecretId: accountsSecret.secretArn,
           organizationsSecretId: organizationsSecret.secretArn,
           configBranch: props.configBranchName,
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$.configuration.configCommitId',
       });
@@ -529,6 +523,7 @@ export namespace InitialSetup {
           'CONFIG_FILE_PATH.$': '$.configFilePath',
           'CONFIG_COMMIT_ID.$': '$.configCommitId',
           'ACCELERATOR_BASELINE.$': '$.baseline',
+          'CONFIG_ROOT_FILE_PATH.$': '$.configRootFilePath',
           ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,
@@ -606,7 +601,7 @@ export namespace InitialSetup {
           input: {
             'accounts.$': '$.accounts',
             configRepositoryName: props.configRepositoryName,
-            configFilePath: props.configFilePath,
+            'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
             'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
@@ -833,7 +828,7 @@ export namespace InitialSetup {
 
       new sns.Subscription(this, 'MainStateMachineStatusTopicSubscription', {
         topic: notificationTopic,
-        protocol: sns.SubscriptionProtocol.EMAIL_JSON,
+        protocol: sns.SubscriptionProtocol.EMAIL,
         endpoint: props.notificationEmail,
       });
 
@@ -850,6 +845,7 @@ export namespace InitialSetup {
           'error.$': '$.Error',
           'cause.$': '$.Cause',
           'executionId.$': '$$.Execution.Id',
+          acceleratorVersion: props.acceleratorVersion,
         },
         resultPath: 'DISCARD',
       });

@@ -32,6 +32,7 @@ export interface MoveAccountProps {
   acceleratorPipelineRole: iam.IRole;
   lambdaCode: lambda.Code;
   acceleratorStateMachineName: string;
+  configRootFilePath: string;
 }
 
 /**
@@ -47,6 +48,7 @@ export async function step1(props: OuValidationStep1Props) {
     configRepositoryName,
     defaultRegion,
     acceleratorStateMachineName,
+    configRootFilePath,
   } = context;
   const lambdaPath = require.resolve('@aws-pbmm/apps-lambdas');
   const lambdaDir = path.dirname(lambdaPath);
@@ -80,6 +82,7 @@ export async function step1(props: OuValidationStep1Props) {
     defaultRegion,
     lambdaCode,
     acceleratorStateMachineName,
+    configRootFilePath,
   });
 
   // Creates resource needed for handling create account directly from console
@@ -108,6 +111,7 @@ export async function step1(props: OuValidationStep1Props) {
     configRepositoryName,
     defaultRegion,
     lambdaCode,
+    configRootFilePath,
   });
 
   await createOrganizationalUnit({
@@ -130,6 +134,7 @@ async function moveAccount(input: MoveAccountProps) {
     defaultRegion,
     lambdaCode,
     acceleratorStateMachineName,
+    configRootFilePath,
   } = input;
   const acceleratorStateMachineArn = `arn:aws:states:${defaultRegion}:${scope.accountId}:stateMachine:${acceleratorStateMachineName}`;
   const moveAccountFunc = new lambda.Function(scope, 'moveAccountToOrganization', {
@@ -144,6 +149,7 @@ async function moveAccount(input: MoveAccountProps) {
       ACCELERATOR_STATEMACHINE_ROLENAME: acceleratorPipelineRole.roleName,
       ACCELERATOR_DEFAULT_REGION: defaultRegion,
       ACCELERATOR_STATE_MACHINE_ARN: acceleratorStateMachineArn,
+      CONFIG_ROOT_FILE_PATH: configRootFilePath,
     },
     timeout: cdk.Duration.minutes(15),
   });

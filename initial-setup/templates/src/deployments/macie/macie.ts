@@ -78,11 +78,6 @@ export async function step1(props: MacieStepProps) {
 
   const masterOrgKey = config.getMandatoryAccountKey('master');
 
-  const masterAccountKey = config['global-options']['central-security-services'].account;
-  const masterAccountId = getAccountId(accounts, masterAccountKey);
-  const regions = await getValidRegions(config);
-  const findingPublishingFrequency = await getFrequency(config);
-
   const macieAdminRoleOutput = IamRoleOutputFinder.tryFindOneByName({
     outputs,
     accountKey: masterOrgKey,
@@ -101,6 +96,10 @@ export async function step1(props: MacieStepProps) {
     return;
   }
 
+  const masterAccountKey = config['global-options']['central-security-services'].account;
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
+  const regions = await getValidRegions(config);
+  const findingPublishingFrequency = await getFrequency(config);
   regions?.map(region => {
     // Macie admin need to be enabled from master account of the organization
     const masterAccountStack = accountStacks.getOrCreateAccountStack(masterOrgKey, region);

@@ -22,6 +22,7 @@ import * as vpcDeployment from '../deployments/vpc';
 import * as createTrail from '../deployments/cloud-trail';
 import * as tgwDeployment from '../deployments/transit-gateway';
 import * as macie from '../deployments/macie';
+import * as centralServices from '../deployments/central-services';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -200,11 +201,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
   }
 
-  // Deploy Security Hub Step-2
-  await securityHub.step2({
+  // Deploy Security Hub Step-1
+  await securityHub.step1({
     accountStacks,
     accounts,
     config: acceleratorConfig,
+    outputs,
+  });
+
+  // Central Services step 2
+  await centralServices.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+    context,
     outputs,
   });
 

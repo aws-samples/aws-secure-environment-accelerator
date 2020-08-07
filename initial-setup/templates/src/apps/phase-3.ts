@@ -7,6 +7,7 @@ import { ImportedVpc } from '../deployments/vpc';
 import { VpcOutput } from '@aws-pbmm/common-outputs/lib/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CentralBucketOutput } from '../deployments/defaults';
+import * as securityHub from '../deployments/security-hub';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   /**
@@ -77,5 +78,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
     vpcs: allVpcs,
     centralBucket,
+  });
+
+  // Deploy Security Hub Step-2
+  await securityHub.step2({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
   });
 }

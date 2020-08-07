@@ -81,11 +81,6 @@ export async function step2(props: GuardDutyStepProps) {
   }
 
   const masterAccountKey = props.config['global-options']['central-security-services'].account;
-  const regions = await getValidRegions(props.config);
-  const accountDetails = props.accounts.map(account => ({
-    AccountId: account.id,
-    Email: account.email,
-  }));
   const adminSetupRoleOutput = IamRoleOutputFinder.tryFindOneByName({
     outputs: props.outputs,
     accountKey: masterAccountKey,
@@ -94,6 +89,12 @@ export async function step2(props: GuardDutyStepProps) {
   if (!adminSetupRoleOutput) {
     return;
   }
+
+  const regions = await getValidRegions(props.config);
+  const accountDetails = props.accounts.map(account => ({
+    AccountId: account.id,
+    Email: account.email,
+  }));
   regions?.map(region => {
     const masterAccountStack = props.accountStacks.getOrCreateAccountStack(masterAccountKey, region);
     new GuardDutyAdminSetup(masterAccountStack, 'GuardDutyAdminSetup', {

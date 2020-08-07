@@ -8,18 +8,13 @@ export interface LoadConfigurationInput {
   acceleratorVersion?: string;
 }
 
-export interface LoadConfigurationOutput {
-  configCommitId: string;
-  baseline: string;
-}
-
 export interface ConfigurationOrganizationalUnit {
   ouId: string;
   ouKey: string;
   ouName: string;
 }
 
-export const handler = async (input: LoadConfigurationInput): Promise<LoadConfigurationOutput> => {
+export const handler = async (input: LoadConfigurationInput): Promise<string> => {
   console.log(`Loading configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
@@ -42,8 +37,5 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   } else {
     throw new Error(`Both "alz-baseline" and "ct-baseline" can't be true`);
   }
-  return {
-    ...input,
-    baseline,
-  };
+  return baseline;
 };
