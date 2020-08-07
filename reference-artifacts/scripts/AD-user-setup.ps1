@@ -30,9 +30,8 @@ $dom,$ext=$fdn.split('.')
 $pass = ConvertTo-SecureString $Password -AsPlainText -Force
 $securePassword = ConvertTo-SecureString $DomainAdminPassword -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential $DomainAdminUser, $securePassword
-$userExists = Get-ADUser -Credential $credential -Filter "Name -eq '$UserName'"
 
-If ($null -eq $userExists -and $UserEmailAddress) {
+If ($UserEmailAddress) {
   #Create User
   New-ADUser -Name $UserName -EmailAddress $UserEmailAddress -AccountPassword $pass -Enabled 1 -Credential $credential -SamAccountName $UserName
 }
