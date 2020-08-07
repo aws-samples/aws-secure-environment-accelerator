@@ -402,3 +402,5 @@ It should be noted that we have added code to the Accelerator to block customers
 4. The release workflow will run, and create a **draft** release if successful with all commits since the last tagged release.
 5. Prune the commits that have been added to the release (e.g. remove any low-information commits)
 6. Publish the release - this creates the git tag in the repo and marks the release as latest.
+
+[...Return to Table of Contents](../index.md)
