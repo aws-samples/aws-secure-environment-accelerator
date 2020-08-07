@@ -18,7 +18,7 @@ The *AWS Secure Environment Architecture* has been built with the following desi
 
 1. Maximize agility, scalability, and availability
 2. Enable the full capability of the AWS cloud and do not artificially limit capabilities based on lowest common denominator supported capabilities of other cloud providers
-4. Be adaptable to evolving technological capabilities in the underlying platform being used in the architecture
+4. Be adaptable to evolving technological capabilities in the underlying platform being used in the *AWS Secure Environment Architecture*
 5. Allow for seamless auto-scaling and provide unbounded bandwidth as bandwidth requirements increase (or decrease) based on actual customer load (a key aspect of the value proposition of cloud computing)
 6. High availability is paramount: the design stretches across two physical AWS Availability Zones (AZ), such that the loss of any one AZ does not impact application availability. The design can be easily extended to a third availability zone.
 7. Least Privilege: all principals in the accounts are intended to operate with the lowest-feasible permission set.
@@ -28,7 +28,7 @@ The *AWS Secure Environment Architecture* has been built with the following desi
 
 This document is intended to outline the technical measures that are delivered by the *AWS Secure Environment Architecture* that make it suitable for PBMM workloads. An explicit **non-goal** of this document is to explain the delivery architecture of the [AWS Secure Environment Accelerator tool][accel_tool] itself, an open-source software project built by AWS.
 
-While the central purpose of the [AWS Secure Environment Accelerator][accel_tool] is to establish an *AWS Secure Environment Architecture* into an AWS account footprint, this amounts to an implementation detail as far as the *AWS Secure Environment Architecture* is concerned. The Architecture is a standalone design, irrespective of how it was delivered into a customer AWS environment. It is nonetheless anticipated that most customers will choose to realize their *AWS Secure Environment Architecture* via the delivery mechanism of the _AWS Secure Environment Accelerator tool_.
+While the central purpose of the [AWS Secure Environment Accelerator][accel_tool] is to establish an *AWS Secure Environment Architecture* into an AWS account footprint, this amounts to an implementation detail as far as the *AWS Secure Environment Architecture* is concerned. The *AWS Secure Environment Architecture* is a standalone design, irrespective of how it was delivered into a customer AWS environment. It is nonetheless anticipated that most customers will choose to realize their *AWS Secure Environment Architecture* via the delivery mechanism of the [AWS Secure Environment Accelerator tool][accel_tool].
 
 Comprehensive details on the tool itself are available elsewhere:
 
@@ -195,7 +195,7 @@ As discussed above, the master account functions as the root of the AWS Organiza
 The perimeter account, and in particular the perimeter VPC therein, functions as the single point of ingress/egress from the PBMM cloud environment to the public internet and/or on-premises network. This provides a central point of network control through which all workload-generated traffic, ingress and egress, must transit. The perimeter VPC hosts next-generation firewall instances that provide security services such as virus scanning, malware protection, intrusion protection, TLS inspection, and web application firewall functionality. More details on can be found in the Networking section of this document.
 
 #### Shared Network
-The shared network account hosts the vast majority of the AWS-side of the networking resources throughout the Architecture. Workload-scoped VPCs (`Dev`, `Test`, `Prod`, etc) are defined here, and shared via RAM sharing to the respective OUs in the Organization. A Transit Gateway provides connectivity from the workloads to the internet or on-prem, without permitting cross-environment (AKA "East:West traffic") traffic (e.g. there is no Transit Gateway route from the `Dev` VPC to the `Prod` VPC). More details on can be found in the Networking section of this document.
+The shared network account hosts the vast majority of the AWS-side of the networking resources throughout the *AWS Secure Environment Architecture*. Workload-scoped VPCs (`Dev`, `Test`, `Prod`, etc) are defined here, and shared via RAM sharing to the respective OUs in the Organization. A Transit Gateway provides connectivity from the workloads to the internet or on-prem, without permitting cross-environment (AKA "East:West traffic") traffic (e.g. there is no Transit Gateway route from the `Dev` VPC to the `Prod` VPC). More details on can be found in the Networking section of this document.
 
 #### Operations
 The operations account provides a central location for the cloud team to provide cloud operation services to other AWS accounts within the Organization; for example CICD, developer tooling, and a managed Active Directory installation.
@@ -244,7 +244,9 @@ All functional accounts use RAM-shared networking infrastructure as depicted abo
 ### Perimeter
 The perimeter VPC hosts the Organization's perimeter security services. The Perimeter VPC is used to control the flow of traffic between AWS Accounts and external networks: both public and private via GC CAP and GC TIP. This VPC hosts Next Generation Firewalls (NGFW) that provide perimeter security services including virus scanning / malware protection, Intrusion Protection services, TLS Inspection and Web Application Firewall protection. If applicable, this VPC also hosts reverse proxy servers.
 
-The Architecture recommends that the perimeter VPC have a primary range in the [RFC1918][1918] block (e.g. `10.7.4.0/22`) for the detonation subnet, and a secondary range in the [RFC6598][6598] block (e.g. `100.96.250.0/23`) used for the overlay network (NGFW devices inside VPN tunnel) for all other subnets. This secondary range is assigned by an external entity (e.g. Shared Services Canada).
+####
+* **Primary Range**: The *AWS Secure Environment Architecture* recommends that the perimeter VPC have a primary range in the [RFC1918][1918] block (e.g. `10.7.4.0/22`), used only for subnets dedicated to 'detonation' purposes. This primary range, in an otherwise-unused [RFC1918][1918] range, is not intended to be routeable outside of the VPC, and is reserved for future use with malware detonation capabilities of NGFW devices.
+* **Secondary Range**: This VPC should also have a secondary range in the [RFC6598][6598] block (e.g. `100.96.250.0/23`) used for the overlay network (NGFW devices inside VPN tunnel) for all other subnets. This secondary range is assigned by an external entity (e.g. Shared Services Canada), and should be carefully selected in order to co-exist with *AWS Secure Environment Architecture* deployments that exist at peer organizations; for instance other government departments that maintain a relationship with the same shared entity in a carrier-grade NAT topology. Although this is a 'secondary' range in VPC parlance, this VPC CIDR should be interpreted as the more 'significant' of the two with respect to Transit Gateway routing; the Transit Gateway will only ever interact with this 'secondary' range.
 
 ![Endpoints](./images/perimeter.drawio.png)
 
@@ -356,7 +358,7 @@ The workload VPCs are where line of business applications ultimately reside, seg
 
 Note that security groups are recommended as the primary data-plane isolation mechanism between applications that may coexist in the same VPC. It is anticipated that unrelated applications would coexist in their respective tiers without ever permitting east-west traffic flows.
 
-The following subnets are defined by the Architecture:
+The following subnets are defined by the *AWS Secure Environment Architecture*:
 
 * **TGW subnet**: This subnet hosts the elastic-network interfaces for the TGW attachment. A `/27` subnet is sufficient.
 * **Web subnet**: This subnet hosts front-end or otherwise 'client' facing infrastructure. A `/20` or larger subnet is recommended to facilitate auto-scaling.
@@ -402,14 +404,14 @@ An EC2 instance deployed in the Workload VPCs can join the domain corresponding 
 
 
 #### Sandbox VPC
-A sandbox VPC, not depicted, may be included in the architecture. This is **not** connected to the Transit Gateway, Perimeter VPC, on-premises network, or other common infrastructure. It contains its own Internet Gateway, and is an entirely separate VPC with respect to the rest of the architecture.
+A sandbox VPC, not depicted, may be included in the *AWS Secure Environment Architecture*. This is **not** connected to the Transit Gateway, Perimeter VPC, on-premises network, or other common infrastructure. It contains its own Internet Gateway, and is an entirely separate VPC with respect to the rest of the *AWS Secure Environment Architecture*.
 
 The sandbox VPC should be used exclusively for time-limited experimentation, particularly with out-of-region services, and never used for any line of business workload or data.
 
 <a name="AA"/>
 
 ## 4. Authorization and Authentication
-The *AWS Secure Environment Architecture* makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrailing objectives of the architecture, and govern access to the set of accounts that makes up the Organization.
+The *AWS Secure Environment Architecture* makes extensive use of AWS authorization and authentication primitives from the Identity and Access Management (IAM) service as a means to enforce the guardrailing objectives of the *AWS Secure Environment Architecture*, and govern access to the set of accounts that makes up the Organization.
 
 ### Relationship to the Master Account
 
@@ -445,7 +447,7 @@ Given the Organizational-wide trust relationship in the `AWSCloudFormationStackS
 
 
 ### Control Plane Access via AWS SSO
-The vast majority of end-users of the AWS cloud within the Organization will never use or interact with the master account, or indeed the root users of any child account in the Organization. The Architecture recommends instead that AWS SSO be provisioned in the master account (a rare case where master account deployment is mandated).
+The vast majority of end-users of the AWS cloud within the Organization will never use or interact with the master account, or indeed the root users of any child account in the Organization. The *AWS Secure Environment Architecture* recommends instead that AWS SSO be provisioned in the master account (a rare case where master account deployment is mandated).
 
 Users will login to AWS via the web-based endpoint for the AWS SSO service:
 
@@ -471,7 +473,7 @@ Having assumed a role, a user’s permission-level within an AWS account with re
 
 ![IAM-policy](./images/iam-policy-evaluation.png)
 
-Having an `Allow` to a particular API operation from the Role (i.e. Session Policy) does not necessarily imply that API operation will succeed. As depicted above, **Deny** may result due to another evaluation stage in the logic; for example a restrictive permission boundary or an explicit `Deny` at the Resource or SCP (account) level. SCPs are used extensively as a guardrailing mechanism in the Architecture, and are discussed in a later section.
+Having an `Allow` to a particular API operation from the Role (i.e. Session Policy) does not necessarily imply that API operation will succeed. As depicted above, **Deny** may result due to another evaluation stage in the logic; for example a restrictive permission boundary or an explicit `Deny` at the Resource or SCP (account) level. SCPs are used extensively as a guardrailing mechanism in the *AWS Secure Environment Architecture*, and are discussed in a later section.
 
 ###	Root Authorization
 Root credentials for individual accounts in an AWS organization may be created on demand via a password reset process on the unique account email address; however, the *AWS Secure Environment Architecture* specifically denies this via SCP. Root credentials authorize all actions for all AWS services and for all resources in the account (except anything denied by SCPs). There are some actions which only root has the capability to perform which are found within the [AWS online documentation][root]. These are typically rare operations (e.g. creation of X.509 keys), and should not be required in the normal course of business. Any root credentials, if ever they need to be created, should be handled with extreme diligence, with U2F MFA enabled.
