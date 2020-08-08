@@ -2,7 +2,7 @@
 
 # **Documentation** (Linked)
 
-### - [Solution Summary](../README.md)
+### - [Solution Summary / Repo Root](../README.md)
 
 ### - [Installation, Upgrades and Basic Operations Guide](installation/index.md)
 
@@ -10,6 +10,6 @@
 
 ### - [Accelerator Developer Guide](https://github.com/aws-samples/aws-pbmm-accelerator/wiki/Developer-Guide) (Early Draft)
 
-### - [Prescriptive PBMM Architecture Design Document.](https://github.com/aws-samples/aws-pbmm-accelerator/blob/feature/8.35-architecture-document-v2/docs/architectures/pbmm/index.md) (Early Draft)
+### - [Prescriptive PBMM Architecture Design Document](https://github.com/aws-samples/aws-pbmm-accelerator/blob/feature/8.35-architecture-document-v2/docs/architectures/pbmm/index.md) (Early Draft)
 
 ### - [Frequently Asked Questions](faq/index.md)
