@@ -29,6 +29,8 @@
         "globalaccelerator:Update*",
         "kms:ScheduleKeyDeletion",
         "kms:Delete*",
+		"route53:Associate*",
+		"route53:Disassociate*",
         "iam:CreateGroup",
         "iam:CreateUser",
         "iam:CreateAccessKey",
