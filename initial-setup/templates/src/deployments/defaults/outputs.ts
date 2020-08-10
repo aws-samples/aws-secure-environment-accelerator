@@ -147,7 +147,7 @@ export namespace AesBucketOutput {
       throw new Error(`Cannot find central AES bucket for log account ${logAccountKey}`);
     }
 
-    return s3.Bucket.fromBucketAttributes(logAccountStack, 'LogBucket', {
+    return s3.Bucket.fromBucketAttributes(logAccountStack, 'AesLogBucket', {
       bucketName: aesBucketOutput.bucketName,
     });
   }

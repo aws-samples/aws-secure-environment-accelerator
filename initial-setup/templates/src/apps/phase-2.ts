@@ -23,6 +23,7 @@ import * as createTrail from '../deployments/cloud-trail';
 import * as tgwDeployment from '../deployments/transit-gateway';
 import * as macie from '../deployments/macie';
 import * as centralServices from '../deployments/central-services';
+import * as guardDutyDeployment from '../deployments/guardduty';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -259,11 +260,35 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  await macie.step3({
-    accountBuckets,
+  // Macie step 2
+  await macie.step2({
     accountStacks,
     accounts,
     config: acceleratorConfig,
+    outputs,
+  });
+
+  if (!acceleratorConfig['global-options']['alz-baseline']) {
+    /**
+     * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+     * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
+     *
+     * @param props accountStacks and config passed from phases
+     */
+    await guardDutyDeployment.step2({
+      accountStacks,
+      config: acceleratorConfig,
+      accounts,
+      outputs,
+    });
+  }
+
+  const logBucket = accountBuckets[acceleratorConfig['global-options']['central-log-services'].account];
+  await guardDutyDeployment.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+    logBucket,
     outputs,
   });
 }

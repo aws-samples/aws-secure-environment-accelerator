@@ -74,6 +74,8 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: FunAcctPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: FunAcctPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: LogArchivePhase1 1`] = `
@@ -374,6 +376,8 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: OperationsPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: OperationsPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PerimeterPhase0 1`] = `Array []`;
@@ -525,6 +529,8 @@ Array [
 `;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SecurityPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SecurityPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase0 1`] = `Array []`;
 
@@ -694,6 +700,8 @@ Array [
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: FunAcctPhase1 1`] = `Array []`;
@@ -701,6 +709,8 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: FunAcctPhase1VpcStackSandboxA62C11F1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: FunAcctPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: FunAcctPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: LogArchivePhase0 1`] = `Array []`;
 
@@ -773,6 +783,8 @@ Array [
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: OperationsPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: OperationsPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PerimeterPhase0 1`] = `Array []`;
@@ -792,6 +804,8 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SecurityPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SecurityPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SecurityPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase0 1`] = `Array []`;
 
@@ -829,6 +843,8 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: FunAcctPhase1 1`] = `Array []`;
@@ -836,6 +852,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: FunAcctPhase1VpcStackSandboxA62C11F1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: FunAcctPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: FunAcctPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: LogArchivePhase0 1`] = `Array []`;
 
@@ -901,6 +919,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: OperationsPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: OperationsPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: OperationsPhase5 1`] = `Array []`;
 
@@ -1048,6 +1068,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SecurityPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SecurityPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase0UsEast1 1`] = `Array []`;
@@ -1084,6 +1106,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: FunAcctPhase1 1`] = `Array []`;
@@ -1091,6 +1115,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: FunAcctPhase1VpcStackSandboxA62C11F1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: FunAcctPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: FunAcctPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: LogArchivePhase0 1`] = `Array []`;
 
@@ -1128,6 +1154,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: OperationsPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: OperationsPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: PerimeterPhase0 1`] = `Array []`;
@@ -1147,6 +1175,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SecurityPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SecurityPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SecurityPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase0 1`] = `
 Array [
@@ -1209,6 +1239,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: FunAcctPhase1 1`] = `Array []`;
@@ -1216,6 +1248,8 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: FunAcctPhase1VpcStackSandboxA62C11F1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: FunAcctPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: FunAcctPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: LogArchivePhase0 1`] = `Array []`;
 
@@ -1252,6 +1286,8 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: OperationsPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: OperationsPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: OperationsPhase5 1`] = `Array []`;
 
@@ -1294,6 +1330,8 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SecurityPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SecurityPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase0UsEast1 1`] = `Array []`;
@@ -1330,6 +1368,8 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: FunAcctPhase1 1`] = `
@@ -1347,6 +1387,8 @@ Array [
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: FunAcctPhase1VpcStackSandboxA62C11F1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: FunAcctPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: FunAcctPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: LogArchivePhase0 1`] = `
 Array [
@@ -1441,6 +1483,8 @@ exports[`there should not be any unsupported resource changes for AWS::S3::Bucke
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: OperationsPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: OperationsPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PerimeterPhase0 1`] = `Array []`;
@@ -1480,6 +1524,8 @@ Array [
 `;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SecurityPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SecurityPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase0 1`] = `Array []`;
 
@@ -1537,6 +1583,8 @@ Array [
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: FunAcctPhase1 1`] = `Array []`;
@@ -1544,6 +1592,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: FunAcctPhase1VpcStackSandboxA62C11F1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: FunAcctPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: FunAcctPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: LogArchivePhase0 1`] = `Array []`;
 
@@ -1648,6 +1698,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: OperationsPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: OperationsPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PerimeterPhase0 1`] = `Array []`;
@@ -1667,6 +1719,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SecurityPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SecurityPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SecurityPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase0 1`] = `Array []`;
 
@@ -1704,6 +1758,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase2 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: FunAcctPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: FunAcctPhase1 1`] = `Array []`;
@@ -1711,6 +1767,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: FunAcctPhase1VpcStackSandboxA62C11F1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: FunAcctPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: FunAcctPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: LogArchivePhase0 1`] = `Array []`;
 
@@ -1808,6 +1866,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: OperationsPhase2SecurityGroupsCentralShared18DBF8A21 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: OperationsPhase3 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: OperationsPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PerimeterPhase0 1`] = `Array []`;
@@ -1836,6 +1896,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SecurityPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SecurityPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SecurityPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase0 1`] = `Array []`;
 
@@ -1872,3 +1934,5 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase3 1`] = `Array []`;
