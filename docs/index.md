@@ -6,9 +6,9 @@
 
 ### - [Installation, Upgrades and Basic Operations Guide](installation/index.md)
 
-### - [Accelerator Operations/Troubleshooting Guide](https://github.com/aws-samples/aws-pbmm-accelerator/wiki/Operations-Guide) (Early Draft)
+### - [Accelerator Operations/Troubleshooting Guide](https://github.com/aws-samples/aws-pbmm-accelerator/docs/operations/operations-troubleshooting-guide.md) (Early Draft)
 
-### - [Accelerator Developer Guide](https://github.com/aws-samples/aws-pbmm-accelerator/wiki/Developer-Guide) (Early Draft)
+### - [Accelerator Developer Guide](https://github.com/aws-samples/aws-pbmm-accelerator/docs/developer/developer-guide.md) (Early Draft)
 
 ### - [Prescriptive PBMM Architecture Design Document.](https://github.com/aws-samples/aws-pbmm-accelerator/blob/feature/8.35-architecture-document-v2/documentation/architecture/index.md) (Early Draft)
 
