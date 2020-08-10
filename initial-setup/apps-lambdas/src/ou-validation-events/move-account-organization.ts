@@ -134,7 +134,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
   const accountConfig: { [key: string]: AccountInfo } = {};
   const accountPrefix = rawConfig['global-options']['workloadaccounts-prefix'];
   let accountSuffix = rawConfig['global-options']['workloadaccounts-suffix']!;
-  const wlaSuffixFileName = rawConfig['global-options']['workloadaccount-suffix-file-name'];
+  const wlaSuffixFileName = rawConfig['global-options']['workloadaccounts-param-filename'];
   let useNewConfigFile = false;
   let accountKey = '';
   if (accountInfo) {
@@ -142,7 +142,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     newAccount = false;
     accountKey = accountInfo[0];
     accountConfig[accountInfo[0]] = {
-      filename: accountInfo[1]['file-name'],
+      filename: accountInfo[1]['src-filename'],
       type: 'mandatory',
       'ou-path': destinationOrg.Path,
       ou: destinationOrg.Name,
@@ -156,7 +156,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
       newAccount = false;
       accountKey = accountInfo[0];
       accountConfig[accountInfo[0]] = {
-        filename: accountInfo[1]['file-name'],
+        filename: accountInfo[1]['src-filename'],
         type: 'workload',
         'ou-path': destinationOrg.Path,
         ou: destinationOrg.Name,
@@ -223,7 +223,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
             email: accConfigObject.email!,
             ou: accConfigObject.ou!,
             'ou-path': accConfigObject['ou-path'],
-            'file-name': configRootFilePath,
+            'src-filename': configRootFilePath,
           };
         } else {
           if (accConfigObject.type === 'mandatory') {
@@ -280,7 +280,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
             email: accConfigObject.email!,
             ou: accConfigObject.ou!,
             'ou-path': accConfigObject['ou-path'],
-            'file-name': configRootFilePath,
+            'src-filename': configRootFilePath,
           };
         } else {
           accountFile[accKey].ou = accConfigObject.ou;
@@ -319,7 +319,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
       email: accountConfig[accountKey].email,
       ou: accountConfig[accountKey].ou,
       'ou-path': accountConfig[accountKey]['ou-path'],
-      'file-name': accountConfig[accountKey].filename,
+      'src-filename': accountConfig[accountKey].filename,
     };
     updateFiles.push({
       filePath: accountConfig[accountKey].filename,

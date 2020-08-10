@@ -19,31 +19,37 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   const { cause, executionId, notificationTopicArn, acceleratorVersion } = input;
   const errorCause = JSON.parse(cause);
 
+  // Retriving Failed State
+  let failedState: string | undefined;
   try {
-    if (errorCause.Input) {
+    failedState = await getFailedState(executionId);
+  } catch (error) {
+    console.error(error);
+  }
+
+  const errorCauseReturn = {
+    // Adding Code Version to email JSON
+    acceleratorVersion,
+    // Adding Failed State
+    FailedState: failedState!,
+    // Rest of the error
+    ...errorCause,
+  };
+
+  try {
+    if (errorCauseReturn.Input) {
       console.log('Trying to convert JSON Input string to JSON object');
-      errorCause.Input = JSON.parse(errorCause.Input);
+      errorCauseReturn.Input = JSON.parse(errorCauseReturn.Input);
     }
   } catch (error) {
     console.error('Error while converting JSON string to JSON Object');
     console.error(error.message);
   }
 
-  // Retriving Failed State
-  try {
-    const failedState = await getFailedState(executionId);
-    errorCause.FailedState = failedState!;
-  } catch (error) {
-    console.error(error);
-  }
-
-  // Adding Code Version to email JSON
-  errorCause.acceleratorVersion = acceleratorVersion;
-
   console.log('Publishing Error to SNS Topic');
-  console.log(JSON.stringify(errorCause, null, 2));
+  console.log(JSON.stringify(errorCauseReturn, null, 2));
   await sns.publish({
-    Message: JSON.stringify(errorCause),
+    Message: JSON.stringify(errorCauseReturn),
     TopicArn: notificationTopicArn,
     Subject: 'Accelerator State Machine Failure',
   });

@@ -73,7 +73,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
   if (!accountInfo) {
     return 'NO_ACCOUNT_FOUND';
   }
-  const filename = accountInfo[1]['file-name'];
+  const filename = accountInfo[1]['src-filename'];
   if (filename === configRootFilePath) {
     const configResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
     const config: AcceleratorUpdateConfig = getFormattedObject(configResponse.fileContent.toString(), format);

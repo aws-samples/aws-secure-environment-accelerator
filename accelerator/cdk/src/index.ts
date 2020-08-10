@@ -9,6 +9,7 @@ process.on('unhandledRejection', (reason, _) => {
 
 async function main() {
   const env = process.env;
+  const pkg = require('../package.json');
 
   // Load accelerator parameters
   const app = new cdk.App();
@@ -27,7 +28,8 @@ async function main() {
   const notificationEmail = env.NOTIFICATION_EMAIL || 'user@test.com';
 
   // Make Sure we change version in "package.json" with respect to code releases
-  const acceleratorVersion = env.npm_package_version || '1.1.4';
+  const acceleratorVersion = pkg.version;
+  console.log(`Installing Accelerator with version: ${acceleratorVersion}`);
 
   console.log(`Found accelerator context:`);
   console.log(`  Name: ${acceleratorName}`);
