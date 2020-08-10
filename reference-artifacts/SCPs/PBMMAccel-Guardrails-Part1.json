@@ -29,6 +29,7 @@
       "NotAction": [
         "iam:PassRole",
         "iam:GetRole",
+        "iam:GetRolePolicy",
         "iam:ListAttachedRolePolicies",
         "iam:ListInstanceProfilesForRole",
         "iam:ListRolePolicies",
