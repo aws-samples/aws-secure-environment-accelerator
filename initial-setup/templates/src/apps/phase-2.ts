@@ -268,14 +268,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  await macie.step3({
-    accountBuckets,
-    accountStacks,
-    accounts,
-    config: acceleratorConfig,
-    outputs,
-  });
-
   if (!acceleratorConfig['global-options']['alz-baseline']) {
     /**
      * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
