@@ -19,6 +19,11 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   const { cause, executionId, notificationTopicArn, acceleratorVersion } = input;
   const errorCause = JSON.parse(cause);
 
+  const defaultReturnArguments = {
+    acceleratorVersion,
+    Status: 'FAILED',
+  };
+
   // Retriving Failed State
   let failedState: string | undefined;
   try {
@@ -28,8 +33,8 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   }
 
   const errorCauseReturn = {
-    // Adding Code Version to email JSON
-    acceleratorVersion,
+    // Adding defaultArguments in return with appropriate order
+    ...defaultReturnArguments,
     // Adding Failed State
     FailedState: failedState!,
     // Rest of the error
