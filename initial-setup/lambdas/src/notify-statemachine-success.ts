@@ -22,17 +22,23 @@ export const handler = async (input: NotifySuccessInput): Promise<string> => {
     ouPath: acc.ouPath,
     name: acc.name,
   }));
-  let successReturn = {
-    allAccounts: 'Yes',
+  const defaultReturnArguments = {
     acceleratorVersion,
+    Status: 'SUCCESS',
+  };
+  let successReturn = {
+    // Adding defaultArguments in return with appropriate order
+    ...defaultReturnArguments,
+    allAccounts: 'Yes',
     accounts: responseAccounts,
   };
   let successReturnStr = JSON.stringify(successReturn);
   while (successReturnStr.length > MAX_SNS_PUBLISH_CHAR) {
     const avgRemoveAccounts = Math.ceil((successReturnStr.length - MAX_SNS_PUBLISH_CHAR) / AVG_CHARS_PER_ACCOUNT);
     successReturn = {
+      // Adding defaultArguments in return with appropriate order
+      ...defaultReturnArguments,
       allAccounts: 'No',
-      acceleratorVersion,
       accounts: successReturn.accounts.slice(0, successReturn.accounts.length - avgRemoveAccounts),
     };
     successReturnStr = JSON.stringify(successReturn);
