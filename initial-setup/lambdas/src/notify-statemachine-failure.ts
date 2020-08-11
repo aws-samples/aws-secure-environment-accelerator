@@ -21,7 +21,7 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   try {
     errorCause = JSON.parse(cause);
   } catch (error) {
-    console.warn(`Can't convert "cause" to JSON so using `);
+    console.warn(`Failed to convert "cause" to JSON`);
     errorCause = {
       Message: cause,
     };
