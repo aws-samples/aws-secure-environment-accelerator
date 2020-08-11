@@ -17,7 +17,20 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   console.log(JSON.stringify(input, null, 2));
 
   const { cause, executionId, notificationTopicArn, acceleratorVersion } = input;
-  const errorCause = JSON.parse(cause);
+  let errorCause;
+  try {
+    errorCause = JSON.parse(cause);
+  } catch (error) {
+    console.warn(`Failed to convert "cause" to JSON`);
+    errorCause = {
+      Message: cause,
+    };
+  }
+
+  const defaultReturnArguments = {
+    acceleratorVersion,
+    Status: 'FAILED',
+  };
 
   // Retriving Failed State
   let failedState: string | undefined;
@@ -28,8 +41,8 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   }
 
   const errorCauseReturn = {
-    // Adding Code Version to email JSON
-    acceleratorVersion,
+    // Adding defaultArguments in return with appropriate order
+    ...defaultReturnArguments,
     // Adding Failed State
     FailedState: failedState!,
     // Rest of the error

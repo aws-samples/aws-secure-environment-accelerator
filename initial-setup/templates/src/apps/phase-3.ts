@@ -6,8 +6,9 @@ import * as rsyslogDeployment from '../deployments/rsyslog';
 import { ImportedVpc } from '../deployments/vpc';
 import { VpcOutput } from '@aws-pbmm/common-outputs/lib/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
-import { CentralBucketOutput } from '../deployments/defaults';
+import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
 import * as securityHub from '../deployments/security-hub';
+import * as macie from '../deployments/macie';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   /**
@@ -82,6 +83,22 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Deploy Security Hub Step-2
   await securityHub.step2({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  // Find the account buckets in the outputs
+  const accountBuckets = AccountBucketOutput.getAccountBuckets({
+    accounts,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await macie.step3({
+    accountBuckets,
     accountStacks,
     accounts,
     config: acceleratorConfig,

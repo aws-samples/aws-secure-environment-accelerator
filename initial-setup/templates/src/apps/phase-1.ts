@@ -405,7 +405,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
-  // Macie step 2
+  // Macie step 1
+  await macie.step1({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   await macie.enableMaciePolicy({
     accountBuckets,
     accountStacks,
@@ -413,35 +420,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
-  await macie.step2({
-    accountStacks,
-    accounts,
-    config: acceleratorConfig,
-    outputs,
-  });
 
   if (!acceleratorConfig['global-options']['alz-baseline']) {
-    /**
-     * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-     * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-     *
-     * @param props accountStacks and config passed from phases
-     */
-    await guardDutyDeployment.step2({
+    // GuardDuty step 1
+    // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
+    await guardDutyDeployment.step1({
       accountStacks,
       config: acceleratorConfig,
       accounts,
       outputs,
     });
   }
-
-  await guardDutyDeployment.step3({
-    accountStacks,
-    config: acceleratorConfig,
-    accounts,
-    logBucket,
-    outputs,
-  });
 
   // Central Services step 1
   const shardCount = acceleratorConfig['global-options']['central-log-services']['kinesis-stream-shard-count'];
