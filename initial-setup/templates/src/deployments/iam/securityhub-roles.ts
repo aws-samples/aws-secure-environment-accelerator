@@ -25,7 +25,7 @@ export async function createSecurityHubRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['securityhub:*'],
+      actions: ['securityhub:*', 'iam:CreateServiceLinkedRole'],
       resources: ['*'],
     }),
   );
