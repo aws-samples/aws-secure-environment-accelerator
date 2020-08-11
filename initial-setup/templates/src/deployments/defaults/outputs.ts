@@ -179,7 +179,7 @@ export namespace AesBucketOutput {
       throw new Error(`Cannot find central AES bucket for log account ${logAccountKey}`);
     }
 
-    return RegionalBucket.fromBucketAttributes(logAccountStack, 'LogBucket', {
+    return RegionalBucket.fromBucketAttributes(logAccountStack, 'AesLogBucket', {
       bucketName: aesBucketOutput.bucketName,
       region: aesBucketOutput.region,
     });
