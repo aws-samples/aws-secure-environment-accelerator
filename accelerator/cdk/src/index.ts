@@ -25,7 +25,7 @@ async function main() {
     env.CONFIG_S3_BUCKET || `${acceleratorPrefix.toLowerCase()}${cdk.Aws.ACCOUNT_ID}-${cdk.Aws.REGION}-config`;
 
   const enablePrebuiltProject = 'ENABLE_PREBUILT_PROJECT' in env;
-  const notificationEmail = env.NOTIFICATION_EMAIL || 'user@test.com';
+  const notificationEmail = env.NOTIFICATION_EMAIL || 'notify@example.com';
 
   // Make Sure we change version in "package.json" with respect to code releases
   const acceleratorVersion = pkg.version;

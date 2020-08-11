@@ -2,6 +2,7 @@ import * as aws from 'aws-sdk';
 import * as sq from 'aws-sdk/clients/servicequotas';
 import { listWithNextToken } from './next-token';
 import { arrayMax } from '../util/arrays';
+import { throttlingBackOff } from './backoff';
 
 const OPEN_STATUSES: sq.RequestStatus[] = ['PENDING', 'CASE_OPENED'];
 
@@ -29,9 +30,9 @@ export class ServiceQuotas {
   async getServiceQuotaOrDefault(req: sq.GetServiceQuotaRequest): Promise<sq.ServiceQuota> {
     let response;
     try {
-      response = await this.client.getServiceQuota(req).promise();
+      response = await throttlingBackOff(() => this.client.getServiceQuota(req).promise());
     } catch (e) {
-      response = await this.client.getAWSDefaultServiceQuota(req).promise();
+      response = await throttlingBackOff(() => this.client.getAWSDefaultServiceQuota(req).promise());
     }
     if (!response || !response.Quota) {
       throw new Error(`Cannot get quota with service code "${req.ServiceCode}" and quota code "${req.QuotaCode}"`);
@@ -60,10 +61,12 @@ export class ServiceQuotas {
    */
   async renewServiceQuotaIncrease(req: RenewServiceQuotaIncrease): Promise<boolean> {
     try {
-      const requestedQuotas = await this.listRequestedServiceQuotaChangeHistoryByQuota({
-        ServiceCode: req.ServiceCode,
-        QuotaCode: req.QuotaCode,
-      });
+      const requestedQuotas = await throttlingBackOff(() =>
+        this.listRequestedServiceQuotaChangeHistoryByQuota({
+          ServiceCode: req.ServiceCode,
+          QuotaCode: req.QuotaCode,
+        }),
+      );
 
       // Check that there are no open requests
       const openRequest = requestedQuotas.find(request => OPEN_STATUSES.includes(request.Status!));
@@ -85,13 +88,15 @@ export class ServiceQuotas {
 
       console.debug(`Requesting increase for quota "${req.QuotaCode}" to desired value ${req.DesiredValue}.`);
 
-      await this.client
-        .requestServiceQuotaIncrease({
-          ServiceCode: req.ServiceCode,
-          QuotaCode: req.QuotaCode,
-          DesiredValue: req.DesiredValue,
-        })
-        .promise();
+      await throttlingBackOff(() =>
+        this.client
+          .requestServiceQuotaIncrease({
+            ServiceCode: req.ServiceCode,
+            QuotaCode: req.QuotaCode,
+            DesiredValue: req.DesiredValue,
+          })
+          .promise(),
+      );
       return true;
     } catch (e) {
       if (e.code === 'QuotaExceededException') {
