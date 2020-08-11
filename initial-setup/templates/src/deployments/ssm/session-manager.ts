@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import { StackOutput} from '@aws-pbmm/common-outputs/lib/stack-output';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
@@ -25,9 +25,9 @@ export type AccountRegionSSMKeys = { [accountKey: string]: { [region: string]: K
 
 export async function step1(props: SSMStep1Props) {
   const { accountStacks, accounts, config, outputs, accountBuckets } = props;
-  const logArchiveAccountKey = config["global-options"]["central-log-services"].account;
+  const logArchiveAccountKey = config['global-options']['central-log-services'].account;
   const logBucket = accountBuckets[logArchiveAccountKey];
-  const accountRegionSsmDocuments: AccountRegionSSMKeys = {}
+  const accountRegionSsmDocuments: AccountRegionSSMKeys = {};
   for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
     const region = vpcConfig.region;
     const vpcSharedTo = getVpcSharedAccountKeys(accounts, vpcConfig, ouKey);

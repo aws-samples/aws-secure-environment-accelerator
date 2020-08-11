@@ -25,7 +25,17 @@ export class SSMDocument extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, props: SSMDocumentProps) {
     super(scope, id);
-    const { cloudWatchEncryptionEnabled, cloudWatchLogGroupName, documentName, kmsKeyId, roleArn, s3BucketName, s3EncryptionEnabled, s3KeyPrefix, documentType} = props;
+    const {
+      cloudWatchEncryptionEnabled,
+      cloudWatchLogGroupName,
+      documentName,
+      kmsKeyId,
+      roleArn,
+      s3BucketName,
+      s3EncryptionEnabled,
+      s3KeyPrefix,
+      documentType,
+    } = props;
 
     const ssmCreateDocumentLambda = this.lambdaFunction(roleArn);
     this.resource = new cdk.CustomResource(this, 'Resource', {
