@@ -4,7 +4,6 @@ import { createIamRoleOutput } from './outputs';
 import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
-import { IRole } from '@aws-cdk/aws-iam';
 
 export interface SSMDocumentProps {
   accountStacks: AccountStacks;
@@ -14,7 +13,7 @@ export interface SSMDocumentProps {
 
 export async function createSSMDocumentRoles(props: SSMDocumentProps): Promise<void> {
   const { accountStacks, accounts, config } = props;
-  const accountRoles: { [accountKey: string]: IRole } = {};
+  const accountRoles: { [accountKey: string]: iam.IRole } = {};
   for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
     const vpcSharedTo = getVpcSharedAccountKeys(accounts, vpcConfig, ouKey);
     vpcSharedTo.push(accountKey);
