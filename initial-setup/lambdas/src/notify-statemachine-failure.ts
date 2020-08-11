@@ -32,11 +32,6 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
     Status: 'FAILED',
   };
 
-  const defaultReturnArguments = {
-    acceleratorVersion,
-    Status: 'FAILED',
-  };
-
   // Retriving Failed State
   let failedState: string | undefined;
   try {
