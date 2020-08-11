@@ -44,6 +44,17 @@ export async function step1(props: SSMStep1Props) {
         continue;
       }
 
+      const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
+        outputs,
+        accountKey: localAccountKey,
+        roleKey: 'SSMSessionManagerDocument',
+      });
+
+      if (!ssmDocumentRole) {
+        console.error(`${localAccountKey}:: No Role created for SSMCreateDocument`);
+        continue;
+      }
+
       const ssmKey = new Key(accountStack, 'SSM-Key', {
         alias: 'alias/' + createEncryptionKeyName('SSM-Key'),
         trustAccountIdentities: true,
@@ -58,16 +69,6 @@ export async function step1(props: SSMStep1Props) {
       const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
       const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
 
-      const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
-        outputs,
-        accountKey: localAccountKey,
-        roleKey: 'SSMDocumentRole',
-      });
-
-      if (!ssmDocumentRole) {
-        console.error(`${localAccountKey}:: No Role created for SSMCreateDocument`);
-        continue;
-      }
       const ssmDocument = new SSMSessionManagerDocument(accountStack, 'CreateSSMSessionManagerDocument', {
         roleArn: ssmDocumentRole.roleArn,
         s3BucketName: logBucket.bucketName,
