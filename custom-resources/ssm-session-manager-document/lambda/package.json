@@ -1,5 +1,5 @@
 {
-  "name": "@custom-resources/ssm-create-document-lambda",
+  "name": "@custom-resources/ssm-session-manager-document-lambda",
   "version": "0.0.1",
   "private": true,
   "scripts": {

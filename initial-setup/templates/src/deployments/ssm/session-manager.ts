@@ -9,7 +9,7 @@ import { createLogGroupName, createEncryptionKeyName } from '@aws-pbmm/common-cd
 import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
 import { Account } from '../../utils/accounts';
 import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
-import { SSMDocument } from '@custom-resources/ssm-create-document';
+import { SSMSessionManagerDocument } from '@custom-resources/ssm-session-manager-document';
 import { AccountBuckets } from '../defaults';
 
 export interface SSMStep1Props {
@@ -44,6 +44,17 @@ export async function step1(props: SSMStep1Props) {
         continue;
       }
 
+      const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
+        outputs,
+        accountKey: localAccountKey,
+        roleKey: 'SSMSessionManagerDocument',
+      });
+
+      if (!ssmDocumentRole) {
+        console.error(`${localAccountKey}:: No Role created for SSMCreateDocument`);
+        continue;
+      }
+
       const ssmKey = new Key(accountStack, 'SSM-Key', {
         alias: 'alias/' + createEncryptionKeyName('SSM-Key'),
         trustAccountIdentities: true,
@@ -58,26 +69,14 @@ export async function step1(props: SSMStep1Props) {
       const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
       const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
 
-      const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
-        outputs,
-        accountKey: localAccountKey,
-        roleKey: 'SSMDocumentRole',
-      });
-
-      if (!ssmDocumentRole) {
-        console.error(`${localAccountKey}:: No Role created for SSMCreateDocument`);
-        continue;
-      }
-      const ssmDocument = new SSMDocument(accountStack, 'CreateSSMDocument', {
+      const ssmDocument = new SSMSessionManagerDocument(accountStack, 'CreateSSMSessionManagerDocument', {
         roleArn: ssmDocumentRole.roleArn,
         s3BucketName: logBucket.bucketName,
         cloudWatchEncryptionEnabled: useCWL,
         cloudWatchLogGroupName: logGroup.logGroupName,
-        documentName: `SSM-SessionManagerRunShell`,
-        kmsKeyId: ssmKey.keyArn,
+        kmsKeyId: ssmKey.keyId,
         s3EncryptionEnabled: useS3,
         s3KeyPrefix: `/${accountStack.accountId}/${accountStack.region}/SSM/`,
-        documentType: 'Session',
       });
       ssmDocument.node.addDependency(logGroup);
       ssmDocument.node.addDependency(ssmKey);

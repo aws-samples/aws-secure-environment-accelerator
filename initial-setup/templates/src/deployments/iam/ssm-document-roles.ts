@@ -29,13 +29,13 @@ export async function createSSMDocumentRoles(props: SSMDocumentProps): Promise<v
       }
       const ssmRole = await ssmCreateDocumentRole(accountStack);
       accountRoles[accountKey] = ssmRole;
-      createIamRoleOutput(accountStack, ssmRole, 'SSMDocumentRole');
+      createIamRoleOutput(accountStack, ssmRole, 'SSMSessionManagerDocument');
     }
   }
 }
 
 export async function ssmCreateDocumentRole(stack: AccountStack) {
-  const role = new iam.Role(stack, 'Custom::SSMDocument', {
+  const role = new iam.Role(stack, 'Custom::SSMSessionManagerDocument', {
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 

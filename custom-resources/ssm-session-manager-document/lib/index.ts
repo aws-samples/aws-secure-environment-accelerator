@@ -3,9 +3,9 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 
-const resourceType = 'Custom::SSMDocument';
+const resourceType = 'Custom::SSMSessionManagerDocument';
 
-export interface SSMDocumentProps {
+export interface SSMSessionManagerDocumentProps {
   roleArn: string;
   s3BucketName: string;
   s3KeyPrefix: string;
@@ -13,28 +13,24 @@ export interface SSMDocumentProps {
   cloudWatchLogGroupName: string;
   cloudWatchEncryptionEnabled: boolean;
   kmsKeyId: string;
-  documentName: string;
-  documentType: string;
 }
 
 /**
  * Custom resource that will create SSM Document.
  */
-export class SSMDocument extends cdk.Construct {
+export class SSMSessionManagerDocument extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: SSMDocumentProps) {
+  constructor(scope: cdk.Construct, id: string, props: SSMSessionManagerDocumentProps) {
     super(scope, id);
     const {
       cloudWatchEncryptionEnabled,
       cloudWatchLogGroupName,
-      documentName,
       kmsKeyId,
       roleArn,
       s3BucketName,
       s3EncryptionEnabled,
       s3KeyPrefix,
-      documentType,
     } = props;
 
     const ssmCreateDocumentLambda = this.lambdaFunction(roleArn);
@@ -48,8 +44,6 @@ export class SSMDocument extends cdk.Construct {
         cloudWatchLogGroupName,
         cloudWatchEncryptionEnabled,
         kmsKeyId,
-        documentName,
-        documentType,
       },
     });
   }
@@ -62,7 +56,7 @@ export class SSMDocument extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@custom-resources/ssm-create-document-lambda');
+    const lambdaPath = require.resolve('@custom-resources/ssm-session-manager-document-lambda');
     const lambdaDir = path.dirname(lambdaPath);
     const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
