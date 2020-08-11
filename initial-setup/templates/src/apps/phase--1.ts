@@ -34,4 +34,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     accountStacks,
     accounts,
   });
+
+  // Creates roles for IamCreateRole custom resource
+  await customResourceRoles.createSSMDocumentRoles({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+  });
 }

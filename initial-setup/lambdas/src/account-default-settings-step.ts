@@ -133,104 +133,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
     console.log(`Cloud Trail - settings updated (encryption...) for AWS LZ CloudTrail in account - ${accountKey}`);
   };
 
-  const updateSSMdocument = async (accountId: string, accountKey: string): Promise<void> => {
-    const globalOptionsConfig = acceleratorConfig['global-options'];
-    const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
-    const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
-
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    const ssm = new aws.SSM({
-      credentials,
-    });
-    const kms = new aws.KMS({
-      credentials,
-    });
-    const cloudwatchlogs = new aws.CloudWatchLogs({
-      credentials,
-    });
-
-    const logArchiveAccount = accounts.find(a => a.key === logAccountKey);
-    if (!logArchiveAccount) {
-      console.warn('Cannot find account with type log-archive');
-      return;
-    }
-    const logArchiveAccountKey = logArchiveAccount.key;
-    const bucketName = getStackOutput(outputs, logArchiveAccountKey, OUTPUT_LOG_ARCHIVE_BUCKET_NAME);
-    if (!bucketName) {
-      console.warn(`Cannot find output ${OUTPUT_LOG_ARCHIVE_BUCKET_NAME}`);
-      return;
-    }
-    const ssmKeyId = getStackOutput(outputs, accountKey, OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER);
-    if (!ssmKeyId) {
-      console.warn(`Cannot find output ${OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER}`);
-      return;
-    }
-    const logGroupName = getStackOutput(outputs, accountKey, OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER);
-    if (!logGroupName) {
-      console.warn(`Cannot find output ${OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER}`);
-      return;
-    }
-
-    // Encrypt CWL doc: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
-    const kmsParams = {
-      KeyId: ssmKeyId,
-    };
-    const ssmKey = await kms.describeKey(kmsParams).promise();
-    console.log('SSM key: ', ssmKey);
-
-    const cwlParams = {
-      kmsKeyId: ssmKey.KeyMetadata?.Arn || ssmKeyId,
-      logGroupName,
-    };
-    console.log('CWL encrypt: ', cwlParams);
-    await cloudwatchlogs.associateKmsKey(cwlParams).promise();
-
-    // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
-    const settings = {
-      schemaVersion: '1.0',
-      description: 'Document to hold regional settings for Session Manager',
-      sessionType: 'Standard_Stream',
-      inputs: {
-        s3BucketName: bucketName,
-        s3KeyPrefix: `/${accountId}/SSM/`, // TODO: add region when region is available to pass in
-        s3EncryptionEnabled: useS3,
-        cloudWatchLogGroupName: logGroupName,
-        cloudWatchEncryptionEnabled: useCWL,
-        kmsKeyId: ssmKeyId,
-        runAsEnabled: false,
-        runAsDefaultUser: '',
-      },
-    };
-
-    try {
-      const ssmDocument = await ssm
-        .describeDocument({
-          Name: 'SSM-SessionManagerRunShell',
-        })
-        .promise();
-
-      const updateDocumentRequest: UpdateDocumentRequest = {
-        Content: JSON.stringify(settings),
-        Name: 'SSM-SessionManagerRunShell',
-        DocumentVersion: '$LATEST',
-      };
-      console.log('Update SSM Request: ', updateDocumentRequest);
-      const updateSSMResponse = await ssm.updateDocument(updateDocumentRequest).promise();
-      console.log('Update SSM: ', updateSSMResponse);
-    } catch (e) {
-      // if Document not exist, call createDocument API
-      if (e.code === 'InvalidDocument') {
-        const createDocumentRequest: CreateDocumentRequest = {
-          Content: JSON.stringify(settings),
-          Name: 'SSM-SessionManagerRunShell',
-        };
-        console.log('Create SSM Request: ', createDocumentRequest);
-        const createSSMResponse = await ssm.createDocument(createDocumentRequest).promise();
-        console.log('Create SSM: ', createSSMResponse);
-      }
-    }
-  };
-
   const accountConfigs = acceleratorConfig.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const account = accounts.find(a => a.key === accountKey);
@@ -247,12 +149,6 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
         console.error(`Error while updating CloudTrail settings`);
         console.error(e);
       }
-    }
-
-    try {
-      await updateSSMdocument(account.id, account.key);
-    } catch (e) {
-      console.error(e);
     }
   }
 

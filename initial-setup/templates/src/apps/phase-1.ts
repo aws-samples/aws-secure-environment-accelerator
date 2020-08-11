@@ -393,6 +393,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     bucketName: logBucket.bucketName,
     config: acceleratorConfig,
+    accounts,
+    accountBuckets,
+    outputs,
   });
 
   // Cost and usage reports step 1
