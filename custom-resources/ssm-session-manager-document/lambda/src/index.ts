@@ -47,9 +47,14 @@ function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = getPropertiesFromEvent(event);
-  const { cloudWatchEncryptionEnabled,
-  cloudWatchLogGroupName, 
-kmsKeyId, s3BucketName, s3EncryptionEnabled, s3KeyPrefix } = properties;
+  const {
+    cloudWatchEncryptionEnabled,
+    cloudWatchLogGroupName,
+    kmsKeyId,
+    s3BucketName,
+    s3EncryptionEnabled,
+    s3KeyPrefix,
+  } = properties;
   // Based on doc: https://docs.aws.amazon.com/systems-manager/latest/userguide/getting-started-configure-preferences-cli.html
   const settings = {
     schemaVersion: '1.0',
