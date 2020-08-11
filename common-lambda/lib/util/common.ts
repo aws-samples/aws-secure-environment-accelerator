@@ -18,7 +18,7 @@ export function getFormattedObject(input: string, format: FormatType) {
 // tslint:disable-next-line:no-any
 export function getStringFromObject(input: any, format: FormatType) {
   if (format === JSON_FORMAT) {
-    return JSON.stringify(input);
+    return JSON.stringify(input, null, 2);
   }
   return yaml.dump(input);
 }
