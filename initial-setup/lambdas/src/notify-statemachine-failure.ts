@@ -17,7 +17,15 @@ export const handler = async (input: NotifyErrorInput): Promise<string> => {
   console.log(JSON.stringify(input, null, 2));
 
   const { cause, executionId, notificationTopicArn, acceleratorVersion } = input;
-  const errorCause = JSON.parse(cause);
+  let errorCause 
+  try {
+    errorCause = JSON.parse(cause);
+  } catch (error) {
+    console.warn(`Can't convert "cause" to JSON so using `);
+    errorCause = {
+      Message: cause
+    };
+  }
 
   const defaultReturnArguments = {
     acceleratorVersion,
