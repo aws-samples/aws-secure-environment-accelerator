@@ -23,7 +23,15 @@
     {
       "Sid": "DenyRoot",
       "Effect": "Deny",
-      "Action": "*",
+      "NotAction": [
+         "iam:CreateVirtualMFADevice",
+         "iam:EnableMFADevice",
+         "iam:GetUser",
+         "iam:ListMFADevices",
+         "iam:ListVirtualMFADevices",
+         "iam:ResyncMFADevice",
+         "sts:GetSessionToken"
+      ],
       "Resource": "*",
       "Condition": {
         "ArnLike": {

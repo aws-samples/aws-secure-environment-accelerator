@@ -20,7 +20,6 @@ import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
-import * as macie from '../deployments/macie';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 
@@ -86,15 +85,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       acceleratorPrefix: context.acceleratorPrefix,
       config: acceleratorConfig,
       accountStacks,
-    });
-
-    // GuardDuty step 1
-    // to use step1 need this to be fixed: https://t.corp.amazon.com/P36821200/overview
-    await guardDutyDeployment.step1({
-      accountStacks,
-      config: acceleratorConfig,
-      accounts,
-      outputs,
     });
   }
 
@@ -174,14 +164,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
-  });
-
-  // Macie step 1
-  await macie.step1({
-    accountStacks,
-    accounts,
-    config: acceleratorConfig,
-    outputs,
   });
 
   /**

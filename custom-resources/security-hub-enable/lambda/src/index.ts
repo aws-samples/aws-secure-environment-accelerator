@@ -28,6 +28,8 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   } catch (error) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');
+    } else {
+      throw new Error(error);
     }
   }
 
