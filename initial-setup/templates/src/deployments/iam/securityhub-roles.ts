@@ -23,9 +23,12 @@ export async function createSecurityHubRole(stack: AccountStack) {
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 
+  // iam:CreateServiceLinkedRole permission is required to create
+  // AWSServiceRoleForSecurityHub role while enabling Security Hub
+  // refer https://docs.aws.amazon.com/securityhub/latest/userguide/using-service-linked-roles.html
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['securityhub:*'],
+      actions: ['securityhub:*', 'iam:CreateServiceLinkedRole'],
       resources: ['*'],
     }),
   );
