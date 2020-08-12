@@ -1,9 +1,20 @@
 packages:
-  - common-cdk
-  - common-lambda
-  - common/*
-  - custom-resources/**
-  - plugins/*
-  - accelerator/*
-  - initial-setup/*
-  
+  # - common-cdk
+  # - common-lambda
+  # - common/*
+  # - custom-resources/**
+  # - plugins/*
+  # - accelerator/*
+  # - initial-setup/*
+  - src/installer/**
+  - src/accelerator/cdk/**
+  - src/accelerator/runtime/**
+  - src/deployments/cdk/**
+  - src/deployments/runtime/**
+  - src/lib/common-types/**
+  - src/lib/common-outputs/**
+  - src/lib/common/**
+  - src/lib/common-config/**
+  - src/lib/cdk-plugin-assume-role/**
+  - src/lib/custom-resources/**
+  - src/lib/cdk-accelerator/**
