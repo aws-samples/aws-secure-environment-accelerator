@@ -7,7 +7,10 @@ import { S3CopyFiles } from '@aws-accelerator/custom-resource-s3-copy-files';
 import { S3PublicAccessBlock } from '@aws-accelerator/custom-resource-s3-public-access-block';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';
 import { AcceleratorConfig, VpcConfig } from '@aws-accelerator/common-config/src';
-import { createEncryptionKeyName, createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import {
+  createEncryptionKeyName,
+  createRoleName,
+} from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';

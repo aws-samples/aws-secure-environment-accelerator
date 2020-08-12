@@ -5,7 +5,10 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
 import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
-import { createLogGroupName, createEncryptionKeyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import {
+  createLogGroupName,
+  createEncryptionKeyName,
+} from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
 import { Account } from '../../utils/accounts';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';

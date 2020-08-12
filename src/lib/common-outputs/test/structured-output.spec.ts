@@ -6,7 +6,7 @@ test('structured output extensions should work', () => {
   const outputs: StackOutput[] = [
     {
       accountKey: 'primary',
-      region:'ca-central-1',
+      region: 'ca-central-1',
       outputValue: JSON.stringify({
         type: ArtifactOutput.name,
         value: {

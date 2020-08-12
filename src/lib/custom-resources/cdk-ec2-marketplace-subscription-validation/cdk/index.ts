@@ -62,7 +62,9 @@ export class Ec2MarketPlaceSubscriptionCheck extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation-runtime');
+    const lambdaPath = require.resolve(
+      '@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation-runtime',
+    );
     const lambdaDir = path.dirname(lambdaPath);
 
     const role = new iam.Role(stack, `${resourceType}Role`, {

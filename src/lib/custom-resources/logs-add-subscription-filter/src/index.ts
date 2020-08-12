@@ -20,7 +20,8 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
   private readonly cloudWatchEnventLambdaPath =
     '@aws-accelerator/custom-resource-logs-add-subscription-filter-cloudwatch-event-runtime';
-  private readonly cloudFormationCustomLambaPath = '@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime';
+  private readonly cloudFormationCustomLambaPath =
+    '@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime';
 
   constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);

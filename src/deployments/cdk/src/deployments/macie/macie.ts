@@ -12,7 +12,6 @@ import { AccountBuckets } from '../defaults';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
-
 export enum MacieFrequency {
   FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
   ONE_HOUR = 'ONE_HOUR',
