@@ -44,6 +44,8 @@ export class SSMSessionManagerDocument extends cdk.Construct {
         cloudWatchLogGroupName,
         cloudWatchEncryptionEnabled,
         kmsKeyId,
+        // Add a dummy value that is a random number to update the resource every time
+        forceUpdate: Math.round(Math.random() * 1000000),
       },
     });
   }
