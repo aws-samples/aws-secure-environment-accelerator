@@ -94,6 +94,8 @@ export async function step1(props: TransitGatewayStep1Props) {
 
       // Save Transit Gateway Output
       new CfnTransitGatewayOutput(transitGateway, 'Output', {
+        accountKey,
+        region: tgwConfig.region,
         name: tgwConfig.name,
         tgwId: transitGateway.ref,
         tgwRouteTableNameToIdMap: transitGateway.tgwRouteTableNameToIdMap,

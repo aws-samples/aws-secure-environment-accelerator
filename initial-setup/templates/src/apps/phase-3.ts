@@ -3,7 +3,8 @@ import { GlobalOptionsDeployment } from '../common/global-options';
 import { PhaseInput } from './shared';
 import * as alb from '../deployments/alb';
 import * as rsyslogDeployment from '../deployments/rsyslog';
-import { VpcOutput, ImportedVpc } from '../deployments/vpc';
+import { ImportedVpc } from '../deployments/vpc';
+import { VpcOutput } from '@aws-pbmm/common-outputs/lib/vpc';
 import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
 import * as securityHub from '../deployments/security-hub';
@@ -19,7 +20,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     if (!currentRouteTable) {
       continue;
     }
-    const pcxRouteDeployment = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const pcxRouteDeployment = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!pcxRouteDeployment) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -40,6 +41,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const zonesConfig = globalOptionsConfig.zones;
   const zonesAccountKey = zonesConfig.account;
 
+  // TODO Figure out how to keep the same logical IDs while supporting regions
   const zonesStack = accountStacks.tryGetOrCreateAccountStack(zonesAccountKey);
   if (!zonesStack) {
     console.warn(`Cannot find account stack ${zonesAccountKey}`);

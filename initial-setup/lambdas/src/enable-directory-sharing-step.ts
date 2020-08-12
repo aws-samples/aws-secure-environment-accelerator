@@ -1,6 +1,7 @@
 import { DirectoryService } from '@aws-pbmm/common-lambda/lib/aws/directory-service';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
 import { Account, getAccountId } from '@aws-pbmm/common-outputs/lib/accounts';
+import { MadOutput } from '@aws-pbmm/common-outputs/lib/mad';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { StackOutput, getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { loadAcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config/load';
@@ -12,15 +13,6 @@ interface ShareDirectoryInput extends LoadConfigurationInput {
   stackOutputBucketName: string;
   stackOutputBucketKey: string;
   stackOutputVersion: string;
-}
-
-// TODO Move to common outputs
-interface MadOutput {
-  id: number;
-  vpcName: string;
-  directoryId: string;
-  dnsIps: string;
-  passwordArn: string;
 }
 
 const s3 = new S3();

@@ -1,55 +1,89 @@
 import * as cdk from '@aws-cdk/core';
-import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { AccountStacks } from '../../common/account-stacks';
 import { Key } from '@aws-cdk/aws-kms';
 import { AccountPrincipal, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { createLogGroupName, createEncryptionKeyName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
+import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
+import { Account } from '../../utils/accounts';
+import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
+import { SSMSessionManagerDocument } from '@custom-resources/ssm-session-manager-document';
+import { AccountBuckets } from '../defaults';
 
 export interface SSMStep1Props {
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
   bucketName: string;
+  accounts: Account[];
+  outputs: StackOutput[];
+  accountBuckets: AccountBuckets;
 }
 
+export type AccountRegionSSMKeys = { [accountKey: string]: { [region: string]: Key } | undefined };
+
 export async function step1(props: SSMStep1Props) {
-  for (const [accountKey, _] of props.config.getAccountConfigs()) {
-    const accountStack = props.accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountStack}`);
-      continue;
+  const { accountStacks, accounts, config, outputs, accountBuckets } = props;
+  const logArchiveAccountKey = config['global-options']['central-log-services'].account;
+  const logBucket = accountBuckets[logArchiveAccountKey];
+  const accountRegionSsmDocuments: AccountRegionSSMKeys = {};
+  for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
+    const region = vpcConfig.region;
+    const vpcSharedTo = getVpcSharedAccountKeys(accounts, vpcConfig, ouKey);
+    vpcSharedTo.push(accountKey);
+    const accountKeys = Array.from(new Set(vpcSharedTo));
+    for (const localAccountKey of accountKeys) {
+      if (accountRegionSsmDocuments[localAccountKey]?.[region]) {
+        console.log(`SSMDocument is already created in account ${localAccountKey} and region ${region}`);
+        continue;
+      }
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(localAccountKey, region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${localAccountKey}`);
+        continue;
+      }
+
+      const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
+        outputs,
+        accountKey: localAccountKey,
+        roleKey: 'SSMSessionManagerDocument',
+      });
+
+      if (!ssmDocumentRole) {
+        console.error(`${localAccountKey}:: No Role created for SSMCreateDocument`);
+        continue;
+      }
+
+      const ssmKey = new Key(accountStack, 'SSM-Key', {
+        alias: 'alias/' + createEncryptionKeyName('SSM-Key'),
+        trustAccountIdentities: true,
+      });
+      ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
+      ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
+
+      const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
+        logGroupName: createLogGroupName('SSM'),
+      });
+      const globalOptionsConfig = config['global-options'];
+      const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];
+      const useCWL = globalOptionsConfig['central-log-services']['ssm-to-cwl'];
+
+      const ssmDocument = new SSMSessionManagerDocument(accountStack, 'CreateSSMSessionManagerDocument', {
+        roleArn: ssmDocumentRole.roleArn,
+        s3BucketName: logBucket.bucketName,
+        cloudWatchEncryptionEnabled: useCWL,
+        cloudWatchLogGroupName: logGroup.logGroupName,
+        kmsKeyId: ssmKey.keyId,
+        s3EncryptionEnabled: useS3,
+        s3KeyPrefix: `/${accountStack.accountId}/${accountStack.region}/SSM/`,
+      });
+      ssmDocument.node.addDependency(logGroup);
+      ssmDocument.node.addDependency(ssmKey);
+      accountRegionSsmDocuments[localAccountKey] = {
+        ...accountRegionSsmDocuments[localAccountKey],
+        [region]: ssmKey,
+      };
     }
-
-    const ssmKey = new Key(accountStack, 'SSM-Key', {
-      alias: 'alias/' + createEncryptionKeyName('SSM-Key'),
-      trustAccountIdentities: true,
-    });
-    ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
-    ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
-
-    const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
-      logGroupName: createLogGroupName('SSM'),
-    });
-
-    // Save the output so it can be used in the state machine later
-    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER, {
-      value: ssmKey.keyId,
-    });
-    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ARN_FOR_SSM_SESSION_MANAGER, {
-      value: ssmKey.keyArn,
-    });
-    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER, {
-      value: logGroup.logGroupName,
-    });
-
-    // Due to CfnDocument is not able to update SSM-SessionManagerRunShell, have to use SDK to update
-    // Move this logic to account-default-settings-step.ts
-    /*
-    new CfnDocument(accountStack, 'SessionManager', {
-      name: 'SSM-SessionManagerRunShell',
-      content: settings,
-      documentType: 'Session',
-    });*/
   }
 }

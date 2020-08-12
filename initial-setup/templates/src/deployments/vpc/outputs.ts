@@ -1,11 +1,13 @@
 import { Vpc, SecurityGroup, Subnet, RouteTables } from '@aws-pbmm/constructs/lib/vpc';
-import { VpcOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { VpcOutput } from '@aws-pbmm/common-outputs/lib/vpc';
+import { createCfnStructuredOutput } from '../../common/structured-output';
 
-export { VpcOutput, SecurityGroupsOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+export const CfnVpcOutput = createCfnStructuredOutput(VpcOutput);
 
 export interface ImportedVpcProps {
   readonly id: string;
   readonly name: string;
+  readonly region: string;
 
   readonly cidrBlock: string;
   readonly additionalCidrBlocks: string[];
@@ -17,35 +19,16 @@ export interface ImportedVpcProps {
 }
 
 export class ImportedVpc implements Vpc {
+  readonly id = this.props.id;
+  readonly name = this.props.name;
+  readonly region = this.props.region;
+  readonly cidrBlock = this.props.cidrBlock;
+  readonly additionalCidrBlocks = this.props.additionalCidrBlocks;
+  readonly subnets = this.props.subnets;
+  readonly securityGroups = this.props.securityGroups;
+  readonly routeTables = this.props.routeTables;
+
   constructor(private readonly props: ImportedVpcProps) {}
-
-  get id(): string {
-    return this.props.id;
-  }
-
-  get name(): string {
-    return this.props.name;
-  }
-
-  get cidrBlock(): string {
-    return this.props.cidrBlock;
-  }
-
-  get additionalCidrBlocks(): string[] {
-    return this.props.additionalCidrBlocks;
-  }
-
-  get subnets(): Subnet[] {
-    return this.props.subnets;
-  }
-
-  get securityGroups(): SecurityGroup[] {
-    return this.props.securityGroups;
-  }
-
-  get routeTables(): RouteTables {
-    return this.props.routeTables;
-  }
 
   findSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet {
     const subnet = this.tryFindSubnetByNameAndAvailabilityZone(name, az);
@@ -99,6 +82,7 @@ export class ImportedVpc implements Vpc {
     return new ImportedVpc({
       id: output.vpcId,
       name: output.vpcName,
+      region: output.region,
       cidrBlock: output.cidrBlock,
       additionalCidrBlocks: output.additionalCidrBlocks,
       subnets: output.subnets.map(s => ({

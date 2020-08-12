@@ -13,14 +13,14 @@ import {
   AlbTargetInstanceConfig,
   AlbTargetInstanceFirewallConfigType,
 } from '@aws-pbmm/common-lambda/lib/config';
+import { SecurityGroupsOutput, VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 import { StackOutput, getStackJsonOutput, ALB_NAME_REGEXP } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AccountStacks } from '../../common/account-stacks';
 import { AcceleratorStack } from '@aws-pbmm/common-cdk/lib/core/accelerator-stack';
+import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { createCertificateSecretName } from '../certificates';
 import { AesBucketOutput } from '../defaults';
-import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
 import { FirewallInstanceOutputFinder } from '../firewall/cluster/outputs';
-import { VpcOutput, SecurityGroupsOutput } from '../vpc';
 
 export interface AlbStep1Props {
   accountStacks: AccountStacks;
@@ -43,18 +43,19 @@ export async function step1(props: AlbStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
-    }
-
     for (const albConfig of albConfigs) {
       const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === albConfig.vpc)?.vpcConfig;
       if (!vpcConfig) {
         console.warn(`Cannot find vpc config with name ${albConfig.vpc}`);
         continue;
       }
+
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey}`);
+        continue;
+      }
+
       createAlb(accountKey, albConfig, accountStack, outputs, aesLogArchiveBucket, vpcConfig.deploy);
     }
   }
@@ -72,10 +73,10 @@ export function createAlb(
   const certificateSecret = cdk.SecretValue.secretsManager(certificateSecretName);
 
   // Import all VPCs from all outputs
-  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-    outputType: 'VpcOutput',
+  const vpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+    outputs,
+    vpcName: albConfig.vpc,
   });
-  const vpc = allVpcOutputs.find(v => v.vpcName === albConfig.vpc);
   if (!vpc) {
     console.warn(`Cannot find output with vpc name ${albConfig.vpc}`);
     return;

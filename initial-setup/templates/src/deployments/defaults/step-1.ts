@@ -2,25 +2,20 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
-import * as outputKeys from '@aws-pbmm/common-outputs/lib/stack-output';
+import { EbsDefaultEncryption } from '@custom-resources/ec2-ebs-default-encryption';
 import { S3CopyFiles } from '@custom-resources/s3-copy-files';
 import { S3PublicAccessBlock } from '@custom-resources/s3-public-access-block';
 import { Organizations } from '@custom-resources/organization';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
 import { createEncryptionKeyName, createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-generator';
-import {
-  CentralBucketOutput,
-  CentralBucketOutputType,
-  LogBucketOutput,
-  LogBucketOutputType,
-  AesBucketOutputType,
-  AesBucketOutput,
-} from './outputs';
+import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
-import { StructuredOutput } from '../../common/structured-output';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { overrideLogicalId } from '../../utils/cdk';
+import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
+
+export type AccountRegionEbsEncryptionKeys = { [accountKey: string]: { [region: string]: kms.Key } | undefined };
 
 export interface DefaultsStep1Props {
   acceleratorPrefix: string;
@@ -33,7 +28,7 @@ export interface DefaultsStep1Result {
   centralBucketCopy: s3.Bucket;
   centralLogBucket: s3.Bucket;
   aesLogBucket: s3.Bucket;
-  accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
+  accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
 }
 
 export async function step1(props: DefaultsStep1Props): Promise<DefaultsStep1Result> {
@@ -134,13 +129,11 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   });
   copyFiles.node.addDependency(bucket);
 
-  new StructuredOutput<CentralBucketOutput>(masterAccountStack, 'CentralBucketOutput', {
-    type: CentralBucketOutputType,
-    value: {
-      bucketArn: bucket.bucketArn,
-      bucketName: bucket.bucketName,
-      encryptionKeyArn: encryptionKey.keyArn,
-    },
+  new CfnCentralBucketOutput(masterAccountStack, 'CentralBucketOutput', {
+    bucketArn: bucket.bucketArn,
+    bucketName: bucket.bucketName,
+    encryptionKeyArn: encryptionKey.keyArn,
+    region: cdk.Aws.REGION,
   });
 
   return bucket;
@@ -253,6 +246,13 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
+  new CfnLogBucketOutput(logAccountStack, 'LogBucketOutput', {
+    bucketArn: logBucket.bucketArn,
+    bucketName: logBucket.bucketName,
+    encryptionKeyArn: logBucket.encryptionKey!.keyArn,
+    region: cdk.Aws.REGION,
+  });
+
   logBucket.encryptionKey?.addToResourcePolicy(
     new iam.PolicyStatement({
       sid: 'Allow CloudTrail to encrypt and describe logs',
@@ -261,15 +261,6 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
       resources: ['*'],
     }),
   );
-
-  new StructuredOutput<LogBucketOutput>(logAccountStack, 'LogBucketOutput', {
-    type: LogBucketOutputType,
-    value: {
-      bucketArn: logBucket.bucketArn,
-      bucketName: logBucket.bucketName,
-      encryptionKeyArn: logBucket.encryptionKey!.keyArn,
-    },
-  });
 
   return logBucket;
 }
@@ -326,50 +317,62 @@ function createAesLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
-  new StructuredOutput<AesBucketOutput>(logAccountStack, 'AesLogBucketOutput', {
-    type: AesBucketOutputType,
-    value: {
-      bucketArn: logBucket.bucketArn,
-      bucketName: logBucket.bucketName,
-    },
+  new CfnAesBucketOutput(logAccountStack, 'AesLogBucketOutput', {
+    bucketArn: logBucket.bucketArn,
+    bucketName: logBucket.bucketName,
+    region: cdk.Aws.REGION,
   });
 
   return logBucket;
 }
 
-function createDefaultEbsEncryptionKey(props: DefaultsStep1Props) {
-  const { accountStacks, config } = props;
+function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegionEbsEncryptionKeys {
+  const { accountStacks, config, accounts } = props;
 
-  const accountEbsEncryptionKeys: { [accountKey: string]: kms.Key } = {};
-  for (const [accountKey, _] of config.getAccountConfigs()) {
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      continue;
+  // Create an EBS encryption key for every account and region that has a VPC
+  const accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys = {};
+  for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
+    const region = vpcConfig.region;
+    const vpcSharedTo = getVpcSharedAccountKeys(accounts, vpcConfig, ouKey);
+    vpcSharedTo.push(accountKey);
+    const accountKeys = Array.from(new Set(vpcSharedTo));
+    for (const localAccountKey of accountKeys) {
+      if (accountEbsEncryptionKeys[localAccountKey]?.[region]) {
+        console.log(`EBSEncryptionKey is already created in account ${localAccountKey} and region ${region}`);
+        continue;
+      }
+
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(localAccountKey, region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${localAccountKey}`);
+        continue;
+      }
+
+      // Default EBS encryption key
+      const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
+        alias: 'alias/' + createEncryptionKeyName('EBS-Key'),
+        description: 'Key used to encrypt/decrypt EBS by default',
+      });
+
+      key.addToResourcePolicy(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
+          actions: ['kms:*'],
+          resources: ['*'],
+        }),
+      );
+
+      // Enable default EBS encryption
+      new EbsDefaultEncryption(accountStack, 'EbsDefaultEncryptionSet', {
+        key,
+      });
+
+      accountEbsEncryptionKeys[localAccountKey] = {
+        ...accountEbsEncryptionKeys[localAccountKey],
+        [region]: key,
+      };
     }
-
-    // Default EBS encryption key
-    const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
-      alias: 'alias/' + createEncryptionKeyName('EBS-Key'),
-      description: 'Key used to encrypt/decrypt EBS by default',
-    });
-
-    key.addToResourcePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        principals: [new iam.AccountPrincipal(cdk.Aws.ACCOUNT_ID)],
-        actions: ['kms:*'],
-        resources: ['*'],
-      }),
-    );
-
-    accountEbsEncryptionKeys[accountKey] = key;
-
-    // Save the output so it can be used in the state machine later
-    // TODO Replace with custom resource
-    new cdk.CfnOutput(accountStack, outputKeys.OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION, {
-      value: key.keyId,
-    });
   }
   return accountEbsEncryptionKeys;
 }

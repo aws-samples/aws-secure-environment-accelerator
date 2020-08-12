@@ -8,7 +8,7 @@ import { VpcSubnetSharing } from './vpc-subnet-sharing';
 import { Nacl } from './nacl';
 import { Limiter } from '../utils/limits';
 import { TransitGatewayAttachment, TransitGatewayRoute } from '../common/transit-gateway-attachment';
-import { NestedStack, NestedStackProps } from '@aws-cdk/aws-cloudformation';
+import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import { SecurityGroup } from './security-group';
 import { StackOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { AccountStacks } from '../common/account-stacks';
@@ -88,11 +88,7 @@ export class AzSubnets {
   }
 }
 
-export interface VpcProps extends cdk.StackProps, VpcCommonProps {}
-
-export interface VpcStackProps extends NestedStackProps {
-  vpcProps: VpcProps;
-  masterAccountId: string;
+export interface VpcProps extends VpcCommonProps {
   outputs: StackOutput[];
   acceleratorName: string;
 }
@@ -100,11 +96,11 @@ export interface VpcStackProps extends NestedStackProps {
 export class VpcStack extends NestedStack {
   readonly vpc: Vpc;
 
-  constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
-    super(scope, name, props);
+  constructor(scope: cdk.Construct, name: string, props: VpcProps) {
+    super(scope, name);
 
     // Create the VPC
-    this.vpc = new Vpc(this, props.vpcProps.vpcConfig.name, props);
+    this.vpc = new Vpc(this, props.vpcConfig.name, props);
   }
 }
 
@@ -129,8 +125,10 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
 
-  constructor(scope: cdk.Construct, name: string, props: VpcStackProps) {
+  constructor(scope: cdk.Construct, name: string, vpcProps: VpcProps) {
     super(scope, name);
+
+    const props = { vpcProps };
 
     const {
       accountKey,
@@ -140,6 +138,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       limiter,
       vpcConfigs,
       accountStacks,
+      acceleratorName,
     } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
@@ -290,7 +289,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
       // Find TGW in outputs
       tgw = TransitGatewayOutputFinder.tryFindOneByName({
-        outputs: props.outputs,
+        outputs: vpcProps.outputs,
         accountKey: tgwAttach.account,
         name: tgwName,
       });
@@ -515,7 +514,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
     const vpcSecurityGroup = new VpcDefaultSecurityGroup(this, 'VpcDefaultSecurityGroup', {
       vpcId: this.vpcId,
-      acceleratorName: props.acceleratorName,
+      acceleratorName,
     });
     vpcSecurityGroup.node.addDependency(vpcObj);
   }

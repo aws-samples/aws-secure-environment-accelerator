@@ -8,10 +8,11 @@ export interface LoadAccountsInput {
   configuration: LoadConfigurationOutput;
 }
 
-export type LoadAccountsOutput = {
+export interface LoadAccountsOutput {
   organizationalUnits: ConfigurationOrganizationalUnit[];
   accounts: Account[];
-};
+  regions: string[];
+}
 
 export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOutput> => {
   console.log(`Loading accounts...`);

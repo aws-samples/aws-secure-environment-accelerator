@@ -4,6 +4,8 @@ import { createStructuredOutputFinder } from './structured-output';
 
 export const TransitGatewayOutput = t.interface(
   {
+    accountKey: t.string,
+    region: t.string,
     name: t.string,
     tgwId: t.string,
     tgwRouteTableNameToIdMap: t.record(t.string, t.string),

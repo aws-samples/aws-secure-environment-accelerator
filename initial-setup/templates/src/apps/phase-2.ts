@@ -3,8 +3,7 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutput, ImportedVpc } from '../deployments/vpc';
-import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-pbmm/common-lambda/lib/config';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
@@ -19,6 +18,7 @@ import { PcxOutput, PcxOutputType } from '../deployments/vpc-peering/outputs';
 import { StructuredOutput } from '../common/structured-output';
 import { PhaseInput } from './shared';
 import * as madDeployment from '../deployments/mad';
+import * as vpcDeployment from '../deployments/vpc';
 import * as createTrail from '../deployments/cloud-trail';
 import * as tgwDeployment from '../deployments/transit-gateway';
 import * as macie from '../deployments/macie';
@@ -35,8 +35,17 @@ import * as guardDutyDeployment from '../deployments/guardduty';
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
+  // Find the account buckets in the outputs
+  const accountBuckets = AccountBucketOutput.getAccountBuckets({
+    accounts,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   if (!acceleratorConfig['global-options']['alz-baseline']) {
     await createTrail.step1({
+      accountBuckets,
       accountStacks,
       config: acceleratorConfig,
       outputs,
@@ -55,7 +64,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -73,20 +82,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       console.warn(`No configuration found for Peer VPC "${pcxSourceVpc}"`);
       continue;
     }
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
       accountKey,
-      outputType: 'VpcOutput',
+      vpcName: vpcConfig.name,
     });
-    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
     if (!vpcOutput) {
       console.warn(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
       continue;
     }
-    const peerVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+    const peerVpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
       accountKey: pcxConfig.source,
-      outputType: 'VpcOutput',
+      vpcName: pcxSourceVpc,
     });
-    const peerVpcOutput = peerVpcOutputs.find(x => x.vpcName === pcxSourceVpc);
     if (!peerVpcOutput) {
       console.warn(`No VPC Found in outputs for VPC name "${pcxSourceVpc}"`);
       continue;
@@ -127,14 +136,21 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     if (sharedToAccountKeys.length > 0) {
       console.log(`Share VPC "${vpcConfig.name}" from Account "${accountKey}" to Accounts "${shareToAccountIds}"`);
     }
-    const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
       accountKey,
-      outputType: 'VpcOutput',
+      region: vpcConfig.region,
+      vpcName: vpcConfig.name,
     });
-    const vpcOutput = vpcOutputs.find(x => x.vpcName === vpcConfig.name);
+    if (!vpcOutput) {
+      console.warn(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
+      continue;
+    }
+
     for (const [index, sharedAccountKey] of shareToAccountIds.entries()) {
       // Initiating Security Group creation in shared account
-      const accountStack = accountStacks.tryGetOrCreateAccountStack(sharedAccountKey);
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(sharedAccountKey, vpcConfig.region);
       if (!accountStack) {
         console.warn(`Cannot find account stack ${sharedAccountKey}`);
         continue;
@@ -144,10 +160,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         accountStack,
         `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
       );
-      if (!vpcOutput) {
-        console.warn(`No VPC Found in outputs for VPC name "${vpcConfig.name}"`);
-        continue;
-      }
       const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${index + 1}`, {
         securityGroups: vpcConfig['security-groups']!,
         vpcName: vpcConfig.name,
@@ -207,23 +219,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  // TODO Find a better way to get VPCs
   // Import all VPCs from all outputs
-  const allVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-    outputType: 'VpcOutput',
-  });
-  const allVpcs = allVpcOutputs.map(ImportedVpc.fromOutput);
+  const allVpcOutputs = VpcOutputFinder.findAll({ outputs });
+  const allVpcs = allVpcOutputs.map(vpcDeployment.ImportedVpc.fromOutput);
 
-  // Find the account buckets in the outputs
-  const accountBuckets = AccountBucketOutput.getAccountBuckets({
-    accounts,
+  // Find the central bucket in the outputs
+  const centralBucket = CentralBucketOutput.getBucket({
     accountStacks,
     config: acceleratorConfig,
     outputs,
   });
 
-  // Find the central bucket in the outputs
-  const centralBucket = CentralBucketOutput.getBucket({
+  await vpcDeployment.step2({
+    accountBuckets,
     accountStacks,
     config: acceleratorConfig,
     outputs,
@@ -255,7 +263,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   await tgwDeployment.step2({
     accountStacks,
-    config: acceleratorConfig,
     accounts,
     outputs,
   });

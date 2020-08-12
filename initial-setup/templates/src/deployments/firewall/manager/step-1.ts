@@ -38,7 +38,7 @@ export async function step1(props: FirewallManagerStep1Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, managerConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;

@@ -1,12 +1,9 @@
 import * as cdk from '@aws-cdk/core';
-import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
 import { getStackJsonOutput } from '@aws-pbmm/common-outputs/lib/stack-output';
 import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
-import { FlowLogContainer } from '../common/flow-log-container';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
-import { JsonOutputValue } from '../common/json-output';
 import { Limit } from '../utils/limits';
 import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
@@ -15,9 +12,10 @@ import {
   IamConfig,
   IamConfigType,
   IamPolicyConfigType,
+  VpcConfig,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
-import { VpcOutput } from '../deployments/vpc';
+import { CfnVpcOutput } from '../deployments/vpc';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
@@ -67,8 +65,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
   }
 
-  const flowLogContainers: { [accountKey: string]: FlowLogContainer } = {};
-
+  const { acceleratorName } = context;
   // Find the central bucket in the outputs
   const centralBucket = CentralBucketOutput.getBucket({
     accountStacks,
@@ -91,13 +88,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
 
   /**
-   * Creates IAM Role in source Account and provide assume permisions to target acceleratorExecutionRole
-   * @param roleName : Role Name forpeering connection from source to target
+   * Creates IAM Role in source Account and provide assume permissions to target acceleratorExecutionRole
+   * @param roleName : Role Name for peering connection from source to target
    * @param sourceAccount : Source Account Key, Role will be created in this
-   * @param accountKey : Target Account Key, Access will be provided to this accout
+   * @param accountKey : Target Account Key, Access will be provided to this account
    */
-  const createIamRoleForPCXAcceptence = (roleName: string, sourceAccount: string, targetAccount: string) => {
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount);
+  const createIamRoleForPCXAcceptence = (
+    roleName: string,
+    sourceAccount: string,
+    sourceVpcConfig: VpcConfig,
+    targetAccount: string,
+  ) => {
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(sourceAccount, sourceVpcConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${sourceAccount}`);
       return;
@@ -121,36 +123,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     );
   };
 
-  // Auxiliary method to create a VPC stack the account with given account key
-  // Only one VPC stack per account is created
-  const getFlowLogContainer = (accountKey: string): FlowLogContainer | undefined => {
-    if (flowLogContainers[accountKey]) {
-      return flowLogContainers[accountKey];
-    }
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-      return;
-    }
-    const accountBucket = accountBuckets[accountKey];
-    if (!accountBucket) {
-      console.warn(`Cannot find account bucket ${accountKey}`);
-      return;
-    }
-
-    const flowLogContainer = new FlowLogContainer(accountStack, `FlowLogContainer`, {
-      bucket: accountBucket,
-    });
-    flowLogContainers[accountKey] = flowLogContainer;
-    return flowLogContainer;
-  };
-
   // Auxiliary method to create a VPC in the account with given account key
   const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
     const { vpcConfig } = props;
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       return;
@@ -158,12 +135,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
 
-    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, {
-      vpcProps: props,
-      masterAccountId,
-      outputs,
-      acceleratorName: accountStack.acceleratorName,
-    });
+    const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, props);
     const vpc = vpcStack.vpc;
 
     const endpointConfig = vpcConfig['interface-endpoints'];
@@ -200,24 +172,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       }
     }
 
-    // Enable flow logging if necessary
-    const flowLogs = vpcConfig['flow-logs'];
-    if (flowLogs) {
-      const flowLogContainer = getFlowLogContainer(accountKey);
-      if (flowLogContainer) {
-        new ec2.CfnFlowLog(vpcStack, 'FlowLog', {
-          deliverLogsPermissionArn: flowLogContainer.role.roleArn,
-          resourceId: vpc.vpcId,
-          resourceType: 'VPC',
-          trafficType: ec2.FlowLogTrafficType.ALL,
-          logDestination: flowLogContainer.destination,
-          logDestinationType: ec2.FlowLogDestinationType.S3,
-        });
-      }
-    }
-
-    // Prepare the output for next phases
-    const vpcOutput: VpcOutput = {
+    // Store the VPC output so that subsequent phases can access the output
+    new CfnVpcOutput(vpc, `VpcOutput`, {
+      accountKey,
+      region: props.vpcConfig.region,
       vpcId: vpc.vpcId,
       vpcName: props.vpcConfig.name,
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
@@ -235,12 +193,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           securityGroupName: name,
         }),
       ),
-    };
-
-    // Store the VPC output so that subsequent phases can access the output
-    new JsonOutputValue(vpc, `VpcOutput`, {
-      type: 'VpcOutput',
-      value: vpcOutput,
     });
 
     return vpcStack.vpc;
@@ -249,9 +201,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const subscriptionCheckDone: string[] = [];
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
-    if (!limiter.create(accountKey, Limit.VpcPerRegion)) {
+    if (!limiter.create(accountKey, Limit.VpcPerRegion, vpcConfig.region)) {
       console.log(
-        `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}"`,
+        `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}" and region "${vpcConfig.region}`,
       );
       continue;
     }
@@ -263,23 +215,35 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     );
     const vpc = createVpc(accountKey, {
       accountKey,
+      accountStacks,
       limiter,
       accounts,
       vpcConfig,
       tgwDeployments: deployments?.tgw,
       organizationalUnitName: ouKey,
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
-      accountStacks,
+      outputs,
+      acceleratorName,
     });
 
     const pcxConfig = vpcConfig.pcx;
     if (PeeringConnectionConfig.is(pcxConfig)) {
-      // Create Accepter Role for Peering Connection **WITHOUT** random suffix
-      const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
-      createIamRoleForPCXAcceptence(roleName, pcxConfig.source, accountKey);
+      const sourceVpcConfig = acceleratorConfig
+        .getVpcConfigs()
+        .find(x => x.accountKey === pcxConfig.source && x.vpcConfig.name === pcxConfig['source-vpc']);
+      if (!sourceVpcConfig) {
+        console.warn(`Cannot find PCX source VPC ${pcxConfig['source-vpc']} in account ${pcxConfig.source}`);
+      } else {
+        // Create Accepter Role for Peering Connection **WITHOUT** random suffix
+        // TODO Region support
+        const roleName = createRoleName(`VPC-PCX-${pascalCase(accountKey)}To${pascalCase(pcxConfig.source)}`, 0);
+        createIamRoleForPCXAcceptence(roleName, pcxConfig.source, sourceVpcConfig.vpcConfig, accountKey);
+      }
     }
 
     // Validate subscription for Firewall images only once per account
+    // TODO Add region to check
+    // TODO Check if VPC or deployments exists
     if (!subscriptionCheckDone.includes(accountKey)) {
       console.log(`Checking Subscription for ${accountKey}`);
       await firewallSubscription.validate({
@@ -429,6 +393,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     bucketName: logBucket.bucketName,
     config: acceleratorConfig,
+    accounts,
+    accountBuckets,
+    outputs,
   });
 
   // Cost and usage reports step 1

@@ -558,6 +558,7 @@ export namespace InitialSetup {
             acceleratorPrefix: props.acceleratorPrefix,
             assumeRoleName: props.stateMachineExecutionRole,
             'accounts.$': '$.accounts',
+            'regions.$': '$.regions',
           },
           resultPath: '$.storeOutput',
         });

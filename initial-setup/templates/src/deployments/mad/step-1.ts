@@ -7,13 +7,14 @@ import { CfnSleep } from '@custom-resources/cfn-sleep';
 import { AccountStacks } from '../../common/account-stacks';
 import { StructuredOutput } from '../../common/structured-output';
 import { MadAutoScalingRoleOutput, MadAutoScalingRoleOutputType, CfnMadImageIdOutputTypeOutput } from './outputs';
+import { AccountRegionEbsEncryptionKeys } from '../defaults';
 
 const imageIdPath = '/aws/service/ami-windows-latest/Windows_Server-2016-English-Full-Base';
 
 export interface MadStep1Props {
   acceleratorName: string;
   acceleratorPrefix: string;
-  accountEbsEncryptionKeys: { [accountKey: string]: kms.Key };
+  accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
   accountStacks: AccountStacks;
   config: AcceleratorConfig;
 }
@@ -21,18 +22,22 @@ export interface MadStep1Props {
 export async function step1(props: MadStep1Props) {
   const { accountStacks, accountEbsEncryptionKeys, config, acceleratorName, acceleratorPrefix } = props;
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
-    const madDeploymentConfig = accountConfig.deployments?.mad;
-    if (!madDeploymentConfig || !madDeploymentConfig.deploy) {
+    const madConfig = accountConfig.deployments?.mad;
+    if (!madConfig || !madConfig.deploy) {
       continue;
     }
 
-    const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey];
+    const region = madConfig.region;
+    const accountEbsEncryptionKey = accountEbsEncryptionKeys[accountKey]?.[region];
     if (!accountEbsEncryptionKey) {
-      console.warn(`Could not find EBS encryption key in account "${accountKey}" to deploy service-linked role`);
+      console.warn(
+        `Could not find EBS encryption key in account "${accountKey}" and region "${region}" ` +
+          `to deploy service-linked role`,
+      );
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountStack}`);
       continue;

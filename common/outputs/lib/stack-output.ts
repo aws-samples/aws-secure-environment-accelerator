@@ -1,5 +1,6 @@
+import { VpcSecurityGroupOutput } from './vpc';
+
 // all accounts
-export const OUTPUT_KMS_KEY_ID_FOR_EBS_DEFAULT_ENCRYPTION = 'KmsKeyIdForEbsDefaultEncryption';
 export const OUTPUT_KMS_KEY_ID_FOR_SSM_SESSION_MANAGER = 'KmsKeyIdForSSMSessionManager';
 export const OUTPUT_KMS_KEY_ARN_FOR_SSM_SESSION_MANAGER = 'KmsKeyArnForSSMSessionManager';
 export const OUTPUT_CLOUDWATCH_LOG_GROUP_FOR_SSM_SESSION_MANAGER = 'CWLForSSMSessionManager';
@@ -21,6 +22,7 @@ export const ALB_NAME_REGEXP = /^[A-Za-z0-9-]*$/;
 
 export interface StackOutput {
   accountKey: string;
+  region: string;
   outputKey?: string;
   outputValue?: string;
   outputDescription?: string;
@@ -78,28 +80,6 @@ export interface ResolversOutput {
   inBound?: string;
   outBound?: string;
   rules?: ResolverRulesOutput;
-}
-
-export interface VpcSubnetOutput {
-  subnetId: string;
-  subnetName: string;
-  az: string;
-  cidrBlock: string;
-}
-
-export interface VpcSecurityGroupOutput {
-  securityGroupId: string;
-  securityGroupName: string;
-}
-
-export interface VpcOutput {
-  vpcId: string;
-  vpcName: string;
-  cidrBlock: string;
-  additionalCidrBlocks: string[];
-  subnets: VpcSubnetOutput[];
-  routeTables: { [key: string]: string };
-  securityGroups: VpcSecurityGroupOutput[];
 }
 
 export interface AmiSubscriptionOutput {

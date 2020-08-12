@@ -37,7 +37,7 @@ async function main() {
     phaseId: `${phase}`,
     region: args.region,
     accountKey: args['account-key'],
-    // Make sure assets do not build in to the same directory
+    // Make sure templates and assets do not build in to the same directory
     useTempOutputDir: true,
   });
 

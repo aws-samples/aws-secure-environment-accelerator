@@ -7,13 +7,12 @@ import { TransitGatewayRoute } from '../../common/transit-gateway-attachment';
 
 export interface TransitGatewayStep2Props {
   accountStacks: AccountStacks;
-  config: AcceleratorConfig;
   accounts: Account[];
   outputs: StackOutput[];
 }
 
 export async function step2(props: TransitGatewayStep2Props) {
-  const { outputs } = props;
+  const { accountStacks, outputs } = props;
   const attachments = TransitGatewayAttachmentOutputFinder.findAll({
     outputs,
   });
@@ -21,7 +20,7 @@ export async function step2(props: TransitGatewayStep2Props) {
     const accountKey = attachment.accountKey;
     const region = attachment.region;
 
-    const accountStack = props.accountStacks.getOrCreateAccountStack(accountKey, region);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey} in region ${region}`);
       continue;

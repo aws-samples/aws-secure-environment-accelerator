@@ -110,14 +110,11 @@ test('the VPC creation should create the correct amount of subnets', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-      accountStacks: testStacks,
-    },
-    masterAccountId: '',
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
   });
@@ -232,14 +229,11 @@ test('the VPC creation should throw an error when a subnet uses a route table th
   });
   expect(() => {
     new Vpc(stack, 'SharedNetwork', {
-      vpcProps: {
-        accountKey: 'master',
-        accounts: [],
-        vpcConfig,
-        limiter: new Limiter([]),
-        accountStacks: testStacks,
-      },
-      masterAccountId: '',
+      accountKey: 'master',
+      accounts: [],
+      vpcConfig,
+      limiter: new Limiter([]),
+      accountStacks: testStacks,
       outputs: [],
       acceleratorName: 'test',
     });
@@ -261,14 +255,11 @@ test('the VPC creation should create the internet gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-      accountStacks: testStacks,
-    },
-    masterAccountId: '',
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
   });
@@ -298,14 +289,11 @@ test('the VPC creation should create the VPN gateway', () => {
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-      accountStacks: testStacks,
-    },
-    masterAccountId: '',
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
   });
@@ -418,14 +406,11 @@ test('the VPC creation should create the NAT gateway', () => {
     ],
   });
   new Vpc(stack, 'SharedNetwork', {
-    vpcProps: {
-      accountKey: 'master',
-      accounts: [],
-      vpcConfig,
-      limiter: new Limiter([]),
-      accountStacks: testStacks,
-    },
-    masterAccountId: '',
+    accountKey: 'master',
+    accounts: [],
+    vpcConfig,
+    limiter: new Limiter([]),
+    accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
   });

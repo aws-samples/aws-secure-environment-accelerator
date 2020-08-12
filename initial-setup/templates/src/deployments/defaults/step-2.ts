@@ -1,11 +1,10 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
-import { AccountBuckets, AccountBucketOutputType, AccountBucketOutput } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '../../utils/accounts';
-import { StructuredOutput } from '../../common/structured-output';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
+import { CfnAccountBucketOutput, AccountBuckets } from './outputs';
 
 export interface DefaultsStep2Props {
   accountStacks: AccountStacks;
@@ -60,13 +59,11 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
     });
     buckets[accountKey] = bucket;
 
-    new StructuredOutput<AccountBucketOutput>(accountStack, 'DefaultBucketOutput', {
-      type: AccountBucketOutputType,
-      value: {
-        bucketArn: bucket.bucketArn,
-        bucketName: bucket.bucketName,
-        encryptionKeyArn: bucket.encryptionKey!.keyArn,
-      },
+    new CfnAccountBucketOutput(accountStack, 'DefaultBucketOutput', {
+      bucketArn: bucket.bucketArn,
+      bucketName: bucket.bucketName,
+      encryptionKeyArn: bucket.encryptionKey!.keyArn,
+      region: cdk.Aws.REGION,
     });
   }
   return buckets;

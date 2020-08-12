@@ -12,6 +12,7 @@ export interface LoadConfigurationInput {
 export interface LoadConfigurationOutput {
   organizationalUnits: ConfigurationOrganizationalUnit[];
   accounts: ConfigurationAccount[];
+  regions: string[];
   warnings: string[];
   configCommitId: string;
   acceleratorVersion?: string;

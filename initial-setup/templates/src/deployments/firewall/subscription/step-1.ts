@@ -1,4 +1,3 @@
-import * as s3 from '@aws-cdk/aws-s3';
 import * as c from '@aws-pbmm/common-lambda/lib/config';
 import { Vpc } from '@aws-pbmm/constructs/lib/vpc';
 import { AccountStacks } from '../../../common/account-stacks';
@@ -15,10 +14,10 @@ export interface FirewallSubscriptionStep1Props {
 }
 
 /**
- * Validates Marketplace Image subscription
+ * Validates Marketplace image subscription
  *
  * This step outputs the following:
- *   - MarketPlace image subscription status per account
+ *   - Marketplace image subscription status per account
  */
 export async function step1(props: FirewallSubscriptionStep1Props) {
   const { accountKey, deployments, vpc, accountStacks } = props;

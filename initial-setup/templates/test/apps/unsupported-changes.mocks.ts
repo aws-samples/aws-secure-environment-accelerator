@@ -132,6 +132,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
   const outputs: StackOutput[] = [
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'InstanceTimeOutput70915320',
       outputValue: JSON.stringify({
         type: 'InstanceTime',
@@ -143,6 +144,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'GlobalOptionsDNSResolversGlobalOptionsOutput70915320',
       outputValue: JSON.stringify({
         type: 'GlobalOptionsOutput',
@@ -161,6 +163,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'GlobalOptionsDNSResolversMadRulesOutputB92B7C64',
       outputValue: JSON.stringify({
         type: 'MadRulesOutput',
@@ -169,6 +172,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'PcxOutputCentralOutput40798179',
       outputValue: JSON.stringify({
         type: 'Pcx',
@@ -183,12 +187,15 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'UnClassVpcOutput7D32BA58',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0aafbbf8390e61df9',
           vpcName: 'UnClass',
+          region: 'ca-central-1',
           cidrBlock: '10.5.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -215,12 +222,15 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'TestVpcOutputA3DF90CF',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-00788be23432ad14e',
           vpcName: 'Test',
+          region: 'ca-central-1',
           cidrBlock: '10.3.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -247,12 +257,15 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'CentralVpcOutput6FD59021',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0d0b4cd029857165a',
           vpcName: 'Central',
+          region: 'ca-central-1',
           cidrBlock: '10.1.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -281,6 +294,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'CentralSharingOutputSharedResourcesSubnetsAddTagsToResourcesOutput6C76F064',
       outputValue: JSON.stringify({
         type: 'AddTagsToResources',
@@ -390,6 +404,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'CentralSharingOutputSharedResourcesVPCAddTagsToResourcesOutput8ADC1D7E',
       outputValue: JSON.stringify({
         type: 'AddTagsToResources',
@@ -499,13 +514,17 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'ProdVpcOutput158BE1F6',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-05236b7e563d76ea7',
           vpcName: 'Prod',
+          region: 'ca-central-1',
           cidrBlock: '10.4.0.0/16',
+          additionalCidrBlocks: [],
           subnets: [
             { subnetId: 'subnet-0afcdace47c5b7db3', subnetName: 'TGW', az: 'a', cidrBlock: '10.4.88.0/27' },
             { subnetId: 'subnet-01b8fbfe6db2317a9', subnetName: 'TGW', az: 'b', cidrBlock: '10.4.88.32/27' },
@@ -530,12 +549,15 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'DevVpcOutput116BFECE',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0ec4a94a0fed0323f',
           vpcName: 'Dev',
+          region: 'ca-central-1',
           cidrBlock: '10.2.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -562,52 +584,63 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainB9B36144Ref',
       outputValue: 'tgw-03d0ad93aa8d6262c',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwsharedD7F02DB6Ref',
       outputValue: 'tgw-rtb-02bc79504a6da4ea6',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwsegregated1A0E4708Ref',
       outputValue: 'tgw-rtb-0b37d20e343703baf',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwstandalone98B33BB3Ref',
       outputValue: 'tgw-rtb-0c395e05c512363f2',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointMainMaintgwcoreF36239ECRef',
       outputValue: 'tgw-rtb-0d470b7d77862a57b',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointEndpointEndpointaza6F9FD084Ref',
       outputValue: 'subnet-0d23fab6faf468e78',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointEndpointEndpointazb30DDC20CRef',
       outputValue: 'subnet-08ce2f607198a4347',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'SharedNetworkPhase1VpcStackEndpointD8454F05Ref',
       outputValue: 'vpc-0be7520a610121f51',
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'EndpointVpcOutput480C772D',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'shared-network',
           vpcId: 'vpc-0be7520a610121f51',
           vpcName: 'Endpoint',
+          region: 'ca-central-1',
           cidrBlock: '10.7.0.0/22',
           additionalCidrBlocks: [],
           subnets: [
@@ -621,6 +654,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -628,11 +662,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h',
           bucketName: 'pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:007307298200:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'shared-network',
+      region: 'ca-central-1',
       outputKey: 'FirewallVpnConnectionsOutputBF3C7B46',
       outputValue: JSON.stringify({
         type: 'FirewallVpnConnectionOutput',
@@ -740,6 +776,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'MadSlrOutputB33780D5',
       outputValue: JSON.stringify({
         type: 'MadAutoScalingRole',
@@ -751,6 +788,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'SecurityGroupOutputCentral0Output0751AD9A',
       outputValue: JSON.stringify({
         type: 'SecurityGroupsOutput',
@@ -768,6 +806,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'OutputSharedResourcesCentralShared0AddTagsToResourcesOutputA46EA520',
       outputValue: JSON.stringify({
         type: 'AddTagsToResources',
@@ -813,6 +852,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'MadOutputED7A3DFD',
       outputValue: JSON.stringify({
         type: 'MadOutput',
@@ -827,6 +867,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -834,27 +875,33 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-operations-phase1-cacentral1-qwupe8qc06ka',
           bucketName: 'pbmmaccel-operations-phase1-cacentral1-qwupe8qc06ka',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:278816265654:key/4e0a5d05-a3ba-4b19-b60e-5f26631d874a',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterPublicPerimeteraza0AC836E9Ref',
       outputValue: 'subnet-074afd4fc157a36d3',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterAD7AA8ABRef',
       outputValue: 'vpc-008309eb2954c138b',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterVpcOutput17588A8B',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'perimeter',
           vpcId: 'vpc-008309eb2954c138b',
           vpcName: 'Perimeter',
+          region: 'ca-central-1',
           cidrBlock: '10.7.4.0/22',
           additionalCidrBlocks: [],
           subnets: [
@@ -889,16 +936,19 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterProxyPerimeterazaCA836246Ref',
       outputValue: 'subnet-074c58bdde90265f3',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'PerimeterPhase1VpcStackPerimeterProxyPerimeterazb3D9DF31DRef',
       outputValue: 'subnet-064c1ac74779f8ecb',
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -906,11 +956,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-perimeter-phase1-cacentral1-kfs7sxfgn49u',
           bucketName: 'pbmmaccel-perimeter-phase1-cacentral1-kfs7sxfgn49u',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:422986242298:key/ccff8373-96f9-4ced-a167-38476316b235',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'FirewallSubscriptionsOutputperimeterOutputE06E54FF',
       outputValue: JSON.stringify({
         type: 'AmiSubscriptionStatus',
@@ -919,6 +971,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'FirewallManagerSubscriptionsOutputperimeterOutputA4CD3A94',
       outputValue: JSON.stringify({
         type: 'AmiSubscriptionStatus',
@@ -927,6 +980,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'perimeter',
+      region: 'ca-central-1',
       outputKey: 'FirewallPortOutput78ED81D4',
       outputValue: JSON.stringify({
         type: 'FirewallPortOutput',
@@ -958,12 +1012,15 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'ForSSOVpcOutputA52A9D36',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'master',
           vpcId: 'vpc-0d6c94538df842886',
           vpcName: 'ForSSO',
+          region: 'ca-central-1',
           cidrBlock: '10.249.1.0/24',
           additionalCidrBlocks: [],
           subnets: [
@@ -977,6 +1034,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -984,11 +1042,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase1-cacentral1-o4irpt8n8i3p',
           bucketName: 'pbmmaccel-master-phase1-cacentral1-o4irpt8n8i3p',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:687384172140:key/e147a41e-7ada-427f-9b6b-75cdd706e313',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'IamPolicyArtifactsOutputmasterOutput0A80EBB8',
       outputValue: JSON.stringify({
         type: 'IamPolicyArtifactsOutput',
@@ -1002,6 +1062,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'CentralBucketOutputBAF8A406',
       outputValue: JSON.stringify({
         type: 'CentralBucket',
@@ -1009,11 +1070,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
           bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:687384172140:key/c94a571b-25da-44a1-ac85-366d333ffb2a',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'RdgwArtifactsOutputmasterOutputF3DB137F',
       outputValue: JSON.stringify({
         type: 'RdgwArtifactsOutput',
@@ -1027,6 +1090,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'log-archive',
+      region: 'ca-central-1',
       outputKey: 'LogBucketOutput9005E9C6',
       outputValue: JSON.stringify({
         type: 'LogBucket',
@@ -1034,22 +1098,26 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-logarchive-phase0-cacentral1-1fdlszygo5q6l',
           bucketName: 'pbmmaccel-logarchive-phase0-cacentral1-1fdlszygo5q6l',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:272091715658:key/18f7a4af-2fbb-4a4f-a597-7b0bae016c36',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'log-archive',
+      region: 'ca-central-1',
       outputKey: 'AesLogBucketOutput0333D00E',
       outputValue: JSON.stringify({
         type: 'AesBucket',
         value: {
           bucketArn: 'arn:aws:s3:::pbmmaccel-logarchive-phase0-aescacentral1-7iadcqkmhk3i',
           bucketName: 'pbmmaccel-logarchive-phase0-aescacentral1-7iadcqkmhk3i',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'security',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -1057,11 +1125,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-security-phase1-cacentral1-1udpzdaewgqu3',
           bucketName: 'pbmmaccel-security-phase1-cacentral1-1udpzdaewgqu3',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:122259674264:key/ba5d50a0-e25d-4d7e-b15e-bad6d4054310',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'shared-services',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -1069,17 +1139,21 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-sharedservices-phase1-cacentral1-1crul1c6woto0',
           bucketName: 'pbmmaccel-sharedservices-phase1-cacentral1-1crul1c6woto0',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:378053304141:key/f6c1ec02-e1cb-4ace-8abf-25574551cf32',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'fun-acct',
+      region: 'ca-central-1',
       outputKey: 'SandboxVpcOutput323ACFBC',
       outputValue: JSON.stringify({
         type: 'VpcOutput',
         value: {
+          accountKey: 'fun-acct',
           vpcId: 'vpc-02bcf75f21ece6cc7',
           vpcName: 'Sandbox',
+          region: 'ca-central-1',
           cidrBlock: '10.6.0.0/16',
           additionalCidrBlocks: [],
           subnets: [
@@ -1104,6 +1178,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
     {
       accountKey: 'fun-acct',
+      region: 'ca-central-1',
       outputKey: 'DefaultBucketOutput0C96C44C',
       outputValue: JSON.stringify({
         type: 'AccountBucket',
@@ -1111,11 +1186,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           bucketArn: 'arn:aws:s3:::pbmmaccel-funacct-phase1-cacentral1-1qsru3dws5n76',
           bucketName: 'pbmmaccel-funacct-phase1-cacentral1-1qsru3dws5n76',
           encryptionKeyArn: 'arn:aws:kms:ca-central-1:934027390063:key/7592bb9b-43d1-45d3-be51-bbc59cb06471',
+          region: 'ca-central-1',
         },
       }),
     },
     {
       accountKey: 'master',
+      region: 'ca-central-1',
       outputKey: 'SCPArtifactsOutputmasterSOutputA1DE17D3',
       outputValue: JSON.stringify({
         type: 'ArtifactOutput',

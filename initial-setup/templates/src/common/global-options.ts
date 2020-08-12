@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig, VpcConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { VpcOutputFinder } from '@aws-pbmm/common-outputs/lib/vpc';
 import { Account } from '../utils/accounts';
 import { Context } from '../utils/context';
 import { Route53Zones } from './r53-zones';
@@ -12,12 +13,7 @@ import {
   ResolverRulesOutput,
   ResolversOutput,
 } from '@aws-pbmm/common-outputs/lib/stack-output';
-import { VpcOutput } from '../deployments/vpc';
 import { JsonOutputValue } from './json-output';
-
-interface ResolverOutput {
-  [key: string]: string;
-}
 
 export interface GlobalOptionsProps {
   acceleratorConfig: AcceleratorConfig;
@@ -36,12 +32,6 @@ export interface GlobalOptionsProps {
  * Auxiliary construct that creates VPCs for organizational units.
  */
 export class GlobalOptionsDeployment extends cdk.Construct {
-  /**
-   * We should store the relevant constructs that are created instead of storing outputs.
-   * @deprecated
-   */
-  readonly outputs = new Map<string, string>();
-
   constructor(scope: cdk.Construct, id: string, props: GlobalOptionsProps) {
     super(scope, id);
 
@@ -54,14 +44,12 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     const zonesAccountKey = zonesConfig.account;
     const zonesResolverVpcName = zonesConfig['resolver-vpc'];
 
-    // Find the VPC config in the given account
-    const zonesVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
-      accountKey: zonesAccountKey,
-      outputType: 'VpcOutput',
-    });
-
     // Find the VPC in with the given name in the zones account
-    const resolverVpc = zonesVpcOutputs.find(output => output.vpcName === zonesResolverVpcName);
+    const resolverVpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
+      accountKey: zonesAccountKey,
+      vpcName: zonesResolverVpcName,
+    });
     if (!resolverVpc) {
       console.warn(`Cannot find resolver VPC with name "${zonesResolverVpcName}"`);
       return;
@@ -71,7 +59,7 @@ export class GlobalOptionsDeployment extends cdk.Construct {
     const r53Zones = new Route53Zones(this, 'DNSResolvers', {
       zonesConfig,
       vpcId: resolverVpc.vpcId,
-      vpcRegion: cdk.Aws.REGION,
+      vpcRegion: resolverVpc.region,
     });
 
     // Auxiliary method to create a resolvers in the account with given account key
@@ -89,11 +77,12 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         return;
       }
 
-      const vpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+        outputs,
         accountKey,
-        outputType: 'VpcOutput',
+        region: vpcConfig.region,
+        vpcName: vpcConfig.name,
       });
-      const vpcOutput = vpcOutputs.find(output => output.vpcName === vpcConfig.name);
       if (!vpcOutput) {
         console.warn(`Cannot find resolved VPC with name "${vpcConfig.name}"`);
         return;
@@ -210,11 +199,11 @@ export class GlobalOptionsDeployment extends cdk.Construct {
       const centralResolverAccount = madConfig['central-resolver-rule-account'];
       const centralResolverVpcName = madConfig['central-resolver-rule-vpc'];
 
-      const centralResolverVpcOutputs: VpcOutput[] = getStackJsonOutput(outputs, {
+      const centralResolverVpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+        outputs,
         accountKey: centralResolverAccount,
-        outputType: 'VpcOutput',
+        vpcName: centralResolverVpcName,
       });
-      const centralResolverVpc = centralResolverVpcOutputs.find(output => output.vpcName === centralResolverVpcName);
       if (!centralResolverVpc) {
         console.warn(`Cannot find resolved VPC with name "${centralResolverVpcName}"`);
         continue;

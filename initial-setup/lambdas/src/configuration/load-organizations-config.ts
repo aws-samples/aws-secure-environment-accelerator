@@ -226,6 +226,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     ...input,
     organizationalUnits: configurationOus,
     accounts: configurationAccounts,
+    regions: config['global-options']['supported-regions'],
     warnings,
     installCloudFormationMasterRole,
   };

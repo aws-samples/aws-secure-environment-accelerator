@@ -306,6 +306,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
     ...input,
     organizationalUnits: configurationOus,
     accounts: configurationAccounts,
+    regions: config['global-options']['supported-regions'],
     warnings,
   };
 };

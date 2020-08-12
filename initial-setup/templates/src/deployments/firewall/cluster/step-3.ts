@@ -1,5 +1,4 @@
 import { pascalCase } from 'pascal-case';
-import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as iam from '@aws-cdk/aws-iam';
@@ -16,9 +15,10 @@ import { AccountStacks, AccountStack } from '../../../common/account-stacks';
 import { FirewallVpnConnection, CfnFirewallInstanceOutput, FirewallVpnConnectionOutputFinder } from './outputs';
 import { checkAccountWarming } from '../../account-warming/outputs';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
+import { RegionalBucket } from '../../defaults';
 
 export interface FirewallStep3Props {
-  accountBuckets: { [accountKey: string]: s3.IBucket };
+  accountBuckets: { [accountKey: string]: RegionalBucket };
   accountStacks: AccountStacks;
   centralBucket: s3.IBucket;
   config: c.AcceleratorConfig;
@@ -70,6 +70,7 @@ export async function step3(props: FirewallStep3Props) {
         continue;
       }
 
+      // TODO add region check also if vpc name is not unique accross Account
       const vpcConfig = vpcConfigs.find(v => v.vpcConfig.name === firewallConfig.vpc)?.vpcConfig;
       if (!vpcConfig) {
         console.log(`Skipping firewall deployment because of missing VPC config "${firewallConfig.vpc}"`);
@@ -86,6 +87,7 @@ export async function step3(props: FirewallStep3Props) {
       const firewallVpnConnectionOutputs = FirewallVpnConnectionOutputFinder.findAll({
         outputs,
         accountKey: attachConfig.account,
+        region: firewallConfig.region,
       });
       const firewallVpnConnections = firewallVpnConnectionOutputs
         .flatMap(array => array)
@@ -118,7 +120,7 @@ export async function step3(props: FirewallStep3Props) {
  * Create firewall for the given VPC and config in the given scope.
  */
 async function createFirewallCluster(props: {
-  accountBucket: s3.IBucket;
+  accountBucket: RegionalBucket;
   accountStack: AccountStack;
   centralBucket: s3.IBucket;
   firewallConfig: c.FirewallConfig;
@@ -166,7 +168,7 @@ async function createFirewallCluster(props: {
     instanceProfile,
     configuration: {
       bucket: accountBucket,
-      bucketRegion: cdk.Aws.REGION,
+      bucketRegion: accountBucket.region,
       templateBucket: centralBucket,
       templateConfigPath: configFile,
     },

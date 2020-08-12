@@ -17,6 +17,7 @@ export interface RouteTables {
 export interface Vpc {
   id: string;
   name: string;
+  region: string;
 
   cidrBlock: string;
   additionalCidrBlocks: string[];

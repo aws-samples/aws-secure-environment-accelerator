@@ -40,19 +40,19 @@ export async function step2(props: FirewallStep2Props) {
       continue;
     }
 
-    // Find the firewall EIPs in the firewall account
-    const firewallPortOutputs = FirewallPortOutputFinder.findAll({
-      outputs,
-      accountKey,
-      // region: firewallConfig.region,
-    });
-    const firewallPorts = firewallPortOutputs.flatMap(array => array);
-    if (firewallPorts.length === 0) {
-      console.warn(`Cannot find firewall port outputs in account "${accountKey}"`);
-      continue;
-    }
-
     for (const firewallConfig of firewallConfigs) {
+      // Find the firewall EIPs in the firewall account
+      const firewallPortOutputs = FirewallPortOutputFinder.findAll({
+        outputs,
+        accountKey,
+        region: firewallConfig.region,
+      });
+      const firewallPorts = firewallPortOutputs.flatMap(array => array);
+      if (firewallPorts.length === 0) {
+        console.warn(`Cannot find firewall port outputs in account "${accountKey}"`);
+        continue;
+      }
+
       const attachConfig = firewallConfig['tgw-attach'];
       if (!c.TransitGatewayAttachConfigType.is(attachConfig)) {
         continue;
