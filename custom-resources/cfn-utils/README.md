@@ -1,1 +1,0 @@
-# CloudFormation Custom Resource utils.

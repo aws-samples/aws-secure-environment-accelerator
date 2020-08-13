@@ -1,5 +1,6 @@
 // tslint:disable:no-any
 import 'jest';
+import * as path from 'path';
 import * as fs from 'fs';
 import * as cdk from '@aws-cdk/core';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
@@ -110,7 +111,18 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
   ];
 
-  const content = fs.readFileSync('../../config.example.json');
+  const configFilePath = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    '..',
+    '..',
+    'reference-artifacts',
+    'config.example.json',
+  );
+
+  const content = fs.readFileSync(configFilePath);
   const config = AcceleratorConfig.fromString(content.toString());
 
   const context: Context = {

@@ -1,11 +1,23 @@
 // tslint:disable:no-any
 import * as fs from 'fs';
+import * as path from 'path';
 import * as validate from '../../../src/compare/validate';
 import { compareConfiguration, getAccountNames } from '../../../src/compare/config-diff';
-import { AcceleratorConfig } from '../../../';
+import { AcceleratorConfig } from '../../..';
 
 // Working directory is `common-lambda` so the config file is one directory up
-const content = fs.readFileSync('../../../reference-artifacts/config.example.json');
+const configFilePath = path.join(
+  __dirname,
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  '..',
+  'reference-artifacts',
+  'config.example.json',
+);
+const content = fs.readFileSync(configFilePath);
 
 // Keep context for all the tests
 let config1: AcceleratorConfig;

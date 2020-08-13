@@ -84,6 +84,7 @@ function uploadArtifacts(props: {
     '..',
     '..',
     '..',
+    '..',
     'reference-artifacts',
     artifactFolderName,
   );
