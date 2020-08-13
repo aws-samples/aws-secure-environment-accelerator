@@ -36,8 +36,8 @@ async function main() {
   console.log(`  Prefix: ${acceleratorPrefix}`);
 
   // Find the root director of the solution
-  const solutionRoot = path.join(__dirname, '..', '..', '..');
-
+  const solutionRoot = path.join(__dirname, '..', '..', '..', '..');
+  console.log(solutionRoot);
   // Create the initial setup pipeline stack
   new InitialSetup(app, `${acceleratorPrefix}InitialSetup`, {
     configRepositoryName,
