@@ -6,7 +6,7 @@ import { Account } from '../../utils/accounts';
 import * as s3 from '@aws-cdk/aws-s3';
 import { FlowLogContainer } from '../../common/flow-log-container';
 import { createIamRoleOutput } from '../iam';
-import { NONE_DESTINATION_TYPE, S3_DESTINATION_TYPE } from './outputs';
+import { NONE_DESTINATION_TYPE, CWL_DESTINATION_TYPE } from './outputs';
 
 export interface VpcStep1Props {
   accountBuckets: AccountBuckets;
@@ -30,7 +30,7 @@ function createFlowLogRoles(props: VpcStep1Props) {
     }
 
     const flowLogS3Vpcs = accountVpcs
-      .filter(v => v.vpcConfig['flow-logs'] === S3_DESTINATION_TYPE)
+      .filter(v => v.vpcConfig['flow-logs'] !== CWL_DESTINATION_TYPE)
       .map(a => a.vpcConfig.name);
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key);

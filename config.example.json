@@ -105,7 +105,24 @@
         "interface-id",
         "srcaddr",
         "dstaddr",
-        "srcport"
+        "srcport",
+        "dstport", 
+        "protocol", 
+        "packets", 
+        "bytes", 
+        "start", 
+        "end",
+        "action",
+        "log-status",
+        "vpc-id",
+        "subnet-id",
+        "instance-id",
+        "tcp-flags",
+        "type",
+        "pkt-srcaddr",
+        "pkt-dstaddr",
+        "region",
+        "az-id"
       ]
     },
     "security-hub-frameworks": {
