@@ -13,7 +13,7 @@ import {
   IamConfigType,
   IamPolicyConfigType,
   VpcConfig,
-} from '@aws-accelerator/common-config/src';
+} from '@aws-accelerator/common-config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { CfnVpcOutput } from '../deployments/vpc';
 import { IamAssets } from '../common/iam-assets';
