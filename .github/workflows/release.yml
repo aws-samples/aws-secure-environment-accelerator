@@ -37,7 +37,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
-          INSTALLER_STACK_DIR: ./accelerator/installer
+          INSTALLER_STACK_DIR: ./src/installer/cdk
           INSTALLER_STACK_NAME: AcceleratorInstaller
           OUTPUT_DIR: templates
         run: |
@@ -65,8 +65,8 @@ jobs:
           npm install -g json
           git config user.name github-actions
           git config user.email github-actions@github.com
-          json -I -f accelerator/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
-          json -I -f accelerator/installer/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+          json -I -f src/accelerator/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+          json -I -f src/installer/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
           git add .
           git commit -am 'Updating package to ${{ steps.format.outputs.numeric_release }}'
       - name: Push Bumped Package Files
