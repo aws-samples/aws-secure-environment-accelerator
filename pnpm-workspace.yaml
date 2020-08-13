@@ -1,7 +1,7 @@
 packages:
   - src/installer/**
-  - src/accelerator/cdk/**
-  - src/accelerator/runtime/**
+  - src/core/cdk/**
+  - src/core/runtime/**
   - src/deployments/cdk/**
   - src/deployments/runtime/**
   - src/lib/common-types/**

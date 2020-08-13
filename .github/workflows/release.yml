@@ -65,7 +65,7 @@ jobs:
           npm install -g json
           git config user.name github-actions
           git config user.email github-actions@github.com
-          json -I -f src/accelerator/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+          json -I -f src/core/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
           json -I -f src/installer/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
           git add .
           git commit -am 'Updating package to ${{ steps.format.outputs.numeric_release }}'
