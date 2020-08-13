@@ -58,7 +58,7 @@ export class SSMSessionManagerDocument extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@custom-resources/ssm-session-manager-document-lambda');
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ssm-session-manager-document-runtime');
     const lambdaDir = path.dirname(lambdaPath);
     const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 

@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
-import { errorHandler } from '@custom-resources/cfn-response';
+import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 
 const ec2 = new AWS.EC2();
 

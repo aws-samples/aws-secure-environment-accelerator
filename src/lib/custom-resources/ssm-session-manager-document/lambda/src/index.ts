@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { backOff } from 'exponential-backoff';
-import { errorHandler } from '@custom-resources/cfn-response';
+import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { CreateDocumentRequest, UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
 
 export interface HandlerProperties {

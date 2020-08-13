@@ -3,7 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as lambda from '@aws-cdk/aws-lambda';
-import { HandlerProperties } from '@custom-resources/ec2-ebs-default-encryption-lambda';
+import { HandlerProperties } from '@aws-accelerator/custom-resource-ec2-ebs-default-encryption-runtime';
 
 const resourceType = 'Custom::EBSDefaultEncryption';
 
@@ -34,7 +34,7 @@ export class EbsDefaultEncryption extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@custom-resources/ec2-ebs-default-encryption-lambda');
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ec2-ebs-default-encryption-runtime');
     const lambdaDir = path.dirname(lambdaPath);
 
     const role = new iam.Role(stack, `${resourceType}Role`, {

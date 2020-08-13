@@ -1,4 +1,4 @@
-import { webpackConfigurationForPackage } from '@custom-resources/webpack-base';
+import { webpackConfigurationForPackage } from '@aws-accelerator/custom-resource-runtime-webpack-base';
 import pkg from './package.json';
 
 export default webpackConfigurationForPackage(pkg);
