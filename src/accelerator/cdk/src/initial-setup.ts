@@ -113,7 +113,7 @@ export namespace InitialSetup {
         role: pipelineRole,
         projectRoot: props.solutionRoot,
         packageManager: 'pnpm',
-        commands: ['cd initial-setup/templates', 'sh codebuild-deploy.sh'],
+        commands: ['cd src/deployments/cdk', 'sh codebuild-deploy.sh'],
         timeout: buildTimeout,
         environment: {
           ACCELERATOR_NAME: props.acceleratorName,
