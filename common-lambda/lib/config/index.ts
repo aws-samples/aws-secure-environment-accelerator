@@ -160,7 +160,7 @@ export const SecurityGroupConfigType = t.interface({
 });
 
 export const FLOW_LOGS_DESTINATION_TYPES = ['S3', 'CWL', 'BOTH', 'NONE'] as const;
-export const flowLogsDestinationTypes = enumType<typeof FLOW_LOGS_DESTINATION_TYPES[number]>(
+export const FlowLogsDestinationTypes = enumType<typeof FLOW_LOGS_DESTINATION_TYPES[number]>(
   FLOW_LOGS_DESTINATION_TYPES,
 );
 
@@ -171,7 +171,7 @@ export const VpcConfigType = t.interface({
   cidr,
   cidr2: optional(cidr),
   'use-central-endpoints': fromNullable(t.boolean, false),
-  'flow-logs': flowLogsDestinationTypes,
+  'flow-logs': FlowLogsDestinationTypes,
   'log-retention': optional(t.number),
   igw: t.union([t.boolean, t.undefined]),
   vgw: t.union([VirtualPrivateGatewayConfig, t.boolean, t.undefined]),
@@ -632,14 +632,14 @@ export const ScpsConfigType = t.interface({
 export type ScpConfig = t.TypeOf<typeof ScpsConfigType>;
 
 export const FLOW_LOGS_FILTER = ['ACCEPT', 'REJECT', 'ALL'] as const;
-export const flowLogsFilterTypes = enumType<typeof FLOW_LOGS_FILTER[number]>(FLOW_LOGS_FILTER);
+export const FlowLogsFilterTypes = enumType<typeof FLOW_LOGS_FILTER[number]>(FLOW_LOGS_FILTER);
 
 export const FLOW_LOGS_INTERVAL_TYPES = [60, 600] as const;
-export const flowLogsIntervalTypes = enumType<typeof FLOW_LOGS_INTERVAL_TYPES[number]>(FLOW_LOGS_INTERVAL_TYPES);
+export const FlowLogsIntervalTypes = enumType<typeof FLOW_LOGS_INTERVAL_TYPES[number]>(FLOW_LOGS_INTERVAL_TYPES);
 
 export const VpcFlowLogsConfigType = t.interface({
-  filter: flowLogsFilterTypes,
-  interval: flowLogsIntervalTypes,
+  filter: FlowLogsFilterTypes,
+  interval: FlowLogsIntervalTypes,
   'default-format': t.boolean,
   'custom-fields': t.array(t.string),
 });
