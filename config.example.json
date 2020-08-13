@@ -95,6 +95,19 @@
         "private": ["dept.cloud-nuage.gc.ca"]
       }
     },
+    "vpc-flow-logs": {
+      "filter": "ALL",
+      "interval": 60,
+      "default-format": false,
+      "custom-fields": [
+        "version",
+        "account-id",
+        "interface-id",
+        "srcaddr",
+        "dstaddr",
+        "srcport"
+      ]
+    },
     "security-hub-frameworks": {
       "standards": [
         {
@@ -240,7 +253,7 @@
           "cidr": "10.7.0.0/22",
           "region": "ca-central-1",
           "use-central-endpoints": false,
-          "flow-logs": true,
+          "flow-logs": "S3",
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -791,7 +804,7 @@
           "cidr2": "100.96.250.0/23",
           "region": "ca-central-1",
           "use-central-endpoints": false,
-          "flow-logs": true,
+          "flow-logs": "S3",
           "igw": true,
           "vgw": {
             "asn": 65522
@@ -1188,7 +1201,7 @@
           "cidr": "10.249.1.0/24",
           "region": "ca-central-1",
           "use-central-endpoints": false,
-          "flow-logs": false,
+          "flow-logs": "S3",
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -1376,7 +1389,7 @@
           "cidr2": "100.96.252.0/23",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": true,
+          "flow-logs": "BOTH",
           "igw": false,
           "vgw": false,
           "pcx": {
@@ -1854,7 +1867,7 @@
           "cidr": "10.2.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": true,
+          "flow-logs": "S3",
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -2327,7 +2340,7 @@
           "cidr": "10.3.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": true,
+          "flow-logs": "CWL",
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -2800,7 +2813,7 @@
           "cidr": "10.4.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": true,
+          "flow-logs": "CWL",
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -3247,7 +3260,7 @@
           "cidr": "10.5.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": true,
+          "flow-logs": "S3",
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -3686,7 +3699,7 @@
           "cidr": "10.6.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": false,
-          "flow-logs": true,
+          "flow-logs": "BOTH",
           "igw": true,
           "vgw": false,
           "pcx": false,

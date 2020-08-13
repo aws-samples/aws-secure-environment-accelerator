@@ -22,7 +22,8 @@ export const isThrottlingError = (e: any) =>
   e.errorType === 'TooManyRequestsException' ||
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
-  e.retryable === true;
+  e.retryable === true ||
+  e.code === 'InternalException';
 
 export async function delay(ms: number) {
   return new Promise((resolve, reject) => setTimeout(resolve, ms));

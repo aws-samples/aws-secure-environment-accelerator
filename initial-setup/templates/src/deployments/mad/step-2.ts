@@ -12,6 +12,7 @@ import { StructuredOutput } from '../../common/structured-output';
 import { SecretEncryptionKeyOutputType } from '../secrets';
 import { JsonOutputValue } from '../../common/json-output';
 import { ActiveDirectory } from '../../common/active-directory';
+import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
 
 export interface MadStep2Props {
   acceleratorExecutionRoleName: string;
@@ -71,6 +72,15 @@ function createActiveDirectory(props: MadStep2Props) {
     });
     const madPasswordSecret = cdk.SecretValue.secretsManager(madPasswordSecretArn);
 
+    const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey,
+      roleKey: 'LogGroupRole',
+    });
+    if (!logGroupLambdaRoleOutput) {
+      continue;
+    }
+
     const activeDirectory = new ActiveDirectory(accountStack, 'Microsoft AD', {
       madDeploymentConfig: madConfig,
       subnetInfo: {
@@ -78,6 +88,7 @@ function createActiveDirectory(props: MadStep2Props) {
         subnetIds,
       },
       password: madPasswordSecret,
+      roleArn: logGroupLambdaRoleOutput.roleArn,
     });
 
     new JsonOutputValue(accountStack, 'MadOutput', {

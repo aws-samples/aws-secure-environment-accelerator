@@ -2,6 +2,11 @@ import { Vpc, SecurityGroup, Subnet, RouteTables } from '@aws-pbmm/constructs/li
 import { VpcOutput } from '@aws-pbmm/common-outputs/lib/vpc';
 import { createCfnStructuredOutput } from '../../common/structured-output';
 
+export const S3_DESTINATION_TYPE = 'S3';
+export const CWL_DESTINATION_TYPE = 'CWL';
+export const BOTH_DESTINATION_TYPE = 'BOTH';
+export const NONE_DESTINATION_TYPE = 'NONE';
+
 export const CfnVpcOutput = createCfnStructuredOutput(VpcOutput);
 
 export interface ImportedVpcProps {

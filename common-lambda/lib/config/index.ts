@@ -159,6 +159,11 @@ export const SecurityGroupConfigType = t.interface({
   'outbound-rules': t.array(SecurityGroupRuleConfigType),
 });
 
+export const FLOW_LOGS_DESTINATION_TYPES = ['S3', 'CWL', 'BOTH', 'NONE'] as const;
+export const flowLogsDestinationTypes = enumType<typeof FLOW_LOGS_DESTINATION_TYPES[number]>(
+  FLOW_LOGS_DESTINATION_TYPES,
+);
+
 export const VpcConfigType = t.interface({
   deploy: t.string,
   name: t.string,
@@ -166,7 +171,7 @@ export const VpcConfigType = t.interface({
   cidr,
   cidr2: optional(cidr),
   'use-central-endpoints': fromNullable(t.boolean, false),
-  'flow-logs': fromNullable(t.boolean, false),
+  'flow-logs': flowLogsDestinationTypes,
   'log-retention': optional(t.number),
   igw: t.union([t.boolean, t.undefined]),
   vgw: t.union([VirtualPrivateGatewayConfig, t.boolean, t.undefined]),
@@ -626,6 +631,20 @@ export const ScpsConfigType = t.interface({
 
 export type ScpConfig = t.TypeOf<typeof ScpsConfigType>;
 
+export const FLOW_LOGS_FILTER = ['ACCEPT', 'REJECT', 'ALL'] as const;
+export const flowLogsFilterTypes = enumType<typeof FLOW_LOGS_FILTER[number]>(FLOW_LOGS_FILTER);
+
+export const FLOW_LOGS_INTERVAL_TYPES = [60, 600] as const;
+export const flowLogsIntervalTypes = enumType<typeof FLOW_LOGS_INTERVAL_TYPES[number]>(FLOW_LOGS_INTERVAL_TYPES);
+
+export const VpcFlowLogsConfigType = t.interface({
+  filter: flowLogsFilterTypes,
+  interval: flowLogsIntervalTypes,
+  'default-format': t.boolean,
+  'custom-fields': t.array(t.string),
+});
+export type VpcFlowLogsConfig = t.TypeOf<typeof VpcFlowLogsConfigType>;
+
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
@@ -650,6 +669,7 @@ export const GlobalOptionsConfigType = t.interface({
   'workloadaccounts-prefix': optional(t.string),
   'workloadaccounts-suffix': optional(t.number),
   'workloadaccounts-param-filename': t.string,
+  'vpc-flow-logs': VpcFlowLogsConfigType,
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

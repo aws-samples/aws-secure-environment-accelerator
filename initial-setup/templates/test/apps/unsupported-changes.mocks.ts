@@ -789,6 +789,19 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     {
       accountKey: 'operations',
       region: 'ca-central-1',
+      outputKey: 'LogGroupRoleOutput3A1B7B51',
+      outputValue: JSON.stringify({
+        type: 'IamRole',
+        value: {
+          roleName: 'PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
+          roleArn: 'arn:aws:iam::278816265654:role/PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
+          roleKey: 'LogGroupRole',
+        },
+      }),
+    },
+    {
+      accountKey: 'operations',
+      region: 'ca-central-1',
       outputKey: 'SecurityGroupOutputCentral0Output0751AD9A',
       outputValue: JSON.stringify({
         type: 'SecurityGroupsOutput',

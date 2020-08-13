@@ -39,6 +39,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
     vgw: false,
     pcx: false,
     natgw: false,
+    'flow-logs': 'NONE',
     'gateway-endpoints': ['s3', 'dynamodb'],
     subnets: [
       {
@@ -213,6 +214,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
     vgw: false,
     pcx: false,
     natgw: false,
+    'flow-logs': 'NONE',
     subnets: [
       {
         name: 'TGW',
@@ -252,6 +254,7 @@ test('the VPC creation should create the internet gateway', () => {
     vgw: false,
     pcx: false,
     natgw: false,
+    'flow-logs': 'NONE',
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
@@ -286,6 +289,7 @@ test('the VPC creation should create the VPN gateway', () => {
     vgw: true,
     pcx: false,
     natgw: false,
+    'flow-logs': 'NONE',
     subnets: [],
   });
   new Vpc(stack, 'SharedNetwork', {
@@ -346,6 +350,7 @@ test('the VPC creation should create the NAT gateway', () => {
     igw: true,
     vgw: false,
     pcx: false,
+    'flow-logs': 'NONE',
     natgw: {
       subnet: {
         name: 'Public',
