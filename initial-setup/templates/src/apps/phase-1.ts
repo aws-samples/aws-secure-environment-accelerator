@@ -15,7 +15,6 @@ import {
   VpcConfig,
 } from '@aws-pbmm/common-lambda/lib/config';
 import { InterfaceEndpoint } from '../common/interface-endpoints';
-import { CfnVpcOutput } from '../deployments/vpc';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-pbmm/common-lambda/lib/aws/sts';
 import { S3 } from '@aws-pbmm/common-lambda/lib/aws/s3';
@@ -33,6 +32,7 @@ import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
+import * as vpcDeployment from '../deployments/vpc';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -173,7 +173,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
 
     // Store the VPC output so that subsequent phases can access the output
-    new CfnVpcOutput(vpc, `VpcOutput`, {
+    new vpcDeployment.CfnVpcOutput(vpc, `VpcOutput`, {
       accountKey,
       region: props.vpcConfig.region,
       vpcId: vpc.vpcId,
@@ -440,5 +440,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     logBucket,
     shardCount,
+  });
+
+  await vpcDeployment.step1({
+    accountBuckets,
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
   });
 }

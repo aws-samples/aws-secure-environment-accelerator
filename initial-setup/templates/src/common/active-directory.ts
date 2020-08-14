@@ -5,6 +5,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import { LogGroup } from '@custom-resources/logs-log-group';
 import { LogResourcePolicy } from '@custom-resources/logs-resource-policy';
 import { DirectoryServiceLogSubscription } from '@custom-resources/ds-log-subscription';
+import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
 
 export interface ActiveDirectoryProps extends cdk.StackProps {
   madDeploymentConfig: MadDeploymentConfig;
@@ -13,6 +14,7 @@ export interface ActiveDirectoryProps extends cdk.StackProps {
     subnetIds: string[];
   };
   password: cdk.SecretValue;
+  roleArn: string;
 }
 
 export class ActiveDirectory extends cdk.Construct {
@@ -21,11 +23,13 @@ export class ActiveDirectory extends cdk.Construct {
 
   constructor(scope: cdk.Construct, id: string, props: ActiveDirectoryProps) {
     super(scope, id);
-    const { madDeploymentConfig, subnetInfo, password } = props;
+    const { madDeploymentConfig, subnetInfo, password, roleArn } = props;
 
     const logGroupName = madDeploymentConfig['log-group-name'];
+
     const logGroup = new LogGroup(this, 'LogGroup', {
       logGroupName,
+      roleArn,
     });
 
     // Allow directory services to write to the log group

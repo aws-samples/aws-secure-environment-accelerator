@@ -5,6 +5,7 @@ import { createRoleName } from '@aws-pbmm/common-cdk/lib/core/accelerator-name-g
 
 export interface FlowLogContainerProps {
   bucket: s3.IBucket;
+  vpcNames: string[];
 }
 
 /**
@@ -12,15 +13,12 @@ export interface FlowLogContainerProps {
  */
 export class FlowLogContainer extends cdk.Construct {
   readonly bucket: s3.IBucket;
-  readonly destination: string;
   readonly role: iam.Role;
 
   constructor(scope: cdk.Construct, id: string, props: FlowLogContainerProps) {
     super(scope, id);
 
     this.bucket = props.bucket;
-    this.destination = `${this.bucket.bucketArn}/${cdk.Aws.ACCOUNT_ID}/flowlogs`;
-
     this.role = new iam.Role(this, 'Role', {
       roleName: createRoleName('VPC-FlowLog'),
       assumedBy: new iam.ServicePrincipal('vpc-flow-logs.amazonaws.com'),
@@ -28,17 +26,28 @@ export class FlowLogContainer extends cdk.Construct {
 
     this.role.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ['logs:CreateLogDelivery', 'logs:DeleteLogDelivery'],
+        actions: [
+          'logs:CreateLogDelivery',
+          'logs:DeleteLogDelivery',
+          'logs:CreateLogGroup',
+          'logs:CreateLogStream',
+          'logs:PutLogEvents',
+          'logs:DescribeLogGroups',
+          'logs:DescribeLogStreams',
+        ],
         resources: ['*'],
       }),
     );
 
-    // Give the role access to the flow log bucket
-    this.role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['s3:*'],
-        resources: [this.bucket.bucketArn, this.destination],
-      }),
-    );
+    if (props.vpcNames.length !== 0) {
+      const destinations = props.vpcNames.map(v => `${this.bucket.bucketArn}/${cdk.Aws.ACCOUNT_ID}/${v}`);
+      // Give the role access to the flow log bucket
+      this.role.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          actions: ['s3:*'],
+          resources: [this.bucket.bucketArn, ...destinations],
+        }),
+      );
+    }
   }
 }

@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@custom-resources/cfn-response';
+import { throttlingBackOff } from '@custom-resources/cfn-utils';
 
 export type Tags = AWS.CloudWatchLogs.Tags;
 
@@ -33,12 +34,14 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { logGroupName, retention, tags } = properties;
   try {
-    await logs
-      .createLogGroup({
-        logGroupName: logGroupName,
-        tags,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      logs
+        .createLogGroup({
+          logGroupName: logGroupName,
+          tags,
+        })
+        .promise(),
+    );
   } catch (e) {
     if (e.code !== 'ResourceAlreadyExistsException') {
       throw new Error(`Cannot create log group: ${JSON.stringify(e)}`);
@@ -46,18 +49,22 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
   try {
     if (!retention) {
-      await logs
-        .deleteRetentionPolicy({
-          logGroupName: logGroupName,
-        })
-        .promise();
+      await throttlingBackOff(() =>
+        logs
+          .deleteRetentionPolicy({
+            logGroupName: logGroupName,
+          })
+          .promise(),
+      );
     } else {
-      await logs
-        .putRetentionPolicy({
-          logGroupName: logGroupName,
-          retentionInDays: retention,
-        })
-        .promise();
+      await throttlingBackOff(() =>
+        logs
+          .putRetentionPolicy({
+            logGroupName: logGroupName,
+            retentionInDays: retention,
+          })
+          .promise(),
+      );
     }
   } catch (e) {
     throw new Error(`Cannot put log group retention: ${JSON.stringify(e)}`);
