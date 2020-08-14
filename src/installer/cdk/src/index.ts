@@ -50,7 +50,7 @@ async function main() {
   });
 
   const githubRepository = new cdk.CfnParameter(stack, 'GithubRepository', {
-    default: 'aws-pbmm-accelerator',
+    default: 'aws-secure-environment-accelerator',
     description: 'The name of the Github repository containing the Accelerator code.',
   });
 
