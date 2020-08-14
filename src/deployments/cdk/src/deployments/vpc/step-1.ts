@@ -1,6 +1,6 @@
 // TODO Move VPC code over from phase-1.ts
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
-import { AcceleratorConfig } from '@aws-pbmm/common-lambda/lib/config';
+import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { AccountBuckets } from '../defaults';
 import { Account } from '../../utils/accounts';
 import * as s3 from '@aws-cdk/aws-s3';

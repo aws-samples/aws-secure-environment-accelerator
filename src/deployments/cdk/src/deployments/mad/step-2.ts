@@ -12,7 +12,7 @@ import { StructuredOutput } from '../../common/structured-output';
 import { SecretEncryptionKeyOutputType } from '../secrets';
 import { JsonOutputValue } from '../../common/json-output';
 import { ActiveDirectory } from '../../common/active-directory';
-import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface MadStep2Props {
   acceleratorExecutionRoleName: string;

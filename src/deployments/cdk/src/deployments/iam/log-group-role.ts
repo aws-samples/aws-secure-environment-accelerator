@@ -1,7 +1,7 @@
 import * as iam from '@aws-cdk/aws-iam';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { createIamRoleOutput } from './outputs';
-import { Account } from '@aws-pbmm/common-outputs/lib/accounts';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 
 export interface LogGroupRoleProps {
   accountStacks: AccountStacks;

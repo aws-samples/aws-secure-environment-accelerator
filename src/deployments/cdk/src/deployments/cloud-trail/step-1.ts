@@ -14,7 +14,7 @@ import {
 import * as iam from '@aws-cdk/aws-iam';
 import { Context } from '../../utils/context';
 import { AccountBuckets } from '../defaults';
-import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface CreateCloudTrailProps {
   accountBuckets: AccountBuckets;

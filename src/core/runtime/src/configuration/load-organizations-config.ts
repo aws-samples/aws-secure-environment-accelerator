@@ -8,7 +8,7 @@ import {
   ConfigurationOrganizationalUnit,
   LoadConfigurationOutput,
 } from '../load-configuration-step';
-import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
+import { AcceleratorConfig } from '@aws-accelerator/common-config';
 
 interface LoadOrganizationConfigurationOutput extends LoadConfigurationOutput {
   installCloudFormationMasterRole?: boolean;

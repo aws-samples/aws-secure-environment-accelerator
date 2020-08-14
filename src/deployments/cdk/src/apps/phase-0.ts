@@ -22,7 +22,7 @@ import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
-import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 /**
  * This is the main entry point to deploy phase 0.

@@ -1,10 +1,8 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
-import * as s3 from '@aws-cdk/aws-s3';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
-import { AccountStack, AccountStacks } from '../../common/account-stacks';
-import { FlowLogContainer } from '../../common/flow-log-container';
+import { AccountStacks } from '../../common/account-stacks';
 import { AccountBuckets } from '../defaults';
 import * as cdk from '@aws-cdk/core';
 import { createLogGroupName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
