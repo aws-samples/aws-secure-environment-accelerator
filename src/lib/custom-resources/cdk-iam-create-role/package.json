@@ -1,0 +1,25 @@
+{
+  "name": "@aws-accelerator/custom-resource-iam-create-role",
+  "peerDependencies": {
+    "@aws-cdk/aws-iam": "^1.46.0", 
+    "@aws-cdk/core": "^1.46.0"
+  }, 
+  "main": "cdk/index.ts",
+  "private": true, 
+  "version": "0.0.1", 
+  "dependencies": {
+    "@aws-cdk/aws-iam": "1.46.0", 
+    "@aws-cdk/core": "1.46.0", 
+    "@aws-cdk/aws-lambda": "1.46.0", 
+    "@aws-cdk/custom-resources": "1.46.0"
+  }, 
+  "devDependencies": {
+    "tslint": "6.1.0", 
+    "ts-node": "6.2.0", 
+    "tslint-config-standard": "9.0.0", 
+    "@aws-accelerator/custom-resource-iam-create-role-runtime": "workspace:^0.0.1", 
+    "tslint-config-prettier": "1.18.0", 
+    "typescript": "3.8.3", 
+    "@types/node": "12.12.6"
+  }
+}
