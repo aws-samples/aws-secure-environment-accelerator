@@ -167,7 +167,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### Deploy the Accelerator Installer Stack
 
-1. You can find the latest release in the repository here: https://github.com/aws-samples/aws-pbmm-accelerator/releases
+1. You can find the latest release in the repository here: [`releases`](../../releases)
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary region)_**

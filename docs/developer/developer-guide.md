@@ -1086,9 +1086,9 @@ We create custom resources for functionality that is not supported natively by C
 1. Custom resource that calls an SDK method;
 2. Custom resource that needs additional functionality and is backed by a custom Lambda function.
 
-CDK has a helper construct for the first type of custom resources. See [CDK `AwsCustomResource` documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_custom-resources.AwsCustomResource.html). This helper construct is for example used in the custom resource [`ds-log-subscription`](https://github.com/aws-samples/aws-pbmm-accelerator/tree/69cd4e96992c32e4cdcf1beba418e193e65834d8/custom-resources/ds-log-subscription).
+CDK has a helper construct for the first type of custom resources. See [CDK `AwsCustomResource` documentation](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_custom-resources.AwsCustomResource.html). This helper construct is for example used in the custom resource [`ds-log-subscription`](../../src/lib/custom-resources/cdk-cdk-ds-log-subscription/).
 
-The second type of custom resources requires a custom Lambda function runtime as described in the previous section. For example [`acm-import-certificate`](https://github.com/aws-samples/aws-pbmm-accelerator/tree/7249c25bd0c651175b0d8409d3d9683568481f08/custom-resources/acm-import-certificate) is backed by a custom Lambda function.
+The second type of custom resources requires a custom Lambda function runtime as described in the previous section. For example [`acm-import-certificate`](./../src/lib/custom-resources/cdk-acm-import-certificate) is backed by a custom Lambda function.
 
 Only a single Lambda function is created per custom resource, account and region. This is achieved by creating only a single Lambda function in the construct tree.
 
