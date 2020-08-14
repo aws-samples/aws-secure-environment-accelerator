@@ -136,7 +136,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Accelerator Developer Guide](./docs/developer/developer-guide.md) (Early Draft)
 
-### - [Prescriptive PBMM Architecture Design Document](https://github.com/aws-samples/aws-pbmm-accelerator/blob/feature/8.35-architecture-document-v2/docs/architectures/pbmm/index.md) (Early Draft)
+### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/index.md) (Early Draft)
 
 ### - [Frequently Asked Questions](docs/faq/index.md) (Future)
 
