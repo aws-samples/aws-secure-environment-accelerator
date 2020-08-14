@@ -141,22 +141,22 @@ When we want to enable functionality in a managed account we try to
 
 The folder structure of the project is as follows:
 
-- `accelerator/installer`: See [Installer Stack](#installer-stack);
-- `accelerator/cdk`: See [Initial Setup Stack](#initial-setup-stack);
-- `initial-setup/cdk`: See [Initial Setup Stack](#initial-setup-stack);
-- `initial-setup/lambdas` See [Initial Setup Stack](#initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
-- `initial-setup/apps-lambdas` See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
-- `initial-setup/templates`: See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
-- `common/constructs`: See [Libraries & Tools](#libraries--tools);
-- `common/outputs`: See [Libraries & Tools](#libraries--tools);
-- `common/types`: See [Libraries & Tools](#libraries--tools);
-- `common-cdk`: See [Libraries & Tools](#libraries--tools);
-- `common-lambda`: See [Libraries & Tools](#libraries--tools);
-- `custom-resources/**/lib`: See [Custom Resources](#custom-resources);
-- `custom-resources/**/lambda`: See [Custom Resources](#custom-resources);
-- `plugins/assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
+- `src/installer/cdk`: See [Installer Stack](#installer-stack);
+- `src/core/cdk`: See [Initial Setup Stack](#initial-setup-stack);
+- `src/core/runtime` See [Initial Setup Stack](#initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+- `src/deployments/runtime` See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+- `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+- `src/lib/cdk-constructs`: See [Libraries & Tools](#libraries--tools);
+- `src/lib/common-outputs`: See [Libraries & Tools](#libraries--tools);
+- `src/lib/common-types`: See [Libraries & Tools](#libraries--tools);
+- `src/lib/accelerator-cdk`: See [Libraries & Tools](#libraries--tools);
+- `src/lib/common`: See [Libraries & Tools](#libraries--tools);
+- `src/lib/common-config`: See [Libraries & Tools](#libraries--tools);
+- `src/lib/custom-resources/**/cdk`: See [Custom Resources](#custom-resources);
+- `src/lib/custom-resources/**/runtime`: See [Custom Resources](#custom-resources);
+- `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
 
-> _Action Item:_ Restructure folders.
+
 
 #### Installer Stack
 
@@ -178,7 +178,7 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
       },
       build: {
         commands: [
-          'cd accelerator/cdk',
+          'cd src/core/cdk',
           'pnpx cdk bootstrap --require-approval never',
           'pnpx cdk deploy --require-approval never',
         ],
@@ -199,7 +199,7 @@ The `Initial Setup` stack deployment gets various environment variables through 
 
 Read [Operations Guide](./Operations%20Guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
-The `Initial Setup` stack is defined in the `accelerator/cdk` and `initial-setup/cdk` folders. These folders will be merged in the future.
+The `Initial Setup` stack is defined in the `src/core/cdk` folder.
 
 As stated in the Operations Guide, the `Initial Setup` stack consists of a state machine, named `PBMMAccel-MainStateMachine_sm`, that executes various steps to create the Accelerator-managed stacks and resources in the managed accounts.
 
@@ -210,7 +210,7 @@ The `Initial Setup` stack is similar to the `Installer` stack, as in that it run
 
 In order to install these `Phase` stacks in Accelerator-managed accounts, we need access to those accounts. We create a stack set in the master account that has instances in all Accelerator-managed accounts. This stack set contains what we call the `PipelineRole`.
 
-The code for the steps in the state machine is in `initial-setup/lambdas`. All the steps are in different files but are compiled into a single file. We used to compile all the steps separately but we would hit a limit in the amount of parameters in the generated CloudFormation template. Each step would have its own CDK asset that would introduce three new parameters. We quickly reached the limit of 60 parameters in a CloudFormation template and decided to compile the steps into a single file and use it across all different Lambda functions.
+The code for the steps in the state machine is in `src/core/runtime`. All the steps are in different files but are compiled into a single file. We used to compile all the steps separately but we would hit a limit in the amount of parameters in the generated CloudFormation template. Each step would have its own CDK asset that would introduce three new parameters. We quickly reached the limit of 60 parameters in a CloudFormation template and decided to compile the steps into a single file and use it across all different Lambda functions.
 
 ##### CodeBuild and Prebuilt Docker Image
 
@@ -221,7 +221,7 @@ The first, `CdkDeployProject` constructs a CodeBuild project that copies the who
 After installing the dependencies, the CodeBuild project deploys the `Phase` stacks.
 
 ```sh
-cd initial-setup/templates
+cd src/deployments/cdk
 sh codebuild-deploy.sh
 ```
 
@@ -351,9 +351,9 @@ See [Creating Stack Outputs](#creating-stack-outputs) for helper constructs to c
 
 ##### Decoupling Configuration from Constructs
 
-At the start of the project we created constructs that had tight coupling to the Accelerator config structure. The properties to instantiate a construct would sometimes have a reference to an Accelerator-specific interface. An example of this is the `Vpc` construct in `initial-setup/templates/src/common/vpc.ts`.
+At the start of the project we created constructs that had tight coupling to the Accelerator config structure. The properties to instantiate a construct would sometimes have a reference to an Accelerator-specific interface. An example of this is the `Vpc` construct in `src/deployments/cdk/common/vpc.ts`.
 
-Later on in the project we started decoupling the Accelerator config from the construct properties. Good examples are in `common/constructs/lib`.
+Later on in the project we started decoupling the Accelerator config from the construct properties. Good examples are in `src/lib/cdk-constructs/`.
 
 ### Libraries & Tools
 
@@ -378,15 +378,14 @@ The risk of using the CDK API directly is that the CDK API can change at any tim
 
 #### AWS SDK Wrappers
 
-You can find `aws-sdk` wrappers in the `common-lambda/lib/aws` folder. Most of the classes and functions just wrap around `aws-sdk` classes and wrappers and promisify some calls and add exponential backoff to retryable errors. Other classes, like `Organizations` have additional functionality such as listing all the organizational units in an organization in the function `listOrganizationalUnits`.
+You can find `aws-sdk` wrappers in the `src/lib/common/src/aws` folder. Most of the classes and functions just wrap around `aws-sdk` classes and wrappers and promisify some calls and add exponential backoff to retryable errors. Other classes, like `Organizations` have additional functionality such as listing all the organizational units in an organization in the function `listOrganizationalUnits`.
 
 Please use the `aws-sdk` wrappers throughout the project or write an additional wrapper when necessary.
 
-> _Action Item:_ Move the AWS wrappers into a separate project, `common-aws`.
 
 #### Configuration File Parsing
 
-The configuration file is defined and validated using the [`io-ts`](https://github.com/gcanti/io-ts) library. See `common-lambda/lib/config/index.ts`. In case any changes need to be made to the configuration file parsing, this is the place to be.
+The configuration file is defined and validated using the [`io-ts`](https://github.com/gcanti/io-ts) library. See `src/lib/common-config/src/index.ts`. In case any changes need to be made to the configuration file parsing, this is the place to be.
 
 We wrap a class around the `AcceleratorConfig` type that contains additional helper functions. You can add your own additional helper functions.
 
@@ -457,7 +456,7 @@ export async function step1(props: CertificatesStep1Props) {
 
 ##### `Vpc` and `ImportedVpc`
 
-`Vpc` is an interface in the `constructs/lib/vpc/vpc.ts` file that attempts to define an interface for a VPC. The goal of the interface is to be implemented by an actual `cdk.Construct` that implements the interface.
+`Vpc` is an interface in the `src/lib/cdk-constructs/src/vpc/vpc.ts` file that attempts to define an interface for a VPC. The goal of the interface is to be implemented by an actual `cdk.Construct` that implements the interface.
 
 Another goal of the interface is to provide an interface on top of imported VPC outputs. This is what the `ImportedVpc` class implements. The class loads outputs from VPC in a previous phase and implements the `Vpc` interface on top of those outputs.
 
@@ -550,7 +549,7 @@ const firewallInstances = FirewallInstanceOutputFinder.findAll({
 });
 ```
 
-Generally you would place the output type definition inside `common/outputs` along with the output finder. Then in the deployment folder in `initial-setup/templates/src/deployments` you would create an `output.ts` file where you would define the CDK output type with `createCfnStructuredOutput`. You would not define the CDK output type in `common/outputs` since that project is also used by runtime code that does not know about CDK and CloudFormation.
+Generally you would place the output type definition inside `src/lib/common-outputs` along with the output finder. Then in the deployment folder in `src/deployments/cdk/deployments` you would create an `output.ts` file where you would define the CDK output type with `createCfnStructuredOutput`. You would not define the CDK output type in `src/lib/common-outputs` since that project is also used by runtime code that does not know about CDK and CloudFormation.
 
 ##### Adding Tags to Shared Resources in Destination Account
 
@@ -586,7 +585,7 @@ Some custom resources set the `aws-sdk` as external dependency and some do not.
 
 Example of setting `aws-sdk` as external dependency.
 
-`custom-resources/kms-grant/lambda/package.json`
+`src/lib/custom-resources/cdk-kms-grant/runtime/package.json`
 
 ```json
 {
@@ -600,7 +599,7 @@ Example of setting `aws-sdk` as external dependency.
 
 Example of setting `aws-sdk` as embedded dependency.
 
-`custom-resources/guardduty-enable-admin/lambda/package.json`
+`src/lib/custom-resources/cdk-guardduty-enable-admin/runtime/package.json`
 
 ```json
 {
@@ -616,13 +615,13 @@ Setting the `aws-sdk` library as external is sometimes necessary when a newer `a
 
 For example the method `AWS.GuardDuty.enableOrganizationAdminAccount` was only introduced in `aws-sdk` version `2.660`. That means that Webpack has to embed the `aws-sdk` version specified in `package.json` into the compiled JavaScript file. This can be achieved by removing `aws-sdk` from the `external` array.
 
-`custom-resources/kms-grant/lambda/package.json`
+`src/lib/custom-resources/cdk-kms-grant/runtime/package.json`
 
 ##### cfn-response
 
 This library helps you send a custom resource response to CloudFormation.
 
-`custom-resources/kms-grant/lambda/src/index.ts`
+`src/lib/custom-resources/cdk-kms-grant/runtime/src/index.ts`
 
 ```typescript
 export const handler = errorHandler(onEvent);
@@ -651,11 +650,11 @@ This library helps you send attaching tags to resource created in a custom resou
 
 This library defines the base Webpack template to compile custom resource runtime code.
 
-`custom-resources/kms-grant/lambda/package.json`
+`src/lib/custom-resources/cdk-kms-grant/runtime/package.json`
 
 ```json
 {
-  "name": "@custom-resources/kms-grant-lambda",
+  "name": "@aws-accelerator/custom-resource-kms-grant-runtime",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -666,7 +665,7 @@ This library defines the base Webpack template to compile custom resource runtim
   "types": "dist/index.d.ts",
   "externals": ["aws-lambda", "aws-sdk"],
   "devDependencies": {
-    "@custom-resources/webpack-base": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1", 
     "@types/aws-lambda": "8.10.46",
     "@types/node": "12.12.6",
     "ts-loader": "7.0.5",
@@ -675,17 +674,17 @@ This library defines the base Webpack template to compile custom resource runtim
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "@custom-resources/cfn-response": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1", 
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.668.0"
   }
 }
 ```
 
-`custom-resources/ec2-image-finder/lambda/webpack.config.ts`
+`src/lib/custom-resources/cdk-ec2-image-finder/runtime/webpack.config.ts`
 
 ```typescript
-import { webpackConfigurationForPackage } from '@custom-resources/webpack-base';
+import { webpackConfigurationForPackage } from '@aws-accelerator/custom-resource-runtime-webpack-base';
 import pkg from './package.json';
 
 export default webpackConfigurationForPackage(pkg);
@@ -704,7 +703,7 @@ The reason we're creating a `cdk.App` per account and per region and per phase i
 #### Installer Stack
 
 ```sh
-cd accelerator/installer
+cd src/installer/cdk
 pnpx cdk synth
 ```
 
@@ -719,15 +718,15 @@ pnpx cdk deploy --parameters GithubBranch=master --parameters ConfigS3Bucket=pbm
 
 #### Initial Setup Stack
 
-There is a script called `cdk.sh` in `accelerator/cdk` that allows you to deploy the Initial Setup stack.
+There is a script called `cdk.sh` in `src/core/cdk` that allows you to deploy the Initial Setup stack.
 
 The script sets the required environment variables and makes sure all workspace projects are built before deploying the CDK stack.
 
 #### Phase Stacks
 
-There is a script called `cdk.sh` in `initial-setup/templates` that allows you to deploy a phase stack straight from the command-line without having to deploy the Initial Setup stack first.
+There is a script called `cdk.sh` in `src/deployments/cdk` that allows you to deploy a phase stack straight from the command-line without having to deploy the Initial Setup stack first.
 
-The script enables development mode which means that accounts, organizations, configuration, limits and outputs will be loaded from the local environment instead of loading the values from secrets manager or S3. The local files that need to be available in the `initial-setup/templates` folder are the following.
+The script enables development mode which means that accounts, organizations, configuration, limits and outputs will be loaded from the local environment instead of loading the values from secrets manager or S3. The local files that need to be available in the `src/deployments/cdk` folder are the following.
 
 1. `accounts.json` based on `accelerator/accounts`
 
@@ -743,7 +742,7 @@ The script enables development mode which means that accounts, organizations, co
   },
   {
     "key": "operations",
-    "id": "278816265654",
+    "id": "000000000002",
     "arn": "arn:aws:organizations::000000000000:account/o-0123456789/000000000002",
     "name": "myacct-pbmm-operations",
     "email": "myacct+pbmm-mandatory-operations@example.com",
@@ -822,7 +821,7 @@ The script also sets the default execution role to allow CDK to assume a role in
 Now that you have all the required local files you can deploy the phase stacks using `cdk.sh`.
 
 ```sh
-cd initial-setup/templates
+cd src/deployments/cdk
 ./cdk.sh deploy --phase 1                             # deploy all phase 1 stacks
 ./cdk.sh deploy --phase 1 --parallel                  # deploy all phase 1 stacks in parallel
 ./cdk.sh deploy --phase 1 --account shared-network    # deploy phase 1 stacks for account shared-network in all regions
@@ -833,7 +832,7 @@ cd initial-setup/templates
 Other CDK commands are also available.
 
 ```sh
-cd initial-setup/templates
+cd src/deployments/cdk
 ./cdk.sh bootstrap --phase 1
 ./cdk.sh synth --phase 1
 ```
@@ -854,7 +853,7 @@ See CDK's documentation on [Testing constructs](https://docs.aws.amazon.com/cdk/
 
 The most important unit test in this project is one that validates that logical IDs and immutable properties do not change unexpectedly. To avoid the issues described in section [Resource Names and Logical IDs](#resource-names-and-logical-ids), [Changing Logical IDs](#changing-logical-ids) and [Changing (Immutable) Properties](#changing-immutable-properties).
 
-This test can be found in the `initial-setup/templates/test/apps/unsupported-changes.spec.ts` file. It synthesizes the `Phase` stacks using mocked outputs and uses [`jest` snapshots](https://jestjs.io/docs/en/snapshot-testing) to compare against future changes.
+This test can be found in the `src/deployments/cdk/test/apps/unsupported-changes.spec.ts` file. It synthesizes the `Phase` stacks using mocked outputs and uses [`jest` snapshots](https://jestjs.io/docs/en/snapshot-testing) to compare against future changes.
 
 The test will fail when changing immutable properties or changing logical IDs of existing resources. In case the changes are expected then the snapshots will need to be updated. You can update the snapshots by running the following command.
 
@@ -866,7 +865,7 @@ See [Accept Unit Test Snapshot Changes](#accept-unit-test-snapshot-changes).
 
 #### Upgrade CDK
 
-There's a test in the file `initial-setup/templates/test/apps/unsupported-changes.spec.ts` that is currently commented out. The test takes a snapshot of the whole `Phase` stack and compares the snapshot to changes in the code.
+There's a test in the file `src/deployments/cdk/test/apps/unsupported-changes.spec.ts` that is currently commented out. The test takes a snapshot of the whole `Phase` stack and compares the snapshot to changes in the code.
 
 ```typescript
 test('templates should stay exactly the same', () => {
@@ -950,7 +949,7 @@ Be especially careful when:
 - changing immutable properties for a named resource. Example of a resource is `AWS::Budgets::Budget`, `AWS::ElasticLoadBalancingV2::LoadBalancer`.
 - updating network interfaces for an `AWS::EC2::Instance`. Not only will this cause the instance to re-create, it will also fail to attach the network interfaces to the new EC2 instance. CloudFormation creates the new EC2 instance first before deleting the old one. It will try to attach the network interfaces to the new instance, but the network interfaces are still attached to the old instance and CloudFormation will fail.
 
-For some named resources, like `AWS::AutoScaling::LaunchConfiguration` and `AWS::Budgets::Budget`, we append a hash to the name of the resource that is based on its properties. This way when an immutable property is changed, the name will also change, and the resource will be replaced successfully. See for example `constructs/lib/autoscaling/launch-configuration.ts` and `constructs/lib/billing/budget.ts`.
+For some named resources, like `AWS::AutoScaling::LaunchConfiguration` and `AWS::Budgets::Budget`, we append a hash to the name of the resource that is based on its properties. This way when an immutable property is changed, the name will also change, and the resource will be replaced successfully. See for example `src/lib/cdk-constructs/src/autoscaling/launch-configuration.ts` and `src/lib/cdk-constructs/src//billing/budget.ts`.
 
 ```typescript
 export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
@@ -1018,7 +1017,7 @@ You can read about the distinction between CDK code and runtime code in the intr
 
 CDK code can depend on runtime code. For example when we want to create a Lambda function using CDK, we need the runtime code to define the Lambda function. We use `npm scripts`, `npm` dependencies and the `NodeJS` `modules` API to define this dependency between CDK code and runtime code.
 
-First of all, we need to create a separate folder that will contain the workspace and runtime code for our Lambda function. Throughout the project we've called these workspaces `...-lambda` but it could also be named `...-runtime`. See `custom-resources/acm-import-certificate/lambda/package.json`.
+First of all, we need to create a separate folder that will contain the workspace and runtime code for our Lambda function. Throughout the project we've called these workspaces `...-lambda` but it could also be named `...-runtime`. See `src/lib/custom-resources/cdk-acm-import-certificate/runtime/package.json`.
 
 This workspace's `package.json` file needs a `prepare` script that compiles the runtime code. See [`npm-scripts`](https://docs.npmjs.com/misc/scripts).
 
@@ -1093,7 +1092,7 @@ The second type of custom resources requires a custom Lambda function runtime as
 
 Only a single Lambda function is created per custom resource, account and region. This is achieved by creating only a single Lambda function in the construct tree.
 
-`custom-resource/cdk/index.ts`
+`src/lib/custom-resources/custom-resource/cdk/index.ts`
 
 ```typescript
 class CustomResource extends cdk.Construct {
@@ -1115,8 +1114,8 @@ class CustomResource extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    // The package '@custom-resources/custom-resource-lambda' contains the runtime code for the custom resource
-    const lambdaPath = require.resolve('@custom-resources/custom-resource-lambda');
+    // The package '@aws-accelerator/custom-resources/cdk-custom-resource-runtime' contains the runtime code for the custom resource
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resources/cdk-custom-resource-runtime');
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {
@@ -1186,20 +1185,20 @@ Before making a change or adding new functionality you have to verify what kind 
 - Is it an Accelerator-management change?
   - Is the change related to the `Installer` stack?
     - Is the change CDK related?
-      - Make the change in `accelerator/installer`.
+      - Make the change in `src/installer/cdk`.
     - Is the change runtime related?
-      - Make the change in `accelerator/installer/assets`.
+      - Make the change in `src/installer/cdk/assets`.
   - Is the change related to the `Initial Setup` stack?
     - Is the change CDK related?
-      - Make the change in `initial-setup/cdk`
+      - Make the change in `src/core/cdk`
     - Is the change runtime related?
-      - Make the change in `initial-setup/lambdas`
+      - Make the change in `src/core/runtime`
 - Is it an Accelerator-managed change?
   - Is the change related to the `Phase` stacks?
     - Is the change CDK related?
-      - Make the change in `initial-setup/templates`
+      - Make the change in `src/deployments/cdk`
     - Is the change runtime related?
-      - Make the change in `initial-setup/lambdas`
+      - Make the change in `src/deployments/runtime`
 
 #### Create a CDK Lambda Function with Lambda Runtime Code
 
@@ -1209,16 +1208,16 @@ See [CDK Code Dependency on Lambda Function Code](#cdk-code-dependency-on-lambda
 
 See [Custom Resource](#custom-resource) and [Custom Resources](#custom-resources) for a short introduction.
 
-1. Create a separate folder that will contain the CDK and Lambda function runtime code, e.g. `custom-resources/my-custom-resource`;
-1. Create a folder `my-custom-resource/runtime` that will contain the CDK code;
+1. Create a separate folder that will contain the CDK and Lambda function runtime code, e.g. `src/lib/custom-resources/my-custom-resource`;
+2. Create a folder `my-custom-resource` that will contain the CDK code;
+   1. Create a `package.json` file with a dependency to the `my-custom-resource/runtime` package;
+   2. Create a `cdk` folder that contains the source of the CDK code;
+3. Create a folder `my-custom-resource/runtime` that will contain the runtime code;
    1. Create a `runtime/package.json` file with a `"name"`, `"prepare"` script and a `"main"`;
-   1. Create a `runtime/webpack.config.ts` file that compiles TypeScript code to a single JavaScript file;
-   1. Create a `runtime/src` folder that contains the source of the Lambda function runtime code;
-1. Create a folder `my-custom-resource/cdk` that will contain the CDK code;
-   1. Create a `cdk/package.json` file with a dependency to the `my-custom-resource/runtime` package;
-   1. Create a `cdk/src` folder that contains the source of the CDK code;
+   2. Create a `runtime/webpack.config.ts` file that compiles TypeScript code to a single JavaScript file;
+   3. Create a `runtime/src` folder that contains the source of the Lambda function runtime code;
 
-You can look at the `custom-resources/acm-import-certificate` custom resource as an example.
+You can look at the `src/lib/custom-resources/cdk-acm-import-certificate` custom resource as an example.
 
 It is best practice to add tags to any resources that the custom resource creates using the `cfn-tags` library.
 
@@ -1232,7 +1231,7 @@ pnpm recursive run test --no-bail --stream -- --silent
 
 #### Accept Unit Test Snapshot Changes
 
-Run in `initial-setup/templates`.
+Run in `src/deployments/cdk`.
 
 ```sh
 pnpm run test -- -u
