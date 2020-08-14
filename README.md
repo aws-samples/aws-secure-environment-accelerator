@@ -130,7 +130,7 @@ This summarizes the installation process, the full installation document can be 
 
 # **Documentation** (Linked)
 
-### - [Installation, Upgrades and Basic Operations Guide](docs/installation/index.md)
+### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/index.md)
 
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md) (Early Draft)
 
@@ -138,6 +138,6 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/index.md) (Early Draft)
 
-### - [Frequently Asked Questions](docs/faq/index.md) (Future)
+### - [Frequently Asked Questions](./docs/faq/index.md) (Future)
 
-[...Go to Table of Contents](docs/index.md)
+[...Go to Table of Contents](./docs/index.md)

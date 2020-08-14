@@ -116,7 +116,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### Accelerator Configuration
 
-1. You can use the [`config.example.json`](./config.example.json) file as base
+1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) file as base
    - Use the version from the branch you are deploying from as some parameters have changed over time
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
    - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
@@ -167,7 +167,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### Deploy the Accelerator Installer Stack
 
-1. You can find the latest release in the repository here: [`releases`](../../releases)
+1. You can find the latest release in the repository here: [`releases`](../releases)
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary region)_**
