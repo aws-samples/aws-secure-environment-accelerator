@@ -14,6 +14,7 @@ import {
 import * as iam from '@aws-cdk/aws-iam';
 import { Context } from '../../utils/context';
 import { AccountBuckets } from '../defaults';
+import { IamRoleOutputFinder } from '@aws-pbmm/common-outputs/lib/iam-role';
 
 export interface CreateCloudTrailProps {
   accountBuckets: AccountBuckets;
@@ -47,8 +48,18 @@ export async function step1(props: CreateCloudTrailProps) {
   const organizationId = organizations.organizationId;
   console.log('organizationId', organizationId);
 
+  const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: masterAccountKey,
+    roleKey: 'LogGroupRole',
+  });
+  if (!logGroupLambdaRoleOutput) {
+    return;
+  }
+
   const logGroup = new LogGroup(masterAccountStack, `LogGroup${masterAccountKey}`, {
     logGroupName: createLogGroupName('CloudTrail', 0),
+    roleArn: logGroupLambdaRoleOutput.roleArn,
   });
 
   const cloudTrailLogGroupRole = new iam.Role(masterAccountStack, `TrailLogGroupRole${masterAccountKey}`, {

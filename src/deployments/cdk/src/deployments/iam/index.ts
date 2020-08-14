@@ -6,3 +6,4 @@ export * from './guardduty-roles';
 export * from './securityhub-roles';
 export * from './create-role';
 export * from './ssm-document-roles';
+export * from './log-group-role';

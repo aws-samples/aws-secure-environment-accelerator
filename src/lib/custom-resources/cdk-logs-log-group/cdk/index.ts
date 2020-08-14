@@ -50,15 +50,18 @@ export interface LogGroupProps {
    */
   readonly removalPolicy?: cdk.RemovalPolicy;
   readonly roleName?: string;
+  readonly roleArn: string;
 }
 
 export class LogGroup extends cdk.Construct implements cdk.ITaggable {
   tags: cdk.TagManager = new cdk.TagManager(cdk.TagType.MAP, 'LogGroup');
 
   private resource: cdk.CustomResource | undefined;
+  private roleArn: string;
 
   constructor(scope: cdk.Construct, id: string, private readonly props: LogGroupProps) {
     super(scope, id);
+    this.roleArn = props.roleArn;
   }
 
   protected onPrepare() {
@@ -100,24 +103,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-logs-log-group-runtime');
     const lambdaDir = path.dirname(lambdaPath);
-
-    const role = new iam.Role(stack, `${resourceType}Role`, {
-      roleName: this.props.roleName,
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: [
-          'logs:CreateLogGroup',
-          'logs:CreateLogStream',
-          'logs:PutLogEvents',
-          'logs:PutRetentionPolicy',
-          'logs:DeleteRetentionPolicy',
-        ],
-        resources: ['*'],
-      }),
-    );
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, this.roleArn);
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,

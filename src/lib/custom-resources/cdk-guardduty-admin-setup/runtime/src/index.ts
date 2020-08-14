@@ -5,6 +5,7 @@ import {
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const physicalResourceId = 'GaurdDutyDeligatedAdminAccountSetup';
 const guardduty = new AWS.GuardDuty();
@@ -72,7 +73,7 @@ async function onCreateOrUpdate(
 
 async function getDetectorId(): Promise<string | undefined> {
   try {
-    const detectors = await guardduty.listDetectors().promise();
+    const detectors = await throttlingBackOff(() => guardduty.listDetectors().promise());
     if (detectors.DetectorIds && detectors.DetectorIds.length > 0) {
       return detectors.DetectorIds[0];
     }
@@ -85,12 +86,14 @@ async function getDetectorId(): Promise<string | undefined> {
 // Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
 async function createMembers(memberAccounts: AccountDetail[], detectorId: string) {
   try {
-    await guardduty
-      .createMembers({
-        AccountDetails: memberAccounts,
-        DetectorId: detectorId,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      guardduty
+        .createMembers({
+          AccountDetails: memberAccounts,
+          DetectorId: detectorId,
+        })
+        .promise(),
+    );
   } catch (error) {
     console.error(
       `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
@@ -101,12 +104,14 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
 // Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
 async function updateConfig(detectorId: string) {
   try {
-    await guardduty
-      .updateOrganizationConfiguration({
-        AutoEnable: true,
-        DetectorId: detectorId,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      guardduty
+        .updateOrganizationConfiguration({
+          AutoEnable: true,
+          DetectorId: detectorId,
+        })
+        .promise(),
+    );
   } catch (error) {
     console.error(
       `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
@@ -117,11 +122,13 @@ async function updateConfig(detectorId: string) {
 // describe-organization-configuration to check if security hub is already enabled in org level or not
 async function isConfigurationAutoEnabled(detectorId: string): Promise<boolean> {
   try {
-    const response = await guardduty
-      .describeOrganizationConfiguration({
-        DetectorId: detectorId,
-      })
-      .promise();
+    const response = await throttlingBackOff(() =>
+      guardduty
+        .describeOrganizationConfiguration({
+          DetectorId: detectorId,
+        })
+        .promise(),
+    );
     return response.AutoEnable;
   } catch (error) {
     console.error(

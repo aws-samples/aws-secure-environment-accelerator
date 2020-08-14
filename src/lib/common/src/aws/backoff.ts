@@ -20,4 +20,5 @@ export const isThrottlingError = (e: any) =>
   e.code === 'TooManyRequestsException' ||
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
-  e.retryable === true;
+  e.retryable === true ||
+  e.code === 'InternalException';

@@ -5,6 +5,7 @@ import {
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const macie = new AWS.Macie2();
 
@@ -49,17 +50,19 @@ async function onCreateOrUpdate(
 }
 
 async function configExport(properties: HandlerProperties) {
-  const exportConfig = await macie
-    .putClassificationExportConfiguration({
-      configuration: {
-        s3Destination: {
-          bucketName: properties.bucketName,
-          kmsKeyArn: properties.kmsKeyArn,
-          keyPrefix: properties.keyPrefix,
+  const exportConfig = await throttlingBackOff(() =>
+    macie
+      .putClassificationExportConfiguration({
+        configuration: {
+          s3Destination: {
+            bucketName: properties.bucketName,
+            kmsKeyArn: properties.kmsKeyArn,
+            keyPrefix: properties.keyPrefix,
+          },
         },
-      },
-    })
-    .promise();
+      })
+      .promise(),
+  );
 
   return exportConfig;
 }

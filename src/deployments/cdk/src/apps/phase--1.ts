@@ -41,4 +41,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     accounts,
     config: acceleratorConfig,
   });
+
+  await customResourceRoles.createLogGroupRole({
+    accountStacks,
+    accounts,
+  });
 }

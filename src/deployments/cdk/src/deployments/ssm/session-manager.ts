@@ -53,6 +53,15 @@ export async function step1(props: SSMStep1Props) {
         roleKey: 'SSMSessionManagerDocument',
       });
 
+      const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+        outputs,
+        accountKey: localAccountKey,
+        roleKey: 'LogGroupRole',
+      });
+      if (!logGroupLambdaRoleOutput) {
+        continue;
+      }
+
       if (!ssmDocumentRole) {
         console.error(`${localAccountKey}:: No Role created for SSMCreateDocument`);
         continue;
@@ -67,6 +76,7 @@ export async function step1(props: SSMStep1Props) {
 
       const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
         logGroupName: createLogGroupName('SSM'),
+        roleArn: logGroupLambdaRoleOutput.roleArn,
       });
       const globalOptionsConfig = config['global-options'];
       const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];

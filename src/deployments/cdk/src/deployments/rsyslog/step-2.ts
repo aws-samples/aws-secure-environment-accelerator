@@ -14,6 +14,7 @@ import { CfnRsyslogDnsOutputTypeOutput, RsyslogAutoScalingRoleOutput } from './o
 import { checkAccountWarming } from '../account-warming/outputs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -142,6 +143,15 @@ export function createAsg(
     return;
   }
 
+  const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey,
+    roleKey: 'LogGroupRole',
+  });
+  if (!logGroupLambdaRoleOutput) {
+    return;
+  }
+
   // creating security group for the instance
   const securityGroup = new SecurityGroup(accountStack, `RsysLogSG${accountKey}`, {
     securityGroups: rsyslogConfig['security-groups'],
@@ -153,6 +163,7 @@ export function createAsg(
 
   const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
     logGroupName: createLogGroupName(rsyslogConfig['log-group-name']),
+    roleArn: logGroupLambdaRoleOutput.roleArn,
   });
 
   new RsysLogAutoScalingGroup(accountStack, `RsyslogAsg${accountKey}`, {

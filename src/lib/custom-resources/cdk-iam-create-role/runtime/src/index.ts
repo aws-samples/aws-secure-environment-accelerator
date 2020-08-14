@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const iam = new AWS.IAM();
 
@@ -23,26 +24,32 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
-    await iam
-      .getRole({
-        RoleName: event.ResourceProperties.roleName,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      iam
+        .getRole({
+          RoleName: event.ResourceProperties.roleName,
+        })
+        .promise(),
+    );
   } catch (error) {
     if (error.code === 'NoSuchEntity') {
       console.log(error.message);
-      const crossRole = await iam
-        .createRole(
-          buildCreateRoleRequest(
-            event.ResourceProperties.roleName,
-            event.ResourceProperties.accountIds,
-            event.ResourceProperties.tagName,
-            event.ResourceProperties.tagValue,
-          ),
-        )
-        .promise();
+      const crossRole = await throttlingBackOff(() =>
+        iam
+          .createRole(
+            buildCreateRoleRequest(
+              event.ResourceProperties.roleName,
+              event.ResourceProperties.accountIds,
+              event.ResourceProperties.tagName,
+              event.ResourceProperties.tagValue,
+            ),
+          )
+          .promise(),
+      );
       for (const managedPolicy of event.ResourceProperties.managedPolicies) {
-        await iam.attachRolePolicy(buildAttachPolicyRequest(crossRole.Role.RoleName, managedPolicy)).promise();
+        await throttlingBackOff(() =>
+          iam.attachRolePolicy(buildAttachPolicyRequest(crossRole.Role.RoleName, managedPolicy)).promise(),
+        );
       }
     }
   }
