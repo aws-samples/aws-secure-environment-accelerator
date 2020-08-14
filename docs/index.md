@@ -10,6 +10,6 @@
 
 ### - [Accelerator Developer Guide](./developer/developer-guide.md) (Early Draft)
 
-### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/index.md) (Early Draft)
+### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/index.md) (Early Draft)
 
 ### - [Frequently Asked Questions](faq/index.md)

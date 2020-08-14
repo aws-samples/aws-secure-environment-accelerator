@@ -597,7 +597,7 @@ These frameworks will perform checks against the accounts via Config Rules that 
 [pbmm]: https://www.canada.ca/en/government/system/digital-government/modern-emerging-technologies/cloud-services/government-canada-security-control-profile-cloud-based-it-services.html#toc4
 [ops_guide]: https://TODO
 [dev_guide]: https://TODO
-[accel_tool]: ../
+[accel_tool]:(../../../../)
 [aws_org]: https://aws.amazon.com/organizations/
 [aws_scps]: https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_type-auth.html#orgs_manage_policies_scp
 [aws_vpn]: https://docs.aws.amazon.com/vpn/latest/s2svpn/VPC_VPN.html
