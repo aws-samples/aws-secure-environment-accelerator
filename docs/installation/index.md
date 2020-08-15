@@ -43,7 +43,7 @@ Before installing, you must first:
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
 - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
-  (Accel-Source-Bucket), Next
+  (`Accel-Source-Bucket-Key`), Next
 - Select a key administrator (Admin Role or Group for the master account), Next
 - Select key users (Admin Role or Group for the master account), Next
 - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
@@ -110,7 +110,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    - Via AWS console
      - Store a new secret, and select `Other type of secrets`, `Plaintext`
      - Paste your secret with no formatting no leading or trailing spaces
-     - Select `DefaultEncryptionKey`,
+     - Select either the key you created above (`Accel-Source-Bucket-Key`) or the `AwsLandingZoneKMSKey`,
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
@@ -167,30 +167,30 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### Deploy the Accelerator Installer Stack
 
-1. You can find the latest release in the repository here: [`releases`](/releases)
+1. You can find the latest release in the repository [here:](/releases)
 2. Download the CloudFormation template `AcceleratorInstaller.template.json`
 3. Use the template to deploy a new stack in your AWS account
-4. **_Make sure you are in `ca-central-1` (or your desired primary region)_**
+4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
 6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
 7. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
 8. Add an `Email` address to be used for notification of code releases
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.0.5`, case sensitive
-10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
-11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
-12. The stack typically takes under 5 minutes to deploy.
-13. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
-14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
-15. Approve the `Manual Approval` step in the pipeline to start the Accelerator code deployment or upgrade.
-16. Once the pipeline completes (typically under 15 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
+   - the latest stable branch is currently `release/v1.1.4`, case sensitive
+10. For deployments before v1.1.6, update the `GithubRepository` name to `aws-secure-environment-accelerator`
+11. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
+12. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
+13. The stack typically takes under 5 minutes to deploy.
+14. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
+15. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
+16. Once the pipeline completes (typically 15-20 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
 17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-19. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages.
+19. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
 20. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firewall products
-    2. Login to the **perimeter** sub-account
+    2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
        - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
        - When complete, you should see the marketplace products as subscriptions **in the Perimeter account**:
@@ -216,11 +216,11 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 24. During the installation we request required limit increases, resources dependent on these limits were not deployed
     1. You should receive emails from support confirming the limit increases
-    2. Unfortunately, once the VPC endpoint limit is increased, it does not properly register in AWS Quota tool
-       - If and when you receive confirmation from support that the **VPC Endpoint** limit in the shared network account has been increased
-       - Set `"customer-confirm-inplace"` to **true** in the config file for the limit `"Amazon VPC/Interface VPC endpoints per VPC"` in the shared network account
-    3. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
-    4. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
+       ~~2. Unfortunately, once the VPC endpoint limit is increased, it does not properly register in AWS Quota tool~~
+       ~~- If and when you receive confirmation from support that the **VPC Endpoint** limit in the shared network account has been increased~~
+       ~~- Set `"customer-confirm-inplace"` to **true** in the config file for the limit `"Amazon VPC/Interface VPC endpoints per VPC"` in the shared network account~~
+    2. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
+    3. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
 # Accelerator Basic Operation
 
