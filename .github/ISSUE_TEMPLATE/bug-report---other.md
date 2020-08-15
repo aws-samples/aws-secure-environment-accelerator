@@ -16,6 +16,10 @@ Bug reports which fail to provide the required information will be closed withou
 - Upgrade from version: (N/A or v1.x.y)
 - Which State did the Main State Machine Fail in: (e.g. N/A, Phase 0)
 
+**INTERNAL ONLY - TEMPORARY**
+- please place the account in a group named Accel-Issue
+- please provide bmycroft@ access to your internal failed master AWS account
+
 **Describe the bug**
 (A clear and concise description of what the bug is.)
 
