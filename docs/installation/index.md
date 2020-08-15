@@ -185,11 +185,12 @@ If deploying to an internal AWS account, to successfully install the entire solu
 13. The stack typically takes under 5 minutes to deploy.
 14. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
 15. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
-16. Once the pipeline completes (typically 15-20 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
-17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
-18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-19. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
-20. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
+16. While the pipeline is running, review the list of known defects near the bottom on this document
+17. Once the pipeline completes (typically 15-20 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
+18. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
+19. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
+20. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
+21. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firewall products
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
@@ -338,7 +339,9 @@ It should be noted that we have added code to the Accelerator to block customers
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats
 - Upgrades from versions prior to v1.1.4 require dropping the fw AND fwMgr deployments during the upgrade (i.e. simply comment out the fw and fwmgr sections before upgrade). \*\* See below. You can redeploy the firewalls using the Accelerator after the upgrade. If you miss this step, the perimeter stack will likely fail to rollback and require manual intervention before you can re-run the state machine without the fws and fwmgr configurations.
-- Upgrades to v1.1.5 requires use of the "overrideComparison": true flag as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file once this parameter is set.
+- Upgrades to v1.1.5 and above from v1.1.4 and below:
+  - requires use of the "overrideComparison": true flag as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file once this parameter is set.
+  - High probability of a State Machine failure due to a 1hr step timeout limitation. No easy fix available. Simply rerun the State Machine. We are reversing something from the v1.1.4 release which is extremely time consuming.
 
 \*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your fw customizations automatically redeployed, simply add them into the appropriate firewall-example.txt configuration file.
 
@@ -389,6 +392,12 @@ It should be noted that we have added code to the Accelerator to block customers
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
 - If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment)
+
+## Known Major Defects:
+
+- All versions are currently experiencing GuardDuty deployment failures in at least one random region, cause and retry behaviour currently under investigation. Simply rerun the State Machine
+- Proper/full Session Manager configuration was dropped in v1.1.4 Standalone (working in ALZ version), partially fixed in v1.1.6, fix outstanding to restore SSM CWLG KMS encryption w/SSM key
+- Standalone installation - currently requires manually creating the core ou and moving the master AWS account into it before running the State Machine
 
 # AWS Internal - Accelerator Release Process
 
