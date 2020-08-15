@@ -1,12 +1,12 @@
 {
   "global-options": {
     "alz-minimum-version": "v2.3.1",
-    "alz-baseline": true,
+    "alz-baseline": false,
     "ct-baseline": false,
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "organization-admin-role": "OrganizationAccountAccessRole",
     "default-cwl-retention": 731,
     "workloadaccounts-suffix" : 1,
     "workloadaccounts-prefix" : "config",
@@ -77,16 +77,6 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "conformance-packs": [
-      {
-        "gc-pack": {
-          "install": true,
-          "auto-remediation": true,
-          "monitoring": true,
-          "frequency": 24
-        }
-      }
-    ],
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -321,64 +311,7 @@
               "ec2messages",
               "ssm",
               "ssmmessages",
-              "secretsmanager",
-              "cloudformation",
-              "access-analyzer",
-              "application-autoscaling",
-              "appmesh-envoy-management",
-              "athena",
-              "autoscaling",
-              "autoscaling-plans",
-              "clouddirectory",
-              "cloudtrail",
-              "codebuild",
-              "codecommit",
-              "codecommit-fips",
-              "codepipeline",
-              "config",
-              "datasync",
-              "ecr.dkr",
-              "ecs",
-              "ecs-agent",
-              "ecs-telemetry",
-              "elasticfilesystem",
-              "elasticfilesystem-fips",
-              "elasticloadbalancing",
-              "elasticmapreduce",
-              "events",
-              "execute-api",
-              "git-codecommit",
-              "git-codecommit-fips",
-              "glue",
-              "kinesis-streams",
-              "kms",
-              "logs",
-              "monitoring",
-              "sagemaker.api",
-              "sagemaker.runtime",
-              "servicecatalog",
-              "sms",
-              "sns",
-              "sqs",
-              "storagegateway",
-              "sts",
-              "transfer",
-              "workspaces",
-              "awsconnector",
-              "ecr.api",
-              "kinesis-firehose",
-              "states",
-              "acm-pca",
-              "cassandra",
-              "ebs",
-              "elasticbeanstalk",
-              "elasticbeanstalk-health",
-              "email-smtp",
-              "license-manager",
-              "macie2",
-              "notebook",
-              "synthetics",
-              "transfer.server"
+              "secretsmanager"
             ]
           },
           "resolvers": {
@@ -486,7 +419,7 @@
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/PBMMAccel/MAD/example.local",
-          "share-to-account": "master",
+          "share-to-account": "",
           "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
@@ -1075,7 +1008,7 @@
           {
           "name": "Firewall",
           "image-id": "ami-047aac44951feb9fb",
-          "instance-sizes": "c5n.2xlarge",
+          "instance-sizes": "c5n.xlarge",
           "region": "ca-central-1",
           "security-group": "Firewalls",
           "fw-instance-role": "Firewall-Role",
@@ -1144,8 +1077,7 @@
       "account-name": "primary",
       "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
-      "landing-zone-account-type": "primary",
-      "share-mad-from": "operations",
+      "share-mad-from": "",
       "src-filename": "config.json",
       "budget": {
         "name": "Organization Budget",
@@ -1269,9 +1201,6 @@
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
           "connect-dir-id": 1001
-        },
-        "sso": {
-          "deploy": true
         }
       }
     },
@@ -1279,22 +1208,13 @@
       "account-name": "log-archive",
       "ou": "core",
       "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json",
-      "landing-zone-account-type": "log-archive"
+      "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
       "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json",
-      "landing-zone-account-type": "security"
-    },
-    "shared-services": {
-      "account-name": "shared-services",
-      "ou": "core",
-      "email": "myemail+pbmmT-ss@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json",
-      "landing-zone-account-type": "shared-services"
+      "src-filename": "config.json"
     }
   },
   "workload-account-configs": {
@@ -1390,14 +1310,6 @@
           }
         ]
       },
-      "certificates": [
-        {
-          "name": "CentralSelf-SignedCert",
-          "type": "import",
-          "priv-key": "certs/example1-cert.key",
-          "cert": "certs/example1-cert.crt"
-        }
-      ],
       "vpc": [
         {
           "deploy": "shared-network",
@@ -3008,453 +2920,6 @@
           "route-tables": [
             {
               "name": "ProdVPC_Common",
-              "routes": [
-                {
-                  "destination": "0.0.0.0/0",
-                  "target": "TGW"
-                },
-                {
-                  "destination": "s3",
-                  "target": "s3"
-                },
-                {
-                  "destination": "DynamoDB",
-                  "target": "DynamoDB"
-                }
-              ]
-            }
-          ],
-          "security-groups": [
-            {
-              "name": "Mgmt",
-              "inbound-rules": [
-                {
-                  "description": "Mgmt RDP/SSH Traffic Inbound",
-                  "type": ["RDP", "SSH"],
-                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
-                },
-                {
-                  "description": "Central VPC Traffic Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                    }
-                  ]
-                }
-              ],
-              "outbound-rules": [
-                {
-                  "description": "All Outbound",
-                  "type": ["ALL"],
-                  "source": ["0.0.0.0/0"]
-                }
-              ]
-            },
-            {
-              "name": "Web",
-              "inbound-rules": [
-                {
-                  "description": "World Web Traffic Inbound",
-                  "type": ["HTTP", "HTTPS"],
-                  "source": ["0.0.0.0/0"]
-                },
-                {
-                  "description": "Central VPC Traffic Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                    }
-                  ]
-                },
-                {
-                  "description": "Local Mgmt Traffic Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "security-group": ["Mgmt"]
-                    }
-                  ]
-                }
-              ],
-              "outbound-rules": [
-                {
-                  "description": "All Outbound",
-                  "type": ["ALL"],
-                  "source": ["0.0.0.0/0"]
-                }
-              ]
-            },
-            {
-              "name": "App",
-              "inbound-rules": [
-                {
-                  "description": "Central VPC Traffic Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                    }
-                  ]
-                },
-                {
-                  "description": "Local Mgmt Traffic Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "security-group": ["Mgmt"]
-                    }
-                  ]
-                },
-                {
-                  "description": "Local Web Tier Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "security-group": ["Web"]
-                    }
-                  ]
-                },
-                {
-                  "description": "Allow East/West Communication Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "security-group": ["App"]
-                    }
-                  ]
-                }
-              ],
-              "outbound-rules": [
-                {
-                  "description": "All Outbound",
-                  "type": ["ALL"],
-                  "source": ["0.0.0.0/0"]
-                }
-              ]
-            },
-            {
-              "name": "Data",
-              "inbound-rules": [
-                {
-                  "description": "Central VPC Traffic Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "vpc": "Central",
-                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
-                    }
-                  ]
-                },
-                {
-                  "description": "Local Mgmt Traffic Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "security-group": ["Mgmt"]
-                    }
-                  ]
-                },
-                {
-                  "description": "Local App DB Traffic Inbound",
-                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
-                  "source": [
-                    {
-                      "security-group": ["App"]
-                    }
-                  ]
-                },
-                {
-                  "description": "Allow East/West Communication Inbound",
-                  "type": ["ALL"],
-                  "source": [
-                    {
-                      "security-group": ["Data"]
-                    }
-                  ]
-                }
-              ],
-              "outbound-rules": [
-                {
-                  "description": "All Outbound",
-                  "type": ["ALL"],
-                  "source": ["0.0.0.0/0"]
-                }
-              ]
-            }
-          ],
-          "tgw-attach": {
-            "associate-to-tgw": "Main",
-            "account": "shared-network",
-            "associate-type": "ATTACH",
-            "tgw-rt-associate": ["segregated"],
-            "tgw-rt-propagate": ["core", "shared"],
-            "blackhole-route": true,
-            "attach-subnets": ["TGW"],
-            "options": ["DNS-support"]
-          },
-          "interface-endpoints": false
-        }
-      ],
-      "iam": {
-        "users": [],
-        "policies": [
-          {
-            "policy-name": "Default-Boundary-Policy",
-            "policy": "boundary-policy.txt"
-          }
-        ],
-        "roles": [
-          {
-            "role": "EC2-Default-SSM-AD-Role",
-            "type": "ec2",
-            "ssm-log-archive-access": true,
-            "policies": [
-              "AmazonSSMManagedInstanceCore",
-              "AmazonSSMDirectoryServiceAccess",
-              "CloudWatchAgentServerPolicy"
-            ],
-            "boundary-policy": "Default-Boundary-Policy"
-          }
-        ]
-      }
-    },
-    "UnClass": {
-      "type": "workload",
-      "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
-      "default-budgets": {
-        "name": "Default Unclass Budget",
-        "period": "Monthly",
-        "amount": 1000,
-        "include": [
-          "Upfront-reservation-fees",
-          "Recurring-reservation-charges",
-          "Other-subscription-costs",
-          "Taxes",
-          "Support-charges",
-          "Discounts"
-        ],
-        "alerts": [
-          {
-            "type": "Actual",
-            "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
-          },
-          {
-            "type": "Actual",
-            "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
-          },
-          {
-            "type": "Actual",
-            "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
-          },
-          {
-            "type": "Actual",
-            "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
-          }
-        ]
-      },
-      "certificates": [
-        {
-          "name": "UnclassSelf-SignedCert",
-          "type": "import",
-          "priv-key": "certs/example1-cert.key",
-          "cert": "certs/example1-cert.crt"
-        }
-      ],
-      "vpc": [
-        {
-          "deploy": "shared-network",
-          "name": "UnClass",
-          "cidr": "10.5.0.0/16",
-          "region": "ca-central-1",
-          "use-central-endpoints": true,
-          "flow-logs": "S3",
-          "igw": false,
-          "vgw": false,
-          "pcx": false,
-          "natgw": false,
-          "subnets": [
-            {
-              "name": "TGW",
-              "share-to-ou-accounts": false,
-              "share-to-specific-accounts": [],
-              "definitions": [
-                {
-                  "az": "a",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.88.0/27"
-                },
-                {
-                  "az": "b",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.88.32/27"
-                },
-                {
-                  "az": "d",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.88.64/27",
-                  "disabled": true
-                }
-              ]
-            },
-            {
-              "name": "Web",
-              "share-to-ou-accounts": true,
-              "share-to-specific-accounts": [],
-              "definitions": [
-                {
-                  "az": "a",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.32.0/20"
-                },
-                {
-                  "az": "b",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.128.0/20"
-                },
-                {
-                  "az": "d",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.192.0/20",
-                  "disabled": true
-                }
-              ]
-            },
-            {
-              "name": "App",
-              "share-to-ou-accounts": true,
-              "share-to-specific-accounts": [],
-              "definitions": [
-                {
-                  "az": "a",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.0.0/19"
-                },
-                {
-                  "az": "b",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.96.0/19"
-                },
-                {
-                  "az": "d",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.160.0/19",
-                  "disabled": true
-                }
-              ]
-            },
-            {
-              "name": "Data",
-              "share-to-ou-accounts": true,
-              "share-to-specific-accounts": [],
-              "definitions": [
-                {
-                  "az": "a",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.48.0/20"
-                },
-                {
-                  "az": "b",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.144.0/20"
-                },
-                {
-                  "az": "d",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.208.0/20",
-                  "disabled": true
-                }
-              ],
-              "nacls": [
-                {
-                  "rule": 100,
-                  "protocol": -1,
-                  "ports": -1,
-                  "rule-action": "deny",
-                  "egress": true,
-                  "cidr-blocks": [
-                    {
-                      "vpc": "UnClass",
-                      "subnet": ["Web"]
-                    },
-                    {
-                      "vpc": "Central",
-                      "subnet": ["Data"]
-                    }
-                  ]
-                },
-                {
-                  "rule": 32000,
-                  "protocol": -1,
-                  "ports": -1,
-                  "rule-action": "allow",
-                  "egress": true,
-                  "cidr-blocks": ["0.0.0.0/0"]
-                },
-                {
-                  "rule": 100,
-                  "protocol": -1,
-                  "ports": -1,
-                  "rule-action": "deny",
-                  "egress": false,
-                  "cidr-blocks": [
-                    {
-                      "vpc": "UnClass",
-                      "subnet": ["Web"]
-                    },
-                    {
-                      "vpc": "Central",
-                      "subnet": ["Data"]
-                    }
-                  ]
-                },
-                {
-                  "rule": 32000,
-                  "protocol": -1,
-                  "ports": -1,
-                  "rule-action": "allow",
-                  "egress": false,
-                  "cidr-blocks": ["0.0.0.0/0"]
-                }
-              ]
-            },
-            {
-              "name": "Mgmt",
-              "share-to-ou-accounts": false,
-              "share-to-specific-accounts": [],
-              "definitions": [
-                {
-                  "az": "a",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.64.0/21"
-                },
-                {
-                  "az": "b",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.72.0/21"
-                },
-                {
-                  "az": "d",
-                  "route-table": "UnClassVPC_Common",
-                  "cidr": "10.5.80.0/21",
-                  "disabled": true
-                }
-              ]
-            }
-          ],
-          "gateway-endpoints": ["s3", "dynamodb"],
-          "route-tables": [
-            {
-              "name": "UnClassVPC_Common",
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
