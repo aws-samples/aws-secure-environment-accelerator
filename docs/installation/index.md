@@ -151,7 +151,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 4. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
-   - the bucket should be `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the key you created above
+   - the bucket should be `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the `Accel-Source-Bucket-Key` created above
 5. Place your customized config file, named `config.json`, in your new bucket
 6. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
@@ -220,7 +220,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
        ~~2. Unfortunately, once the VPC endpoint limit is increased, it does not properly register in AWS Quota tool~~
        ~~- If and when you receive confirmation from support that the **VPC Endpoint** limit in the shared network account has been increased~~
        ~~- Set `"customer-confirm-inplace"` to **true** in the config file for the limit `"Amazon VPC/Interface VPC endpoints per VPC"` in the shared network account~~
-    2. On the next state machine execution, resources blocked by limits should be deployed (i.e. VPC's, endpoints if you set the )
+    2. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
     3. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
 # Accelerator Basic Operation

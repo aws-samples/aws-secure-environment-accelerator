@@ -476,7 +476,7 @@
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/PBMMAccel/MAD/example.local",
-          "share-to-account": "master",
+          "share-to-account": "",
           "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
@@ -1367,14 +1367,6 @@
           }
         ]
       },
-      "certificates": [
-        {
-          "name": "CentralSelf-SignedCert",
-          "type": "import",
-          "priv-key": "certs/example1-cert.key",
-          "cert": "certs/example1-cert.crt"
-        }
-      ],
       "vpc": [
         {
           "deploy": "shared-network",
@@ -3239,14 +3231,6 @@
           }
         ]
       },
-      "certificates": [
-        {
-          "name": "UnclassSelf-SignedCert",
-          "type": "import",
-          "priv-key": "certs/example1-cert.key",
-          "cert": "certs/example1-cert.crt"
-        }
-      ],
       "vpc": [
         {
           "deploy": "shared-network",
