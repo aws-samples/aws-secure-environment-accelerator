@@ -1,12 +1,12 @@
 {
   "global-options": {
     "alz-minimum-version": "v2.3.1",
-    "alz-baseline": true,
+    "alz-baseline": false,
     "ct-baseline": false,
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "organization-admin-role": "OrganizationAccountAccessRole",
     "default-cwl-retention": 731,
     "workloadaccounts-suffix" : 1,
     "workloadaccounts-prefix" : "config",
@@ -77,16 +77,6 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "conformance-packs": [
-      {
-        "gc-pack": {
-          "install": true,
-          "auto-remediation": true,
-          "monitoring": true,
-          "frequency": 24
-        }
-      }
-    ],
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -1144,8 +1134,7 @@
       "account-name": "primary",
       "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
-      "landing-zone-account-type": "primary",
-      "share-mad-from": "operations",
+      "share-mad-from": "",
       "src-filename": "config.json",
       "budget": {
         "name": "Organization Budget",
@@ -1269,9 +1258,6 @@
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
           "connect-dir-id": 1001
-        },
-        "sso": {
-          "deploy": true
         }
       }
     },
@@ -1279,22 +1265,13 @@
       "account-name": "log-archive",
       "ou": "core",
       "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json",
-      "landing-zone-account-type": "log-archive"
+      "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
       "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json",
-      "landing-zone-account-type": "security"
-    },
-    "shared-services": {
-      "account-name": "shared-services",
-      "ou": "core",
-      "email": "myemail+pbmmT-ss@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json",
-      "landing-zone-account-type": "shared-services"
+      "src-filename": "config.json"
     }
   },
   "workload-account-configs": {

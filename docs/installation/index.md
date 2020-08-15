@@ -127,6 +127,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
    5. For a test deployment, the remainder of the values can be used as-is.
 3. In the ALZ version of the Accelerator, we strongly recommend removing _all_ workload accounts from the configuration file during initial deployment. Workload accounts can be added in the future. The ALZ AVM takes 42 minutes per sub-account. Additionally, importing existing accounts during initial deployment increases the risk of initial deployment failures.
+4. A successful deployment requires VPC access to 6 AWS endpoints, do not remove both the perimeter firewalls (internet access) and the 6 required VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
 
 ### Key Production Config File Requirements:
 
