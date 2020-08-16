@@ -6,6 +6,9 @@
 
 ### - [Installation, Upgrades and Basic Operations Guide](./installation/index.md)
 
+- Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
+- Link to example PBMM config [file](../reference-artifacts/config.example.json)
+
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md) (Early Draft)
 
 ### - [Accelerator Developer Guide](./developer/developer-guide.md) (Early Draft)

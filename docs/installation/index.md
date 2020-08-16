@@ -375,6 +375,7 @@ It should be noted that we have added code to the Accelerator to block customers
 - v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. Once YAML is suppported we will be providing a version of the config file with comments describing the purpose of each configuration item
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - We only support the subset of yaml that converts to JSON (we do not support anchors)
+- Do not change the `organization-admin-role` unless you have created the new role with appropriate trust relationship in ALL existing accounts
 
 ## General Notes
 

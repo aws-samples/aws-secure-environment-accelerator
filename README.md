@@ -132,6 +132,9 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/index.md)
 
+- Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
+- Link to example PBMM config [file](./reference-artifacts/config.example.json)
+
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md) (Early Draft)
 
 ### - [Accelerator Developer Guide](./docs/developer/developer-guide.md) (Early Draft)
