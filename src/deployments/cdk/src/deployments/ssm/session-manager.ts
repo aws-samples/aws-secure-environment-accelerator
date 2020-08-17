@@ -77,6 +77,7 @@ export async function step1(props: SSMStep1Props) {
       const logGroup = new LogGroup(accountStack, 'SSMLogGroup', {
         logGroupName: createLogGroupName('SSM'),
         roleArn: logGroupLambdaRoleOutput.roleArn,
+        kmsKeyId: ssmKey.keyArn,
       });
       const globalOptionsConfig = config['global-options'];
       const useS3 = globalOptionsConfig['central-log-services']['ssm-to-s3'];

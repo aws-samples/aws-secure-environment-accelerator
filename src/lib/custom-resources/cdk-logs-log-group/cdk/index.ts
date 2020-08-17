@@ -51,6 +51,10 @@ export interface LogGroupProps {
   readonly removalPolicy?: cdk.RemovalPolicy;
   readonly roleName?: string;
   readonly roleArn: string;
+  /**
+   * KMS Key used for encryption
+   */
+  readonly kmsKeyId?: string;
 }
 
 export class LogGroup extends cdk.Construct implements cdk.ITaggable {
@@ -69,6 +73,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
       logGroupName: this.props.logGroupName,
       retention: this.props?.retention,
       tags: this.tags.renderTags(),
+      kmsKeyId: this.props.kmsKeyId!,
     };
 
     this.resource = new cdk.CustomResource(this, 'Resource', {

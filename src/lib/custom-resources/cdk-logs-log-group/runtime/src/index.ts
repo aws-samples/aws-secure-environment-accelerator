@@ -9,6 +9,7 @@ export interface HandlerProperties {
   logGroupName: string;
   retention?: number;
   tags?: Tags;
+  kmsKeyId?: string;
 }
 
 export const handler = errorHandler(onEvent);
@@ -32,16 +33,39 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const { logGroupName, retention, tags } = properties;
+  const { logGroupName, retention, tags, kmsKeyId } = properties;
   try {
-    await throttlingBackOff(() =>
+    const existingLogGroup = await throttlingBackOff(() =>
       logs
-        .createLogGroup({
-          logGroupName: logGroupName,
-          tags,
+        .describeLogGroups({
+          logGroupNamePrefix: logGroupName,
         })
         .promise(),
     );
+    if (existingLogGroup.logGroups && existingLogGroup.logGroups.length > 0) {
+      console.warn(`Log Group is already exists : ${logGroupName}`);
+      if (kmsKeyId) {
+        // Add kmsKeyId to logGroup
+        await throttlingBackOff(() =>
+          logs
+            .associateKmsKey({
+              kmsKeyId,
+              logGroupName,
+            })
+            .promise(),
+        );
+      }
+    } else {
+      await throttlingBackOff(() =>
+        logs
+          .createLogGroup({
+            logGroupName: logGroupName,
+            tags,
+            kmsKeyId,
+          })
+          .promise(),
+      );
+    }
   } catch (e) {
     if (e.code !== 'ResourceAlreadyExistsException') {
       throw new Error(`Cannot create log group: ${JSON.stringify(e)}`);

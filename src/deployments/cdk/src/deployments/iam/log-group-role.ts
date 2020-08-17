@@ -31,6 +31,8 @@ async function createRole(stack: AccountStack) {
         'logs:PutLogEvents',
         'logs:PutRetentionPolicy',
         'logs:DeleteRetentionPolicy',
+        'logs:DescribeLogGroups',
+        'logs:AssociateKmsKey',
       ],
       resources: ['*'],
     }),
