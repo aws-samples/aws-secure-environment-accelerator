@@ -67,9 +67,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       );
     }
   } catch (e) {
-    if (e.code !== 'ResourceAlreadyExistsException') {
-      throw new Error(`Cannot create log group: ${JSON.stringify(e)}`);
-    }
+    throw new Error(`Cannot create log group: ${JSON.stringify(e)}`);
   }
   try {
     if (!retention) {

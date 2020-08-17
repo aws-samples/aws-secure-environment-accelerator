@@ -73,7 +73,7 @@ export class LogGroup extends cdk.Construct implements cdk.ITaggable {
       logGroupName: this.props.logGroupName,
       retention: this.props?.retention,
       tags: this.tags.renderTags(),
-      kmsKeyId: this.props.kmsKeyId!,
+      kmsKeyId: this.props.kmsKeyId,
     };
 
     this.resource = new cdk.CustomResource(this, 'Resource', {
