@@ -73,6 +73,7 @@ async function onCreateOrUpdate(
 
 async function getDetectorId(): Promise<string | undefined> {
   try {
+    console.log(`Calling api "guardduty.listDetectors()"`);
     const detectors = await throttlingBackOff(() => guardduty.listDetectors().promise());
     if (detectors.DetectorIds && detectors.DetectorIds.length > 0) {
       return detectors.DetectorIds[0];
@@ -86,6 +87,7 @@ async function getDetectorId(): Promise<string | undefined> {
 // Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
 async function createMembers(memberAccounts: AccountDetail[], detectorId: string) {
   try {
+    console.log(`Calling api "guardduty.createMembers()", ${memberAccounts}, ${detectorId}`);
     await throttlingBackOff(() =>
       guardduty
         .createMembers({
@@ -104,6 +106,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
 // Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
 async function updateConfig(detectorId: string) {
   try {
+    console.log(`Calling api "guardduty.updateOrganizationConfiguration()", ${detectorId}`);
     await throttlingBackOff(() =>
       guardduty
         .updateOrganizationConfiguration({
@@ -122,6 +125,7 @@ async function updateConfig(detectorId: string) {
 // describe-organization-configuration to check if security hub is already enabled in org level or not
 async function isConfigurationAutoEnabled(detectorId: string): Promise<boolean> {
   try {
+    console.log(`Calling api "guardduty.describeOrganizationConfiguration()", ${detectorId}`);
     const response = await throttlingBackOff(() =>
       guardduty
         .describeOrganizationConfiguration({
