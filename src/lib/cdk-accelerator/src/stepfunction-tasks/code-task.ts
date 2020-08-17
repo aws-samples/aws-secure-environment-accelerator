@@ -49,6 +49,11 @@ export class CodeTask extends sfn.StateMachineFragment {
       ...props,
     });
 
+    // Retriable exceptions, Using all defaults for interval: 1, maxAttempts: 3, backoffRate: 2
+    task.addRetry({
+      errors: ['ServiceUnavailableException'],
+    });
+
     this.startState = task;
     this.endStates = [task];
   }
