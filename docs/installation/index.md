@@ -178,7 +178,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Add an `Email` address to be used for notification of code releases
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.1.4`, case sensitive
+   - the latest stable branch is currently `release/v1.1.6`, case sensitive
 10. For deployments before v1.1.6, update the `GithubRepository` name to `aws-secure-environment-accelerator`
 11. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 12. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
@@ -398,7 +398,7 @@ It should be noted that we have added code to the Accelerator to block customers
 
 - All versions are currently experiencing GuardDuty deployment failures in at least one random region, cause and retry behaviour currently under investigation. Simply rerun the State Machine
 - Proper/full Session Manager configuration was dropped in v1.1.4 Standalone (working in ALZ version), partially fixed in v1.1.6, fix outstanding to restore SSM CWLG KMS encryption w/SSM key
-- Standalone installation - currently requires manually creating the core ou and moving the master AWS account into it before running the State Machine
+- Standalone installation - currently requires manually creating the core ou and moving the master AWS account into it before running the State Machine, otherwise, once the SM fails, simply move the master account into the auto-created core ou and rerun the SM
 
 # AWS Internal - Accelerator Release Process
 
