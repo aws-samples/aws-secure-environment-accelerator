@@ -1,0 +1,14 @@
+packages:
+  - src/installer/**
+  - src/core/cdk/**
+  - src/core/runtime/**
+  - src/deployments/cdk/**
+  - src/deployments/runtime/**
+  - src/lib/common-types/**
+  - src/lib/common-outputs/**
+  - src/lib/common/**
+  - src/lib/common-config/**
+  - src/lib/cdk-plugin-assume-role/**
+  - src/lib/custom-resources/**
+  - src/lib/cdk-accelerator/**
+  - src/lib/cdk-constructs/**

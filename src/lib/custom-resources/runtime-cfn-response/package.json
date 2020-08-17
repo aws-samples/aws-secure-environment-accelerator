@@ -1,0 +1,21 @@
+{
+  "name": "@aws-accelerator/custom-resource-runtime-cfn-response",
+  "version": "0.0.1",
+  "private": true,
+  "main": "src/index.ts",
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.46",
+    "@types/node": "12.12.6",
+    "typescript": "3.8.3"
+  },
+  "dependencies": {
+    "aws-lambda": "1.0.5",
+    "aws-sdk": "2.668.0",
+    "exponential-backoff": "3.0.0"
+  },
+  "peerDependencies": {
+    "aws-lambda": "^1.0.5",
+    "aws-sdk": "^2.668.0",
+    "exponential-backoff": "^3.0.0"
+  }
+}

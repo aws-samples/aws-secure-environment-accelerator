@@ -1,0 +1,326 @@
+---
+#Default region for deploying AWS Landing Zone assets: Code Pipeline, Step functions, Lambda, SSM parameters, Service Catalog Portfolio/Products and StackSets
+region: us-east-1
+version: 2018-06-14
+lock_down_stack_sets_role: No
+nested_ou_delimiter: ':' # the value for this key must be in single quotes
+
+# Landing Zone Core Account Structure
+organizational_units:
+  # Landing Zone OU for Core accounts
+  - name: core
+    include_in_baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    core_accounts:
+      # Security account
+      - name: security
+        email: bmycroft+landing-zone-security@amazon.com
+        ssm_parameters:
+          - name: /org/member/security/account_id
+            value: $[AccountId]
+        core_resources:
+          - name: SecurityRoles
+            template_file: templates/core_accounts/aws-landing-zone-security.template
+            parameter_file: parameters/core_accounts/aws-landing-zone-security.json
+            deploy_method: stack_set
+            ssm_parameters:
+              - name: /org/member/security/admin_role_arn
+                value: $[output_CrossAccountAdminRole]
+              - name: /org/member/security/readonly_role_arn
+                value: $[output_CrossAccountReadOnlyRole]
+          - name: SharedTopic
+            template_file: templates/core_accounts/aws-landing-zone-notification.template
+            parameter_file: parameters/core_accounts/aws-landing-zone-notification.json
+            deploy_method: stack_set
+            # This SNS Topic needs to be deployed in ALL the regions where AWS Config service is enabled. (See baseline_resources: EnableConfig)
+            regions:
+              - ap-east-1
+              - ap-northeast-1
+              - ap-northeast-2
+              - ap-south-1
+              - ap-southeast-1
+              - ap-southeast-2
+              - ca-central-1
+              - eu-central-1
+              - eu-north-1
+              - eu-west-1
+              - eu-west-2
+              - eu-west-3
+              - me-south-1
+              - sa-east-1
+              - us-east-1
+              - us-east-2
+              - us-west-1
+              - us-west-2
+            ssm_parameters:
+              - name: /org/primary/sns_topic_arn
+                value: $[output_TopicARN]
+              - name: /org/primary/sns_notification_arn
+                value: $[output_NotificationARN]
+          - name: GuardDutyMaster
+            template_file: templates/core_accounts/aws-landing-zone-guardduty-master.template
+            parameter_file: parameters/core_accounts/aws-landing-zone-guardduty-master.json
+            deploy_method: stack_set
+            regions:
+              - ap-east-1
+              - ap-northeast-1
+              - ap-northeast-2
+              - ap-south-1
+              - ap-southeast-1
+              - ap-southeast-2
+              - ca-central-1
+              - eu-central-1
+              - eu-north-1
+              - eu-west-1
+              - eu-west-2
+              - eu-west-3
+              - me-south-1
+              - sa-east-1
+              - us-east-1
+              - us-east-2
+              - us-west-1
+              - us-west-2
+      # Logging account
+      - name: log-archive
+        email: bmycroft+landing-zone-log-archive@amazon.com
+        ssm_parameters:
+          - name: /org/member/logging/account_id
+            value: $[AccountId]
+        core_resources:
+          - name: SharedBucket
+            template_file: templates/core_accounts/aws-landing-zone-logging.template
+            parameter_file: parameters/core_accounts/aws-landing-zone-logging.json
+            deploy_method: stack_set
+            ssm_parameters:
+              - name: /org/member/logging/bucket_name # This key will always be created in region mentioned at the top of the Manifest file.
+                value: $[output_BucketName]
+      # Shared Services account
+      - name: shared-services
+        email: bmycroft+landing-zone-shared-service@amazon.com
+        ssm_parameters:
+          - name: /org/member/sharedservices/account_id
+            value: $[AccountId]
+        core_resources:
+          - name: SharedServicesAccountVPC
+            template_file: templates/aws_baseline/aws-landing-zone-vpc.template
+            parameter_file: parameters/core_accounts/aws-landing-zone-shared-services-vpc.json
+            deploy_method: stack_set
+            regions:
+              - us-east-1
+            ssm_parameters:
+              - name: /org/member/sharedservices/vpc_region
+                value: $[output_VPCRegion]
+              - name: /org/member/sharedservices/vpc_cidr
+                value: $[output_VPCCIDR]
+              - name: /org/member/sharedservices/vpc_id
+                value: $[output_VPCID]
+              - name: /org/member/sharedservices/private_subnet1_cidr
+                value: $[output_PrivateSubnet1ACIDR]
+              - name: /org/member/sharedservices/private_subnet1_id
+                value: $[output_PrivateSubnet1AID]
+              - name: /org/member/sharedservices/private_subnet2_cidr
+                value: $[output_PrivateSubnet2ACIDR]
+              - name: /org/member/sharedservices/private_subnet2_id
+                value: $[output_PrivateSubnet2AID]
+              - name: /org/member/sharedservices/public_subnet1_cidr
+                value: $[output_PublicSubnet1CIDR]
+              - name: /org/member/sharedservices/public_subnet1_id
+                value: $[output_PublicSubnet1ID]
+              - name: /org/member/sharedservices/public_subnet2_cidr
+                value: $[output_PublicSubnet2CIDR]
+              - name: /org/member/sharedservices/public_subnet2_id
+                value: $[output_PublicSubnet2ID]
+              - name: /org/member/sharedservices/vpc_private_route_ids
+                value: $[output_PrivateSubnetRouteTables]
+      # Organization's Master account
+      - name: primary  # NOTE: DO NOT MODIFY THIS ACCOUNT NAME AND IT SHOULD BE THE LAST CORE ACCOUNT IN THE LIST
+        ssm_parameters:
+          # SSM parameter to hold the AWS Account ID of Organization's Master Account
+          - name: /org/primary/account_id
+            value: $[AccountId]
+          # SSM parameter to hold the Email ID of Organization's Master Account
+          - name: /org/primary/email_id
+            value: $[AccountEmail]
+          # SSM parameter to hold the Organization ID
+          - name: /org/primary/organization_id
+            value: $[OrganizationId]
+        core_resources: []
+  - name: central
+    include_in_baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+  - name: dev
+    include_in_baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+  - name: test
+    include_in_baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+  - name: prod
+    include_in_baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+  - name: unclass
+    include_in_baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+  - name: sandbox
+    include_in_baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+  
+# Landing Zone Service Control Policies
+organization_policies:
+  - name: aws-landing-zone-core-mandatory-preventive-guardrails
+    description: To prevent from deleting or disabling resources in core accounts managed by AWS Landing Zone
+    policy_file: policies/aws-landing-zone-core-mandatory-preventive-guardrails.json
+    #Apply to accounts in the following OU(s)
+    apply_to_accounts_in_ou:
+      - core
+  - name: aws-landing-zone-non-core-mandatory-preventive-guardrails
+    description: To prevent from deleting or disabling resources in non-core accounts managed by AWS Landing Zone
+    policy_file: policies/aws-landing-zone-non-core-mandatory-preventive-guardrails.json
+    #Apply to accounts in the following OU(s)
+    apply_to_accounts_in_ou:
+      - central
+      - dev
+      - test
+      - prod
+      - unclass
+      - sandbox
+# Landing Zone Service Catalog portolfios/products (Optional/Baseline)
+portfolios:
+  - name: AWS Landing Zone - Baseline
+    description: Baseline Products for AWS Landing Zone
+    owner: AWS Solutions
+    principal_role: $[alfred_ssm_/org/primary/service_catalog/principal/role_arn]
+    products:
+      - name: AWS-Landing-Zone-Account-Vending-Machine
+        description: (SO0045) - AWS Landing Zone - Account Vending Machine Template
+        # This is the skeleton template for the AVM
+        skeleton_file: templates/aws_baseline/aws-landing-zone-avm.template.j2
+        parameter_file: parameters/aws_baseline/aws-landing-zone-avm.json
+        rules_file: template_constraints/aws-landing-zone-avm-rules.json
+        # Hide/Disable the old version of the product in Service Catalog
+        hide_old_versions: true
+        # Is this is a baseline product? e.g. AVM ?
+        product_type: baseline
+        launch_constraint_role: $[alfred_ssm_/org/primary/service_catalog/constraint/role_arn]
+
+# Landing Zone Service Baseline Resources
+baseline_resources:
+  - name: EnableCloudTrail
+    # This resource is part of which baseline(s) product
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    template_file: templates/aws_baseline/aws-landing-zone-enable-cloudtrail.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-enable-cloudtrail.json
+    deploy_method: stack_set
+
+    # This template deploys the ConfigRecorder IAM role required for enabling AWS Config service
+    # It needs to be deployed in Home region ONLY
+  - name: ConfigRole
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    template_file: templates/aws_baseline/aws-landing-zone-enable-config-role.template
+    deploy_method: stack_set
+
+    # This template deploys the AWS Config service.
+    # It can be deployed in multiple regions.
+  - name: EnableConfig
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    depends_on:
+      - ConfigRole
+    template_file: templates/aws_baseline/aws-landing-zone-enable-config.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-enable-config.json
+    deploy_method: stack_set
+    regions:
+      - ap-east-1
+      - ap-northeast-1
+      - ap-northeast-2
+      - ap-south-1
+      - ap-southeast-1
+      - ap-southeast-2
+      - ca-central-1
+      - eu-central-1
+      - eu-north-1
+      - eu-west-1
+      - eu-west-2
+      - eu-west-3
+      - me-south-1
+      - sa-east-1
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+
+    # This template deploys the Config Rules that monitor the Global resources i.e. IAM
+    # It needs to be deployed in Home region ONLY
+  - name: EnableConfigRulesGlobal
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    depends_on:
+      - EnableConfig
+    template_file: templates/aws_baseline/aws-landing-zone-config-rules-global.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-config-rules-global.json
+    deploy_method: stack_set
+
+    # This template deploys the Config Rules that monitor the local resources.
+    # It can be deployed in multiple regions
+  - name: EnableConfigRules
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    depends_on:
+      - EnableConfig
+    template_file: templates/aws_baseline/aws-landing-zone-config-rules.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-config-rules.json
+    deploy_method: stack_set
+    regions:
+      - ap-east-1
+      - ap-northeast-1
+      - ap-northeast-2
+      - ap-south-1
+      - ap-southeast-1
+      - ap-southeast-2
+      - ca-central-1
+      - eu-central-1
+      - eu-north-1
+      - eu-west-1
+      - eu-west-2
+      - eu-west-3
+      - me-south-1
+      - sa-east-1
+      - us-east-1
+      - us-east-2
+      - us-west-1
+      - us-west-2
+
+  - name: EnableNotifications
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    depends_on:
+      - EnableCloudTrail
+      - EnableConfig
+    template_file: templates/aws_baseline/aws-landing-zone-notifications.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-notifications.json
+    deploy_method: stack_set
+
+  - name: SecurityRoles
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    template_file: templates/aws_baseline/aws-landing-zone-security-roles.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-security-roles.json
+    deploy_method: stack_set
+
+  - name: IamPasswordPolicy
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    template_file: templates/aws_baseline/aws-landing-zone-iam-password-policy.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-iam-password-policy.json
+    deploy_method: stack_set
+
+  - name: PrimaryVPC
+    baseline_products:
+      - AWS-Landing-Zone-Account-Vending-Machine
+    depends_on:
+      - VPCCalculator
+    template_file: templates/aws_baseline/aws-landing-zone-vpc.template
+    parameter_file: parameters/aws_baseline/aws-landing-zone-primary-vpc.json
+    deploy_method: stack_set
+    parameter_override: true

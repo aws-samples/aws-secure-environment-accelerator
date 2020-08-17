@@ -1,0 +1,24 @@
+{
+  "name": "@aws-accelerator/custom-resource-security-hub-send-invites",
+  "peerDependencies": {
+    "@aws-cdk/aws-iam": "^1.46.0", 
+    "@aws-cdk/core": "^1.46.0"
+  }, 
+  "main": "cdk/index.ts",
+  "private": true, 
+  "version": "0.0.1", 
+  "dependencies": {
+    "@aws-cdk/aws-iam": "1.46.0", 
+    "@aws-cdk/core": "1.46.0", 
+    "@aws-cdk/aws-lambda": "1.46.0"
+  }, 
+  "devDependencies": {
+    "tslint": "6.1.0", 
+    "tslint-config-standard": "9.0.0",
+    "@types/aws-lambda": "8.10.46", 
+    "@aws-accelerator/custom-resource-security-hub-send-invites-runtime": "workspace:^0.0.1", 
+    "tslint-config-prettier": "1.18.0", 
+    "@types/cfn-response": "1.0.3", 
+    "@types/node": "12.12.6"
+  }
+}

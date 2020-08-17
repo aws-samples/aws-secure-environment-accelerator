@@ -1,0 +1,21 @@
+import hashSum from 'hash-sum';
+import * as cdk from '@aws-cdk/core';
+import * as ssm from '@aws-cdk/aws-ssm';
+import * as autoscaling from '@aws-cdk/aws-autoscaling';
+
+export type LaunchConfigurationProps = autoscaling.CfnLaunchConfigurationProps;
+
+/**
+ * Wrapper around CfnLaunchConfiguration. The construct adds a hash to the launch configuration name that is based on
+ * the launch configuration properties. The hash makes sure the budget gets replaced correctly by CloudFormation.
+ */
+export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
+  constructor(scope: cdk.Construct, id: string, props: LaunchConfigurationProps) {
+    super(scope, id, props);
+
+    const hash = hashSum({ ...props, path: this.node.path });
+    this.launchConfigurationName = props.launchConfigurationName
+      ? `${props.launchConfigurationName}-${hash}`
+      : undefined;
+  }
+}

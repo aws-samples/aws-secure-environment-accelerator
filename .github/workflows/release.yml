@@ -1,0 +1,103 @@
+name: Release
+on:
+  push:
+    branches:
+      - 'release/v*'
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Format Branch Name
+        id: format
+        env:
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          git fetch --tags
+          echo ::set-output name=branch_name::$(echo "${GITHUB_REF}" | cut -d/ -f3-)
+          echo ::set-output name=tag_name::$(echo "${GITHUB_REF}" | cut -d/ -f4-)
+          echo ::set-output name=numeric_release::$(echo "${GITHUB_REF}" | cut -d/ -f4- | tr -d v)
+          echo ::set-output name=release_name::"Release $(echo "${GITHUB_REF}" | cut -d/ -f4-)"
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        env:
+          RUNNER_TEMP: /tmp/runner
+        with:
+          node-version: 12
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm
+      - name: Build Accelerator Installer
+        id: build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
+          INSTALLER_STACK_DIR: ./src/installer/cdk
+          INSTALLER_STACK_NAME: AcceleratorInstaller
+          OUTPUT_DIR: templates
+        run: |
+          cd "${INSTALLER_STACK_DIR}"
+          pnpm install
+          pnpx cdk synth --output "${OUTPUT_DIR}" "${INSTALLER_STACK_NAME}"
+          echo ::set-output name=template_name::${INSTALLER_STACK_NAME}.template.json
+          echo ::set-output name=template_path::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
+      - name: Generate Changelog
+        id: changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
+        run: |
+          previous_tag=$(git describe --tags --abbrev=0)
+          echo "Previous release was: ${previous_tag}"
+          changes=$(git log ${previous_tag}..HEAD --pretty="tformat:* %s (%h)" --first-parent)
+          echo ${changes}
+          changes="${changes//'%'/'%25'}"    # Avoids whitespace removal.
+          changes="${changes//$'\n'/'%0A'}"
+          changes="${changes//$'\r'/'%0D'}"
+          echo ::set-output name=changelog::${changes}
+      - name: Bump package.json
+        run: |
+          npm install -g json
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          json -I -f src/core/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+          json -I -f src/installer/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+          git add .
+          git commit -am 'Updating package to ${{ steps.format.outputs.numeric_release }}'
+      - name: Push Bumped Package Files
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.ACTION_TOKEN }}
+          branch: ${{ steps.format.outputs.branch_name }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.format.outputs.tag_name }}
+          release_name: ${{ steps.format.outputs.release_name }}
+          body: |
+            ${{ steps.changelog.outputs.changelog }}
+          draft: true
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEMPLATE_PATH: ${{ steps.build.outputs.template_path }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.build.outputs.template_path }}
+          asset_name: ${{ steps.build.outputs.template_name }}
+          asset_content_type: application/json
+      - name: Get Draft Release Url
+        id: release_url
+        run: |
+          echo "Draft release available at: ${{ steps.create_release.outputs.html_url}}"

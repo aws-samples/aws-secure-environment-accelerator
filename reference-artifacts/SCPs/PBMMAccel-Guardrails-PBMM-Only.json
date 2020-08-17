@@ -1,0 +1,133 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyNetworkPBMMONLY",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:AcceptVpcPeeringConnection",
+        "ec2:AttachEgressOnlyInternetGateway",
+        "ec2:AttachInternetGateway",
+        "ec2:CreateEgressOnlyInternetGateway",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateNatGateway",
+        "ec2:CreateTransitGateway",
+        "ec2:CreateTransitGatewayRoute",
+        "ec2:CreateTransitGatewayRouteTable",
+        "ec2:CreateTransitGatewayVpcAttachment",
+        "ec2:CreateVpc",
+        "ec2:CreateVpcEndpoint",
+        "ec2:CreateVpcPeeringConnection",
+        "ec2:DeleteNatGateway",
+        "ec2:DeleteTransitGatewayRoute",
+        "ec2:DeleteTransitGatewayRouteTable",
+        "ec2:DeleteTransitGatewayVpcAttachment",
+        "ec2:DeleteVpc",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:DeleteVpcPeeringConnection",
+        "globalaccelerator:Create*",
+        "globalaccelerator:Update*",
+        "kms:ScheduleKeyDeletion",
+        "kms:Delete*",
+        "iam:CreateGroup",
+        "iam:CreateUser",
+        "iam:CreateAccessKey",
+        "iam:DeleteUser",
+        "iam:UpdateUser",
+        "iam:DeleteGroup",
+        "iam:UpdateGroup",
+        "iam:DeleteRolePermissionsBoundary",
+        "iam:AddUserToGroup",
+        "iam:UpdateAccountPasswordPolicy",
+        "iam:DeleteAccountPasswordPolicy",
+        "iam:TagUser"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/StackSet-AWS-Landing-Zone*",
+            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/PBMMOps-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "ScopeSpecificGlobalActionsToCanadaUSE1",
+      "Effect": "Deny",
+      "Action": ["acm:*", "kms:*"],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["ca-central-1", "us-east-1"]
+        },
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyAllOutsideCanadaPBMMONLY",
+      "Effect": "Deny",
+      "NotAction": [
+        "a4b:*",
+        "access-analyzer:*",
+        "acm:*",
+        "aws-marketplace-management:*",
+        "aws-marketplace:*",
+        "aws-portal:*",
+        "awsbillingconsole:*",
+        "budgets:*",
+        "ce:*",
+        "chime:*",
+        "cloudfront:*",
+        "config:*",
+        "cur:*",
+        "directconnect:*",
+        "ec2:DescribeRegions",
+        "ec2:DescribeTransitGateways",
+        "ec2:DescribeVpnGateways",
+        "fms:*",
+        "globalaccelerator:*",
+        "health:*",
+        "iam:*",
+        "importexport:*",
+        "kms:*",
+        "mobileanalytics:*",
+        "organizations:*",
+        "pricing:*",
+        "route53:*",
+        "route53domains:*",
+        "s3:GetAccountPublic*",
+        "s3:ListAllMyBuckets",
+        "s3:ListBuckets",
+        "s3:PutAccountPublic*",
+        "shield:*",
+        "sts:*",
+        "support:*",
+        "trustedadvisor:*",
+        "waf-regional:*",
+        "waf:*",
+        "wafv2:*",
+        "wellarchitected:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["ca-central-1"]
+        },
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    }
+  ]
+}

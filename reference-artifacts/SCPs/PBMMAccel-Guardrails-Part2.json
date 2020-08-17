@@ -1,0 +1,153 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "BlockMarketplacePMP",
+      "Effect": "Deny",
+      "Action": [
+        "aws-marketplace:CreatePrivateMarketplace",
+        "aws-marketplace:AssociateProductsWithPrivateMarketplace",
+        "aws-marketplace:CreatePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceProducts",
+        "aws-marketplace:DescribePrivateMarketplaceProfile",
+        "aws-marketplace:DescribePrivateMarketplaceStatus",
+        "aws-marketplace:DisassociateProductsFromPrivateMarketplace",
+        "aws-marketplace:ListPrivateMarketplaceProducts",
+        "aws-marketplace:StartPrivateMarketplace",
+        "aws-marketplace:StopPrivateMarketplace",
+        "aws-marketplace:UpdatePrivateMarketplaceProfile"
+      ],
+      "Resource": "*",
+      "Condition": {}
+    },
+    {
+      "Sid": "DenyRoot",
+      "Effect": "Deny",
+      "NotAction": [
+         "iam:CreateVirtualMFADevice",
+         "iam:EnableMFADevice",
+         "iam:GetUser",
+         "iam:ListMFADevices",
+         "iam:ListVirtualMFADevices",
+         "iam:ResyncMFADevice",
+         "sts:GetSessionToken"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:root"]
+        }
+      }
+    },
+    {
+      "Sid": "EnforceEbsEncryption",
+      "Effect": "Deny",
+      "Action": "ec2:RunInstances",
+      "Resource": "arn:aws:ec2:*:*:volume/*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EnforceEBSVolumeEncryption",
+      "Effect": "Deny",
+      "Action": "ec2:CreateVolume",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "ec2:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EnforceRdsEncryption",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBInstance",
+      "Resource": "arn:aws:rds:*:*:db:*",
+      "Condition": {
+        "StringNotLike": {
+          "rds:DatabaseEngine": "aurora*"
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "EnforceAuroraEncryption",
+      "Effect": "Deny",
+      "Action": "rds:CreateDBCluster",
+      "Resource": "*",
+      "Condition": {
+        "StringLike": {
+          "rds:DatabaseEngine": "aurora*"
+        },
+        "Bool": {
+          "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "DenyRDGWRole",
+      "Effect": "Deny",
+      "Action": ["iam:*"],
+      "Resource": "arn:aws:iam::*:role/PBMMAccel-RDGW-Role",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyGDSHFMAAChange",
+      "Effect": "Deny",
+      "Action": [
+        "guardduty:AcceptInvitation",
+        "guardduty:DeclineInvitations",
+        "guardduty:DeleteDetector",
+        "guardduty:DeleteInvitations",
+        "guardduty:DeleteMembers",
+        "guardduty:DeletePublishingDestination",
+        "guardduty:DisassociateFromMasterAccount",
+        "guardduty:DisassociateMembers",
+        "guardduty:StopMonitoringMembers",
+        "guardduty:UpdateDetector",
+        "guardduty:UpdateFindingsFeedback",
+        "guardduty:UpdatePublishingDestination",
+        "guardduty:CreateMembers",
+        "guardduty:InviteMembers",
+        "securityhub:AcceptInvitation",
+        "securityhub:DeclineInvitations",
+        "securityhub:DeleteInvitations",
+        "securityhub:DeleteMembers",
+        "securityhub:InviteMembers",
+        "securityhub:CreateMembers",
+        "securityhub:DisableSecurityHub",
+        "securityhub:DisassociateFromMasterAccount",
+        "securityhub:DeleteInsight",
+        "securityhub:DisassociateMembers",
+        "securityhub:DeleteActionTarget",
+        "securityhub:BatchDisableStandards",
+        "fms:DisassociateAdminAccount",
+        "access-analyzer:DeleteAnalyzer",
+        "account:EnableRegion",
+        "account:DisableRegion",
+        "ec2:CreateDefaultVpc"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    }
+  ]
+}

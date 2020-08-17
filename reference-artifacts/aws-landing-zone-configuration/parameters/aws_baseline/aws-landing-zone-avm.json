@@ -1,0 +1,30 @@
+[
+  {
+    "ParameterKey": "AccountEmail",
+    "ParameterValue": "$[AccountEmail]"
+  },
+  {
+    "ParameterKey": "AccountName",
+    "ParameterValue": "$[AccountName]"
+  },
+  {
+    "ParameterKey": "OrgUnitName",
+    "ParameterValue": "$[OrgUnitName]"
+  },
+  {
+    "ParameterKey": "VPCOptions",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "VPCCidr",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "PeerVPC",
+    "ParameterValue": ""
+  },
+  {
+    "ParameterKey": "VPCRegion",
+    "ParameterValue": ""
+  }
+]

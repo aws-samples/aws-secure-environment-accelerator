@@ -1,0 +1,30 @@
+{
+  "VPCPeeringRule": {
+    "RuleCondition": {
+      "Fn::Contains": [
+        [
+          "No-Primary-VPC",
+          "Public-Only-2-AZ",
+          "Public-Only-3-AZ",
+          "Public-Only-4-AZ"
+        ],
+        {
+          "Ref": "VPCOptions"
+        }
+      ]
+    },
+    "Assertions": [
+      {
+        "Assert": {
+          "Fn::Equals": [
+            {
+              "Ref": "PeerVPC"
+            },
+            "false"
+          ]
+        },
+        "AssertDescription": "The VPC must have private subnets to peer with. Choose a supported VPC design for peering or choose no peering."
+      }
+    ]
+  }
+}

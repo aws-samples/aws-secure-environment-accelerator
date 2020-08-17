@@ -1,0 +1,82 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyUnclass",
+      "Effect": "Deny",
+      "Action": [
+        "kms:ScheduleKeyDeletion",
+        "kms:Delete*",
+        "iam:DeleteAccountPasswordPolicy",
+        "iam:UpdateAccountPasswordPolicy"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/StackSet-AWS-Landing-Zone*",
+            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/PBMMOps-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyAllOutsideCanadaUS",
+      "Effect": "Deny",
+      "NotAction": [
+        "a4b:*",
+        "access-analyzer:*",
+        "aws-marketplace-management:*",
+        "aws-marketplace:*",
+        "aws-portal:*",
+        "awsbillingconsole:*",
+        "budgets:*",
+        "ce:*",
+        "chime:*",
+        "cloudfront:*",
+        "config:*",
+        "cur:*",
+        "directconnect:*",
+        "ec2:DescribeRegions",
+        "ec2:DescribeTransitGateways",
+        "ec2:DescribeVpnGateways",
+        "fms:*",
+        "globalaccelerator:*",
+        "health:*",
+        "iam:*",
+        "importexport:*",
+        "mobileanalytics:*",
+        "organizations:*",
+        "pricing:*",
+        "route53:*",
+        "route53domains:*",
+        "s3:GetAccountPublic*",
+        "s3:ListAllMyBuckets",
+        "s3:ListBuckets",
+        "s3:PutAccountPublic*",
+        "shield:*",
+        "sts:*",
+        "support:*",
+        "trustedadvisor:*",
+        "waf-regional:*",
+        "waf:*",
+        "wafv2:*",
+        "wellarchitected:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["ca-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+        },
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    }
+  ]
+}
