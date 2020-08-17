@@ -1,4 +1,4 @@
-﻿Config File Examples:  {Not in sample config file}
+Config File Examples:  {Not in sample config file}
 ************************************Update Central Logging Kinesis stream shard count as accounts are added
     "central-log-services": {
 	  "kinesis-stream-shard-count": 2,
