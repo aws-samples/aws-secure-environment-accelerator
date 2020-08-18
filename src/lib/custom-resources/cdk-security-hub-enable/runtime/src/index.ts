@@ -52,7 +52,8 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         .promise(),
     );
 
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    // Incresing time to provide time for retriving standard controls
+    await new Promise(resolve => setTimeout(resolve, 10000));
 
     for (const responseStandard of enableResponse.StandardsSubscriptions || []) {
       const standardControls = await backOff(() =>
@@ -63,6 +64,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
           })
           .promise(),
       );
+      console.log(`standardControls for ${responseStandard}`, standardControls);
       for (const disableControl of standard['controls-to-disable']) {
         const standardControl = standardControls.Controls?.find(x => x.ControlId === disableControl);
         if (!standardControl) {
