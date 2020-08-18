@@ -56,20 +56,14 @@ async function removeAccountConfig(account: Account): Promise<string> {
   const rawConfig: AcceleratorConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
   let isMandatoryAccount = true;
   let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
-    ([_, accConfig]) => accConfig.email === account.email,
+    ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
   );
   if (!accountInfo) {
     isMandatoryAccount = false;
     accountInfo = Object.entries(rawConfig['workload-account-configs']).find(
-      ([_, accConfig]) => accConfig.email === account.email,
+      ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
     );
   }
-  console.log(
-    accountInfo,
-    isMandatoryAccount,
-    account,
-    Object.entries(rawConfig['mandatory-account-configs']).find(([_, accConfig]) => accConfig.email === account.email),
-  );
   if (!accountInfo) {
     return 'NO_ACCOUNT_FOUND';
   }
@@ -79,7 +73,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
     const config: AcceleratorUpdateConfig = getFormattedObject(configResponse.fileContent.toString(), format);
     if (isMandatoryAccount) {
       const accountConfig = Object.entries(config['mandatory-account-configs']).find(
-        ([_, accConfig]) => accConfig.email === account.email,
+        ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
       );
       if (!accountConfig) {
         return 'NO_ACCOUNT_FOUND';
@@ -90,7 +84,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
       config['mandatory-account-configs'][accountKey] = accountConfigObject;
     } else {
       const accountConfig = Object.entries(config['workload-account-configs']).find(
-        ([_, accConfig]) => accConfig.email === account.email,
+        ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
       );
       if (!accountConfig) {
         return 'NO_ACCOUNT_FOUND';
@@ -127,7 +121,9 @@ async function removeAccountConfig(account: Account): Promise<string> {
       accountConfigResponse.fileContent.toString(),
       format,
     );
-    const accountConfig = Object.entries(accountsConfig).find(([_, accConfig]) => accConfig.email === account.email);
+    const accountConfig = Object.entries(accountsConfig).find(
+      ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
+    );
     if (accountConfig) {
       const accountKey = accountConfig[0];
       const accountConfigObject = accountConfig[1];

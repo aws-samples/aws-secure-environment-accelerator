@@ -319,9 +319,13 @@ const updateRenamedAccounts = (props: {
       continue;
     }
     let isMandatoryAccount = true;
-    let accountConfig = mandatoryAccountConfigs.find(([_, value]) => value.email === previousAccount.email);
+    let accountConfig = mandatoryAccountConfigs.find(
+      ([_, value]) => value.email.toLowerCase() === previousAccount.email.toLowerCase(),
+    );
     if (!accountConfig) {
-      accountConfig = workLoadAccountsConfig.find(([_, value]) => value.email === previousAccount.email);
+      accountConfig = workLoadAccountsConfig.find(
+        ([_, value]) => value.email.toLowerCase() === previousAccount.email.toLowerCase(),
+      );
       isMandatoryAccount = false;
     }
     if (!accountConfig) {
@@ -363,7 +367,10 @@ const updateRenamedAccounts = (props: {
 
 const isAccountChanged = (previousAccount: Account, currentAccount: org.Account): boolean => {
   let isChanged = false;
-  if (previousAccount.name !== currentAccount.Name || previousAccount.email !== currentAccount.Email) {
+  if (
+    previousAccount.name !== currentAccount.Name ||
+    previousAccount.email.toLowerCase() !== currentAccount.Email?.toLowerCase()
+  ) {
     // Account did change
     isChanged = true;
   }

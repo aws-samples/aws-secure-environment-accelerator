@@ -29,7 +29,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
     organizationAccount = activeAccounts.find(a => {
-      return a.Email === accountConfig.emailAddress;
+      return a.Email?.toLowerCase() === accountConfig.emailAddress.toLowerCase();
     });
 
     // TODO Removing "landingZoneAccountType" check for mandatory account. Can be replaced with "accountName" after proper testing

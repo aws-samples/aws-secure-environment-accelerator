@@ -235,7 +235,7 @@ async function loadAccountsAndOrganizationsFromConfig(
       continue;
     }
 
-    const account = awsAccounts.find(a => a.Email === accountConfigEmail);
+    const account = awsAccounts.find(a => a.Email?.toLowerCase() === accountConfigEmail.toLowerCase());
     if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.ouId];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
