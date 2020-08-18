@@ -129,7 +129,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
   let latestCommitId = rawConfigResponse.commitId;
   const rawConfig: AcceleratorUpdateConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
   let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
-    ([_, ac]) => ac.email === account.Email!,
+    ([_, ac]) => ac.email.toLowerCase() === account.Email?.toLowerCase(),
   );
   const accountConfig: { [key: string]: AccountInfo } = {};
   const accountPrefix = rawConfig['global-options']['workloadaccounts-prefix'];
@@ -151,7 +151,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     };
   } else {
     // Check Account in Work Load Account Config
-    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(([_, ac]) => ac.email === account.Email!);
+    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(([_, ac]) => ac.email.toLowerCase() === account.Email?.toLowerCase());
     if (accountInfo) {
       newAccount = false;
       accountKey = accountInfo[0];
@@ -165,7 +165,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
       };
     } else {
       // New Account
-      accountKey = `${pascalCase(account.Name!).replace('_', '')}-${hashName(account.Email!, 6)}`;
+      accountKey = `${pascalCase(account.Name!).replace('_', '')}-${hashName(account.Email?.toLowerCase()!, 6)}`;
       if (`${accountPrefix}.${format}` === configRootFilePath) {
         console.log(`Account Found in Root Path`);
         accountConfig[accountKey] = {

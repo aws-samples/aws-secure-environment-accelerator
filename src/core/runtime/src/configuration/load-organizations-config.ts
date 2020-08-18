@@ -129,7 +129,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     throw new Error(`Cannot find a Master Account in Configuration`);
   }
 
-  if (masterAccountConfig[1].email !== masterAccount?.Email) {
+  if (masterAccountConfig[1].email.toLowerCase() !== masterAccount?.Email?.toLowerCase()) {
     throw new Error(`Invalid Master account email "${masterAccountConfig[1].email}" found in configuration`);
   }
 
@@ -150,7 +150,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
       continue;
     }
 
-    const account = awsAccounts.find(a => a.Email === accountConfigEmail);
+    const account = awsAccounts.find(a => a.Email?.toLowerCase() === accountConfigEmail.toLowerCase());
     if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);

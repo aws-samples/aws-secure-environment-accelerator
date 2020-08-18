@@ -138,7 +138,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       continue;
     }
 
-    const account = awsAccounts.find(a => a.Email === accountConfigEmail);
+    const account = awsAccounts.find(a => a.Email?.toLowerCase() === accountConfigEmail.toLowerCase());
     if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
@@ -256,7 +256,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       }
 
       // Only validate email address and OU for mandatory accounts
-      if (acceleratorAccount.emailAddress !== lzAccountEmail) {
+      if (acceleratorAccount.emailAddress.toLowerCase() !== lzAccountEmail?.toLowerCase()) {
         errors.push(
           `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
             `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,
