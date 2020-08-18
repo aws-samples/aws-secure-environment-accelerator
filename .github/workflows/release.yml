@@ -66,8 +66,9 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           json -I -f src/core/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+          git add src/core/cdk/package.json
           json -I -f src/installer/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
-          git add .
+          git add src/installer/cdk/package.json
           git commit -am 'Updating package to ${{ steps.format.outputs.numeric_release }}'
       - name: Push Bumped Package Files
         uses: ad-m/github-push-action@master

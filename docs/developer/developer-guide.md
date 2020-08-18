@@ -2,7 +2,7 @@
 
 This document is a reference document. Instead of reading through it in linear order, you can use it to look up specific issues as needed.
 
-It is important to read the [Operations Guide](Operations%20Guide.md) before reading this document.
+It is important to read the [Operations Guide](../operations/operations-troubleshooting-guide.md) before reading this document.
 
 ## Table of Contents
 
@@ -113,7 +113,7 @@ We use [`tslint`](https://palantir.github.io/tslint) as a static analysis tool t
 
 ### CloudFormation
 
-CloudFormation is used to deploy both the Accelerator stacks and resources and the deployed stacks and resources. See [Operations Guide: System Overview](Operations%20Guide.md#system-overview) for the distinction between Accelerator resources and deployed resources.
+CloudFormation is used to deploy both the Accelerator stacks and resources and the deployed stacks and resources. See [Operations Guide: System Overview](../operations/operations-troubleshooting-guide.md) for the distinction between Accelerator resources and deployed resources.
 
 ### CDK
 
@@ -127,7 +127,7 @@ There are different types of projects in this monorepo.
 2. Runtime code and is used by our CDK code to deploy Lambda functions;
 3. Reusable code; both for use by our CDK code and or runtime code.
 
-The CDK code either deploys Accelerator-management resources or Accelerator-managed resources. See the [Operations Guide](./Operations%20Guide.md) for the distinction between Accelerator-management and Accelerator-managed resources.
+The CDK code either deploys Accelerator-management resources or Accelerator-managed resources. See the [Operations Guide](../operations/operations-troubleshooting-guide.md) for the distinction between Accelerator-management and Accelerator-managed resources.
 
 The only language used in the project is TypeScript and exceptionally JavaScript. We do not write CloudFormation templates, only CDK code.
 
@@ -156,11 +156,10 @@ The folder structure of the project is as follows:
 - `src/lib/custom-resources/**/runtime`: See [Custom Resources](#custom-resources);
 - `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
 
-
-
 #### Installer Stack
 
-Read [Operations Guide](./Operations%20Guide.md#installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
+.md
+Read [Operations Guide](../operations/operations-troubleshooting-guide.md#installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
 As stated in the Operations Guide, the `Installer` stack is responsible for installing the `Initial Setup` stack. The main resource in the `Installer` stack is the `PBMMAccel-Installer` CodePipeline. It uses the GitHub repository as source action and runs CDK in a CodeBuild step to deploy the `Initial Setup` stack.
 
@@ -197,7 +196,7 @@ The `Initial Setup` stack deployment gets various environment variables through 
 
 #### Initial Setup Stack
 
-Read [Operations Guide](./Operations%20Guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
+Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
 The `Initial Setup` stack is defined in the `src/core/cdk` folder.
 
@@ -260,7 +259,7 @@ Other data is passed through environment variables:
 
 #### Phase Steps and Phase Stacks
 
-Read [Operations Guide](./Operations%20Guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the _Deploy Phase X_ sections in the Operations Guide.
+Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the _Deploy Phase X_ sections in the Operations Guide.
 
 The `Phase` stacks contain the Accelerator-managed resources. The reason the deployment of Accelerator-managed resources is split into different phases is because there cannot be cross account/region references between CloudFormation stacks. See [Cross-Account/Region References](#cross-accountregion-references).
 
@@ -296,7 +295,7 @@ It is important to note that nothing is hard-coded. The CloudFormation templates
 
 The different phases are defined in `apps/phase-x.ts`. Historically we put all logic in the `phase-x.ts` files. After a while the `phase-x.ts` files started to get to big and we moved to separating the logic into separate deployments. Every logical component has a separate folder in the `deployments` folder. Every `deployment` consists of so-called steps. Separate steps are put in loaded in phases.
 
-For example, take the `deployments/defaults` deployment. The deployment consists of two steps, i.e. `step-1.ts` and `step-2.ts`. `deployments/defaults/step-1.ts` is deployed in `apps/phase-0.ts` and `deployments/defaults/step-2.ts` is called in `apps/phase-1.ts`. You can find more details about what happens in each phase in the [Operations Guide](./Operations%20Guide.md).
+For example, take the `deployments/defaults` deployment. The deployment consists of two steps, i.e. `step-1.ts` and `step-2.ts`. `deployments/defaults/step-1.ts` is deployed in `apps/phase-0.ts` and `deployments/defaults/step-2.ts` is called in `apps/phase-1.ts`. You can find more details about what happens in each phase in the [Operations Guide](../operations/operations-troubleshooting-guide.md).
 
 `apps/phase-0.ts`
 
@@ -381,7 +380,6 @@ The risk of using the CDK API directly is that the CDK API can change at any tim
 You can find `aws-sdk` wrappers in the `src/lib/common/src/aws` folder. Most of the classes and functions just wrap around `aws-sdk` classes and wrappers and promisify some calls and add exponential backoff to retryable errors. Other classes, like `Organizations` have additional functionality such as listing all the organizational units in an organization in the function `listOrganizationalUnits`.
 
 Please use the `aws-sdk` wrappers throughout the project or write an additional wrapper when necessary.
-
 
 #### Configuration File Parsing
 
@@ -665,7 +663,7 @@ This library defines the base Webpack template to compile custom resource runtim
   "types": "dist/index.d.ts",
   "externals": ["aws-lambda", "aws-sdk"],
   "devDependencies": {
-    "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1", 
+    "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1",
     "@types/aws-lambda": "8.10.46",
     "@types/node": "12.12.6",
     "ts-loader": "7.0.5",
@@ -674,7 +672,7 @@ This library defines the base Webpack template to compile custom resource runtim
     "webpack-cli": "3.3.11"
   },
   "dependencies": {
-    "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1", 
+    "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1",
     "aws-lambda": "1.0.5",
     "aws-sdk": "2.668.0"
   }
@@ -1260,4 +1258,3 @@ Run in the root of the project.
 ```sh
 pnpm recursive run lint --stream --no-bail
 ```
-

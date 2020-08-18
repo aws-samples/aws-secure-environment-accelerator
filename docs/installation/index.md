@@ -12,7 +12,8 @@ These installation instructions assume the prescribed architecture is being depl
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Determine if you will install on top of ALZ or as a standalone installation
-  - We recommend customers with deployed ALZ's consider uninstalling the ALZ and proceeding with a standalone installation
+  - If you don't already have the ALZ installed, you will be doing a standalone installation
+  - Even if you do have the ALZ installed, we recommend customers consider uninstalling the ALZ and proceeding with a standalone installation
 - Valid configuration file, updated to reflect your deployment (see below)
 - Determine your primary or Accelerator 'control' region. These instructions have been written assuming ca-central-1, but any supported region can be substituted.
 
@@ -22,10 +23,9 @@ These installation instructions assume the prescribed architecture is being depl
   - our early adopters have all successfully deployed into existing organizations
 - Existing AWS accounts _can_ also be imported into an Accelerator managed Organization
 - Caveats:
-  - Prior to v1.1.5 customers that previously enabled Security Hub or deployed the fixed CloudWatch cross-account role in existing accounts were required to disable these services/remove the roles in each AWS account before Accelerator deployment or account import
-  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine.
-  - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance.
-    - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.).
+  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
+  - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance
+    - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.)
   - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
   - We do NOT support _any_ workloads running or users operating in the master AWS account. The master AWS account MUST be tightly controlled
   - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
@@ -169,7 +169,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### Deploy the Accelerator Installer Stack
 
 1. You can find the latest release in the repository [here:](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-2. Download the CloudFormation template `AcceleratorInstaller.template.json`
+2. Download the CloudFormation template `AcceleratorInstaller.template.json` for the release you plan to install
 3. Use the template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
@@ -178,19 +178,18 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Add an `Email` address to be used for notification of code releases
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.1.6`, case sensitive
-10. For deployments before v1.1.6, update the `GithubRepository` name to `aws-secure-environment-accelerator`
-11. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
-12. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
-13. The stack typically takes under 5 minutes to deploy.
-14. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
-15. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
-16. While the pipeline is running, review the list of known defects near the bottom on this document
-17. Once the pipeline completes (typically 15-20 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
-18. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
-19. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-20. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
-21. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
+   - the latest stable branch is currently `release/v1.1.7`, case sensitive
+10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
+11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
+12. The stack typically takes under 5 minutes to deploy.
+13. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
+14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
+15. **While the pipeline is running, review the list of [Known Installation Issues]([https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/docs/installation/index.md#Known-Installation-Issues) near the bottom on this document**
+16. Once the pipeline completes (typically 15-20 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
+17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
+18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
+19. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
+20. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firewall products
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
@@ -218,9 +217,6 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 24. During the installation we request required limit increases, resources dependent on these limits were not deployed
     1. You should receive emails from support confirming the limit increases
-       ~~2. Unfortunately, once the VPC endpoint limit is increased, it does not properly register in AWS Quota tool~~
-       ~~- If and when you receive confirmation from support that the **VPC Endpoint** limit in the shared network account has been increased~~
-       ~~- Set `"customer-confirm-inplace"` to **true** in the config file for the limit `"Amazon VPC/Interface VPC endpoints per VPC"` in the shared network account~~
     2. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
     3. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
@@ -242,7 +238,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
   - STANDALONE VERSION ONLY: We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
 
-    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name you provided in the Accelerator configuration file `global-options\organization-admin-role`, the default value is `AWSCloudFormationStackSetExecutionRole`, otherwise we cannot bootstrap the account.
+    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name you provided in the Accelerator configuration file `global-options\organization-admin-role`, the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`, otherwise we cannot bootstrap the account.
     - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
     - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP
 
@@ -338,12 +334,26 @@ It should be noted that we have added code to the Accelerator to block customers
 ## UPGRADES
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats
-- Upgrades from versions prior to v1.1.4 require dropping the fw AND fwMgr deployments during the upgrade (i.e. simply comment out the fw and fwmgr sections before upgrade). \*\* See below. You can redeploy the firewalls using the Accelerator after the upgrade. If you miss this step, the perimeter stack will likely fail to rollback and require manual intervention before you can re-run the state machine without the fws and fwmgr configurations.
 - Upgrades to v1.1.5 and above from v1.1.4 and below:
-  - requires use of the "overrideComparison": true flag as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file once this parameter is set.
+  - requires providing the "overrideComparison": true flag to the State Machine, as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file when this parameter is provided.
   - High probability of a State Machine failure due to a 1hr step timeout limitation. No easy fix available. Simply rerun the State Machine. We are reversing something from the v1.1.4 release which is extremely time consuming.
 
 \*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your fw customizations automatically redeployed, simply add them into the appropriate firewall-example.txt configuration file.
+
+### Summary of Upgrade Steps (to v1.1.7)
+
+- Ensure a valid Github token is stored in secrets manager
+- Update the config file in Code Commit with new parameters and updated parameter types (this is important as features are iterating rapidly)
+- If you are replacing your GitHub Token:
+  - Take note of the s3 bucket name from the stack parameters
+  - Delete the Installer CFN stack (`PBMMAccel-what-you-provided`)
+  - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
+  - The pipeline will automatically run and trigger the upgraded state machine
+- If you are using a pre-existing GitHub token:
+  - Update the Installer CFN stack, providing the new `GithubRepository` name and `GithubBranch` associated with the release (eg. `aws-secure-environment-accelerator` and `release/v1.1.7`)
+  - Some releases, not this one, require replacing the CFN template
+  - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
+- In both cases the State Machine will fail upon execution, rerun the State Machine providing the "overrideComparison": true flag
 
 ### Summary of Upgrade Steps (to v1.1.4)
 
@@ -392,12 +402,11 @@ It should be noted that we have added code to the Accelerator to block customers
 - Only 1 auto-deployed MAD per AWS account is supported today
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
 - If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
-- Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment)
+- Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and deprovision the first cluster when ready.
 
-## Known Major Defects:
+## Known Installation Issues:
 
 - All versions are currently experiencing GuardDuty deployment failures in at least one random region, cause and retry behaviour currently under investigation. Simply rerun the State Machine
-- Proper/full Session Manager configuration was dropped in v1.1.4 Standalone (working in ALZ version), partially fixed in v1.1.6, fix outstanding to restore SSM CWLG KMS encryption w/SSM key
 - Standalone installation - currently requires manually creating the core ou and moving the master AWS account into it before running the State Machine, otherwise, once the SM fails, simply move the master account into the auto-created core ou and rerun the SM
 
 # AWS Internal - Accelerator Release Process
@@ -406,12 +415,18 @@ It should be noted that we have added code to the Accelerator to block customers
 
 1. Ensure `master` is in a suitable state
 2. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
-
-- **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself.
+    * On latest  `master`,  run: `git checkout -b release/vX.Y.Z`
+    * **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself; i.e. every `release/vX.Y.Z` branch will have a corresponding `vX.Y.Z` tag.
 
 3. Push that branch to GitHub (if created locally)
-4. The release workflow will run, and create a **draft** release if successful with all commits since the last tagged release.
-5. Prune the commits that have been added to the release (e.g. remove any low-information commits)
-6. Publish the release - this creates the git tag in the repo and marks the release as latest.
+    * `git push origin release/vX.Y.Z`
+
+4. The release workflow will run, and create a **DRAFT** release if successful with all commits since the last tagged release.
+5. Prune the commits that have been added to the release notes (e.g. remove any low-information commits)
+6. Publish the release - this creates the git tag in the repo and marks the release as latest. It also bumps the `version` key in several project `package.json` files.
+
+    * Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
+
+[action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
 
 [...Return to Table of Contents](../index.md)
