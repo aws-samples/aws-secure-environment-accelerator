@@ -151,7 +151,9 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     };
   } else {
     // Check Account in Work Load Account Config
-    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(([_, ac]) => ac.email.toLowerCase() === account.Email?.toLowerCase());
+    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(
+      ([_, ac]) => ac.email.toLowerCase() === account.Email?.toLowerCase(),
+    );
     if (accountInfo) {
       newAccount = false;
       accountKey = accountInfo[0];
