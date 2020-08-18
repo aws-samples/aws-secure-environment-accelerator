@@ -3,7 +3,7 @@ import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-accelerator/common-config/src';
 import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
-import { getFormattedObject, getStringFromObject } from '@aws-accelerator/common/src/util/common';
+import { getFormattedObject, getStringFromObject, equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { pretty } from '@aws-accelerator/common/src/util/perttier';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 
@@ -55,13 +55,13 @@ async function removeAccountConfig(account: Account): Promise<string> {
   const rawConfigResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   const rawConfig: AcceleratorConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
   let isMandatoryAccount = true;
-  let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
-    ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
+  let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(([_, accConfig]) =>
+    equalIgnoreCase(accConfig.email, account.email),
   );
   if (!accountInfo) {
     isMandatoryAccount = false;
-    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(
-      ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
+    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(([_, accConfig]) =>
+      equalIgnoreCase(accConfig.email, account.email),
     );
   }
   if (!accountInfo) {
@@ -72,8 +72,8 @@ async function removeAccountConfig(account: Account): Promise<string> {
     const configResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
     const config: AcceleratorUpdateConfig = getFormattedObject(configResponse.fileContent.toString(), format);
     if (isMandatoryAccount) {
-      const accountConfig = Object.entries(config['mandatory-account-configs']).find(
-        ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
+      const accountConfig = Object.entries(config['mandatory-account-configs']).find(([_, accConfig]) =>
+        equalIgnoreCase(accConfig.email, account.email),
       );
       if (!accountConfig) {
         return 'NO_ACCOUNT_FOUND';
@@ -83,8 +83,8 @@ async function removeAccountConfig(account: Account): Promise<string> {
       accountConfigObject.deleted = true;
       config['mandatory-account-configs'][accountKey] = accountConfigObject;
     } else {
-      const accountConfig = Object.entries(config['workload-account-configs']).find(
-        ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
+      const accountConfig = Object.entries(config['workload-account-configs']).find(([_, accConfig]) =>
+        equalIgnoreCase(accConfig.email, account.email),
       );
       if (!accountConfig) {
         return 'NO_ACCOUNT_FOUND';
@@ -121,8 +121,8 @@ async function removeAccountConfig(account: Account): Promise<string> {
       accountConfigResponse.fileContent.toString(),
       format,
     );
-    const accountConfig = Object.entries(accountsConfig).find(
-      ([_, accConfig]) => accConfig.email.toLowerCase() === account.email.toLowerCase(),
+    const accountConfig = Object.entries(accountsConfig).find(([_, accConfig]) =>
+      equalIgnoreCase(accConfig.email, account.email),
     );
     if (accountConfig) {
       const accountKey = accountConfig[0];

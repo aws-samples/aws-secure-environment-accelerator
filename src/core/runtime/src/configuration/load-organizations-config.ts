@@ -2,6 +2,7 @@ import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import {
   LoadConfigurationInput,
   ConfigurationAccount,
@@ -130,7 +131,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     throw new Error(`Cannot find a Master Account in Configuration`);
   }
 
-  if (masterAccountConfig[1].email.toLowerCase() !== masterAccount?.Email?.toLowerCase()) {
+  if (!equalIgnoreCase(masterAccountConfig[1].email, masterAccount?.Email!)) {
     throw new Error(`Invalid Master account email "${masterAccountConfig[1].email}" found in configuration`);
   }
 
@@ -151,7 +152,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
       continue;
     }
 
-    const account = awsAccounts.find(a => a.Email?.toLowerCase() === accountConfigEmail.toLowerCase());
+    const account = awsAccounts.find(a => equalIgnoreCase(a.Email!, accountConfigEmail));
     if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);

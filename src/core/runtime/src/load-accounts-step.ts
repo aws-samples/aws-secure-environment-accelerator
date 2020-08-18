@@ -2,6 +2,7 @@ import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { LoadConfigurationOutput, ConfigurationOrganizationalUnit } from './load-configuration-step';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 
 export interface LoadAccountsInput {
   accountsSecretId: string;
@@ -29,7 +30,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
     organizationAccount = activeAccounts.find(a => {
-      return a.Email?.toLowerCase() === accountConfig.emailAddress.toLowerCase();
+      return equalIgnoreCase(a.Email!, accountConfig.emailAddress);
     });
 
     // TODO Removing "landingZoneAccountType" check for mandatory account. Can be replaced with "accountName" after proper testing

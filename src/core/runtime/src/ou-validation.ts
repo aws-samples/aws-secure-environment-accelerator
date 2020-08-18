@@ -8,7 +8,7 @@ import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager'
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { FormatType, pretty } from '@aws-accelerator/common/src/util/perttier';
-import { getFormattedObject, getStringFromObject } from '@aws-accelerator/common/src/util/common';
+import { getFormattedObject, getStringFromObject, equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
@@ -181,9 +181,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     throw new Error(`Cannot find a Master Account in Configuration`);
   }
 
-  const rootMasterAccount = rootAccounts.find(
-    acc => acc.Email?.toLowerCase() === masterAccountConfig[1].email.toLowerCase(),
-  );
+  const rootMasterAccount = rootAccounts.find(acc => equalIgnoreCase(acc.Email!, masterAccountConfig[1].email));
   if (rootMasterAccount) {
     const masterConfigOu = masterAccountConfig[1]['ou-path'] || masterAccountConfig[1].ou;
     console.warn(`Master Account is under ROOT ogranization, Moving to ${masterConfigOu}`);
@@ -352,13 +350,11 @@ const updateRenamedAccounts = (props: {
       continue;
     }
     let isMandatoryAccount = true;
-    let accountConfig = mandatoryAccountConfigs.find(
-      ([_, value]) => value.email.toLowerCase() === previousAccount.email.toLowerCase(),
+    let accountConfig = mandatoryAccountConfigs.find(([_, value]) =>
+      equalIgnoreCase(value.email, previousAccount.email),
     );
     if (!accountConfig) {
-      accountConfig = workLoadAccountsConfig.find(
-        ([_, value]) => value.email.toLowerCase() === previousAccount.email.toLowerCase(),
-      );
+      accountConfig = workLoadAccountsConfig.find(([_, value]) => equalIgnoreCase(value.email, previousAccount.email));
       isMandatoryAccount = false;
     }
     if (!accountConfig) {
@@ -400,10 +396,7 @@ const updateRenamedAccounts = (props: {
 
 const isAccountChanged = (previousAccount: Account, currentAccount: org.Account): boolean => {
   let isChanged = false;
-  if (
-    previousAccount.name !== currentAccount.Name ||
-    previousAccount.email.toLowerCase() !== currentAccount.Email?.toLowerCase()
-  ) {
+  if (previousAccount.name !== currentAccount.Name || !equalIgnoreCase(previousAccount.email, currentAccount.Email!)) {
     // Account did change
     isChanged = true;
   }

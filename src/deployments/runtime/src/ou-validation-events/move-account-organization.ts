@@ -7,7 +7,12 @@ import { delay } from '@aws-accelerator/common/src/util/delay';
 import { pascalCase } from 'pascal-case';
 import * as crypto from 'crypto';
 import { pretty } from '@aws-accelerator/common/src/util/perttier';
-import { getFormattedObject, getStringFromObject, RawConfig } from '@aws-accelerator/common/src/util/common';
+import {
+  getFormattedObject,
+  getStringFromObject,
+  RawConfig,
+  equalIgnoreCase,
+} from '@aws-accelerator/common/src/util/common';
 import { AcceleratorUpdateConfig } from '@aws-accelerator/common-config';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
@@ -128,8 +133,8 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
   const rawConfigResponse = await codecommit.getFile(configRepositoryName, configFilePath, configBranch);
   let latestCommitId = rawConfigResponse.commitId;
   const rawConfig: AcceleratorUpdateConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
-  let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(
-    ([_, ac]) => ac.email.toLowerCase() === account.Email?.toLowerCase(),
+  let accountInfo = Object.entries(rawConfig['mandatory-account-configs']).find(([_, ac]) =>
+    equalIgnoreCase(ac.email, account.Email!),
   );
   const accountConfig: { [key: string]: AccountInfo } = {};
   const accountPrefix = rawConfig['global-options']['workloadaccounts-prefix'];
@@ -151,8 +156,8 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     };
   } else {
     // Check Account in Work Load Account Config
-    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(
-      ([_, ac]) => ac.email.toLowerCase() === account.Email?.toLowerCase(),
+    accountInfo = Object.entries(rawConfig['workload-account-configs']).find(([_, ac]) =>
+      equalIgnoreCase(ac.email, account.Email!),
     );
     if (accountInfo) {
       newAccount = false;
