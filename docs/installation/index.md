@@ -415,12 +415,18 @@ It should be noted that we have added code to the Accelerator to block customers
 
 1. Ensure `master` is in a suitable state
 2. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
-
-- **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself.
+    * On latest  `master`,  run: `git checkout -b release/vX.Y.Z`
+    * **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself; i.e. every `release/vX.Y.Z` branch will have a corresponding `vX.Y.Z` tag.
 
 3. Push that branch to GitHub (if created locally)
-4. The release workflow will run, and create a **draft** release if successful with all commits since the last tagged release.
-5. Prune the commits that have been added to the release (e.g. remove any low-information commits)
-6. Publish the release - this creates the git tag in the repo and marks the release as latest.
+    * `git push origin release/vX.Y.Z`
+
+4. The release workflow will run, and create a **DRAFT** release if successful with all commits since the last tagged release.
+5. Prune the commits that have been added to the release notes (e.g. remove any low-information commits)
+6. Publish the release - this creates the git tag in the repo and marks the release as latest. It also bumps the `version` key in several project `package.json` files.
+
+    * Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
+
+[action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
 
 [...Return to Table of Contents](../index.md)
