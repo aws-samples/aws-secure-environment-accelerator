@@ -11,6 +11,7 @@ import { FormatType, pretty } from '@aws-accelerator/common/src/util/perttier';
 import { getFormattedObject, getStringFromObject } from '@aws-accelerator/common/src/util/common';
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
+import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 
 export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -167,7 +168,41 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const roots = await organizations.listRoots();
   const rootId = roots[0].Id!;
   awsOusWithPath.push(...(await createOrganizstionalUnits(config, awsOusWithPath, rootId)));
+  const rootAccounts = await organizations.listAccountsForParent(rootId);
+  let rootAccountIds = rootAccounts.map(acc => acc.Id);
 
+  // Loading AcceleratorConfig Object from updated config Object
+  const acceleratorConfig = AcceleratorConfig.fromObject(config);
+  // First load mandatory accounts configuration
+  const mandatoryAccounts = acceleratorConfig.getMandatoryAccountConfigs();
+  const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
+  const masterAccountConfig = mandatoryAccounts.find(([accKey, _]) => accKey === masterAccountKey);
+  if (!masterAccountConfig) {
+    throw new Error(`Cannot find a Master Account in Configuration`);
+  }
+
+  const rootMasterAccount = rootAccounts.find(
+    acc => acc.Email?.toLowerCase() === masterAccountConfig[1].email.toLowerCase(),
+  );
+  if (rootMasterAccount) {
+    const masterConfigOu = masterAccountConfig[1]['ou-path'] || masterAccountConfig[1].ou;
+    console.warn(`Master Account is under ROOT ogranization, Moving to ${masterConfigOu}`);
+
+    let masterAccountOu = awsOusWithPath.find(ou => ou.Path === masterConfigOu);
+    if (!masterAccountOu) {
+      masterAccountOu = awsOusWithPath.find(ou => ou.Name === masterConfigOu);
+    }
+    if (!masterAccountOu) {
+      console.error(`Cannot find organizational unit "${masterConfigOu}" that is used by Accelerator`);
+    } else {
+      await organizations.moveAccount({
+        AccountId: rootMasterAccount?.Id!,
+        DestinationParentId: masterAccountOu.Id!,
+        SourceParentId: rootId,
+      });
+      rootAccountIds = rootAccountIds.filter(acc => acc !== rootMasterAccount?.Id!);
+    }
+  }
   const suspendedOuName = 'Suspended';
   let suspendedOu = awsOusWithPath.find(o => o.Path === suspendedOuName);
   if (!suspendedOu) {
@@ -188,8 +223,6 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   }
   // Attach Qurantine SCP to root Accounts
   const policyId = await scps.createOrUpdateQuarantineScp();
-  const rootAccounts = await organizations.listAccountsForParent(rootId);
-  const rootAccountIds = rootAccounts.map(acc => acc.Id);
   // Detach target from all polocies except FullAccess and Qurantine SCP
   for (const targetId of [...rootAccountIds, suspendedOu.Id]) {
     await scps.detachPoliciesFromTargets({

@@ -123,8 +123,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   const mandatoryAccounts = config.getMandatoryAccountConfigs();
   const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
 
+  const masterAccountKey = config.getMandatoryAccountKey('master');
   // Validate Master Accoung email
-  const masterAccountConfig = mandatoryAccounts.find(([accountKey, _]) => accountKey === 'master');
+  const masterAccountConfig = mandatoryAccounts.find(([accountKey, _]) => accountKey === masterAccountKey);
   if (!masterAccountConfig) {
     throw new Error(`Cannot find a Master Account in Configuration`);
   }
