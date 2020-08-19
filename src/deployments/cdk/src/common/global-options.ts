@@ -130,22 +130,6 @@ export class GlobalOptionsDeployment extends cdk.Construct {
         resolverRulesOutput.onPremRules = onPremRules;
       }
 
-      // For each Private hosted Zone created in 1) above, create a Resolver rule which points to the Inbound-Endpoint-IP's
-      if (r53ResolverEndpoints.inboundEndpointRef && r53ResolverEndpoints.outboundEndpointRef) {
-        for (const [domain, _] of r53Zones.privateZoneToDomainMap.entries()) {
-          const rule = new Route53ResolverRule(this, `${domainToName(domain)}-phz-rule`, {
-            domain,
-            endpoint: r53ResolverEndpoints.outboundEndpointRef,
-            ipAddresses: r53ResolverEndpoints.inboundEndpointIps,
-            ruleType: 'FORWARD',
-            name: `${domainToName(domain)}-phz-rule`,
-            vpcId: vpcOutput.vpcId,
-          });
-          rule.node.addDependency(r53ResolverEndpoints);
-          resolverRulesOutput.inBoundRule = rule.ruleId;
-        }
-      }
-
       // Adding VPC Inbound Endpoint to Output
       if (r53ResolverEndpoints.inboundEndpointRef) {
         vpcInBoundMapping.set(vpcConfig.name, r53ResolverEndpoints.inboundEndpointRef);
