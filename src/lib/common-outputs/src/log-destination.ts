@@ -14,10 +14,11 @@ export const LogDestinationOutput = t.interface(
 export type LogDestinationOutput = t.TypeOf<typeof LogDestinationOutput>;
 
 export const LogDestinationOutputFinder = createStructuredOutputFinder(LogDestinationOutput, finder => ({
-  tryFindOneByName: (props: { outputs: StackOutput[]; accountKey: string; destinationKey?: string }) =>
+  tryFindOneByName: (props: { outputs: StackOutput[]; accountKey: string; region?: string; destinationKey?: string }) =>
     finder.tryFindOne({
       outputs: props.outputs,
       accountKey: props.accountKey,
+      region: props.region,
       predicate: o => o.destinationKey === props.destinationKey,
     }),
 }));

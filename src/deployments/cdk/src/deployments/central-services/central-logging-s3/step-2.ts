@@ -1,9 +1,10 @@
 import * as c from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../../common/account-stacks';
-import { Account } from '../../../utils/accounts';
 import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { CentralLoggingSubscriptionFilter } from '@aws-accelerator/custom-resource-logs-add-subscription-filter';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { LogDestinationOutputFinder } from '@aws-accelerator/common-outputs/src/log-destination';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface CentralLoggingToS3Step2Props {
   accountStacks: AccountStacks;
@@ -22,37 +23,56 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
   const globalOptionsConfig = config['global-options'];
   const defaultLogRetention = globalOptionsConfig['default-cwl-retention'];
   const accountConfigs = config.getAccountConfigs();
-  const logConfig = globalOptionsConfig['central-log-services'];
-  const logArchiveAccountKey = logConfig.account;
-  const logDestinationOutput = getStackJsonOutput(outputs, {
-    accountKey: logArchiveAccountKey,
-    outputType: 'CloudWatchCentralLogging',
-  });
-  if (!logDestinationOutput || logDestinationOutput.length === 0) {
-    console.log(`Log Dstination not found in outputs ${logArchiveAccountKey}`);
-    return;
+  const centralLogServices = globalOptionsConfig['central-log-services'];
+  const cwlRegions = Object.entries(globalOptionsConfig['additional-cwl-regions']).map(([region, _]) => region);
+  if (!cwlRegions.includes(centralLogServices.region)) {
+    cwlRegions.push(centralLogServices.region);
   }
-  const logDestinationArn = logDestinationOutput[0].logDestination;
+
   for (const [accountKey, accountConfig] of accountConfigs) {
     const logRetention = accountConfig['cwl-retention'] || defaultLogRetention;
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
-    } else {
+    const subscriptionRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+      accountKey,
+      outputs,
+      roleKey: 'CWLAddSubscriptionFilter',
+    });
+    if (!subscriptionRoleOutput) {
+      console.error(`Can't find "CWLAddSubscriptionFilter" Role in account ${accountKey} outputs`);
+      continue;
+    }
+    for (const region of cwlRegions) {
+      const logDestinationOutput = LogDestinationOutputFinder.tryFindOneByName({
+        outputs,
+        accountKey: centralLogServices.account,
+        region,
+        destinationKey: 'CwlCentralLogDestination',
+      });
+      if (!logDestinationOutput) {
+        console.warn(`Cannot find required LogDestination in account "${accountKey}"`);
+        return;
+      }
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
+      if (!accountStack) {
+        console.error(
+          `Cannot find account stack ${accountKey}:${region} while adding subscription filter for CWL Central logging`,
+        );
+        continue;
+      }
       const accountSpecificExclusions = [
-        ...(logConfig['cwl-exclusions']?.find(e => e.account === accountKey)?.exclusions || []),
+        ...(centralLogServices['cwl-exclusions']?.find(e => e.account === accountKey)?.exclusions || []),
       ];
-      const globalExclusions = [...(logConfig['cwl-glbl-exclusions'] || []), ...accountSpecificExclusions];
+      const globalExclusions = [...(centralLogServices['cwl-glbl-exclusions'] || []), ...accountSpecificExclusions];
       const ruleName = createName({
         name: 'NewLogGroup_rule',
         account: false,
         region: false,
       });
       new CentralLoggingSubscriptionFilter(accountStack, `CentralLoggingSubscriptionFilter-${accountKey}`, {
-        logDestinationArn,
+        logDestinationArn: logDestinationOutput.destinationArn,
         globalExclusions,
         ruleName,
         logRetention,
+        roleArn: subscriptionRoleOutput.roleArn,
       });
     }
   }
