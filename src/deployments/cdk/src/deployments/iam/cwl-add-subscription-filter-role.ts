@@ -34,7 +34,7 @@ export async function createCwlAddSubscriptionFilterRoles(props: CwlAddSubscript
       }),
     );
 
-    new CfnIamRoleOutput(accountStack, `CWLLogsStreamRoleOutput`, {
+    new CfnIamRoleOutput(accountStack, `CWLAddSubscriptionFilterRoleOutput`, {
       roleName: role.roleName,
       roleArn: role.roleArn,
       roleKey: 'CWLAddSubscriptionFilter',
