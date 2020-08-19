@@ -1,4 +1,5 @@
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import * as org from 'aws-sdk/clients/organizations';
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-accelerator/common/src/scp';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
@@ -235,7 +236,7 @@ async function loadAccountsAndOrganizationsFromConfig(
       continue;
     }
 
-    const account = awsAccounts.find(a => a.Email === accountConfigEmail);
+    const account = awsAccounts.find(a => equalIgnoreCase(a.Email!, accountConfigEmail));
     if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.ouId];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
