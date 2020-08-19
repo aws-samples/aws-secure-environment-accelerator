@@ -645,6 +645,12 @@ export const VpcFlowLogsConfigType = t.interface({
 });
 export type VpcFlowLogsConfig = t.TypeOf<typeof VpcFlowLogsConfigType>;
 
+export const AdditionalCwlRegionType = t.interface({
+  'kinesis-stream-shard-count': optional(t.number),
+});
+
+export type AdditionalCwlRegion = t.TypeOf<typeof AdditionalCwlRegionType>;
+
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
@@ -670,6 +676,7 @@ export const GlobalOptionsConfigType = t.interface({
   'workloadaccounts-suffix': optional(t.number),
   'workloadaccounts-param-filename': t.string,
   'vpc-flow-logs': VpcFlowLogsConfigType,
+  'additional-cwl-regions': fromNullable(t.record(t.string, AdditionalCwlRegionType), {}),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
