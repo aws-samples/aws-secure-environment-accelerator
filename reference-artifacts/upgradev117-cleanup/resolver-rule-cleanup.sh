@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # Domain name to search for resolver rule
 Domain="dept.cloud-nuage.gc.ca"
