@@ -2,6 +2,7 @@ import * as org from 'aws-sdk/clients/organizations';
 import { LandingZoneAccountType, LANDING_ZONE_ACCOUNT_TYPES } from '@aws-accelerator/common-config/src';
 import { LandingZone } from '@aws-accelerator/common/src/landing-zone';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 import { arrayEqual } from '@aws-accelerator/common/src/util/arrays';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
@@ -138,7 +139,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       continue;
     }
 
-    const account = awsAccounts.find(a => a.Email === accountConfigEmail);
+    const account = awsAccounts.find(a => equalIgnoreCase(a.Email!, accountConfigEmail));
     if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
@@ -256,7 +257,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
       }
 
       // Only validate email address and OU for mandatory accounts
-      if (acceleratorAccount.emailAddress !== lzAccountEmail) {
+      if (!equalIgnoreCase(acceleratorAccount.emailAddress, lzAccountEmail!)) {
         errors.push(
           `The Acceleror account email and Landing Zone account email for account type "${lzAccountType}" do not match.\n` +
             `"${acceleratorAccount.emailAddress}" != "${lzAccount.email}"`,

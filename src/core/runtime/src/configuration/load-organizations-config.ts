@@ -2,6 +2,7 @@ import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import {
   LoadConfigurationInput,
   ConfigurationAccount,
@@ -123,13 +124,14 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   const mandatoryAccounts = config.getMandatoryAccountConfigs();
   const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
 
+  const masterAccountKey = config.getMandatoryAccountKey('master');
   // Validate Master Accoung email
-  const masterAccountConfig = mandatoryAccounts.find(([accountKey, _]) => accountKey === 'master');
+  const masterAccountConfig = mandatoryAccounts.find(([accountKey, _]) => accountKey === masterAccountKey);
   if (!masterAccountConfig) {
     throw new Error(`Cannot find a Master Account in Configuration`);
   }
 
-  if (masterAccountConfig[1].email !== masterAccount?.Email) {
+  if (!equalIgnoreCase(masterAccountConfig[1].email, masterAccount?.Email!)) {
     throw new Error(`Invalid Master account email "${masterAccountConfig[1].email}" found in configuration`);
   }
 
@@ -150,7 +152,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
       continue;
     }
 
-    const account = awsAccounts.find(a => a.Email === accountConfigEmail);
+    const account = awsAccounts.find(a => equalIgnoreCase(a.Email!, accountConfigEmail));
     if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
