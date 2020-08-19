@@ -16,7 +16,7 @@ export async function createCwlCentralLoggingRoles(props: CwlCentralLoggingRoleP
   const { accountStacks, config, acceleratorPrefix, logBucket } = props;
   const centralLoggingServices = config['global-options']['central-log-services'];
 
-  const cwlRegions = Object.entries(config['global-options']["additional-cwl-regions"]).map(([region, _]) => region);
+  const cwlRegions = Object.entries(config['global-options']['additional-cwl-regions']).map(([region, _]) => region);
   if (!cwlRegions.includes(centralLoggingServices.region)) {
     cwlRegions.push(centralLoggingServices.region);
   }
@@ -33,9 +33,7 @@ export async function createCwlCentralLoggingRoles(props: CwlCentralLoggingRoleP
   // Create IAM Role for reading logs from stream and push to destination
   const logsRole = new iam.Role(accountStack, 'CloudWatch-Logs-Stream-Role', {
     roleName: createRoleName('CWL-Logs-Stream-Role'),
-    assumedBy: new iam.CompositePrincipal(
-      ...cwlRegions.map(r => new iam.ServicePrincipal(`logs.${r}.amazonaws.com`))
-    ),
+    assumedBy: new iam.CompositePrincipal(...cwlRegions.map(r => new iam.ServicePrincipal(`logs.${r}.amazonaws.com`))),
   });
 
   // Create IAM Policy for reading logs from stream and push to destination
