@@ -43,7 +43,7 @@ export class CloudFormation {
    * Wrapper around AWS.CloudFormation.listStacks.
    */
   async listStacks(input: cfn.ListStacksInput): Promise<cfn.StackSummary[]> {
-    return throttlingBackOff(() => collectAsync(this.listStacksGenerator(input)));
+    return collectAsync(this.listStacksGenerator(input));
   }
 
   /**
