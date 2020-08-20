@@ -52,12 +52,14 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
     console.log(`Assuming role ${green(roleArn)} for ${duration} seconds`);
 
     const sts = new aws.STS();
-    return await throttlingBackOff(() => sts
-      .assumeRole({
-        RoleArn: roleArn,
-        RoleSessionName: this.name,
-        DurationSeconds: duration,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      sts
+        .assumeRole({
+          RoleArn: roleArn,
+          RoleSessionName: this.name,
+          DurationSeconds: duration,
+        })
+        .promise(),
+    );
   }
 }
