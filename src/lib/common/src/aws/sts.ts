@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as sts from 'aws-sdk/clients/sts';
+import { throttlingBackOff } from './backoff';
 
 export class STS {
   private readonly client: aws.STS;
@@ -12,7 +13,7 @@ export class STS {
   }
 
   async getCallerIdentity(): Promise<sts.GetCallerIdentityResponse> {
-    return this.client.getCallerIdentity().promise();
+    return await throttlingBackOff(() => this.client.getCallerIdentity().promise());
   }
 
   async getCredentialsForRoleArn(assumeRoleArn: string, durationSeconds: number = 3600): Promise<aws.Credentials> {
@@ -24,13 +25,13 @@ export class STS {
       }
     }
 
-    const response = await this.client
+    const response = await throttlingBackOff(() => this.client
       .assumeRole({
         RoleArn: assumeRoleArn,
         RoleSessionName: 'temporary', // TODO Generate a random name
         DurationSeconds: durationSeconds,
       })
-      .promise();
+      .promise());
 
     const stsCredentials = response.Credentials!;
     const credentials = new aws.Credentials({

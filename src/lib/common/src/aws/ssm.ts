@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as sts from 'aws-sdk/clients/ssm';
+import { throttlingBackOff } from './backoff';
 
 export class SSM {
   private readonly client: aws.SSM;
@@ -12,10 +13,10 @@ export class SSM {
   }
 
   async getParameter(name: string): Promise<sts.GetParameterResult> {
-    return this.client
+    return await throttlingBackOff(() => this.client
       .getParameter({
         Name: name,
       })
-      .promise();
+      .promise());
   }
 }

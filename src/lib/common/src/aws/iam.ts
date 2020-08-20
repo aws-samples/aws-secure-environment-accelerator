@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as iam from 'aws-sdk/clients/iam';
+import { throttlingBackOff } from './backoff';
 
 export class IAM {
   private readonly client: aws.IAM;
@@ -18,6 +19,6 @@ export class IAM {
     const params: iam.CreateServiceLinkedRoleRequest = {
       AWSServiceName: awsServiceName,
     };
-    return this.client.createServiceLinkedRole(params).promise();
+    return await throttlingBackOff(() => this.client.createServiceLinkedRole(params).promise());
   }
 }

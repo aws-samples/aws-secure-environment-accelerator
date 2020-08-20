@@ -28,13 +28,13 @@ export class CodeCommit {
    * @param filePath
    */
   async getFile(repositoryName: string, filePath: string, commitId?: string): Promise<GetFileOutput> {
-    return this.client
+    return await throttlingBackOff(() => this.client
       .getFile({
         repositoryName,
         filePath,
         commitSpecifier: commitId!,
       })
-      .promise();
+      .promise());
   }
 
   /**
@@ -42,7 +42,7 @@ export class CodeCommit {
    * @param putFileInput
    */
   async putFile(putFileInput: PutFileInput): Promise<PutFileOutput> {
-    return this.client.putFile(putFileInput).promise();
+    return await throttlingBackOff(() => this.client.putFile(putFileInput).promise());
   }
 
   /**
@@ -50,11 +50,11 @@ export class CodeCommit {
    * @param repositoryName
    */
   async batchGetRepositories(repositoryNames: string[]): Promise<BatchGetRepositoriesOutput> {
-    return this.client
+    return await throttlingBackOff(() => this.client
       .batchGetRepositories({
         repositoryNames,
       })
-      .promise();
+      .promise());
   }
 
   /**
@@ -63,12 +63,12 @@ export class CodeCommit {
    * @param branchName
    */
   async getBranch(repositoryName: string, branchName: string): Promise<GetBranchOutput> {
-    return this.client
+    return await throttlingBackOff(() => this.client
       .getBranch({
         repositoryName,
         branchName,
       })
-      .promise();
+      .promise());
   }
 
   /**
@@ -76,12 +76,12 @@ export class CodeCommit {
    * @param repositoryName
    */
   async createRepository(repositoryName: string, repositoryDescription: string): Promise<CreateRepositoryOutput> {
-    return this.client
+    return await throttlingBackOff(() => this.client
       .createRepository({
         repositoryName,
         repositoryDescription,
       })
-      .promise();
+      .promise());
   }
 
   /**
@@ -98,6 +98,6 @@ export class CodeCommit {
    * @param putFileInput
    */
   async deleteFile(input: DeleteFileInput): Promise<DeleteFileOutput> {
-    return this.client.deleteFile(input).promise();
+    return await throttlingBackOff(() => this.client.deleteFile(input).promise());
   }
 }

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ProductAVMParam, ServiceCatalog } from './service-catalog';
 import { STS } from './sts';
 import { CreateAccountInput, CreateAccountOutput, AccountAvailableOutput } from './types/account';
+import { throttlingBackOff } from './backoff';
 
 export interface CreateAvmAccountInput extends CreateAccountInput {
   avmPortfolioName: string;
@@ -24,7 +25,7 @@ export class AccountVendingMachine {
     const { avmPortfolioName, avmProductName, accountName, emailAddress, organizationalUnit } = input;
 
     // find service catalog portfolioId by name
-    const portfolio = await this.client.findPortfolioByName(avmPortfolioName);
+    const portfolio = await throttlingBackOff(() => this.client.findPortfolioByName(avmPortfolioName));
     const portfolioId = portfolio?.Id;
     if (!portfolioId) {
       return {
@@ -35,7 +36,7 @@ export class AccountVendingMachine {
 
     // TODO Add a exponential backoff here
     // find service catalog ProductId by name
-    const searchProductsOutput = await this.client.findProduct(avmProductName);
+    const searchProductsOutput = await throttlingBackOff(() => this.client.findProduct(avmProductName));
     const productId = searchProductsOutput?.ProductViewSummaries?.[0]?.ProductId;
     if (!productId) {
       return {
@@ -45,7 +46,7 @@ export class AccountVendingMachine {
     }
 
     // find service catalog Product - ProvisioningArtifactId by ProductId
-    const listProvisioningArtifactsOutput = await this.client.findProvisioningArtifact(productId);
+    const listProvisioningArtifactsOutput = await throttlingBackOff(() => this.client.findProvisioningArtifact(productId));
     const provisioningArtifact = listProvisioningArtifactsOutput?.ProvisioningArtifactDetails?.find(a => a.Active);
     const provisioningArtifactId = provisioningArtifact?.Id;
     if (!provisioningArtifactId) {
@@ -60,7 +61,7 @@ export class AccountVendingMachine {
     // launch AVM Product
     let provisionProductOutput;
     try {
-      provisionProductOutput = await this.client.provisionProduct({
+      provisionProductOutput = await throttlingBackOff(() => this.client.provisionProduct({
         ProductId: productId,
         ProvisionToken: provisionToken,
         ProvisioningArtifactId: provisioningArtifactId,
@@ -95,7 +96,7 @@ export class AccountVendingMachine {
             Value: 'false' /* CA PBMM requirement. Please do not alter. */,
           },
         ],
-      });
+      }));
     } catch (e) {
       console.log('Exception Message: ' + e.message);
       if (e.message === 'A stack named ' + accountName + ' already exists.') {
@@ -130,7 +131,7 @@ export class AccountVendingMachine {
    * @param accountName
    */
   async isAccountAvailable(accountName: string): Promise<AccountAvailableOutput> {
-    const SearchProvisionedProductsOutput = await this.client.searchProvisionedProducts(accountName);
+    const SearchProvisionedProductsOutput = await throttlingBackOff(() => this.client.searchProvisionedProducts(accountName));
     const provisionedProductStatus = SearchProvisionedProductsOutput?.ProvisionedProducts?.[0].Status;
 
     if (provisionedProductStatus === 'AVAILABLE') {

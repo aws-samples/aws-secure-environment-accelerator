@@ -33,7 +33,7 @@ export class EC2 {
     const params: EnableEbsEncryptionByDefaultRequest = {
       DryRun: dryRun,
     };
-    return this.client.enableEbsEncryptionByDefault(params).promise();
+    return await throttlingBackOff(() => this.client.enableEbsEncryptionByDefault(params).promise());
   }
 
   /**
@@ -46,7 +46,7 @@ export class EC2 {
       KmsKeyId: kmsKeyId,
       DryRun: dryRun,
     };
-    return this.client.modifyEbsDefaultKmsKeyId(params).promise();
+    return await throttlingBackOff(() => this.client.modifyEbsDefaultKmsKeyId(params).promise());
   }
 
   /**
