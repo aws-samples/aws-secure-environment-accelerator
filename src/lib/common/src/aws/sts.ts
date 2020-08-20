@@ -25,13 +25,15 @@ export class STS {
       }
     }
 
-    const response = await throttlingBackOff(() => this.client
-      .assumeRole({
-        RoleArn: assumeRoleArn,
-        RoleSessionName: 'temporary', // TODO Generate a random name
-        DurationSeconds: durationSeconds,
-      })
-      .promise());
+    const response = await throttlingBackOff(() =>
+      this.client
+        .assumeRole({
+          RoleArn: assumeRoleArn,
+          RoleSessionName: 'temporary', // TODO Generate a random name
+          DurationSeconds: durationSeconds,
+        })
+        .promise(),
+    );
 
     const stsCredentials = response.Credentials!;
     const credentials = new aws.Credentials({

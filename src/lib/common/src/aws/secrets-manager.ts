@@ -19,11 +19,13 @@ export class SecretsManager {
   }
 
   async restoreSecret(secretId: string): Promise<smn.RestoreSecretResponse> {
-    return await throttlingBackOff(() => this.client
-      .restoreSecret({
-        SecretId: secretId,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .restoreSecret({
+          SecretId: secretId,
+        })
+        .promise(),
+    );
   }
 
   async deleteSecret(secretId: string): Promise<smn.DeleteSecretResponse> {

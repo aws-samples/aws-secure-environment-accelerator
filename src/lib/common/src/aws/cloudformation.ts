@@ -107,11 +107,13 @@ export class CloudFormation {
    */
   async describeStackSet(stackSetName: string): Promise<cfn.StackSet | undefined> {
     try {
-      const response = await throttlingBackOff(() => this.client
-        .describeStackSet({
-          StackSetName: stackSetName,
-        })
-        .promise());
+      const response = await throttlingBackOff(() =>
+        this.client
+          .describeStackSet({
+            StackSetName: stackSetName,
+          })
+          .promise(),
+      );
       return response.StackSet;
     } catch (e) {
       console.warn(`Ignoring error in describeStack`);

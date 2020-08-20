@@ -46,7 +46,9 @@ export class AccountVendingMachine {
     }
 
     // find service catalog Product - ProvisioningArtifactId by ProductId
-    const listProvisioningArtifactsOutput = await throttlingBackOff(() => this.client.findProvisioningArtifact(productId));
+    const listProvisioningArtifactsOutput = await throttlingBackOff(() =>
+      this.client.findProvisioningArtifact(productId),
+    );
     const provisioningArtifact = listProvisioningArtifactsOutput?.ProvisioningArtifactDetails?.find(a => a.Active);
     const provisioningArtifactId = provisioningArtifact?.Id;
     if (!provisioningArtifactId) {
@@ -61,42 +63,44 @@ export class AccountVendingMachine {
     // launch AVM Product
     let provisionProductOutput;
     try {
-      provisionProductOutput = await throttlingBackOff(() => this.client.provisionProduct({
-        ProductId: productId,
-        ProvisionToken: provisionToken,
-        ProvisioningArtifactId: provisioningArtifactId,
-        ProvisionedProductName: accountName,
-        ProvisioningParameters: [
-          {
-            Key: 'AccountName',
-            Value: accountName,
-          },
-          {
-            Key: 'AccountEmail',
-            Value: emailAddress,
-          },
-          {
-            Key: 'OrgUnitName',
-            Value: organizationalUnit,
-          },
-          {
-            Key: 'VPCOptions',
-            Value: 'No-Primary-VPC' /* CA PBMM requirement. Please do not alter. */,
-          },
-          {
-            Key: 'VPCRegion',
-            Value: 'ca-central-1' /* CA PBMM requirement. Please do not alter. */,
-          },
-          {
-            Key: 'VPCCidr',
-            Value: '10.0.0.0/16' /* CA PBMM requirement. Please do not alter. */,
-          },
-          {
-            Key: 'PeerVPC',
-            Value: 'false' /* CA PBMM requirement. Please do not alter. */,
-          },
-        ],
-      }));
+      provisionProductOutput = await throttlingBackOff(() =>
+        this.client.provisionProduct({
+          ProductId: productId,
+          ProvisionToken: provisionToken,
+          ProvisioningArtifactId: provisioningArtifactId,
+          ProvisionedProductName: accountName,
+          ProvisioningParameters: [
+            {
+              Key: 'AccountName',
+              Value: accountName,
+            },
+            {
+              Key: 'AccountEmail',
+              Value: emailAddress,
+            },
+            {
+              Key: 'OrgUnitName',
+              Value: organizationalUnit,
+            },
+            {
+              Key: 'VPCOptions',
+              Value: 'No-Primary-VPC' /* CA PBMM requirement. Please do not alter. */,
+            },
+            {
+              Key: 'VPCRegion',
+              Value: 'ca-central-1' /* CA PBMM requirement. Please do not alter. */,
+            },
+            {
+              Key: 'VPCCidr',
+              Value: '10.0.0.0/16' /* CA PBMM requirement. Please do not alter. */,
+            },
+            {
+              Key: 'PeerVPC',
+              Value: 'false' /* CA PBMM requirement. Please do not alter. */,
+            },
+          ],
+        }),
+      );
     } catch (e) {
       console.log('Exception Message: ' + e.message);
       if (e.message === 'A stack named ' + accountName + ' already exists.') {
@@ -131,7 +135,9 @@ export class AccountVendingMachine {
    * @param accountName
    */
   async isAccountAvailable(accountName: string): Promise<AccountAvailableOutput> {
-    const SearchProvisionedProductsOutput = await throttlingBackOff(() => this.client.searchProvisionedProducts(accountName));
+    const SearchProvisionedProductsOutput = await throttlingBackOff(() =>
+      this.client.searchProvisionedProducts(accountName),
+    );
     const provisionedProductStatus = SearchProvisionedProductsOutput?.ProvisionedProducts?.[0].Status;
 
     if (provisionedProductStatus === 'AVAILABLE') {

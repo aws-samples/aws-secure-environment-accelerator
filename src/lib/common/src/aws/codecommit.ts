@@ -28,13 +28,15 @@ export class CodeCommit {
    * @param filePath
    */
   async getFile(repositoryName: string, filePath: string, commitId?: string): Promise<GetFileOutput> {
-    return await throttlingBackOff(() => this.client
-      .getFile({
-        repositoryName,
-        filePath,
-        commitSpecifier: commitId!,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .getFile({
+          repositoryName,
+          filePath,
+          commitSpecifier: commitId!,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -50,11 +52,13 @@ export class CodeCommit {
    * @param repositoryName
    */
   async batchGetRepositories(repositoryNames: string[]): Promise<BatchGetRepositoriesOutput> {
-    return await throttlingBackOff(() => this.client
-      .batchGetRepositories({
-        repositoryNames,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .batchGetRepositories({
+          repositoryNames,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -63,12 +67,14 @@ export class CodeCommit {
    * @param branchName
    */
   async getBranch(repositoryName: string, branchName: string): Promise<GetBranchOutput> {
-    return await throttlingBackOff(() => this.client
-      .getBranch({
-        repositoryName,
-        branchName,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .getBranch({
+          repositoryName,
+          branchName,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -76,12 +82,14 @@ export class CodeCommit {
    * @param repositoryName
    */
   async createRepository(repositoryName: string, repositoryDescription: string): Promise<CreateRepositoryOutput> {
-    return await throttlingBackOff(() => this.client
-      .createRepository({
-        repositoryName,
-        repositoryDescription,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .createRepository({
+          repositoryName,
+          repositoryDescription,
+        })
+        .promise(),
+    );
   }
 
   /**

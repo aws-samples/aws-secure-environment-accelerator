@@ -12,7 +12,7 @@ export class S3 {
   }
 
   async getObjectBody(input: s3.GetObjectRequest): Promise<s3.Body> {
-    const object = await throttlingBackOff(() =>  this.client.getObject(input).promise());
+    const object = await throttlingBackOff(() => this.client.getObject(input).promise());
     return object.Body!;
   }
 

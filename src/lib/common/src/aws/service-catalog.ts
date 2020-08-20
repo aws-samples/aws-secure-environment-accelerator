@@ -37,11 +37,13 @@ export class ServiceCatalog {
 
   async listPrincipalsForPortfolio(portfolioId: string): Promise<ListPrincipalsForPortfolioOutput> {
     // TODO Support PageToken
-    return await throttlingBackOff(() => this.client
-      .listPrincipalsForPortfolio({
-        PortfolioId: portfolioId,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .listPrincipalsForPortfolio({
+          PortfolioId: portfolioId,
+        })
+        .promise(),
+    );
   }
 
   async findPortfolioByName(portfolioName: string): Promise<PortfolioDetail | undefined> {
@@ -58,13 +60,15 @@ export class ServiceCatalog {
     portfolioId: string,
     prinicipalArn: string,
   ): Promise<AssociatePrincipalWithPortfolioOutput> {
-    return await throttlingBackOff(() => this.client
-      .associatePrincipalWithPortfolio({
-        PortfolioId: portfolioId,
-        PrincipalARN: prinicipalArn,
-        PrincipalType: 'IAM',
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .associatePrincipalWithPortfolio({
+          PortfolioId: portfolioId,
+          PrincipalARN: prinicipalArn,
+          PrincipalType: 'IAM',
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -72,13 +76,15 @@ export class ServiceCatalog {
    * @param productName
    */
   async findProduct(productName: string): Promise<SearchProductsOutput> {
-    return await throttlingBackOff(() => this.client
-      .searchProducts({
-        Filters: {
-          FullTextSearch: [productName],
-        },
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .searchProducts({
+          Filters: {
+            FullTextSearch: [productName],
+          },
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -86,26 +92,30 @@ export class ServiceCatalog {
    * @param productId
    */
   async findProvisioningArtifact(productId: string): Promise<ListProvisioningArtifactsOutput> {
-    return await throttlingBackOff(() => this.client
-      .listProvisioningArtifacts({
-        ProductId: productId,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .listProvisioningArtifacts({
+          ProductId: productId,
+        })
+        .promise(),
+    );
   }
 
   async provisionProduct(input: ProvisionProductInput): Promise<ProvisionProductOutput> {
-    return await throttlingBackOff(() => this.client
-      .provisionProduct({
-        ...input,
-        Tags: [
-          ...(input.Tags || []),
-          {
-            Key: 'Accelerator',
-            Value: 'PBMM',
-          },
-        ],
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .provisionProduct({
+          ...input,
+          Tags: [
+            ...(input.Tags || []),
+            {
+              Key: 'Accelerator',
+              Value: 'PBMM',
+            },
+          ],
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -113,12 +123,14 @@ export class ServiceCatalog {
    * @param accountName
    */
   async searchProvisionedProducts(accountName: string): Promise<SearchProvisionedProductsOutput> {
-    return await throttlingBackOff(() => this.client
-      .searchProvisionedProducts({
-        Filters: {
-          SearchQuery: ['name:' + accountName],
-        },
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .searchProvisionedProducts({
+          Filters: {
+            SearchQuery: ['name:' + accountName],
+          },
+        })
+        .promise(),
+    );
   }
 }

@@ -21,11 +21,13 @@ export class Route53 {
   }
 
   async getHostedZone(hostedZoneId: string): Promise<GetHostedZoneResponse> {
-    return await throttlingBackOff(() => this.client
-      .getHostedZone({
-        Id: hostedZoneId,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .getHostedZone({
+          Id: hostedZoneId,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -34,12 +36,14 @@ export class Route53 {
    * @param nextMarker
    */
   async listHostedZones(maxItems?: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
-    return await throttlingBackOff(() => this.client
-      .listHostedZones({
-        MaxItems: maxItems,
-        Marker: nextMarker,
-      })
-      .promise());
+    return await throttlingBackOff(() =>
+      this.client
+        .listHostedZones({
+          MaxItems: maxItems,
+          Marker: nextMarker,
+        })
+        .promise(),
+    );
   }
 
   /**

@@ -16,7 +16,9 @@ export class Route53Resolver {
   }
 
   async getEndpointIpAddress(endpointId: string): Promise<ListResolverEndpointIpAddressesResponse> {
-    return await throttlingBackOff(() => this.client.listResolverEndpointIpAddresses({ ResolverEndpointId: endpointId }).promise());
+    return await throttlingBackOff(() =>
+      this.client.listResolverEndpointIpAddresses({ ResolverEndpointId: endpointId }).promise(),
+    );
   }
 
   /**

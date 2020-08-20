@@ -339,11 +339,13 @@ export class Organizations {
    * @param accountId
    */
   async getAccount(accountId: string): Promise<org.Account | undefined> {
-    const response = await throttlingBackOff(() => this.client
-      .describeAccount({
-        AccountId: accountId,
-      })
-      .promise());
+    const response = await throttlingBackOff(() =>
+      this.client
+        .describeAccount({
+          AccountId: accountId,
+        })
+        .promise(),
+    );
     return response.Account;
   }
 
