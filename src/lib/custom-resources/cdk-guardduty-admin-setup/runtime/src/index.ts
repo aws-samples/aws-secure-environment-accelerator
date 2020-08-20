@@ -41,7 +41,7 @@ async function onCreateOrUpdate(
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const detectorId = await getDetectorId();
   if (!detectorId) {
-    console.warn(`Skipping Deligated Admin setup for GuardDuty as DetectorId not found`);
+    console.warn(`Skipping Delegated Admin setup for GuardDuty as DetectorId not found`);
     return {
       physicalResourceId,
       data: {},
@@ -80,7 +80,7 @@ async function getDetectorId(): Promise<string | undefined> {
     }
   } catch (e) {
     console.error(`Error Occurred while listing Detectors ${e.code}: ${e.message}`);
-    return;
+    throw e;
   }
 }
 
@@ -98,8 +98,9 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
     );
   } catch (error) {
     console.error(
-      `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
+      `Error Occurred while creating members in Delegator Account of GuardDuty ${error.code}: ${error.message}`,
     );
+    throw error;
   }
 }
 
@@ -117,8 +118,9 @@ async function updateConfig(detectorId: string) {
     );
   } catch (error) {
     console.error(
-      `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
+      `Error Occurred while update config of GuardDuty ${error.code}: ${error.message}`,
     );
+    throw error;
   }
 }
 
@@ -136,8 +138,8 @@ async function isConfigurationAutoEnabled(detectorId: string): Promise<boolean> 
     return response.AutoEnable;
   } catch (error) {
     console.error(
-      `Error Occurred while creating members in Delegater Account of GuardDuty ${error.code}: ${error.message}`,
+      `Error Occurred while checking configuration auto enabled of GuardDuty ${error.code}: ${error.message}`,
     );
-    return false;
+    throw error;
   }
 }

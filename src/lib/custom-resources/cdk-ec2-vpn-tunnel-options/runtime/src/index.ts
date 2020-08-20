@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import * as xml2js from 'xml2js';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const ec2 = new AWS.EC2();
 
@@ -27,11 +28,11 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   // Find VPN connection by its ID
-  const describeVpnConnections = await ec2
+  const describeVpnConnections = await throttlingBackOff(() => ec2
     .describeVpnConnections({
       VpnConnectionIds: [properties.VPNConnectionID],
     })
-    .promise();
+    .promise());
 
   const connections = describeVpnConnections.VpnConnections;
   const connection = connections?.[0];

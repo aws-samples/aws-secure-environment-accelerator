@@ -5,6 +5,7 @@ import {
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const macie = new AWS.Macie2();
 
@@ -48,11 +49,11 @@ async function onCreateOrUpdate(
 
 async function enableOrgAdmin(properties: HandlerProperties) {
   try {
-    const enableAdmin = await macie
+    const enableAdmin = await throttlingBackOff(() => macie
       .enableOrganizationAdminAccount({
         adminAccountId: properties.accountId,
       })
-      .promise();
+      .promise());
 
     return enableAdmin;
   } catch (e) {

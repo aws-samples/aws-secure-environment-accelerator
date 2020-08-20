@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export type TemplateParameters = { [key: string]: string };
 
@@ -39,12 +40,12 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   console.debug(`Loading template ${templateBucketName}/${templatePath}`);
   let bodyString;
   try {
-    const object = await s3
+    const object = await throttlingBackOff(() => s3
       .getObject({
         Bucket: properties.templateBucketName,
         Key: properties.templatePath,
       })
-      .promise();
+      .promise());
     const body = object.Body!;
     bodyString = body.toString();
   } catch (e) {
@@ -60,13 +61,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
     // Save the template with replacements to S3
     console.debug(`Saving output ${outputBucketName}/${outputPath}`);
-    await s3
+    await throttlingBackOff(() => s3
       .putObject({
         Bucket: outputBucketName,
         Key: outputPath,
         Body: Buffer.from(replaced),
       })
-      .promise();
+      .promise());
   } catch (e) {
     throw new Error(`Unable to put S3 object s3://${outputBucketName}/${outputPath}: ${e}`);
   }

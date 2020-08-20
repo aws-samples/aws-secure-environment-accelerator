@@ -6,6 +6,7 @@ import {
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { MacieFrequency, MacieStatus } from '@aws-accelerator/custom-resource-macie-enable-runtime';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const macie = new AWS.Macie2();
 
@@ -49,12 +50,12 @@ async function onCreateOrUpdate(
 }
 
 async function configSession(properties: HandlerProperties) {
-  const updateSession = await macie
+  const updateSession = await throttlingBackOff(() => macie
     .updateMacieSession({
       findingPublishingFrequency: properties.findingPublishingFrequency,
       status: properties.status,
     })
-    .promise();
+    .promise());
 
   return updateSession;
 }

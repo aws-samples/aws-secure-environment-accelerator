@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const cloudTrail = new AWS.CloudTrail();
 
@@ -19,15 +20,15 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 };
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const response = await cloudTrail
+  const response = await throttlingBackOff(() => cloudTrail
     .describeTrails({
       trailNameList: [event.ResourceProperties.cloudTrailName],
     })
-    .promise();
+    .promise());
   if (response.trailList?.length === 0) {
     try {
       // create CloudTrail Trail
-      await cloudTrail
+      await throttlingBackOff(() => cloudTrail
         .createTrail(
           buildCloudTrailCreateRequest({
             name: event.ResourceProperties.cloudTrailName,
@@ -40,7 +41,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
             tagValue: event.ResourceProperties.tagValue,
           }),
         )
-        .promise();
+        .promise());
     } catch (e) {
       throw new Error(`Cannot create CloudTrail Trail: ${JSON.stringify(e)}`);
     }
@@ -65,17 +66,17 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   // Log Insight events
-  await cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise();
+  await throttlingBackOff(() => cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise());
 
   // S3 Data events
-  await cloudTrail.putEventSelectors(buildEventSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise();
+  await throttlingBackOff(() => cloudTrail.putEventSelectors(buildEventSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise());
 
   // Enable CloudTrail Trail logging
-  await cloudTrail
+  await throttlingBackOff(() => cloudTrail
     .startLogging({
       Name: event.ResourceProperties.cloudTrailName,
     })
-    .promise();
+    .promise());
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {

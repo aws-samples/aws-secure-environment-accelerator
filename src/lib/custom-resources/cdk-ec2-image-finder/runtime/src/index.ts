@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const ec2 = new AWS.EC2();
 
@@ -20,7 +21,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find images that match the given owner, name and version
-  const describeImages = await ec2
+  const describeImages = await throttlingBackOff(() => ec2
     .describeImages(
       buildRequest({
         owner: event.ResourceProperties.ImageOwner,
@@ -29,7 +30,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         productCode: event.ResourceProperties.ImageProductCode,
       }),
     )
-    .promise();
+    .promise());
 
   const images = describeImages.Images;
   const image = images?.[0];

@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { backOff } from 'exponential-backoff';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 
 const hub = new AWS.SecurityHub();
@@ -24,7 +24,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
-    await backOff(() => hub.enableSecurityHub().promise());
+    await throttlingBackOff(() => hub.enableSecurityHub().promise());
   } catch (error) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');
@@ -34,13 +34,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   const standards = event.ResourceProperties.standards;
-  const standardsResponse = await hub.describeStandards().promise();
+  const standardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
 
   // Enable standards and Disabling unnecessary Controls for eash standard
   for (const standard of standards) {
     const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
 
-    const enableResponse = await backOff(() =>
+    const enableResponse = await throttlingBackOff(() =>
       hub
         .batchEnableStandards({
           StandardsSubscriptionRequests: [
@@ -56,7 +56,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     await new Promise(resolve => setTimeout(resolve, 10000));
 
     for (const responseStandard of enableResponse.StandardsSubscriptions || []) {
-      const standardControls = await backOff(() =>
+      const standardControls = await throttlingBackOff(() =>
         hub
           .describeStandardsControls({
             StandardsSubscriptionArn: responseStandard.StandardsSubscriptionArn,
@@ -73,7 +73,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         }
 
         console.log(`Disabling Control "${disableControl}" for Standard "${standard.name}"`);
-        await backOff(() =>
+        await throttlingBackOff(() =>
           hub
             .updateStandardsControl({
               StandardsControlArn: standardControl.StandardsControlArn!,

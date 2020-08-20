@@ -6,6 +6,7 @@ import {
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const ec2 = new AWS.EC2();
 const secretsManager = new AWS.SecretsManager();
@@ -76,20 +77,20 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 }
 
 async function generateKeypair(properties: HandlerProperties) {
-  const createKeyPair = await ec2
+  const createKeyPair = await throttlingBackOff(() => ec2
     .createKeyPair({
       KeyName: properties.keyName,
     })
-    .promise();
+    .promise());
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
   try {
-    await secretsManager
+    await throttlingBackOff(() => secretsManager
       .createSecret({
         Name: secretName,
         SecretString: createKeyPair.KeyMaterial,
       })
-      .promise();
+      .promise());
   } catch (e) {
     const message = `${e}`;
     if (!message.includes(`already scheduled for deletion`)) {
@@ -97,32 +98,32 @@ async function generateKeypair(properties: HandlerProperties) {
     }
 
     // Restore the deleted secret and put the key material in
-    await secretsManager
+    await throttlingBackOff(() => secretsManager
       .restoreSecret({
         SecretId: secretName,
       })
-      .promise();
-    await secretsManager
+      .promise());
+      await throttlingBackOff(() => secretsManager
       .putSecretValue({
         SecretId: secretName,
         SecretString: createKeyPair.KeyMaterial,
       })
-      .promise();
+      .promise());
   }
   return createKeyPair;
 }
 
 async function deleteKeypair(properties: HandlerProperties) {
-  await ec2
+  await throttlingBackOff(() => ec2
     .deleteKeyPair({
       KeyName: properties.keyName,
     })
-    .promise();
+    .promise());
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
-  await secretsManager
+  await throttlingBackOff(() => secretsManager
     .deleteSecret({
       SecretId: secretName,
     })
-    .promise();
+    .promise());
 }

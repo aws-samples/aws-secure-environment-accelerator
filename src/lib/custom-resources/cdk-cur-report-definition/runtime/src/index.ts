@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export type HandlerProperties = AWS.CUR.ReportDefinition;
 
@@ -54,11 +55,11 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(JSON.stringify(event, null, 2));
 
   try {
-    await cur
+    await throttlingBackOff(() => cur
       .deleteReportDefinition({
         ReportName: event.PhysicalResourceId,
       })
-      .promise();
+      .promise());
   } catch (e) {
     console.warn(`Ignore report definition delete failure`);
     console.warn(e);
@@ -89,21 +90,21 @@ async function createOrUpdateReportDefinition(event: CloudFormationCustomResourc
   };
 
   try {
-    await cur
+    await throttlingBackOff(() => cur
       .putReportDefinition({
         ReportDefinition: reportDefinition,
       })
-      .promise();
+      .promise());
   } catch (e) {
     if (e.code === 'DuplicateReportNameException') {
       console.log(`Report already exists. Modifying the existing report`);
 
-      await cur
+      await throttlingBackOff(() => cur
         .modifyReportDefinition({
           ReportName: reportDefinition.ReportName,
           ReportDefinition: reportDefinition,
         })
-        .promise();
+        .promise());
     } else {
       throw e;
     }

@@ -1,8 +1,8 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { backOff } from 'exponential-backoff';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { CreateDocumentRequest, UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export interface HandlerProperties {
   s3BucketName: string;
@@ -73,18 +73,18 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   };
 
   try {
-    await ssm
+    await throttlingBackOff(() => ssm
       .describeDocument({
         Name: docuemntName,
       })
-      .promise();
+      .promise());
     const updateDocumentRequest: UpdateDocumentRequest = {
       Content: JSON.stringify(settings),
       Name: docuemntName,
       DocumentVersion: '$LATEST',
     };
     console.log('Update SSM Document Request: ', updateDocumentRequest);
-    await backOff(() => ssm.updateDocument(updateDocumentRequest).promise());
+    await throttlingBackOff(() => ssm.updateDocument(updateDocumentRequest).promise());
     console.log('Update SSM Document Success');
   } catch (error) {
     if (error.code === 'InvalidDocument') {
@@ -94,8 +94,10 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         DocumentType: `Session`,
       };
       console.log('Create SSM Document Request: ', createDocumentRequest);
-      await backOff(() => ssm.createDocument(createDocumentRequest).promise());
+      await throttlingBackOff(() => ssm.createDocument(createDocumentRequest).promise());
       console.log('Create SSM Document Success');
+    } else {
+      throw error;
     }
   }
 }

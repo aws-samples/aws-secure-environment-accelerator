@@ -5,6 +5,7 @@ import {
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export enum MacieFrequency {
   FIFTEEN_MINUTES = 'FIFTEEN_MINUTES',
@@ -60,12 +61,12 @@ async function onCreateOrUpdate(
 
 async function enableMacie(properties: HandlerProperties) {
   try {
-    const enableAdmin = await macie
+    const enableAdmin = await throttlingBackOff(() => macie
       .enableMacie({
         findingPublishingFrequency: properties.findingPublishingFrequency,
         status: properties.status,
       })
-      .promise();
+      .promise());
 
     return enableAdmin;
   } catch (e) {

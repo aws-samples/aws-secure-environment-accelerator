@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export interface HandlerProperties {
   sourceBucketName: string;
@@ -104,14 +105,14 @@ async function copyFiles(props: {
 }
 
 async function* listObjects(bucketName: string): AsyncIterableIterator<AWS.S3.Object> {
-  let nextContinuationToken;
+  let nextContinuationToken: string | undefined;
   do {
-    const listObjects: AWS.S3.ListObjectsV2Output = await s3
+    const listObjects: AWS.S3.ListObjectsV2Output = await throttlingBackOff(() => s3
       .listObjectsV2({
         Bucket: bucketName,
         ContinuationToken: nextContinuationToken,
       })
-      .promise();
+      .promise());
     nextContinuationToken = listObjects.NextContinuationToken;
     if (listObjects.Contents) {
       yield* listObjects.Contents;
@@ -130,12 +131,12 @@ async function copyObject(props: {
 
   let destinationLastModified;
   try {
-    const headObject = await s3
+    const headObject = await throttlingBackOff(() => s3
       .headObject({
         Bucket: destinationBucketName,
         Key: sourceKey,
       })
-      .promise();
+      .promise());
     destinationLastModified = headObject.LastModified;
   } catch (e) {
     console.debug(`Unable to head S3 object s3://${destinationBucketName}/${sourceKey}: ${e}`);
@@ -146,26 +147,26 @@ async function copyObject(props: {
     !sourceObject.LastModified ||
     compareDate(destinationLastModified, sourceObject.LastModified) < 0
   ) {
-    let object;
+    let object: AWS.S3.GetObjectOutput;
     try {
-      object = await s3
+      object = await throttlingBackOff(() => s3
         .getObject({
           Bucket: sourceBucketName,
           Key: sourceKey,
         })
-        .promise();
+        .promise());
     } catch (e) {
       throw new Error(`Unable to get S3 object s3://${sourceBucketName}/${sourceKey}: ${e}`);
     }
 
     try {
-      await s3
+      await throttlingBackOff(() => s3
         .putObject({
           Bucket: destinationBucketName,
           Key: sourceKey,
           Body: object.Body,
         })
-        .promise();
+        .promise());
     } catch (e) {
       throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${sourceKey}: ${e}`);
     }
@@ -175,12 +176,12 @@ async function copyObject(props: {
 
   if (deleteSourceObjects) {
     try {
-      await s3
+      await throttlingBackOff(() => s3
         .deleteObject({
           Bucket: sourceBucketName,
           Key: sourceKey,
         })
-        .promise();
+        .promise());
     } catch (e) {
       throw new Error(`Unable to delete S3 object s3://${sourceBucketName}/${sourceKey}: ${e}`);
     }
@@ -189,11 +190,11 @@ async function copyObject(props: {
 
 async function bucketExists(bucketName: string): Promise<boolean> {
   try {
-    await s3
+    await throttlingBackOff(() => s3
       .headBucket({
         Bucket: bucketName,
       })
-      .promise();
+      .promise());
   } catch (e) {
     return false;
   }
@@ -202,11 +203,11 @@ async function bucketExists(bucketName: string): Promise<boolean> {
 
 async function deleteBucket(bucketName: string) {
   try {
-    await s3
+    await throttlingBackOff(() => s3
       .deleteBucket({
         Bucket: bucketName,
       })
-      .promise();
+      .promise());
   } catch (e) {
     console.warn(`Unable to delete bucket s3://${bucketName}: ${e}`);
   }
