@@ -28,7 +28,7 @@ export class CodeCommit {
    * @param filePath
    */
   async getFile(repositoryName: string, filePath: string, commitId?: string): Promise<GetFileOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .getFile({
           repositoryName,
@@ -44,7 +44,7 @@ export class CodeCommit {
    * @param putFileInput
    */
   async putFile(putFileInput: PutFileInput): Promise<PutFileOutput> {
-    return await throttlingBackOff(() => this.client.putFile(putFileInput).promise());
+    return throttlingBackOff(() => this.client.putFile(putFileInput).promise());
   }
 
   /**
@@ -52,7 +52,7 @@ export class CodeCommit {
    * @param repositoryName
    */
   async batchGetRepositories(repositoryNames: string[]): Promise<BatchGetRepositoriesOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .batchGetRepositories({
           repositoryNames,
@@ -67,7 +67,7 @@ export class CodeCommit {
    * @param branchName
    */
   async getBranch(repositoryName: string, branchName: string): Promise<GetBranchOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .getBranch({
           repositoryName,
@@ -82,7 +82,7 @@ export class CodeCommit {
    * @param repositoryName
    */
   async createRepository(repositoryName: string, repositoryDescription: string): Promise<CreateRepositoryOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .createRepository({
           repositoryName,
@@ -106,6 +106,6 @@ export class CodeCommit {
    * @param putFileInput
    */
   async deleteFile(input: DeleteFileInput): Promise<DeleteFileOutput> {
-    return await throttlingBackOff(() => this.client.deleteFile(input).promise());
+    return throttlingBackOff(() => this.client.deleteFile(input).promise());
   }
 }

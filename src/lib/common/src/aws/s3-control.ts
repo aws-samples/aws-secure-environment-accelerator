@@ -26,6 +26,6 @@ export class S3Control {
   async getPublicAccessBlock(
     input: s3control.GetPublicAccessBlockRequest,
   ): Promise<s3control.GetPublicAccessBlockOutput> {
-    return await throttlingBackOff(() => this.client.getPublicAccessBlock(input).promise());
+    return throttlingBackOff(() => this.client.getPublicAccessBlock(input).promise());
   }
 }

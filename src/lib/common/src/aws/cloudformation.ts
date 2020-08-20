@@ -43,7 +43,7 @@ export class CloudFormation {
    * Wrapper around AWS.CloudFormation.listStacks.
    */
   async listStacks(input: cfn.ListStacksInput): Promise<cfn.StackSummary[]> {
-    return await throttlingBackOff(() => collectAsync(this.listStacksGenerator(input)));
+    return throttlingBackOff(() => collectAsync(this.listStacksGenerator(input)));
   }
 
   /**
@@ -82,7 +82,7 @@ export class CloudFormation {
    */
   async createStack(input: cfn.CreateStackInput): Promise<cfn.CreateStackOutput> {
     input.EnableTerminationProtection = true;
-    return await throttlingBackOff(() => this.client.createStack(input).promise());
+    return throttlingBackOff(() => this.client.createStack(input).promise());
   }
 
   /**
@@ -147,35 +147,35 @@ export class CloudFormation {
    * Wrapper around AWS.CloudFormation.createStackSet.
    */
   async createStackSet(input: cfn.CreateStackSetInput): Promise<cfn.CreateStackSetOutput> {
-    return await throttlingBackOff(() => this.client.createStackSet(input).promise());
+    return throttlingBackOff(() => this.client.createStackSet(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.updateStackSet.
    */
   async updateStackSet(input: cfn.UpdateStackSetInput): Promise<cfn.UpdateStackSetOutput> {
-    return await throttlingBackOff(() => this.client.updateStackSet(input).promise());
+    return throttlingBackOff(() => this.client.updateStackSet(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.createStackInstances.
    */
   async createStackInstances(input: cfn.CreateStackInstancesInput): Promise<cfn.CreateStackInstancesOutput> {
-    return await throttlingBackOff(() => this.client.createStackInstances(input).promise());
+    return throttlingBackOff(() => this.client.createStackInstances(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.updateStackInstances.
    */
   async updateStackInstances(input: cfn.UpdateStackInstancesInput): Promise<cfn.UpdateStackInstancesOutput> {
-    return await throttlingBackOff(() => this.client.updateStackInstances(input).promise());
+    return throttlingBackOff(() => this.client.updateStackInstances(input).promise());
   }
 
   /**
    * Wrapper around AWS.CloudFormation.deleteStackInstances.
    */
   async deleteStackInstances(input: cfn.DeleteStackInstancesInput): Promise<cfn.DeleteStackInstancesOutput> {
-    return await throttlingBackOff(() => this.client.deleteStackInstances(input).promise());
+    return throttlingBackOff(() => this.client.deleteStackInstances(input).promise());
   }
 
   async createOrUpdateStackSet(input: CreateOrUpdateStackSetInput): Promise<CreateOrUpdateStackSetOutput | undefined> {

@@ -12,7 +12,7 @@ export class TagResources {
   }
 
   async createTags(input: ec2.CreateTagsRequest): Promise<void> {
-    await await throttlingBackOff(() => this.client.createTags(input).promise());
+    await throttlingBackOff(() => this.client.createTags(input).promise());
   }
 
   async hasTag(input: ec2.DescribeTagsRequest): Promise<boolean> {

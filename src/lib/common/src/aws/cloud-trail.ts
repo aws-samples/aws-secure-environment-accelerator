@@ -23,7 +23,7 @@ export class CloudTrail {
       includeShadowTrails,
       trailNameList,
     };
-    return await throttlingBackOff(() => this.client.describeTrails(params).promise());
+    return throttlingBackOff(() => this.client.describeTrails(params).promise());
   }
 
   /**
@@ -39,7 +39,7 @@ export class CloudTrail {
       ],
       TrailName: trailName,
     };
-    return await throttlingBackOff(() => this.client.putInsightSelectors(params).promise());
+    return throttlingBackOff(() => this.client.putInsightSelectors(params).promise());
   }
 
   /**
@@ -47,7 +47,7 @@ export class CloudTrail {
    * @param params
    */
   async putEventSelectors(params: cloudtrail.PutEventSelectorsRequest): Promise<cloudtrail.PutEventSelectorsResponse> {
-    return await throttlingBackOff(() => this.client.putEventSelectors(params).promise());
+    return throttlingBackOff(() => this.client.putEventSelectors(params).promise());
   }
 
   /**
@@ -55,6 +55,6 @@ export class CloudTrail {
    * @param params
    */
   async updateTrail(params: cloudtrail.UpdateTrailRequest): Promise<cloudtrail.UpdateTrailResponse> {
-    return await throttlingBackOff(() => this.client.updateTrail(params).promise());
+    return throttlingBackOff(() => this.client.updateTrail(params).promise());
   }
 }

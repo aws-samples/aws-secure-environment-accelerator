@@ -170,7 +170,7 @@ export class Organizations {
     const params: org.DescribePolicyRequest = {
       PolicyId: policyId,
     };
-    return await throttlingBackOff(() => this.client.describePolicy(params).promise());
+    return throttlingBackOff(() => this.client.describePolicy(params).promise());
   }
 
   /**
@@ -192,7 +192,7 @@ export class Organizations {
       Name: props.name,
       Type: props.type,
     };
-    return await throttlingBackOff(() => this.client.createPolicy(params).promise());
+    return throttlingBackOff(() => this.client.createPolicy(params).promise());
   }
 
   /**
@@ -214,7 +214,7 @@ export class Organizations {
       Description: props.description,
       Name: props.name,
     };
-    return await throttlingBackOff(() => this.client.updatePolicy(params).promise());
+    return throttlingBackOff(() => this.client.updatePolicy(params).promise());
   }
 
   /**

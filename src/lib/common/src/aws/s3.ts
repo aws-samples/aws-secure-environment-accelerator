@@ -21,11 +21,11 @@ export class S3 {
   }
 
   async putObject(input: s3.PutObjectRequest): Promise<s3.PutObjectOutput> {
-    return await throttlingBackOff(() => this.client.putObject(input).promise());
+    return throttlingBackOff(() => this.client.putObject(input).promise());
   }
 
   async deleteObject(input: s3.DeleteObjectRequest): Promise<s3.DeleteObjectOutput> {
-    return await throttlingBackOff(() => this.client.deleteObject(input).promise());
+    return throttlingBackOff(() => this.client.deleteObject(input).promise());
   }
 
   async putBucketKmsEncryption(bucket: string, kmsMasterKeyId: string): Promise<void> {

@@ -16,7 +16,7 @@ export class ACM {
    * @param params
    */
   async importCertificate(params: acm.ImportCertificateRequest): Promise<acm.ImportCertificateResponse> {
-    return await throttlingBackOff(() => this.client.importCertificate(params).promise());
+    return throttlingBackOff(() => this.client.importCertificate(params).promise());
   }
 
   /**
@@ -24,6 +24,6 @@ export class ACM {
    * @param params
    */
   async requestCertificate(params: acm.RequestCertificateRequest): Promise<acm.RequestCertificateResponse> {
-    return await throttlingBackOff(() => this.client.requestCertificate(params).promise());
+    return throttlingBackOff(() => this.client.requestCertificate(params).promise());
   }
 }

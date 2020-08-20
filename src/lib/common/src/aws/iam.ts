@@ -19,6 +19,6 @@ export class IAM {
     const params: iam.CreateServiceLinkedRoleRequest = {
       AWSServiceName: awsServiceName,
     };
-    return await throttlingBackOff(() => this.client.createServiceLinkedRole(params).promise());
+    return throttlingBackOff(() => this.client.createServiceLinkedRole(params).promise());
   }
 }

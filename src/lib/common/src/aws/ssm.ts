@@ -13,7 +13,7 @@ export class SSM {
   }
 
   async getParameter(name: string): Promise<sts.GetParameterResult> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .getParameter({
           Name: name,

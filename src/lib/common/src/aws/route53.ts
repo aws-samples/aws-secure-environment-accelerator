@@ -21,7 +21,7 @@ export class Route53 {
   }
 
   async getHostedZone(hostedZoneId: string): Promise<GetHostedZoneResponse> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .getHostedZone({
           Id: hostedZoneId,
@@ -36,7 +36,7 @@ export class Route53 {
    * @param nextMarker
    */
   async listHostedZones(maxItems?: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .listHostedZones({
           MaxItems: maxItems,
@@ -65,7 +65,7 @@ export class Route53 {
         VPCRegion: vpcRegion,
       },
     };
-    return await throttlingBackOff(() => this.client.associateVPCWithHostedZone(params).promise());
+    return throttlingBackOff(() => this.client.associateVPCWithHostedZone(params).promise());
   }
 
   /**
@@ -87,7 +87,7 @@ export class Route53 {
         VPCRegion: vpcRegion,
       },
     };
-    return await throttlingBackOff(() => this.client.createVPCAssociationAuthorization(params).promise());
+    return throttlingBackOff(() => this.client.createVPCAssociationAuthorization(params).promise());
   }
 
   /**
@@ -109,6 +109,6 @@ export class Route53 {
         VPCRegion: vpcRegion,
       },
     };
-    return await throttlingBackOff(() => this.client.deleteVPCAssociationAuthorization(params).promise());
+    return throttlingBackOff(() => this.client.deleteVPCAssociationAuthorization(params).promise());
   }
 }

@@ -32,12 +32,12 @@ export class ServiceCatalog {
    */
   async listPortfolios(): Promise<ListPortfoliosOutput> {
     // TODO Support PageToken
-    return await throttlingBackOff(() => this.client.listPortfolios().promise());
+    return throttlingBackOff(() => this.client.listPortfolios().promise());
   }
 
   async listPrincipalsForPortfolio(portfolioId: string): Promise<ListPrincipalsForPortfolioOutput> {
     // TODO Support PageToken
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .listPrincipalsForPortfolio({
           PortfolioId: portfolioId,
@@ -60,7 +60,7 @@ export class ServiceCatalog {
     portfolioId: string,
     prinicipalArn: string,
   ): Promise<AssociatePrincipalWithPortfolioOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .associatePrincipalWithPortfolio({
           PortfolioId: portfolioId,
@@ -76,7 +76,7 @@ export class ServiceCatalog {
    * @param productName
    */
   async findProduct(productName: string): Promise<SearchProductsOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .searchProducts({
           Filters: {
@@ -92,7 +92,7 @@ export class ServiceCatalog {
    * @param productId
    */
   async findProvisioningArtifact(productId: string): Promise<ListProvisioningArtifactsOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .listProvisioningArtifacts({
           ProductId: productId,
@@ -102,7 +102,7 @@ export class ServiceCatalog {
   }
 
   async provisionProduct(input: ProvisionProductInput): Promise<ProvisionProductOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .provisionProduct({
           ...input,
@@ -123,7 +123,7 @@ export class ServiceCatalog {
    * @param accountName
    */
   async searchProvisionedProducts(accountName: string): Promise<SearchProvisionedProductsOutput> {
-    return await throttlingBackOff(() =>
+    return throttlingBackOff(() =>
       this.client
         .searchProvisionedProducts({
           Filters: {

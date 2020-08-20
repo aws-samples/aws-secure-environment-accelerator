@@ -13,7 +13,7 @@ export class STS {
   }
 
   async getCallerIdentity(): Promise<sts.GetCallerIdentityResponse> {
-    return await throttlingBackOff(() => this.client.getCallerIdentity().promise());
+    return throttlingBackOff(() => this.client.getCallerIdentity().promise());
   }
 
   async getCredentialsForRoleArn(assumeRoleArn: string, durationSeconds: number = 3600): Promise<aws.Credentials> {
