@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as ds from 'aws-sdk/clients/directoryservice';
+import { throttlingBackOff } from './backoff';
 
 export class DirectoryService {
   private readonly client: aws.DirectoryService;
@@ -17,7 +18,7 @@ export class DirectoryService {
    * @param ShareDirectoryRequest
    */
   async shareDirectory(input: ds.ShareDirectoryRequest): Promise<string> {
-    const result = await this.client.shareDirectory(input).promise();
+    const result = await throttlingBackOff(() => this.client.shareDirectory(input).promise());
     return result.SharedDirectoryId!;
   }
 
@@ -28,7 +29,7 @@ export class DirectoryService {
    * @param AcceptSharedDirectoryRequest
    */
   async acceptDirectory(input: ds.AcceptSharedDirectoryRequest): Promise<void> {
-    await this.client.acceptSharedDirectory(input).promise();
+    await throttlingBackOff(() => this.client.acceptSharedDirectory(input).promise());
   }
 
   /**
@@ -39,7 +40,7 @@ export class DirectoryService {
    * @param CreateLogSubscriptionRequest
    */
   async enableCloudWatchLogs(input: ds.CreateLogSubscriptionRequest): Promise<void> {
-    await this.client.createLogSubscription(input).promise();
+    await throttlingBackOff(() => this.client.createLogSubscription(input).promise());
   }
 
   /**
@@ -49,7 +50,7 @@ export class DirectoryService {
    * @param ConnectDirectoryRequest
    */
   async createAdConnector(input: ds.ConnectDirectoryRequest): Promise<string> {
-    const result = await this.client.connectDirectory(input).promise();
+    const result = await throttlingBackOff(() => this.client.connectDirectory(input).promise());
     return result.DirectoryId!;
   }
 
@@ -61,7 +62,7 @@ export class DirectoryService {
    * @param ListLogSubscriptionsRequest
    */
   async hasLogGroup(input: ds.ListLogSubscriptionsRequest): Promise<boolean> {
-    const result = await this.client.listLogSubscriptions(input).promise();
+    const result = await throttlingBackOff(() => this.client.listLogSubscriptions(input).promise());
     return result.LogSubscriptions!.length > 0;
   }
 
@@ -73,7 +74,7 @@ export class DirectoryService {
    * @param DescribeSharedDirectoriesRequest
    */
   async findSharedAccounts(input: ds.DescribeSharedDirectoriesRequest): Promise<string[]> {
-    const result = await this.client.describeSharedDirectories(input).promise();
+    const result = await throttlingBackOff(() => this.client.describeSharedDirectories(input).promise());
     const sharedDirectoriesResult = result.SharedDirectories;
     const sharedAccounts = sharedDirectoriesResult!.map(o => o.SharedAccountId!);
     return sharedAccounts;
@@ -85,7 +86,7 @@ export class DirectoryService {
    *
    */
   async getADConnectors(): Promise<{ directoryId: string; status: string; domain: string }[]> {
-    const result = await this.client.describeDirectories().promise();
+    const result = await throttlingBackOff(() => this.client.describeDirectories().promise());
     const directoriesResult = result.DirectoryDescriptions;
     const adConnectors = directoriesResult!
       .filter(d => d.Type === 'ADConnector')

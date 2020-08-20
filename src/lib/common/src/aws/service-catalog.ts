@@ -10,6 +10,7 @@ import {
   SearchProductsOutput,
   SearchProvisionedProductsOutput,
 } from 'aws-sdk/clients/servicecatalog';
+import { throttlingBackOff } from './backoff';
 
 export interface ProductAVMParam {
   accountName: string;
@@ -31,16 +32,18 @@ export class ServiceCatalog {
    */
   async listPortfolios(): Promise<ListPortfoliosOutput> {
     // TODO Support PageToken
-    return this.client.listPortfolios().promise();
+    return throttlingBackOff(() => this.client.listPortfolios().promise());
   }
 
   async listPrincipalsForPortfolio(portfolioId: string): Promise<ListPrincipalsForPortfolioOutput> {
     // TODO Support PageToken
-    return this.client
-      .listPrincipalsForPortfolio({
-        PortfolioId: portfolioId,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .listPrincipalsForPortfolio({
+          PortfolioId: portfolioId,
+        })
+        .promise(),
+    );
   }
 
   async findPortfolioByName(portfolioName: string): Promise<PortfolioDetail | undefined> {
@@ -57,13 +60,15 @@ export class ServiceCatalog {
     portfolioId: string,
     prinicipalArn: string,
   ): Promise<AssociatePrincipalWithPortfolioOutput> {
-    return this.client
-      .associatePrincipalWithPortfolio({
-        PortfolioId: portfolioId,
-        PrincipalARN: prinicipalArn,
-        PrincipalType: 'IAM',
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .associatePrincipalWithPortfolio({
+          PortfolioId: portfolioId,
+          PrincipalARN: prinicipalArn,
+          PrincipalType: 'IAM',
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -71,13 +76,15 @@ export class ServiceCatalog {
    * @param productName
    */
   async findProduct(productName: string): Promise<SearchProductsOutput> {
-    return this.client
-      .searchProducts({
-        Filters: {
-          FullTextSearch: [productName],
-        },
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .searchProducts({
+          Filters: {
+            FullTextSearch: [productName],
+          },
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -85,26 +92,30 @@ export class ServiceCatalog {
    * @param productId
    */
   async findProvisioningArtifact(productId: string): Promise<ListProvisioningArtifactsOutput> {
-    return this.client
-      .listProvisioningArtifacts({
-        ProductId: productId,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .listProvisioningArtifacts({
+          ProductId: productId,
+        })
+        .promise(),
+    );
   }
 
   async provisionProduct(input: ProvisionProductInput): Promise<ProvisionProductOutput> {
-    return this.client
-      .provisionProduct({
-        ...input,
-        Tags: [
-          ...(input.Tags || []),
-          {
-            Key: 'Accelerator',
-            Value: 'PBMM',
-          },
-        ],
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .provisionProduct({
+          ...input,
+          Tags: [
+            ...(input.Tags || []),
+            {
+              Key: 'Accelerator',
+              Value: 'PBMM',
+            },
+          ],
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -112,12 +123,14 @@ export class ServiceCatalog {
    * @param accountName
    */
   async searchProvisionedProducts(accountName: string): Promise<SearchProvisionedProductsOutput> {
-    return this.client
-      .searchProvisionedProducts({
-        Filters: {
-          SearchQuery: ['name:' + accountName],
-        },
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .searchProvisionedProducts({
+          Filters: {
+            SearchQuery: ['name:' + accountName],
+          },
+        })
+        .promise(),
+    );
   }
 }

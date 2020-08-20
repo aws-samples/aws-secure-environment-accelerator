@@ -29,7 +29,7 @@ export class Organizations {
   }
 
   async describeOrganization(): Promise<org.OrganizationalUnit | undefined> {
-    const response = await this.client.describeOrganization().promise();
+    const response = await throttlingBackOff(() => this.client.describeOrganization().promise());
     return response.Organization;
   }
 
@@ -170,7 +170,7 @@ export class Organizations {
     const params: org.DescribePolicyRequest = {
       PolicyId: policyId,
     };
-    return this.client.describePolicy(params).promise();
+    return throttlingBackOff(() => this.client.describePolicy(params).promise());
   }
 
   /**
@@ -192,7 +192,7 @@ export class Organizations {
       Name: props.name,
       Type: props.type,
     };
-    return this.client.createPolicy(params).promise();
+    return throttlingBackOff(() => this.client.createPolicy(params).promise());
   }
 
   /**
@@ -214,7 +214,7 @@ export class Organizations {
       Description: props.description,
       Name: props.name,
     };
-    return this.client.updatePolicy(params).promise();
+    return throttlingBackOff(() => this.client.updatePolicy(params).promise());
   }
 
   /**
@@ -339,11 +339,13 @@ export class Organizations {
    * @param accountId
    */
   async getAccount(accountId: string): Promise<org.Account | undefined> {
-    const response = await this.client
-      .describeAccount({
-        AccountId: accountId,
-      })
-      .promise();
+    const response = await throttlingBackOff(() =>
+      this.client
+        .describeAccount({
+          AccountId: accountId,
+        })
+        .promise(),
+    );
     return response.Account;
   }
 

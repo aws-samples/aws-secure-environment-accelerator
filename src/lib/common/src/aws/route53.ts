@@ -9,6 +9,7 @@ import {
   DeleteVPCAssociationAuthorizationRequest,
   DeleteVPCAssociationAuthorizationResponse,
 } from 'aws-sdk/clients/route53';
+import { throttlingBackOff } from './backoff';
 
 export class Route53 {
   private readonly client: aws.Route53;
@@ -20,11 +21,13 @@ export class Route53 {
   }
 
   async getHostedZone(hostedZoneId: string): Promise<GetHostedZoneResponse> {
-    return this.client
-      .getHostedZone({
-        Id: hostedZoneId,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .getHostedZone({
+          Id: hostedZoneId,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -33,12 +36,14 @@ export class Route53 {
    * @param nextMarker
    */
   async listHostedZones(maxItems?: string, nextMarker?: string): Promise<ListHostedZonesResponse> {
-    return this.client
-      .listHostedZones({
-        MaxItems: maxItems,
-        Marker: nextMarker,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .listHostedZones({
+          MaxItems: maxItems,
+          Marker: nextMarker,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -60,7 +65,7 @@ export class Route53 {
         VPCRegion: vpcRegion,
       },
     };
-    return this.client.associateVPCWithHostedZone(params).promise();
+    return throttlingBackOff(() => this.client.associateVPCWithHostedZone(params).promise());
   }
 
   /**
@@ -82,7 +87,7 @@ export class Route53 {
         VPCRegion: vpcRegion,
       },
     };
-    return this.client.createVPCAssociationAuthorization(params).promise();
+    return throttlingBackOff(() => this.client.createVPCAssociationAuthorization(params).promise());
   }
 
   /**
@@ -104,6 +109,6 @@ export class Route53 {
         VPCRegion: vpcRegion,
       },
     };
-    return this.client.deleteVPCAssociationAuthorization(params).promise();
+    return throttlingBackOff(() => this.client.deleteVPCAssociationAuthorization(params).promise());
   }
 }
