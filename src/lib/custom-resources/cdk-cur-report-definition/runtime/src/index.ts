@@ -55,11 +55,13 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(JSON.stringify(event, null, 2));
 
   try {
-    await throttlingBackOff(() => cur
-      .deleteReportDefinition({
-        ReportName: event.PhysicalResourceId,
-      })
-      .promise());
+    await throttlingBackOff(() =>
+      cur
+        .deleteReportDefinition({
+          ReportName: event.PhysicalResourceId,
+        })
+        .promise(),
+    );
   } catch (e) {
     console.warn(`Ignore report definition delete failure`);
     console.warn(e);
@@ -90,21 +92,25 @@ async function createOrUpdateReportDefinition(event: CloudFormationCustomResourc
   };
 
   try {
-    await throttlingBackOff(() => cur
-      .putReportDefinition({
-        ReportDefinition: reportDefinition,
-      })
-      .promise());
+    await throttlingBackOff(() =>
+      cur
+        .putReportDefinition({
+          ReportDefinition: reportDefinition,
+        })
+        .promise(),
+    );
   } catch (e) {
     if (e.code === 'DuplicateReportNameException') {
       console.log(`Report already exists. Modifying the existing report`);
 
-      await throttlingBackOff(() => cur
-        .modifyReportDefinition({
-          ReportName: reportDefinition.ReportName,
-          ReportDefinition: reportDefinition,
-        })
-        .promise());
+      await throttlingBackOff(() =>
+        cur
+          .modifyReportDefinition({
+            ReportName: reportDefinition.ReportName,
+            ReportDefinition: reportDefinition,
+          })
+          .promise(),
+      );
     } else {
       throw e;
     }

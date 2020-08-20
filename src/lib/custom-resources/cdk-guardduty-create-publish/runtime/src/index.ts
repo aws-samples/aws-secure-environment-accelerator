@@ -75,11 +75,13 @@ async function onCreateOrUpdate(
 async function createOrUpdatePublishDestination(properties: HandlerProperties) {
   const { destinationArn, kmsKeyArn, detectorId } = properties;
   try {
-    const destination = await throttlingBackOff(() => guardduty
-      .listPublishingDestinations({
-        DetectorId: detectorId,
-      })
-      .promise());
+    const destination = await throttlingBackOff(() =>
+      guardduty
+        .listPublishingDestinations({
+          DetectorId: detectorId,
+        })
+        .promise(),
+    );
 
     if (destination.Destinations && destination.Destinations.length > 0) {
       const updateParams = {
@@ -102,7 +104,9 @@ async function createOrUpdatePublishDestination(properties: HandlerProperties) {
         },
       };
 
-      const createPublish = await throttlingBackOff(() => guardduty.createPublishingDestination(createParams).promise());
+      const createPublish = await throttlingBackOff(() =>
+        guardduty.createPublishingDestination(createParams).promise(),
+      );
       console.log(`Created Publishing Destination for detectorId "${detectorId}"`);
       return createPublish;
     }
@@ -128,11 +132,13 @@ async function deletePublishDestination(properties: HandlerProperties) {
     return;
   }
   try {
-    const destinations = await throttlingBackOff(() => guardduty
-      .listPublishingDestinations({
-        DetectorId: detectorId,
-      })
-      .promise());
+    const destinations = await throttlingBackOff(() =>
+      guardduty
+        .listPublishingDestinations({
+          DetectorId: detectorId,
+        })
+        .promise(),
+    );
 
     const params = {
       // only one destination should be established for guard duty
@@ -140,7 +146,7 @@ async function deletePublishDestination(properties: HandlerProperties) {
       DetectorId: properties.detectorId,
     };
 
-    return await throttlingBackOff(() =>guardduty.deletePublishingDestination(params).promise());
+    return await throttlingBackOff(() => guardduty.deletePublishingDestination(params).promise());
   } catch (error) {
     console.error(error);
     return;

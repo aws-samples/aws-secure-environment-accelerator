@@ -73,11 +73,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   };
 
   try {
-    await throttlingBackOff(() => ssm
-      .describeDocument({
-        Name: docuemntName,
-      })
-      .promise());
+    await throttlingBackOff(() =>
+      ssm
+        .describeDocument({
+          Name: docuemntName,
+        })
+        .promise(),
+    );
     const updateDocumentRequest: UpdateDocumentRequest = {
       Content: JSON.stringify(settings),
       Name: docuemntName,

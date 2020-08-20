@@ -61,12 +61,14 @@ async function onCreateOrUpdate(
 
 async function enableMacie(properties: HandlerProperties) {
   try {
-    const enableAdmin = await throttlingBackOff(() => macie
-      .enableMacie({
-        findingPublishingFrequency: properties.findingPublishingFrequency,
-        status: properties.status,
-      })
-      .promise());
+    const enableAdmin = await throttlingBackOff(() =>
+      macie
+        .enableMacie({
+          findingPublishingFrequency: properties.findingPublishingFrequency,
+          status: properties.status,
+        })
+        .promise(),
+    );
 
     return enableAdmin;
   } catch (e) {

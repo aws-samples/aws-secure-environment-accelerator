@@ -77,20 +77,24 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 }
 
 async function generateKeypair(properties: HandlerProperties) {
-  const createKeyPair = await throttlingBackOff(() => ec2
-    .createKeyPair({
-      KeyName: properties.keyName,
-    })
-    .promise());
+  const createKeyPair = await throttlingBackOff(() =>
+    ec2
+      .createKeyPair({
+        KeyName: properties.keyName,
+      })
+      .promise(),
+  );
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
   try {
-    await throttlingBackOff(() => secretsManager
-      .createSecret({
-        Name: secretName,
-        SecretString: createKeyPair.KeyMaterial,
-      })
-      .promise());
+    await throttlingBackOff(() =>
+      secretsManager
+        .createSecret({
+          Name: secretName,
+          SecretString: createKeyPair.KeyMaterial,
+        })
+        .promise(),
+    );
   } catch (e) {
     const message = `${e}`;
     if (!message.includes(`already scheduled for deletion`)) {
@@ -98,32 +102,40 @@ async function generateKeypair(properties: HandlerProperties) {
     }
 
     // Restore the deleted secret and put the key material in
-    await throttlingBackOff(() => secretsManager
-      .restoreSecret({
-        SecretId: secretName,
-      })
-      .promise());
-      await throttlingBackOff(() => secretsManager
-      .putSecretValue({
-        SecretId: secretName,
-        SecretString: createKeyPair.KeyMaterial,
-      })
-      .promise());
+    await throttlingBackOff(() =>
+      secretsManager
+        .restoreSecret({
+          SecretId: secretName,
+        })
+        .promise(),
+    );
+    await throttlingBackOff(() =>
+      secretsManager
+        .putSecretValue({
+          SecretId: secretName,
+          SecretString: createKeyPair.KeyMaterial,
+        })
+        .promise(),
+    );
   }
   return createKeyPair;
 }
 
 async function deleteKeypair(properties: HandlerProperties) {
-  await throttlingBackOff(() => ec2
-    .deleteKeyPair({
-      KeyName: properties.keyName,
-    })
-    .promise());
+  await throttlingBackOff(() =>
+    ec2
+      .deleteKeyPair({
+        KeyName: properties.keyName,
+      })
+      .promise(),
+  );
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
-  await throttlingBackOff(() => secretsManager
-    .deleteSecret({
-      SecretId: secretName,
-    })
-    .promise());
+  await throttlingBackOff(() =>
+    secretsManager
+      .deleteSecret({
+        SecretId: secretName,
+      })
+      .promise(),
+  );
 }

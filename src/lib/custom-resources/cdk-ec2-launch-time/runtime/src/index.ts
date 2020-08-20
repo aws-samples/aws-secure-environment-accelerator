@@ -21,13 +21,15 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find instances that match the given instance id
-  const describeInstances = await throttlingBackOff(() => ec2
-    .describeInstances(
-      buildRequest({
-        instanceId: event.ResourceProperties.InstanceId,
-      }),
-    )
-    .promise());
+  const describeInstances = await throttlingBackOff(() =>
+    ec2
+      .describeInstances(
+        buildRequest({
+          instanceId: event.ResourceProperties.InstanceId,
+        }),
+      )
+      .promise(),
+  );
 
   const reservations = describeInstances.Reservations;
   const instance = reservations?.[0].Instances?.[0];

@@ -21,16 +21,18 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find images that match the given owner, name and version
-  const describeImages = await throttlingBackOff(() => ec2
-    .describeImages(
-      buildRequest({
-        owner: event.ResourceProperties.ImageOwner,
-        name: event.ResourceProperties.ImageName,
-        version: event.ResourceProperties.ImageVersion,
-        productCode: event.ResourceProperties.ImageProductCode,
-      }),
-    )
-    .promise());
+  const describeImages = await throttlingBackOff(() =>
+    ec2
+      .describeImages(
+        buildRequest({
+          owner: event.ResourceProperties.ImageOwner,
+          name: event.ResourceProperties.ImageName,
+          version: event.ResourceProperties.ImageVersion,
+          productCode: event.ResourceProperties.ImageProductCode,
+        }),
+      )
+      .promise(),
+  );
 
   const images = describeImages.Images;
   const image = images?.[0];

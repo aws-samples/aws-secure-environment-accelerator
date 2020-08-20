@@ -30,11 +30,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   await throttlingBackOff(() => ec2.enableEbsEncryptionByDefault().promise());
-  await throttlingBackOff(() => ec2
-    .modifyEbsDefaultKmsKeyId({
-      KmsKeyId: properties.KmsKeyId,
-    })
-    .promise());
+  await throttlingBackOff(() =>
+    ec2
+      .modifyEbsDefaultKmsKeyId({
+        KmsKeyId: properties.KmsKeyId,
+      })
+      .promise(),
+  );
 
   return {
     physicalResourceId: properties.KmsKeyId,

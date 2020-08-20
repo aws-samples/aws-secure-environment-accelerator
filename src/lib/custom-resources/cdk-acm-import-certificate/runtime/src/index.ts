@@ -63,11 +63,13 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  await throttlingBackOff(() => acm
-    .deleteCertificate({
-      CertificateArn: event.PhysicalResourceId,
-    })
-    .promise());
+  await throttlingBackOff(() =>
+    acm
+      .deleteCertificate({
+        CertificateArn: event.PhysicalResourceId,
+      })
+      .promise(),
+  );
 }
 
 async function importCertificate(
@@ -83,18 +85,20 @@ async function importCertificate(
   //  Check if certificate with ARN `physicalResourceId` exists
 
   try {
-    const response = await throttlingBackOff(async () => acm
-      .importCertificate({
-        Certificate: await getS3Body(properties.certificateBucketName, properties.certificateBucketPath),
-        PrivateKey: await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath),
-        CertificateChain: await getOptionalS3Body(
-          properties.certificateChainBucketName,
-          properties.certificateChainBucketPath,
-        ),
-        CertificateArn: physicalResourceId,
-        Tags: tags,
-      })
-      .promise());
+    const response = await throttlingBackOff(async () =>
+      acm
+        .importCertificate({
+          Certificate: await getS3Body(properties.certificateBucketName, properties.certificateBucketPath),
+          PrivateKey: await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath),
+          CertificateChain: await getOptionalS3Body(
+            properties.certificateChainBucketName,
+            properties.certificateChainBucketPath,
+          ),
+          CertificateArn: physicalResourceId,
+          Tags: tags,
+        })
+        .promise(),
+    );
     return response.CertificateArn!;
   } catch (e) {
     if (e.code === 'LimitExceededException' && properties.ignoreLimitExceededException === true) {
@@ -122,12 +126,14 @@ async function getOptionalS3Body(bucketName?: string, bucketPath?: string) {
 
 async function getS3Body(bucketName: string, bucketPath: string) {
   try {
-    const object = await throttlingBackOff(() => s3
-      .getObject({
-        Bucket: bucketName,
-        Key: bucketPath,
-      })
-      .promise());
+    const object = await throttlingBackOff(() =>
+      s3
+        .getObject({
+          Bucket: bucketName,
+          Key: bucketPath,
+        })
+        .promise(),
+    );
     return object.Body!;
   } catch (e) {
     throw new Error(`Unable to load S3 file s3://${bucketName}/${bucketPath}: ${e}`);

@@ -50,12 +50,14 @@ async function onCreateOrUpdate(
 }
 
 async function configSession(properties: HandlerProperties) {
-  const updateSession = await throttlingBackOff(() => macie
-    .updateMacieSession({
-      findingPublishingFrequency: properties.findingPublishingFrequency,
-      status: properties.status,
-    })
-    .promise());
+  const updateSession = await throttlingBackOff(() =>
+    macie
+      .updateMacieSession({
+        findingPublishingFrequency: properties.findingPublishingFrequency,
+        status: properties.status,
+      })
+      .promise(),
+  );
 
   return updateSession;
 }

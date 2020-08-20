@@ -50,14 +50,16 @@ async function onCreateOrUpdate(
 
 async function createMember(properties: HandlerProperties) {
   try {
-    await throttlingBackOff(() => macie
-      .createMember({
-        account: {
-          accountId: properties.accountId,
-          email: properties.email,
-        },
-      })
-      .promise());
+    await throttlingBackOff(() =>
+      macie
+        .createMember({
+          account: {
+            accountId: properties.accountId,
+            email: properties.email,
+          },
+        })
+        .promise(),
+    );
   } catch (error) {
     throw error;
   }

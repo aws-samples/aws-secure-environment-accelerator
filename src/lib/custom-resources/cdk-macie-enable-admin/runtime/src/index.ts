@@ -49,11 +49,13 @@ async function onCreateOrUpdate(
 
 async function enableOrgAdmin(properties: HandlerProperties) {
   try {
-    const enableAdmin = await throttlingBackOff(() => macie
-      .enableOrganizationAdminAccount({
-        adminAccountId: properties.accountId,
-      })
-      .promise());
+    const enableAdmin = await throttlingBackOff(() =>
+      macie
+        .enableOrganizationAdminAccount({
+          adminAccountId: properties.accountId,
+        })
+        .promise(),
+    );
 
     return enableAdmin;
   } catch (e) {

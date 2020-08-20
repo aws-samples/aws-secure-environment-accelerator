@@ -117,9 +117,7 @@ async function updateConfig(detectorId: string) {
         .promise(),
     );
   } catch (error) {
-    console.error(
-      `Error Occurred while update config of GuardDuty ${error.code}: ${error.message}`,
-    );
+    console.error(`Error Occurred while update config of GuardDuty ${error.code}: ${error.message}`);
     throw error;
   }
 }

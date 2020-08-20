@@ -28,11 +28,13 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
   // Find VPN connection by its ID
-  const describeVpnConnections = await throttlingBackOff(() => ec2
-    .describeVpnConnections({
-      VpnConnectionIds: [properties.VPNConnectionID],
-    })
-    .promise());
+  const describeVpnConnections = await throttlingBackOff(() =>
+    ec2
+      .describeVpnConnections({
+        VpnConnectionIds: [properties.VPNConnectionID],
+      })
+      .promise(),
+  );
 
   const connections = describeVpnConnections.VpnConnections;
   const connection = connections?.[0];

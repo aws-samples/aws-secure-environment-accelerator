@@ -54,11 +54,13 @@ async function onCreateOrUpdate(
 }
 
 async function configExport(properties: HandlerProperties) {
-  const updateConfig = await throttlingBackOff(() => macie
-    .updateOrganizationConfiguration({
-      autoEnable: properties.autoEnable,
-    })
-    .promise());
+  const updateConfig = await throttlingBackOff(() =>
+    macie
+      .updateOrganizationConfiguration({
+        autoEnable: properties.autoEnable,
+      })
+      .promise(),
+  );
 
   return updateConfig;
 }
