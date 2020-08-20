@@ -85,15 +85,18 @@ async function importCertificate(
   //  Check if certificate with ARN `physicalResourceId` exists
 
   try {
-    const response = await throttlingBackOff(async () =>
+    const certificate = await getS3Body(properties.certificateBucketName, properties.certificateBucketPath);
+    const privateKey = await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath);
+    const certificateChain = await getOptionalS3Body(
+      properties.certificateChainBucketName,
+      properties.certificateChainBucketPath,
+    );
+    const response = await throttlingBackOff(() =>
       acm
         .importCertificate({
-          Certificate: await getS3Body(properties.certificateBucketName, properties.certificateBucketPath),
-          PrivateKey: await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath),
-          CertificateChain: await getOptionalS3Body(
-            properties.certificateChainBucketName,
-            properties.certificateChainBucketPath,
-          ),
+          Certificate: certificate,
+          PrivateKey: privateKey,
+          CertificateChain: certificateChain,
           CertificateArn: physicalResourceId,
           Tags: tags,
         })
