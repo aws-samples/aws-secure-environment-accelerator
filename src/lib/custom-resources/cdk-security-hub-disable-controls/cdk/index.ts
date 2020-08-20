@@ -1,0 +1,57 @@
+import * as path from 'path';
+import * as cdk from '@aws-cdk/core';
+import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
+
+const resourceType = 'Custom::SecurityHubDisableControls';
+
+export interface SecurityHubDisableControlsProps {
+  standards: unknown;
+  roleArn: string;
+}
+
+/**
+ * Custom resource that will enable SecurityHub and disable controls.
+ */
+export class SecurityHubDisableControls extends cdk.Construct {
+  private readonly resource: cdk.CustomResource;
+  private readonly roleArn: string;
+
+  constructor(scope: cdk.Construct, id: string, props: SecurityHubDisableControlsProps) {
+    super(scope, id);
+
+    this.roleArn = props.roleArn;
+    this.resource = new cdk.CustomResource(this, 'Resource', {
+      resourceType,
+      serviceToken: this.lambdaFunction.functionArn,
+      properties: {
+        standards: props.standards,
+      },
+    });
+  }
+
+  get lambdaFunction(): lambda.Function {
+    return this.ensureLambdaFunction(this.roleArn);
+  }
+
+  private ensureLambdaFunction(roleArn: string): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
+
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-security-hub-disable-controls-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
+    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
+
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
+      role,
+      timeout: cdk.Duration.minutes(15),
+    });
+  }
+}
