@@ -35,6 +35,13 @@ export function createLogGroupName(name: string, suffixLength?: number): string 
   );
 }
 
+export function createSnsTopicName(name: string): string {
+  return createName({
+    name: `Notification-${name}`,
+    suffixLength: 8,
+  });
+}
+
 const DEFAULT_SEPARATOR = '-';
 
 export interface CreateNameProps {
