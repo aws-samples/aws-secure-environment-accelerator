@@ -17,9 +17,10 @@ export async function createCwlAddSubscriptionFilterRoles(props: CwlAddSubscript
   for (const account of accounts) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key, centralLoggingServices.region);
     if (!accountStack) {
-      throw new Error(
-        `Not able to create stack for "${centralLoggingServices.account}" whicle creating roles for CWL Central logging`,
+      console.error(
+        `Not able to create stack for "${centralLoggingServices.account}" while creating role for CWL Central logging`,
       );
+      continue;
     }
     // Create IAM Role for reading logs from stream and push to destination
     const role = new iam.Role(accountStack, 'CWLAddSubscriptionFilterRole', {
@@ -30,7 +31,17 @@ export async function createCwlAddSubscriptionFilterRoles(props: CwlAddSubscript
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ['logs:*'],
-        resources: ['*'],
+        resources: [
+          'logs:DeleteSubscriptionFilter',
+          'logs:DescribeLogGroups',
+          'logs:DescribeSubscriptionFilters',
+          'logs:PutSubscriptionFilter',
+          'logs:PutRetentionPolicy',
+          'logs:CreateLogGroup',
+          'logs:CreateLogStream',
+          'logs:PutLogEvents',
+          'logs:DeleteRetentionPolicy',
+        ],
       }),
     );
 

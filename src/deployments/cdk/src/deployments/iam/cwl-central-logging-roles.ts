@@ -26,9 +26,10 @@ export async function createCwlCentralLoggingRoles(props: CwlCentralLoggingRoleP
     centralLoggingServices.region,
   );
   if (!accountStack) {
-    throw new Error(
-      `Not able to create stack for "${centralLoggingServices.account}" whicle creating roles for CWL Central logging`,
+    console.error(
+      `Not able to create stack for "${centralLoggingServices.account}:${centralLoggingServices.region}" whicle creating role for CWL Central logging`,
     );
+    return;
   }
   // Create IAM Role for reading logs from stream and push to destination
   const logsRole = new iam.Role(accountStack, 'CloudWatch-Logs-Stream-Role', {

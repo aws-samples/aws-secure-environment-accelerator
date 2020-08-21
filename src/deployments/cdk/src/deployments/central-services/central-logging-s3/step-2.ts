@@ -48,8 +48,8 @@ export async function step2(props: CentralLoggingToS3Step2Props) {
         destinationKey: 'CwlCentralLogDestination',
       });
       if (!logDestinationOutput) {
-        console.warn(`Cannot find required LogDestination in account "${accountKey}"`);
-        return;
+        console.warn(`Cannot find required LogDestination in account "${accountKey}:${region}"`);
+        continue;
       }
       const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
       if (!accountStack) {
