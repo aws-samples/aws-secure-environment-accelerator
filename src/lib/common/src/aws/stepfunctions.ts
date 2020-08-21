@@ -5,7 +5,7 @@ import {
   GetExecutionHistoryInput,
   HistoryEventList,
 } from 'aws-sdk/clients/stepfunctions';
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken } from './next-token';
 

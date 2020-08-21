@@ -1,10 +1,12 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const macie = new AWS.Macie2();
 
@@ -53,11 +55,13 @@ async function onCreateOrUpdate(
 }
 
 async function configExport(properties: HandlerProperties) {
-  const updateConfig = await macie
-    .updateOrganizationConfiguration({
-      autoEnable: properties.autoEnable,
-    })
-    .promise();
+  const updateConfig = await throttlingBackOff(() =>
+    macie
+      .updateOrganizationConfiguration({
+        autoEnable: properties.autoEnable,
+      })
+      .promise(),
+  );
 
   return updateConfig;
 }

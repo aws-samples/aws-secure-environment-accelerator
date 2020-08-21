@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { LogGroup, SubscriptionFilters } from 'aws-sdk/clients/cloudwatchlogs';
 import {
   CloudFormationCustomResourceEvent,
@@ -158,7 +159,7 @@ async function addSubscriptionFilter(logGroupName: string, destinationArn: strin
         .promise(),
     );
   } catch (error) {
-    console.error(`Error while adding subscription filter: ${error.message}`);
+    console.error(`Error while adding subscription filter to log group ${logGroupName}: ${error.message}`);
   }
 }
 
@@ -191,8 +192,7 @@ async function getSubscriptionFilters(logGroupName: string): Promise<Subscriptio
     );
     return subscriptionFilters.subscriptionFilters;
   } catch (error) {
-    console.log(`Error while retriving subscription filters: ${error.message}`);
-    return;
+    console.log(`Error while retrieving subscription filters: ${error.message}`);
   }
 }
 

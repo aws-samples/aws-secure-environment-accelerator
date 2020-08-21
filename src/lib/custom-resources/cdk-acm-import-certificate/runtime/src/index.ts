@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -7,6 +8,7 @@ import {
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { addCustomResourceTags } from '@aws-accelerator/custom-resource-runtime-cfn-tags';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export type TagList = AWS.ACM.TagList;
 
@@ -62,11 +64,13 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  await acm
-    .deleteCertificate({
-      CertificateArn: event.PhysicalResourceId,
-    })
-    .promise();
+  await throttlingBackOff(() =>
+    acm
+      .deleteCertificate({
+        CertificateArn: event.PhysicalResourceId,
+      })
+      .promise(),
+  );
 }
 
 async function importCertificate(
@@ -82,18 +86,23 @@ async function importCertificate(
   //  Check if certificate with ARN `physicalResourceId` exists
 
   try {
-    const response = await acm
-      .importCertificate({
-        Certificate: await getS3Body(properties.certificateBucketName, properties.certificateBucketPath),
-        PrivateKey: await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath),
-        CertificateChain: await getOptionalS3Body(
-          properties.certificateChainBucketName,
-          properties.certificateChainBucketPath,
-        ),
-        CertificateArn: physicalResourceId,
-        Tags: tags,
-      })
-      .promise();
+    const certificate = await getS3Body(properties.certificateBucketName, properties.certificateBucketPath);
+    const privateKey = await getS3Body(properties.privateKeyBucketName, properties.privateKeyBucketPath);
+    const certificateChain = await getOptionalS3Body(
+      properties.certificateChainBucketName,
+      properties.certificateChainBucketPath,
+    );
+    const response = await throttlingBackOff(() =>
+      acm
+        .importCertificate({
+          Certificate: certificate,
+          PrivateKey: privateKey,
+          CertificateChain: certificateChain,
+          CertificateArn: physicalResourceId,
+          Tags: tags,
+        })
+        .promise(),
+    );
     return response.CertificateArn!;
   } catch (e) {
     if (e.code === 'LimitExceededException' && properties.ignoreLimitExceededException === true) {
@@ -121,12 +130,14 @@ async function getOptionalS3Body(bucketName?: string, bucketPath?: string) {
 
 async function getS3Body(bucketName: string, bucketPath: string) {
   try {
-    const object = await s3
-      .getObject({
-        Bucket: bucketName,
-        Key: bucketPath,
-      })
-      .promise();
+    const object = await throttlingBackOff(() =>
+      s3
+        .getObject({
+          Bucket: bucketName,
+          Key: bucketPath,
+        })
+        .promise(),
+    );
     return object.Body!;
   } catch (e) {
     throw new Error(`Unable to load S3 file s3://${bucketName}/${bucketPath}: ${e}`);

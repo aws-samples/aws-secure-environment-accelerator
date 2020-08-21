@@ -1,10 +1,12 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const macie = new AWS.Macie2();
 
@@ -49,17 +51,17 @@ async function onCreateOrUpdate(
 
 async function createMember(properties: HandlerProperties) {
   try {
-    await macie
-      .createMember({
-        account: {
-          accountId: properties.accountId,
-          email: properties.email,
-        },
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      macie
+        .createMember({
+          account: {
+            accountId: properties.accountId,
+            email: properties.email,
+          },
+        })
+        .promise(),
+    );
   } catch (error) {
-    if (error.code === 'ValidationException') {
-      console.log('Already a member');
-    }
+    throw error;
   }
 }
