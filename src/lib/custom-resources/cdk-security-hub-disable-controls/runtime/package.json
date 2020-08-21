@@ -1,7 +1,8 @@
 {
-  "name": "@aws-accelerator/custom-resource-guardduty-get-detector-runtime", 
+  "name": "@aws-accelerator/custom-resource-security-hub-disable-controls-runtime", 
   "externals": [
-    "aws-lambda"
+    "aws-lambda", 
+    "aws-sdk"
   ], 
   "private": true, 
   "source": "src/index.ts", 
@@ -9,7 +10,8 @@
   "dependencies": {
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-cfn-utils": "workspace:^0.0.1", 
-    "aws-sdk": "2.711.0", 
+    "exponential-backoff": "3.0.0", 
+    "aws-sdk": "2.668.0", 
     "aws-lambda": "1.0.5"
   }, 
   "scripts": {

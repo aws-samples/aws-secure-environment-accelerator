@@ -1,12 +1,12 @@
-# Security Hub Enable Standards
+# Security Hub Disable Controls
 
-This is a custom resource to enable Security Hub Standards and disable specific controls Used `describeStandards`, `batchEnableStandards`, `describeStandardControls` and `updateStandardControls` API calls.
+This is a custom resource to disable Security Hub specific controls using `describeStandards`, `getEnabledStandards`, `describeStandardControls` and `updateStandardControls` API calls.
 
 ## Usage
 
-    import { SecurityHubEnable } from '@custom-resources/security-hub-enable';
+    import { SecurityHubDisableControls } from '@aws-accelerator/custom-resource-security-hub-disable-controls';
 
-    const enableSecurityHubResource = new SecurityHubEnable(this, 'EnableSecurityHubStandards`, {
+    const disableSecurityHubControlsResource = new SecurityHubDisableControls(this, 'DisableSecurityHubControls`, {
         standards: standards.standards,
     });
 
