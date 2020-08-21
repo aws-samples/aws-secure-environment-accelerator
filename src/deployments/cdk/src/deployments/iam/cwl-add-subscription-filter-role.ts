@@ -30,8 +30,7 @@ export async function createCwlAddSubscriptionFilterRoles(props: CwlAddSubscript
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ['logs:*'],
-        resources: [
+        actions: [
           'logs:DeleteSubscriptionFilter',
           'logs:DescribeLogGroups',
           'logs:DescribeSubscriptionFilters',
@@ -42,6 +41,7 @@ export async function createCwlAddSubscriptionFilterRoles(props: CwlAddSubscript
           'logs:PutLogEvents',
           'logs:DeleteRetentionPolicy',
         ],
+        resources: ['*'],
       }),
     );
 
