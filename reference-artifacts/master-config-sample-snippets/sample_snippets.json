@@ -16,6 +16,12 @@ Config File Examples:  {Not in sample config file}
           "exclusions": ["def/*"]
         }
       ],
+************************************Additional regions for Amazon CloudWatch Central Logging to S3
+    "additional-cwl-regions": {
+      "us-east-1": {
+        "kinesis-stream-shard-count": 1
+      }
+    },
 ************************************cert REQUEST format
       "certificates": [
         {

@@ -9,6 +9,9 @@ import * as customResourceRoles from '../deployments/iam';
  *   - Creating required roles for guardDuty custom resources
  *   - Creating required roles for securityHub custom resources
  *   - Creating required roles for IamCreateRole custom resource
+ *   - Creating required roles for createSSMDocument custom resource
+ *   - Creating required roles for createLogGroup custom resource
+ *   - Creating required roles for CWLCentralLoggingSubscriptionFilterRole custom resource
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts }: PhaseInput) {
   // creates roles for macie custom resources
@@ -35,15 +38,23 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     accounts,
   });
 
-  // Creates roles for IamCreateRole custom resource
+  // Creates roles for createSSMDocument custom resource
   await customResourceRoles.createSSMDocumentRoles({
     accountStacks,
     accounts,
     config: acceleratorConfig,
   });
 
+  // Creates roles for createLogGroup custom resource
   await customResourceRoles.createLogGroupRole({
     accountStacks,
     accounts,
+  });
+
+  // Creates roles for createCwlSubscriptionFilter custom resource
+  await customResourceRoles.createCwlAddSubscriptionFilterRoles({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
   });
 }
