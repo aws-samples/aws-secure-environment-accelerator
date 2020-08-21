@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const iam = new AWS.IAM();
 
@@ -21,19 +22,21 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
     // Set/Update IAM account password policy
-    await iam
-      .updateAccountPasswordPolicy({
-        AllowUsersToChangePassword: toBoolean(event.ResourceProperties.allowUsersToChangePassword),
-        HardExpiry: toBoolean(event.ResourceProperties.hardExpiry),
-        RequireUppercaseCharacters: toBoolean(event.ResourceProperties.requireUppercaseCharacters),
-        RequireLowercaseCharacters: toBoolean(event.ResourceProperties.requireLowercaseCharacters),
-        RequireSymbols: toBoolean(event.ResourceProperties.requireSymbols),
-        RequireNumbers: toBoolean(event.ResourceProperties.requireNumbers),
-        MinimumPasswordLength: event.ResourceProperties.minimumPasswordLength,
-        PasswordReusePrevention: event.ResourceProperties.passwordReusePrevention,
-        MaxPasswordAge: event.ResourceProperties.maxPasswordAge,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      iam
+        .updateAccountPasswordPolicy({
+          AllowUsersToChangePassword: toBoolean(event.ResourceProperties.allowUsersToChangePassword),
+          HardExpiry: toBoolean(event.ResourceProperties.hardExpiry),
+          RequireUppercaseCharacters: toBoolean(event.ResourceProperties.requireUppercaseCharacters),
+          RequireLowercaseCharacters: toBoolean(event.ResourceProperties.requireLowercaseCharacters),
+          RequireSymbols: toBoolean(event.ResourceProperties.requireSymbols),
+          RequireNumbers: toBoolean(event.ResourceProperties.requireNumbers),
+          MinimumPasswordLength: event.ResourceProperties.minimumPasswordLength,
+          PasswordReusePrevention: event.ResourceProperties.passwordReusePrevention,
+          MaxPasswordAge: event.ResourceProperties.maxPasswordAge,
+        })
+        .promise(),
+    );
   } catch (e) {
     console.warn(`Ignore Set/Update IAM account password policy failure`);
     console.warn(e);
