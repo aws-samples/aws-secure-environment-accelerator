@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as s3 from 'aws-sdk/clients/s3';
+import { throttlingBackOff } from './backoff';
 
 export class S3 {
   private readonly client: aws.S3;
@@ -11,7 +12,7 @@ export class S3 {
   }
 
   async getObjectBody(input: s3.GetObjectRequest): Promise<s3.Body> {
-    const object = await this.client.getObject(input).promise();
+    const object = await throttlingBackOff(() => this.client.getObject(input).promise());
     return object.Body!;
   }
 
@@ -20,11 +21,11 @@ export class S3 {
   }
 
   async putObject(input: s3.PutObjectRequest): Promise<s3.PutObjectOutput> {
-    return this.client.putObject(input).promise();
+    return throttlingBackOff(() => this.client.putObject(input).promise());
   }
 
   async deleteObject(input: s3.DeleteObjectRequest): Promise<s3.DeleteObjectOutput> {
-    return this.client.deleteObject(input).promise();
+    return throttlingBackOff(() => this.client.deleteObject(input).promise());
   }
 
   async putBucketKmsEncryption(bucket: string, kmsMasterKeyId: string): Promise<void> {
@@ -42,6 +43,6 @@ export class S3 {
       },
     };
 
-    await this.client.putBucketEncryption(params).promise();
+    await throttlingBackOff(() => this.client.putBucketEncryption(params).promise());
   }
 }

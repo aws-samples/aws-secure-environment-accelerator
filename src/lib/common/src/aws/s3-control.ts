@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as s3control from 'aws-sdk/clients/s3control';
+import { throttlingBackOff } from './backoff';
 
 export class S3Control {
   private readonly client: aws.S3Control;
@@ -15,7 +16,7 @@ export class S3Control {
    * @param input
    */
   async putPublicAccessBlock(input: s3control.PutPublicAccessBlockRequest): Promise<void> {
-    await this.client.putPublicAccessBlock(input).promise();
+    await throttlingBackOff(() => this.client.putPublicAccessBlock(input).promise());
   }
 
   /**
@@ -25,6 +26,6 @@ export class S3Control {
   async getPublicAccessBlock(
     input: s3control.GetPublicAccessBlockRequest,
   ): Promise<s3control.GetPublicAccessBlockOutput> {
-    return this.client.getPublicAccessBlock(input).promise();
+    return throttlingBackOff(() => this.client.getPublicAccessBlock(input).promise());
   }
 }

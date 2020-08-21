@@ -28,13 +28,15 @@ export class CodeCommit {
    * @param filePath
    */
   async getFile(repositoryName: string, filePath: string, commitId?: string): Promise<GetFileOutput> {
-    return this.client
-      .getFile({
-        repositoryName,
-        filePath,
-        commitSpecifier: commitId!,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .getFile({
+          repositoryName,
+          filePath,
+          commitSpecifier: commitId!,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -42,7 +44,7 @@ export class CodeCommit {
    * @param putFileInput
    */
   async putFile(putFileInput: PutFileInput): Promise<PutFileOutput> {
-    return this.client.putFile(putFileInput).promise();
+    return throttlingBackOff(() => this.client.putFile(putFileInput).promise());
   }
 
   /**
@@ -50,11 +52,13 @@ export class CodeCommit {
    * @param repositoryName
    */
   async batchGetRepositories(repositoryNames: string[]): Promise<BatchGetRepositoriesOutput> {
-    return this.client
-      .batchGetRepositories({
-        repositoryNames,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .batchGetRepositories({
+          repositoryNames,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -63,12 +67,14 @@ export class CodeCommit {
    * @param branchName
    */
   async getBranch(repositoryName: string, branchName: string): Promise<GetBranchOutput> {
-    return this.client
-      .getBranch({
-        repositoryName,
-        branchName,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .getBranch({
+          repositoryName,
+          branchName,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -76,12 +82,14 @@ export class CodeCommit {
    * @param repositoryName
    */
   async createRepository(repositoryName: string, repositoryDescription: string): Promise<CreateRepositoryOutput> {
-    return this.client
-      .createRepository({
-        repositoryName,
-        repositoryDescription,
-      })
-      .promise();
+    return throttlingBackOff(() =>
+      this.client
+        .createRepository({
+          repositoryName,
+          repositoryDescription,
+        })
+        .promise(),
+    );
   }
 
   /**
@@ -98,6 +106,6 @@ export class CodeCommit {
    * @param putFileInput
    */
   async deleteFile(input: DeleteFileInput): Promise<DeleteFileOutput> {
-    return this.client.deleteFile(input).promise();
+    return throttlingBackOff(() => this.client.deleteFile(input).promise());
   }
 }

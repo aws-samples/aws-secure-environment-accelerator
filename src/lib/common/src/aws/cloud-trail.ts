@@ -1,5 +1,6 @@
 import * as aws from 'aws-sdk';
 import * as cloudtrail from 'aws-sdk/clients/cloudtrail';
+import { throttlingBackOff } from './backoff';
 
 export class CloudTrail {
   private readonly client: aws.CloudTrail;
@@ -22,7 +23,7 @@ export class CloudTrail {
       includeShadowTrails,
       trailNameList,
     };
-    return this.client.describeTrails(params).promise();
+    return throttlingBackOff(() => this.client.describeTrails(params).promise());
   }
 
   /**
@@ -38,7 +39,7 @@ export class CloudTrail {
       ],
       TrailName: trailName,
     };
-    return this.client.putInsightSelectors(params).promise();
+    return throttlingBackOff(() => this.client.putInsightSelectors(params).promise());
   }
 
   /**
@@ -46,7 +47,7 @@ export class CloudTrail {
    * @param params
    */
   async putEventSelectors(params: cloudtrail.PutEventSelectorsRequest): Promise<cloudtrail.PutEventSelectorsResponse> {
-    return this.client.putEventSelectors(params).promise();
+    return throttlingBackOff(() => this.client.putEventSelectors(params).promise());
   }
 
   /**
@@ -54,6 +55,6 @@ export class CloudTrail {
    * @param params
    */
   async updateTrail(params: cloudtrail.UpdateTrailRequest): Promise<cloudtrail.UpdateTrailResponse> {
-    return this.client.updateTrail(params).promise();
+    return throttlingBackOff(() => this.client.updateTrail(params).promise());
   }
 }

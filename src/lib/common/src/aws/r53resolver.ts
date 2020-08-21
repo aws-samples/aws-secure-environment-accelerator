@@ -4,6 +4,7 @@ import {
   AssociateResolverRuleRequest,
   AssociateResolverRuleResponse,
 } from 'aws-sdk/clients/route53resolver';
+import { throttlingBackOff } from './backoff';
 
 export class Route53Resolver {
   private readonly client: aws.Route53Resolver;
@@ -15,7 +16,9 @@ export class Route53Resolver {
   }
 
   async getEndpointIpAddress(endpointId: string): Promise<ListResolverEndpointIpAddressesResponse> {
-    return this.client.listResolverEndpointIpAddresses({ ResolverEndpointId: endpointId }).promise();
+    return throttlingBackOff(() =>
+      this.client.listResolverEndpointIpAddresses({ ResolverEndpointId: endpointId }).promise(),
+    );
   }
 
   /**
@@ -34,6 +37,6 @@ export class Route53Resolver {
       VPCId: vpcId,
       Name: name,
     };
-    return this.client.associateResolverRule(param).promise();
+    return throttlingBackOff(() => this.client.associateResolverRule(param).promise());
   }
 }
