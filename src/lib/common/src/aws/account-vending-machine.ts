@@ -1,4 +1,4 @@
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import { v4 as uuidv4 } from 'uuid';
 import { ProductAVMParam, ServiceCatalog } from './service-catalog';
 import { STS } from './sts';

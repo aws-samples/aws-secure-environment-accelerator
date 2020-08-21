@@ -91,6 +91,7 @@
     "@aws-accelerator/custom-resource-s3-public-access-block": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-s3-template": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-security-hub-accept-invites": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-security-hub-disable-controls": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-security-hub-enable": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-macie-enable-admin": "workspace:^0.0.1",

@@ -1,6 +1,8 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const ec2 = new AWS.EC2();
 
@@ -28,12 +30,14 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
 
-  await ec2.enableEbsEncryptionByDefault().promise();
-  await ec2
-    .modifyEbsDefaultKmsKeyId({
-      KmsKeyId: properties.KmsKeyId,
-    })
-    .promise();
+  await throttlingBackOff(() => ec2.enableEbsEncryptionByDefault().promise());
+  await throttlingBackOff(() =>
+    ec2
+      .modifyEbsDefaultKmsKeyId({
+        KmsKeyId: properties.KmsKeyId,
+      })
+      .promise(),
+  );
 
   return {
     physicalResourceId: properties.KmsKeyId,

@@ -1,5 +1,7 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const cloudTrail = new AWS.CloudTrail();
 
@@ -19,28 +21,32 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 };
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
-  const response = await cloudTrail
-    .describeTrails({
-      trailNameList: [event.ResourceProperties.cloudTrailName],
-    })
-    .promise();
+  const response = await throttlingBackOff(() =>
+    cloudTrail
+      .describeTrails({
+        trailNameList: [event.ResourceProperties.cloudTrailName],
+      })
+      .promise(),
+  );
   if (response.trailList?.length === 0) {
     try {
       // create CloudTrail Trail
-      await cloudTrail
-        .createTrail(
-          buildCloudTrailCreateRequest({
-            name: event.ResourceProperties.cloudTrailName,
-            bucketName: event.ResourceProperties.bucketName,
-            logGroupArn: event.ResourceProperties.logGroupArn,
-            roleArn: event.ResourceProperties.roleArn,
-            kmsKeyId: event.ResourceProperties.kmsKeyId,
-            s3KeyPrefix: event.ResourceProperties.s3KeyPrefix,
-            tagName: event.ResourceProperties.tagName,
-            tagValue: event.ResourceProperties.tagValue,
-          }),
-        )
-        .promise();
+      await throttlingBackOff(() =>
+        cloudTrail
+          .createTrail(
+            buildCloudTrailCreateRequest({
+              name: event.ResourceProperties.cloudTrailName,
+              bucketName: event.ResourceProperties.bucketName,
+              logGroupArn: event.ResourceProperties.logGroupArn,
+              roleArn: event.ResourceProperties.roleArn,
+              kmsKeyId: event.ResourceProperties.kmsKeyId,
+              s3KeyPrefix: event.ResourceProperties.s3KeyPrefix,
+              tagName: event.ResourceProperties.tagName,
+              tagValue: event.ResourceProperties.tagValue,
+            }),
+          )
+          .promise(),
+      );
     } catch (e) {
       throw new Error(`Cannot create CloudTrail Trail: ${JSON.stringify(e)}`);
     }
@@ -65,17 +71,23 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   // Log Insight events
-  await cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise();
+  await throttlingBackOff(() =>
+    cloudTrail.putInsightSelectors(buildInsightSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise(),
+  );
 
   // S3 Data events
-  await cloudTrail.putEventSelectors(buildEventSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise();
+  await throttlingBackOff(() =>
+    cloudTrail.putEventSelectors(buildEventSelectorsRequest(event.ResourceProperties.cloudTrailName)).promise(),
+  );
 
   // Enable CloudTrail Trail logging
-  await cloudTrail
-    .startLogging({
-      Name: event.ResourceProperties.cloudTrailName,
-    })
-    .promise();
+  await throttlingBackOff(() =>
+    cloudTrail
+      .startLogging({
+        Name: event.ResourceProperties.cloudTrailName,
+      })
+      .promise(),
+  );
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {

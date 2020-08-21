@@ -1,4 +1,4 @@
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import * as acm from 'aws-sdk/clients/acm';
 import { throttlingBackOff } from './backoff';
 

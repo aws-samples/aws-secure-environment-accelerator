@@ -1,8 +1,9 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { backOff } from 'exponential-backoff';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { CreateDocumentRequest, UpdateDocumentRequest } from 'aws-sdk/clients/ssm';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export interface HandlerProperties {
   s3BucketName: string;
@@ -73,29 +74,35 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   };
 
   try {
-    await ssm
-      .describeDocument({
-        Name: docuemntName,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      ssm
+        .describeDocument({
+          Name: docuemntName,
+        })
+        .promise(),
+    );
     const updateDocumentRequest: UpdateDocumentRequest = {
       Content: JSON.stringify(settings),
       Name: docuemntName,
       DocumentVersion: '$LATEST',
     };
     console.log('Update SSM Document Request: ', updateDocumentRequest);
-    await backOff(() => ssm.updateDocument(updateDocumentRequest).promise());
+    await throttlingBackOff(() => ssm.updateDocument(updateDocumentRequest).promise());
     console.log('Update SSM Document Success');
   } catch (error) {
-    if (error.code === 'InvalidDocument') {
+    if (error.code === 'DuplicateDocumentContent') {
+      console.log(`SSM Document is Already latest :${docuemntName}`);
+    } else if (error.code === 'InvalidDocument') {
       const createDocumentRequest: CreateDocumentRequest = {
         Content: JSON.stringify(settings),
         Name: docuemntName,
         DocumentType: `Session`,
       };
       console.log('Create SSM Document Request: ', createDocumentRequest);
-      await backOff(() => ssm.createDocument(createDocumentRequest).promise());
+      await throttlingBackOff(() => ssm.createDocument(createDocumentRequest).promise());
       console.log('Create SSM Document Success');
+    } else {
+      throw error;
     }
   }
 }

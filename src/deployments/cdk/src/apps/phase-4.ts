@@ -4,6 +4,7 @@ import { pascalCase } from 'pascal-case';
 import { getStackJsonOutput, ResolversOutput, MadRuleOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
 import { PhaseInput } from './shared';
+import * as securityHub from '../deployments/security-hub';
 
 type ResolversOutputs = ResolversOutput[];
 
@@ -87,4 +88,12 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
       );
     }
   }
+
+  // Deploy Security Hub Step-3 to disable specific controls
+  await securityHub.step3({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+  });
 }
