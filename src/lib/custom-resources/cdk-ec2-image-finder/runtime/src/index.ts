@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 

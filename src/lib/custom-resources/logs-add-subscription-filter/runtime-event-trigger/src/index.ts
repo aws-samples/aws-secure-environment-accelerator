@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { throttlingBackOff, CloudWatchRulePrefix } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const logs = new AWS.CloudWatchLogs();

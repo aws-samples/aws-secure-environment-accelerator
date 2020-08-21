@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { LogGroup, SubscriptionFilters } from 'aws-sdk/clients/cloudwatchlogs';
 import {
   CloudFormationCustomResourceEvent,

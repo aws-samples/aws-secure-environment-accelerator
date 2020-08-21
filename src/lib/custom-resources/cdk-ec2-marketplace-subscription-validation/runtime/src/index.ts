@@ -1,6 +1,7 @@
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 export interface HandlerProperties {
