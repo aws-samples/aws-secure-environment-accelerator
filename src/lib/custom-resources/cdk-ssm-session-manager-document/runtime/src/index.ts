@@ -91,8 +91,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   } catch (error) {
     if (error.code === 'DuplicateDocumentContent') {
       console.log(`SSM Document is Already latest :${docuemntName}`);
-    }
-    else if (error.code === 'InvalidDocument') {
+    } else if (error.code === 'InvalidDocument') {
       const createDocumentRequest: CreateDocumentRequest = {
         Content: JSON.stringify(settings),
         Name: docuemntName,
