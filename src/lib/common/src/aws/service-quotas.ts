@@ -1,4 +1,4 @@
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import * as sq from 'aws-sdk/clients/servicequotas';
 import { listWithNextToken } from './next-token';
 import { arrayMax } from '../util/arrays';

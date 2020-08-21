@@ -1,4 +1,4 @@
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import * as org from 'aws-sdk/clients/organizations';
 import { throttlingBackOff } from './backoff';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
