@@ -1,6 +1,7 @@
 import * as aws from 'aws-sdk';
 import { CredentialProviderSource, Mode } from 'aws-cdk/lib/api/aws-auth/credentials';
 import { green } from 'colors/safe';
+import { throttlingBackOff } from './backoff';
 
 export interface AssumeRoleProviderSourceProps {
   name: string;
@@ -51,12 +52,14 @@ export class AssumeRoleProviderSource implements CredentialProviderSource {
     console.log(`Assuming role ${green(roleArn)} for ${duration} seconds`);
 
     const sts = new aws.STS();
-    return await sts
-      .assumeRole({
-        RoleArn: roleArn,
-        RoleSessionName: this.name,
-        DurationSeconds: duration,
-      })
-      .promise();
+    return await throttlingBackOff(() =>
+      sts
+        .assumeRole({
+          RoleArn: roleArn,
+          RoleSessionName: this.name,
+          DurationSeconds: duration,
+        })
+        .promise(),
+    );
   }
 }
