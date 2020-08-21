@@ -40,7 +40,13 @@
         "iam:AddUserToGroup",
         "iam:UpdateAccountPasswordPolicy",
         "iam:DeleteAccountPasswordPolicy",
-        "iam:TagUser"
+        "iam:TagUser",
+        "networkmanager:Create*",
+        "networkmanager:Update*",
+        "networkmanager:Associate*",
+        "networkmanager:Disassociate*",
+        "networkmanager:Register*",
+        "networkmanager:Deregister*"
       ],
       "Resource": "*",
       "Condition": {
@@ -99,6 +105,7 @@
         "importexport:*",
         "kms:*",
         "mobileanalytics:*",
+        "networkmanager:*",
         "organizations:*",
         "pricing:*",
         "route53:*",
