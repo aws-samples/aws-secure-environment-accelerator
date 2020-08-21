@@ -1,4 +1,4 @@
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import * as cloudtrail from 'aws-sdk/clients/cloudtrail';
 import { throttlingBackOff } from './backoff';
 

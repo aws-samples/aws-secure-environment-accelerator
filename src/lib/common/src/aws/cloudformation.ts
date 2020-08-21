@@ -1,4 +1,4 @@
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import * as cfn from 'aws-sdk/clients/cloudformation';
 import { listWithNextToken, listWithNextTokenGenerator } from './next-token';
 import { Intersect } from '../util/types';
