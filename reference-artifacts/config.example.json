@@ -1185,7 +1185,6 @@
       },
       "log-retention": 180,
       "limits": {
-        }
       },
       "iam": {
         "users": [
