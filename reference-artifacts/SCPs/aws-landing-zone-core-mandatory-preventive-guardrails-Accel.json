@@ -15,7 +15,8 @@
         "sns:Unsubscribe"
       ],
       "Resource":[
-        "arn:aws:sns:*:*:AWS-Landing-Zone*"
+        "arn:aws:sns:*:*:AWS-Landing-Zone*",
+        "arn:aws:sns:*:*:PBMMAccel-*"
       ],
       "Effect":"Deny",
       "Sid":"GRSNSSUBSCRIPTIONPOLICY"
@@ -36,7 +37,8 @@
         "cloudtrail:UpdateTrail"
       ],
       "Resource":[
-        "arn:aws:cloudtrail:*:*:trail/*AWS-Landing-Zone-*"
+        "arn:aws:cloudtrail:*:*:trail/*AWS-Landing-Zone-*",
+        "arn:aws:cloudtrail:*:*:trail/PBMMAccel-*"
       ],
       "Effect":"Deny",
       "Sid":"GRCLOUDTRAILENABLED"
@@ -58,7 +60,8 @@
         "sns:SetTopicAttributes"
       ],
       "Resource":[
-        "arn:aws:sns:*:*:AWS-Landing-Zone-*"
+        "arn:aws:sns:*:*:AWS-Landing-Zone-*",
+        "arn:aws:sns:*:*:PBMMAccel-*"
       ],
       "Effect":"Deny",
       "Sid":"GRSNSTOPICPOLICY"
@@ -162,7 +165,8 @@
         "events:DeleteRule"
       ],
       "Resource":[
-        "arn:aws:events:*:*:rule/AWS-Landing-Zone-*"
+        "arn:aws:events:*:*:rule/AWS-Landing-Zone-*",
+        "arn:aws:events:*:*:rule/PBMMAccel-*"
       ],
       "Effect":"Deny",
       "Sid":"GRCLOUDWATCHEVENTPOLICY"
