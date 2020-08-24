@@ -60,6 +60,7 @@
         "s3:PutEncryptionConfiguration",
         "s3:PutLifecycleConfiguration",
         "s3:PutReplicationConfiguration",
+        "s3:PutBucketLogging",
         "s3:PutBucketPolicy",
         "s3:ReplicateDelete",
         "s3:PutObjectRetention",
@@ -76,7 +77,7 @@
       }
     },
     {
-      "Sid": "ProtectCloudFormation",
+      "Sid": "DenyCFN",
       "Effect": "Deny",
       "Action": ["cloudformation:*"],
       "Resource": [
@@ -94,7 +95,7 @@
       }
     },
     {
-      "Sid": "DenyAlarmDeletion",
+      "Sid": "DenyAlarms",
       "Effect": "Deny",
       "Action": [
         "cloudwatch:DeleteAlarms",
@@ -120,7 +121,7 @@
       }
     },
     {
-      "Sid": "ProtectKeyRoles",
+      "Sid": "DenyKeyRoles",
       "Effect": "Deny",
       "Action": ["iam:*"],
       "Resource": [
@@ -194,7 +195,7 @@
       "Resource": "*"
     },
     {
-      "Sid": "DenyLambdaDel",
+      "Sid": "DenyLambda",
       "Effect": "Deny",
       "Action": [
         "lambda:AddPermission",
@@ -223,7 +224,7 @@
       }
     },
     {
-      "Sid": "BlockOther",
+      "Sid": "DenyOther",
       "Effect": "Deny",
       "Action": [
         "aws-portal:ModifyAccount",
