@@ -234,6 +234,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
+  // Permission to allow checking existence of AWSConfig bucket
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
       principals: [
