@@ -5,6 +5,7 @@ const sns = new SNS();
 export const handler = async (input: SNSEvent): Promise<void> => {
   console.log('Verifying Account Creation status ....');
   console.log(JSON.stringify(input, null, 2));
+  const logCntralRegion = process.env.CENTRAL_LOG_SERVICES_REGION!;
   const snsNotificationConfig = input.Records[0].Sns;
   await sns.publish({
     Message: snsNotificationConfig.Message,

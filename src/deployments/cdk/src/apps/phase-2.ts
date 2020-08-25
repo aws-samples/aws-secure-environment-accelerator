@@ -24,6 +24,7 @@ import * as tgwDeployment from '../deployments/transit-gateway';
 import * as macie from '../deployments/macie';
 import * as centralServices from '../deployments/central-services';
 import * as guardDutyDeployment from '../deployments/guardduty';
+import * as snsDeployment from '../deployments/sns';
 
 /**
  * This is the main entry point to deploy phase 2.
@@ -287,6 +288,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       config: acceleratorConfig,
       accounts,
       outputs,
+    });
+
+    /**
+     * Creating required SNS Topics in Log accont of deploment is through Organizations
+     */
+    await snsDeployment.step1({
+      accountStacks,
+      config: acceleratorConfig,
     });
   }
 

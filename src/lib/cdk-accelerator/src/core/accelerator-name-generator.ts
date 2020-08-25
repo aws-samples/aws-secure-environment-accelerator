@@ -35,10 +35,10 @@ export function createLogGroupName(name: string, suffixLength?: number): string 
   );
 }
 
-export function createSnsTopicName(name: string): string {
+export function createSnsTopicName(name: string, suffixLength?: number): string {
   return createName({
     name: `Notification-${name}`,
-    suffixLength: 8,
+    suffixLength: suffixLength || 0,
   });
 }
 
