@@ -1,6 +1,8 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const kms = new AWS.KMS();
 
@@ -25,17 +27,19 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
-  const grant = await kms
-    .createGrant({
-      Name: properties.Name,
-      KeyId: properties.KeyId,
-      GranteePrincipal: properties.GranteePrincipal,
-      RetiringPrincipal: properties.RetiringPrincipal,
-      Operations: properties.Operations,
-      Constraints: properties.Constraints,
-      GrantTokens: properties.GrantTokens,
-    })
-    .promise();
+  const grant = await throttlingBackOff(() =>
+    kms
+      .createGrant({
+        Name: properties.Name,
+        KeyId: properties.KeyId,
+        GranteePrincipal: properties.GranteePrincipal,
+        RetiringPrincipal: properties.RetiringPrincipal,
+        Operations: properties.Operations,
+        Constraints: properties.Constraints,
+        GrantTokens: properties.GrantTokens,
+      })
+      .promise(),
+  );
   return {
     physicalResourceId: grant.GrantId!,
     data: {
@@ -58,10 +62,12 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     return;
   }
 
-  await kms
-    .revokeGrant({
-      GrantId: event.PhysicalResourceId,
-      KeyId: properties.KeyId,
-    })
-    .promise();
+  await throttlingBackOff(() =>
+    kms
+      .revokeGrant({
+        GrantId: event.PhysicalResourceId,
+        KeyId: properties.KeyId,
+      })
+      .promise(),
+  );
 }

@@ -48,6 +48,7 @@
         "iam:*",
         "importexport:*",
         "mobileanalytics:*",
+        "networkmanager:*",
         "organizations:*",
         "pricing:*",
         "route53:*",

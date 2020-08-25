@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 
 const TAG_STACK_ID = 'accelerator:cloudformation:stack-id';
 const TAG_LOGICAL_ID = 'accelerator:cloudformation:logical-id';

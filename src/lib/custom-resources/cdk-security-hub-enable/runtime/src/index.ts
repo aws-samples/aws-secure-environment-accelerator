@@ -1,6 +1,7 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
-import { backOff } from 'exponential-backoff';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 
 const hub = new AWS.SecurityHub();
@@ -8,7 +9,7 @@ const hub = new AWS.SecurityHub();
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  console.log(`Enabling Security Hub Standards...`);
+  console.log(`Enabling Security Hub and Security Hub Standards...`);
   console.log(JSON.stringify(event, null, 2));
 
   // tslint:disable-next-line: switch-default
@@ -24,7 +25,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   try {
-    await backOff(() => hub.enableSecurityHub().promise());
+    await throttlingBackOff(() => hub.enableSecurityHub().promise());
   } catch (error) {
     if (error.code === 'ResourceConflictException') {
       console.log('Account is already subscribed to Security Hub');
@@ -34,13 +35,12 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   }
 
   const standards = event.ResourceProperties.standards;
-  const standardsResponse = await hub.describeStandards().promise();
+  const standardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
 
-  // Enable standards and Disabling unnecessary Controls for eash standard
+  // Enable standards based on input
   for (const standard of standards) {
     const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
-
-    const enableResponse = await backOff(() =>
+    await throttlingBackOff(() =>
       hub
         .batchEnableStandards({
           StandardsSubscriptionRequests: [
@@ -51,39 +51,6 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         })
         .promise(),
     );
-
-    // Incresing time to provide time for retriving standard controls
-    await new Promise(resolve => setTimeout(resolve, 10000));
-
-    for (const responseStandard of enableResponse.StandardsSubscriptions || []) {
-      const standardControls = await backOff(() =>
-        hub
-          .describeStandardsControls({
-            StandardsSubscriptionArn: responseStandard.StandardsSubscriptionArn,
-            MaxResults: 100,
-          })
-          .promise(),
-      );
-      console.log(`standardControls for ${responseStandard}`, standardControls);
-      for (const disableControl of standard['controls-to-disable']) {
-        const standardControl = standardControls.Controls?.find(x => x.ControlId === disableControl);
-        if (!standardControl) {
-          console.log(`Control "${disableControl}" not found for Standard "${standard.name}"`);
-          continue;
-        }
-
-        console.log(`Disabling Control "${disableControl}" for Standard "${standard.name}"`);
-        await backOff(() =>
-          hub
-            .updateStandardsControl({
-              StandardsControlArn: standardControl.StandardsControlArn!,
-              ControlStatus: 'DISABLED',
-              DisabledReason: 'Control disabled by Accelerator',
-            })
-            .promise(),
-        );
-      }
-    }
   }
 }
 

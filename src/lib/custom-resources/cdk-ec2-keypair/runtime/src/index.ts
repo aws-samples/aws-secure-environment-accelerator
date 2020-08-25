@@ -1,4 +1,5 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
@@ -6,6 +7,7 @@ import {
   CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const ec2 = new AWS.EC2();
 const secretsManager = new AWS.SecretsManager();
@@ -76,20 +78,24 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 }
 
 async function generateKeypair(properties: HandlerProperties) {
-  const createKeyPair = await ec2
-    .createKeyPair({
-      KeyName: properties.keyName,
-    })
-    .promise();
+  const createKeyPair = await throttlingBackOff(() =>
+    ec2
+      .createKeyPair({
+        KeyName: properties.keyName,
+      })
+      .promise(),
+  );
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
   try {
-    await secretsManager
-      .createSecret({
-        Name: secretName,
-        SecretString: createKeyPair.KeyMaterial,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      secretsManager
+        .createSecret({
+          Name: secretName,
+          SecretString: createKeyPair.KeyMaterial,
+        })
+        .promise(),
+    );
   } catch (e) {
     const message = `${e}`;
     if (!message.includes(`already scheduled for deletion`)) {
@@ -97,32 +103,40 @@ async function generateKeypair(properties: HandlerProperties) {
     }
 
     // Restore the deleted secret and put the key material in
-    await secretsManager
-      .restoreSecret({
-        SecretId: secretName,
-      })
-      .promise();
-    await secretsManager
-      .putSecretValue({
-        SecretId: secretName,
-        SecretString: createKeyPair.KeyMaterial,
-      })
-      .promise();
+    await throttlingBackOff(() =>
+      secretsManager
+        .restoreSecret({
+          SecretId: secretName,
+        })
+        .promise(),
+    );
+    await throttlingBackOff(() =>
+      secretsManager
+        .putSecretValue({
+          SecretId: secretName,
+          SecretString: createKeyPair.KeyMaterial,
+        })
+        .promise(),
+    );
   }
   return createKeyPair;
 }
 
 async function deleteKeypair(properties: HandlerProperties) {
-  await ec2
-    .deleteKeyPair({
-      KeyName: properties.keyName,
-    })
-    .promise();
+  await throttlingBackOff(() =>
+    ec2
+      .deleteKeyPair({
+        KeyName: properties.keyName,
+      })
+      .promise(),
+  );
 
   const secretName = `${properties.secretPrefix}${properties.keyName}`;
-  await secretsManager
-    .deleteSecret({
-      SecretId: secretName,
-    })
-    .promise();
+  await throttlingBackOff(() =>
+    secretsManager
+      .deleteSecret({
+        SecretId: secretName,
+      })
+      .promise(),
+  );
 }

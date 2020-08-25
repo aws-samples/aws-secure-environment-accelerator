@@ -167,6 +167,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
   });
 
+  // Creating roles required for CWL Central Logging
+  await iamDeployment.createCwlCentralLoggingRoles({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+    logBucket,
+  });
+
   /**
    * Code to create LogGroups required for DNS Logging
    */

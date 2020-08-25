@@ -11,6 +11,7 @@ export interface CentralLoggingSubscriptionFilterProps {
   globalExclusions?: string[];
   ruleName: string;
   logRetention: number;
+  roleArn: string;
 }
 
 /**
@@ -18,6 +19,7 @@ export interface CentralLoggingSubscriptionFilterProps {
  */
 export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
+  private readonly role: iam.IRole;
   private readonly cloudWatchEnventLambdaPath =
     '@aws-accelerator/custom-resource-logs-add-subscription-filter-cloudwatch-event-runtime';
   private readonly cloudFormationCustomLambaPath =
@@ -26,6 +28,7 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: CentralLoggingSubscriptionFilterProps) {
     super(scope, id);
 
+    this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
     // Custom Resource to add subscriptin filter to existing logGroups
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
@@ -79,10 +82,6 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     return this.ensureLambdaFunction(this.cloudFormationCustomLambaPath, resourceType);
   }
 
-  get role(): iam.IRole {
-    return this.lambdaFunction.role!;
-  }
-
   private ensureLambdaFunction(
     lambdaLocation: string,
     name: string,
@@ -98,22 +97,11 @@ export class CentralLoggingSubscriptionFilter extends cdk.Construct {
     const lambdaPath = require.resolve(lambdaLocation);
     const lambdaDir = path.dirname(lambdaPath);
 
-    const role = new iam.Role(stack, `${name}Role`, {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['logs:*'],
-        resources: ['*'],
-      }),
-    );
-
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
-      role,
+      role: this.role,
       environment: environment!,
       // Set timeout to maximum timeout
       timeout: cdk.Duration.minutes(15),

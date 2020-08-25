@@ -1,6 +1,8 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const hub = new AWS.SecurityHub();
 
@@ -25,16 +27,16 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   const masterAccountId = event.ResourceProperties.masterAccountId;
 
   // get the master account associated to the account
-  const masterAccount = await hub.getMasterAccount().promise();
+  const masterAccount = await throttlingBackOff(() => hub.getMasterAccount().promise());
   const securityHubMaster = masterAccount.Master;
   // check if master account is a valid association
   if (securityHubMaster && securityHubMaster.AccountId !== masterAccountId) {
     // If not valid, disassociate the master account invitation
-    await hub.disassociateFromMasterAccount().promise();
+    await throttlingBackOff(() => hub.disassociateFromMasterAccount().promise());
   }
 
   // Check for pending invitations from Master
-  const invitations = await hub.listInvitations().promise();
+  const invitations = await throttlingBackOff(() => hub.listInvitations().promise());
   if (!invitations.Invitations) {
     console.log(`No Security Hub invitations found`);
   } else {
@@ -42,12 +44,14 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
     const ownerInvitation = invitations.Invitations.find(x => x.AccountId === masterAccountId);
     if (ownerInvitation) {
       const invitationId = ownerInvitation?.InvitationId!;
-      await hub
-        .acceptInvitation({
-          InvitationId: invitationId,
-          MasterId: masterAccountId,
-        })
-        .promise();
+      await throttlingBackOff(() =>
+        hub
+          .acceptInvitation({
+            InvitationId: invitationId,
+            MasterId: masterAccountId,
+          })
+          .promise(),
+      );
     }
   }
 }

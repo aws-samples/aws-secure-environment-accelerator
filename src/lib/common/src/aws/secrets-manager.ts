@@ -1,4 +1,4 @@
-import * as aws from 'aws-sdk';
+import aws from './aws-client';
 import * as smn from 'aws-sdk/clients/secretsmanager';
 import { listWithNextTokenGenerator } from './next-token';
 import { collectAsync } from '../util/generator';

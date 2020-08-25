@@ -64,6 +64,12 @@ export async function createMacieAdminRole(stack: AccountStack) {
       resources: ['*'],
     }),
   );
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      resources: ['*'],
+    }),
+  );
   return role;
 }
 
@@ -81,6 +87,12 @@ export async function createMacieEnableRole(stack: AccountStack) {
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['macie2:EnableMacie'],
+      resources: ['*'],
+    }),
+  );
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
     }),
   );
@@ -118,6 +130,12 @@ export async function createMacieExportConfigRole(stack: AccountStack) {
       resources: ['*'],
     }),
   );
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      resources: ['*'],
+    }),
+  );
   return role;
 }
 
@@ -129,6 +147,12 @@ export async function createMacieUpdateConfigRole(stack: AccountStack) {
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['macie2:UpdateOrganizationConfiguration'],
+      resources: ['*'],
+    }),
+  );
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
     }),
   );
@@ -146,6 +170,12 @@ export async function createMacieUpdateSessionRole(stack: AccountStack) {
       resources: ['*'],
     }),
   );
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+      resources: ['*'],
+    }),
+  );
   return role;
 }
 
@@ -157,6 +187,12 @@ export async function createMacieCreateMember(stack: AccountStack) {
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['macie2:CreateMember'],
+      resources: ['*'],
+    }),
+  );
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
     }),
   );

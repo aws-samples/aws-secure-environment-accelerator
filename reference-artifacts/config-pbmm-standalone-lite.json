@@ -1116,9 +1116,6 @@
       },
       "log-retention": 180,
       "limits": {
-        "AWS Organizations/Maximum accounts": {
-          "value": 20
-        }
       },
       "iam": {
         "users": [

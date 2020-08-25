@@ -1,5 +1,7 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const ec2 = new AWS.EC2();
 
@@ -20,13 +22,15 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   // Find instances that match the given instance id
-  const describeInstances = await ec2
-    .describeInstances(
-      buildRequest({
-        instanceId: event.ResourceProperties.InstanceId,
-      }),
-    )
-    .promise();
+  const describeInstances = await throttlingBackOff(() =>
+    ec2
+      .describeInstances(
+        buildRequest({
+          instanceId: event.ResourceProperties.InstanceId,
+        }),
+      )
+      .promise(),
+  );
 
   const reservations = describeInstances.Reservations;
   const instance = reservations?.[0].Instances?.[0];

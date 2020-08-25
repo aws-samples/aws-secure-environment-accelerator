@@ -7,3 +7,5 @@ export * from './securityhub-roles';
 export * from './create-role';
 export * from './ssm-document-roles';
 export * from './log-group-role';
+export * from './cwl-central-logging-roles';
+export * from './cwl-add-subscription-filter-role';

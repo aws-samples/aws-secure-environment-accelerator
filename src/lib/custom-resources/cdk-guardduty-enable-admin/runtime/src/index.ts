@@ -1,10 +1,12 @@
 import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
 import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
   CloudFormationCustomResourceUpdateEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
 const guardduty = new AWS.GuardDuty();
 
@@ -50,7 +52,7 @@ async function enableOrgAdmin(properties: HandlerProperties) {
   };
 
   try {
-    const enableAdmin = await guardduty.enableOrganizationAdminAccount(params).promise();
+    const enableAdmin = await throttlingBackOff(() => guardduty.enableOrganizationAdminAccount(params).promise());
 
     return enableAdmin;
   } catch (e) {
