@@ -1,8 +1,5 @@
 import * as cdk from '@aws-cdk/core';
 import * as accessanalyzer from '@aws-cdk/aws-accessanalyzer';
-import * as iam from '@aws-cdk/aws-iam';
-import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
-import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import * as outputKeys from '@aws-accelerator/common-outputs/src/stack-output';
 import * as artifactsDeployment from '../deployments/artifacts';
@@ -15,14 +12,20 @@ import * as madDeployment from '../deployments/mad';
 import * as secretsDeployment from '../deployments/secrets';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import { PhaseInput } from './shared';
-import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
-import { createR53LogGroupName } from '../common/r53-zones';
 import * as accountWarming from '../deployments/account-warming';
 import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
-import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+
+/**********************************************************
+ * DO NOT DEPEND ON OUTPUTS IN PHASE 0                    *
+ * SINCE WE ARE CREATING CENTRAL BUCKET IN PHASE-0        *
+ * AND FRESH INSTALL WILL FAIL SINCE WE WILL NOT HAVE ANY *
+ * OUTPUTS CREATED IN PHASE -1                            *
+ * (EXCEPT) ACCOUNTWARMING SINCE WE DON'T NEED OUTPUTS    *
+ * ACCOUNTWARMING IN FIRST RUN                            *
+ **********************************************************/
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -174,56 +177,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     logBucket,
   });
-
-  /**
-   * Code to create LogGroups required for DNS Logging
-   */
-  const globalOptionsConfig = acceleratorConfig['global-options'];
-  const zonesConfig = globalOptionsConfig.zones;
-  const zonesAccountKey = zonesConfig.account;
-
-  const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
-  const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-    outputs,
-    accountKey: zonesAccountKey,
-    roleKey: 'LogGroupRole',
-  });
-  if (logGroupLambdaRoleOutput) {
-    const logGroups = zonesConfig.names.public.map(phz => {
-      const logGroupName = createR53LogGroupName({
-        acceleratorPrefix: context.acceleratorPrefix,
-        domain: phz,
-      });
-      return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
-        logGroupName,
-        roleArn: logGroupLambdaRoleOutput.roleArn,
-      });
-    });
-
-    if (logGroups.length > 0) {
-      const wildcardLogGroupName = createR53LogGroupName({
-        acceleratorPrefix: context.acceleratorPrefix,
-        domain: '*',
-      });
-
-      // Allow r53 services to write to the log group
-      const logGroupPolicy = new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
-        policyName: createName({
-          name: 'query-logging-pol',
-        }),
-        policyStatements: [
-          new iam.PolicyStatement({
-            actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
-            principals: [new iam.ServicePrincipal('route53.amazonaws.com')],
-            resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${wildcardLogGroupName}`],
-          }),
-        ],
-      });
-      for (const logGroup of logGroups) {
-        logGroupPolicy.node.addDependency(logGroup);
-      }
-    }
-  }
 
   // TODO Deprecate these outputs
   const logArchiveAccountKey = acceleratorConfig['global-options']['central-log-services'].account;
