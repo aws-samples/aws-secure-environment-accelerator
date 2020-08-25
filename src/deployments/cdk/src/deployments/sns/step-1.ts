@@ -62,7 +62,7 @@ export async function step1(props: SnsStep1Props) {
       timeout: cdk.Duration.minutes(15),
     });
 
-    const ignoreActionFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
+    const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.createIgnoreAction',
       code: lambdaCode,
