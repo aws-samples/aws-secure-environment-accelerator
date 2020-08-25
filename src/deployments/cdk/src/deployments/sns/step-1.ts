@@ -51,16 +51,19 @@ export async function step1(props: SnsStep1Props) {
     const lambdaDir = path.dirname(lambdaPath);
     const lambdaCode = lambda.Code.fromAsset(lambdaDir);
     const role = iam.Role.fromRoleArn(accountStack, `SnsSubscriberLambdaRole`, snsSubscriberLambdaRoleOutput.roleArn);
-    const snsSubscriberFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
-      runtime: lambda.Runtime.NODEJS_12_X,
-      handler: 'index.createSnsPublishToCentralRegion',
-      code: lambdaCode,
-      role,
-      environment: {
-        CENTRAL_LOG_SERVICES_REGION: centralLogServices.region,
-      },
-      timeout: cdk.Duration.minutes(15),
-    });
+    let snsSubscriberFunc: lambda.Function | undefined;
+    if (region !== centralLogServices.region) {
+      snsSubscriberFunc = new lambda.Function(accountStack, `SnsSubscriberLambda`, {
+        runtime: lambda.Runtime.NODEJS_12_X,
+        handler: 'index.createSnsPublishToCentralRegion',
+        code: lambdaCode,
+        role,
+        environment: {
+          CENTRAL_LOG_SERVICES_REGION: centralLogServices.region,
+        },
+        timeout: cdk.Duration.minutes(15),
+      });
+    }
 
     const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
       runtime: lambda.Runtime.NODEJS_12_X,
@@ -90,7 +93,7 @@ export async function step1(props: SnsStep1Props) {
           protocol: sns.SubscriptionProtocol.EMAIL,
           endpoint: ignoreActionFunc.functionArn,
         });
-      } else if (region !== centralLogServices.region) {
+      } else if (region !== centralLogServices.region && snsSubscriberFunc) {
         new sns.Subscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
           topic,
           protocol: sns.SubscriptionProtocol.EMAIL,
