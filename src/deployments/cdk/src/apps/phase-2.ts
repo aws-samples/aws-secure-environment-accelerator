@@ -296,6 +296,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     await snsDeployment.step1({
       accountStacks,
       config: acceleratorConfig,
+      outputs,
     });
   }
 
