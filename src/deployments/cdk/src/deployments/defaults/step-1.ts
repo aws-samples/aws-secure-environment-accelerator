@@ -234,6 +234,15 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     }),
   );
 
+  // Permission to allow checking existence of AWSConfig bucket
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      principals: [new iam.ServicePrincipal('config.amazonaws.com')],
+      actions: ['s3:ListBucket'],
+      resources: [`${logBucket.bucketArn}`],
+    }),
+  );
+
   // Allow cross account encrypt access for logArchive bucket
   logBucket.encryptionKey?.addToResourcePolicy(
     new iam.PolicyStatement({
