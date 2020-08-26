@@ -63,6 +63,11 @@ export async function step1(props: SnsStep1Props) {
         },
         timeout: cdk.Duration.minutes(15),
       });
+
+      snsSubscriberFunc.addPermission(`InvokePermission-SnsSubscriberLambda`, {
+        action: 'lambda:InvokeFunction',
+        principal: new iam.ServicePrincipal('sns.amazonaws.com'),
+      });
     }
 
     const ignoreActionFunc = new lambda.Function(accountStack, `IgnoreActionLambda`, {
@@ -73,6 +78,11 @@ export async function step1(props: SnsStep1Props) {
       timeout: cdk.Duration.minutes(15),
     });
 
+    ignoreActionFunc.addPermission(`InvokePermission-IgnoreActionLambda`, {
+      action: 'lambda:InvokeFunction',
+      principal: new iam.ServicePrincipal('sns.amazonaws.com'),
+    });
+
     for (const notificationType of SNS_NOTIFICATION_TYPES) {
       const topicName = createSnsTopicName(notificationType);
       const topic = new sns.Topic(accountStack, `SnsNotificationTopic${notificationType}`, {
@@ -81,21 +91,21 @@ export async function step1(props: SnsStep1Props) {
       });
       if (region === centralLogServices.region && subscribeEmails && subscribeEmails[notificationType]) {
         subscribeEmails[notificationType].forEach((email, index) => {
-          new sns.Subscription(accountStack, `SNSTopicSubscriptionFor${notificationType}-${index + 1}`, {
-            topic,
+          new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}-${index + 1}`, {
+            topicArn: topic.topicArn,
             protocol: sns.SubscriptionProtocol.EMAIL,
             endpoint: email,
           });
         });
       } else if (region === centralLogServices.region && notificationType.toLowerCase() === 'ignore') {
-        new sns.Subscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
-          topic,
+        new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
+          topicArn: topic.topicArn,
           protocol: sns.SubscriptionProtocol.LAMBDA,
           endpoint: ignoreActionFunc.functionArn,
         });
       } else if (region !== centralLogServices.region && snsSubscriberFunc) {
-        new sns.Subscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
-          topic,
+        new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
+          topicArn: topic.topicArn,
           protocol: sns.SubscriptionProtocol.LAMBDA,
           endpoint: snsSubscriberFunc.functionArn,
         });
