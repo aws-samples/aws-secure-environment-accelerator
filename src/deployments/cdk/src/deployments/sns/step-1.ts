@@ -32,18 +32,18 @@ export async function step1(props: SnsStep1Props) {
     regions.push(centralLogServices.region);
   }
   const subscribeEmails = centralLogServices['sns-subscription-emails'];
+  const snsSubscriberLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: centralLogServices.account,
+    roleKey: 'SnsSubscriberLambda',
+  });
+  if (!snsSubscriberLambdaRoleOutput) {
+    throw new Error(`Role required for SNS Subscription Lambda is not created in ${centralLogServices.account}`);
+  }
   for (const region of regions) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(centralLogServices.account, region);
     if (!accountStack) {
       console.error(`Cannot find account stack ${centralLogServices.account}: ${region}, while deploying SNS`);
-      continue;
-    }
-    const snsSubscriberLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey: centralLogServices.account,
-      roleKey: 'SnsSubscriberLambda',
-    });
-    if (!snsSubscriberLambdaRoleOutput) {
       continue;
     }
     const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
@@ -109,13 +109,6 @@ export async function step1(props: SnsStep1Props) {
           endpoint: snsSubscriberFunc.functionArn,
         });
       }
-
-      // Outputs are not needed for now
-      // new CfnSnsTopicOutput(accountStack, `SnsNotificationTopic${notificationType}Output`, {
-      //   topicArn: topic.topicArn,
-      //   topicKey: notificationType,
-      //   topicName,
-      // });
     }
   }
 }

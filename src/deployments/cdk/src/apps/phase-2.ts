@@ -291,7 +291,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     });
 
     /**
-     * Creating required SNS Topics in Log accont of deploment is through Organizations
+     * Creating required SNS Topics in Log accont if baseline is Organizations
      */
     await snsDeployment.step1({
       accountStacks,

@@ -12,7 +12,7 @@ export interface CreateSnsSubscriberLambdaRoleProps {
 }
 
 export async function createSnsSubscriberLambdaRole(props: CreateSnsSubscriberLambdaRoleProps): Promise<void> {
-  const { accountStacks, config, accounts } = props;
+  const { accountStacks, config } = props;
   const centralLoggingServices = config['global-options']['central-log-services'];
   const accountStack = accountStacks.tryGetOrCreateAccountStack(
     centralLoggingServices.account,
