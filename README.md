@@ -82,8 +82,8 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### Centralized Logging
 
 - Deploys an rsyslog auto-scaling cluster behind an NLB, all syslogs forwarded to CWL
-- Centralizes logging to a single centralize S3 bucket (enables, configures and centralizes)
-  - VPC Flow logs (Enhanced metadata fields and CWL destination coming soon)
+- Centralizes logging to a single centralized S3 bucket (enables, configures and centralizes)
+  - VPC Flow logs w/Enhanced metadata fields (also sent to CWL)
   - Organizational Cost and Usage Reports
   - CloudTrail Logs including S3 Data Plane Logs (also sent to CWL)
   - All CloudWatch Logs (includes rsyslog logs)
@@ -113,18 +113,18 @@ When appropriate, it is envisioned that the AWS Accelerator will add the capabil
 
 This summarizes the installation process, the full installation document can be found in the documentation section below.
 
-- Create a config.json file to represent your organizations requirements (PBMM sample provided)
+- Create a config.json (or config.yaml) file to represent your organizations requirements (PBMM sample provided)
 - Create a Secrets Manager Secret which contains a GitHub token with access to the Accelerator code repo
 - Create a unique S3 input bucket and place your config.json and any additional custom config files in the bucket
 - Download and execute the latest installer CloudFormation template in your master accounts preferred 'primary' region
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
-  - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~15 mins)
-  - The Accelerator State Machine to finish execution (~3hrs)
+  - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~15-20 mins)
+  - The Accelerator State Machine to finish execution (~2hrs)
 - Perform required manual follow-up activities (configure AWS SSO, set firewall passwords, etc.)
 - When required:
   - Use AWS Organizations to create new fully managed and guardrailed AWS accounts
-  - Update the config file in CodeCommit and run the Accelerator State Machine (~20min) to:
+  - Update the config file in CodeCommit and run the Accelerator State Machine (~30min) to:
     - deploy, configure and guardrail multiple accounts at the same time
     - change Accelerator configuration settings
 
