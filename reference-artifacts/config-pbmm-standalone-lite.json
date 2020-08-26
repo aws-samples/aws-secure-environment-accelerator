@@ -6,7 +6,7 @@
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
-    "organization-admin-role": "OrganizationAccountAccessRole",
+    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
     "workloadaccounts-suffix" : 1,
     "workloadaccounts-prefix" : "config",
@@ -64,6 +64,7 @@
       "ssm-to-s3": true,
       "ssm-to-cwl": true
     },
+    "additional-cwl-regions": {},
     "reports": {
       "cost-and-usage-report": {
         "additional-schema-elements": ["RESOURCES"],
@@ -1116,9 +1117,6 @@
       },
       "log-retention": 180,
       "limits": {
-        "AWS Organizations/Maximum accounts": {
-          "value": 20
-        }
       },
       "iam": {
         "users": [

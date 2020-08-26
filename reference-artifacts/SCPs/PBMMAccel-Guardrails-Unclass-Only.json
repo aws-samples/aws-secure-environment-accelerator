@@ -27,7 +27,6 @@
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
-        "access-analyzer:*",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",
@@ -48,6 +47,7 @@
         "iam:*",
         "importexport:*",
         "mobileanalytics:*",
+        "networkmanager:*",
         "organizations:*",
         "pricing:*",
         "route53:*",

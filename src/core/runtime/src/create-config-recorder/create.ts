@@ -121,7 +121,6 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
         configService,
         accountId,
         region,
-        centralSecurityRegion,
         roleArn: configRecorderRole.roleArn,
       });
       errors.push(...createConfig);
@@ -192,11 +191,10 @@ async function createConfigRecorder(props: {
   configService: ConfigService;
   accountId: string;
   region: string;
-  centralSecurityRegion: string;
   roleArn: string;
 }): Promise<string[]> {
   const errors: string[] = [];
-  const { accountId, centralSecurityRegion, configService, region, roleArn, configRecorderName } = props;
+  const { accountId, configService, region, roleArn, configRecorderName } = props;
   console.log('in createConfigRecorder function', region);
   // Create Config Recorder
   try {
@@ -206,7 +204,7 @@ async function createConfigRecorder(props: {
         roleARN: roleArn,
         recordingGroup: {
           allSupported: true,
-          includeGlobalResourceTypes: region === centralSecurityRegion ? true : false,
+          includeGlobalResourceTypes: true,
         },
       },
     });
