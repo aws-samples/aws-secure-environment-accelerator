@@ -63,7 +63,7 @@ export async function step1(props: TransitGatewayStep1Props) {
         vpnEcmpSupport: features?.['VPN-ECMP-support'],
         defaultRouteTableAssociation: features?.['Default-route-table-association'],
         defaultRouteTablePropagation: features?.['Default-route-table-propagation'],
-        autoAcceptSharedAttachments: true,
+        autoAcceptSharedAttachments: features?.['Auto-accept-sharing-attachments'],
       });
 
       const routeTables = tgwConfig['route-tables'] || [];

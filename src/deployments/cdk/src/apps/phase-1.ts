@@ -33,6 +33,7 @@ import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import * as vpcDeployment from '../deployments/vpc';
+import * as transitGateway from '../deployments/transit-gateway';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -446,5 +447,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  await transitGateway.createPeeringAttachment({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
   });
 }

@@ -12,6 +12,8 @@ import * as customResourceRoles from '../deployments/iam';
  *   - Creating required roles for createSSMDocument custom resource
  *   - Creating required roles for createLogGroup custom resource
  *   - Creating required roles for CWLCentralLoggingSubscriptionFilterRole custom resource
+ *   - Creating required roles for TransitGatewayCreatePeeringAttachment custom resource
+ *   - Creating required roles for TransitGatewayAcceptPeeringAttachment custom resource
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts }: PhaseInput) {
   // creates roles for macie custom resources
@@ -55,6 +57,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
   await customResourceRoles.createCwlAddSubscriptionFilterRoles({
     accountStacks,
     accounts,
+    config: acceleratorConfig,
+  });
+
+  // Creates roles for transit gateway create peering attachment custom resource
+  await customResourceRoles.createTgwPeeringRoles({
+    accountStacks,
+    config: acceleratorConfig,
+  });
+
+  // Creates roles for transit gateway accept peering attachment custom resource
+  await customResourceRoles.createTgwAcceptPeeringRoles({
+    accountStacks,
     config: acceleratorConfig,
   });
 }

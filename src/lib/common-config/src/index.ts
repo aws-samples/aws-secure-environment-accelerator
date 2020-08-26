@@ -102,6 +102,30 @@ export const TransitGatewayAttachConfigType = t.interface({
 
 export type TransitGatewayAttachConfig = t.TypeOf<typeof TransitGatewayAttachConfigType>;
 
+export const TransitGatewayRouteConfigType = t.interface({
+  destination: t.string,
+  'target-tgw': optional(t.string),
+  'target-vpc': optional(t.string),
+  'target-vpn': optional(t.string),
+  'blackhole-route': optional(t.boolean),
+});
+
+export const TransitGatewayRouteTablesConfigType = t.interface({
+  name: NonEmptyString,
+  routes: optional(t.array(TransitGatewayRouteConfigType)),
+});
+
+export const TransitGatewayAttachDeploymentConfigType = t.interface({
+  'associate-to-tgw': t.string,
+  account: t.string,
+  region: t.string,
+  'associate-type': t.literal('PEER'),
+  'tgw-rt-associate-local': t.array(t.string),
+  'tgw-rt-associate-remote': t.array(t.string),
+});
+
+export type TransitGatewayAttachDeploymentConfig = t.TypeOf<typeof TransitGatewayAttachDeploymentConfigType>;
+
 export const InterfaceEndpointName = t.string; // TODO Define all endpoints here
 
 export const InterfaceEndpointConfig = t.interface({
@@ -264,9 +288,12 @@ export const TgwDeploymentConfigType = t.interface({
       'VPN-ECMP-support': t.boolean,
       'Default-route-table-association': t.boolean,
       'Default-route-table-propagation': t.boolean,
+      'Auto-accept-sharing-attachments': t.boolean,
     }),
   ),
   'route-tables': optional(t.array(NonEmptyString)),
+  'tgw-attach': optional(TransitGatewayAttachDeploymentConfigType),
+  'tgw-routes': optional(t.array(TransitGatewayRouteTablesConfigType)),
 });
 
 export const PasswordPolicyType = t.interface({
