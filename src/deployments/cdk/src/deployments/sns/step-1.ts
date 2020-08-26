@@ -90,13 +90,13 @@ export async function step1(props: SnsStep1Props) {
       } else if (region === centralLogServices.region && notificationType.toLowerCase() === 'ignore') {
         new sns.Subscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
           topic,
-          protocol: sns.SubscriptionProtocol.EMAIL,
+          protocol: sns.SubscriptionProtocol.LAMBDA,
           endpoint: ignoreActionFunc.functionArn,
         });
       } else if (region !== centralLogServices.region && snsSubscriberFunc) {
         new sns.Subscription(accountStack, `SNSTopicSubscriptionFor${notificationType}`, {
           topic,
-          protocol: sns.SubscriptionProtocol.EMAIL,
+          protocol: sns.SubscriptionProtocol.LAMBDA,
           endpoint: snsSubscriberFunc.functionArn,
         });
       }
