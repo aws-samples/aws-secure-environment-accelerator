@@ -12,7 +12,7 @@ A common misconception is that the AWS Secure Environment Accelerator only deplo
 
 Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with mininal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
 
-Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded:
+Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated manner:
 
 ### Creates AWS Account
 
@@ -29,7 +29,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 ### Creates Networking
 
-- Transit Gateways and TGW route tables
+- Transit Gateways and TGW route tables (incl. inter-region peering coming in v1.1.9)
 - Centralized and/or Local VPC's
 - Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
@@ -78,8 +78,10 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 - Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup
 - Protects Accelerator deployed and managed objects
+- Sets Up SNS Alerting topics (High, Medium, Low, Blockhole priorities) (coming in v1.1.9)
+- Deploys CloudWatch Log Metrics and Alarms (coming in v1.1.9)
 
-### Centralized Logging
+### Centralized Logging and Alerting
 
 - Deploys an rsyslog auto-scaling cluster behind an NLB, all syslogs forwarded to CWL
 - Centralizes logging to a single centralized S3 bucket (enables, configures and centralizes)
