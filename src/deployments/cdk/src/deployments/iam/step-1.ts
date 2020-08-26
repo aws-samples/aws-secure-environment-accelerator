@@ -29,6 +29,21 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
       managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSConfigRole')],
     });
 
+    /**
+     *
+     *  As per the documentation, the config role should have
+     * the s3:PutObject permission to avoid access denied issues
+     * while AWS config tries to check the s3 bucket (in another account) write permissions
+     * https://docs.aws.amazon.com/config/latest/developerguide/s3-bucket-policy.html
+     *
+     */
+    configRecorderRole.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:PutObject'],
+        resources: ['*'],
+      }),
+    );
+
     new CfnIamRoleOutput(accountStack, `ConfigRecorderRoleOutput`, {
       roleName: configRecorderRole.roleName,
       roleArn: configRecorderRole.roleArn,
