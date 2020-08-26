@@ -18,7 +18,7 @@ import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
-import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
 import * as budget from '../deployments/billing/budget';
 import * as certificates from '../deployments/certificates';
@@ -34,6 +34,11 @@ import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
+import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
+import { createR53LogGroupName } from '../common/r53-zones';
+import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
+import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -455,4 +460,54 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
+  
+  /**
+   * Code to create LogGroups required for DNS Logging
+   */
+  const globalOptionsConfig = acceleratorConfig['global-options'];
+  const zonesConfig = globalOptionsConfig.zones;
+  const zonesAccountKey = zonesConfig.account;
+
+  const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
+  const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+    outputs,
+    accountKey: zonesAccountKey,
+    roleKey: 'LogGroupRole',
+  });
+  if (logGroupLambdaRoleOutput) {
+    const logGroups = zonesConfig.names.public.map(phz => {
+      const logGroupName = createR53LogGroupName({
+        acceleratorPrefix: context.acceleratorPrefix,
+        domain: phz,
+      });
+      return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
+        logGroupName,
+        roleArn: logGroupLambdaRoleOutput.roleArn,
+      });
+    });
+
+    if (logGroups.length > 0) {
+      const wildcardLogGroupName = createR53LogGroupName({
+        acceleratorPrefix: context.acceleratorPrefix,
+        domain: '*',
+      });
+
+      // Allow r53 services to write to the log group
+      const logGroupPolicy = new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
+        policyName: createName({
+          name: 'query-logging-pol',
+        }),
+        policyStatements: [
+          new iam.PolicyStatement({
+            actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
+            principals: [new iam.ServicePrincipal('route53.amazonaws.com')],
+            resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${wildcardLogGroupName}`],
+          }),
+        ],
+      });
+      for (const logGroup of logGroups) {
+        logGroupPolicy.node.addDependency(logGroup);
+      }
+    }
+  }
 }

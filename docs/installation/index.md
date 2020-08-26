@@ -101,7 +101,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ## Preparation
 
-### Create a GitHub Personal Access Token.
+### Create a GitHub Personal Access Token and Store in Secrets Manager
 
 1. You require a GitHub access token to access the code repository
 2. Instructions on how to create a personal access token are located here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
@@ -117,7 +117,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### Accelerator Configuration
 
 1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) file as base
-   - Use the version from the branch you are deploying from as some parameters have changed over time
+   - Use the version from the Github code branch you are deploying from as some parameters have changed over time
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
    - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
@@ -134,25 +134,26 @@ If deploying to an internal AWS account, to successfully install the entire solu
 - **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
   - Plan your OU structure, we are suggesting:
     - core, Central, Sandbox, Unclass, Dev, Test, Prod
+    - These OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs)
   - 6 \* RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
     - (one for each OU, except Sandbox which is not routable)
-    - core Class B range will be split to support the Endpoint VPC and Perimeter VPC
-  - 3 \* RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
-    - (MAD, perimeter underlay, perimeter overlay)(non-GC customers can use address space from the core CIDR range)
-  - 3 \* BGP ASN's (TGW, FW Cluster, VGW)
+    - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC
+  - 2 \* RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
+    - (MAD, perimeter underlay)(non-GC customers can use address space from the core CIDR range)
+  - 2 \* BGP ASN's (TGW, FW Cluster)(a third is required if you are deploying a VGW for DX connectivity)
   - A Unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.)
   - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution
   - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]`
   - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]`
   - Wildcard TLS certificate for each of the 2 previous zones
-  - 2 Fortinet FortiGate firewall licenses
+  - 2 Fortinet FortiGate firewall licenses (Eval licenses adequate)
   - We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
 4. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
    - the bucket should be `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the `Accel-Source-Bucket-Key` created above
-5. Place your customized config file, named `config.json`, in your new bucket
+5. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
 6. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
    - Sample available here: `./reference-artifacts/Third-Party/firewall-example.txt`
@@ -161,7 +162,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
    - Sample available here: `./reference-artifacts/Certs-Sample/*`
    - Ideally you would generate real certificates using your existing certificate authority
-   - Should you wish, instructions are provided to aid in generating your own self-signed certificates
+   - Should you wish, instructions are provided to aid in generating your own self-signed certificates (Self signed certificates are NOT secure and simply for demo purposes)
    - Use the examples to demonstrate Accelerator TLS functionality only
 8. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
@@ -175,10 +176,10 @@ If deploying to an internal AWS account, to successfully install the entire solu
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
 6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
 7. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
-8. Add an `Email` address to be used for notification of code releases
+8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.1.7`, case sensitive
+   - the latest stable branch is currently `release/v1.1.8`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -238,7 +239,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
   - STANDALONE VERSION ONLY: We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
 
-    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name you provided in the Accelerator configuration file `global-options\organization-admin-role`, the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`, otherwise we cannot bootstrap the account.
+    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, **_the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`_**, otherwise we cannot bootstrap the account.
     - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
     - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP
 
@@ -272,7 +273,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - this process does NOT create an organization trust role
   - imported accounts do NOT have the quarantine SCP applied as we don't want to break existing workloads
 - Login to the account using the existing administrative credentials
-- Execute the Accelerator provided CloudFormation template to create the required Accelerator bootstrapping role - in the Github repo here: reference-artifacts\Import-Account\cfn-awscloudformationstacksetexecutionrole.template.yml
+- Execute the Accelerator provided CloudFormation template to create the required Accelerator bootstrapping role - in the Github repo here: `reference-artifacts\Custom-Scripts\Import-Account-CFN-Role-Template.yml`
   - add the account to the Accelerator config file and run the state machine
 - If you simply created the account with an incorrect role name, you likely need to take extra steps:
   - Update the Accelerator config file to add the parameter: `global-options\ignored-ous` = `["UnManagedAccounts"]`
@@ -337,13 +338,16 @@ It should be noted that we have added code to the Accelerator to block customers
 - Upgrades to v1.1.5 and above from v1.1.4 and below:
   - requires providing the "overrideComparison": true flag to the State Machine, as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file when this parameter is provided.
   - High probability of a State Machine failure due to a 1hr step timeout limitation. No easy fix available. Simply rerun the State Machine. We are reversing something from the v1.1.4 release which is extremely time consuming.
+- Releases before v1.1.8 incorrectly created and associated resolver rules for private DNS domains. If the associations are not manually removed before upgrade to v1.1.8, the State Machine will fail. We have provided a [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) which needs to be manually run in the `shared-network` account to assist in this cleanup process (or you can manually remove the resolver rule associations).
 
 \*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your fw customizations automatically redeployed, simply add them into the appropriate firewall-example.txt configuration file.
 
-### Summary of Upgrade Steps (to v1.1.7)
+### Summary of Upgrade Steps (to v1.1.7 or v1.1.8)
 
+- Please note we change the GitHub repo name with release v1.1.7
 - Ensure a valid Github token is stored in secrets manager
 - Update the config file in Code Commit with new parameters and updated parameter types (this is important as features are iterating rapidly)
+- For upgrades to v1.1.8, execute the `resolver-rule-cleanup.sh` cleanup script in the shared-network account or manually remove the rule to VPC associations
 - If you are replacing your GitHub Token:
   - Take note of the s3 bucket name from the stack parameters
   - Delete the Installer CFN stack (`PBMMAccel-what-you-provided`)
@@ -385,7 +389,7 @@ It should be noted that we have added code to the Accelerator to block customers
 - v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. Once YAML is suppported we will be providing a version of the config file with comments describing the purpose of each configuration item
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - We only support the subset of yaml that converts to JSON (we do not support anchors)
-- Do not change the `organization-admin-role` unless you have created the new role with appropriate trust relationship in ALL existing accounts
+- We do NOT support changing the `organization-admin-role`, this value must be set to `AWSCloudFormationStackSetExecutionRole` at this time.
 
 ## General Notes
 
@@ -398,16 +402,17 @@ It should be noted that we have added code to the Accelerator to block customers
 
 - ALB automated deployments currently only supports Forward and not redirect rules
 - AWS Config Aggregator is deployed in the Organization master account as enabling through Organizations is much simpler to implement. Organizations only supports deploying the Aggregator in the Org master account and not in a designated master account at this time. Once supported, we will update the code to move the Aggregator master account.
+- We have deployed an Organization CloudTrail which is created in the primary region in the master AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the master account. We are working with the Security Hub team to rectify this situation in a future security hub/Accelerator releases.
 - Amazon Detective - not included
 - Only 1 auto-deployed MAD per AWS account is supported today
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
 - If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and deprovision the first cluster when ready.
 
-## Known Installation Issues:
+## Known Installation Issues (Standalone version):
 
-- All versions are currently experiencing GuardDuty deployment failures in at least one random region, cause and retry behaviour currently under investigation. Simply rerun the State Machine
-- Standalone installation - currently requires manually creating the core ou and moving the master AWS account into it before running the State Machine, otherwise, once the SM fails, simply move the master account into the auto-created core ou and rerun the SM
+- Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy Guardduty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
+- Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the master AWS account into it before running the State Machine, otherwise, once the SM fails, simply move the master account into the auto-created core ou and rerun the SM. This is resolved in v1.1.8.
 
 # AWS Internal - Accelerator Release Process
 
@@ -415,17 +420,19 @@ It should be noted that we have added code to the Accelerator to block customers
 
 1. Ensure `master` is in a suitable state
 2. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
-    * On latest  `master`,  run: `git checkout -b release/vX.Y.Z`
-    * **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself; i.e. every `release/vX.Y.Z` branch will have a corresponding `vX.Y.Z` tag.
+
+   - On latest `master`, run: `git checkout -b release/vX.Y.Z`
+   - **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself; i.e. every `release/vX.Y.Z` branch will have a corresponding `vX.Y.Z` tag.
 
 3. Push that branch to GitHub (if created locally)
-    * `git push origin release/vX.Y.Z`
+
+   - `git push origin release/vX.Y.Z`
 
 4. The release workflow will run, and create a **DRAFT** release if successful with all commits since the last tagged release.
 5. Prune the commits that have been added to the release notes (e.g. remove any low-information commits)
 6. Publish the release - this creates the git tag in the repo and marks the release as latest. It also bumps the `version` key in several project `package.json` files.
 
-    * Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
+   - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
 
 [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
 
