@@ -1,7 +1,6 @@
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
 import * as sns from '@aws-cdk/aws-sns';
-import { CfnSnsTopicOutput } from './outputs';
 import { createSnsTopicName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { SNS_NOTIFICATION_TYPES } from '@aws-accelerator/common/src/util/constants';
 import * as path from 'path';
@@ -32,7 +31,7 @@ export async function step1(props: SnsStep1Props) {
   if (!regions.includes(centralLogServices.region)) {
     regions.push(centralLogServices.region);
   }
-  const subscribeEmails = centralLogServices['subscriber-emails'];
+  const subscribeEmails = centralLogServices['sns-subscription-emails'];
   for (const region of regions) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(centralLogServices.account, region);
     if (!accountStack) {
