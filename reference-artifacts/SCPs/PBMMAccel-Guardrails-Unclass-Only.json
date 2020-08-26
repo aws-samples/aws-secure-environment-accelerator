@@ -27,7 +27,6 @@
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
-        "access-analyzer:*",
         "aws-marketplace-management:*",
         "aws-marketplace:*",
         "aws-portal:*",

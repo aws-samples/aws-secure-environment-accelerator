@@ -78,16 +78,6 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "conformance-packs": [
-      {
-        "gc-pack": {
-          "install": true,
-          "auto-remediation": true,
-          "monitoring": true,
-          "frequency": 24
-        }
-      }
-    ],
     "zones": {
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
@@ -487,7 +477,7 @@
           "central-resolver-rule-account": "shared-network",
           "central-resolver-rule-vpc": "Endpoint",
           "log-group-name": "/PBMMAccel/MAD/example.local",
-          "share-to-account": "master",
+          "share-to-account": "",
           "restrict_srcips": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"],
           "num-rdgw-hosts": 1,
           "min-rdgw-hosts": 1,
@@ -1146,7 +1136,7 @@
       "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "landing-zone-account-type": "primary",
-      "share-mad-from": "operations",
+      "share-mad-from": "",
       "src-filename": "config.json",
       "budget": {
         "name": "Organization Budget",
@@ -3260,14 +3250,6 @@
           }
         ]
       },
-      "certificates": [
-        {
-          "name": "UnclassSelf-SignedCert",
-          "type": "import",
-          "priv-key": "certs/example1-cert.key",
-          "cert": "certs/example1-cert.crt"
-        }
-      ],
       "vpc": [
         {
           "deploy": "shared-network",
