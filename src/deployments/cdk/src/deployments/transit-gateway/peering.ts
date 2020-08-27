@@ -87,15 +87,23 @@ export async function createPeeringAttachment(props: TransitGatewayPeeringProps)
       );
 
       new CfnTransitGatewayPeeringAttachmentOutput(accountStack, `TgwPeeringAttachmentOutput${tgwConfig.name}`, {
-        accountKey,
-        region: tgwConfig.region,
-        name: tgwConfig.name,
-        tgwId: tgwRequestorOutput.tgwId,
-        targetTgwName: tgwAttach['associate-to-tgw'],
-        targetTgwId: tgwAcceptorOutput.tgwId,
-        targetRegion: tgwAttach.region,
-        tagValue: `${tgwConfig.name}_to${tgwAttach['associate-to-tgw']}_peer`,
         tgwAttachmentId: createPeeringAttachmentResource.attachmentId,
+        tagValue: `${tgwConfig.name}_to${tgwAttach['associate-to-tgw']}_peer`,
+        sourceTgw: tgwConfig.name,
+        tgws: [
+          {
+            name: tgwConfig.name,
+            accountKey,
+            region: tgwConfig.region,
+            tgwId: tgwRequestorOutput.tgwId,
+          },
+          {
+            name: tgwAttach['associate-to-tgw'],
+            accountKey: tgwAttach.account,
+            region: tgwAttach.region,
+            tgwId: tgwAcceptorOutput.tgwId,
+          },
+        ],
       });
     }
   }
@@ -116,37 +124,39 @@ export async function acceptPeeringAttachment(props: TransitGatewayPeeringProps)
         outputs,
       });
 
-      const tgwPeeringAttachments = tgwPeeringAttachmentOutputs
-        .flatMap(array => array)
-        .filter(peer => peer.targetTgwName === tgwConfig.name && peer.targetRegion === tgwConfig.region);
-      console.log('tgwPeeringAttachments', tgwPeeringAttachments);
-      if (tgwPeeringAttachments.length === 0) {
+      const tgwPeeringAttachment = tgwPeeringAttachmentOutputs.find(output => {
+        const tgwPeer = output.tgws.find(tgw => tgw.name === tgwConfig.name && tgw.region === tgwConfig.region);
+        return !!tgwPeer;
+      });
+      if (
+        !tgwPeeringAttachment ||
+        !tgwPeeringAttachment.tgwAttachmentId ||
+        tgwPeeringAttachment.sourceTgw === tgwConfig.name
+      ) {
         continue;
       }
 
-      for (const tgwPeeringAttachment of tgwPeeringAttachments) {
-        const tgwAcceptPeeringRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-          outputs,
-          accountKey,
-          roleKey: 'TgwAcceptPeeringRole',
-        });
-        console.log('tgwAcceptPeeringRoleOutput', tgwAcceptPeeringRoleOutput);
-        if (!tgwAcceptPeeringRoleOutput) {
-          continue;
-        }
-
-        const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, tgwConfig.region);
-        if (!accountStack) {
-          console.warn(`Cannot find account stack ${accountKey} in region ${tgwConfig.region}`);
-          continue;
-        }
-
-        new TransitGatewayAcceptPeeringAttachment(accountStack, `AcceptSharing${tgwConfig.name}`, {
-          transitGatewayAttachmentId: tgwPeeringAttachment.tgwAttachmentId,
-          tagValue: tgwPeeringAttachment.tagValue,
-          roleArn: tgwAcceptPeeringRoleOutput.roleArn,
-        });
+      const tgwAcceptPeeringRoleOutput = IamRoleOutputFinder.tryFindOneByName({
+        outputs,
+        accountKey,
+        roleKey: 'TgwAcceptPeeringRole',
+      });
+      console.log('tgwAcceptPeeringRoleOutput', tgwAcceptPeeringRoleOutput);
+      if (!tgwAcceptPeeringRoleOutput) {
+        continue;
       }
+
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, tgwConfig.region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey} in region ${tgwConfig.region}`);
+        continue;
+      }
+
+      new TransitGatewayAcceptPeeringAttachment(accountStack, `AcceptSharing${tgwConfig.name}`, {
+        transitGatewayAttachmentId: tgwPeeringAttachment.tgwAttachmentId,
+        tagValue: tgwPeeringAttachment.tagValue,
+        roleArn: tgwAcceptPeeringRoleOutput.roleArn,
+      });
     }
   }
 }

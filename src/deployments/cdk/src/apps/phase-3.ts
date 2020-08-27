@@ -9,6 +9,7 @@ import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-ou
 import { CentralBucketOutput, AccountBucketOutput } from '../deployments/defaults';
 import * as securityHub from '../deployments/security-hub';
 import * as macie from '../deployments/macie';
+import * as transitGateway from '../deployments/transit-gateway';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   /**
@@ -99,6 +100,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   await macie.step3({
     accountBuckets,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await transitGateway.step3({
     accountStacks,
     accounts,
     config: acceleratorConfig,

@@ -124,6 +124,7 @@ export const TransitGatewayAttachDeploymentConfigType = t.interface({
   'tgw-rt-associate-remote': t.array(t.string),
 });
 
+export type TransitGatewayRouteTablesConfig = t.TypeOf<typeof TransitGatewayRouteTablesConfigType>;
 export type TransitGatewayAttachDeploymentConfig = t.TypeOf<typeof TransitGatewayAttachDeploymentConfigType>;
 
 export const InterfaceEndpointName = t.string; // TODO Define all endpoints here

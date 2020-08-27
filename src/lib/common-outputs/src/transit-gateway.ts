@@ -47,15 +47,17 @@ export const TransitGatewayAttachmentOutputFinder = createStructuredOutputFinder
 
 export const TransitGatewayPeeringAttachmentOutput = t.interface(
   {
-    accountKey: t.string,
-    region: t.string,
-    name: t.string,
     tgwAttachmentId: t.string,
-    tgwId: t.string,
-    targetTgwName: t.string,
-    targetTgwId: t.string,
-    targetRegion: t.string,
     tagValue: t.string,
+    sourceTgw: t.string,
+    tgws: t.array(
+      t.interface({
+        name: t.string,
+        accountKey: t.string,
+        region: t.string,
+        tgwId: t.string,
+      }),
+    ),
   },
   'TgwPeeringAttachmentOutput',
 );
@@ -64,13 +66,5 @@ export type TransitGatewayPeeringAttachmentOutput = t.TypeOf<typeof TransitGatew
 
 export const TransitGatewayPeeringAttachmentOutputFinder = createStructuredOutputFinder(
   TransitGatewayPeeringAttachmentOutput,
-  finder => ({
-    tryFindOneByName: (props: { outputs: StackOutput[]; accountKey?: string; name: string; region?: string }) =>
-      finder.tryFindOne({
-        outputs: props.outputs,
-        accountKey: props.accountKey,
-        region: props.region,
-        predicate: o => o.name === props.name,
-      }),
-  }),
+  finder => ({}),
 );
