@@ -57,4 +57,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     accounts,
     config: acceleratorConfig,
   });
+
+  // Creates role for createLogsMetricFilter custom resource
+  await customResourceRoles.createLogsMetricFilterRole({
+    accountStacks,
+    accounts,
+  });
 }
