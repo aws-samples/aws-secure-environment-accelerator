@@ -68,13 +68,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
   });
 
   // Creates roles for transit gateway create peering attachment custom resource
-  await customResourceRoles.createTgwPeeringRoles({
+  await globalRoles.createTgwPeeringRoles({
     accountStacks,
     config: acceleratorConfig,
   });
 
   // Creates roles for transit gateway accept peering attachment custom resource
-  await customResourceRoles.createTgwAcceptPeeringRoles({
+  await globalRoles.createTgwAcceptPeeringRoles({
     accountStacks,
     config: acceleratorConfig,
   });
