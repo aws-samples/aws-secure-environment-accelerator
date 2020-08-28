@@ -5,9 +5,10 @@ import { throttlingBackOff } from './backoff';
 export class SNS {
   private readonly client: aws.SNS;
 
-  constructor(credentials?: aws.Credentials) {
+  constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.SNS({
       credentials,
+      region,
     });
   }
 
