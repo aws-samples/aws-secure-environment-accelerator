@@ -458,7 +458,6 @@
               "associate-to-tgw": "Main",
               "account": "shared-network",
               "region": "ca-central-1",
-              "associate-type": "PEER",
               "tgw-rt-associate-local": ["core"],
               "tgw-rt-associate-remote": ["core"]
             },

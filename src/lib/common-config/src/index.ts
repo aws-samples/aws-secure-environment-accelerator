@@ -127,7 +127,6 @@ export const TransitGatewayAttachDeploymentConfigType = t.interface({
   'associate-to-tgw': t.string,
   account: t.string,
   region: t.string,
-  'associate-type': t.literal('PEER'),
   'tgw-rt-associate-local': t.array(t.string),
   'tgw-rt-associate-remote': t.array(t.string),
 });
