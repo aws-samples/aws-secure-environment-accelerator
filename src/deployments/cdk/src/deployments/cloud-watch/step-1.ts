@@ -22,13 +22,13 @@ export async function step1(props: CloudWatchStep1Props) {
     const accountKeys: string[] = [];
     const regions: string[] = [];
     if (metricConfig.accounts && metricConfig.accounts.includes('ALL')) {
-      // Ignore for now implementation will come in phase 2
+      // TODO Ignore for now implementation will come in phase 2
     } else {
       accountKeys.push(...metricConfig.accounts);
     }
 
     if (metricConfig.regions && metricConfig.regions.includes('ALL')) {
-      // Ignore for now implementation will come in phase 2
+      // TODO Ignore for now implementation will come in phase 2
     } else {
       regions.push(...metricConfig.regions);
     }

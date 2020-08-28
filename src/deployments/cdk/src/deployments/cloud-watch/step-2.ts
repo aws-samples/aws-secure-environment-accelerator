@@ -25,13 +25,13 @@ export async function step2(props: CloudWatchStep2Props) {
     const accountKeys: string[] = [];
     const regions: string[] = [];
     if (alarmconfig.accounts && alarmconfig.accounts.includes('ALL')) {
-      // Ignore for now implementation will come in phase 2
+      // TODO Ignore for now implementation will come in phase 2
     } else {
       accountKeys.push(...(alarmconfig.accounts || alarmDefaultDefinition['default-accounts']));
     }
 
     if (alarmconfig.regions && alarmconfig.regions.includes('ALL')) {
-      // Ignore for now implementation will come in phase 2
+      // TODO Ignore for now implementation will come in phase 2
     } else {
       regions.push(...(alarmconfig.regions || alarmDefaultDefinition['default-regions']));
     }
