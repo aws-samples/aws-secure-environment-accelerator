@@ -20,6 +20,11 @@ export const VpcSubnetOutput = t.interface({
   cidrBlock: t.string,
 });
 
+export const TgwAttachmentOutput = t.interface({
+  name: t.string,
+  id: t.string,
+});
+
 // export const VpcRouteTableOutput = t.interface({
 //   routeTableId: t.string,
 //   routeTableName: t.string,
@@ -42,6 +47,7 @@ export const VpcOutput = t.interface(
     // routeTables: t.array(VpcRouteTableOutput),
     routeTables: t.record(t.string, t.string),
     securityGroups: t.array(VpcSecurityGroupOutput),
+    tgwAttachments: t.array(TgwAttachmentOutput),
   },
   'VpcOutput',
 );

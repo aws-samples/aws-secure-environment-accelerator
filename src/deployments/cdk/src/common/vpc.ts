@@ -60,6 +60,11 @@ export interface NameToIdMap {
   [key: string]: string;
 }
 
+export interface TgwAttachment {
+  name: string;
+  id: string;
+}
+
 /**
  * Auxiliary class that makes management and lookup of subnets easier.
  */
@@ -124,6 +129,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   readonly securityGroup?: SecurityGroup;
   readonly routeTableNameToIdMap: NameToIdMap = {};
+
+  readonly tgwAttachments: TgwAttachment[] = [];
 
   constructor(scope: cdk.Construct, name: string, vpcProps: VpcProps) {
     super(scope, name);
@@ -318,6 +325,12 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           vpcId: this.vpcId,
           subnetIds,
           transitGatewayId: tgw.tgwId,
+        });
+
+        // TODO add VPC To TGW attachment output
+        this.tgwAttachments.push({
+          name: tgw.name,
+          id: tgwAttachment!.transitGatewayAttachmentId,
         });
 
         const ownerAccountId = getAccountId(accounts, tgwAttach.account);
@@ -529,6 +542,10 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
 
   get securityGroups(): constructs.SecurityGroup[] {
     return this.securityGroup?.securityGroups || [];
+  }
+
+  get tgwAVpcAttachments(): constructs.TgwAttachment[] {
+    return this.tgwAttachments;
   }
 
   findSubnetByNameAndAvailabilityZone(name: string, az: string): constructs.Subnet {

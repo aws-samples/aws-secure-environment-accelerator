@@ -199,6 +199,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           securityGroupName: name,
         }),
       ),
+      tgwAttachments: vpc.tgwAVpcAttachments,
     });
 
     return vpcStack.vpc;
@@ -460,7 +461,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
-  
+
   /**
    * Code to create LogGroups required for DNS Logging
    */

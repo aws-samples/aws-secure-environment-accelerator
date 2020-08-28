@@ -66,5 +66,5 @@ export type TransitGatewayPeeringAttachmentOutput = t.TypeOf<typeof TransitGatew
 
 export const TransitGatewayPeeringAttachmentOutputFinder = createStructuredOutputFinder(
   TransitGatewayPeeringAttachmentOutput,
-  finder => ({}),
+  () => ({}),
 );

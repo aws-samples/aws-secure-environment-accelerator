@@ -47,7 +47,7 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   );
   return {
     data: {
-      peeringAttachmentId: peeringAttachment?.TransitGatewayPeeringAttachment?.TransitGatewayAttachmentId,
+      peeringAttachmentId: peeringAttachment.TransitGatewayPeeringAttachment!.TransitGatewayAttachmentId,
     },
   };
 }

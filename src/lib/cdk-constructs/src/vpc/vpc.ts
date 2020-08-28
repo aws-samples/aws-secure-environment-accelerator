@@ -14,6 +14,11 @@ export interface RouteTables {
   [key: string]: string;
 }
 
+export interface TgwAttachment {
+  name: string;
+  id: string;
+}
+
 export interface Vpc {
   id: string;
   name: string;
@@ -24,6 +29,8 @@ export interface Vpc {
 
   subnets: Subnet[];
   securityGroups: SecurityGroup[];
+
+  tgwAttachments: TgwAttachment[];
 
   findSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet;
   tryFindSubnetByNameAndAvailabilityZone(name: string, az: string): Subnet | undefined;

@@ -110,6 +110,8 @@ export const TransitGatewayRouteConfigType = t.interface({
   'blackhole-route': optional(t.boolean),
 });
 
+export type TransitGatewayRouteConfig = t.TypeOf<typeof TransitGatewayRouteConfigType>;
+
 export const TransitGatewayRouteTablesConfigType = t.interface({
   name: NonEmptyString,
   routes: optional(t.array(TransitGatewayRouteConfigType)),

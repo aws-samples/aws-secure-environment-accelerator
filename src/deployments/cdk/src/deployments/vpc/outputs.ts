@@ -1,4 +1,4 @@
-import { Vpc, SecurityGroup, Subnet, RouteTables } from '@aws-accelerator/cdk-constructs/src/vpc';
+import { Vpc, SecurityGroup, Subnet, RouteTables, TgwAttachment } from '@aws-accelerator/cdk-constructs/src/vpc';
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import { createCfnStructuredOutput } from '../../common/structured-output';
 
@@ -21,6 +21,8 @@ export interface ImportedVpcProps {
   readonly securityGroups: SecurityGroup[];
 
   readonly routeTables: RouteTables;
+
+  readonly tgwAttachments: TgwAttachment[];
 }
 
 export class ImportedVpc implements Vpc {
@@ -32,6 +34,7 @@ export class ImportedVpc implements Vpc {
   readonly subnets = this.props.subnets;
   readonly securityGroups = this.props.securityGroups;
   readonly routeTables = this.props.routeTables;
+  readonly tgwAttachments = this.props.tgwAttachments;
 
   constructor(private readonly props: ImportedVpcProps) {}
 
@@ -101,6 +104,7 @@ export class ImportedVpc implements Vpc {
         name: sg.securityGroupName,
       })),
       routeTables: output.routeTables,
+      tgwAttachments: output.tgwAttachments,
     });
   }
 }

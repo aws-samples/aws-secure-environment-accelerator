@@ -13,6 +13,8 @@ import {
   FirewallVpnConnection,
   CfnFirewallVpnConnectionOutput,
   FirewallPortOutputFinder,
+  TgwVpnAttachment,
+  CfnTgwVpnAttachmentsOutput,
 } from './outputs';
 
 export interface FirewallStep2Props {
@@ -109,6 +111,7 @@ async function createCustomerGateways(props: {
 
   const addTagsDependencies = [];
   const addTagsToResources: AddTagsToResource[] = [];
+  const tgwAttachments: TgwVpnAttachment[] = [];
 
   for (const [index, port] of Object.entries(firewallPorts)) {
     if (port.firewallName !== firewallConfig.name) {
@@ -151,6 +154,12 @@ async function createCustomerGateways(props: {
       const attachments = new VpnAttachments(scope, `VpnAttachments${index}`, {
         vpnConnectionId: vpnConnection.ref,
         tgwId: transitGateway.tgwId,
+      });
+
+      tgwAttachments.push({
+        subnet: port.subnetName,
+        az: port.az,
+        id: attachments.getTransitGatewayAttachmentId(0),
       });
 
       // Make sure to add the tags to the VPN attachments
@@ -208,4 +217,9 @@ async function createCustomerGateways(props: {
 
   // Store the firewall VPN connections as outputs
   new CfnFirewallVpnConnectionOutput(scope, `FirewallVpnConnections${firewallConfig.name}`, vpnConnections);
+
+  new CfnTgwVpnAttachmentsOutput(scope, `TgwVpnAttachments${firewallConfig.name}`, {
+    name: firewallCgwName,
+    attachments: tgwAttachments,
+  });
 }

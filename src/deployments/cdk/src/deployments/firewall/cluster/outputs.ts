@@ -2,6 +2,7 @@ import * as t from 'io-ts';
 import { optional } from '@aws-accelerator/common-types';
 import { createCfnStructuredOutput } from '../../../common/structured-output';
 import { createStructuredOutputFinder } from '@aws-accelerator/common-outputs/src/structured-output';
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 export const FirewallInstanceOutput = t.interface(
   {
@@ -70,3 +71,33 @@ export type FirewallVpnConnectionOutput = t.TypeOf<typeof FirewallVpnConnectionO
 export const CfnFirewallVpnConnectionOutput = createCfnStructuredOutput(FirewallVpnConnectionOutput);
 
 export const FirewallVpnConnectionOutputFinder = createStructuredOutputFinder(FirewallVpnConnectionOutput, () => ({}));
+
+export const TgwVpnAttachment = t.interface({
+  subnet: t.string,
+  az: t.string,
+  id: t.string,
+});
+
+export type TgwVpnAttachment = t.TypeOf<typeof TgwVpnAttachment>;
+
+export const TgwVpnAttachmentsOutput = t.interface(
+  {
+    name: t.string,
+    attachments: t.array(TgwVpnAttachment),
+  },
+  'TgwVpnAttachmentsOutput',
+);
+
+export type TgwVpnAttachmentsOutput = t.TypeOf<typeof TgwVpnAttachmentsOutput>;
+
+export const CfnTgwVpnAttachmentsOutput = createCfnStructuredOutput(TgwVpnAttachmentsOutput);
+
+export const TgwVpnAttachmentsOutputFinder = createStructuredOutputFinder(TgwVpnAttachmentsOutput, finder => ({
+  tryFindOneByName: (props: { outputs: StackOutput[]; accountKey?: string; name: string; region?: string }) =>
+    finder.tryFindOne({
+      outputs: props.outputs,
+      accountKey: props.accountKey,
+      region: props.region,
+      predicate: o => o.name === props.name,
+    }),
+}));
