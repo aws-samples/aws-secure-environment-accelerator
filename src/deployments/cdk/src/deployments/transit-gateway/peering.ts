@@ -41,7 +41,6 @@ export async function createPeeringAttachment(props: TransitGatewayPeeringProps)
         name: tgwConfig.name,
         region: tgwConfig.region,
       });
-      console.log('tgwRequestorOutput', tgwRequestorOutput);
       if (!tgwRequestorOutput) {
         continue;
       }
@@ -52,7 +51,6 @@ export async function createPeeringAttachment(props: TransitGatewayPeeringProps)
         name: tgwAttach['associate-to-tgw'],
         region: tgwAttach.region,
       });
-      console.log('tgwAcceptorOutput', tgwAcceptorOutput);
       if (!tgwAcceptorOutput) {
         continue;
       }
@@ -62,7 +60,6 @@ export async function createPeeringAttachment(props: TransitGatewayPeeringProps)
         accountKey,
         roleKey: 'TgwCreatePeeringRole',
       });
-      console.log('tgwCreatePeeringRoleOutput', tgwCreatePeeringRoleOutput);
       if (!tgwCreatePeeringRoleOutput) {
         continue;
       }
@@ -141,7 +138,6 @@ export async function acceptPeeringAttachment(props: TransitGatewayPeeringProps)
         accountKey,
         roleKey: 'TgwAcceptPeeringRole',
       });
-      console.log('tgwAcceptPeeringRoleOutput', tgwAcceptPeeringRoleOutput);
       if (!tgwAcceptPeeringRoleOutput) {
         continue;
       }
