@@ -32,7 +32,11 @@ async function createTgwRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['ec2:CreateTransitGatewayPeeringAttachment', 'ec2:CreateTags'],
+      actions: [
+        'ec2:CreateTransitGatewayPeeringAttachment',
+        'ec2:DeleteTransitGatewayPeeringAttachment',
+        'ec2:CreateTags',
+      ],
       resources: ['*'],
     }),
   );
