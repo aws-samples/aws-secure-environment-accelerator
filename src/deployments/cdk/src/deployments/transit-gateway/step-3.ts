@@ -10,6 +10,8 @@ import { Account } from '../../utils/accounts';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as cdk from '@aws-cdk/core';
+import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
+import { TgwVpnAttachmentsOutputFinder } from '../firewall/cluster/outputs';
 
 export interface TransitGatewayStep3Props {
   accountStacks: AccountStacks;
@@ -45,11 +47,16 @@ export async function step3(props: TransitGatewayStep3Props) {
         continue;
       }
 
+      const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, tgwConfig.region);
+      if (!accountStack) {
+        console.warn(`Cannot find account stack ${accountKey} in region ${tgwConfig.region}`);
+        continue;
+      }
+
       const tgwPeeringAttachment = tgwPeeringAttachmentOutputs.find(output => {
         const tgwPeer = output.tgws.find(tgw => tgw.name === tgwConfig.name && tgw.region === tgwConfig.region);
         return !!tgwPeer;
       });
-      console.log('tgwPeeringAttachment', tgwPeeringAttachment);
       if (!tgwPeeringAttachment) {
         continue;
       }
@@ -64,15 +71,54 @@ export async function step3(props: TransitGatewayStep3Props) {
         }
 
         for (const route of tgwRoute.routes) {
-          if (route['target-tgw']) {
-            CreatePeerRoutes(
-              accountStacks,
-              route,
+          if (route['target-tgw'] || route['blackhole-route']) {
+            CreateRoute(
+              accountStack,
+              route.destination,
               tgwRoute.name,
-              tgwPeeringAttachment,
-              tgwConfig,
-              accountKey,
+              tgwPeeringAttachment.tgwAttachmentId,
               transitGateway,
+              route['blackhole-route'],
+            );
+          } else if (route['target-vpc']) {
+            const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+              outputs,
+              accountKey,
+              region: tgwConfig.region,
+              vpcName: route['target-vpc'],
+            });
+            if (!vpcOutput) {
+              console.warn(`Cannot find VPC "${route['target-vpc']}" in outputs`);
+              continue;
+            }
+            const tgwAttachmentIds = vpcOutput.tgwAttachments.map(t => t.id);
+            CreateRoutes(
+              accountStack,
+              route.destination,
+              tgwRoute.name,
+              tgwAttachmentIds,
+              transitGateway,
+              route['blackhole-route'],
+            );
+          } else if (route['target-vpn']) {
+            const vpnAttachments = TgwVpnAttachmentsOutputFinder.tryFindOneByName({
+              outputs,
+              accountKey,
+              name: route['target-vpn'],
+              region: tgwConfig.region,
+            });
+            if (!vpnAttachments) {
+              console.warn(`Cannot find VPN "${route['target-vpn']}" in outputs`);
+              continue;
+            }
+            const tgwAttachmentIds = vpnAttachments.attachments.map(t => t.id);
+            CreateRoutes(
+              accountStack,
+              route.destination,
+              tgwRoute.name,
+              [tgwAttachmentIds[0]], // TODO static routes not allowing more than 1 attachment
+              transitGateway,
+              route['blackhole-route'],
             );
           }
         }
@@ -113,43 +159,35 @@ export async function step3(props: TransitGatewayStep3Props) {
   }
 }
 
-function CreatePeerRoutes(
-  accountStacks: AccountStacks,
-  route: TransitGatewayRouteConfig,
+function CreateRoutes(
+  scope: cdk.Construct,
+  cidr: string,
   routeName: string,
-  tgwPeeringAttachment: TransitGatewayPeeringAttachmentOutput,
-  tgwConfig: TgwDeploymentConfig,
-  accountKey: string,
+  attachmentIds: string[],
   transitGateway: TransitGatewayOutput,
+  blackhole?: boolean,
 ) {
-  const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, tgwConfig.region);
-  if (!accountStack) {
-    console.warn(`Cannot find account stack ${accountKey} in region ${tgwConfig.region}`);
-    return;
+  for (const attachmentId of attachmentIds || []) {
+    CreateRoute(scope, cidr, routeName, attachmentId, transitGateway, blackhole);
   }
+}
 
+function CreateRoute(
+  scope: cdk.Construct,
+  cidr: string,
+  routeName: string,
+  attachmentId: string,
+  transitGateway: TransitGatewayOutput,
+  blackhole?: boolean,
+) {
   const routesMap = transitGateway.tgwRouteTableNameToIdMap;
   if (routeName === '{TGW_ALL}') {
-    console.log('tgwRouteTableNameToIdMap', routesMap);
-    for (const key in routesMap) {
-      CreateTransitGatewayRoute(
-        accountStack,
-        key,
-        tgwPeeringAttachment.tgwAttachmentId,
-        routesMap[key],
-        route.destination,
-      );
+    for (const key of Object.keys(routesMap)) {
+      CreateTransitGatewayRoute(scope, key, attachmentId, routesMap[key], cidr, blackhole);
     }
   } else {
     const routeId = routesMap[routeName];
-    console.log('route name', 'tgwRouteTableNameToIdMap routeId', routeName, routeId);
-    CreateTransitGatewayRoute(
-      accountStack,
-      routeName,
-      tgwPeeringAttachment.tgwAttachmentId,
-      routeId,
-      route.destination,
-    );
+    CreateTransitGatewayRoute(scope, routeName, attachmentId, routeId, cidr, blackhole);
   }
 }
 
@@ -161,15 +199,15 @@ function CreateAssociations(
   transitGateway: TransitGatewayOutput,
   routes: string[],
 ) {
+  const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
+  if (!accountStack) {
+    console.warn(`Cannot find account stack ${accountKey} in region ${region}`);
+    return;
+  }
+
   for (const route of routes) {
     const routeId = transitGateway.tgwRouteTableNameToIdMap[route];
     const tgwPeeringAttachmentId = tgwPeeringAttachment.tgwAttachmentId;
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey} in region ${region}`);
-      continue;
-    }
 
     new ec2.CfnTransitGatewayRouteTableAssociation(accountStack, `tgw_associate_${route}`, {
       transitGatewayAttachmentId: tgwPeeringAttachmentId,
@@ -184,10 +222,21 @@ function CreateTransitGatewayRoute(
   attachmentId: string,
   routeId: string,
   cidrBlock: string,
+  blackhole?: boolean,
 ) {
-  new ec2.CfnTransitGatewayRoute(scope, `tgw_route_${name}`, {
-    transitGatewayAttachmentId: attachmentId,
-    transitGatewayRouteTableId: routeId,
-    destinationCidrBlock: cidrBlock,
-  });
+  // TODO need to update the id by calculating the hash of the properties
+  const id = `${name}${attachmentId}${routeId}${cidrBlock}${blackhole}`;
+  if (!blackhole) {
+    new ec2.CfnTransitGatewayRoute(scope, `tgw_route_${id}`, {
+      transitGatewayAttachmentId: attachmentId,
+      transitGatewayRouteTableId: routeId,
+      destinationCidrBlock: cidrBlock,
+    });
+  } else {
+    new ec2.CfnTransitGatewayRoute(scope, `tgw_blackhole_${id}`, {
+      blackhole: true,
+      transitGatewayRouteTableId: routeId,
+      destinationCidrBlock: cidrBlock,
+    });
+  }
 }

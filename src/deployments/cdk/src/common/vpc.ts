@@ -330,7 +330,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         // TODO add VPC To TGW attachment output
         this.tgwAttachments.push({
           name: tgw.name,
-          id: tgwAttachment!.transitGatewayAttachmentId,
+          id: tgwAttachment.transitGatewayAttachmentId,
         });
 
         const ownerAccountId = getAccountId(accounts, tgwAttach.account);
