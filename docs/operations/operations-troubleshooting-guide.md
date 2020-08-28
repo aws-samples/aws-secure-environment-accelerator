@@ -7,58 +7,63 @@
 > - How to update the configuration file?
 > - How to restart the installer?
 
-- [Operations & Troubleshooting Guide](#operations--troubleshooting-guide)
-  - [System Overview](#system-overview)
-    - [Installer Stack](#installer-stack)
-    - [Initial Setup Stack](#initial-setup-stack)
-      - [Get or Create Configuration from S3](#get-or-create-configuration-from-s3)
-      - [Compare Configurations](#compare-configurations)
-      - [Get Baseline from Configuration](#get-baseline-from-configuration)
-      - [Load Landing Zone Configuration](#load-landing-zone-configuration)
-      - [Add Execution Role to Service Catalog](#add-execution-role-to-service-catalog)
-      - [Create Landing Zone Account](#create-landing-zone-account)
-      - [Organizational Unit Validation](#organizational-unit-validation)
-      - [Load Organization Configuration](#load-organization-configuration)
-      - [Install CloudFormation Role in Master](#install-cloudformation-role-in-master)
-      - [Create Organization Account](#create-organization-account)
-      - [Load Organizational Units](#load-organizational-units)
-      - [Load Accounts](#load-accounts)
-      - [Install Execution Roles](#install-execution-roles)
-      - [Delete Default VPCs](#delete-default-vpcs)
-      - [Load Limits](#load-limits)
-      - [Enable Trusted Access for Services](#enable-trusted-access-for-services)
-      - [Deploy Phase 0](#deploy-phase-0)
-      - [Store Phase 0 Output](#store-phase-0-output)
-      - [Add SCPs to Organization](#add-scps-to-organization)
-      - [Deploy Phase 1](#deploy-phase-1)
-      - [Store Phase 1 Output](#store-phase-1-output)
-      - [Account Default Settings](#account-default-settings)
-      - [Deploy Phase 2](#deploy-phase-2)
-      - [Store Phase 2 Output](#store-phase-2-output)
-      - [Deploy Phase 3](#deploy-phase-3)
-      - [Store Phase 3 Output](#store-phase-3-output)
-      - [Deploy Phase 4](#deploy-phase-4)
-      - [Store Phase 4 Output](#store-phase-4-output)
-      - [Associate Hosted Zones](#associate-hosted-zones)
-      - [Add Tags to Shared Resources](#add-tags-to-shared-resources)
-      - [Enable Directory Sharing](#enable-directory-sharing)
-      - [Deploy Phase 5](#deploy-phase-5)
-      - [Create AD Connector](#create-ad-connector)
-      - [Store Commit ID](#store-commit-id)
-      - [Detach Quarantine SCP](#detach-quarantine-scp)
-  - [Troubleshooting](#troubleshooting)
-    - [Components](#components)
-      - [CodePipeline](#codepipeline)
-      - [CodeBuild](#codebuild)
-      - [CloudFormation](#cloudformation)
-      - [Custom Resource](#custom-resource)
-      - [CloudWatch](#cloudwatch)
-      - [State Machine](#state-machine)
-    - [How-to](#how-to)
-      - [Restart the State Machine](#restart-the-state-machine)
-      - [Switch To a Managed Account](#switch-to-a-managed-account)
+# Table of Contents
 
-## System Overview
+<!-- TOC depthFrom:2 -->
+
+- [2. System Overview](#2-system-overview)
+  - [2.1. Installer Stack](#21-installer-stack)
+  - [2.2. Initial Setup Stack](#22-initial-setup-stack)
+    - [2.2.1. Get or Create Configuration from S3](#221-get-or-create-configuration-from-s3)
+    - [2.2.2. Compare Configurations](#222-compare-configurations)
+    - [2.2.3. Get Baseline from Configuration](#223-get-baseline-from-configuration)
+    - [2.2.4. Load Landing Zone Configuration](#224-load-landing-zone-configuration)
+    - [2.2.5. Add Execution Role to Service Catalog](#225-add-execution-role-to-service-catalog)
+    - [2.2.6. Create Landing Zone Account](#226-create-landing-zone-account)
+    - [2.2.7. Organizational Unit Validation](#227-organizational-unit-validation)
+    - [2.2.8. Load Organization Configuration](#228-load-organization-configuration)
+    - [2.2.9. Install CloudFormation Role in Master](#229-install-cloudformation-role-in-master)
+    - [2.2.10. Create Organization Account](#2210-create-organization-account)
+    - [2.2.11. Load Organizational Units](#2211-load-organizational-units)
+    - [2.2.12. Load Accounts](#2212-load-accounts)
+    - [2.2.13. Install Execution Roles](#2213-install-execution-roles)
+    - [2.2.14. Delete Default VPCs](#2214-delete-default-vpcs)
+    - [2.2.15. Load Limits](#2215-load-limits)
+    - [2.2.16. Enable Trusted Access for Services](#2216-enable-trusted-access-for-services)
+    - [2.2.17. Deploy Phase 0](#2217-deploy-phase-0)
+    - [2.2.18. Store Phase 0 Output](#2218-store-phase-0-output)
+    - [2.2.19. Add SCPs to Organization](#2219-add-scps-to-organization)
+    - [2.2.20. Deploy Phase 1](#2220-deploy-phase-1)
+    - [2.2.21. Store Phase 1 Output](#2221-store-phase-1-output)
+    - [2.2.22. Account Default Settings](#2222-account-default-settings)
+    - [2.2.23. Deploy Phase 2](#2223-deploy-phase-2)
+    - [2.2.24. Store Phase 2 Output](#2224-store-phase-2-output)
+    - [2.2.25. Deploy Phase 3](#2225-deploy-phase-3)
+    - [2.2.26. Store Phase 3 Output](#2226-store-phase-3-output)
+    - [2.2.27. Deploy Phase 4](#2227-deploy-phase-4)
+    - [2.2.28. Store Phase 4 Output](#2228-store-phase-4-output)
+    - [2.2.29. Associate Hosted Zones](#2229-associate-hosted-zones)
+    - [2.2.30. Add Tags to Shared Resources](#2230-add-tags-to-shared-resources)
+    - [2.2.31. Enable Directory Sharing](#2231-enable-directory-sharing)
+    - [2.2.32. Deploy Phase 5](#2232-deploy-phase-5)
+    - [2.2.33. Create AD Connector](#2233-create-ad-connector)
+    - [2.2.34. Store Commit ID](#2234-store-commit-id)
+    - [2.2.35. Detach Quarantine SCP](#2235-detach-quarantine-scp)
+- [3. Troubleshooting](#3-troubleshooting)
+  - [3.1. Components](#31-components)
+    - [3.1.1. CodePipeline](#311-codepipeline)
+    - [3.1.2. CodeBuild](#312-codebuild)
+    - [3.1.3. CloudFormation](#313-cloudformation)
+    - [3.1.4. Custom Resource](#314-custom-resource)
+    - [3.1.5. CloudWatch](#315-cloudwatch)
+    - [3.1.6. State Machine](#316-state-machine)
+  - [3.2. How-to](#32-how-to)
+    - [3.2.1. Restart the State Machine](#321-restart-the-state-machine)
+    - [3.2.2. Switch To a Managed Account](#322-switch-to-a-managed-account)
+
+<!-- /TOC -->
+
+## 2. System Overview
 
 The system can be thought of in two levels. The first level of the system consists of Accelerator stacks and resources. Let's call these the Accelerator-management resource. The second level of the system consists of stacks and resources that are deployed by the Accelerator-management resource. Let's call these the Accelerator-managed resources. The Accelerator-management resources are responsible for deploying the Accelerator-managed resources.
 
@@ -73,7 +78,7 @@ The figure below shows a zoomed-out overview of the Accelerator. The top of the 
 
 ![System Overview Diagram](img/overview.png)
 
-### Installer Stack
+### 2.1. Installer Stack
 
 The Accelerator-management `Installer` stack contains the necessary resources to deploy the Accelerator-management `Initial Setup` stack in an AWS account. This AWS account will be referred to as the 'master' account in this document.
 
@@ -105,7 +110,7 @@ CDK copies assets to the bootstrap bucket and bootstrap repository that are used
 
 CDK finally deploys the `Initial Setup` stack, and launches the Accelerator state machine. The Accelerator state machine is described in the next section.
 
-### Initial Setup Stack
+### 2.2. Initial Setup Stack
 
 The Accelerator-management `Initial Setup` stack, named `PBMMAccel-InitialSetup`, consists of a state machine, named `PBMMAccel-MainStateMachine_sm`, that executes various steps to create the Accelerator-managed stacks and resources in the Accelerator-managed accounts. Using a state machine, we can clearly define the deployment process and systematically control branches of execution and handle exceptions.
 
@@ -148,13 +153,13 @@ The stack additionally consists of the following resources:
 
 _Note: Most resources have a random suffix to their name. This is because we use CDK to deploy the resources. See [https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_ids]()_
 
-#### Get or Create Configuration from S3
+#### 2.2.1. Get or Create Configuration from S3
 
 This step calls a Lambda function that finds or creates the configuration repository. Finds the configuration file in the repository. If the configuration file cannot be found in the repository it is copied from the customer's configuration bucket. If the copy is successful then the configuration file in the S3 bucket will be removed.
 
 The configuration file is parsed and validated. This step will fail if the configuration file is not valid JSON or does not adhere to the configuration file specification.
 
-#### Compare Configurations
+#### 2.2.2. Compare Configurations
 
 This step calls a Lambda function that compares the previous version of the configuration file with the current version of the configuration file. The previous configuration file version is stored in the secret `accelerator/config/last-successful-commit` in AWS Secrets Manager in fthe master account.
 
@@ -179,11 +184,11 @@ The following configuration file changes are not allowed:
 
 It is possible to ignore certain configuration file changes. See [Restart the State Machine](#restart-the-state-machine) how to pass these options to the state machine.
 
-#### Get Baseline from Configuration
+#### 2.2.3. Get Baseline from Configuration
 
 This step calls a Lambda function that gets the `alz-baseline` of the configuration file to decide which path in the state machine will be taken.
 
-#### Load Landing Zone Configuration
+#### 2.2.4. Load Landing Zone Configuration
 
 _Executed only when using AWS Landing Zone baseline_
 
@@ -200,25 +205,25 @@ This step fails when
 - the account type of ALZ configuration accounts can not be detected;
 - the accounts of type `primary`', `security`, `log-archive`, `shared-services` are missing from the ALZ configuration.
 
-#### Add Execution Role to Service Catalog
+#### 2.2.5. Add Execution Role to Service Catalog
 
 _Executed only when using AWS Landing Zone baseline_
 
 This step calls a Lambda function that adds the state machine's IAM role to the ALZ Account Vending Machine (AVM) service catalog portfolio.
 
-#### Create Landing Zone Account
+#### 2.2.6. Create Landing Zone Account
 
 _Executed only when using AWS Landing Zone baseline_
 
 This step starts the `PBMMAccel-ALZCreateAccount_sm` state machine. This state machine is responsible for creating an account using the AVM and waits for the account to be created and configured.
 
-#### Organizational Unit Validation
+#### 2.2.7. Organizational Unit Validation
 
 _Executed only when using AWS Organizations baseline_
 
 > TODO: Document
 
-#### Load Organization Configuration
+#### 2.2.8. Load Organization Configuration
 
 _Executed only when using AWS Organizations baseline_
 
@@ -230,13 +235,13 @@ This step fails when
 - an account is present in the Accelerator configuration but does not exist in AWS Organizations;
 - an account has a name, email address or organizational unit that is different from the Accelerator configuration.
 
-#### Install CloudFormation Role in Master
+#### 2.2.9. Install CloudFormation Role in Master
 
 _Executed only when using AWS Organizations baseline_
 
 This step starts the `PBMMAccel-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role `AWSCloudFormationStackSetAdministrationRole` in the master account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
 
-#### Create Organization Account
+#### 2.2.10. Create Organization Account
 
 _Executed only when using AWS Organizations baseline_
 
@@ -244,29 +249,29 @@ This step starts the `PBMMAccel-OrgCreateAccount_sm` state machine. This state m
 
 > TODO(bmycroft): Explain why the SCP is attached.
 
-#### Load Organizational Units
+#### 2.2.11. Load Organizational Units
 
 > TODO: Document
 
-#### Load Accounts
+#### 2.2.12. Load Accounts
 
 This step calls a Lambda function that loads all accounts and organizational units. The accounts and organizational units are stored in the secret `accelerator/accounts` and `accelerator/organizations` in AWS Secrets Manager in the master account. The accounts and organizational units will later be used to deploy stacks in the correct accounts.
 
-#### Install Execution Roles
+#### 2.2.13. Install Execution Roles
 
 This step calls a Lambda function that creates stack sets in all Accelerator accounts. This stack sets contains a single resource, i.e. an IAM role `PBMMAccel-PipelineRole` that can be assumed by the `PBMMAccel-L-SFN-MasterRole`. This IAM role allows the master account to administer the Accelerator accounts.
 
-#### Delete Default VPCs
+#### 2.2.14. Delete Default VPCs
 
 This step starts the `PBMMAccel-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for deleting default subnets, internet gateways and VPCs for all regions and accounts in the Accelerator configuration.
 
 This step fails when one or more default VPCs cannot be deleted.
 
-#### Load Limits
+#### 2.2.15. Load Limits
 
 This step calls a Lambda function that loads service quotas and requests a service quota increase according to the configuration file. When a service quota increase request has been closed but not increased, then the service quota request will be issued again when the creation of the last request was at least two days ago.
 
-#### Enable Trusted Access for Services
+#### 2.2.16. Enable Trusted Access for Services
 
 This step calls a Lambda function that is responsible for
 
@@ -277,7 +282,7 @@ This step calls a Lambda function that is responsible for
 - setting the security account as delegated administrator for AWS IAM Access Analyzer;
 - setting the security account as delegated administrator for Amazon GuardDuty.
 
-#### Deploy Phase 0
+#### 2.2.17. Deploy Phase 0
 
 This step starts the `PBMMAccel-CodeBuild_sm` state machine. This state machine is responsible for starting a CodeBuild execution that deploys CloudFormation stacks in Accelerator-managed accounts using CDK.
 
@@ -310,11 +315,11 @@ The same CodeBuild project is used to deploy all phases. The environment variabl
 - enable GuardDuty;
 - enable Access Analyzer;
 
-#### Store Phase 0 Output
+#### 2.2.18. Store Phase 0 Output
 
 This step calls a Lambda function that stores the outputs from the deployed stacks in subaccounts in the secret `accelerator/outputs` in AWS Secrets Manager in the master account.
 
-#### Add SCPs to Organization
+#### 2.2.19. Add SCPs to Organization
 
 This step calls a Lambda function that creates and attaches the SCPs listed in the Accelerator configuration. The SCP policies are loaded from the Accelerator configuration bucket.
 
@@ -323,7 +328,7 @@ This step fails when
 - an SCP policy cannot be found in the Accelerator configuration bucket;
 - an SCP could not be attached to an organizational unit or account, e.g. when the maximum number of attached SCPs is exceeded
 
-#### Deploy Phase 1
+#### 2.2.20. Deploy Phase 1
 
 - create VPCs;
   - subnets;
@@ -345,11 +350,11 @@ This step fails when
 - enable GuardDuty (step 3);
 - enable central logging to S3 (step 1);
 
-#### Store Phase 1 Output
+#### 2.2.21. Store Phase 1 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-#### Account Default Settings
+#### 2.2.22. Account Default Settings
 
 This step calls a Lambda function that
 
@@ -359,7 +364,7 @@ This step calls a Lambda function that
 - enables KMS encryption using the CMK from the central logging account;
 - sets AWS Systems Manager Session Manager default configuration in every Accelerator-managed account in every region with a VPC.
 
-#### Deploy Phase 2
+#### 2.2.23. Deploy Phase 2
 
 - create peering connections;
 - create security groups in shared account;
@@ -370,34 +375,34 @@ This step calls a Lambda function that
 - enable Security Hub (step 2);
 - enable Macie (step 3);
 
-#### Store Phase 2 Output
+#### 2.2.24. Store Phase 2 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-#### Deploy Phase 3
+#### 2.2.25. Deploy Phase 3
 
 - create peering connection routes;
 - create ALB (step 1);
 - create `rsyslog` deployment (step 2);
 - create hosted zones, resolver rules and resolver endpoints;
 
-#### Store Phase 3 Output
+#### 2.2.26. Store Phase 3 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-#### Deploy Phase 4
+#### 2.2.27. Deploy Phase 4
 
 - share resolver rules;
 
-#### Store Phase 4 Output
+#### 2.2.28. Store Phase 4 Output
 
 See [_Deploy Phase 0_](#deploy-phase-0).
 
-#### Associate Hosted Zones
+#### 2.2.29. Associate Hosted Zones
 
 This step calls a Lambda function that associates the private zones, all the interface endpoint zones, and the resolver rules with each VPC that leverages endpoint services.
 
-#### Add Tags to Shared Resources
+#### 2.2.30. Add Tags to Shared Resources
 
 This step calls a Lambda function that adds tags to shared resources in the share destination account. For example, when a subnet is shared into another account, this step will add the `Name` tag to the subnet in the shared account.
 
@@ -408,47 +413,47 @@ The supported resources are
 - security groups;
 - transit gateway attachments.
 
-#### Enable Directory Sharing
+#### 2.2.31. Enable Directory Sharing
 
 This step calls a Lambda function that shares Managed Active Directory according to the Accelerator configuration. The directory is shared from the source account to the target account. The directory will be accepted in the target account.
 
-#### Deploy Phase 5
+#### 2.2.32. Deploy Phase 5
 
 - create Remote Desktop Gateway;
   - create launch configuration;
   - create autoscaling group;
 - enable central logging to S3 (step 2);
 
-#### Create AD Connector
+#### 2.2.33. Create AD Connector
 
 This step starts the `PBMMAccel-DeleteDefaultVpcs_sfn` state machine. This state machine is responsible for creating AD connectors according to the Accelerator configuration.
 
 This step fails when one or more AD connectors failed to be created.
 
-#### Store Commit ID
+#### 2.2.34. Store Commit ID
 
 This step calls a Lambda function that stores the commit ID of the configuration file for which the state machine ran.
 
-#### Detach Quarantine SCP
+#### 2.2.35. Detach Quarantine SCP
 
 _Executed only when using AWS Organizations baseline_
 
 This step calls a Lambda function that stores the commit ID for which the state machine just ran.
 
-## Troubleshooting
+## 3. Troubleshooting
 
 Issues could occur in different parts of the Accelerator. We'll guide you through troubleshooting these issues in this section.
 
-### Components
+### 3.1. Components
 
-#### CodePipeline
+#### 3.1.1. CodePipeline
 
 > TODO(ggindera):
 >
 > - Installer Pipeline
 >   - "Internal Failure" incorrect Github token, repo or branch
 
-#### CodeBuild
+#### 3.1.2. CodeBuild
 
 There are two Accelerator CodeBuild projects that we need to be able to troubleshoot: `PBMMAccel-InstallerProject_pl` and `PBMMAccel-DeployPrebuilt`. Both are similar in that they use CDK to deploy stacks.
 
@@ -470,7 +475,7 @@ If the error message is not clear, or the error occurred in a nested stack, then
 
 ![CodeBuild Execution Nested Stack Failure](img/codebuild-build-failure-nested-stack.png)
 
-#### CloudFormation
+#### 3.1.3. CloudFormation
 
 In case you want to troubleshoot errors that occurred in CloudFormation, the best way is to look in the CloudFormation stack's events.
 
@@ -482,7 +487,7 @@ When a native resource fails to create or update there are no additional logs av
 
 Sometimes the stack failure could have occurred in a managed account instead of the master account. See [Switch To a Managed Account](#switch-to-a-managed-account) to switch to the CloudFormation console in the managed account.
 
-#### Custom Resource
+#### 3.1.4. Custom Resource
 
 Custom resources are backed by a Lambda function that implements the creation, modification or deletion or the resource. Every Lambda function has a CloudWatch log group that contains logs about the custom resource creation. To troubleshoot errors in custom resource, you need to check the custom resource's log group.
 
@@ -495,7 +500,7 @@ Example custom resource log group names:
 /aws/lambda/PBMMAccel-Operations-Phas-CustomGetDetectorIdLambd-HEM07DR0DOOJ
 ```
 
-#### CloudWatch
+#### 3.1.5. CloudWatch
 
 When you arrived in CloudWatch logs by clicking on the state machine's step `CloudWatch Logs` link you will immediately see the list of log streams. Every log stream represents an instance of the Lambda function.
 
@@ -510,7 +515,7 @@ fields @timestamp, @message
 | limit 100
 ```
 
-#### State Machine
+#### 3.1.6. State Machine
 
 When troubleshooting a failed step in the state machine it is important to know what type of step failed. If the step is calling a Lambda function then you will see the following after clicking the failed step.
 
@@ -530,9 +535,9 @@ In case the failed step started the CodeBuild state machine, `PBMMAccel-CodeBuil
 
 In the image above the execution of CodeBuild project `PBMMAccel-DeployPrebuilt` with ID `PBMMAccel-DeployPrebuilt:717584a9-c406-4569-9cc2-0d23e9ff9ef0` failed. See the [CodeBuild](#codebuild) section to troubleshoot.
 
-### How-to
+### 3.2. How-to
 
-#### Restart the State Machine
+#### 3.2.1. Restart the State Machine
 
 > TODO(ggindera)
 >
@@ -555,7 +560,7 @@ In the image above the execution of CodeBuild project `PBMMAccel-DeployPrebuilt`
 > }
 > ```
 
-#### Switch To a Managed Account
+#### 3.2.2. Switch To a Managed Account
 
 To switch from the master account to a managed account you can click on your account name in the AWS Console. Then choose `Switch Role` in the menu.
 
