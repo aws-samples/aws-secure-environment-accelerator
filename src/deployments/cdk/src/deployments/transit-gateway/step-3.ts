@@ -104,19 +104,24 @@ export async function step3(props: TransitGatewayStep3Props) {
             const vpnAttachments = TgwVpnAttachmentsOutputFinder.tryFindOneByName({
               outputs,
               accountKey,
-              name: route['target-vpn'],
+              name: route['target-vpn'].name,
               region: tgwConfig.region,
             });
             if (!vpnAttachments) {
               console.warn(`Cannot find VPN "${route['target-vpn']}" in outputs`);
               continue;
             }
-            const tgwAttachmentIds = vpnAttachments.attachments.map(t => t.id);
+            const tgwAttachmentId = vpnAttachments.attachments.find(
+              t => t.az === route['target-vpn']?.az && t.subnet === route['target-vpn'].subnet,
+            )?.id;
+            if (!tgwAttachmentId) {
+              continue;
+            }
             CreateRoutes(
               accountStack,
               route.destination,
               tgwRoute.name,
-              [tgwAttachmentIds[0]], // TODO static routes not allowing more than 1 attachment
+              [tgwAttachmentId],
               transitGateway,
               route['blackhole-route'],
             );

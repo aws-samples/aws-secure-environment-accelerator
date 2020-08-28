@@ -106,7 +106,13 @@ export const TransitGatewayRouteConfigType = t.interface({
   destination: t.string,
   'target-tgw': optional(t.string),
   'target-vpc': optional(t.string),
-  'target-vpn': optional(t.string),
+  'target-vpn': optional(
+    t.interface({
+      name: t.string,
+      az: t.string,
+      subnet: t.string,
+    }),
+  ),
   'blackhole-route': optional(t.boolean),
 });
 

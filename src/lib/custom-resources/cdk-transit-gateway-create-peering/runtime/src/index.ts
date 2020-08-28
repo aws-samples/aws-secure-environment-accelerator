@@ -1,6 +1,10 @@
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import {
+  CloudFormationCustomResourceEvent,
+  CloudFormationCustomResourceDeleteEvent,
+  CloudFormationCustomResourceUpdateEvent,
+} from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
@@ -46,16 +50,24 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       .promise(),
   );
   return {
+    physicalResourceId: peeringAttachment.TransitGatewayPeeringAttachment!.TransitGatewayAttachmentId,
     data: {
       peeringAttachmentId: peeringAttachment.TransitGatewayPeeringAttachment!.TransitGatewayAttachmentId,
     },
   };
 }
 
-async function onUpdate(event: CloudFormationCustomResourceEvent) {
+async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   return onCreate(event);
 }
 
-async function onDelete(_: CloudFormationCustomResourceEvent) {
-  console.log(`Nothing to do for delete...`);
+async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  console.log(`Deleting the transit gateway peering attachment...`);
+  await throttlingBackOff(() =>
+    ec2
+      .deleteTransitGatewayPeeringAttachment({
+        TransitGatewayAttachmentId: event.PhysicalResourceId,
+      })
+      .promise(),
+  );
 }
