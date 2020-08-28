@@ -621,6 +621,8 @@ export const CentralServicesConfigType = t.interface({
   'macie-frequency': optional(t.string),
   'config-excl-regions': optional(t.array(t.string)),
   'config-aggr-excl-regions': optional(t.array(t.string)),
+  'sns-excl-regions': optional(t.array(t.string)),
+  'sns-subscription-emails': fromNullable(t.record(t.string, t.array(t.string)), {}),
 });
 
 export const ScpsConfigType = t.interface({

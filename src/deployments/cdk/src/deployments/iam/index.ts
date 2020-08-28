@@ -10,3 +10,4 @@ export * from './log-group-role';
 export * from './cwl-central-logging-roles';
 export * from './cwl-add-subscription-filter-role';
 export * from './logs-metric-filter-role';
+export * from './sns-subscriber-lambda-role';
