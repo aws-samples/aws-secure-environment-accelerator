@@ -38,7 +38,8 @@ export async function step1(props: SnsStep1Props) {
     roleKey: 'SnsSubscriberLambda',
   });
   if (!snsSubscriberLambdaRoleOutput) {
-    throw new Error(`Role required for SNS Subscription Lambda is not created in ${centralLogServices.account}`);
+    console.error(`Role required for SNS Subscription Lambda is not created in ${centralLogServices.account}`);
+    return;
   }
   for (const region of regions) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(centralLogServices.account, region);
