@@ -88,6 +88,17 @@ export async function step1(props: SnsStep1Props) {
         displayName: topicName,
         topicName,
       });
+
+      // Allowing Publish from CloudWatch Service form any account
+      topic.grantPublish({
+        grantPrincipal: new iam.ServicePrincipal('cloudwatch.amazonaws.com'),
+      });
+
+      // Allowing Publish from Lambda Service form any account
+      topic.grantPublish({
+        grantPrincipal: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      });
+
       if (region === centralLogServices.region && subscribeEmails && subscribeEmails[notificationType]) {
         subscribeEmails[notificationType].forEach((email, index) => {
           new sns.CfnSubscription(accountStack, `SNSTopicSubscriptionFor${notificationType}-${index + 1}`, {
