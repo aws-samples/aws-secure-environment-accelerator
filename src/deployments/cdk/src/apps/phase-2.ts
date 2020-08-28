@@ -308,4 +308,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     logBucket,
     outputs,
   });
+
+  await tgwDeployment.acceptPeeringAttachment({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+  });
 }

@@ -33,6 +33,7 @@ import { PhaseInput } from './shared';
 import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import * as vpcDeployment from '../deployments/vpc';
+import * as transitGateway from '../deployments/transit-gateway';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
 import { createR53LogGroupName } from '../common/r53-zones';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
@@ -198,6 +199,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           securityGroupName: name,
         }),
       ),
+      tgwAttachments: vpc.tgwAVpcAttachments,
     });
 
     return vpcStack.vpc;
@@ -451,6 +453,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  await transitGateway.createPeeringAttachment({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
   });
 
   /**

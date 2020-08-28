@@ -12,6 +12,8 @@ import * as globalRoles from '../deployments/iam';
  *   - Creating required roles for createSSMDocument custom resource
  *   - Creating required roles for createLogGroup custom resource
  *   - Creating required roles for CWLCentralLoggingSubscriptionFilterRole custom resource
+ *   - Creating required roles for TransitGatewayCreatePeeringAttachment custom resource
+ *   - Creating required roles for TransitGatewayAcceptPeeringAttachment custom resource
  *   - Creating required roles for createLogsMetricFilter custom resource
  *   - Creating required roles for SnsSubscriberLambda custom resource
  */
@@ -67,6 +69,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     config: acceleratorConfig,
   });
 
+  // Creates roles for transit gateway create peering attachment custom resource
+  await globalRoles.createTgwPeeringRoles({
+    accountStacks,
+    config: acceleratorConfig,
+  });
+
+  // Creates roles for transit gateway accept peering attachment custom resource
+  await globalRoles.createTgwAcceptPeeringRoles({
+    accountStacks,
+    config: acceleratorConfig,
+  });
   // Creates role for createLogsMetricFilter custom resource
   await globalRoles.createLogsMetricFilterRole({
     accountStacks,
