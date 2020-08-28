@@ -16,6 +16,48 @@ Config File Examples:  {Not in sample config file}
           "exclusions": ["def/*"]
         }
       ],
+************************************CloudWatch MetricFilters and Alarms
+    "central-log-services": {
+      "cloudwatch": {
+        "metrics": [{
+            "filter-name": "SecurityGroupChangeMetricTest",
+            "accounts": [
+              "master"
+            ],
+            "regions": [
+              "ca-central-1"
+            ],
+            "loggroup-name": "/PBMMAccel/CloudTrailTest",
+            "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
+            "metric-namespace": "CloudTrailMetrics",
+            "metric-name": "SecurityGroupEventCountTest",
+            "metric-value": "1",
+            "default-value": 0
+        }],
+        "alarms": {
+          "default-accounts": [
+            "master"
+          ],
+          "default-regions": [
+            "ca-central-1"
+          ],
+          "default-namespace": "CloudTrailMetrics",
+          "default-statistic": "Sum",
+          "default-period": 300,
+          "default-threshold-type": "Static",
+          "default-comparison-operator": "GreaterThanOrEqualToThreshold",
+          "default-threshold": 1,
+          "default-evaluation-periods": 1,
+          "default-treat-missing-data": "notBreaching",
+          "definitions": [{
+              "alarm-name": "AWS-Security-Group-Changed",
+              "metric-name": "SecurityGroupEventCount",
+              "sns-alert-level": "Low",
+              "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization)."
+          }]
+        }
+      }
+    }
 ************************************Additional regions for Amazon CloudWatch Central Logging to S3
     "additional-cwl-regions": {
       "us-east-1": {

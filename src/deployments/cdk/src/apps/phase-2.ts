@@ -289,16 +289,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       accounts,
       outputs,
     });
-
-    /**
-     * Creating required SNS Topics in Log accont if baseline is Organizations
-     */
-    await snsDeployment.step1({
-      accountStacks,
-      config: acceleratorConfig,
-      outputs,
-    });
   }
+
+  /**
+   * Creating required SNS Topics in Log accont
+   */
+  await snsDeployment.step1({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
 
   const logBucket = accountBuckets[acceleratorConfig['global-options']['central-log-services'].account];
   await guardDutyDeployment.step3({

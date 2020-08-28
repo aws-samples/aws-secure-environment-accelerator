@@ -14,6 +14,8 @@ import * as globalRoles from '../deployments/iam';
  *   - Creating required roles for CWLCentralLoggingSubscriptionFilterRole custom resource
  *   - Creating required roles for TransitGatewayCreatePeeringAttachment custom resource
  *   - Creating required roles for TransitGatewayAcceptPeeringAttachment custom resource
+ *   - Creating required roles for createLogsMetricFilter custom resource
+ *   - Creating required roles for SnsSubscriberLambda custom resource
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts }: PhaseInput) {
   // creates roles for macie custom resources
@@ -77,5 +79,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
   await globalRoles.createTgwAcceptPeeringRoles({
     accountStacks,
     config: acceleratorConfig,
+  });
+  // Creates role for createLogsMetricFilter custom resource
+  await globalRoles.createLogsMetricFilterRole({
+    accountStacks,
+    accounts,
   });
 }

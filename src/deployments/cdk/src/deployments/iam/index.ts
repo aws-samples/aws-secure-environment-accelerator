@@ -11,4 +11,5 @@ export * from './cwl-central-logging-roles';
 export * from './cwl-add-subscription-filter-role';
 export * from './tgw-create-peering-roles';
 export * from './tgw-accept-peering-roles';
+export * from './logs-metric-filter-role';
 export * from './sns-subscriber-lambda-role';

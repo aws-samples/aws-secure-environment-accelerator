@@ -5,6 +5,7 @@ import { getStackJsonOutput, ResolversOutput, MadRuleOutput } from '@aws-acceler
 import { Route53ResolverRuleSharing } from '../common/r53-resolver-rule-sharing';
 import { PhaseInput } from './shared';
 import * as securityHub from '../deployments/security-hub';
+import * as cloudWatchDeployment from '../deployments/cloud-watch';
 
 type ResolversOutputs = ResolversOutput[];
 
@@ -93,6 +94,16 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
   await securityHub.step3({
     accountStacks,
     accounts,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  /**
+   *  CloudWatch Deployment step-1
+   *  Creates CloudWatch Metrics on LogGroups
+   */
+  await cloudWatchDeployment.step1({
+    accountStacks,
     config: acceleratorConfig,
     outputs,
   });
