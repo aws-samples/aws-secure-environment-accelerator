@@ -653,6 +653,53 @@ export const AdditionalCwlRegionType = t.interface({
 
 export type AdditionalCwlRegion = t.TypeOf<typeof AdditionalCwlRegionType>;
 
+export type CloudWatchMetricFiltersConfig = t.TypeOf<typeof CloudWatchMetricFiltersConfigType>;
+
+export const CloudWatchMetricFiltersConfigType = t.interface({
+  'filter-name': t.string,
+  accounts: t.array(t.string),
+  regions: t.array(t.string),
+  'loggroup-name': t.string,
+  'filter-pattern': t.string,
+  'metric-namespace': t.string,
+  'metric-name': t.string,
+  'metric-value': t.string,
+  'default-value': optional(t.number),
+});
+
+export const CloudWatchAlarmDefinitionConfigType = t.interface({
+  accounts: optional(t.array(t.string)),
+  regions: optional(t.array(t.string)),
+  namespace: optional(t.string),
+  statistic: optional(t.string),
+  period: optional(t.number),
+  'threshold-type': optional(t.string),
+  'comparison-operator': optional(t.string),
+  threshold: optional(t.number),
+  'evaluation-periods': optional(t.number),
+  'treat-missing-data': optional(t.string),
+  'alarm-name': t.string,
+  'metric-name': t.string,
+  'sns-alert-level': t.string,
+  'alarm-description': t.string,
+});
+
+export type CloudWatchAlarmsConfig = t.TypeOf<typeof CloudWatchAlarmsConfigType>;
+
+export const CloudWatchAlarmsConfigType = t.interface({
+  'default-accounts': t.array(t.string),
+  'default-regions': t.array(t.string),
+  'default-namespace': t.string,
+  'default-statistic': t.string,
+  'default-period': t.number,
+  'default-threshold-type': t.string,
+  'default-comparison-operator': t.string,
+  'default-threshold': t.number,
+  'default-evaluation-periods': t.number,
+  'default-treat-missing-data': t.string,
+  definitions: t.array(CloudWatchAlarmDefinitionConfigType),
+});
+
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
@@ -679,6 +726,12 @@ export const GlobalOptionsConfigType = t.interface({
   'workloadaccounts-param-filename': t.string,
   'vpc-flow-logs': VpcFlowLogsConfigType,
   'additional-cwl-regions': fromNullable(t.record(t.string, AdditionalCwlRegionType), {}),
+  cloudwatch: optional(
+    t.interface({
+      metrics: t.array(CloudWatchMetricFiltersConfigType),
+      alarms: CloudWatchAlarmsConfigType,
+    }),
+  ),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
@@ -699,6 +752,13 @@ export type MadDeploymentConfig = t.TypeOf<typeof MadConfigType>;
 export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
 
 export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
+
+export interface CloudWatchDefaultAlarmDefinition extends Omit<CloudWatchAlarmsConfig, 'definitions'> {
+  /**
+   * Interface definition for Default definition of CloudWatch alarm
+   * from "CloudWatchAlarmsConfig" excluding definitions
+   */
+}
 
 export interface ResolvedConfigBase {
   /**

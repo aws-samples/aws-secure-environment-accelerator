@@ -13,6 +13,7 @@ import { RdgwArtifactsOutput } from './phase-4';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
+import * as cloudWatchDeployment from '../deployments/cloud-watch';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
@@ -170,4 +171,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       });
     }
   }
+
+  /**
+   *  CloudWatch Deployment step-2
+   *  Creates CloudWatch Alarms
+   */
+  await cloudWatchDeployment.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    accounts,
+  });
 }
