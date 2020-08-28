@@ -19,7 +19,7 @@ export interface LogsMetricFilterProps {
 export interface LogsMetricFilterRuntimeProps extends Omit<LogsMetricFilterProps, 'roleArn'> {}
 
 /**
- * Custom resource that will create SSM Document.
+ * Custom resource that will create Metric Filter on LogGroup.
  */
 export class LogsMetricFilter extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
