@@ -22,6 +22,16 @@ Config File Examples:  {Not in sample config file}
         "kinesis-stream-shard-count": 1
       }
     },
+****************SNS Topics ignore regions and adding subscription emails for topic subscriptions*********
+****************By default we create High,Medium,Low,Ignore SNS topics with out subscribers**************
+    "central-log-services": {
+      "sns-excl-regions": ["sa-east-1"],
+      "sns-subscription-emails": {
+        "High": ["notify+high@example.com"],
+        "Low": ["notify+low@example.com"],
+        "Medium": ["notify+medium@example.com"]
+      }
+    }
 ************************************cert REQUEST format
       "certificates": [
         {
