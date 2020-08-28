@@ -3,7 +3,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import * as cdk from '@aws-cdk/core';
 import * as cloudwatch from '@aws-cdk/aws-cloudwatch';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
-import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { createName, createSnsTopicName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
 export interface CloudWatchStep2Props {
   accountStacks: AccountStacks;
@@ -58,10 +58,9 @@ export async function step2(props: CloudWatchStep2Props) {
           treatMissingData: alarmconfig['treat-missing-data'] || alarmDefaultDefinition['default-treat-missing-data'],
           threshold: alarmconfig.threshold || alarmDefaultDefinition['default-threshold'],
           alarmActions: [
-            `arn:aws:sns:${cdk.Aws.REGION}:${getAccountId(
-              accounts,
-              centralLogServices.account,
-            )}:PBMMAccel-Notification-${alarmconfig['sns-alert-level']}`,
+            `arn:aws:sns:${cdk.Aws.REGION}:${getAccountId(accounts, centralLogServices.account)}:${createSnsTopicName(
+              alarmconfig['sns-alert-level'],
+            )}`,
           ],
         });
       }
