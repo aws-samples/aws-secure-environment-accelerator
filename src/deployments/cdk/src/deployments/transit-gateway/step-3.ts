@@ -1,4 +1,4 @@
-import { AcceleratorConfig, TgwDeploymentConfig, TransitGatewayRouteConfig } from '@aws-accelerator/common-config/src';
+import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import {
   TransitGatewayPeeringAttachmentOutputFinder,
   TransitGatewayOutputFinder,
