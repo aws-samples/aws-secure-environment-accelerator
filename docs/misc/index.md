@@ -13,6 +13,7 @@ The following sections provide guidance on miscellaneous operational topics with
     - [1.1.5. Remote Desktop Services Collection](#115-remote-desktop-services-collection)
   - [1.2. Web Configuration](#12-web-configuration)
   - [1.3. Password Resets](#13-password-resets)
+  - [1.4. Perimeter Network / Load Balancer](#14-perimeter-network--load-balancer)
 
 <!-- /TOC -->
 
@@ -99,3 +100,8 @@ Publish-RDWebClientPackage -Type Production -Latest
 Password resets via RDWeb access needs to be enabled. Within IIS on `rds-web.cloud.local`, set `PasswordChangeEnabled` to `true` under `Default Web Site/RDweb/Pages > Application Settings`.
 
 Users can now navigate to `/Rdweb/Pages/en-us/password.aspx` on `rds-web.cloud.local` to initiate a password reset.
+
+### 1.4. Perimeter Network / Load Balancer
+
+Access to the RDWeb instance in the `Web` subnet of the `Central` VPC from an on-premises network can be configured in the standard manner for the _AWS Secure Environment Architecture_ (i.e. via the Perimeter network and NGFW appliances, and with traffic forwarded to an Application Load Balancer in the `Central` VPC from the NGFW). The NGFW routing rules should enforce on-prem connectivity only for these connections.
+
