@@ -1,4 +1,4 @@
-# Installation, Upgrades and Basic Operations
+# 1. Installation, Upgrades and Basic Operations
 
 **_Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitate installation._**
 
@@ -6,37 +6,40 @@ Installation of the provided prescriptive AWS architecture, as-is, requires a li
 
 These installation instructions assume the prescribed architecture is being deployed.
 
-<!-- TOC depthFrom:2 -->
+- [1. Installation, Upgrades and Basic Operations](#1-installation-upgrades-and-basic-operations)
+  - [1.1. Prerequisites](#11-prerequisites)
+    - [1.1.1. General](#111-general)
+    - [1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base) (Preferred)](#112-standalone-accelerator-pre-install-steps-no-alz-base-preferred)
+    - [1.1.3. ALZ Based Accelerator Pre-Install Steps](#113-alz-based-accelerator-pre-install-steps)
+    - [1.1.4. Remaining Pre-Install Steps - Both Installation Types](#114-remaining-pre-install-steps---both-installation-types)
+    - [1.1.5. AWS Internal Accounts Only](#115-aws-internal-accounts-only)
+  - [1.2. Preparation](#12-preparation)
+    - [1.2.1. Create GitHub Personal Access Token and Store in Secrets Manager](#121-create-github-personal-access-token-and-store-in-secrets-manager)
+    - [1.2.2. Basic Accelerator Configuration](#122-basic-accelerator-configuration)
+    - [1.2.3. Production Accelerator Configuration](#123-production-accelerator-configuration)
+  - [1.3. Installation](#13-installation)
+    - [1.3.1. Known Installation Issues](#131-known-installation-issues)
+- [2. Accelerator Basic Operation](#2-accelerator-basic-operation)
+    - [2.0.1. How do I add new AWS accounts to my AWS Organization?](#201-how-do-i-add-new-aws-accounts-to-my-aws-organization)
+    - [2.0.2. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)](#202-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for-standalone-version-only)
+    - [2.0.3. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?](#203-how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role)
+    - [2.0.4. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#204-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
+    - [2.0.5. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#205-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
+    - [2.0.6. How do I make changes to items I defined in the Accelerator configuration file during installation?](#206-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
+    - [2.0.7. Is there anything my end users need to be aware of?](#207-is-there-anything-my-end-users-need-to-be-aware-of)
+- [3. Notes](#3-notes)
+  - [3.1. Upgrades](#31-upgrades)
+    - [3.1.1. Summary of Upgrade Steps (to v1.1.7 or v1.1.8)](#311-summary-of-upgrade-steps-to-v117-or-v118)
+    - [3.1.2. Summary of Upgrade Steps (to v1.1.4)](#312-summary-of-upgrade-steps-to-v114)
+  - [3.2. Configuration File Hints and Tips](#32-configuration-file-hints-and-tips)
+  - [3.3. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations](#33-considerations-importing-existing-aws-accounts--deploying-into-existing-aws-organizations)
+  - [3.4. Design Constraints](#34-design-constraints)
+- [4. AWS Internal - Accelerator Release Process](#4-aws-internal---accelerator-release-process)
+  - [4.1. Creating a new Accelerator Code Release](#41-creating-a-new-accelerator-code-release)
 
-- [1. Prerequisites](#1-prerequisites)
-    - [1.0.1. Existing AWS Organizations or AWS Accounts](#101-existing-aws-organizations-or-aws-accounts)
-  - [1.1. Standalone Accelerator Installation (No ALZ base) (Preferred)](#11-standalone-accelerator-installation-no-alz-base-preferred)
-  - [1.2. ALZ Based Accelerator Installation](#12-alz-based-accelerator-installation)
-  - [1.3. BOTH Installation Types](#13-both-installation-types)
-  - [1.4. AWS Internal Accounts Only](#14-aws-internal-accounts-only)
-- [2. Preparation](#2-preparation)
-  - [2.1. Create a GitHub Personal Access Token and Store in Secrets Manager](#21-create-a-github-personal-access-token-and-store-in-secrets-manager)
-  - [2.2. Accelerator Configuration](#22-accelerator-configuration)
-  - [2.3. Key Production Config File Requirements:](#23-key-production-config-file-requirements)
-  - [2.4. Deploy the Accelerator Installer Stack](#24-deploy-the-accelerator-installer-stack)
-  - [2.5. How do I add new AWS accounts to my AWS Organization?](#25-how-do-i-add-new-aws-accounts-to-my-aws-organization)
-  - [2.6. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)](#26-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for-standalone-version-only)
-  - [2.7. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?](#27-how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role)
-  - [2.8. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#28-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
-  - [2.9. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#29-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
-  - [2.10. How do I make changes to items I defined in the Accelerator configuration file during installation?](#210-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
-- [3. UPGRADES](#3-upgrades)
-  - [3.1. Summary of Upgrade Steps (to v1.1.7 or v1.1.8)](#31-summary-of-upgrade-steps-to-v117-or-v118)
-  - [3.2. Summary of Upgrade Steps (to v1.1.4)](#32-summary-of-upgrade-steps-to-v114)
-- [4. Configuration File Notes](#4-configuration-file-notes)
-- [5. General Notes](#5-general-notes)
-- [6. Known limitations/purposeful exclusions:](#6-known-limitationspurposeful-exclusions)
-- [7. Known Installation Issues (Standalone version):](#7-known-installation-issues-standalone-version)
-- [8. Creating a new Accelerator Code Release](#8-creating-a-new-accelerator-code-release)
+## 1.1. Prerequisites
 
-<!-- /TOC -->
-
-## 1. Prerequisites
+### 1.1.1. General
 
 - Master or Root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
@@ -46,21 +49,9 @@ These installation instructions assume the prescribed architecture is being depl
   - Even if you do have the ALZ installed, we recommend customers consider uninstalling the ALZ and proceeding with a standalone installation
 - Valid configuration file, updated to reflect your deployment (see below)
 - Determine your primary or Accelerator 'control' region. These instructions have been written assuming ca-central-1, but any supported region can be substituted.
+- The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes
 
-#### 1.0.1. Existing AWS Organizations or AWS Accounts
-
-- The Accelerator _can_ be installed into existing AWS Organizations
-  - our early adopters have all successfully deployed into existing organizations
-- Existing AWS accounts _can_ also be imported into an Accelerator managed Organization
-- Caveats:
-  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
-  - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance
-    - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.)
-  - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
-  - We do NOT support _any_ workloads running or users operating in the master AWS account. The master AWS account MUST be tightly controlled
-  - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
-
-### 1.1. Standalone Accelerator Installation (No ALZ base) (Preferred)
+### 1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base) (Preferred)
 
 Before installing, you must first:
 
@@ -80,7 +71,7 @@ Before installing, you must first:
   - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
 - Click Finish
 
-### 1.2. ALZ Based Accelerator Installation
+### 1.1.3. ALZ Based Accelerator Pre-Install Steps
 
 You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. It is strongly encouraged to upgrade to ALZ v2.4.0 before deploying the Accelerator.
 
@@ -99,7 +90,7 @@ Before installing, you must first:
 4. Enable IAM permissions to control access to use the `AwsLandingZoneKMSKey` KMS key.
    - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
 
-### 1.3. BOTH Installation Types
+### 1.1.4. Remaining Pre-Install Steps - Both Installation Types
 
 In the Master or root AWS account, manually:
 
@@ -112,7 +103,7 @@ In the Master or root AWS account, manually:
 - Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
 - Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
 
-### 1.4. AWS Internal Accounts Only
+### 1.1.5. AWS Internal Accounts Only
 
 If deploying to an internal AWS account, to successfully install the entire solution, you need to enable Private Marketplace (PMP) before starting:
 
@@ -129,9 +120,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
 9. Wait a couple of minutes while it adds item to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
 
-## 2. Preparation
+## 1.2. Preparation
 
-### 2.1. Create a GitHub Personal Access Token and Store in Secrets Manager
+### 1.2.1. Create GitHub Personal Access Token and Store in Secrets Manager
 
 1. You require a GitHub access token to access the code repository
 2. Instructions on how to create a personal access token are located here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
@@ -144,7 +135,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
-### 2.2. Accelerator Configuration
+### 1.2.2. Basic Accelerator Configuration
 
 1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) file as base
    - Use the version from the Github code branch you are deploying from as some parameters have changed over time
@@ -159,7 +150,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 3. In the ALZ version of the Accelerator, we strongly recommend removing _all_ workload accounts from the configuration file during initial deployment. Workload accounts can be added in the future. The ALZ AVM takes 42 minutes per sub-account. Additionally, importing existing accounts during initial deployment increases the risk of initial deployment failures.
 4. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
 
-### 2.3. Key Production Config File Requirements:
+### 1.2.3. Production Accelerator Configuration
 
 - **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
   - Plan your OU structure, we are suggesting:
@@ -197,9 +188,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
 
-### 2.4. Deploy the Accelerator Installer Stack
+## 1.3. Installation
 
-1. You can find the latest release in the repository [here:](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
+1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
 2. Download the CloudFormation template `AcceleratorInstaller.template.json` for the release you plan to install
 3. Use the template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
@@ -251,9 +242,14 @@ If deploying to an internal AWS account, to successfully install the entire solu
     2. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
     3. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
-# Accelerator Basic Operation
+### 1.3.1. Known Installation Issues
 
-### 2.5. How do I add new AWS accounts to my AWS Organization?
+- Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy Guardduty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
+- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the master AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the master account into the auto-created core ou and rerun the SM. This is resolved in v1.1.8.
+
+# 2. Accelerator Basic Operation
+
+### 2.0.1. How do I add new AWS accounts to my AWS Organization?
 
 - We offer two options and both can be used in the same deployment:
 
@@ -273,7 +269,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
     - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
     - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP
 
-### 2.6. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)
+### 2.0.2. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)
 
 - In AWS Organizations you can continue to:
   - create and rename AWS accounts
@@ -296,7 +292,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - The Accelerator fully supports nested ou's, customers can create any depth ou structure in AWS Organizations and add/remove/change SCP's _below_ the top-level as they desire or move accounts between these ou's without restriction. Users can create ou's to the full AWS ou structure/depth.
   - Except for the Quarantine SCP applied to specific accounts, we do not 'control' SCP's below the top level, customers can add/create/customize SCP's
 
-### 2.7. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?
+### 2.0.3. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?
 
 - Ensure you have valid administrative privileges for the account to be invited/added
 - Add the account to your AWS Organization using standard processes (i.e. Invite/Accept)
@@ -315,7 +311,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 \* A slightly different process exists for ALZ versions of the Accelerator
 
-### 2.8. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
+### 2.0.4. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
 
 Flexibility:
 
@@ -338,7 +334,7 @@ Example:
 - One of our early adopter customers has developed a custom user interface which allows their clients to request new AWS environments. Clients provide items like cost center, budget, and select their environment requirements (i.e. Sandbox, Unclass or full PBMM SDLC account set). On appropriate approval, this pushes the changes to the Accelerator configuration file and triggers the state machine.
 - Once the state machine completes, the SNS topic triggers their follow-up workflow, validates the requested accounts were provisioned, updates the customer's account database, and then executes a collection of customer specific follow-up workflow actions on any newly provisioned accounts.
 
-### 2.9. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
+### 2.0.5. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
 
 If your state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
 
@@ -350,7 +346,7 @@ We've spent a lot of time over the course of the Accelerator development process
 
 Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
 
-### 2.10. How do I make changes to items I defined in the Accelerator configuration file during installation?
+### 2.0.6. How do I make changes to items I defined in the Accelerator configuration file during installation?
 
 Simply update your configuration file and rerun the state machine! In most cases, it is that simple.
 
@@ -360,9 +356,13 @@ Below we have also documented additional considerations when creating or updatin
 
 It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide overide switches to allow these changes to be attempted forcefully.
 
-# Notes
+### 2.0.7. Is there anything my end users need to be aware of?
 
-## 3. UPGRADES
+CloudWatch Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
+
+# 3. Notes
+
+## 3.1. Upgrades
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats
 - Upgrades to v1.1.5 and above from v1.1.4 and below:
@@ -372,9 +372,9 @@ It should be noted that we have added code to the Accelerator to block customers
 
 \*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your fw customizations automatically redeployed, simply add them into the appropriate firewall-example.txt configuration file.
 
-### 3.1. Summary of Upgrade Steps (to v1.1.7 or v1.1.8)
+### 3.1.1. Summary of Upgrade Steps (to v1.1.7 or v1.1.8)
 
-- Please note we change the GitHub repo name with release v1.1.7
+- Please note we changed the GitHub repo name with release v1.1.7
 - Ensure a valid Github token is stored in secrets manager
 - Update the config file in Code Commit with new parameters and updated parameter types (this is important as features are iterating rapidly)
 - For upgrades to v1.1.8, execute the `resolver-rule-cleanup.sh` cleanup script in the shared-network account or manually remove the rule to VPC associations
@@ -389,7 +389,7 @@ It should be noted that we have added code to the Accelerator to block customers
   - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 - In both cases the State Machine will fail upon execution, rerun the State Machine providing the "overrideComparison": true flag
 
-### 3.2. Summary of Upgrade Steps (to v1.1.4)
+### 3.1.2. Summary of Upgrade Steps (to v1.1.4)
 
 - Ensure a valid Github token is stored in secrets manager
 - Update the config file with new parameters and updated parameter types
@@ -398,7 +398,7 @@ It should be noted that we have added code to the Accelerator to block customers
   - If you are using a pre-existing GitHub token, you can simply Update the stack
 - Redeploy the Installer CFN stack using the latest template
 
-## 4. Configuration File Notes
+## 3.2. Configuration File Hints and Tips
 
 - You cannot supply (or change) configuration file values to something not supported by the AWS platform
   - For example, CWL retention only supports specific retention values (not any number)
@@ -421,32 +421,35 @@ It should be noted that we have added code to the Accelerator to block customers
 - We only support the subset of yaml that converts to JSON (we do not support anchors)
 - We do NOT support changing the `organization-admin-role`, this value must be set to `AWSCloudFormationStackSetExecutionRole` at this time.
 
-## 5. General Notes
+## 3.3. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations
 
-- The master account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the master account unless you are certain as to what you are doing.
-- More specifically, do NOT delete, or change _any_ buckets in the master account
-- While likely protected, do not delete/update/change s3 buckets with CDK, CFN, or PBMMAccel- in _any_ sub-accounts
-- Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
+- The Accelerator _can_ be installed into existing AWS Organizations
+  - our early adopters have all successfully deployed into existing organizations
+- Existing AWS accounts _can_ also be imported into an Accelerator managed Organization
+- Caveats:
+  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
+  - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance
+    - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.)
+  - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
+  - We do NOT support _any_ workloads running or users operating in the master AWS account. The master AWS account MUST be tightly controlled
+  - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
+  - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, their may be scenarios that cause an installation failure. In these situations, simply rectify the conflict and re-run the state machine.
 
-## 6. Known limitations/purposeful exclusions:
+## 3.4. Design Constraints
 
-- ALB automated deployments currently only supports Forward and not redirect rules
-- AWS Config Aggregator is deployed in the Organization master account as enabling through Organizations is much simpler to implement. Organizations only supports deploying the Aggregator in the Org master account and not in a designated master account at this time. Once supported, we will update the code to move the Aggregator master account.
-- We have deployed an Organization CloudTrail which is created in the primary region in the master AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the master account. We are working with the Security Hub team to rectify this situation in a future security hub/Accelerator releases.
-- Amazon Detective - not included
-- Only 1 auto-deployed MAD per AWS account is supported today
-- VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints
+- The master account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the master account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the master account.
+- While generally protected, do not delete/update/change s3 buckets with CDK, CFN, or PBMMAccel- in _any_ sub-accounts.- ALB automated deployments only supports Forward and not redirect rules.
+- AWS Config Aggregator is deployed in the Organization master account as enablement through Organizations is simpler to implement. AWS Organizations only supports deploying the Aggregator in the Org master account and not in a designated administrative account at this time. Once supported, we plan to update the code to move the Aggregator administrative account.
+- An Organization CloudTrail is deployed, which is created in the primary region in the master AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the master account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases.
+- Amazon Detective - we have chosen not to enable at this time.
+- Only 1 auto-deployed MAD per AWS account is supported today.
+- VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and deprovision the first cluster when ready.
 
-## 7. Known Installation Issues (Standalone version):
+# 4. AWS Internal - Accelerator Release Process
 
-- Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy Guardduty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
-- Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the master AWS account into it before running the State Machine, otherwise, once the SM fails, simply move the master account into the auto-created core ou and rerun the SM. This is resolved in v1.1.8.
-
-# AWS Internal - Accelerator Release Process
-
-## 8. Creating a new Accelerator Code Release
+## 4.1. Creating a new Accelerator Code Release
 
 1. Ensure `master` is in a suitable state
 2. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
