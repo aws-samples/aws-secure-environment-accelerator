@@ -8,11 +8,11 @@ Installation of the provided prescriptive architecture is reasonably simple, dep
 
 ## What specifically does the Accelerator deploy and manage?
 
-A common misconception is that the AWS Secure Environment Accelerator only deploys security services, not true. The Accelerator is capable of deploying a complete end-to-end hybrid enterprise cloud environment.
+A common misconception is that the AWS Secure Environment Accelerator only deploys security services, not true. The Accelerator is capable of deploying a complete end-to-end hybrid enterprise multi-region cloud environment.
 
 Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with mininal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
 
-Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated manner:
+Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated but customizable manner:
 
 ### Creates AWS Account
 
