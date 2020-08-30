@@ -35,6 +35,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
 - All completely and indivdiually customizable (per account, VPC, or OU)
+- Layout your VPCs, subnets, CIDRs and connectivity the way you want
 - Deletes default VPC's (worldwide)
 
 ### Cross-Account Object Sharing
@@ -118,7 +119,7 @@ This summarizes the installation process, the full installation document can be 
 - Create a config.json (or config.yaml) file to represent your organizations requirements (PBMM sample provided)
 - Create a Secrets Manager Secret which contains a GitHub token with access to the Accelerator code repo
 - Create a unique S3 input bucket and place your config.json and any additional custom config files in the bucket
-- Download and execute the latest installer CloudFormation template in your master accounts preferred 'primary' region
+- Download and execute the latest installer CloudFormation template in your root accounts preferred 'primary' region
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
   - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~15-20 mins)
