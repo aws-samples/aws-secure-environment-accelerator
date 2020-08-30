@@ -4,7 +4,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Update Central Logging Kinesis stream shard count as accounts are added
+- Update Central Logging Kinesis stream shard count as accounts are added
 
 ```
     "central-log-services": {
@@ -14,7 +14,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Override default CWL retention period (Add to any account)
+- Override default CWL retention period (Add to any account)
 
 ```
      “cwl-retention”: 180
@@ -22,7 +22,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Macie Frequency Supported Values:
+- Macie Frequency Supported Values:
 
 ```
       "macie-frequency": "SIX_HOURS" ---> FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS
@@ -30,7 +30,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******CWL subscription exclusions example
+- CWL subscription exclusions example
 
 ```
     "central-log-services": {
@@ -46,7 +46,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******CloudWatch Metric Filters and Alarms
+- CloudWatch Metric Filters and Alarms
 
 ```
     "central-log-services": {
@@ -94,7 +94,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Additional regions for Amazon CloudWatch Central Logging to S3
+- Additional regions for Amazon CloudWatch Central Logging to S3
 
 ```
     "additional-cwl-regions": {
@@ -106,7 +106,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******SNS Topics - If section not provided we create High,Medium,Low,Ignore SNS topics with out subscribers
+- SNS Topics - If section not provided we create High,Medium,Low,Ignore SNS topics with out subscribers
 
 ```
     "central-log-services": {
@@ -121,7 +121,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Cert REQUEST format (Import shown in sample)
+- Cert REQUEST format (Import shown in sample)
 
 ```
       "certificates": [
@@ -137,7 +137,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Other Budget "include" fields
+- Other Budget "include" fields
 
 ```
       "default-budgets": {
@@ -159,7 +159,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Cross Account Role Example
+- Cross Account Role Example
 
 ```
           {
@@ -175,7 +175,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Very basic workload account example and "per account" exceptions example
+- Very basic workload account example and "per account" exceptions example
 
 ```
   "workload-account-configs": {
@@ -196,7 +196,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample limit increases supported
+- Sample limit increases supported
 
 ```
       "limits": {
@@ -209,7 +209,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******v1.0.4_to_v1.0.5 upgrade MAD fix - REQUIRED ALL 1.0.4 ORIGINAL INSTALLS
+- v1.0.4_to_v1.0.5 upgrade MAD fix - REQUIRED ALL 1.0.4 ORIGINAL INSTALLS
 
 ```
       "deployments": {
@@ -221,7 +221,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample Complex Security Group
+- Sample Complex Security Group
 
 ```
           {
@@ -260,7 +260,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample Single AZ NATGW
+- Sample Single AZ NATGW
 
 ```
 "natgw": {
@@ -346,7 +346,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample PER AZ NATGW
+- Sample PER AZ NATGW
 
 ```
 "natgw": {
@@ -428,7 +428,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample NATGW - NOT PREFERED, but works: (uses first AZ)
+- Sample NATGW - NOT PREFERED, but works: (uses first AZ)
 
 ```
 "natgw": {
@@ -513,7 +513,7 @@
 
 ---
 
-******\*\*\*\*******\*\*\*\*******\*\*\*\*******TGW Route tables plus Multiple TGWs
+- TGW Route tables plus Multiple TGWs
 
 ```
         "tgw": [
@@ -613,21 +613,17 @@
 
 ---
 
----
-
+- Future description
 ```
 {future sample}
 ```
 
 ---
 
----
-
+- Future description
 ```
 {future sample}
 ```
-
----
 
 ---
 
