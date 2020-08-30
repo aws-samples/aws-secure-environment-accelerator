@@ -1,13 +1,21 @@
 Config File Examples:  {Not in sample config file}
+
 ************************************Update Central Logging Kinesis stream shard count as accounts are added
+
     "central-log-services": {
-	  "kinesis-stream-shard-count": 2,
+	  "kinesis-stream-shard-count": 2
+    }
+
 ************************************Override default CWL retention period (Add to any account)
+
      “cwl-retention”: 180
-************************************Macie Frequency values:
+
+************************************Macie Frequency Supported Values:
+
       "macie-frequency": "SIX_HOURS" ---> FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS
 	  
 ************************************CWL subscription exclusions example
+
     "central-log-services": {
       "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],
       "cwl-exclusions": [
@@ -15,8 +23,11 @@ Config File Examples:  {Not in sample config file}
           "account": "fun-acct",
           "exclusions": ["def/*"]
         }
-      ],
-************************************CloudWatch MetricFilters and Alarms
+      ]
+	}
+	
+************************************CloudWatch Metric Filters and Alarms
+
     "central-log-services": {
       "cloudwatch": {
         "metrics": [{
@@ -58,14 +69,17 @@ Config File Examples:  {Not in sample config file}
         }
       }
     }
+	
 ************************************Additional regions for Amazon CloudWatch Central Logging to S3
+
     "additional-cwl-regions": {
       "us-east-1": {
         "kinesis-stream-shard-count": 1
       }
-    },
-****************SNS Topics ignore regions and adding subscription emails for topic subscriptions*********
-****************By default we create High,Medium,Low,Ignore SNS topics with out subscribers**************
+    }
+	
+************************************SNS Topics - If section not provided we create High,Medium,Low,Ignore SNS topics with out subscribers
+
     "central-log-services": {
       "sns-excl-regions": ["sa-east-1"],
       "sns-subscription-emails": {
@@ -74,7 +88,9 @@ Config File Examples:  {Not in sample config file}
         "Medium": ["notify+medium@example.com"]
       }
     }
-************************************cert REQUEST format
+	
+************************************Cert REQUEST format (Import shown in sample)
+
       "certificates": [
         {
           "name": "PublicCert",
@@ -84,7 +100,9 @@ Config File Examples:  {Not in sample config file}
           "san": ["*.example1.com"]
         }
       ]
-************************************budget include fields
+	  
+************************************Other Budget "include" fields
+
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
@@ -98,7 +116,11 @@ Config File Examples:  {Not in sample config file}
           "Taxes",
           "Support-charges",
           "Discounts"
-************************************Cross Account Role
+		]
+	  }
+	  
+************************************Cross Account Role Example
+
           {
             "role": "Test-Role",
             "type": "account",
@@ -108,7 +130,9 @@ Config File Examples:  {Not in sample config file}
             "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
             "trust-policy": "role-trust-policy.txt"
           }
-************************************Very basic workload and per account exceptions
+		  
+************************************Very basic workload account example and "per account" exceptions example
+
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
@@ -122,22 +146,26 @@ Config File Examples:  {Not in sample config file}
       "share-mad-from": "operations",
       "enable-s3-public-access": true
     }
-  },
+  }
+  
 ************************************Sample limit increases supported 
+
       "limits": {
         "Amazon VPC/Interface VPC endpoints per VPC": 90,
         "Amazon VPC/VPCs per Region": 15,
         "AWS CloudFormation/Stack count": 400,
         "AWS CloudFormation/Stack sets per administrator account": 400
-      },
-************************************v1.0.4_to_v1.0.5 upgrade MAD fix
+      }
+	  
+************************************v1.0.4_to_v1.0.5 upgrade MAD fix - REQUIRED ALL 1.0.4 ORIGINAL INSTALLS
+
       "deployments": {
         "mad": {
-          "dir-id": 1001,
-          "password-secret-name": "accelerator/operations/mad/password",
-************************************
-
-************************************
+          "password-secret-name": "accelerator/operations/mad/password"
+	    }	  
+	  }	  
+	  
+************************************Sample Complex Security Group
           {
             "name": "SampleComplexSecurityGroup",
             "inbound-rules": [
@@ -170,7 +198,7 @@ Config File Examples:  {Not in sample config file}
               }
             ]
           },
-************************************One NATGW
+************************************Sample Single AZ NATGW
 "natgw": {
     "subnet": {
       "name": "Web",
@@ -250,7 +278,7 @@ Config File Examples:  {Not in sample config file}
       ]
     }
   ]
-************************************PER AZ NATGW
+************************************Sample PER AZ NATGW
 "natgw": {
     "subnet": {
       "name": "Web"
@@ -326,7 +354,7 @@ Config File Examples:  {Not in sample config file}
       "name": "SandboxVPC_b"
     }
   ]
-************************************NOT PERFERED, but works: (uses first AZ)
+************************************Sample NATGW - NOT PREFERED, but works: (uses first AZ)
 "natgw": {
     "subnet": {
       "name": "Web"
@@ -406,10 +434,106 @@ Config File Examples:  {Not in sample config file}
     }
   ]
 
+************************************TGW Route tables plus Multiple TGWs
+
+        "tgw": [
+          {
+            "name": "Main",
+            "asn": 65521,
+            "region": "ca-central-1",
+            "features": {
+              "DNS-support": true,
+              "VPN-ECMP-support": true,
+              "Default-route-table-association": false,
+              "Default-route-table-propagation": false,
+              "Auto-accept-sharing-attachments": true
+            },
+            "route-tables": ["core", "segregated", "shared", "standalone"],
+            "tgw-routes": [
+              {
+                "name": "{TGW_ALL}",
+                "routes": [
+                  {
+                    "destination": "1.1.0.0/32",
+                    "target-tgw": "East"
+                  }
+                ]
+              },
+              {
+                "name": "segregated",
+                "routes": [
+                  {
+                    "destination": "1.0.4.0/32",
+                    "blackhole-route": true
+                  }
+                ]
+              },
+              {
+                "name": "shared",
+                "routes": [{
+                  "destination": "1.0.2.0/32",
+                  "target-vpc": "Dev"
+                }]
+              },
+              {
+                "name": "standalone",
+                "routes": [{
+                  "destination": "1.0.3.0/32",
+                  "target-vpn": {
+                    "name": "Perimeter_fw",
+                    "az": "b",
+                    "subnet": "Public"
+                  }
+                }]
+              }
+            ]
+          },
+          {
+            "name": "East",
+            "asn": 64526,
+            "region": "us-east-1",
+            "features": {
+              "DNS-support": true,
+              "VPN-ECMP-support": true,
+              "Default-route-table-association": false,
+              "Default-route-table-propagation": false,
+              "Auto-accept-sharing-attachments": true
+            },
+            "route-tables": ["core", "segregated", "shared", "standalone"],
+            "tgw-attach": {
+              "associate-to-tgw": "Main",
+              "account": "shared-network",
+              "region": "ca-central-1",
+              "tgw-rt-associate-local": ["core"],
+              "tgw-rt-associate-remote": ["core"]
+            },
+            "tgw-routes": [
+              {
+                "name": "core",
+                "routes": [
+                  {
+                    "destination": "1.1.0.0/32",
+                    "target-tgw": "Main"
+                  }
+                ]
+              },
+              {
+                "name": "segregated",
+                "routes": [
+                  {
+                    "destination": "1.1.1.0/32",
+                    "target-tgw": "Main"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+		
 ************************************
 
 ************************************
 
 ************************************
 
-************************************
+[...Return to Table of Contents](../../index.md)
