@@ -404,82 +404,6 @@
             },
             "route-tables": ["core", "segregated", "shared", "standalone"],
             "tgw-routes": [
-              {
-                "name": "{TGW_ALL}",
-                "routes": [
-                  {
-                    "destination": "1.1.0.0/32",
-                    "target-tgw": "East"
-                  }
-                ]
-              },
-              {
-                "name": "segregated",
-                "routes": [
-                  {
-                    "destination": "1.0.4.0/32",
-                    "blackhole-route": true
-                  }
-                ]
-              },
-              {
-                "name": "shared",
-                "routes": [{
-                  "destination": "1.0.2.0/32",
-                  "target-vpc": "Dev"
-                }]
-              },
-              {
-                "name": "standalone",
-                "routes": [{
-                  "destination": "1.0.3.0/32",
-                  "target-vpn": {
-                    "name": "Perimeter_fw",
-                    "az": "b",
-                    "subnet": "Public"
-                  }
-                }]
-              }
-            ]
-          },
-          {
-            "name": "East",
-            "asn": 64526,
-            "region": "us-east-1",
-            "features": {
-              "DNS-support": true,
-              "VPN-ECMP-support": true,
-              "Default-route-table-association": false,
-              "Default-route-table-propagation": false,
-              "Auto-accept-sharing-attachments": true
-            },
-            "route-tables": ["core", "segregated", "shared", "standalone"],
-            "tgw-attach": {
-              "associate-to-tgw": "Main",
-              "account": "shared-network",
-              "region": "ca-central-1",
-              "tgw-rt-associate-local": ["core"],
-              "tgw-rt-associate-remote": ["core"]
-            },
-            "tgw-routes": [
-              {
-                "name": "core",
-                "routes": [
-                  {
-                    "destination": "1.1.0.0/32",
-                    "target-tgw": "Main"
-                  }
-                ]
-              },
-              {
-                "name": "segregated",
-                "routes": [
-                  {
-                    "destination": "1.1.1.0/32",
-                    "target-tgw": "Main"
-                  }
-                ]
-              }
             ]
           }
         ]
@@ -1335,9 +1259,6 @@
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
           "connect-dir-id": 1001
-        },
-        "sso": {
-          "deploy": true
         }
       }
     },
@@ -1456,14 +1377,6 @@
           }
         ]
       },
-      "certificates": [
-        {
-          "name": "CentralSelf-SignedCert",
-          "type": "import",
-          "priv-key": "certs/example1-cert.key",
-          "cert": "certs/example1-cert.crt"
-        }
-      ],
       "vpc": [
         {
           "deploy": "shared-network",
