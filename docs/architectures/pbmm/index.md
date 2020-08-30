@@ -696,4 +696,4 @@ These frameworks will perform checks against the accounts via Config Rules that 
 
 ---
 
-[...Return to Accelerator Table of Contents](../index.md)
+[...Return to Accelerator Table of Contents](../../index.md)
