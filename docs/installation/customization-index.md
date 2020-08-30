@@ -1,21 +1,21 @@
 # AWS Secure Environment Accelerator
 
-# **Deployment Customizations**
+## **Deployment Customizations**
 
 ### - Link to the sample PBMM config [file](../../reference-artifacts/config.example.json)
 
-### - Multi-file Accelerator Config file [Option](./multi-file-config-capabilities.md) and YAML support
+### - (Multi-file Accelerator Config file Option and YAML support](./multi-file-config-capabilities.md)
 
-### - Alternative sample config file [parameters](../../reference-artifacts/master-config-sample-snippets/sample_snippets.md) not shown in primary sample config file
+### - (Alternative sample config file parameters not shown in primary sample config file](../../reference-artifacts/master-config-sample-snippets/sample_snippets.md)
 
 ### - 3rd Party Firewall
 
 - Sample firewall config [file](../../reference-artifacts/Third-Party/firewall-example.txt)
-- Firewall configuration [customization](../../reference-artifacts/master-config-sample-snippets/firewall_file_available_variables.md)
+- Firewall configuration [customizations](../../reference-artifacts/master-config-sample-snippets/firewall_file_available_variables.md)
 
-### - Accelerator Configuration File Sample Library
+### - Other Sample Accelerator Configuration Files
 
-- **_Future_** [xxx](.)
-- **_Future_** [xxx](.)
+- [Future](.)
+- [Future](.)
 
 [...Return to Table of Contents](../index.md)
