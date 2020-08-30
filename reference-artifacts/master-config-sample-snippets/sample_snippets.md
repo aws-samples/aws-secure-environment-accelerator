@@ -59,7 +59,7 @@
             "regions": [
               "ca-central-1"
             ],
-            "loggroup-name": "/PBMMAccel/CloudTrailTest",
+            "loggroup-name": "/PBMMAccel/CloudTrail",
             "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
             "metric-namespace": "CloudTrailMetrics",
             "metric-name": "SecurityGroupEventCountTest",
