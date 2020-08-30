@@ -1260,3 +1260,5 @@ Run in the root of the project.
 ```sh
 pnpm recursive run lint --stream --no-bail
 ```
+---
+[...Return to Accelerator Table of Contents](../index.md)

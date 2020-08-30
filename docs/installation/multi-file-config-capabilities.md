@@ -177,4 +177,4 @@ The entire main config file could be reduced to this:
 - All accelerator functionality both ALZ and Standalone versions continue to function as previously defined
 - Customer can successfully provides multiple config files with the same result as the current one file
 
-[...Return to Table of Contents](../index.md)
+[...Return to Table of Contents](./customization-index.md)

@@ -468,5 +468,5 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
    - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
 
 [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
-
-[...Return to Table of Contents](../index.md)
+---
+[...Return to Accelerator Table of Contents](../index.md)

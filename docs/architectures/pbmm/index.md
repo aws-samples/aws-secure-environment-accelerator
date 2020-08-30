@@ -693,3 +693,5 @@ These frameworks will perform checks against the accounts via Config Rules that 
 [found]: https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-standards-fsbp-controls.html
 [pci]: https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-pci-controls.html
 [cis]: https://docs.aws.amazon.com/securityhub/latest/userguide/securityhub-cis-controls.html
+---
+[...Return to Accelerator Table of Contents](../index.md)

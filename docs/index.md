@@ -1,6 +1,6 @@
 # AWS Secure Environment Accelerator
 
-# **Documentation** (Linked)
+## **Documentation** (Linked)
 
 ### - [Solution Summary / Repo Root](../README.md)
 

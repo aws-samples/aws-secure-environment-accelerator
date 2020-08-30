@@ -4,9 +4,9 @@
 
 ### - Link to the sample PBMM config [file](../../reference-artifacts/config.example.json)
 
-### - [Multi-file Accelerator Config file Option and YAML support](./multi-file-config-capabilities.md)
+### - [Multi-file Accelerator config file option and YAML support](./multi-file-config-capabilities.md)
 
-### - [Alternative sample config file parameters not shown in primary sample config file](../../reference-artifacts/master-config-sample-snippets/sample_snippets.md)
+### - [Additional config file parameters not shown in primary sample config file](../../reference-artifacts/master-config-sample-snippets/sample_snippets.md)
 
 ### - 3rd Party Firewall
 
