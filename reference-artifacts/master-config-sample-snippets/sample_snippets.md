@@ -49,7 +49,7 @@
 - CloudWatch Metric Filters and Alarms
 
 ```
-    "central-log-services": {
+  "global-options": {
       "cloudwatch": {
         "metrics": [{
             "filter-name": "SecurityGroupChangeMetricTest",
