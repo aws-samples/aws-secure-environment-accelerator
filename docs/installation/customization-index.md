@@ -6,7 +6,7 @@
 
 ### - Accelerator Configuration File Sample Library
 
-- Alternative sample config file [parameters](../../reference-artifacts/master-config-sample-snippets/sample_snippets.json) not shown in primary sample config file
+- Alternative sample config file [parameters](../../reference-artifacts/master-config-sample-snippets/sample_snippets.md) not shown in primary sample config file
 - Link to the sample PBMM config [file](../../reference-artifacts/config.example.json)
 - **_Future_** - Documented sample config [file](.)
 
