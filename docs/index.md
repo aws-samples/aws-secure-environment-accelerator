@@ -7,7 +7,7 @@
 ### - [Installation, Upgrades and Basic Operations Guide](./installation/index.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-- [Link](./docs/installation/customization-index.md) to sample config file and customization details
+- [Link](./installation/customization-index.md) to sample config file and customization details
 
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md) (Early Draft)
 
