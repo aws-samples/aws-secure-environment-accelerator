@@ -122,7 +122,9 @@ Accelerator Internal Operations:
     - update `"workloadaccounts-suffix"` to: `{"workloadaccounts-suffix"}` + `1`
     - be careful with comma's between files (JSON sections) when appending/connecting
 
-Example - The entire main config file could be reduced to this:
+### Example
+
+The entire main config file could be reduced to this:
 
 ```
 {"global-options": {
