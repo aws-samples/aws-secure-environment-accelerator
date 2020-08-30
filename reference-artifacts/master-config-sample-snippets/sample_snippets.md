@@ -1,21 +1,38 @@
-Config File Examples:  {Not in sample config file}
+# AWS Secure Environment Accelerator
 
-************************************Update Central Logging Kinesis stream shard count as accounts are added
+## **Config File Sample Snippets (Parameters not in sample config file)**
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Update Central Logging Kinesis stream shard count as accounts are added
+
+```
     "central-log-services": {
 	  "kinesis-stream-shard-count": 2
     }
+```
 
-************************************Override default CWL retention period (Add to any account)
+---
 
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Override default CWL retention period (Add to any account)
+
+```
      “cwl-retention”: 180
+```
 
-************************************Macie Frequency Supported Values:
+---
 
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Macie Frequency Supported Values:
+
+```
       "macie-frequency": "SIX_HOURS" ---> FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS
-	  
-************************************CWL subscription exclusions example
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******CWL subscription exclusions example
+
+```
     "central-log-services": {
       "cwl-glbl-exclusions": ["/xxx/yyy/*", "abc/*"],
       "cwl-exclusions": [
@@ -25,9 +42,13 @@ Config File Examples:  {Not in sample config file}
         }
       ]
 	}
-	
-************************************CloudWatch Metric Filters and Alarms
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******CloudWatch Metric Filters and Alarms
+
+```
     "central-log-services": {
       "cloudwatch": {
         "metrics": [{
@@ -69,17 +90,25 @@ Config File Examples:  {Not in sample config file}
         }
       }
     }
-	
-************************************Additional regions for Amazon CloudWatch Central Logging to S3
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Additional regions for Amazon CloudWatch Central Logging to S3
+
+```
     "additional-cwl-regions": {
       "us-east-1": {
         "kinesis-stream-shard-count": 1
       }
     }
-	
-************************************SNS Topics - If section not provided we create High,Medium,Low,Ignore SNS topics with out subscribers
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******SNS Topics - If section not provided we create High,Medium,Low,Ignore SNS topics with out subscribers
+
+```
     "central-log-services": {
       "sns-excl-regions": ["sa-east-1"],
       "sns-subscription-emails": {
@@ -88,9 +117,13 @@ Config File Examples:  {Not in sample config file}
         "Medium": ["notify+medium@example.com"]
       }
     }
-	
-************************************Cert REQUEST format (Import shown in sample)
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Cert REQUEST format (Import shown in sample)
+
+```
       "certificates": [
         {
           "name": "PublicCert",
@@ -100,9 +133,13 @@ Config File Examples:  {Not in sample config file}
           "san": ["*.example1.com"]
         }
       ]
-	  
-************************************Other Budget "include" fields
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Other Budget "include" fields
+
+```
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
@@ -118,9 +155,13 @@ Config File Examples:  {Not in sample config file}
           "Discounts"
 		]
 	  }
-	  
-************************************Cross Account Role Example
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Cross Account Role Example
+
+```
           {
             "role": "Test-Role",
             "type": "account",
@@ -130,9 +171,13 @@ Config File Examples:  {Not in sample config file}
             "source-account-role": "AWSLandingZoneSecurityAdministratorRole",
             "trust-policy": "role-trust-policy.txt"
           }
-		  
-************************************Very basic workload account example and "per account" exceptions example
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Very basic workload account example and "per account" exceptions example
+
+```
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
@@ -147,25 +192,38 @@ Config File Examples:  {Not in sample config file}
       "enable-s3-public-access": true
     }
   }
-  
-************************************Sample limit increases supported 
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample limit increases supported
+
+```
       "limits": {
         "Amazon VPC/Interface VPC endpoints per VPC": 90,
         "Amazon VPC/VPCs per Region": 15,
         "AWS CloudFormation/Stack count": 400,
         "AWS CloudFormation/Stack sets per administrator account": 400
       }
-	  
-************************************v1.0.4_to_v1.0.5 upgrade MAD fix - REQUIRED ALL 1.0.4 ORIGINAL INSTALLS
+```
 
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******v1.0.4_to_v1.0.5 upgrade MAD fix - REQUIRED ALL 1.0.4 ORIGINAL INSTALLS
+
+```
       "deployments": {
         "mad": {
           "password-secret-name": "accelerator/operations/mad/password"
-	    }	  
-	  }	  
-	  
-************************************Sample Complex Security Group
+	    }
+	  }
+```
+
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample Complex Security Group
+
+```
           {
             "name": "SampleComplexSecurityGroup",
             "inbound-rules": [
@@ -198,7 +256,13 @@ Config File Examples:  {Not in sample config file}
               }
             ]
           },
-************************************Sample Single AZ NATGW
+```
+
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample Single AZ NATGW
+
+```
 "natgw": {
     "subnet": {
       "name": "Web",
@@ -278,7 +342,13 @@ Config File Examples:  {Not in sample config file}
       ]
     }
   ]
-************************************Sample PER AZ NATGW
+```
+
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample PER AZ NATGW
+
+```
 "natgw": {
     "subnet": {
       "name": "Web"
@@ -354,7 +424,13 @@ Config File Examples:  {Not in sample config file}
       "name": "SandboxVPC_b"
     }
   ]
-************************************Sample NATGW - NOT PREFERED, but works: (uses first AZ)
+```
+
+---
+
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******Sample NATGW - NOT PREFERED, but works: (uses first AZ)
+
+```
 "natgw": {
     "subnet": {
       "name": "Web"
@@ -433,9 +509,13 @@ Config File Examples:  {Not in sample config file}
       ]
     }
   ]
+```
 
-************************************TGW Route tables plus Multiple TGWs
+---
 
+******\*\*\*\*******\*\*\*\*******\*\*\*\*******TGW Route tables plus Multiple TGWs
+
+```
         "tgw": [
           {
             "name": "Main",
@@ -529,11 +609,26 @@ Config File Examples:  {Not in sample config file}
             ]
           }
         ]
-		
-************************************
+```
 
-************************************
+---
 
-************************************
+---
+
+```
+{future sample}
+```
+
+---
+
+---
+
+```
+{future sample}
+```
+
+---
+
+---
 
 [...Return to Table of Contents](../../docs/index.md)
