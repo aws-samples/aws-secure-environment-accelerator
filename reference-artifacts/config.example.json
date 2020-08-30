@@ -427,7 +427,7 @@
             "alarm-name": "AWS-Console-SignIn-Failure",
             "metric-name": "ConsoleSignInFailureCount",
             "sns-alert-level": "High",
-            "default-threshold": "3",
+            "default-threshold": 3,
             "alarm-description": "Alarms when one or more unauthenticated API calls are made to sign into the console (in any account, any region of your AWS Organization)."
           },
           {
