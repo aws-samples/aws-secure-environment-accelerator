@@ -145,4 +145,6 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Frequently Asked Questions](./docs/faq/index.md) (Future)
 
-[...Go to Table of Contents](./docs/index.md)
+---
+
+[...Go to Accelerator Table of Contents](./docs/index.md)

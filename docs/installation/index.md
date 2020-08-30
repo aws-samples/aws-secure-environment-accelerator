@@ -36,6 +36,7 @@ These installation instructions assume the prescribed architecture is being depl
   - [3.4. Design Constraints](#34-design-constraints)
 - [4. AWS Internal - Accelerator Release Process](#4-aws-internal---accelerator-release-process)
   - [4.1. Creating a new Accelerator Code Release](#41-creating-a-new-accelerator-code-release)
+  - [[action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml](#)
 
 ## 1.1. Prerequisites
 
@@ -467,6 +468,8 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
 
    - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
 
-[action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
+## [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
+
 ---
+
 [...Return to Accelerator Table of Contents](../index.md)

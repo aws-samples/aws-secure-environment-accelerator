@@ -581,5 +581,7 @@ You can switch to the same account again quickly by clicking the name you entere
 ![Switch Role Again Menu](img/switch-role-switched-menu.png)
 
 <a name="cdk">[1]</a>: https://docs.aws.amazon.com/cdk/latest/guide/home.html
+
 ---
+
 [...Return to Accelerator Table of Contents](../index.md)

@@ -8,4 +8,6 @@ Future answer 1
 
 Future answer 2
 
+---
+
 [...Return to Accelerator Table of Contents](../index.md)
