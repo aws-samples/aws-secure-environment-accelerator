@@ -2,7 +2,7 @@
 
 # **Deployment Customizations**
 
-### - Multi-file Accelerator Config file [Option](./installation/multi-file-config-capabilities.md) and YAML support
+### - Multi-file Accelerator Config file [Option](./multi-file-config-capabilities.md) and YAML support
 
 ### - Accelerator Configuration File Sample Library
 
