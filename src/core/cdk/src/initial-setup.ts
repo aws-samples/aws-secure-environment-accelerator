@@ -561,6 +561,10 @@ export namespace InitialSetup {
           parameters: {
             'account.$': '$$.Map.Item.Value',
             'regions.$': '$.regions',
+            acceleratorPrefix: props.acceleratorPrefix,
+            assumeRoleName: props.stateMachineExecutionRole,
+            outputsTable: outputsTable.tableName,
+            phaseNumber: phase,
           },
         });
 
@@ -571,6 +575,10 @@ export namespace InitialSetup {
           parameters: {
             'account.$': '$.account',
             'region.$': '$$.Map.Item.Value',
+            'acceleratorPrefix.$': '$.acceleratorPrefix',
+            'assumeRoleName.$': '$.assumeRoleName',
+            'outputsTable.$': '$.outputsTable',
+            'phaseNumber.$': '$.phaseNumber',
           },
         });
 
@@ -579,12 +587,6 @@ export namespace InitialSetup {
             code: lambdaCode,
             handler: 'index.storeStackOutputStep',
             role: pipelineRole,
-          },
-          functionPayload: {
-            acceleratorPrefix: props.acceleratorPrefix,
-            assumeRoleName: props.stateMachineExecutionRole,
-            outputsTable: outputsTable.tableName,
-            phaseNumber: phase,
           },
           resultPath: 'DISCARD',
         });
