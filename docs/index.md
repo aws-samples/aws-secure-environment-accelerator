@@ -1,13 +1,13 @@
 # AWS Secure Environment Accelerator
 
-# **Documentation** (Linked)
+## **Documentation** (Linked)
 
 ### - [Solution Summary / Repo Root](../README.md)
 
 ### - [Installation, Upgrades and Basic Operations Guide](./installation/index.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-- Link to example PBMM config [file](../reference-artifacts/config.example.json)
+- [Link](./installation/customization-index.md) to sample config file and customization details
 
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md) (Early Draft)
 
@@ -16,3 +16,6 @@
 ### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/index.md) (Early Draft)
 
 ### - [Frequently Asked Questions](./faq/index.md)
+
+---
+
