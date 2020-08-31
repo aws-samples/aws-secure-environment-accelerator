@@ -40,6 +40,7 @@
     "@aws-cdk/aws-stepfunctions": "1.46.0",
     "@aws-cdk/aws-stepfunctions-tasks": "1.46.0",
     "@aws-cdk/aws-secretsmanager": "1.46.0",
+    "@aws-cdk/aws-dynamodb": "1.46.0",
     "@aws-cdk/core": "1.46.0",
     "@aws-accelerator/accelerator-runtime": "workspace:^0.0.1",
     "@aws-accelerator/cdk-accelerator": "workspace:^0.0.1",

@@ -4,6 +4,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3assets from '@aws-cdk/aws-s3-assets';
 import * as secrets from '@aws-cdk/aws-secretsmanager';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import * as tasks from '@aws-cdk/aws-stepfunctions-tasks';
 import { CdkDeployProject, PrebuiltCdkDeployProject } from '@aws-accelerator/cdk-accelerator/src/codebuild';
@@ -83,6 +84,17 @@ export namespace InitialSetup {
         description: 'This secret contains the information about the organizations that are used for deployment.',
       });
       setSecretValue(organizationsSecret, '[]');
+
+      const outputsTable = new dynamodb.Table(this, 'Outputs', {
+        tableName: createName({
+          name: 'Outputs',
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+      });
 
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
