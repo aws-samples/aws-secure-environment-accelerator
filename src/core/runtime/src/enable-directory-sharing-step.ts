@@ -20,14 +20,7 @@ export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD to another account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    accounts,
-    assumeRoleName,
-    configRepositoryName,
-    configFilePath,
-    configCommitId,
-    outputTableName,
-  } = input;
+  const { accounts, assumeRoleName, configRepositoryName, configFilePath, configCommitId, outputTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -36,7 +29,6 @@ export const handler = async (input: ShareDirectoryInput) => {
     commitId: configCommitId,
   });
 
-  
   const outputs = await loadOutputs(outputTableName, dynamodb);
 
   const sts = new STS();

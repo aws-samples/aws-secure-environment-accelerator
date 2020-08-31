@@ -48,14 +48,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    configRepositoryName,
-    accounts,
-    assumeRoleName,
-    configCommitId,
-    configFilePath,
-    outputTableName,
-  } = input;
+  const { configRepositoryName, accounts, assumeRoleName, configCommitId, configFilePath, outputTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({

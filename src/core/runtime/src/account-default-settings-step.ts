@@ -26,14 +26,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    assumeRoleName,
-    accounts,
-    configRepositoryName,
-    configFilePath,
-    configCommitId,
-    outputTableName,
-  } = input;
+  const { assumeRoleName, accounts, configRepositoryName, configFilePath, configCommitId, outputTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({

@@ -27,13 +27,7 @@ export const handler = async (input: VerifyFilesInput) => {
   console.log('Validate existence of all required files ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    configRepositoryName,
-    configFilePath,
-    configCommitId,
-    rdgwScripts,
-    outputTableName,
-  } = input;
+  const { configRepositoryName, configFilePath, configCommitId, rdgwScripts, outputTableName } = input;
 
   const outputs = await loadOutputs(outputTableName, dynamodb);
 

@@ -565,16 +565,16 @@ export namespace InitialSetup {
             assumeRoleName: props.stateMachineExecutionRole,
             outputsTable: outputsTable.tableName,
             phaseNumber: phase,
-          }
+          },
         });
-        
+
         const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs ${phase}`, {
           itemsPath: `$.regions`,
           resultPath: 'DISCARD',
           maxConcurrency: 1,
           parameters: {
             'account.$': '$.account',
-            'region.$': '$$.Map.Item.Value'
+            'region.$': '$$.Map.Item.Value',
           },
         });
 
@@ -591,7 +591,7 @@ export namespace InitialSetup {
         storeAccountRegionOutputs.iterator(storeAccountRegionOutputTask);
 
         return storeAccountOutputs;
-      }
+      };
 
       // TODO Create separate state machine for deployment
       const deployPhaseRolesTask = createDeploymentTask(-1, false);
