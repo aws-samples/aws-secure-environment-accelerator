@@ -403,35 +403,7 @@
               "Auto-accept-sharing-attachments": true
             },
             "route-tables": ["core", "segregated", "shared", "standalone"],
-            "tgw-routes": [
-              {
-                "name": "segregated",
-                "routes": [
-                  {
-                    "destination": "1.0.4.0/32",
-                    "blackhole-route": true
-                  }
-                ]
-              },
-              {
-                "name": "shared",
-                "routes": [{
-                  "destination": "1.0.2.0/32",
-                  "target-vpc": "Dev"
-                }]
-              },
-              {
-                "name": "standalone",
-                "routes": [{
-                  "destination": "1.0.3.0/32",
-                  "target-vpn": {
-                    "name": "Perimeter_fw",
-                    "az": "b",
-                    "subnet": "Public"
-                  }
-                }]
-              }
-            ]
+            "tgw-routes": []
           }
         ]
       }
