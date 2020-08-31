@@ -2,15 +2,16 @@
 
 # Domain name to search for resolver rule
 Domain="dept.cloud-nuage.gc.ca"
+region="ca-central-1"
 
 # Finds the resolver rule Id for the given domain name
 function get_resolver_id() {
-    resolver_id=$(aws route53resolver list-resolver-rules --filters Name=DomainName,Values=$Domain --query ResolverRules[].Id --output text)
+    resolver_id=$(aws route53resolver list-resolver-rules --region $region --filters Name=DomainName,Values=$Domain --query ResolverRules[].Id --output text)
 }
 
 # Finds VPCs associated to the resolver rule Id
 function get_vpc_ids() {
-    vpc_ids=$(aws route53resolver list-resolver-rule-associations --filters Name=ResolverRuleId,Values=$1 --query ResolverRuleAssociations[].VPCId --output json | awk '{print $1}' | tr -d '[]",')
+    vpc_ids=$(aws route53resolver list-resolver-rule-associations --region $region --filters Name=ResolverRuleId,Values=$1 --query ResolverRuleAssociations[].VPCId --output json | awk '{print $1}' | tr -d '[]",')
 }
 
 # Checks association of VPCs from the resolver rule
@@ -39,7 +40,7 @@ function disassociate_vpc_ids() {
         else
             echo "started disassociating VPCs from resolver rule $resolver_id"
             for vpc_id in $vpc_ids; do
-                result=$(aws route53resolver disassociate-resolver-rule --resolver-rule-id ${resolver_id} --vpc-id $vpc_id)
+                result=$(aws route53resolver disassociate-resolver-rule  --region $region --resolver-rule-id ${resolver_id} --vpc-id $vpc_id)
             done
             _checkStatus
         fi
