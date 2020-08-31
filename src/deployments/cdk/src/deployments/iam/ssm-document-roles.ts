@@ -28,7 +28,7 @@ export async function createSSMDocumentRoles(props: SSMDocumentProps): Promise<v
         continue;
       }
       const ssmRole = await ssmCreateDocumentRole(accountStack);
-      accountRoles[accountKey] = ssmRole;
+      accountRoles[localAccountKey] = ssmRole;
       createIamRoleOutput(accountStack, ssmRole, 'SSMSessionManagerDocument');
     }
   }
