@@ -36,12 +36,13 @@ These installation instructions assume the prescribed architecture is being depl
   - [3.4. Design Constraints](#34-design-constraints)
 - [4. AWS Internal - Accelerator Release Process](#4-aws-internal---accelerator-release-process)
   - [4.1. Creating a new Accelerator Code Release](#41-creating-a-new-accelerator-code-release)
+  - [[action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml](#)
 
 ## 1.1. Prerequisites
 
 ### 1.1.1. General
 
-- Master or Root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
+- Master or root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Determine if you will install on top of ALZ or as a standalone installation
@@ -55,20 +56,20 @@ These installation instructions assume the prescribed architecture is being depl
 
 Before installing, you must first:
 
-1. Login to the Organization **Master AWS account** with `AdministratorAccess`.
+1. Login to the organization **root AWS account** with `AdministratorAccess`.
 2. **_Set the region to `ca-central-1`._**
 3. Enable AWS Organizations
 4. Enable Service Control Policies
-5. In AWS Organizations, "Verify" the master account email address (this is a technical process)
+5. In AWS Organizations, "Verify" the root account email address (this is a technical process)
 6. Set `alz-baseline=false` in the configuration file
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
 - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
   (`Accel-Source-Bucket-Key`), Next
-- Select a key administrator (Admin Role or Group for the master account), Next
-- Select key users (Admin Role or Group for the master account), Next
+- Select a key administrator (Admin Role or Group for the root account), Next
+- Select key users (Admin Role or Group for the root account), Next
 - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
-  - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
+  - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_root_** account id.
 - Click Finish
 
 ### 1.1.3. ALZ Based Accelerator Pre-Install Steps
@@ -85,18 +86,18 @@ When deploying the ALZ select:
 Before installing, you must first:
 
 1. Set `alz-baseline=true` in the configuration file
-2. Login to the Organization **Master AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
+2. Login to the organization **root AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
 3. **_Set the region to `ca-central-1`._**
 4. Enable IAM permissions to control access to use the `AwsLandingZoneKMSKey` KMS key.
-   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_master_** account id.
+   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_root_** account id.
 
 ### 1.1.4. Remaining Pre-Install Steps - Both Installation Types
 
-In the Master or root AWS account, manually:
+In the master or root AWS account, manually:
 
 1. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
 2. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
-3. It is **_extremely important_** that **_all_** the account contact details be validated in the MASTER account before deploying any new sub-accounts.
+3. It is **_extremely important_** that **_all_** the account contact details be validated in the ROOT account before deploying any new sub-accounts.
 
 - This information is copied to every new sub-account on creation.
 - Subsequent changes to this information require manually updating it in **\*each** sub-account.
@@ -107,7 +108,7 @@ In the Master or root AWS account, manually:
 
 If deploying to an internal AWS account, to successfully install the entire solution, you need to enable Private Marketplace (PMP) before starting:
 
-1. In the master account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
+1. In the root account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click Create Marketplace
 3. Go to Profile sub-tab, click the `Not Live` slider to make it `Live`
 4. Click the `Software requests` slider to turn `Requests off`
@@ -170,7 +171,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - 2 Fortinet FortiGate firewall licenses (Eval licenses adequate)
   - We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
-4. Create an S3 bucket in your master account with versioning enabled `your-bucket-name`
+4. Create an S3 bucket in your root account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
    - the bucket should be `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the `Accel-Source-Bucket-Key` created above
@@ -245,7 +246,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### 1.3.1. Known Installation Issues
 
 - Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy Guardduty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
-- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the master AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the master account into the auto-created core ou and rerun the SM. This is resolved in v1.1.8.
+- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the root AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the root account into the auto-created core ou and rerun the SM. This is resolved in v1.1.8.
 
 # 2. Accelerator Basic Operation
 
@@ -431,20 +432,20 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
   - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance
     - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.)
   - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
-  - We do NOT support _any_ workloads running or users operating in the master AWS account. The master AWS account MUST be tightly controlled
+  - We do NOT support _any_ workloads running or users operating in the root AWS account. The root AWS account MUST be tightly controlled
   - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
   - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, their may be scenarios that cause an installation failure. In these situations, simply rectify the conflict and re-run the state machine.
 
 ## 3.4. Design Constraints
 
-- The master account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the master account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the master account.
+- The root account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the root account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the root account.
 - While generally protected, do not delete/update/change s3 buckets with CDK, CFN, or PBMMAccel- in _any_ sub-accounts.- ALB automated deployments only supports Forward and not redirect rules.
-- AWS Config Aggregator is deployed in the Organization master account as enablement through Organizations is simpler to implement. AWS Organizations only supports deploying the Aggregator in the Org master account and not in a designated administrative account at this time. Once supported, we plan to update the code to move the Aggregator administrative account.
-- An Organization CloudTrail is deployed, which is created in the primary region in the master AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the master account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases.
+- AWS Config Aggregator is deployed in the Organization root account as enablement through Organizations is simpler to implement. AWS Organizations only supports deploying the Aggregator in the Org root account and not in a designated administrative account at this time. Once supported, we plan to update the code to move the Aggregator administrative account.
+- An Organization CloudTrail is deployed, which is created in the primary region in the root AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the root account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases.
 - Amazon Detective - we have chosen not to enable at this time.
 - Only 1 auto-deployed MAD per AWS account is supported today.
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
-- If the master account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
+- If the root account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and deprovision the first cluster when ready.
 
 # 4. AWS Internal - Accelerator Release Process
@@ -467,6 +468,8 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
 
    - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
 
-[action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
+   [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
 
-[...Return to Table of Contents](../index.md)
+---
+
+[...Return to Accelerator Table of Contents](../index.md)
