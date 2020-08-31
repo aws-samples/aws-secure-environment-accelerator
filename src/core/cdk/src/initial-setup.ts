@@ -557,7 +557,7 @@ export namespace InitialSetup {
         const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs ${phase}`, {
           itemsPath: `$.accounts`,
           resultPath: 'DISCARD',
-          maxConcurrency: 1,
+          maxConcurrency: 10,
           parameters: {
             'account.$': '$$.Map.Item.Value',
             'regions.$': '$.regions',
@@ -571,7 +571,7 @@ export namespace InitialSetup {
         const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs ${phase}`, {
           itemsPath: `$.regions`,
           resultPath: 'DISCARD',
-          maxConcurrency: 1,
+          maxConcurrency: 10,
           parameters: {
             'account.$': '$.account',
             'region.$': '$$.Map.Item.Value',
