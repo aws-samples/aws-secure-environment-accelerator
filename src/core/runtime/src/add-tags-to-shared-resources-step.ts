@@ -1,15 +1,14 @@
 import { TagResources } from '@aws-accelerator/common/src/aws/resource-tagging';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
-import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { loadOutputs } from './utils/load-outputs';
 
 const ALLOWED_RESOURCE_TYPES = ['subnet', 'security-group', 'vpc', 'tgw-attachment'];
 
 interface CreateTagsRequestInput {
   assumeRoleName: string;
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
 interface Tag {
@@ -26,22 +25,16 @@ interface AddTagToResourceOutput {
 
 type AddTagToResourceOutputs = AddTagToResourceOutput[];
 
-const s3 = new S3();
+const dynamodb = new DynamoDB();
 const sts = new STS();
 
 export const handler = async (input: CreateTagsRequestInput) => {
   console.log(`Adding tags to shared resource...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, stackOutputBucketName, stackOutputBucketKey, stackOutputVersion } = input;
+  const { assumeRoleName, outputTableName } = input;
 
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
-  const outputs = JSON.parse(outputsString) as StackOutput[];
-
+  const outputs = await loadOutputs(outputTableName, dynamodb);
   const addTagsToResourcesOutputs: AddTagToResourceOutputs[] = getStackJsonOutput(outputs, {
     outputType: 'AddTagsToResources',
   });

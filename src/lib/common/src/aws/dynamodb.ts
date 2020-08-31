@@ -12,14 +12,22 @@ export class DynamoDB {
   }
 
   async createTable(props: dynamodb.CreateTableInput): Promise<void> {
-    throttlingBackOff(() => this.client.createTable(props).promise());
+    await throttlingBackOff(() => this.client.createTable(props).promise());
   }
 
   async putItem(props: dynamodb.PutItemInput): Promise<void> {
-    throttlingBackOff(() => this.client.putItem(props).promise());
+    await throttlingBackOff(() => this.client.putItem(props).promise());
   }
 
   async batchWriteItem(props: dynamodb.BatchWriteItemInput): Promise<void> {
-    throttlingBackOff(() => this.client.batchWriteItem(props).promise());
+    await throttlingBackOff(() => this.client.batchWriteItem(props).promise());
+  }
+
+  async scan(props: dynamodb.ScanInput): Promise<dynamodb.ScanOutput> {
+    return throttlingBackOff(() => this.client.scan(props).promise());
+  }
+
+  async deleteItem(props: dynamodb.DeleteItemInput): Promise<void> {
+    await throttlingBackOff(() => this.client.deleteItem(props).promise());
   }
 }

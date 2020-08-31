@@ -1,16 +1,16 @@
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { ArtifactOutputFinder } from '@aws-accelerator/common-outputs/src/artifacts';
 import { CentralBucketOutputFinder } from '@aws-accelerator/common-outputs/src/central-bucket';
 import * as c from '@aws-accelerator/common-config/src';
+import { loadOutputs } from './utils/load-outputs';
 
 interface VerifyFilesInput extends LoadConfigurationInput {
   rdgwScripts: string[];
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
 interface RdgwArtifactsOutput {
@@ -21,6 +21,7 @@ interface RdgwArtifactsOutput {
 }
 
 const s3 = new S3();
+const dynamodb = new DynamoDB();
 
 export const handler = async (input: VerifyFilesInput) => {
   console.log('Validate existence of all required files ...');
@@ -31,17 +32,10 @@ export const handler = async (input: VerifyFilesInput) => {
     configFilePath,
     configCommitId,
     rdgwScripts,
-    stackOutputBucketName,
-    stackOutputBucketKey,
-    stackOutputVersion,
+    outputTableName,
   } = input;
 
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
-  const outputs = JSON.parse(outputsString) as StackOutput[];
+  const outputs = await loadOutputs(outputTableName, dynamodb);
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({

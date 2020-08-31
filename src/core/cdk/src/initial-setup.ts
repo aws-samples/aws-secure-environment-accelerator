@@ -481,9 +481,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           'organizationalUnits.$': '$.organizationalUnits',
           'accounts.$': '$.accounts',
-          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-          'stackOutputVersion.$': '$.storeOutput.outputVersion',
+          outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -539,12 +537,8 @@ export namespace InitialSetup {
           ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,
+          STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
         };
-        if (loadOutputs) {
-          environment['STACK_OUTPUT_BUCKET_NAME.$'] = '$.storeOutput.outputBucketName';
-          environment['STACK_OUTPUT_BUCKET_KEY.$'] = '$.storeOutput.outputBucketKey';
-          environment['STACK_OUTPUT_VERSION.$'] = '$.storeOutput.outputVersion';
-        }
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
           // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(codeBuildStateMachine, {
@@ -559,21 +553,45 @@ export namespace InitialSetup {
         return deployTask;
       };
 
-      const createStoreOutputTask = (phase: number) =>
-        new CodeTask(this, `Store Phase ${phase} Output`, {
+      const createStoreOutputTask = (phase: number) => {
+        const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs ${phase}`, {
+          itemsPath: `$.accounts`,
+          resultPath: 'DISCARD',
+          maxConcurrency: 1,
+          parameters: {
+            'account.$': '$$.Map.Item.Value',
+            'regions.$': '$.regions',
+            acceleratorPrefix: props.acceleratorPrefix,
+            assumeRoleName: props.stateMachineExecutionRole,
+            outputsTable: outputsTable.tableName,
+            phaseNumber: phase,
+          }
+        });
+        
+        const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs ${phase}`, {
+          itemsPath: `$.regions`,
+          resultPath: 'DISCARD',
+          maxConcurrency: 1,
+          parameters: {
+            'account.$': '$.account',
+            'region.$': '$$.Map.Item.Value'
+          },
+        });
+
+        const storeAccountRegionOutputTask = new CodeTask(this, `Store Phase Output ${phase}`, {
           functionProps: {
             code: lambdaCode,
             handler: 'index.storeStackOutputStep',
             role: pipelineRole,
           },
-          functionPayload: {
-            acceleratorPrefix: props.acceleratorPrefix,
-            assumeRoleName: props.stateMachineExecutionRole,
-            'accounts.$': '$.accounts',
-            'regions.$': '$.regions',
-          },
-          resultPath: '$.storeOutput',
+          resultPath: 'DISCARD',
         });
+
+        storeAccountOutputs.iterator(storeAccountRegionOutputs);
+        storeAccountRegionOutputs.iterator(storeAccountRegionOutputTask);
+
+        return storeAccountOutputs;
+      }
 
       // TODO Create separate state machine for deployment
       const deployPhaseRolesTask = createDeploymentTask(-1, false);
@@ -599,9 +617,7 @@ export namespace InitialSetup {
           lambdaPath: 'index.createConfigRecorder',
           name: 'Create Config Recorder',
           functionPayload: {
-            'stackOutputBucketName.$': '$.stackOutputBucketName',
-            'stackOutputBucketKey.$': '$.stackOutputBucketKey',
-            'stackOutputVersion.$': '$.stackOutputVersion',
+            outputTableName: outputsTable.tableName,
           },
         }),
       });
@@ -616,9 +632,7 @@ export namespace InitialSetup {
             'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
             'baseline.$': '$.baseline',
-            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-            'stackOutputVersion.$': '$.storeOutput.outputVersion',
+            outputTableName: outputsTable.tableName,
             acceleratorPrefix: props.acceleratorPrefix,
           },
         }),
@@ -638,9 +652,7 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-          'stackOutputVersion.$': '$.storeOutput.outputVersion',
+          outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -660,9 +672,7 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-          'stackOutputVersion.$': '$.storeOutput.outputVersion',
+          outputTableName: outputsTable.tableName,
           rdgwScripts,
         },
         resultPath: 'DISCARD',
@@ -680,9 +690,7 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-          'stackOutputVersion.$': '$.storeOutput.outputVersion',
+          outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -695,9 +703,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-          'stackOutputVersion.$': '$.storeOutput.outputVersion',
+          outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -714,9 +720,7 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-          'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-          'stackOutputVersion.$': '$.storeOutput.outputVersion',
+          outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -740,9 +744,7 @@ export namespace InitialSetup {
             'configRepositoryName.$': '$.configRepositoryName',
             'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
-            'stackOutputBucketName.$': '$.storeOutput.outputBucketName',
-            'stackOutputBucketKey.$': '$.storeOutput.outputBucketKey',
-            'stackOutputVersion.$': '$.storeOutput.outputVersion',
+            outputTableName: outputsTable.tableName,
           },
         }),
         resultPath: 'DISCARD',

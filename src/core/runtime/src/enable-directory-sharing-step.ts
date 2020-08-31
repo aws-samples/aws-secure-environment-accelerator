@@ -1,21 +1,20 @@
 import { DirectoryService } from '@aws-accelerator/common/src/aws/directory-service';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { MadOutput } from '@aws-accelerator/common-outputs/src/mad';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
+import { loadOutputs } from './utils/load-outputs';
 
 interface ShareDirectoryInput extends LoadConfigurationInput {
   accounts: Account[];
   assumeRoleName: string;
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
-const s3 = new S3();
+const dynamodb = new DynamoDB();
 
 export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD to another account ...`);
@@ -27,9 +26,7 @@ export const handler = async (input: ShareDirectoryInput) => {
     configRepositoryName,
     configFilePath,
     configCommitId,
-    stackOutputBucketName,
-    stackOutputBucketKey,
-    stackOutputVersion,
+    outputTableName,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -39,12 +36,8 @@ export const handler = async (input: ShareDirectoryInput) => {
     commitId: configCommitId,
   });
 
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
-  const outputs = JSON.parse(outputsString) as StackOutput[];
+  
+  const outputs = await loadOutputs(outputTableName, dynamodb);
 
   const sts = new STS();
 

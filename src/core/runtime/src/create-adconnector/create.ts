@@ -1,6 +1,6 @@
 import { DirectoryService } from '@aws-accelerator/common/src/aws/directory-service';
 import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { createMadUserPasswordSecretName, MadOutput } from '@aws-accelerator/common-outputs/src/mad';
@@ -8,6 +8,7 @@ import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from '../load-configuration-step';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
+import { loadOutputs } from '../utils/load-outputs';
 
 const VALID_STATUSES: string[] = ['Requested', 'Creating', 'Created', 'Active', 'Inoperable', 'Impaired', 'Restoring'];
 
@@ -18,9 +19,7 @@ interface AdConnectorInput extends LoadConfigurationInput {
   configRepositoryName: string;
   configFilePath: string;
   configCommitId: string;
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
 export interface AdConnectorOutput {
@@ -29,7 +28,7 @@ export interface AdConnectorOutput {
   assumeRoleName: string;
 }
 
-const s3 = new S3();
+const dynamodb = new DynamoDB();
 const secrets = new SecretsManager();
 const sts = new STS();
 
@@ -44,9 +43,7 @@ export const handler = async (input: AdConnectorInput) => {
     configRepositoryName,
     configFilePath,
     configCommitId,
-    stackOutputBucketName,
-    stackOutputBucketKey,
-    stackOutputVersion,
+    outputTableName,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -56,12 +53,7 @@ export const handler = async (input: AdConnectorInput) => {
     commitId: configCommitId,
   });
 
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
-  const outputs = JSON.parse(outputsString) as StackOutput[];
+  const outputs = await loadOutputs(outputTableName, dynamodb);
 
   const adConnectorOutputs: AdConnectorOutput[] = [];
   for (const [accountKey, mandatoryConfig] of acceleratorConfig.getMandatoryAccountConfigs()) {
