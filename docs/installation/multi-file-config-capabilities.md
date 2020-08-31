@@ -138,8 +138,8 @@ The entire main config file could be reduced to this:
 },
 "workload-account-configs": {
    "__LOAD": ["accounts/workload-accounts1.yaml",
-   "__LOAD": "accounts/my-other-accounts.yaml",
-   "__LOAD": "accounts/workload-accounts2.yaml"]
+     "accounts/my-other-accounts.yaml",
+     "accounts/workload-accounts2.yaml"]
 },
 "organizational-units": {
   "core": {
