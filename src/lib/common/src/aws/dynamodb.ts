@@ -41,4 +41,12 @@ export class DynamoDB {
     };
     return await throttlingBackOff(() => this.client.getItem(props).promise());
   }
+
+  async deleteItem(tableName: string, itemId: string): Promise<void> {
+    const props = {
+      TableName: `${tableName}`,
+      Key: { id: { S: `${itemId}` } },
+    };
+    await throttlingBackOff(() => this.client.deleteItem(props).promise());
+  }
 }

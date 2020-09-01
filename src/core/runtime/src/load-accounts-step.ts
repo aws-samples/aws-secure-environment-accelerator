@@ -75,9 +75,18 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     });
   }
 
+  let index = 0;
+  while (true) {
+    const item = await dynamoDB.getItem(parametersTableName, `${itemId}/${index}`);
+    if (!item.Item) {
+      break;
+    }
+    await dynamoDB.deleteItem(parametersTableName, itemId);
+    index++;
+  }
+
   // Splitting the accounts array to chunks of size 100
   const accountsChunk = chunk(accounts, 100);
-
   // Store the accounts configuration in the dynamodb
   for (const [index, accounts] of Object.entries(accountsChunk)) {
     await dynamoDB.putItem(parametersTableName, `${itemId}/${index}`, JSON.stringify(accounts));
