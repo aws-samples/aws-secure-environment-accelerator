@@ -301,9 +301,6 @@ async function loadAccounts(tableName: string, itemId: string): Promise<Account[
   const accounts: Account[] = [];
   while (true) {
     const item = await dynamoDB.getItem(tableName, `${itemId}/${index}`);
-    if (index === 0 && !item.Item) {
-      throw new Error(`Cannot find parameter with ID "${itemId}"`);
-    }
     if (!item.Item) {
       break;
     }
@@ -314,10 +311,10 @@ async function loadAccounts(tableName: string, itemId: string): Promise<Account[
 }
 
 async function loadOrganizations(tableName: string, itemId: string): Promise<ConfigOrganizationalUnit[]> {
+  const organizationalUnits: ConfigOrganizationalUnit[] = [];
   const organizations = await dynamoDB.getItem(tableName, itemId);
-
   if (!organizations.Item) {
-    throw new Error(`Cannot find parameter with ID "${itemId}"`);
+    return organizationalUnits;
   }
   return JSON.parse(organizations.Item.value.S!);
 }
