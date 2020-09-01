@@ -31,29 +31,32 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     );
 
     const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs`, {
-        itemsPath: `$.accounts`,
-        resultPath: 'DISCARD',
-        maxConcurrency: 10,
-        parameters: {
-          'account.$': '$$.Map.Item.Value',
-          'regions.$': '$.regions',
-          ...functionPayload,
-        },
-      });
+      itemsPath: `$.accounts`,
+      resultPath: 'DISCARD',
+      maxConcurrency: 10,
+      parameters: {
+        'account.$': '$$.Map.Item.Value',
+        'regions.$': '$.regions',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'assumeRoleName.$': '$.assumeRoleName',
+        'outputsTable.$': '$.outputsTable',
+        'phaseNumber.$': '$.phaseNumber',
+      },
+    });
 
-      const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs`, {
-        itemsPath: `$.regions`,
-        resultPath: 'DISCARD',
-        maxConcurrency: 10,
-        parameters: {
-          'account.$': '$.account',
-          'region.$': '$$.Map.Item.Value',
-          'acceleratorPrefix.$': '$.acceleratorPrefix',
-          'assumeRoleName.$': '$.assumeRoleName',
-          'outputsTable.$': '$.outputsTable',
-          'phaseNumber.$': '$.phaseNumber',
-        },
-      });
+    const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs`, {
+      itemsPath: `$.regions`,
+      resultPath: 'DISCARD',
+      maxConcurrency: 10,
+      parameters: {
+        'account.$': '$.account',
+        'region.$': '$$.Map.Item.Value',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'assumeRoleName.$': '$.assumeRoleName',
+        'outputsTable.$': '$.outputsTable',
+        'phaseNumber.$': '$.phaseNumber',
+      },
+    });
 
     const startTaskResultPath = '$.storeOutputsOutput';
     const storeOutputsTask = new CodeTask(scope, `Store Outputs`, {
@@ -69,7 +72,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     const pass = new sfn.Pass(this, 'Store Outputs Success');
     storeAccountOutputs.iterator(storeAccountRegionOutputs);
     storeAccountRegionOutputs.iterator(storeOutputsTask);
-    const chain = sfn.Chain.start(storeAccountOutputs).next(pass)
+    const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;

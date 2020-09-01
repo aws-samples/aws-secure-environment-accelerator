@@ -554,7 +554,6 @@ export namespace InitialSetup {
         return deployTask;
       };
 
-
       const storeOutputsStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}StoreOutputs_sm`, {
         stateMachineName: `${props.acceleratorPrefix}StoreOutputs_sm`,
         definition: new StoreOutputsTask(this, 'StoreOutputs', {
@@ -564,19 +563,6 @@ export namespace InitialSetup {
       });
 
       const createStoreOutputTask = (phase: number) => {
-
-        const environment: { [name: string]: string } = {
-          ACCELERATOR_PHASE: `${phase}`,
-          'CONFIG_REPOSITORY_NAME.$': '$.configRepositoryName',
-          'CONFIG_FILE_PATH.$': '$.configFilePath',
-          'CONFIG_COMMIT_ID.$': '$.configCommitId',
-          'ACCELERATOR_BASELINE.$': '$.baseline',
-          'CONFIG_ROOT_FILE_PATH.$': '$.configRootFilePath',
-          ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
-          ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
-          CONFIG_BRANCH_NAME: props.configBranchName,
-          STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
-        };
         const storeOutputsTask = new sfn.Task(this, `Store Phase ${phase} Outputs`, {
           // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(storeOutputsStateMachine, {
@@ -593,53 +579,10 @@ export namespace InitialSetup {
           resultPath: 'DISCARD',
         });
         return storeOutputsTask;
-
-
-        // const storeAccountOutputs = new sfn.Map(this, `Store Account Outputs ${phase}`, {
-        //   itemsPath: `$.accounts`,
-        //   resultPath: 'DISCARD',
-        //   maxConcurrency: 10,
-        //   parameters: {
-        //     'account.$': '$$.Map.Item.Value',
-        //     'regions.$': '$.regions',
-        //     acceleratorPrefix: props.acceleratorPrefix,
-        //     assumeRoleName: props.stateMachineExecutionRole,
-        //     outputsTable: outputsTable.tableName,
-        //     phaseNumber: phase,
-        //   },
-        // });
-
-        // const storeAccountRegionOutputs = new sfn.Map(this, `Store Account Region Outputs ${phase}`, {
-        //   itemsPath: `$.regions`,
-        //   resultPath: 'DISCARD',
-        //   maxConcurrency: 10,
-        //   parameters: {
-        //     'account.$': '$.account',
-        //     'region.$': '$$.Map.Item.Value',
-        //     'acceleratorPrefix.$': '$.acceleratorPrefix',
-        //     'assumeRoleName.$': '$.assumeRoleName',
-        //     'outputsTable.$': '$.outputsTable',
-        //     'phaseNumber.$': '$.phaseNumber',
-        //   },
-        // });
-
-        // const storeAccountRegionOutputTask = new CodeTask(this, `Store Phase Output ${phase}`, {
-        //   functionProps: {
-        //     code: lambdaCode,
-        //     handler: 'index.storeStackOutputStep',
-        //     role: pipelineRole,
-        //   },
-        //   resultPath: 'DISCARD',
-        // });
-
-        // storeAccountOutputs.iterator(storeAccountRegionOutputs);
-        // storeAccountRegionOutputs.iterator(storeAccountRegionOutputTask);
-
-        // return storeAccountOutputs;
       };
 
       // TODO Create separate state machine for deployment
-      // const deployPhaseRolesTask = createDeploymentTask(-1, false);
+      const deployPhaseRolesTask = createDeploymentTask(-1, false);
       const storePreviousOutput = createStoreOutputTask(-1);
       const deployPhase0Task = createDeploymentTask(0);
       const storePhase0Output = createStoreOutputTask(0);
@@ -838,11 +781,11 @@ export namespace InitialSetup {
 
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
-        // .next(installRolesTask)
-        // .next(deleteVpcTask)
-        // .next(loadLimitsTask)
-        // .next(enableTrustedAccessForServicesTask)
-        // .next(deployPhaseRolesTask)
+        .next(installRolesTask)
+        .next(deleteVpcTask)
+        .next(loadLimitsTask)
+        .next(enableTrustedAccessForServicesTask)
+        .next(deployPhaseRolesTask)
         .next(storePreviousOutput)
         .next(deployPhase0Task)
         .next(storePhase0Output)
