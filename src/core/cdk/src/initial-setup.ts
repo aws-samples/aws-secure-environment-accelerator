@@ -19,6 +19,7 @@ import { CreateStackTask } from './tasks/create-stack-task';
 import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 import * as fs from 'fs';
 import * as sns from '@aws-cdk/aws-sns';
+import * as dynamodb from '@aws-cdk/aws-dynamodb';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -67,22 +68,10 @@ export namespace InitialSetup {
 
       const stack = cdk.Stack.of(this);
 
-      const accountsSecret = new secrets.Secret(this, 'Accounts', {
-        secretName: 'accelerator/accounts',
-        description: 'This secret contains the information about the accounts that are used for deployment.',
+      const parametersTable = new dynamodb.Table(this, 'ParametersTable', {
+        partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+        tableName: `${props.acceleratorPrefix}Parameters`,
       });
-      setSecretValue(accountsSecret, '[]');
-
-      const limitsSecret = new secrets.Secret(this, 'Limits', {
-        secretName: 'accelerator/limits',
-        description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
-      });
-
-      const organizationsSecret = new secrets.Secret(this, 'Organizations', {
-        secretName: 'accelerator/organizations',
-        description: 'This secret contains the information about the organizations that are used for deployment.',
-      });
-      setSecretValue(organizationsSecret, '[]');
 
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
@@ -96,6 +85,7 @@ export namespace InitialSetup {
           new iam.ServicePrincipal('codebuild.amazonaws.com'),
           new iam.ServicePrincipal('lambda.amazonaws.com'),
           new iam.ServicePrincipal('events.amazonaws.com'),
+          new iam.ServicePrincipal('dynamodb.amazonaws.com'),
         ),
         managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('AdministratorAccess')],
         maxSessionDuration: buildTimeout,
@@ -121,9 +111,10 @@ export namespace InitialSetup {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
-          ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
-          LIMITS_SECRET_ID: limitsSecret.secretArn,
-          ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
+          ACCOUNTS_ITEM_ID: 'accounts',
+          LIMITS_ITEM_ID: 'limits',
+          ORGANIZATIONS_ITEM_ID: 'organizations',
+          DYNAMODB_PARAMETERS_TABLE_NAME: parametersTable.tableName,
         },
       });
 
@@ -300,7 +291,8 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          organizationsSecretId: organizationsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          itemId: 'organizations',
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
@@ -315,7 +307,8 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          accountsSecretId: accountsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          itemId: 'accounts',
           'configuration.$': '$.configuration',
         },
         resultPath: '$',
@@ -430,7 +423,8 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          limitsSecretId: limitsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          itemId: 'limits',
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
@@ -448,8 +442,9 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
-          accountsSecretId: accountsSecret.secretArn,
-          organizationsSecretId: organizationsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          organizationsItemId: 'organizations',
+          accountsItemId: 'accounts',
           configBranch: props.configBranchName,
           'configRootFilePath.$': '$.configuration.configRootFilePath',
         },

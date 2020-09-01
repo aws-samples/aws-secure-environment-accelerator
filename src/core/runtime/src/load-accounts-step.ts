@@ -1,11 +1,12 @@
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { LoadConfigurationOutput, ConfigurationOrganizationalUnit } from './load-configuration-step';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
 export interface LoadAccountsInput {
-  accountsSecretId: string;
+  parametersTableName: string;
+  itemId: string;
   configuration: LoadConfigurationOutput;
 }
 
@@ -15,11 +16,13 @@ export interface LoadAccountsOutput {
   regions: string[];
 }
 
+const dynamoDB = new DynamoDB();
+
 export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOutput> => {
   console.log(`Loading accounts...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accountsSecretId, configuration } = input;
+  const { parametersTableName, configuration, itemId } = input;
 
   // The first step is to load all the execution roles
   const organizations = new Organizations();
@@ -27,6 +30,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const activeAccounts = organizationAccounts.filter(account => account.Status === 'ACTIVE');
 
   const accounts = [];
+
+  const chunk = (accounts: Account[], size: number) =>
+    Array.from({ length: Math.ceil(accounts.length / size) }, (v, i) => accounts.slice(i * size, i * size + size));
+
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
     organizationAccount = activeAccounts.find(a => {
@@ -68,12 +75,13 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     });
   }
 
-  // Store the accounts configuration in the accounts secret
-  const secrets = new SecretsManager();
-  await secrets.putSecretValue({
-    SecretId: accountsSecretId,
-    SecretString: JSON.stringify(accounts),
-  });
+  // Splitting the accounts array to chunks of size 100
+  const accountsChunk = chunk(accounts, 100);
+
+  // Store the accounts configuration in the dynamodb
+  for (const [index, accounts] of Object.entries(accountsChunk)) {
+    await dynamoDB.putItem(parametersTableName, `${itemId}/${index}`, JSON.stringify(accounts));
+  }
 
   // Find all relevant accounts in the organization
   return {

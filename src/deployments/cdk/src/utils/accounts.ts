@@ -1,7 +1,7 @@
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import * as fs from 'fs';
 import * as path from 'path';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
 export { Account, getAccountId, getAccountArn } from '@aws-accelerator/common-outputs/src/accounts';
 
@@ -15,14 +15,29 @@ export async function loadAccounts(): Promise<Account[]> {
     return JSON.parse(contents.toString());
   }
 
-  const secretId = process.env.ACCOUNTS_SECRET_ID;
-  if (!secretId) {
-    throw new Error(`The environment variable "ACCOUNTS_SECRET_ID" needs to be set`);
+  const tableName = process.env.DYNAMODB_PARAMETERS_TABLE_NAME;
+  if (!tableName) {
+    throw new Error(`The environment variable "DYNAMODB_PARAMETERS_TABLE_NAME" needs to be set`);
   }
-  const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(secretId);
-  if (!secret) {
-    throw new Error(`Cannot find secret with ID "${secretId}"`);
+
+  const accountsItemId = process.env.ACCOUNTS_ITEM_ID;
+  if (!accountsItemId) {
+    throw new Error(`The environment variable "ACCOUNTS_ITEM_ID" needs to be set`);
   }
-  return JSON.parse(secret.SecretString!);
+
+  let index = 0;
+  const accounts: Account[] = [];
+  while (true) {
+    const item = await new DynamoDB().getItem(tableName, `${accountsItemId}/${index}`);
+    if (index === 0 && !item.Item) {
+      throw new Error(`Cannot find parameter with ID "${accountsItemId}"`);
+    }
+
+    if (!item.Item) {
+      break;
+    }
+    accounts.push(...JSON.parse(item.Item.value.S!));
+    index++;
+  }
+  return accounts;
 }

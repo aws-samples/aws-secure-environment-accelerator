@@ -2,12 +2,13 @@ import { ServiceQuotas } from '@aws-accelerator/common/src/aws/service-quotas';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { Limit, LimitOutput } from '@aws-accelerator/common-outputs/src/limits';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
 export interface LoadLimitsInput extends LoadConfigurationInput {
-  limitsSecretId: string;
+  parametersTableName: string;
+  itemId: string;
   accounts: Account[];
   assumeRoleName: string;
 }
@@ -51,11 +52,21 @@ const LIMITS: { [limitKey: string]: LimitCode } = {
   },
 };
 
+const dynamoDB = new DynamoDB();
+
 export const handler = async (input: LoadLimitsInput) => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configRepositoryName, configFilePath, limitsSecretId, accounts, assumeRoleName, configCommitId } = input;
+  const {
+    configRepositoryName,
+    configFilePath,
+    parametersTableName,
+    accounts,
+    assumeRoleName,
+    configCommitId,
+    itemId,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -147,10 +158,6 @@ export const handler = async (input: LoadLimitsInput) => {
     }
   }
 
-  // Store the limits in the secrets manager
-  const secrets = new SecretsManager();
-  await secrets.putSecretValue({
-    SecretId: limitsSecretId,
-    SecretString: JSON.stringify(limits, null, 2),
-  });
+  // Store the limits in the dynamodb
+  await dynamoDB.putItem(parametersTableName, itemId, JSON.stringify(limits, null, 2));
 };

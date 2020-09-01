@@ -4,7 +4,6 @@ import { AcceleratorConfig, AcceleratorUpdateConfig, AccountsConfig } from '@aws
 import { ServiceControlPolicy, FULL_AWS_ACCESS_POLICY_NAME } from '@aws-accelerator/common/src/scp';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { FormatType, pretty } from '@aws-accelerator/common/src/util/perttier';
@@ -12,16 +11,18 @@ import { getFormattedObject, getStringFromObject, equalIgnoreCase } from '@aws-a
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
 export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
-  accountsSecretId: string;
-  organizationsSecretId: string;
+  parametersTableName: string;
+  organizationsItemId: string;
+  accountsItemId: string;
   configBranch: string;
 }
 
 const organizations = new Organizations();
-const secrets = new SecretsManager();
+const dynamoDB = new DynamoDB();
 const codecommit = new CodeCommit();
 
 /**
@@ -42,8 +43,9 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     configRepositoryName,
     configCommitId,
     acceleratorPrefix,
-    accountsSecretId,
-    organizationsSecretId,
+    parametersTableName,
+    organizationsItemId,
+    accountsItemId,
     configBranch,
     configRootFilePath,
   } = input;
@@ -60,8 +62,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   let rootConfig = getFormattedObject(rootConfigString, format);
 
   let config = previousConfig;
-  const previousAccounts = await loadAccounts(accountsSecretId);
-  const previousOrganizationalUnits = await loadOrganizations(organizationsSecretId);
+  const previousAccounts = await loadAccounts(parametersTableName, accountsItemId);
+  const previousOrganizationalUnits = await loadOrganizations(parametersTableName, organizationsItemId);
   const organizationAdminRole = config['global-options']['organization-admin-role'];
   const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
 
@@ -294,20 +296,30 @@ function updateAccountConfig(accountConfig: any, accountInfo: UpdateAccountOutpu
   }
   return accountConfig;
 }
-async function loadAccounts(accountsSecretId: string): Promise<Account[]> {
-  const secret = await secrets.getSecret(accountsSecretId);
-  if (!secret) {
-    throw new Error(`Cannot find secret with ID "${accountsSecretId}"`);
+async function loadAccounts(tableName: string, itemId: string): Promise<Account[]> {
+  let index = 0;
+  const accounts: Account[] = [];
+  while (true) {
+    const item = await dynamoDB.getItem(tableName, `${itemId}/${index}`);
+    if (index === 0 && !item.Item) {
+      throw new Error(`Cannot find parameter with ID "${itemId}"`);
+    }
+    if (!item.Item) {
+      break;
+    }
+    accounts.push(...JSON.parse(item.Item.value.S!));
+    index++;
   }
-  return JSON.parse(secret.SecretString!);
+  return accounts;
 }
 
-async function loadOrganizations(organizationsSecretId: string): Promise<ConfigOrganizationalUnit[]> {
-  const secret = await secrets.getSecret(organizationsSecretId);
-  if (!secret) {
-    throw new Error(`Cannot find secret with ID "${organizationsSecretId}"`);
+async function loadOrganizations(tableName: string, itemId: string): Promise<ConfigOrganizationalUnit[]> {
+  const organizations = await dynamoDB.getItem(tableName, itemId);
+
+  if (!organizations.Item) {
+    throw new Error(`Cannot find parameter with ID "${itemId}"`);
   }
-  return JSON.parse(secret.SecretString!);
+  return JSON.parse(organizations.Item.value.S!);
 }
 
 interface UpdateAccountsOutput {
