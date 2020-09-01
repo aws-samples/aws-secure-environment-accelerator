@@ -45,10 +45,8 @@ export const handler = async (input: LoadOrganizationsInput): Promise<Organizati
     });
   }
 
-  console.log('calling dynamo db put item', parametersTableName, itemId);
   // Store the organizations into the dynamodb
   await dynamoDB.putItem(parametersTableName, itemId, JSON.stringify(organizationalUnits));
-  console.log('completed dynamo db put item', parametersTableName, itemId);
 
   // Find all relevant accounts in the organization
   return organizationalUnits;

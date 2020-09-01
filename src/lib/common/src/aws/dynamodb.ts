@@ -12,7 +12,7 @@ export class DynamoDB {
   }
 
   async createTable(props: dynamodb.CreateTableInput): Promise<void> {
-    throttlingBackOff(() => this.client.createTable(props).promise());
+    await throttlingBackOff(() => this.client.createTable(props).promise());
   }
 
   async putItem(tableName: string, itemId: string, attributeValue: string): Promise<void> {
@@ -23,16 +23,15 @@ export class DynamoDB {
         value: { S: attributeValue },
       },
     };
-    console.log('dynamodb putItem props', props);
-    throttlingBackOff(() => this.client.putItem(props).promise());
+    await throttlingBackOff(() => this.client.putItem(props).promise());
   }
 
   async batchWriteItem(props: dynamodb.BatchWriteItemInput): Promise<void> {
-    throttlingBackOff(() => this.client.batchWriteItem(props).promise());
+    await throttlingBackOff(() => this.client.batchWriteItem(props).promise());
   }
 
   async scanTable(props: dynamodb.ScanInput): Promise<dynamodb.ScanOutput> {
-    return throttlingBackOff(() => this.client.scan(props).promise());
+    return await throttlingBackOff(() => this.client.scan(props).promise());
   }
 
   async getItem(tableName: string, itemId: string): Promise<dynamodb.GetItemOutput> {
@@ -40,6 +39,6 @@ export class DynamoDB {
       TableName: `${tableName}`,
       Key: { id: { S: `${itemId}` } },
     };
-    return throttlingBackOff(() => this.client.getItem(props).promise());
+    return await throttlingBackOff(() => this.client.getItem(props).promise());
   }
 }
