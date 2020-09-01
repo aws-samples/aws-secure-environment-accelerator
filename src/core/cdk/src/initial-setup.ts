@@ -95,6 +95,7 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
+        encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
       // This is the maximum time before a build times out
