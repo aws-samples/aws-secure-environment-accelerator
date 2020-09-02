@@ -1,21 +1,20 @@
 import { ConfigService } from '@aws-accelerator/common/src/aws/configservice';
 import { ConfigurationRecorder } from 'aws-sdk/clients/configservice';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
-import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LoadConfigurationInput } from '../load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { createConfigRecorderName, createAggregatorName } from '@aws-accelerator/common-outputs/src/config';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { loadOutputs } from '../utils/load-outputs';
 
 interface ConfigServiceInput extends LoadConfigurationInput {
   account: Account;
   assumeRoleName: string;
   acceleratorPrefix: string;
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
 interface LogBucketOutputType {
@@ -36,7 +35,7 @@ const CustomErrorMessage = [
 ];
 
 const sts = new STS();
-const s3 = new S3();
+const dynamodb = new DynamoDB();
 
 export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   console.log(`Enable Config Recorder in account ...`);
@@ -48,17 +47,10 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     configFilePath,
     configCommitId,
     acceleratorPrefix,
-    stackOutputBucketName,
-    stackOutputBucketKey,
-    stackOutputVersion,
+    outputTableName,
   } = input;
 
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
-  const outputs = JSON.parse(outputsString) as StackOutput[];
+  const outputs = await loadOutputs(outputTableName, dynamodb);
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
