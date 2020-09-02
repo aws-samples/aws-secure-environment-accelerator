@@ -69,12 +69,6 @@ export namespace InitialSetup {
 
       const stack = cdk.Stack.of(this);
 
-      const accountItemsCountSecret = new secrets.Secret(this, 'AccountItemsCount', {
-        secretName: 'accelerator/account-items-count',
-        description: 'This secret contains the information about account items count in dynamodb table.',
-      });
-      setSecretValue(accountItemsCountSecret, '0');
-
       const parametersTable = new dynamodb.Table(this, 'ParametersTable', {
         tableName: createName({
           name: 'Parameters',
@@ -331,7 +325,7 @@ export namespace InitialSetup {
         functionPayload: {
           parametersTableName: parametersTable.tableName,
           itemId: 'accounts',
-          accountItemsCountSecretId: accountItemsCountSecret.secretArn,
+          accountsItemsCountId: 'accounts-items-count',
           'configuration.$': '$.configuration',
         },
         resultPath: '$',

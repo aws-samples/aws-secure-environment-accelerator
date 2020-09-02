@@ -1,5 +1,4 @@
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { LoadConfigurationOutput, ConfigurationOrganizationalUnit } from './load-configuration-step';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
@@ -7,7 +6,7 @@ import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 
 export interface LoadAccountsInput {
-  accountItemsCountSecretId: string;
+  accountsItemsCountId: string;
   parametersTableName: string;
   itemId: string;
   configuration: LoadConfigurationOutput;
@@ -20,13 +19,12 @@ export interface LoadAccountsOutput {
 }
 
 const dynamoDB = new DynamoDB();
-const secrets = new SecretsManager();
 
 export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOutput> => {
   console.log(`Loading accounts...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { parametersTableName, configuration, itemId, accountItemsCountSecretId } = input;
+  const { parametersTableName, configuration, itemId, accountsItemsCountId } = input;
 
   // The first step is to load all the execution roles
   const organizations = new Organizations();
@@ -81,8 +79,8 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     });
   }
 
-  const itemsCountSecret = await secrets.getSecret(accountItemsCountSecretId);
-  const itemsCount = Number(itemsCountSecret.SecretString);
+  const accountItemsCountItem = await dynamoDB.getItem(getItemInput(parametersTableName, accountsItemsCountId));
+  const itemsCount = !accountItemsCountItem.Item ? 0 : Number(accountItemsCountItem.Item.value.S);
 
   // Removing existing accounts from dynamodb table
   for (let index = 0; index < itemsCount; index++) {
@@ -98,10 +96,9 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     );
   }
 
-  await secrets.putSecretValue({
-    SecretId: accountItemsCountSecretId,
-    SecretString: JSON.stringify(accountsChunk.length),
-  });
+  await dynamoDB.updateItem(
+    getUpdateItemInput(parametersTableName, accountsItemsCountId, JSON.stringify(accountsChunk.length)),
+  );
 
   // Find all relevant accounts in the organization
   return {
