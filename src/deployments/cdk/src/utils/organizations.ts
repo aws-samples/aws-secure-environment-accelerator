@@ -23,7 +23,12 @@ export async function loadOrganizations(): Promise<OrganizationalUnit[]> {
     throw new Error(`The environment variable "ORGANIZATIONS_ITEM_ID" needs to be set`);
   }
 
-  const organizations = await new DynamoDB().getItem(tableName, organizationsItemId);
+  const itemsInput = {
+    TableName: tableName,
+    Key: { id: { S: organizationsItemId } },
+  };
+
+  const organizations = await new DynamoDB().getItem(itemsInput);
   if (!organizations.Item) {
     throw new Error(`Cannot find value with Item ID "${organizationsItemId}"`);
   }

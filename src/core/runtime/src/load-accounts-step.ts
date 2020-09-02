@@ -1,10 +1,13 @@
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { LoadConfigurationOutput, ConfigurationOrganizationalUnit } from './load-configuration-step';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 
 export interface LoadAccountsInput {
+  accountItemsCountSecretId: string;
   parametersTableName: string;
   itemId: string;
   configuration: LoadConfigurationOutput;
@@ -17,12 +20,13 @@ export interface LoadAccountsOutput {
 }
 
 const dynamoDB = new DynamoDB();
+const secrets = new SecretsManager();
 
 export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOutput> => {
   console.log(`Loading accounts...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { parametersTableName, configuration, itemId } = input;
+  const { parametersTableName, configuration, itemId, accountItemsCountSecretId } = input;
 
   // The first step is to load all the execution roles
   const organizations = new Organizations();
@@ -75,22 +79,25 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     });
   }
 
-  let index = 0;
-  while (true) {
-    const item = await dynamoDB.getItem(parametersTableName, `${itemId}/${index}`);
-    if (!item.Item) {
-      break;
-    }
-    await dynamoDB.deleteItem(parametersTableName, itemId);
-    index++;
+  const itemsCountSecret = await secrets.getSecret(accountItemsCountSecretId);
+  const itemsCount = Number(itemsCountSecret.SecretString);
+
+  // Removing existing accounts from dynamodb table
+  for (let index = 0; index < itemsCount; index++) {
+    await dynamoDB.deleteItem(getItemInput(parametersTableName, `${itemId}/${index}`));
   }
 
   // Splitting the accounts array to chunks of size 100
   const accountsChunk = chunk(accounts, 100);
   // Store the accounts configuration in the dynamodb
   for (const [index, accounts] of Object.entries(accountsChunk)) {
-    await dynamoDB.putItem(parametersTableName, `${itemId}/${index}`, JSON.stringify(accounts));
+    await dynamoDB.updateItem(getUpdateItemInput(parametersTableName, `${itemId}/${index}`, JSON.stringify(accounts)));
   }
+
+  await secrets.putSecretValue({
+    SecretId: accountItemsCountSecretId,
+    SecretString: JSON.stringify(accountsChunk.length),
+  });
 
   // Find all relevant accounts in the organization
   return {

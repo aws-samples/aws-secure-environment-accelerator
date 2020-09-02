@@ -28,7 +28,11 @@ export async function loadAccounts(): Promise<Account[]> {
   let index = 0;
   const accounts: Account[] = [];
   while (true) {
-    const item = await new DynamoDB().getItem(tableName, `${accountsItemId}/${index}`);
+    const itemsInput = {
+      TableName: tableName,
+      Key: { id: { S: `${accountsItemId}/${index}` } },
+    };
+    const item = await new DynamoDB().getItem(itemsInput);
     if (index === 0 && !item.Item) {
       throw new Error(`Cannot find parameter with ID "${accountsItemId}"`);
     }

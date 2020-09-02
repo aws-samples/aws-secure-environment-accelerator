@@ -5,6 +5,7 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getUpdateItemInput } from './utils/dynamodb-requests';
 
 export interface LoadLimitsInput extends LoadConfigurationInput {
   parametersTableName: string;
@@ -159,5 +160,5 @@ export const handler = async (input: LoadLimitsInput) => {
   }
 
   // Store the limits in the dynamodb
-  await dynamoDB.putItem(parametersTableName, itemId, JSON.stringify(limits, null, 2));
+  await dynamoDB.updateItem(getUpdateItemInput(parametersTableName, itemId, JSON.stringify(limits, null, 2)));
 };

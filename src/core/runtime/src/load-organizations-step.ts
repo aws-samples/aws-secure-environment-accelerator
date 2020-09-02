@@ -3,6 +3,7 @@ import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getUpdateItemInput } from './utils/dynamodb-requests';
 
 export interface LoadOrganizationsInput extends LoadConfigurationInput {
   parametersTableName: string;
@@ -46,7 +47,7 @@ export const handler = async (input: LoadOrganizationsInput): Promise<Organizati
   }
 
   // Store the organizations into the dynamodb
-  await dynamoDB.putItem(parametersTableName, itemId, JSON.stringify(organizationalUnits));
+  await dynamoDB.updateItem(getUpdateItemInput(parametersTableName, itemId, JSON.stringify(organizationalUnits)));
 
   // Find all relevant accounts in the organization
   return organizationalUnits;

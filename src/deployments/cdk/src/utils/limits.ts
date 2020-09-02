@@ -27,7 +27,12 @@ export async function loadLimits(): Promise<LimitOutputs> {
     throw new Error(`The environment variable "LIMITS_ITEM_ID" needs to be set`);
   }
 
-  const limits = await new DynamoDB().getItem(tableName, limitsItemId);
+  const itemsInput = {
+    TableName: tableName,
+    Key: { id: { S: limitsItemId } },
+  };
+  
+  const limits = await new DynamoDB().getItem(itemsInput);
   if (!limits.Item) {
     throw new Error(`Cannot find value with Item ID "${limitsItemId}"`);
   }

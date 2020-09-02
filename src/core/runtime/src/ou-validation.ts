@@ -12,6 +12,7 @@ import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getItemInput } from './utils/dynamodb-requests';
 
 export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -300,7 +301,7 @@ async function loadAccounts(tableName: string, itemId: string): Promise<Account[
   let index = 0;
   const accounts: Account[] = [];
   while (true) {
-    const item = await dynamoDB.getItem(tableName, `${itemId}/${index}`);
+    const item = await dynamoDB.getItem(getItemInput(tableName, `${itemId}/${index}`));
     if (!item.Item) {
       break;
     }
@@ -312,7 +313,7 @@ async function loadAccounts(tableName: string, itemId: string): Promise<Account[
 
 async function loadOrganizations(tableName: string, itemId: string): Promise<ConfigOrganizationalUnit[]> {
   const organizationalUnits: ConfigOrganizationalUnit[] = [];
-  const organizations = await dynamoDB.getItem(tableName, itemId);
+  const organizations = await dynamoDB.getItem(getItemInput(tableName, itemId));
   if (!organizations.Item) {
     return organizationalUnits;
   }
