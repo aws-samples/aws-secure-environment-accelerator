@@ -1,5 +1,5 @@
 import * as r53 from 'aws-sdk/clients/route53';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { getStackJsonOutput, StackOutput, ResolversOutput } from '@aws-accelerator/common-outputs/src/stack-output';
@@ -9,13 +9,12 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { throttlingBackOff } from '@aws-accelerator/common/src/aws/backoff';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
+import { loadOutputs } from './utils/load-outputs';
 
 interface AssociateHostedZonesInput extends LoadConfigurationInput {
   accounts: Account[];
   assumeRoleName: string;
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
 type ResolversOutputs = ResolversOutput[];
@@ -42,23 +41,14 @@ interface AccountRule {
 // Hosted zone ID is in the form of `/hostedzone/Z0181099DGX53XMU1D7S`
 const hostedZoneIdRegex = /\/hostedzone\/([\d\w]+)/;
 
-const s3 = new S3();
+const dynamodb = new DynamoDB();
 const sts = new STS();
 
 export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    configRepositoryName,
-    accounts,
-    assumeRoleName,
-    configCommitId,
-    configFilePath,
-    stackOutputBucketName,
-    stackOutputBucketKey,
-    stackOutputVersion,
-  } = input;
+  const { configRepositoryName, accounts, assumeRoleName, configCommitId, configFilePath, outputTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -67,12 +57,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
     commitId: configCommitId,
   });
 
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
-  const outputs = JSON.parse(outputsString) as StackOutput[];
+  const outputs = await loadOutputs(outputTableName, dynamodb);
 
   // get the private zones from global-options
   const globalOptionsConfig = config['global-options'];

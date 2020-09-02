@@ -1,6 +1,7 @@
 import * as aws from 'aws-sdk';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import {
   StackOutput,
   getStackOutput,
@@ -11,38 +12,21 @@ import { CloudTrail } from '@aws-accelerator/common/src/aws/cloud-trail';
 import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cloudtrail';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import { loadOutputs } from './utils/load-outputs';
 
 interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
   accounts: Account[];
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
-const s3 = new S3();
+const dynamodb = new DynamoDB();
 
 export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    assumeRoleName,
-    accounts,
-    configRepositoryName,
-    configFilePath,
-    configCommitId,
-    stackOutputBucketName,
-    stackOutputBucketKey,
-    stackOutputVersion,
-  } = input;
-
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
+  const { assumeRoleName, accounts, configRepositoryName, configFilePath, configCommitId, outputTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -53,7 +37,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
 
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
 
-  const outputs = JSON.parse(outputsString) as StackOutput[];
+  const outputs = await loadOutputs(outputTableName, dynamodb);
 
   const sts = new STS();
 

@@ -19,7 +19,7 @@ export class DynamoDB {
     await throttlingBackOff(() => this.client.batchWriteItem(props).promise());
   }
 
-  async scanTable(props: dynamodb.ScanInput): Promise<dynamodb.ScanOutput> {
+  async scan(props: dynamodb.ScanInput): Promise<dynamodb.ScanOutput> {
     return throttlingBackOff(() => this.client.scan(props).promise());
   }
 

@@ -2,21 +2,19 @@ import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
-import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { ArtifactOutputFinder } from '@aws-accelerator/common-outputs/src/artifacts';
 import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
+import { loadOutputs } from './utils/load-outputs';
 
 interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
   accounts: Account[];
   organizationalUnits: OrganizationalUnit[];
-  stackOutputBucketName: string;
-  stackOutputBucketKey: string;
-  stackOutputVersion: string;
+  outputTableName: string;
 }
 
-const s3 = new S3();
+const dynamodb = new DynamoDB();
 
 export const handler = async (input: AddScpInput) => {
   console.log(`Adding service control policy to organization...`);
@@ -29,9 +27,7 @@ export const handler = async (input: AddScpInput) => {
     configRepositoryName,
     configFilePath,
     configCommitId,
-    stackOutputBucketName,
-    stackOutputBucketKey,
-    stackOutputVersion,
+    outputTableName,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -43,12 +39,7 @@ export const handler = async (input: AddScpInput) => {
   const organizationAdminRole = config['global-options']['organization-admin-role']!;
   const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole);
 
-  const outputsString = await s3.getObjectBodyAsString({
-    Bucket: stackOutputBucketName,
-    Key: stackOutputBucketKey,
-    VersionId: stackOutputVersion,
-  });
-  const outputs = JSON.parse(outputsString) as StackOutput[];
+  const outputs = await loadOutputs(outputTableName, dynamodb);
 
   // Find the SCP artifact output
   const artifactOutput = ArtifactOutputFinder.findOneByName({
