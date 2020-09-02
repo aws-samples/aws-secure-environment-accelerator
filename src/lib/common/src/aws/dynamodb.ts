@@ -20,7 +20,7 @@ export class DynamoDB {
   }
 
   async scanTable(props: dynamodb.ScanInput): Promise<dynamodb.ScanOutput> {
-    return await throttlingBackOff(() => this.client.scan(props).promise());
+    return throttlingBackOff(() => this.client.scan(props).promise());
   }
 
   async putItem(props: dynamodb.PutItemInput): Promise<void> {
@@ -28,7 +28,7 @@ export class DynamoDB {
   }
 
   async getItem(props: dynamodb.GetItemInput): Promise<dynamodb.GetItemOutput> {
-    return await throttlingBackOff(() => this.client.getItem(props).promise());
+    return throttlingBackOff(() => this.client.getItem(props).promise());
   }
 
   async deleteItem(props: dynamodb.DeleteItemInput): Promise<void> {

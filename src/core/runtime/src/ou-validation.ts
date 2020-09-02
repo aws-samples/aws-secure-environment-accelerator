@@ -313,11 +313,11 @@ async function loadAccounts(tableName: string, itemId: string): Promise<Account[
 
 async function loadOrganizations(tableName: string, itemId: string): Promise<ConfigOrganizationalUnit[]> {
   const organizationalUnits: ConfigOrganizationalUnit[] = [];
-  const organizations = await dynamoDB.getItem(getItemInput(tableName, itemId));
-  if (!organizations.Item) {
+  const organizationsOutput = await dynamoDB.getItem(getItemInput(tableName, itemId));
+  if (!organizationsOutput.Item) {
     return organizationalUnits;
   }
-  return JSON.parse(organizations.Item.value.S!);
+  return JSON.parse(organizationsOutput.Item.value.S!);
 }
 
 interface UpdateAccountsOutput {

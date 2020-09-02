@@ -35,8 +35,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
 
   const accounts = [];
 
-  const chunk = (accounts: Account[], size: number) =>
-    Array.from({ length: Math.ceil(accounts.length / size) }, (v, i) => accounts.slice(i * size, i * size + size));
+  const chunk = (totalAccounts: Account[], size: number) =>
+    Array.from({ length: Math.ceil(totalAccounts.length / size) }, (v, i) =>
+      totalAccounts.slice(i * size, i * size + size),
+    );
 
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
@@ -90,8 +92,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   // Splitting the accounts array to chunks of size 100
   const accountsChunk = chunk(accounts, 100);
   // Store the accounts configuration in the dynamodb
-  for (const [index, accounts] of Object.entries(accountsChunk)) {
-    await dynamoDB.updateItem(getUpdateItemInput(parametersTableName, `${itemId}/${index}`, JSON.stringify(accounts)));
+  for (const [index, accountChunk] of Object.entries(accountsChunk)) {
+    await dynamoDB.updateItem(
+      getUpdateItemInput(parametersTableName, `${itemId}/${index}`, JSON.stringify(accountChunk)),
+    );
   }
 
   await secrets.putSecretValue({

@@ -31,7 +31,7 @@ export async function loadLimits(): Promise<LimitOutputs> {
     TableName: tableName,
     Key: { id: { S: limitsItemId } },
   };
-  
+
   const limits = await new DynamoDB().getItem(itemsInput);
   if (!limits.Item) {
     throw new Error(`Cannot find value with Item ID "${limitsItemId}"`);
