@@ -1,26 +1,28 @@
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getUpdateItemInput } from './utils/dynamodb-requests';
 
 export interface LoadOrganizationsInput extends LoadConfigurationInput {
-  organizationsSecretId: string;
+  parametersTableName: string;
+  itemId: string;
 }
 
 export type LoadOrganizationsOutput = {
   organizationalUnits: OrganizationalUnit[];
 };
 
-const secrets = new SecretsManager();
 const organizations = new Organizations();
+const dynamoDB = new DynamoDB();
 
 export const handler = async (input: LoadOrganizationsInput): Promise<OrganizationalUnit[]> => {
   console.log('Load Organizations ...');
   console.log(JSON.stringify(input, null, 2));
 
   const organizationalUnits: OrganizationalUnit[] = [];
-  const { organizationsSecretId, configCommitId, configFilePath, configRepositoryName } = input;
+  const { configCommitId, configFilePath, configRepositoryName, parametersTableName, itemId } = input;
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
@@ -44,11 +46,8 @@ export const handler = async (input: LoadOrganizationsInput): Promise<Organizati
     });
   }
 
-  // Store the organizational units configuration in the accounts secret
-  await secrets.putSecretValue({
-    SecretId: organizationsSecretId,
-    SecretString: JSON.stringify(organizationalUnits),
-  });
+  // Store the organizations into the dynamodb
+  await dynamoDB.updateItem(getUpdateItemInput(parametersTableName, itemId, JSON.stringify(organizationalUnits)));
 
   // Find all relevant accounts in the organization
   return organizationalUnits;

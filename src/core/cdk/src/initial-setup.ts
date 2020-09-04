@@ -69,22 +69,14 @@ export namespace InitialSetup {
 
       const stack = cdk.Stack.of(this);
 
-      const accountsSecret = new secrets.Secret(this, 'Accounts', {
-        secretName: 'accelerator/accounts',
-        description: 'This secret contains the information about the accounts that are used for deployment.',
+      const parametersTable = new dynamodb.Table(this, 'ParametersTable', {
+        tableName: createName({
+          name: 'Parameters',
+          suffixLength: 0,
+        }),
+        partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+        encryption: dynamodb.TableEncryption.DEFAULT,
       });
-      setSecretValue(accountsSecret, '[]');
-
-      const limitsSecret = new secrets.Secret(this, 'Limits', {
-        secretName: 'accelerator/limits',
-        description: 'This secret contains a copy of the service limits of the Accelerator accounts.',
-      });
-
-      const organizationsSecret = new secrets.Secret(this, 'Organizations', {
-        secretName: 'accelerator/organizations',
-        description: 'This secret contains the information about the organizations that are used for deployment.',
-      });
-      setSecretValue(organizationsSecret, '[]');
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
         tableName: createName({
@@ -135,9 +127,10 @@ export namespace InitialSetup {
           ACCELERATOR_EXECUTION_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_NAME: props.stateMachineExecutionRole,
           CDK_PLUGIN_ASSUME_ROLE_DURATION: `${buildTimeout.toSeconds()}`,
-          ACCOUNTS_SECRET_ID: accountsSecret.secretArn,
-          LIMITS_SECRET_ID: limitsSecret.secretArn,
-          ORGANIZATIONS_SECRET_ID: organizationsSecret.secretArn,
+          ACCOUNTS_ITEM_ID: 'accounts',
+          LIMITS_ITEM_ID: 'limits',
+          ORGANIZATIONS_ITEM_ID: 'organizations',
+          DYNAMODB_PARAMETERS_TABLE_NAME: parametersTable.tableName,
         },
       });
 
@@ -314,7 +307,8 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          organizationsSecretId: organizationsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          itemId: 'organizations',
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
@@ -329,7 +323,9 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          accountsSecretId: accountsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          itemId: 'accounts',
+          accountsItemsCountId: 'accounts-items-count',
           'configuration.$': '$.configuration',
         },
         resultPath: '$',
@@ -444,7 +440,8 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          limitsSecretId: limitsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          itemId: 'limits',
           assumeRoleName: props.stateMachineExecutionRole,
           'accounts.$': '$.accounts',
         },
@@ -462,8 +459,9 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
-          accountsSecretId: accountsSecret.secretArn,
-          organizationsSecretId: organizationsSecret.secretArn,
+          parametersTableName: parametersTable.tableName,
+          organizationsItemId: 'organizations',
+          accountsItemId: 'accounts',
           configBranch: props.configBranchName,
           'configRootFilePath.$': '$.configuration.configRootFilePath',
         },

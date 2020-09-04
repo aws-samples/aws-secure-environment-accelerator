@@ -1,7 +1,7 @@
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import * as fs from 'fs';
 import * as path from 'path';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
 export async function loadOrganizations(): Promise<OrganizationalUnit[]> {
   if (process.env.CONFIG_MODE === 'development') {
@@ -13,14 +13,24 @@ export async function loadOrganizations(): Promise<OrganizationalUnit[]> {
     return JSON.parse(contents.toString());
   }
 
-  const secretId = process.env.ORGANIZATIONS_SECRET_ID;
-  if (!secretId) {
-    throw new Error(`The environment variable "ORGANIZATIONS_SECRET_ID" needs to be set`);
+  const tableName = process.env.DYNAMODB_PARAMETERS_TABLE_NAME;
+  if (!tableName) {
+    throw new Error(`The environment variable "DYNAMODB_PARAMETERS_TABLE_NAME" needs to be set`);
   }
-  const secrets = new SecretsManager();
-  const secret = await secrets.getSecret(secretId);
-  if (!secret) {
-    throw new Error(`Cannot find secret with ID "${secretId}"`);
+
+  const organizationsItemId = process.env.ORGANIZATIONS_ITEM_ID;
+  if (!organizationsItemId) {
+    throw new Error(`The environment variable "ORGANIZATIONS_ITEM_ID" needs to be set`);
   }
-  return JSON.parse(secret.SecretString!);
+
+  const itemsInput = {
+    TableName: tableName,
+    Key: { id: { S: organizationsItemId } },
+  };
+
+  const organizations = await new DynamoDB().getItem(itemsInput);
+  if (!organizations.Item) {
+    throw new Error(`Cannot find value with Item ID "${organizationsItemId}"`);
+  }
+  return JSON.parse(organizations.Item.value.S!);
 }

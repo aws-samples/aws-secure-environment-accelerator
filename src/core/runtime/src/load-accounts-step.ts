@@ -1,11 +1,14 @@
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { LoadConfigurationOutput, ConfigurationOrganizationalUnit } from './load-configuration-step';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 
 export interface LoadAccountsInput {
-  accountsSecretId: string;
+  accountsItemsCountId: string;
+  parametersTableName: string;
+  itemId: string;
   configuration: LoadConfigurationOutput;
 }
 
@@ -15,11 +18,13 @@ export interface LoadAccountsOutput {
   regions: string[];
 }
 
+const dynamoDB = new DynamoDB();
+
 export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOutput> => {
   console.log(`Loading accounts...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accountsSecretId, configuration } = input;
+  const { parametersTableName, configuration, itemId, accountsItemsCountId } = input;
 
   // The first step is to load all the execution roles
   const organizations = new Organizations();
@@ -27,6 +32,12 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const activeAccounts = organizationAccounts.filter(account => account.Status === 'ACTIVE');
 
   const accounts = [];
+
+  const chunk = (totalAccounts: Account[], size: number) =>
+    Array.from({ length: Math.ceil(totalAccounts.length / size) }, (v, i) =>
+      totalAccounts.slice(i * size, i * size + size),
+    );
+
   for (const accountConfig of configuration.accounts) {
     let organizationAccount;
     organizationAccount = activeAccounts.find(a => {
@@ -68,12 +79,26 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     });
   }
 
-  // Store the accounts configuration in the accounts secret
-  const secrets = new SecretsManager();
-  await secrets.putSecretValue({
-    SecretId: accountsSecretId,
-    SecretString: JSON.stringify(accounts),
-  });
+  const accountItemsCountItem = await dynamoDB.getItem(getItemInput(parametersTableName, accountsItemsCountId));
+  const itemsCount = !accountItemsCountItem.Item ? 0 : Number(accountItemsCountItem.Item.value.S);
+
+  // Removing existing accounts from dynamodb table
+  for (let index = 0; index < itemsCount; index++) {
+    await dynamoDB.deleteItem(getItemInput(parametersTableName, `${itemId}/${index}`));
+  }
+
+  // Splitting the accounts array to chunks of size 100
+  const accountsChunk = chunk(accounts, 100);
+  // Store the accounts configuration in the dynamodb
+  for (const [index, accountChunk] of Object.entries(accountsChunk)) {
+    await dynamoDB.updateItem(
+      getUpdateItemInput(parametersTableName, `${itemId}/${index}`, JSON.stringify(accountChunk)),
+    );
+  }
+
+  await dynamoDB.updateItem(
+    getUpdateItemInput(parametersTableName, accountsItemsCountId, JSON.stringify(accountsChunk.length)),
+  );
 
   // Find all relevant accounts in the organization
   return {
