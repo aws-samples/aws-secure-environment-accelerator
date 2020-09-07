@@ -1,4 +1,4 @@
-import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { ShortAccount } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
@@ -7,7 +7,7 @@ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 export interface StoreStackOutputInput {
   acceleratorPrefix: string;
   assumeRoleName: string;
-  account: Account;
+  account: ShortAccount;
   region: string;
   outputsTable: string;
   phaseNumber: number;

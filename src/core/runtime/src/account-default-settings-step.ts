@@ -3,7 +3,6 @@ import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import {
-  StackOutput,
   getStackOutput,
   AWS_LANDING_ZONE_CLOUD_TRAIL_NAME,
   OUTPUT_LOG_ARCHIVE_ENCRYPTION_KEY_ARN,
@@ -13,11 +12,12 @@ import { PutEventSelectorsRequest, UpdateTrailRequest } from 'aws-sdk/clients/cl
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadOutputs } from './utils/load-outputs';
+import { loadAccounts } from './utils/load-accounts';
 
 interface AccountDefaultSettingsInput extends LoadConfigurationInput {
   assumeRoleName: string;
-  accounts: Account[];
   outputTableName: string;
+  parametersTableName: string;
 }
 
 const dynamodb = new DynamoDB();
@@ -26,7 +26,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   console.log('Setting account level defaults for all accounts in an organization ...');
   console.log(JSON.stringify(input, null, 2));
 
-  const { assumeRoleName, accounts, configRepositoryName, configFilePath, configCommitId, outputTableName } = input;
+  const { assumeRoleName, configRepositoryName, configFilePath, configCommitId, outputTableName, parametersTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -38,6 +38,7 @@ export const handler = async (input: AccountDefaultSettingsInput) => {
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
 
   const outputs = await loadOutputs(outputTableName, dynamodb);
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
 
   const sts = new STS();
 

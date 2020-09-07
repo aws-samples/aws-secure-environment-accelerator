@@ -2,6 +2,7 @@ import * as org from 'aws-sdk/clients/organizations';
 import { Organizations, OrganizationalUnit } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import {
   LoadConfigurationInput,
@@ -227,7 +228,8 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   return {
     ...input,
     organizationalUnits: configurationOus,
-    accounts: configurationAccounts,
+    // Retrun Only accounts that are needed to be created
+    accounts: configurationAccounts.filter((acc) => !acc.accountId),
     regions: config['global-options']['supported-regions'],
     warnings,
     installCloudFormationMasterRole,

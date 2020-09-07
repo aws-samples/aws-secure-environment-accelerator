@@ -1,15 +1,16 @@
 import { DirectoryService } from '@aws-accelerator/common/src/aws/directory-service';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
-import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
+import { getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { MadOutput } from '@aws-accelerator/common-outputs/src/mad';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
-import { StackOutput, getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadOutputs } from './utils/load-outputs';
+import { loadAccounts } from './utils/load-accounts';
 
 interface ShareDirectoryInput extends LoadConfigurationInput {
-  accounts: Account[];
+  parametersTableName: string;
   assumeRoleName: string;
   outputTableName: string;
 }
@@ -20,8 +21,9 @@ export const handler = async (input: ShareDirectoryInput) => {
   console.log(`Sharing MAD to another account ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, assumeRoleName, configRepositoryName, configFilePath, configCommitId, outputTableName } = input;
-
+  const { parametersTableName, assumeRoleName, configRepositoryName, configFilePath, configCommitId, outputTableName } = input;
+  
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
