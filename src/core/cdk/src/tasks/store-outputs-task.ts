@@ -41,6 +41,9 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
         'assumeRoleName.$': '$.assumeRoleName',
         'outputsTable.$': '$.outputsTable',
         'phaseNumber.$': '$.phaseNumber',
+        'configRepositoryName.$': '$.configRepositoryName',
+        'configFilePath.$': '$.configFilePath',
+        'configCommitId.$': '$.configCommitId',
       },
     });
 
@@ -55,6 +58,9 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
         'assumeRoleName.$': '$.assumeRoleName',
         'outputsTable.$': '$.outputsTable',
         'phaseNumber.$': '$.phaseNumber',
+        'configRepositoryName.$': '$.configRepositoryName',
+        'configFilePath.$': '$.configFilePath',
+        'configCommitId.$': '$.configCommitId',
       },
     });
 

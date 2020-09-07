@@ -45,6 +45,7 @@ export const handler = async (input: CreateStackSetInput) => {
       OperationPreferences: {
         FailureTolerancePercentage: 100,
         MaxConcurrentPercentage: 100,
+        MaxConcurrentCount: 10,
       },
     });
     return {
