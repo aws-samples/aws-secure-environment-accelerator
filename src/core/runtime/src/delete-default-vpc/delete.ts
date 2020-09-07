@@ -5,7 +5,7 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 
 interface DeleteVPCInput extends LoadConfigurationInput {
-  account: Account;
+  accountId: string;
   assumeRoleName: string;
 }
 
@@ -24,7 +24,7 @@ const sts = new STS();
 export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   console.log(`Deleting Default VPC in account ...`);
   console.log(JSON.stringify(input, null, 2));
-  const { account, assumeRoleName, configRepositoryName, configFilePath, configCommitId } = input;
+  const { accountId, assumeRoleName, configRepositoryName, configFilePath, configCommitId } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -32,7 +32,6 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
-  const accountId = account.id;
   const supportedRegions = acceleratorConfig['global-options']['supported-regions'];
   const excludeRegions = acceleratorConfig['global-options']['keep-default-vpc-regions'];
   const regions = supportedRegions.filter(r => !excludeRegions.includes(r));

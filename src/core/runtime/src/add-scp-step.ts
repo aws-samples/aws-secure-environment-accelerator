@@ -67,7 +67,7 @@ export const handler = async (input: AddScpInput) => {
 
   // Find roots to attach FullAWSAccess
   const rootIds = await scps.organizationRoots();
-  
+
   const organizationsResponse = await dynamodb.getItem(getItemInput(parametersTableName, 'organizations'));
   if (!organizationsResponse.Item) {
     throw new Error(`No organizations found in DynamoDB "${parametersTableName}"`);

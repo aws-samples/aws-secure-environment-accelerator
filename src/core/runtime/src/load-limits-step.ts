@@ -1,5 +1,5 @@
 import { ServiceQuotas } from '@aws-accelerator/common/src/aws/service-quotas';
-import { ShortAccount, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
+import { getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { Limit, LimitOutput } from '@aws-accelerator/common-outputs/src/limits';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';

@@ -1,5 +1,5 @@
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { Account, ShortAccount } from '@aws-accelerator/common-outputs/src/accounts';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { LoadConfigurationInput, ConfigurationAccount } from './load-configuration-step';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
@@ -15,7 +15,7 @@ export interface LoadAccountsInput extends LoadConfigurationInput {
 }
 
 export interface LoadAccountsOutput {
-  accounts: ShortAccount[];
+  accounts: string[];
   regions: string[];
 }
 
@@ -114,12 +114,9 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     getUpdateItemInput(parametersTableName, accountsItemsCountId, JSON.stringify(accountsChunk.length)),
   );
 
-  const shortAccounts: ShortAccount[] = accounts.map(acc => ({
-    id: acc.id,
-    key: acc.key,
-  }));
+  const accountIds: string[] = accounts.map(acc => acc.id);
   return {
     ...input,
-    accounts: shortAccounts,
+    accounts: accountIds,
   };
 };

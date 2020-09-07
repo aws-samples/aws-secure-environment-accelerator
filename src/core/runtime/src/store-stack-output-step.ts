@@ -1,13 +1,15 @@
-import { ShortAccount } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { LoadConfigurationInput } from './load-configuration-step';
 
-export interface StoreStackOutputInput {
+export interface StoreStackOutputInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
   assumeRoleName: string;
-  account: ShortAccount;
+  accountId: string;
   region: string;
   outputsTable: string;
   phaseNumber: number;
@@ -15,17 +17,41 @@ export interface StoreStackOutputInput {
 
 const sts = new STS();
 const dynamodb = new DynamoDB();
+const organizations = new Organizations();
 
 export const handler = async (input: StoreStackOutputInput) => {
   console.log(`Storing stack output...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, assumeRoleName, account, region, outputsTable, phaseNumber } = input;
-  const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
+  const {
+    acceleratorPrefix,
+    assumeRoleName,
+    accountId,
+    region,
+    outputsTable,
+    phaseNumber,
+    configCommitId,
+    configFilePath,
+    configRepositoryName,
+  } = input;
+  const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   const cfn = new CloudFormation(credentials, region);
   const stacks = cfn.listStacksGenerator({
     StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
   });
+  // Retrieve Configuration from Code Commit with specific commitId
+  const acceleratorConfig = await loadAcceleratorConfig({
+    repositoryName: configRepositoryName,
+    filePath: configFilePath,
+    commitId: configCommitId,
+  });
+
+  const awsAccount = await organizations.getAccount(accountId);
+  const configAccount = acceleratorConfig
+    .getAccountConfigs()
+    .find(([_, accountConfig]) => accountConfig.email === awsAccount?.Email);
+  const accountKey = configAccount?.[0]!;
+
   const outputs: StackOutput[] = [];
   for await (const summary of stacks) {
     if (!summary.StackName.match(`${acceleratorPrefix}(.*)-Phase${phaseNumber}`)) {
@@ -46,7 +72,7 @@ export const handler = async (input: StoreStackOutputInput) => {
     console.debug(`Storing outputs for stack with name "${summary.StackName}"`);
     stack.Outputs?.forEach(output =>
       outputs.push({
-        accountKey: account.key,
+        accountKey,
         outputKey: `${output.OutputKey}sjkdh`,
         outputValue: output.OutputValue,
         outputDescription: output.Description,
@@ -56,11 +82,11 @@ export const handler = async (input: StoreStackOutputInput) => {
     );
   }
   if (outputs.length === 0) {
-    console.warn(`No outputs found for Account: ${account.key} and Region: ${region}`);
+    console.warn(`No outputs found for Account: ${accountKey} and Region: ${region}`);
     await dynamodb.deleteItem({
       TableName: outputsTable,
       Key: {
-        id: { S: `${account.key}-${region}-${phaseNumber}` },
+        id: { S: `${accountKey}-${region}-${phaseNumber}` },
       },
     });
     return {
@@ -69,8 +95,8 @@ export const handler = async (input: StoreStackOutputInput) => {
   }
   await dynamodb.putItem({
     Item: {
-      id: { S: `${account.key}-${region}-${phaseNumber}` },
-      accountKey: { S: account.key },
+      id: { S: `${accountKey}-${region}-${phaseNumber}` },
+      accountKey: { S: accountKey },
       region: { S: region },
       phase: { N: `${phaseNumber}` },
       outputValue: { S: JSON.stringify(outputs) },
