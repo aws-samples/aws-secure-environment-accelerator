@@ -1,4 +1,3 @@
-import { ShortAccount } from '@aws-accelerator/common-outputs/src/accounts';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
@@ -7,10 +6,10 @@ import { ArtifactOutputFinder } from '@aws-accelerator/common-outputs/src/artifa
 import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
 import { loadOutputs } from './utils/load-outputs';
 import { getItemInput } from './utils/dynamodb-requests';
+import { loadAccounts } from './utils/load-accounts';
 
 interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
-  accounts: ShortAccount[];
   outputTableName: string;
   parametersTableName: string;
 }
@@ -23,7 +22,6 @@ export const handler = async (input: AddScpInput) => {
 
   const {
     acceleratorPrefix,
-    accounts,
     configRepositoryName,
     configFilePath,
     configCommitId,
@@ -41,6 +39,7 @@ export const handler = async (input: AddScpInput) => {
   const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole);
 
   const outputs = await loadOutputs(outputTableName, dynamodb);
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
 
   // Find the SCP artifact output
   const artifactOutput = ArtifactOutputFinder.findOneByName({
@@ -68,8 +67,8 @@ export const handler = async (input: AddScpInput) => {
 
   // Find roots to attach FullAWSAccess
   const rootIds = await scps.organizationRoots();
-
-  const organizationsResponse = await dynamodb.getItem(getItemInput(parametersTableName, `organizations`));
+  
+  const organizationsResponse = await dynamodb.getItem(getItemInput(parametersTableName, 'organizations'));
   if (!organizationsResponse.Item) {
     throw new Error(`No organizations found in DynamoDB "${parametersTableName}"`);
   }
