@@ -27,7 +27,7 @@ export class SSM {
     let token: string | undefined;
     do {
       const response = await throttlingBackOff(() =>
-        this.client.getParameterHistory({ Name: name, NextToken: token, MaxResults: 100 }).promise(),
+        this.client.getParameterHistory({ Name: name, NextToken: token, MaxResults: 50 }).promise(),
       );
       token = response.NextToken;
       parameterVersions.push(...response.Parameters!);
