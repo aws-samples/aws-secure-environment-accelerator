@@ -52,7 +52,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         handler: `${lambdaPath}.run`,
       },
       functionPayload: {
-        'account.$': '$.account',
+        'accountId.$': '$.accountId',
         assumeRoleName,
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',

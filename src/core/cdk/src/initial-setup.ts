@@ -404,7 +404,7 @@ export namespace InitialSetup {
               s3BucketName: installRoleTemplate.s3BucketName,
               s3ObjectKey: installRoleTemplate.s3ObjectKey,
             },
-            'instanceAccounts.$': '$.accounts[*].id',
+            'instanceAccounts.$': '$.accounts',
             instanceRegions: [stack.region],
           },
         }),

@@ -38,7 +38,7 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   console.log(`${accountId}: Excluding Deletion of  Default VPC for regions from account "${accountId}"...`);
   console.log(`${accountId}: ${JSON.stringify(excludeRegions, null, 2)}`);
   const errors: string[] = [];
-  const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+  const credentials = await sts.getCredentialsForAccountAndRole(accountId.trim(), assumeRoleName.trim());
   for (const region of regions) {
     console.log(`Deleting Default vpc in ${region}`);
     try {

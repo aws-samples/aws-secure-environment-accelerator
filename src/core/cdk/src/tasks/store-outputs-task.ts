@@ -35,7 +35,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       resultPath: 'DISCARD',
       maxConcurrency: 10,
       parameters: {
-        'account.$': '$$.Map.Item.Value',
+        'accountId.$': '$$.Map.Item.Value',
         'regions.$': '$.regions',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
         'assumeRoleName.$': '$.assumeRoleName',
@@ -49,7 +49,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       resultPath: 'DISCARD',
       maxConcurrency: 10,
       parameters: {
-        'account.$': '$.account',
+        'accountId.$': '$.accountId',
         'region.$': '$$.Map.Item.Value',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
         'assumeRoleName.$': '$.assumeRoleName',
