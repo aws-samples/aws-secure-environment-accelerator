@@ -334,6 +334,7 @@ export namespace InitialSetup {
           'baseline.$': '$.configuration.baseline',
           'regions.$': '$.configuration.regions',
           'accounts.$': '$.configuration.accounts',
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$',
       });

@@ -49,7 +49,14 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configRepositoryName, assumeRoleName, configCommitId, configFilePath, outputTableName, parametersTableName } = input;
+  const {
+    configRepositoryName,
+    assumeRoleName,
+    configCommitId,
+    configFilePath,
+    outputTableName,
+    parametersTableName,
+  } = input;
 
   const accounts = await loadAccounts(parametersTableName, dynamodb);
 

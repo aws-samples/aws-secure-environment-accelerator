@@ -73,7 +73,7 @@ export const handler = async (input: AddScpInput) => {
   if (!organizationsResponse.Item) {
     throw new Error(`No organizations found in DynamoDB "${parametersTableName}"`);
   }
-  const organizationalUnits:OrganizationalUnit[] = JSON.parse(organizationsResponse.Item.value.S!);
+  const organizationalUnits: OrganizationalUnit[] = JSON.parse(organizationsResponse.Item.value.S!);
   // Find Accelerator accounts and OUs to attach FullAWSAccess
   const acceleratorOuIds = organizationalUnits.map(ou => ou.ouId);
   const acceleratorAccountIds = accounts.map(a => a.id);

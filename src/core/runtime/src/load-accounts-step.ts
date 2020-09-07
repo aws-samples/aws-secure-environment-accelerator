@@ -1,15 +1,12 @@
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { Account, ShortAccount } from '@aws-accelerator/common-outputs/src/accounts';
-import {
-  LoadConfigurationInput,
-  ConfigurationAccount,
-} from './load-configuration-step';
+import { LoadConfigurationInput, ConfigurationAccount } from './load-configuration-step';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 
-export interface LoadAccountsInput extends LoadConfigurationInput{
+export interface LoadAccountsInput extends LoadConfigurationInput {
   accountsItemsCountId: string;
   parametersTableName: string;
   itemId: string;
@@ -29,8 +26,14 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   console.log(`Loading accounts...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { parametersTableName, itemId, accountsItemsCountId, configRepositoryName, configCommitId, configFilePath } = input;
-
+  const {
+    parametersTableName,
+    itemId,
+    accountsItemsCountId,
+    configRepositoryName,
+    configCommitId,
+    configFilePath,
+  } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -113,7 +116,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
 
   const shortAccounts: ShortAccount[] = accounts.map(acc => ({
     id: acc.id,
-    key: acc.key
+    key: acc.key,
   }));
   return {
     ...input,

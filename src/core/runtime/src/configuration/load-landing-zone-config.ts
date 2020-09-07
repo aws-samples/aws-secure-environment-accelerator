@@ -306,7 +306,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadConfig
   return {
     ...input,
     organizationalUnits: configurationOus,
-    accounts: configurationAccounts.filter((acc) => !acc.accountId),
+    accounts: configurationAccounts.filter(acc => !acc.accountId),
     regions: config['global-options']['supported-regions'],
     warnings,
   };

@@ -17,7 +17,7 @@ export const handler = async (input: AddRoleToKmsKeyInput) => {
   console.log(JSON.stringify(input, null, 2));
 
   const { roleName, kmsKeyId, parametersTableName } = input;
-  
+
   const accounts = await loadAccounts(parametersTableName, dynamodb);
 
   const getKeyPolicy = await kms

@@ -59,14 +59,7 @@ export const handler = async (input: LoadLimitsInput) => {
   console.log(`Loading limits...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    configRepositoryName,
-    configFilePath,
-    parametersTableName,
-    assumeRoleName,
-    configCommitId,
-    itemId,
-  } = input;
+  const { configRepositoryName, configFilePath, parametersTableName, assumeRoleName, configCommitId, itemId } = input;
 
   const accounts = await loadAccounts(parametersTableName, dynamodb);
 

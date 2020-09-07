@@ -14,7 +14,7 @@ export const handler = async (input: DetachQuarantineScpInput): Promise<string> 
   console.log(`Creating account using Organizations...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, parametersTableName} = input;
+  const { acceleratorPrefix, parametersTableName } = input;
   const accounts = await loadAccounts(parametersTableName, dynamodb);
 
   const policyName = ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix });
