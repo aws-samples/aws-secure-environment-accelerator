@@ -49,6 +49,8 @@ export interface SecurityGroupProps {
    */
   vpcName: string;
 
+  installerVersion: string;
+
   vpcConfigs?: config.ResolvedVpcConfig[];
 }
 

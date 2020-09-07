@@ -231,6 +231,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcConfigs: acceleratorConfig.getVpcConfigs(),
       outputs,
       acceleratorName,
+      installerVersion: context.installerVersion,
     });
 
     const pcxConfig = vpcConfig.pcx;

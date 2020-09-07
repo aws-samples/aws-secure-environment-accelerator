@@ -514,7 +514,7 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
         },
-        resultPath: 'DISCARD',
+        resultPath: '$.installerVersion',
       });
 
       const codeBuildStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}CodeBuild_sm`, {
@@ -534,6 +534,7 @@ export namespace InitialSetup {
           'CONFIG_COMMIT_ID.$': '$.configCommitId',
           'ACCELERATOR_BASELINE.$': '$.baseline',
           'CONFIG_ROOT_FILE_PATH.$': '$.configRootFilePath',
+          'INSTALLER_VERSION.$': '$.installerVersion',
           ACCELERATOR_PIPELINE_ROLE_NAME: pipelineRole.roleName,
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,
