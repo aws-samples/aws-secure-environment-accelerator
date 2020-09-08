@@ -91,7 +91,7 @@ async function cwlSettingsInLogArchive(props: {
   // Create Kinesis Stream for Logs streaming
   const logsStream = new kinesis.Stream(scope, 'Logs-Stream', {
     streamName: createName({
-      name: 'Logs-Stream',
+      name: 'Kinesis-Logs-Stream',
       suffixLength: 0,
     }),
     encryption: kinesis.StreamEncryption.UNENCRYPTED,
@@ -127,7 +127,7 @@ async function cwlSettingsInLogArchive(props: {
 
   new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream', {
     deliveryStreamName: createName({
-      name: 'Kinesis-Delivery-Stream',
+      name: 'Firehose-Delivery-Stream',
     }),
     deliveryStreamType: 'KinesisStreamAsSource',
     kinesisStreamSourceConfiguration: {
