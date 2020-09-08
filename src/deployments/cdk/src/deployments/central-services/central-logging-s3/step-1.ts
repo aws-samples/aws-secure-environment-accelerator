@@ -127,7 +127,7 @@ async function cwlSettingsInLogArchive(props: {
 
   new kinesisfirehose.CfnDeliveryStream(scope, 'Kinesis-Firehouse-Stream', {
     deliveryStreamName: createName({
-      name: 'Kinesis-Delivery-Stream',
+      name: 'Firehose-Delivery-Stream',
     }),
     deliveryStreamType: 'KinesisStreamAsSource',
     kinesisStreamSourceConfiguration: {
