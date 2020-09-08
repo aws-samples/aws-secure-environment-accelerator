@@ -16,55 +16,7 @@ test('the handler should be successfully return when the configuration is correc
     configRepositoryName: 'PBMMAccel-Repo-Config',
     configCommitId: 'fasdjfkhsdf',
   });
-
-  expect(result.accounts).toHaveLength(6);
-
-  expect(result.accounts).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        accountKey: 'primary-key',
-        accountName: 'primary',
-        emailAddress: 'lz@amazon.com',
-        landingZoneAccountType: 'primary',
-        organizationalUnit: 'core',
-      }),
-      expect.objectContaining({
-        accountKey: 'log-archive-key',
-        accountName: 'log-archive',
-        emailAddress: 'lz+log-archive@amazon.com',
-        landingZoneAccountType: 'log-archive',
-        organizationalUnit: 'core',
-      }),
-      expect.objectContaining({
-        accountKey: 'security-key',
-        accountName: 'security',
-        emailAddress: 'lz+security@amazon.com',
-        landingZoneAccountType: 'security',
-        organizationalUnit: 'core',
-      }),
-      expect.objectContaining({
-        accountKey: 'shared-services-key',
-        accountName: 'shared-services',
-        emailAddress: 'lz+shared-services@amazon.com',
-        landingZoneAccountType: 'shared-services',
-        organizationalUnit: 'core',
-      }),
-      expect.objectContaining({
-        accountKey: 'shared-network-key',
-        accountName: 'shared-network',
-        emailAddress: 'lz+shared-network@amazon.com',
-        landingZoneAccountType: undefined,
-        organizationalUnit: 'core',
-      }),
-      expect.objectContaining({
-        accountKey: 'operations-key',
-        accountName: 'operations',
-        emailAddress: 'lz+operations@amazon.com',
-        landingZoneAccountType: undefined,
-        organizationalUnit: 'core',
-      }),
-    ]),
-  );
+  expect(result);
 });
 
 test('the handler should be successfully return when a mandatory account is missing', async () => {
@@ -79,7 +31,8 @@ test('the handler should be successfully return when a mandatory account is miss
     configCommitId: '',
   });
 
-  expect(result.accounts).toHaveLength(6);
+  // Returns only Accounts that needs to be created
+  expect(result.accounts).toHaveLength(1);
 });
 
 test('the handler should throw an error when the Accelerator config name does not match the account name', async () => {
