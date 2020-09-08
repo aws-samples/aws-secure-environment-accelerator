@@ -24,7 +24,7 @@ export class DynamoDB {
     let token: dynamodb.Key | undefined;
     // TODO: Use common listgenerator when this api supports nextToken
     do {
-      const response = await throttlingBackOff(() => this.client.scan(props).promise())
+      const response = await throttlingBackOff(() => this.client.scan(props).promise());
       token = response.LastEvaluatedKey;
       props.ExclusiveStartKey = token;
       items.push(...response.Items!);
