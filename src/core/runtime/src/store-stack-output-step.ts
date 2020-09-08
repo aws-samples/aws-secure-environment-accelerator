@@ -5,11 +5,12 @@ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 
-export interface StoreStackOutputInput extends LoadConfigurationInput {
+export interface StoreStackOutputInput {
   acceleratorPrefix: string;
   assumeRoleName: string;
-  accountId: string;
+  account: Account;
   region: string;
   outputsTable: string;
   phaseNumber: number;
@@ -17,7 +18,6 @@ export interface StoreStackOutputInput extends LoadConfigurationInput {
 
 const sts = new STS();
 const dynamodb = new DynamoDB();
-const organizations = new Organizations();
 
 export const handler = async (input: StoreStackOutputInput) => {
   console.log(`Storing stack output...`);
@@ -26,31 +26,17 @@ export const handler = async (input: StoreStackOutputInput) => {
   const {
     acceleratorPrefix,
     assumeRoleName,
-    accountId,
+    account,
     region,
     outputsTable,
     phaseNumber,
-    configCommitId,
-    configFilePath,
-    configRepositoryName,
   } = input;
-  const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+  const accountKey = account.key;
+  const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
   const cfn = new CloudFormation(credentials, region);
   const stacks = cfn.listStacksGenerator({
     StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
   });
-  // Retrieve Configuration from Code Commit with specific commitId
-  const acceleratorConfig = await loadAcceleratorConfig({
-    repositoryName: configRepositoryName,
-    filePath: configFilePath,
-    commitId: configCommitId,
-  });
-
-  const awsAccount = await organizations.getAccount(accountId);
-  const configAccount = acceleratorConfig
-    .getAccountConfigs()
-    .find(([_, accountConfig]) => accountConfig.email === awsAccount?.Email);
-  const accountKey = configAccount?.[0]!;
 
   const outputs: StackOutput[] = [];
   for await (const summary of stacks) {
