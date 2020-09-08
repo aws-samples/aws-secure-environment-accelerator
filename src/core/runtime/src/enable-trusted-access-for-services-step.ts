@@ -2,21 +2,24 @@ import * as aws from 'aws-sdk';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { FMS } from '@aws-accelerator/common/src/aws/fms';
 import { IAM } from '@aws-accelerator/common/src/aws/iam';
-import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { loadAccounts } from './utils/load-accounts';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 
 interface EnableTrustedAccessForServicesInput extends LoadConfigurationInput {
-  accounts: Account[];
+  parametersTableName: string;
 }
+
+const dynamodb = new DynamoDB();
 
 const ssm = new SSM();
 export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   console.log(`Enable Trusted Access for AWS services within the organization ...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accounts, configRepositoryName, configFilePath, configCommitId } = input;
+  const { parametersTableName, configRepositoryName, configFilePath, configCommitId } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -26,7 +29,7 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   });
 
   const securityAccountKey = config['global-options']['central-security-services'].account;
-
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
   const securityAccount = accounts.find(a => a.key === securityAccountKey);
   if (!securityAccount) {
     console.warn('Cannot find account with type security');

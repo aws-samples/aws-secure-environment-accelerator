@@ -35,12 +35,25 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       resultPath: 'DISCARD',
       maxConcurrency: 10,
       parameters: {
-        'account.$': '$$.Map.Item.Value',
+        'accountId.$': '$$.Map.Item.Value',
         'regions.$': '$.regions',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
         'assumeRoleName.$': '$.assumeRoleName',
         'outputsTable.$': '$.outputsTable',
         'phaseNumber.$': '$.phaseNumber',
+        'configRepositoryName.$': '$.configRepositoryName',
+        'configFilePath.$': '$.configFilePath',
+        'configCommitId.$': '$.configCommitId',
+      },
+    });
+
+    const getAccountInfoTask = new CodeTask(scope, `Get Account Info`, {
+      resultPath: '$.account',
+      functionPayload,
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.getAccountInfo',
       },
     });
 
@@ -58,9 +71,9 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       },
     });
 
-    const startTaskResultPath = '$.storeOutputsOutput';
+    getAccountInfoTask.next(storeAccountRegionOutputs);
     const storeOutputsTask = new CodeTask(scope, `Store Outputs`, {
-      resultPath: startTaskResultPath,
+      resultPath: '$.storeOutputsOutput',
       functionPayload,
       functionProps: {
         role,
@@ -70,7 +83,7 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     });
 
     const pass = new sfn.Pass(this, 'Store Outputs Success');
-    storeAccountOutputs.iterator(storeAccountRegionOutputs);
+    storeAccountOutputs.iterator(getAccountInfoTask);
     storeAccountRegionOutputs.iterator(storeOutputsTask);
     const chain = sfn.Chain.start(storeAccountOutputs).next(pass);
 

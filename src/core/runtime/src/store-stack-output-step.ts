@@ -1,8 +1,12 @@
-import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { LoadConfigurationInput } from './load-configuration-step';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { getUpdateValueInput } from './utils/dynamodb-requests';
 
 export interface StoreStackOutputInput {
   acceleratorPrefix: string;
@@ -21,11 +25,13 @@ export const handler = async (input: StoreStackOutputInput) => {
   console.log(JSON.stringify(input, null, 2));
 
   const { acceleratorPrefix, assumeRoleName, account, region, outputsTable, phaseNumber } = input;
+  const accountKey = account.key;
   const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
   const cfn = new CloudFormation(credentials, region);
   const stacks = cfn.listStacksGenerator({
     StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
   });
+
   const outputs: StackOutput[] = [];
   for await (const summary of stacks) {
     if (!summary.StackName.match(`${acceleratorPrefix}(.*)-Phase${phaseNumber}`)) {
@@ -46,7 +52,7 @@ export const handler = async (input: StoreStackOutputInput) => {
     console.debug(`Storing outputs for stack with name "${summary.StackName}"`);
     stack.Outputs?.forEach(output =>
       outputs.push({
-        accountKey: account.key,
+        accountKey,
         outputKey: `${output.OutputKey}sjkdh`,
         outputValue: output.OutputValue,
         outputDescription: output.Description,
@@ -56,26 +62,50 @@ export const handler = async (input: StoreStackOutputInput) => {
     );
   }
   if (outputs.length === 0) {
-    console.warn(`No outputs found for Account: ${account.key} and Region: ${region}`);
+    console.warn(`No outputs found for Account: ${accountKey} and Region: ${region}`);
     await dynamodb.deleteItem({
       TableName: outputsTable,
       Key: {
-        id: { S: `${account.key}-${region}-${phaseNumber}` },
+        id: { S: `${accountKey}-${region}-${phaseNumber}` },
       },
     });
     return {
       status: 'SUCCESS',
     };
   }
-  await dynamodb.putItem({
-    Item: {
-      id: { S: `${account.key}-${region}-${phaseNumber}` },
-      accountKey: { S: account.key },
-      region: { S: region },
-      phase: { N: `${phaseNumber}` },
-      outputValue: { S: JSON.stringify(outputs) },
+
+  const updateExpression = getUpdateValueInput([
+    {
+      key: 'a',
+      name: 'accountKey',
+      type: 'S',
+      value: accountKey,
     },
+    {
+      key: 'r',
+      name: 'region',
+      type: 'S',
+      value: region,
+    },
+    {
+      key: 'p',
+      name: 'phase',
+      type: 'N',
+      value: `${phaseNumber}`,
+    },
+    {
+      key: 'v',
+      name: 'outputValue',
+      type: 'S',
+      value: JSON.stringify(outputs),
+    },
+  ]);
+  await dynamodb.updateItem({
     TableName: outputsTable,
+    Key: {
+      id: { S: `${accountKey}-${region}-${phaseNumber}` },
+    },
+    ...updateExpression,
   });
   return {
     status: 'SUCCESS',

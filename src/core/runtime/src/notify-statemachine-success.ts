@@ -1,21 +1,25 @@
 import { SNS } from '@aws-accelerator/common/src/aws/sns';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { loadAccounts } from './utils/load-accounts';
 
 const MAX_SNS_PUBLISH_CHAR = 255500;
 const AVG_CHARS_PER_ACCOUNT = 100;
 
 interface NotifySuccessInput {
   notificationTopicArn: string;
-  accounts: Account[];
+  parametersTableName: string;
   acceleratorVersion?: string;
 }
 
 const sns = new SNS();
+const dynamodb = new DynamoDB();
 
 export const handler = async (input: NotifySuccessInput): Promise<string> => {
   console.log('State Machine Execution Success...');
   console.log(JSON.stringify(input, null, 2));
-  const { accounts, acceleratorVersion } = input;
+  const { acceleratorVersion, parametersTableName } = input;
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
   const responseAccounts = accounts.map(acc => ({
     key: acc.key,
     id: acc.id,

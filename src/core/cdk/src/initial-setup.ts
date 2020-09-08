@@ -313,7 +313,7 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
         },
-        resultPath: '$.configuration.organizationalUnits',
+        resultPath: 'DISCARD',
       });
 
       const loadAccountsTask = new CodeTask(this, 'Load Accounts', {
@@ -326,7 +326,15 @@ export namespace InitialSetup {
           parametersTableName: parametersTable.tableName,
           itemId: 'accounts',
           accountsItemsCountId: 'accounts-items-count',
-          'configuration.$': '$.configuration',
+          // Sending required Inputs seperately to omit unnecesary inputs from SM Input
+          'configRepositoryName.$': '$.configuration.configRepositoryName',
+          'configFilePath.$': '$.configuration.configFilePath',
+          'configCommitId.$': '$.configuration.configCommitId',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
+          'baseline.$': '$.configuration.baseline',
+          'regions.$': '$.configuration.regions',
+          'accounts.$': '$.configuration.accounts',
+          'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$',
       });
@@ -396,7 +404,7 @@ export namespace InitialSetup {
               s3BucketName: installRoleTemplate.s3BucketName,
               s3ObjectKey: installRoleTemplate.s3ObjectKey,
             },
-            'instanceAccounts.$': '$.accounts[*].id',
+            'instanceAccounts.$': '$.accounts',
             instanceRegions: [stack.region],
           },
         }),
@@ -443,7 +451,6 @@ export namespace InitialSetup {
           parametersTableName: parametersTable.tableName,
           itemId: 'limits',
           assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
         },
         resultPath: '$.limits',
       });
@@ -479,8 +486,7 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
-          'organizationalUnits.$': '$.organizationalUnits',
-          'accounts.$': '$.accounts',
+          parametersTableName: parametersTable.tableName,
           outputTableName: outputsTable.tableName,
         },
         resultPath: 'DISCARD',
@@ -496,7 +502,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           acceleratorPrefix: props.acceleratorPrefix,
-          'accounts.$': '$.accounts',
+          parametersTableName: parametersTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -509,7 +515,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'accounts.$': '$.accounts',
+          parametersTableName: parametersTable.tableName,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
@@ -574,6 +580,9 @@ export namespace InitialSetup {
               assumeRoleName: props.stateMachineExecutionRole,
               outputsTable: outputsTable.tableName,
               phaseNumber: phase,
+              configRepositoryName: props.configRepositoryName,
+              'configFilePath.$': '$.configFilePath',
+              'configCommitId.$': '$.configCommitId',
             },
           }),
           resultPath: 'DISCARD',
@@ -636,7 +645,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
+          parametersTableName: parametersTable.tableName,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
@@ -656,7 +665,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           assumeRoleName: props.stateMachineExecutionRole,
-          'accounts.$': '$.accounts',
+          parametersTableName: parametersTable.tableName,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
@@ -673,7 +682,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'accounts.$': '$.accounts',
+          parametersTableName: parametersTable.tableName,
           assumeRoleName: props.stateMachineExecutionRole,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
@@ -703,7 +712,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'accounts.$': '$.accounts',
+          parametersTableName: parametersTable.tableName,
           assumeRoleName: props.stateMachineExecutionRole,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
@@ -727,7 +736,7 @@ export namespace InitialSetup {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {
             acceleratorPrefix: props.acceleratorPrefix,
-            'accounts.$': '$.accounts',
+            parametersTableName: parametersTable.tableName,
             assumeRoleName: props.stateMachineExecutionRole,
             'configRepositoryName.$': '$.configRepositoryName',
             'configFilePath.$': '$.configFilePath',
@@ -861,7 +870,7 @@ export namespace InitialSetup {
         },
         functionPayload: {
           notificationTopicArn: notificationTopic.topicArn,
-          'accounts.$': '$[0].accounts',
+          parametersTableName: parametersTable.tableName,
           'acceleratorVersion.$': '$[0].acceleratorVersion',
         },
         resultPath: 'DISCARD',

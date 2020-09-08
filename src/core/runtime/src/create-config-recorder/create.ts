@@ -1,9 +1,9 @@
 import { ConfigService } from '@aws-accelerator/common/src/aws/configservice';
 import { ConfigurationRecorder } from 'aws-sdk/clients/configservice';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LoadConfigurationInput } from '../load-configuration-step';
-import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { createConfigRecorderName, createAggregatorName } from '@aws-accelerator/common-outputs/src/config';
@@ -11,7 +11,7 @@ import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-rol
 import { loadOutputs } from '../utils/load-outputs';
 
 interface ConfigServiceInput extends LoadConfigurationInput {
-  account: Account;
+  accountId: string;
   assumeRoleName: string;
   acceleratorPrefix: string;
   outputTableName: string;
@@ -36,12 +36,13 @@ const CustomErrorMessage = [
 
 const sts = new STS();
 const dynamodb = new DynamoDB();
+const organizations = new Organizations();
 
 export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   console.log(`Enable Config Recorder in account ...`);
   console.log(JSON.stringify(input, null, 2));
   const {
-    account,
+    accountId,
     assumeRoleName,
     configRepositoryName,
     configFilePath,
@@ -59,7 +60,11 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     commitId: configCommitId,
   });
 
-  const accountId = account.id;
+  const awsAccount = await organizations.getAccount(accountId);
+  const configAccount = acceleratorConfig
+    .getAccountConfigs()
+    .find(([_, accountConfig]) => accountConfig.email === awsAccount?.Email);
+  const accountKey = configAccount?.[0]!;
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const centralSecurityRegion = acceleratorConfig['global-options']['central-security-services'].region;
   const supportedRegions = acceleratorConfig['global-options']['supported-regions'];
@@ -82,12 +87,12 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
 
   const configRecorderRole = IamRoleOutputFinder.tryFindOneByName({
     outputs,
-    accountKey: account.key,
+    accountKey,
     roleKey: 'ConfigRecorderRole',
   });
 
   if (!configRecorderRole) {
-    errors.push(`${accountId}:: No ConfigRecorderRole created in Account "${account.key}"`);
+    errors.push(`${accountId}:: No ConfigRecorderRole created in Account "${accountKey}"`);
     return errors;
   }
 
@@ -140,7 +145,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
       );
       errors.push(...createChannel);
 
-      console.log(`${account.id}::${region}:: Enabling Config Recorder`);
+      console.log(`${accountId}::${region}:: Enabling Config Recorder`);
       const enableConfig = await enableConfigRecorder(configService, accountId, region, acceleratorRecorderName);
       errors.push(...enableConfig);
     } catch (error) {
@@ -153,14 +158,14 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
     }
   }
 
-  if (account.key === masterAccountKey) {
+  if (accountKey === masterAccountKey) {
     const configAggregatorRole = IamRoleOutputFinder.tryFindOneByName({
       outputs,
-      accountKey: account.key,
+      accountKey,
       roleKey: 'ConfigAggregatorRole',
     });
     if (!configAggregatorRole) {
-      errors.push(`${accountId}:: No Aggregaror Role created in Master Account ${account.key}`);
+      errors.push(`${accountId}:: No Aggregaror Role created in Master Account ${accountKey}`);
     } else {
       const configService = new ConfigService(credentials, centralSecurityRegion);
       const enableAggregator = await createAggregator(

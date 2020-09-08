@@ -10,11 +10,12 @@ import { LoadConfigurationInput } from './load-configuration-step';
 import { throttlingBackOff } from '@aws-accelerator/common/src/aws/backoff';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { loadOutputs } from './utils/load-outputs';
+import { loadAccounts } from './utils/load-accounts';
 
 interface AssociateHostedZonesInput extends LoadConfigurationInput {
-  accounts: Account[];
   assumeRoleName: string;
   outputTableName: string;
+  parametersTableName: string;
 }
 
 type ResolversOutputs = ResolversOutput[];
@@ -48,7 +49,16 @@ export const handler = async (input: AssociateHostedZonesInput) => {
   console.log(`Associating Hosted Zones with VPC...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configRepositoryName, accounts, assumeRoleName, configCommitId, configFilePath, outputTableName } = input;
+  const {
+    configRepositoryName,
+    assumeRoleName,
+    configCommitId,
+    configFilePath,
+    outputTableName,
+    parametersTableName,
+  } = input;
+
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({

@@ -1,19 +1,25 @@
 import * as aws from 'aws-sdk';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { loadAccounts } from './utils/load-accounts';
 
 interface AddRoleToKmsKeyInput {
   roleName: string;
-  accounts: Account[];
   kmsKeyId: string;
+  parametersTableName: string;
 }
+
+const dynamodb = new DynamoDB();
+const kms = new aws.KMS();
 
 export const handler = async (input: AddRoleToKmsKeyInput) => {
   console.log(`Adding roles to KMS key policy...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { roleName, kmsKeyId, accounts } = input;
+  const { roleName, kmsKeyId, parametersTableName } = input;
 
-  const kms = new aws.KMS();
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
+
   const getKeyPolicy = await kms
     .getKeyPolicy({
       KeyId: kmsKeyId,

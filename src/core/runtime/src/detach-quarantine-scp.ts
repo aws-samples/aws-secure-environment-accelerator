@@ -1,18 +1,21 @@
-import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
+import { loadAccounts } from './utils/load-accounts';
 
 interface DetachQuarantineScpInput {
-  accounts: Account[];
   acceleratorPrefix: string;
+  parametersTableName: string;
 }
 
 const organizations = new Organizations();
+const dynamodb = new DynamoDB();
 export const handler = async (input: DetachQuarantineScpInput): Promise<string> => {
   console.log(`Creating account using Organizations...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, accounts } = input;
+  const { acceleratorPrefix, parametersTableName } = input;
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
 
   const policyName = ServiceControlPolicy.createQuarantineScpName({ acceleratorPrefix });
 

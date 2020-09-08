@@ -9,12 +9,13 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from '../load-configuration-step';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { loadOutputs } from '../utils/load-outputs';
+import { loadAccounts } from '../utils/load-accounts';
 
 const VALID_STATUSES: string[] = ['Requested', 'Creating', 'Created', 'Active', 'Inoperable', 'Impaired', 'Restoring'];
 
 interface AdConnectorInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
-  accounts: Account[];
+  parametersTableName: string;
   assumeRoleName: string;
   configRepositoryName: string;
   configFilePath: string;
@@ -38,7 +39,7 @@ export const handler = async (input: AdConnectorInput) => {
 
   const {
     acceleratorPrefix,
-    accounts,
+    parametersTableName,
     assumeRoleName,
     configRepositoryName,
     configFilePath,
@@ -46,6 +47,7 @@ export const handler = async (input: AdConnectorInput) => {
     outputTableName,
   } = input;
 
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,

@@ -52,7 +52,7 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
         handler: `${lambdaPath}.run`,
       },
       functionPayload: {
-        'account.$': '$.account',
+        'accountId.$': '$.accountId',
         assumeRoleName,
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
@@ -66,9 +66,9 @@ export class RunAcrossAccountsTask extends sfn.StateMachineFragment {
     const mapTask = new sfn.Map(this, `${name} Map`, {
       itemsPath: '$.accounts',
       resultPath: '$.errors',
-      maxConcurrency: 5,
+      maxConcurrency: 50,
       parameters: {
-        'account.$': '$$.Map.Item.Value',
+        'accountId.$': '$$.Map.Item.Value',
         assumeRoleName,
         'configRepositoryName.$': '$.configRepositoryName',
         'configFilePath.$': '$.configFilePath',
