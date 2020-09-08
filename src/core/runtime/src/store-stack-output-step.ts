@@ -23,14 +23,7 @@ export const handler = async (input: StoreStackOutputInput) => {
   console.log(`Storing stack output...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const {
-    acceleratorPrefix,
-    assumeRoleName,
-    account,
-    region,
-    outputsTable,
-    phaseNumber,
-  } = input;
+  const { acceleratorPrefix, assumeRoleName, account, region, outputsTable, phaseNumber } = input;
   const accountKey = account.key;
   const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
   const cfn = new CloudFormation(credentials, region);

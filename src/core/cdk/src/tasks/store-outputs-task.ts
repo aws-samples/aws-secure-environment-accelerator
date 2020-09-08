@@ -47,7 +47,6 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       },
     });
 
-
     const getAccountInfoResultPath = '$.account';
     const getAccountInfoTask = new CodeTask(scope, `Get Account Info`, {
       resultPath: getAccountInfoResultPath,
