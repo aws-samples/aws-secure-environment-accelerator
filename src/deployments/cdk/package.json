@@ -111,6 +111,7 @@
     "@aws-cdk/core": "1.46.0",
     "@aws-cdk/custom-resources": "1.46.0",
     "@types/cfn-response": "^1.0.3",
+    "@types/semver": "^7.3.3",
     "colors": "1.4.0",
     "constructs": "2.0.1",
     "generate-password": "1.5.1",

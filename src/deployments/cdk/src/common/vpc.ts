@@ -47,8 +47,6 @@ export interface VpcCommonProps {
    * List of account stacks in the organization.
    */
   accountStacks: AccountStacks;
-
-  installerVersion: string;
 }
 
 export interface AzSubnet extends constructs.Subnet {
@@ -98,6 +96,7 @@ export class AzSubnets {
 export interface VpcProps extends VpcCommonProps {
   outputs: StackOutput[];
   acceleratorName: string;
+  installerVersion: string;
 }
 
 export class VpcStack extends NestedStack {
@@ -527,7 +526,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       subnets: this.azSubnets,
       limiter,
       vpc: vpcObj,
-      installerVersion,
     });
 
     const vpcSecurityGroup = new VpcDefaultSecurityGroup(this, 'VpcDefaultSecurityGroup', {

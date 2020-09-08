@@ -24,6 +24,7 @@ const testStacks = new AccountStacks({
     configRepositoryName: 'repo',
     defaultRegion: 'test',
     configRootFilePath: 'config.json',
+    installerVersion: '0.0.0',
   },
 });
 
@@ -118,6 +119,7 @@ test('the VPC creation should create the correct amount of subnets', () => {
     accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
+    installerVersion: '0.0.0',
   });
 
   // Convert the stack to a CloudFormation template
@@ -238,6 +240,7 @@ test('the VPC creation should throw an error when a subnet uses a route table th
       accountStacks: testStacks,
       outputs: [],
       acceleratorName: 'test',
+      installerVersion: '0.0.0',
     });
   });
 });
@@ -265,6 +268,7 @@ test('the VPC creation should create the internet gateway', () => {
     accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
+    installerVersion: '0.0.0',
   });
 
   // Convert the stack to a CloudFormation template
@@ -300,6 +304,7 @@ test('the VPC creation should create the VPN gateway', () => {
     accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
+    installerVersion: '0.0.0',
   });
 
   // Convert the stack to a CloudFormation template
@@ -418,6 +423,7 @@ test('the VPC creation should create the NAT gateway', () => {
     accountStacks: testStacks,
     outputs: [],
     acceleratorName: 'test',
+    installerVersion: '0.0.0',
   });
 
   // Convert the stack to a CloudFormation template

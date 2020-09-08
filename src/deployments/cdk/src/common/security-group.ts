@@ -3,6 +3,7 @@ import * as ec2 from '@aws-cdk/aws-ec2';
 import * as config from '@aws-accelerator/common-config/src';
 import * as constructs from '@aws-accelerator/cdk-constructs/src/vpc';
 import { NonEmptyString } from 'io-ts-types/lib/NonEmptyString';
+import * as sv from 'semver';
 
 export interface NameToSecurityGroupMap {
   [key: string]: ec2.CfnSecurityGroup;
@@ -52,6 +53,8 @@ export interface SecurityGroupProps {
   installerVersion: string;
 
   vpcConfigs?: config.ResolvedVpcConfig[];
+
+  sharedAccountKey?: string;
 }
 
 export class SecurityGroup extends cdk.Construct {
@@ -60,12 +63,19 @@ export class SecurityGroup extends cdk.Construct {
 
   constructor(parent: cdk.Construct, name: string, props: SecurityGroupProps) {
     super(parent, name);
-    const { securityGroups, accountKey, vpcId, vpcConfigs, vpcName } = props;
+    const { securityGroups, accountKey, vpcId, vpcConfigs, vpcName, installerVersion, sharedAccountKey } = props;
+
+    const isUpdateDescription =
+      sv.clean(installerVersion) === null ? sv.satisfies('1.2.1', installerVersion) : sv.gte(installerVersion, '1.2.1');
+    const accountKeySgDescription = !sharedAccountKey ? accountKey : sharedAccountKey;
+
     // const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
     for (const securityGroup of securityGroups || []) {
       const groupName = `${securityGroup.name}_sg`;
-      const groupDescription = `${accountKey} ${vpcName} Mgmt Security Group`;
+      const groupDescription = isUpdateDescription
+        ? `${accountKeySgDescription} ${vpcName} Security Group`
+        : `${accountKey} ${vpcName} Mgmt Security Group`;
       const sg = new ec2.CfnSecurityGroup(this, securityGroup.name, {
         vpcId,
         groupDescription,
