@@ -31,3 +31,43 @@ export const getUpdateItemInput = (
     },
   };
 };
+
+interface Attribute {
+  key: string;
+  value: string;
+  name: string;
+  type: "S"|"N"|"B" ;
+}
+
+/**
+ * 
+ * @param attributes : Attribute[]
+ * key: needs to be unique
+ * 
+ * returns updateExpression required for DynamoDB.updateItem
+ */
+export const getUpdateValueInput = (
+  attributes: Attribute[],
+) => {
+  if (attributes.length === 0) {
+    return;
+  }
+  const expAttributeNames: DynamoDB.ExpressionAttributeNameMap = {};
+  const expAttributeValues: DynamoDB.ExpressionAttributeValueMap = {};
+  let updateExtression: string = 'set ';
+  for (const att of attributes) {
+    const attributeValue: DynamoDB.AttributeValue = {};
+    expAttributeNames[`#${att.key}`] = att.name;
+    attributeValue[att.type] = att.value;
+    expAttributeValues[`:${att.key}`] = attributeValue;
+    updateExtression += `#${att.key} = :${att.key},`;
+  }
+  // Remove "," if exisits in Last character
+  updateExtression = updateExtression.endsWith(',')? updateExtression.slice(0, -1): updateExtression;
+
+  return {
+    ExpressionAttributeNames: expAttributeNames,
+    UpdateExpression: updateExtression,
+    ExpressionAttributeValues: expAttributeValues,
+  };
+};

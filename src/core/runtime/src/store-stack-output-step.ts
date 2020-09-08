@@ -6,6 +6,7 @@ import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { getUpdateValueInput } from './utils/dynamodb-requests';
 
 export interface StoreStackOutputInput {
   acceleratorPrefix: string;
@@ -72,15 +73,39 @@ export const handler = async (input: StoreStackOutputInput) => {
       status: 'SUCCESS',
     };
   }
-  await dynamodb.putItem({
-    Item: {
-      id: { S: `${accountKey}-${region}-${phaseNumber}` },
-      accountKey: { S: accountKey },
-      region: { S: region },
-      phase: { N: `${phaseNumber}` },
-      outputValue: { S: JSON.stringify(outputs) },
+
+  const updateExpression = getUpdateValueInput([
+    {
+      key: 'a',
+      name: 'accountKey',
+      type: 'S',
+      value: accountKey,
     },
+    {
+      key: 'r',
+      name: 'region',
+      type: 'S',
+      value: region,
+    },
+    {
+      key: 'p',
+      name: 'phase',
+      type: 'N',
+      value: `${phaseNumber}`,
+    },
+    {
+      key: 'v',
+      name: 'outputValue',
+      type: 'S',
+      value: JSON.stringify(outputs),
+    },
+  ]);
+  await dynamodb.updateItem({
     TableName: outputsTable,
+    Key: {
+      id: { S: `${accountKey}-${region}-${phaseNumber}` },
+    },
+    ...updateExpression,
   });
   return {
     status: 'SUCCESS',
