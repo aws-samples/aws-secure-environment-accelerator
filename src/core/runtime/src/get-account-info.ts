@@ -38,7 +38,7 @@ export const handler = async (input: StoreStackOutputInput) => {
   if (!configAccount) {
     throw new Error(`Account didn't find in Configuration "${accountId}" with email ${awsAccount.Email}`);
   }
-  const accountKey = configAccount?.[0]!;
+  const accountKey = configAccount?.[0];
   const ou = configAccount?.[1].ou;
   const ouPath = configAccount?.[1]['ou-path'];
   const account: Account = {
@@ -47,7 +47,7 @@ export const handler = async (input: StoreStackOutputInput) => {
     id: accountId,
     key: accountKey,
     name: awsAccount.Name!,
-    ou: ou!,
+    ou,
     ouPath,
   };
   return account;
