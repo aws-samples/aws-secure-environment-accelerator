@@ -19,8 +19,17 @@ export class DynamoDB {
     await throttlingBackOff(() => this.client.batchWriteItem(props).promise());
   }
 
-  async scan(props: dynamodb.ScanInput): Promise<dynamodb.ScanOutput> {
-    return throttlingBackOff(() => this.client.scan(props).promise());
+  async scan(props: dynamodb.ScanInput): Promise<dynamodb.ItemList> {
+    const items: dynamodb.ItemList = [];
+    let token: dynamodb.Key | undefined;
+    // TODO: Use common listgenerator when this api supports nextToken
+    do {
+      const response = await throttlingBackOff(() => this.client.scan(props).promise())
+      token = response.LastEvaluatedKey;
+      props.ExclusiveStartKey = token;
+      items.push(...response.Items!);
+    } while (token);
+    return items;
   }
 
   async putItem(props: dynamodb.PutItemInput): Promise<void> {

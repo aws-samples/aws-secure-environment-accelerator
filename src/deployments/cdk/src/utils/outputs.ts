@@ -25,11 +25,11 @@ export async function loadStackOutputs(): Promise<StackOutput[]> {
   const outputsResponse = await dynamodb.scan({
     TableName: outputTableName,
   });
-  if (!outputsResponse.Items) {
+  if (!outputsResponse) {
     console.warn(`Did not find outputs in DynamoDB table "${outputTableName}"`);
     return [];
   }
-  for (const item of outputsResponse.Items) {
+  for (const item of outputsResponse) {
     const cVal = JSON.parse(item.outputValue.S!);
     outputs.push(...cVal);
   }

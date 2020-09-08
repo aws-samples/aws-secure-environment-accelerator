@@ -6,11 +6,11 @@ export async function loadOutputs(tableName: string, client: DynamoDB): Promise<
   const outputsResponse = await client.scan({
     TableName: tableName,
   });
-  if (!outputsResponse.Items) {
+  if (!outputsResponse) {
     console.warn(`Did not find outputs in DynamoDB table "${tableName}"`);
     return [];
   }
-  for (const item of outputsResponse.Items) {
+  for (const item of outputsResponse) {
     const cVal = JSON.parse(item.outputValue.S!);
     outputs.push(...cVal);
   }
