@@ -13,12 +13,7 @@ export interface Account {
   ouPath?: string;
 }
 
-export interface ShortAccount {
-  key: string;
-  id: string;
-}
-
-export function getAccountId(accounts: Account[] | ShortAccount[], accountKey: string): string | undefined {
+export function getAccountId(accounts: Account[], accountKey: string): string | undefined {
   const account = accounts.find(a => a.key === accountKey);
   if (!account) {
     console.warn(`Cannot find account with key "${accountKey}"`);
