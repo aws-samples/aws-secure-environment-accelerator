@@ -228,7 +228,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   return {
     ...input,
     organizationalUnits: configurationOus,
-    // Retrun Only accounts that are needed to be created
+    // Return Only accounts that are needed to be created
     accounts: configurationAccounts.filter(acc => !acc.accountId),
     regions: config['global-options']['supported-regions'],
     warnings,

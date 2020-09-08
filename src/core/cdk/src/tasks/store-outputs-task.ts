@@ -47,9 +47,8 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
       },
     });
 
-    const getAccountInfoResultPath = '$.account';
     const getAccountInfoTask = new CodeTask(scope, `Get Account Info`, {
-      resultPath: getAccountInfoResultPath,
+      resultPath: '$.account',
       functionPayload,
       functionProps: {
         role,
@@ -73,9 +72,8 @@ export class StoreOutputsTask extends sfn.StateMachineFragment {
     });
 
     getAccountInfoTask.next(storeAccountRegionOutputs);
-    const startTaskResultPath = '$.storeOutputsOutput';
     const storeOutputsTask = new CodeTask(scope, `Store Outputs`, {
-      resultPath: startTaskResultPath,
+      resultPath: '$.storeOutputsOutput',
       functionPayload,
       functionProps: {
         role,

@@ -52,20 +52,20 @@ export const getUpdateValueInput = (attributes: Attribute[]) => {
   }
   const expAttributeNames: DynamoDB.ExpressionAttributeNameMap = {};
   const expAttributeValues: DynamoDB.ExpressionAttributeValueMap = {};
-  let updateExtression: string = 'set ';
+  let updateExpression: string = 'set ';
   for (const att of attributes) {
     const attributeValue: DynamoDB.AttributeValue = {};
     expAttributeNames[`#${att.key}`] = att.name;
     attributeValue[att.type] = att.value;
     expAttributeValues[`:${att.key}`] = attributeValue;
-    updateExtression += `#${att.key} = :${att.key},`;
+    updateExpression += `#${att.key} = :${att.key},`;
   }
-  // Remove "," if exisits in Last character
-  updateExtression = updateExtression.endsWith(',') ? updateExtression.slice(0, -1) : updateExtression;
+  // Remove "," if exists as last character
+  updateExpression = updateExpression.endsWith(',') ? updateExpression.slice(0, -1) : updateExpression;
 
   return {
     ExpressionAttributeNames: expAttributeNames,
-    UpdateExpression: updateExtression,
+    UpdateExpression: updateExpression,
     ExpressionAttributeValues: expAttributeValues,
   };
 };

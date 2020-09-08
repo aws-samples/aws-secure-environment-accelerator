@@ -16,7 +16,7 @@ export interface StoreStackOutputInput extends LoadConfigurationInput {
 const organizations = new Organizations();
 
 export const handler = async (input: StoreStackOutputInput) => {
-  console.log(`Retriving Account Info...`);
+  console.log(`Get Account Info...`);
   console.log(JSON.stringify(input, null, 2));
 
   const { accountId, configCommitId, configFilePath, configRepositoryName } = input;
