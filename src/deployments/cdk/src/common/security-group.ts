@@ -67,14 +67,13 @@ export class SecurityGroup extends cdk.Construct {
 
     const isUpdateDescription =
       sv.clean(installerVersion) === null ? sv.satisfies('1.2.1', installerVersion) : sv.gte(installerVersion, '1.2.1');
-    const accountKeySgDescription = !sharedAccountKey ? accountKey : sharedAccountKey;
 
     // const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
     for (const securityGroup of securityGroups || []) {
       const groupName = `${securityGroup.name}_sg`;
       const groupDescription = isUpdateDescription
-        ? `${accountKeySgDescription} ${vpcName} Security Group`
+        ? `${sharedAccountKey || accountKey} ${vpcName} Security Group`
         : `${accountKey} ${vpcName} Mgmt Security Group`;
       const sg = new ec2.CfnSecurityGroup(this, securityGroup.name, {
         vpcId,
