@@ -96,6 +96,7 @@ export class AzSubnets {
 export interface VpcProps extends VpcCommonProps {
   outputs: StackOutput[];
   acceleratorName: string;
+  installerVersion: string;
 }
 
 export class VpcStack extends NestedStack {
@@ -146,6 +147,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       vpcConfigs,
       accountStacks,
       acceleratorName,
+      installerVersion,
     } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
@@ -510,6 +512,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         vpcId: this.vpcId,
         accountKey,
         vpcConfigs: vpcConfigs!,
+        installerVersion,
       });
     }
 

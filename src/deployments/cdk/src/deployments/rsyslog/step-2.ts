@@ -15,6 +15,7 @@ import { checkAccountWarming } from '../account-warming/outputs';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { Context } from '../../utils/context';
 
 export interface RSysLogStep1Props {
   accountStacks: AccountStacks;
@@ -22,10 +23,11 @@ export interface RSysLogStep1Props {
   outputs: StackOutput[];
   vpcs: Vpc[];
   centralBucket: s3.IBucket;
+  context: Context;
 }
 
 export async function step2(props: RSysLogStep1Props) {
-  const { accountStacks, config, outputs, vpcs, centralBucket } = props;
+  const { accountStacks, config, outputs, vpcs, centralBucket, context } = props;
 
   for (const [accountKey, accountConfig] of config.getMandatoryAccountConfigs()) {
     const rsyslogConfig = accountConfig.deployments?.rsyslog;
@@ -52,7 +54,16 @@ export async function step2(props: RSysLogStep1Props) {
 
     const rsyslogTargetGroup = createTargetGroupForInstance(accountStack, 'RsyslogTG', vpc.id);
     createNlb(accountKey, rsyslogConfig, accountStack, vpc, rsyslogTargetGroup.ref);
-    createAsg(accountKey, rsyslogConfig, accountStack, outputs, vpc, rsyslogTargetGroup.ref, centralBucket.bucketName);
+    createAsg(
+      accountKey,
+      rsyslogConfig,
+      accountStack,
+      outputs,
+      vpc,
+      rsyslogTargetGroup.ref,
+      centralBucket.bucketName,
+      context.installerVersion,
+    );
   }
 }
 
@@ -107,6 +118,7 @@ export function createAsg(
   vpc: Vpc,
   targetGroupArn: string,
   centralBucketName: string,
+  installerVersion: string,
 ) {
   const instanceSubnetIds: string[] = [];
   for (const subnetConfig of rsyslogConfig['app-subnets']) {
@@ -158,6 +170,7 @@ export function createAsg(
     accountKey,
     vpcId: vpc.id,
     vpcName: vpc.name,
+    installerVersion,
   });
   const securityGroupId = securityGroup.securityGroups[0].id;
 

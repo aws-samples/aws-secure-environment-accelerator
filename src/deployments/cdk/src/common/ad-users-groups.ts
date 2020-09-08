@@ -23,6 +23,7 @@ export interface ADUsersAndGroupsProps extends cdk.StackProps {
   userSecrets: UserSecret[];
   accountKey: string;
   serviceLinkedRoleArn: string;
+  installerVersion: string;
 }
 
 export interface UserSecret {
@@ -50,6 +51,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       userSecrets,
       accountKey,
       serviceLinkedRoleArn,
+      installerVersion,
     } = props;
 
     // Creating AD Users command
@@ -102,6 +104,7 @@ export class ADUsersAndGroups extends cdk.Construct {
       accountKey,
       vpcId,
       vpcName,
+      installerVersion,
     });
 
     const stack = AcceleratorStack.of(this);

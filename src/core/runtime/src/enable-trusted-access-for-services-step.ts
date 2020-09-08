@@ -5,11 +5,13 @@ import { IAM } from '@aws-accelerator/common/src/aws/iam';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 
 interface EnableTrustedAccessForServicesInput extends LoadConfigurationInput {
   accounts: Account[];
 }
 
+const ssm = new SSM();
 export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   console.log(`Enable Trusted Access for AWS services within the organization ...`);
   console.log(JSON.stringify(input, null, 2));
@@ -80,8 +82,10 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   await org.registerDelegatedAdministrator(securityAccountId, 'guardduty.amazonaws.com');
   console.log('Security account registered as delegated administrator for Guard Duty in the organization.');
 
-  return {
-    status: 'SUCCESS',
-    statusReason: `Successfully enabled trusted access for AWS services within the organization.`,
-  };
+  // Get all the parameter history versions from SSM parameter store
+  const parameterHistoryList = await ssm.getParameterHistory('/accelerator/version');
+  // Finding the first entry of the parameter version
+  const installerVersion = parameterHistoryList.find(p => p.Version === 1);
+  const installerVersionValue = JSON.parse(installerVersion!.Value!);
+  return !installerVersionValue.AcceleratorVersion ? '<1.2.1' : installerVersionValue.AcceleratorVersion;
 };

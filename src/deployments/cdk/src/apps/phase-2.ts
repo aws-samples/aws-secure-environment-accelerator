@@ -167,6 +167,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         vpcId: vpcOutput.vpcId,
         accountKey,
         vpcConfigs,
+        sharedAccountKey,
+        installerVersion: context.installerVersion,
       });
 
       const accountId = getAccountId(accounts, accountKey);

@@ -14,6 +14,9 @@ process.on('unhandledRejection', (reason, _) => {
 });
 
 async function main() {
+  const pkg = require('../package.json');
+  const acceleratorVersion = pkg.version;
+
   const app = new cdk.App();
 
   const stack = new cdk.Stack(app, 'InstallerStack', {
@@ -315,6 +318,7 @@ async function main() {
               repository: githubRepository,
               owner: githubOwner,
               branch: githubBranch,
+              acceleratorVersion,
             },
           }),
         ],
