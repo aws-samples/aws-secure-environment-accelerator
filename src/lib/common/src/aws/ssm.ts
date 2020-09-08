@@ -21,4 +21,17 @@ export class SSM {
         .promise(),
     );
   }
+
+  async getParameterHistory(name: string): Promise<sts.ParameterHistory[]> {
+    const parameterVersions: sts.ParameterHistory[] = [];
+    let token: string | undefined;
+    do {
+      const response = await throttlingBackOff(() =>
+        this.client.getParameterHistory({ Name: name, NextToken: token, MaxResults: 50 }).promise(),
+      );
+      token = response.NextToken;
+      parameterVersions.push(...response.Parameters!);
+    } while (token);
+    return parameterVersions;
+  }
 }

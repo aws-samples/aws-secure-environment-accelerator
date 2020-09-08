@@ -80,6 +80,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
     vpcs: allVpcs,
     centralBucket,
+    context,
   });
 
   // Deploy Security Hub Step-2

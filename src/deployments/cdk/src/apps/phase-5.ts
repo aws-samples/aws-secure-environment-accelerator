@@ -129,6 +129,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       userSecrets,
       accountKey,
       serviceLinkedRoleArn: madAutoScalingRoleOutput.roleArn,
+      installerVersion: context.installerVersion,
     });
     adUsersAndGroups.node.addDependency(keyPair);
   }
