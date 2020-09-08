@@ -125,6 +125,7 @@ export class VpcSubnetSharing extends cdk.Construct {
             sourceAccountId: o.sourceAccountId,
             targetAccountIds: o.targetAccountIds,
             tags: o.subnet.tags.renderTags(),
+            region: cdk.Aws.REGION,
           })),
       });
 
@@ -137,6 +138,7 @@ export class VpcSubnetSharing extends cdk.Construct {
             sourceAccountId: o.sourceAccountId,
             targetAccountIds: o.targetAccountIds,
             tags: vpc.tags.renderTags(),
+            region: cdk.Aws.REGION,
           })),
       });
     }

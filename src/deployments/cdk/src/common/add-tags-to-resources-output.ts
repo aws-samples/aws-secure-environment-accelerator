@@ -11,6 +11,7 @@ export interface AddTagsToResource {
   resourceType: 'subnet' | 'security-group' | 'vpc' | 'tgw-attachment';
   targetAccountIds: string[];
   tags: Tag[];
+  region: string;
 }
 
 export interface AddTagsToResourcesOutputProps extends Omit<JsonOutputProps, 'value' | 'type'> {

@@ -21,6 +21,7 @@ interface AddTagToResourceOutput {
   resourceType: string;
   targetAccountIds: string[];
   tags: Tag[];
+  region: string;
 }
 
 type AddTagToResourceOutputs = AddTagToResourceOutput[];
@@ -48,7 +49,7 @@ export const handler = async (input: CreateTagsRequestInput) => {
         const credentials = await sts.getCredentialsForAccountAndRole(targetAccountId, assumeRoleName);
         if (ALLOWED_RESOURCE_TYPES.includes(resourceType)) {
           try {
-            const tagResources = new TagResources(credentials);
+            const tagResources = new TagResources(credentials, addTagsToResources.region);
             await tagResources.createTags({
               Resources: [resourceId],
               Tags: tags.map(t => ({ Key: t.key, Value: t.value })),
@@ -68,3 +69,8 @@ export const handler = async (input: CreateTagsRequestInput) => {
     statusReason: `Added tags for all the shared resources`,
   };
 };
+
+handler({
+  "assumeRoleName": "PBMMAccel-PipelineRole",
+  "outputTableName": "PBMMAccel-Outputs",
+});
