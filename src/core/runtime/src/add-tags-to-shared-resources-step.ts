@@ -70,7 +70,7 @@ export const handler = async (input: CreateTagsRequestInput) => {
   };
 };
 
-handler({
-  "assumeRoleName": "PBMMAccel-PipelineRole",
-  "outputTableName": "PBMMAccel-Outputs",
-});
+// handler({
+//   assumeRoleName: 'PBMMAccel-PipelineRole',
+//   outputTableName: 'PBMMAccel-Outputs',
+// });
