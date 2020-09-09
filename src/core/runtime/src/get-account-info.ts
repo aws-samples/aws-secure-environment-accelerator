@@ -5,18 +5,13 @@ import { LoadConfigurationInput } from './load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 
-export interface StoreStackOutputInput extends LoadConfigurationInput {
-  acceleratorPrefix: string;
-  assumeRoleName: string;
+export interface GetAccountInfoInput extends LoadConfigurationInput {
   accountId: string;
-  region: string;
-  outputsTable: string;
-  phaseNumber: number;
 }
 
 const organizations = new Organizations();
 
-export const handler = async (input: StoreStackOutputInput) => {
+export const handler = async (input: GetAccountInfoInput) => {
   console.log(`Get Account Info...`);
   console.log(JSON.stringify(input, null, 2));
 
