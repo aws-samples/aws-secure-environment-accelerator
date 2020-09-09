@@ -71,7 +71,7 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   if (!configAccount) {
     throw new Error(`Account didn't find in Configuration "${accountId}" with email ${awsAccount.Email}`);
   }
-  const accountKey = configAccount[0]!;
+  const accountKey = configAccount[0];
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const centralSecurityRegion = acceleratorConfig['global-options']['central-security-services'].region;
   const supportedRegions = acceleratorConfig['global-options']['supported-regions'];
