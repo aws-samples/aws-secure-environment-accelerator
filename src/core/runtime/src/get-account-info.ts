@@ -3,6 +3,7 @@ import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 
 export interface StoreStackOutputInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -34,7 +35,7 @@ export const handler = async (input: StoreStackOutputInput) => {
   }
   const configAccount = acceleratorConfig
     .getAccountConfigs()
-    .find(([_, accountConfig]) => accountConfig.email === awsAccount.Email);
+    .find(([_, accountConfig]) => equalIgnoreCase(accountConfig.email, awsAccount.Email!));
   if (!configAccount) {
     throw new Error(`Account didn't find in Configuration "${accountId}" with email ${awsAccount.Email}`);
   }
