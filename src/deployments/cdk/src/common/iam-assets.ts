@@ -102,7 +102,7 @@ export class IamAssets extends cdk.Construct {
     };
 
     const createIamSSMLogArchivePolicy = (): iam.ManagedPolicy => {
-      const policyName = createPolicyName('SSMLogArchiveAccessPolicy');
+      const policyName = createPolicyName('SSMAccessPolicy');
       const iamSSMLogArchiveAccessPolicy = new iam.ManagedPolicy(this, `IAM-SSM-LogArchive-Policy-${accountKey}`, {
         managedPolicyName: policyName,
         description: policyName,
