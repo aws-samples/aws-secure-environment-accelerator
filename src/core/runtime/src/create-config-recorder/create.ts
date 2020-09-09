@@ -63,11 +63,12 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
 
   const awsAccount = await organizations.getAccount(accountId);
   if (!awsAccount) {
+    // This will never occur unless lambda is called explecitly with invalid AccountId
     throw new Error(`Unable retrive account from Organizations api for "${accountId}"`);
   }
   const configAccount = acceleratorConfig
     .getAccountConfigs()
-    .find(([_, accountConfig]) => equalIgnoreCase(accountConfig.email, awsAccount?.Email!));
+    .find(([_, accountConfig]) => equalIgnoreCase(accountConfig.email, awsAccount.Email!));
   if (!configAccount) {
     throw new Error(`Account didn't find in Configuration "${accountId}" with email ${awsAccount.Email}`);
   }
