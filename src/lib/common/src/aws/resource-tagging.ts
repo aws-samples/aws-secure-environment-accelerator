@@ -5,9 +5,10 @@ import { throttlingBackOff } from './backoff';
 export class TagResources {
   private readonly client: aws.EC2;
 
-  public constructor(credentials?: aws.Credentials) {
+  public constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.EC2({
       credentials,
+      region,
     });
   }
 

@@ -174,6 +174,7 @@ async function createCustomerGateways(props: {
             value: `${prefix}_att`,
           },
         ],
+        region: cdk.Aws.REGION,
       });
 
       const associateConfig = attachConfig['tgw-rt-associate'] || [];

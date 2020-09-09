@@ -346,6 +346,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
                 resourceType: 'tgw-attachment',
                 tags: tgwAttachment!.resource.tags.renderTags(),
                 targetAccountIds: [ownerAccountId],
+                region: cdk.Aws.REGION,
               },
             ],
           });
