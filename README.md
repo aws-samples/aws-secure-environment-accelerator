@@ -23,19 +23,20 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Log-Archive
   - Security-Audit
 - Workload Accounts - automate mass account creation, or use AWS organizations to scale one account at a time
+- Scalable to 1000's of AWS accounts
 - Supports AWS Organizations nested ou's and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
 - Automatically submits limit increases, when required (complies with initial limits until increased)
 
 ### Creates Networking
 
-- Transit Gateways and TGW route tables (incl. inter-region peering coming in v1.1.9)
+- Transit Gateways and TGW route tables (incl. inter-region peering)
 - Centralized and/or Local VPC's
 - Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
-- All completely and indivdiually customizable (per account, VPC, or OU)
-- Layout your VPCs, subnets, CIDRs and connectivity the way you want
+- All completely and indivdiually customizable (per account, VPC, subnet, or OU)
+- Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
 - Deletes default VPC's (worldwide)
 
 ### Cross-Account Object Sharing
@@ -44,7 +45,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - VPC attachments and peering (local and cross-account)
 - Zone sharing and VPC associations
 - Managed Active Directory sharing, including R53 DNS resolver rule creation/sharing
-- (automated TGW inter-region peering on roadmap)
+- Automated TGW inter-region peering
 
 ### Identity
 
@@ -79,8 +80,8 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 - Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup
 - Protects Accelerator deployed and managed objects
-- Sets Up SNS Alerting topics (High, Medium, Low, Blockhole priorities) (coming in v1.1.9)
-- Deploys CloudWatch Log Metrics and Alarms (coming in v1.1.9)
+- Sets Up SNS Alerting topics (High, Medium, Low, Blockhole priorities)
+- Deploys CloudWatch Log Metrics and Alarms
 
 ### Centralized Logging and Alerting
 
@@ -104,7 +105,7 @@ The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture f
 
 The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`.
 
-While the option remains to deploy the AWS Accelerator on top of the ALZ, all new customers are strongly encourage to let the AWS Accelerator deploy and manage the entire environment by performing a standalone installation of the AWS Accelerator.
+While the option remains to deploy the AWS Accelerator on top of the ALZ, all new customers are strongly encourage to let the AWS Accelerator deploy and manage the entire environment by performing a standalone installation of the AWS Accelerator. This option will be removed in the near future.
 
 ## Relationship with AWS Control Tower
 
