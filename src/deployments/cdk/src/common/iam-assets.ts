@@ -9,6 +9,7 @@ import {
 } from '@aws-accelerator/common-config/src';
 import { Account, getAccountId } from '../utils/accounts';
 import { IBucket } from '@aws-cdk/aws-s3';
+import { createPolicyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
 export interface IamAssetsProps {
   accountKey: string;
@@ -100,6 +101,41 @@ export class IamAssets extends cdk.Construct {
       }
     };
 
+    const createIamSSMLogArchivePolicy = (): iam.ManagedPolicy => {
+      const policyName = createPolicyName('SSMLogArchiveAccessPolicy');
+      const iamSSMLogArchiveAccessPolicy = new iam.ManagedPolicy(this, `IAM-SSM-LogArchive-Policy-${accountKey}`, {
+        managedPolicyName: policyName,
+        description: policyName,
+      });
+
+      iamSSMLogArchiveAccessPolicy.addStatements(
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['kms:DescribeKey', 'kms:GenerateDataKey*', 'kms:Decrypt', 'kms:Encrypt', 'kms:ReEncrypt*'],
+          resources: [logBucket.encryptionKey?.keyArn || '*'],
+        }),
+
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['kms:Decrypt'],
+          resources: ['*'], // TODO: limit resource to be SSM key only
+        }),
+
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:GetEncryptionConfiguration'],
+          resources: [logBucket.bucketArn],
+        }),
+
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ['s3:PutObject', 's3:PutObjectAcl'],
+          resources: [logBucket.arnForObjects('*')],
+        }),
+      );
+      return iamSSMLogArchiveAccessPolicy;
+    };
+
     if (!IamConfigType.is(iamConfig)) {
       console.log(
         `IAM config is not defined for account with key - ${accountKey}. Skipping Policies/Users/Roles creation.`,
@@ -128,7 +164,14 @@ export class IamAssets extends cdk.Construct {
       }
 
       const iamRoles = iamConfig.roles;
-      for (const iamRole of iamRoles!) {
+      if (!iamRoles) {
+        return;
+      }
+
+      const ssmLogArchivePolicy =
+        iamRoles.filter(i => i['ssm-log-archive-access']).length > 0 ? createIamSSMLogArchivePolicy() : undefined;
+
+      for (const iamRole of iamRoles) {
         if (!IamRoleConfigType.is(iamRole)) {
           console.log(
             `IAM config - roles is not defined for account with key - ${accountKey}. Skipping Roles creation.`,
@@ -152,34 +195,8 @@ export class IamAssets extends cdk.Construct {
             });
           }
 
-          if (iamRole['ssm-log-archive-access']) {
-            role.addToPrincipalPolicy(
-              new iam.PolicyStatement({
-                actions: ['kms:DescribeKey', 'kms:GenerateDataKey*', 'kms:Decrypt', 'kms:Encrypt', 'kms:ReEncrypt*'],
-                resources: [logBucket.encryptionKey?.keyArn || '*'],
-              }),
-            );
-
-            role.addToPrincipalPolicy(
-              new iam.PolicyStatement({
-                actions: ['kms:Decrypt'],
-                resources: ['*'], // TODO: limit resource to be SSM key only
-              }),
-            );
-
-            role.addToPrincipalPolicy(
-              new iam.PolicyStatement({
-                actions: ['s3:GetEncryptionConfiguration'],
-                resources: [logBucket.bucketArn],
-              }),
-            );
-
-            role.addToPrincipalPolicy(
-              new iam.PolicyStatement({
-                actions: ['s3:PutObject', 's3:PutObjectAcl'],
-                resources: [logBucket.arnForObjects('*')],
-              }),
-            );
+          if (iamRole['ssm-log-archive-access'] && ssmLogArchivePolicy) {
+            role.addManagedPolicy(ssmLogArchivePolicy);
           }
         }
       }
