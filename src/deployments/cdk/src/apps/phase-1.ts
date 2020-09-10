@@ -467,8 +467,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
    * Code to create LogGroups required for DNS Logging
    */
   const globalOptionsConfig = acceleratorConfig['global-options'];
-  const zonesConfig = globalOptionsConfig.zones;
-  const zonesAccountKey = zonesConfig.account;
+  const zoneConfig = globalOptionsConfig.zones.find(zc => zc.names);
+  const zonesAccountKey = zoneConfig?.account!;
 
   const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
   const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
@@ -477,7 +477,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     roleKey: 'LogGroupRole',
   });
   if (logGroupLambdaRoleOutput) {
-    const logGroups = zonesConfig.names.public.map(phz => {
+    const logGroups = zoneConfig?.names.public.map(phz => {
       const logGroupName = createR53LogGroupName({
         acceleratorPrefix: context.acceleratorPrefix,
         domain: phz,
@@ -486,7 +486,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         logGroupName,
         roleArn: logGroupLambdaRoleOutput.roleArn,
       });
-    });
+    }) || [];
 
     if (logGroups.length > 0) {
       const wildcardLogGroupName = createR53LogGroupName({
