@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - 'release/v*'
-      - 'doc*'
+      - 'doc/v*'          # temporary
 jobs:
   release:
     name: Release
@@ -33,49 +33,49 @@ jobs:
       - name: Install pnpm
         run: |
           npm install -g pnpm
-      - name: Build Accelerator Installer
-        id: build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
-          INSTALLER_STACK_DIR: ./src/installer/cdk
-          INSTALLER_STACK_NAME: AcceleratorInstaller
-          OUTPUT_DIR: templates
-        run: |
-          cd "${INSTALLER_STACK_DIR}"
-          pnpm install
-          pnpx cdk synth --output "${OUTPUT_DIR}" "${INSTALLER_STACK_NAME}"
-          echo ::set-output name=template_name::${INSTALLER_STACK_NAME}.template.json
-          echo ::set-output name=template_path::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
-      - name: Generate Changelog
-        id: changelog
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
-        run: |
-          previous_tag=$(git describe --tags --abbrev=0)
-          echo "Previous release was: ${previous_tag}"
-          changes=$(git log ${previous_tag}..HEAD --pretty="tformat:* %s (%h)" --first-parent)
-          echo ${changes}
-          changes="${changes//'%'/'%25'}"    # Avoids whitespace removal.
-          changes="${changes//$'\n'/'%0A'}"
-          changes="${changes//$'\r'/'%0D'}"
-          echo ::set-output name=changelog::${changes}
-      - name: Bump package.json
-        run: |
-          npm install -g json
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          json -I -f src/core/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
-          git add src/core/cdk/package.json
-          json -I -f src/installer/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
-          git add src/installer/cdk/package.json
-          git commit -am 'Updating package to ${{ steps.format.outputs.numeric_release }}'
-      - name: Push Bumped Package Files
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.ACTION_TOKEN }}
-          branch: ${{ steps.format.outputs.branch_name }}
+      # - name: Build Accelerator Installer
+      #   id: build
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
+      #     INSTALLER_STACK_DIR: ./src/installer/cdk
+      #     INSTALLER_STACK_NAME: AcceleratorInstaller
+      #     OUTPUT_DIR: templates
+      #   run: |
+      #     cd "${INSTALLER_STACK_DIR}"
+      #     pnpm install
+      #     pnpx cdk synth --output "${OUTPUT_DIR}" "${INSTALLER_STACK_NAME}"
+      #     echo ::set-output name=template_name::${INSTALLER_STACK_NAME}.template.json
+      #     echo ::set-output name=template_path::$(realpath "${OUTPUT_DIR}/${INSTALLER_STACK_NAME}.template.json")
+      # - name: Generate Changelog
+      #   id: changelog
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     GITHUB_DEFAULT_BRANCH: ${{ steps.format.outputs.branch_name }}
+      #   run: |
+      #     previous_tag=$(git describe --tags --abbrev=0)
+      #     echo "Previous release was: ${previous_tag}"
+      #     changes=$(git log ${previous_tag}..HEAD --pretty="tformat:* %s (%h)" --first-parent)
+      #     echo ${changes}
+      #     changes="${changes//'%'/'%25'}"    # Avoids whitespace removal.
+      #     changes="${changes//$'\n'/'%0A'}"
+      #     changes="${changes//$'\r'/'%0D'}"
+      #     echo ::set-output name=changelog::${changes}
+      # - name: Bump package.json
+      #   run: |
+      #     npm install -g json
+      #     git config user.name github-actions
+      #     git config user.email github-actions@github.com
+      #     json -I -f src/core/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+      #     git add src/core/cdk/package.json
+      #     json -I -f src/installer/cdk/package.json -e 'this.version="${{ steps.format.outputs.numeric_release }}"'
+      #     git add src/installer/cdk/package.json
+      #     git commit -am 'Updating package to ${{ steps.format.outputs.numeric_release }}'
+      # - name: Push Bumped Package Files
+      #   uses: ad-m/github-push-action@master
+      #   with:
+      #     github_token: ${{ secrets.ACTION_TOKEN }}
+      #     branch: ${{ steps.format.outputs.branch_name }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
@@ -88,17 +88,17 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
           draft: true
           prerelease: false
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEMPLATE_PATH: ${{ steps.build.outputs.template_path }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ steps.build.outputs.template_path }}
-          asset_name: ${{ steps.build.outputs.template_name }}
-          asset_content_type: application/json
+      # - name: Upload Release Asset
+      #   id: upload-release-asset
+      #   uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     TEMPLATE_PATH: ${{ steps.build.outputs.template_path }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ${{ steps.build.outputs.template_path }}
+      #     asset_name: ${{ steps.build.outputs.template_name }}
+      #     asset_content_type: application/json
       - name: Create Reference Directory
         run: |
           mkdir -p reference-material/docs
