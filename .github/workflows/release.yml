@@ -101,8 +101,13 @@ jobs:
       #     asset_content_type: application/json
       - name: Create Reference Directory
         run: |
-          mkdir -p reference-material/docs
-          mkdir -p reference-material/sample-artifacts
+          mkdir -p reference-material-${{ steps.format.outputs.numeric_release }}/docs
+          mkdir -p reference-material-${{ steps.format.outputs.numeric_release }}/reference-artifacts
+
+      - name: Copy Sample Artifacts
+        run: |
+          cp reference-artifacts/config.example.json               reference-material-${{ steps.format.outputs.numeric_release }}/reference-artifacts
+          cp reference-artifacts/Third-Party/firewall-example.txt  reference-material-${{ steps.format.outputs.numeric_release }}/reference-artifacts
 
       - name: Generate HTML (pbmm-architecture)
         uses: docker://pandoc/latex:2.10
@@ -110,7 +115,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material/docs/pbmm-architecture.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/pbmm-architecture.html
             docs/architectures/pbmm/index.md
 
       - name: Generate HTML (developer-guide)
@@ -119,7 +124,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material/docs/developer-guide.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/developer-guide.html
             docs/developer/developer-guide.md
 
       - name: Generate HTML (operations-troubleshooting-guide)
@@ -128,7 +133,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material/docs/operations-troubleshooting-guide.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/operations-troubleshooting-guide.html
             docs/operations/operations-troubleshooting-guide.md
 
       - name: Generate HTML (customization-index)
@@ -137,7 +142,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material/docs/customization-index.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/customization-index.html
             docs/installation/customization-index.md
 
       - name: Generate HTML (index)
@@ -146,7 +151,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material/docs/index.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/index.html
             docs/installation/index.md
 
       - name: Generate HTML (README)
@@ -155,27 +160,54 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material/README.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/README.html
             README.md
+
+      - name: Generate HTML (multi-file-config-capabilities)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/multi-file-config-capabilities.html
+            docs/installation/multi-file-config-capabilities.md
+
+      - name: Generate HTML (sample_snippets)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/sample_snippets.html
+            ./reference-artifacts/master-config-sample-snippets/sample_snippets.md
+
+      - name: Generate HTML (firewall_file_available_variables)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/firewall_file_available_variables.html
+            ./reference-artifacts/master-config-sample-snippets/firewall_file_available_variables.md
 
       - name: Zip Reference Materials
         run: |
-          zip -r reference-material.zip reference-material/
+          zip -r reference-material-${{ steps.format.outputs.numeric_release }}.zip reference-material-${{ steps.format.outputs.numeric_release }}/
 
       - uses: actions/upload-artifact@master
         with:
-          name: reference-material.zip
-          path: reference-material.zip
+          name: reference-material-${{ steps.format.outputs.numeric_release }}.zip
+          path: reference-material-${{ steps.format.outputs.numeric_release }}.zip
       - name: Upload Release Asset (Reference)
         id: upload-release-asset-ref
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEMPLATE_PATH: reference-material.zip
+          TEMPLATE_PATH: reference-material-${{ steps.format.outputs.numeric_release }}.zip
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: reference-material.zip
-          asset_name: reference-material.zip
+          asset_path: reference-material-${{ steps.format.outputs.numeric_release }}.zip
+          asset_name: reference-material-${{ steps.format.outputs.numeric_release }}.zip
           asset_content_type: application/zip
 
 
