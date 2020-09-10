@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'release/v*'
+      - 'doc*'
 jobs:
   release:
     name: Release
@@ -98,7 +99,88 @@ jobs:
           asset_path: ${{ steps.build.outputs.template_path }}
           asset_name: ${{ steps.build.outputs.template_name }}
           asset_content_type: application/json
+      - name: Create Reference Directory
+        run: |
+          mkdir -p reference-material/docs
+          mkdir -p reference-material/sample-artifacts
+
+      - name: Generate HTML (pbmm-architecture)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm
+            --output=reference-material/docs/pbmm-architecture.html
+            docs/architectures/pbmm/index.md
+
+      - name: Generate HTML (developer-guide)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm
+            --output=reference-material/docs/developer-guide.html
+            docs/developer/developer-guide.md
+
+      - name: Generate HTML (operations-troubleshooting-guide)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm
+            --output=reference-material/docs/operations-troubleshooting-guide.html
+            docs/operations/operations-troubleshooting-guide.md
+
+      - name: Generate HTML (customization-index)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm
+            --output=reference-material/docs/customization-index.html
+            docs/installation/customization-index.md
+
+      - name: Generate HTML (index)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm
+            --output=reference-material/docs/index.html
+            docs/installation/index.md
+
+      - name: Generate HTML (README)
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --standalone --self-contained --from=gfm --title="" --css=gfm.css
+            --resource-path=.:docs/architectures/pbmm
+            --output=reference-material/README.html
+            README.md
+
+      - name: Zip Reference Materials
+        run: |
+          zip -r reference-material.zip reference-material/
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: reference-material.zip
+          path: reference-material.zip
+      - name: Upload Release Asset (Reference)
+        id: upload-release-asset-ref
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEMPLATE_PATH: reference-material.zip
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: reference-material.zip
+          asset_name: reference-material.zip
+          asset_content_type: application/zip
+
+
       - name: Get Draft Release Url
         id: release_url
         run: |
           echo "Draft release available at: ${{ steps.create_release.outputs.html_url}}"
+
