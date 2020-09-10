@@ -1,6 +1,11 @@
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
-import { getStackJsonOutput, ResolverRulesOutput, ResolversOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import {
+  getStackJsonOutput,
+  ResolverRulesOutput,
+  ResolversOutput,
+  StackOutput,
+} from '@aws-accelerator/common-outputs/src/stack-output';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { ResolverEndpoint } from '@aws-accelerator/cdk-constructs/src/route53';
 import { ResolverRule } from '@aws-accelerator/cdk-constructs/src/route53';
@@ -50,7 +55,9 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
     const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === resolversConfig.subnet).map(s => s.subnetId);
     if (subnetIds.length === 0) {
-      console.error(`Cannot find subnet IDs for subnet name = ${resolversConfig.subnet} and VPC = ${vpcConfig.name} in outputs`);
+      console.error(
+        `Cannot find subnet IDs for subnet name = ${resolversConfig.subnet} and VPC = ${vpcConfig.name} in outputs`,
+      );
       continue;
     }
 
@@ -61,11 +68,15 @@ export async function step2(props: CentralEndpointsStep2Props) {
     }
 
     // Call r53-resolver-endpoint per Account
-    const r53ResolverEndpoints = new ResolverEndpoint(accountStack, `ResolverEndpoints-${accountKey}-${vpcConfig.name}`, {
-      vpcId: vpcOutput.vpcId,
-      name: vpcConfig.name,
-      subnetIds,
-    });
+    const r53ResolverEndpoints = new ResolverEndpoint(
+      accountStack,
+      `ResolverEndpoints-${accountKey}-${vpcConfig.name}`,
+      {
+        vpcId: vpcOutput.vpcId,
+        name: vpcConfig.name,
+        subnetIds,
+      },
+    );
     const resolverOutput: ResolversOutput = {
       vpcName: vpcConfig.name,
       accountKey: accountKey,
@@ -84,14 +95,18 @@ export async function step2(props: CentralEndpointsStep2Props) {
       const onPremRules: string[] = [];
       // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
       for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
-        const rule = new ResolverRule(accountStack, `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`, {
-          domain: onPremRuleConfig.zone,
-          endpoint: r53ResolverEndpoints.outboundEndpointRef,
-          ipAddresses: onPremRuleConfig['outbound-ips'],
-          ruleType: 'FORWARD',
-          name: `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-phz-rule`,
-          vpcId: vpcOutput.vpcId,
-        });
+        const rule = new ResolverRule(
+          accountStack,
+          `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`,
+          {
+            domain: onPremRuleConfig.zone,
+            endpoint: r53ResolverEndpoints.outboundEndpointRef,
+            ipAddresses: onPremRuleConfig['outbound-ips'],
+            ruleType: 'FORWARD',
+            name: `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-phz-rule`,
+            vpcId: vpcOutput.vpcId,
+          },
+        );
         rule.node.addDependency(r53ResolverEndpoints);
         onPremRules.push(rule.ruleId);
       }
@@ -99,7 +114,12 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
       // Check for MAD configuration whose resolver is current account VPC
       const madRules: string[] = [];
-      const madConfigsWithVpc = madConfigs.filter(mc => mc.mad["central-resolver-rule-account"] === accountKey && mc.mad.region === vpcConfig.region && mc.mad["central-resolver-rule-vpc"] === vpcConfig.name);
+      const madConfigsWithVpc = madConfigs.filter(
+        mc =>
+          mc.mad['central-resolver-rule-account'] === accountKey &&
+          mc.mad.region === vpcConfig.region &&
+          mc.mad['central-resolver-rule-vpc'] === vpcConfig.name,
+      );
       for (const { accountKey: madAccountKey, mad } of madConfigsWithVpc) {
         let madIPs: string[];
         const madOutput = getStackJsonOutput(outputs, {
@@ -111,14 +131,18 @@ export async function step2(props: CentralEndpointsStep2Props) {
           continue;
         }
         madIPs = madOutput[0].dnsIps.split(',');
-        const madRule = new ResolverRule(accountStack, `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-phz-rule`, {
-          domain: mad['dns-domain'],
-          endpoint: r53ResolverEndpoints.outboundEndpointRef,
-          ipAddresses: madIPs,
-          ruleType: 'FORWARD',
-          name: `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-mad-phz-rule`,
-          vpcId: vpcOutput.vpcId,
-        });
+        const madRule = new ResolverRule(
+          accountStack,
+          `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-phz-rule`,
+          {
+            domain: mad['dns-domain'],
+            endpoint: r53ResolverEndpoints.outboundEndpointRef,
+            ipAddresses: madIPs,
+            ruleType: 'FORWARD',
+            name: `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-mad-phz-rule`,
+            vpcId: vpcOutput.vpcId,
+          },
+        );
         madRules.push(madRule.ruleId);
       }
       resolverRulesOutput.madRules = madRules;

@@ -1118,7 +1118,6 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
     return result;
   }
 
-
   /**
    * Find all mad configurations in mandatory accounts, workload accounts and organizational units.
    */

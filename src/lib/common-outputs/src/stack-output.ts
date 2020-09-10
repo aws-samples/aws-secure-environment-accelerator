@@ -81,7 +81,7 @@ export interface ResolversOutput {
   region: string;
   inBound?: string;
   outBound?: string;
-  rules?: ResolverRulesOutput;  
+  rules?: ResolverRulesOutput;
 }
 
 export interface AmiSubscriptionOutput {

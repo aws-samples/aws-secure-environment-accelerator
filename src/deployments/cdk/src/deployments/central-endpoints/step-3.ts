@@ -1,11 +1,7 @@
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
 import * as ram from '@aws-cdk/aws-ram';
-import {
-  getStackJsonOutput,
-  ResolversOutput,
-  StackOutput,
-} from '@aws-accelerator/common-outputs/src/stack-output';
+import { getStackJsonOutput, ResolversOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
@@ -52,8 +48,12 @@ export async function step3(props: CentralEndpointsStep3Props) {
       console.warn(`No Resolvers rules are deployed in account "${zoneConfig.account}: ${zoneConfig.region}"`);
     }
     const ruleArns: string[] = [
-      ...resolversRegionOutputs?.rules?.madRules?.map(ruleId => `arn:aws:route53resolver:${zoneConfig.region}:${centralAccountId}:resolver-rule/${ruleId}`)!,
-      ...resolversRegionOutputs?.rules?.onPremRules?.map(ruleId => `arn:aws:route53resolver:${zoneConfig.region}:${centralAccountId}:resolver-rule/${ruleId}`)!,
+      ...resolversRegionOutputs?.rules?.madRules?.map(
+        ruleId => `arn:aws:route53resolver:${zoneConfig.region}:${centralAccountId}:resolver-rule/${ruleId}`,
+      )!,
+      ...resolversRegionOutputs?.rules?.onPremRules?.map(
+        ruleId => `arn:aws:route53resolver:${zoneConfig.region}:${centralAccountId}:resolver-rule/${ruleId}`,
+      )!,
     ];
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(zoneConfig.account);
@@ -63,9 +63,9 @@ export async function step3(props: CentralEndpointsStep3Props) {
     }
 
     // share the route53 resolver rules
-    new ram.CfnResourceShare(accountStack, `ResolverRuleShare-${zoneConfig["resolver-vpc"]}`, {
+    new ram.CfnResourceShare(accountStack, `ResolverRuleShare-${zoneConfig['resolver-vpc']}`, {
       name: createName({
-        name: `${zoneConfig["resolver-vpc"]}-ResolverRules`,
+        name: `${zoneConfig['resolver-vpc']}-ResolverRules`,
       }),
       allowExternalPrincipals: false,
       principals: sharedToAccountIds,

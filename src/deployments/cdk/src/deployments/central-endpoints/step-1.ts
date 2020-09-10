@@ -30,7 +30,9 @@ export async function step1(props: CentralEndpointsStep1Props) {
 
   const accountStack = accountStacks.tryGetOrCreateAccountStack(zoneConfig.account, zoneConfig.region);
   if (!accountStack) {
-    console.error(`Cannot find account stack ${zoneConfig.account}: ${zoneConfig.region}, while deploying Hosted Zones`);
+    console.error(
+      `Cannot find account stack ${zoneConfig.account}: ${zoneConfig.region}, while deploying Hosted Zones`,
+    );
     return;
   }
 
@@ -59,10 +61,10 @@ export async function step1(props: CentralEndpointsStep1Props) {
   const resolverVpc = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
     outputs,
     accountKey: zoneConfig.account,
-    vpcName: zoneConfig["resolver-vpc"],
+    vpcName: zoneConfig['resolver-vpc'],
   });
   if (!resolverVpc) {
-    console.warn(`Cannot find resolver VPC with name "${zoneConfig["resolver-vpc"]}"`);
+    console.warn(`Cannot find resolver VPC with name "${zoneConfig['resolver-vpc']}"`);
     return;
   }
 
@@ -83,7 +85,6 @@ export async function step1(props: CentralEndpointsStep1Props) {
     });
   }
 }
-
 
 export function createR53LogGroupName(props: { acceleratorPrefix: string; domain: string }) {
   const { acceleratorPrefix, domain } = props;

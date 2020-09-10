@@ -11,9 +11,6 @@ export interface RdgwArtifactsOutput {
 }
 
 export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs }: PhaseInput) {
-
-
-
   /**
    * CentralEndpoints.step3 Share Central resolver rules to remove VPCs
    */
