@@ -72,14 +72,16 @@ export interface MadRuleOutput {
 export interface ResolverRulesOutput {
   onPremRules?: string[];
   inBoundRule?: string;
-  madRules?: MadRuleOutput;
+  madRules?: string[];
 }
 
 export interface ResolversOutput {
   vpcName: string;
+  accountKey: string;
+  region: string;
   inBound?: string;
   outBound?: string;
-  rules?: ResolverRulesOutput;
+  rules?: ResolverRulesOutput;  
 }
 
 export interface AmiSubscriptionOutput {

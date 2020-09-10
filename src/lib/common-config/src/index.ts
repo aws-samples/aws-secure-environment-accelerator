@@ -591,6 +591,7 @@ export const GlobalOptionsZonesConfigType = t.interface({
   account: NonEmptyString,
   'resolver-vpc': NonEmptyString,
   names: ZoneNamesConfigType,
+  region: NonEmptyString,
 });
 
 export const CostAndUsageReportConfigType = t.interface({
@@ -742,7 +743,7 @@ export const GlobalOptionsConfigType = t.interface({
   'default-log-retention': t.number,
   'central-bucket': NonEmptyString,
   reports: ReportsConfigType,
-  zones: GlobalOptionsZonesConfigType,
+  zones: t.array(GlobalOptionsZonesConfigType),
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
   'central-security-services': CentralServicesConfigType,
   'central-operations-services': CentralServicesConfigType,
@@ -836,6 +837,13 @@ export interface ResolvedAlbConfig extends ResolvedConfigBase {
    * The albs config to be deployed.
    */
   albs: AlbConfig[];
+}
+
+export interface ResolvedMadConfig extends ResolvedConfigBase {
+  /**
+   * The mad config to be deployed.
+   */
+  mad: MadDeploymentConfig;
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
@@ -1106,6 +1114,25 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
           });
         }
       }
+    }
+    return result;
+  }
+
+
+  /**
+   * Find all mad configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getMadConfigs(): ResolvedMadConfig[] {
+    const result: ResolvedMadConfig[] = [];
+    for (const [key, config] of this.getAccountConfigs()) {
+      const mad = config.deployments?.mad;
+      if (!mad) {
+        continue;
+      }
+      result.push({
+        accountKey: key,
+        mad,
+      });
     }
     return result;
   }

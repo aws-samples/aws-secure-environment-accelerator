@@ -2,6 +2,7 @@ import { PeeringConnection } from '../common/peering-connection';
 import { GlobalOptionsDeployment } from '../common/global-options';
 import { PhaseInput } from './shared';
 import * as alb from '../deployments/alb';
+import * as centralEndpoints from '../deployments/central-endpoints';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 import { ImportedVpc } from '../deployments/vpc';
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
@@ -36,24 +37,23 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }
 
   /**
-   * Code to create DNS Resolvers
+   * CentralEndpoints.step1 creating public and private hosted zones in central account
    */
-  const globalOptionsConfig = acceleratorConfig['global-options'];
-  const zonesConfig = globalOptionsConfig.zones;
-  const zonesAccountKey = zonesConfig.account;
+  await centralEndpoints.step1({
+    acceleratorPrefix: context.acceleratorPrefix,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
 
-  // TODO Figure out how to keep the same logical IDs while supporting regions
-  const zonesStack = accountStacks.tryGetOrCreateAccountStack(zonesAccountKey);
-  if (!zonesStack) {
-    console.warn(`Cannot find account stack ${zonesAccountKey}`);
-  } else {
-    new GlobalOptionsDeployment(zonesStack, `GlobalOptionsDNSResolvers`, {
-      accounts,
-      outputs,
-      context,
-      acceleratorConfig,
-    });
-  }
+  /**
+   * CentralEndpoints.step2 creating resolver endpoints and rules for on-premise & mad
+   */
+  await centralEndpoints.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
 
   await alb.step1({
     accountStacks,
