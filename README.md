@@ -132,7 +132,7 @@ This summarizes the installation process, the full installation document can be 
 
 # **Documentation** (Linked)
 
-### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/index.md)
+### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./docs/installation/customization-index.md) to sample config file and customization details
@@ -143,7 +143,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/index.md) (Early Draft)
 
-### - [Frequently Asked Questions](./docs/faq/index.md) (Future)
+### - [Frequently Asked Questions](./docs/faq/faq.md) (Future)
 
 ---
 
