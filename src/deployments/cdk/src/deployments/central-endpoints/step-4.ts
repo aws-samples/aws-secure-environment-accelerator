@@ -15,14 +15,20 @@ export interface CentralEndpointsStep4Props {
  */
 export async function step4(props: CentralEndpointsStep4Props) {
   const { accountStacks, config, outputs } = props;
-  const centralPhzConfig = config["global-options"].zones.find(zc => zc.names);
+  const centralPhzConfig = config['global-options'].zones.find(zc => zc.names);
   for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
     if (!vpcConfig['use-central-endpoints']) {
       continue;
     }
 
-    if (accountKey === centralPhzConfig?.account && vpcConfig.region === centralPhzConfig.region && vpcConfig.name === centralPhzConfig["resolver-vpc"]) {
-      console.log(`Current VPC Config ${accountKey}: ${vpcConfig.region}:${vpcConfig.name} is central VPC for Hosted Zones`);
+    if (
+      accountKey === centralPhzConfig?.account &&
+      vpcConfig.region === centralPhzConfig.region &&
+      vpcConfig.name === centralPhzConfig['resolver-vpc']
+    ) {
+      console.log(
+        `Current VPC Config ${accountKey}: ${vpcConfig.region}:${vpcConfig.name} is central VPC for Hosted Zones`,
+      );
       continue;
     }
 
@@ -49,9 +55,13 @@ export async function step4(props: CentralEndpointsStep4Props) {
       continue;
     }
 
-    const localCentralVpcConfig = config.getVpcConfigs().find(vc => vc.accountKey === zoneConfig.account && vc.vpcConfig.name === zoneConfig["resolver-vpc"]);
+    const localCentralVpcConfig = config
+      .getVpcConfigs()
+      .find(vc => vc.accountKey === zoneConfig.account && vc.vpcConfig.name === zoneConfig['resolver-vpc']);
     if (!localCentralVpcConfig) {
-      console.error(`Central VPC Config is not found in Configuration under "global-options/zones": "${zoneConfig.account}: ${zoneConfig["resolver-vpc"]}"`);
+      console.error(
+        `Central VPC Config is not found in Configuration under "global-options/zones": "${zoneConfig.account}: ${zoneConfig['resolver-vpc']}"`,
+      );
       continue;
     }
 
@@ -77,10 +87,9 @@ export async function step4(props: CentralEndpointsStep4Props) {
     // Retriving Global private Hosted Zones
     hostedZones.push(...centralPhzConfig?.names.private!);
 
-    const centralinterfaceEndpoints = localCentralVpcConfig.vpcConfig["interface-endpoints"];
+    const centralinterfaceEndpoints = localCentralVpcConfig.vpcConfig['interface-endpoints'];
     if (!centralinterfaceEndpoints) {
       console.debug(`No interface endpoints found in Central VPC of region : ${zoneConfig.region}`);
     }
-
   }
 }

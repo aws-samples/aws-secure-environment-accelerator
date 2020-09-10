@@ -11,7 +11,6 @@ export interface RdgwArtifactsOutput {
 }
 
 export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs }: PhaseInput) {
-  
   // Deploy Security Hub Step-3 to disable specific controls
   await securityHub.step3({
     accountStacks,
