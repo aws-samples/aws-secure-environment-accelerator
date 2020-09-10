@@ -184,9 +184,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
   });
 
-
   /**
-   * CentralEndpoints.step4 Associate HostedZones and ResolverRules based on 
+   * CentralEndpoints.step4 Associate HostedZones and ResolverRules based on
    * "use-central-endpoints" flag
    */
   await centralEndpoints.step4({
