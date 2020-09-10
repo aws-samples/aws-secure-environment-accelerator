@@ -75,5 +75,5 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
   // Writing to outputs to avoid future execution of Default bucket policy clean up custom resource
   new CfnResourceCleanupOutput(masterAccountStack, `ResourceCleanupOutput${masterAccountKey}`, {
     bucketPolicyCleanup: true,
-  })
+  });
 }
