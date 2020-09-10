@@ -105,13 +105,11 @@ The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture f
 
 The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`.
 
-While the option remains to deploy the AWS Accelerator on top of the ALZ, all new customers are strongly encourage to let the AWS Accelerator deploy and manage the entire environment by performing a standalone installation of the AWS Accelerator. This option will be removed in the near future.
-
 ## Relationship with AWS Control Tower
 
 AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Towers limited regional coverage, limited functionality and lack of customizability has made it unsuitable in meeting their requirements.
 
-When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we allow with the ALZ today.
+When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we initially allowed with the ALZ.
 
 ## Accelerator Deployment Process (Summary)
 
@@ -134,7 +132,7 @@ This summarizes the installation process, the full installation document can be 
 
 # **Documentation** (Linked)
 
-### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/index.md)
+### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./docs/installation/customization-index.md) to sample config file and customization details
@@ -145,7 +143,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/index.md) (Early Draft)
 
-### - [Frequently Asked Questions](./docs/faq/index.md) (Future)
+### - [Frequently Asked Questions](./docs/faq/faq.md) (Future)
 
 ---
 
