@@ -630,75 +630,7 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase4 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase0 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase1 1`] = `
-Array [
-  Object {
-    "LogicalId": "DefaultCoreBudget2890563D",
-    "Properties": Object {
-      "NotificationsWithSubscribers": Array [
-        Object {
-          "Notification": Object {
-            "ComparisonOperator": "GREATER_THAN",
-            "NotificationType": "ACTUAL",
-            "Threshold": 50,
-            "ThresholdType": "PERCENTAGE",
-          },
-          "Subscribers": Array [
-            Object {
-              "Address": "myemail+pbmmT-budg@example.com",
-              "SubscriptionType": "EMAIL",
-            },
-          ],
-        },
-        Object {
-          "Notification": Object {
-            "ComparisonOperator": "GREATER_THAN",
-            "NotificationType": "ACTUAL",
-            "Threshold": 75,
-            "ThresholdType": "PERCENTAGE",
-          },
-          "Subscribers": Array [
-            Object {
-              "Address": "myemail+pbmmT-budg@example.com",
-              "SubscriptionType": "EMAIL",
-            },
-          ],
-        },
-        Object {
-          "Notification": Object {
-            "ComparisonOperator": "GREATER_THAN",
-            "NotificationType": "ACTUAL",
-            "Threshold": 90,
-            "ThresholdType": "PERCENTAGE",
-          },
-          "Subscribers": Array [
-            Object {
-              "Address": "myemail+pbmmT-budg@example.com",
-              "SubscriptionType": "EMAIL",
-            },
-          ],
-        },
-        Object {
-          "Notification": Object {
-            "ComparisonOperator": "GREATER_THAN",
-            "NotificationType": "ACTUAL",
-            "Threshold": 100,
-            "ThresholdType": "PERCENTAGE",
-          },
-          "Subscribers": Array [
-            Object {
-              "Address": "myemail+pbmmT-budg@example.com",
-              "SubscriptionType": "EMAIL",
-            },
-          ],
-        },
-      ],
-    },
-  },
-]
-`;
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase2 1`] = `Array []`;
 
@@ -840,8 +772,6 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase4 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1106,8 +1036,6 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase4 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase0 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase2 1`] = `Array []`;
@@ -1241,8 +1169,6 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase4 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase0 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase2 1`] = `Array []`;
@@ -1371,8 +1297,6 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase4 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1579,19 +1503,7 @@ exports[`there should not be any unsupported resource changes for AWS::S3::Bucke
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase4 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase0 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase1 1`] = `
-Array [
-  Object {
-    "LogicalId": "cacentral1",
-    "Properties": Object {
-      "BucketName": undefined,
-      "ObjectLockEnabled": undefined,
-    },
-  },
-]
-`;
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase2 1`] = `Array []`;
 
@@ -1765,8 +1677,6 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase4 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1944,8 +1854,6 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase4 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase1 1`] = `Array []`;
 
