@@ -42,6 +42,13 @@ export function createSnsTopicName(name: string, suffixLength?: number): string 
   });
 }
 
+export function createPolicyName(name: string): string {
+  return createName({
+    name,
+    suffixLength: 8,
+  });
+}
+
 const DEFAULT_SEPARATOR = '-';
 
 export interface CreateNameProps {
