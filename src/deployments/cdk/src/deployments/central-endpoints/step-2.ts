@@ -7,7 +7,7 @@ import {
   StackOutput,
 } from '@aws-accelerator/common-outputs/src/stack-output';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { ResolverEndpoint,ResolverRule } from '@aws-accelerator/cdk-constructs/src/route53';
+import { ResolverEndpoint, ResolverRule } from '@aws-accelerator/cdk-constructs/src/route53';
 import { JsonOutputValue } from '../../common/json-output';
 
 export interface CentralEndpointsStep2Props {

@@ -675,22 +675,22 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const associateHostedZonesTask = new CodeTask(this, 'Associate Hosted Zones', {
-        functionProps: {
-          code: lambdaCode,
-          handler: 'index.associateHostedZonesStep',
-          role: pipelineRole,
-        },
-        functionPayload: {
-          parametersTableName: parametersTable.tableName,
-          assumeRoleName: props.stateMachineExecutionRole,
-          'configRepositoryName.$': '$.configRepositoryName',
-          'configFilePath.$': '$.configFilePath',
-          'configCommitId.$': '$.configCommitId',
-          outputTableName: outputsTable.tableName,
-        },
-        resultPath: 'DISCARD',
-      });
+      // const associateHostedZonesTask = new CodeTask(this, 'Associate Hosted Zones', {
+      //   functionProps: {
+      //     code: lambdaCode,
+      //     handler: 'index.associateHostedZonesStep',
+      //     role: pipelineRole,
+      //   },
+      //   functionPayload: {
+      //     parametersTableName: parametersTable.tableName,
+      //     assumeRoleName: props.stateMachineExecutionRole,
+      //     'configRepositoryName.$': '$.configRepositoryName',
+      //     'configFilePath.$': '$.configFilePath',
+      //     'configCommitId.$': '$.configCommitId',
+      //     outputTableName: outputsTable.tableName,
+      //   },
+      //   resultPath: 'DISCARD',
+      // });
 
       const addTagsToSharedResourcesTask = new CodeTask(this, 'Add Tags to Shared Resources', {
         functionProps: {
@@ -775,7 +775,7 @@ export namespace InitialSetup {
         .next(storePhase3Output)
         .next(deployPhase4Task)
         .next(storePhase4Output)
-        .next(associateHostedZonesTask)
+        // .next(associateHostedZonesTask)
         .next(addTagsToSharedResourcesTask)
         .next(enableDirectorySharingTask)
         .next(deployPhase5Task)
