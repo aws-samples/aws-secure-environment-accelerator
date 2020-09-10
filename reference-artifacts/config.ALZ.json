@@ -1,17 +1,17 @@
 {
   "global-options": {
     "alz-minimum-version": "v2.3.1",
-    "alz-baseline": false,
+    "alz-baseline": true,
     "ct-baseline": false,
     "central-log-retention": 730,
     "default-log-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
-    "workloadaccounts-suffix" : 1,
-    "workloadaccounts-prefix" : "config",
+    "workloadaccounts-suffix": 1,
+    "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
-	"ignored-ous": [],
+    "ignored-ous": [],
     "supported-regions": [
       "ap-northeast-1",
       "ap-northeast-2",
@@ -62,7 +62,13 @@
       "cwl-glbl-exclusions": [],
       "cwl-exclusions": [],
       "ssm-to-s3": true,
-      "ssm-to-cwl": true
+      "ssm-to-cwl": true,
+      "sns-excl-regions": [],
+      "sns-subscription-emails": {
+        "High": ["notify+high@example.com"],
+        "Medium": ["notify+medium@example.com"],
+        "Low": ["notify+low@example.com"]
+      }
     },
     "additional-cwl-regions": {},
     "reports": {
@@ -97,11 +103,11 @@
         "srcaddr",
         "dstaddr",
         "srcport",
-        "dstport", 
-        "protocol", 
-        "packets", 
-        "bytes", 
-        "start", 
+        "dstport",
+        "protocol",
+        "packets",
+        "bytes",
+        "start",
         "end",
         "action",
         "log-status",
@@ -179,7 +185,314 @@
         "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
         "policy": "Quarantine-New-Object.json"
       }
-    ]
+    ],
+    "cloudwatch": {
+      "metrics": [
+        {
+          "filter-name": "SecurityGroupChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "SecurityGroupEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "NetworkAclChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry) || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "NetworkAclEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "GatewayChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "GatewayEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "VpcChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "VpcEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "Ec2InstanceChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "EC2InstanceEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "Ec2LargeInstanceChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ (($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances)) && (($.requestParameters.instanceType= *.32xlarge) || ($.requestParameters.instanceType= *.24xlarge) || ($.requestParameters.instanceType= *.18xlarge) || ($.requestParameters.instanceType= *.16xlarge) || ($.requestParameters.instanceType= *.12xlarge) || ($.requestParameters.instanceType= *.10xlarge) || ($.requestParameters.instanceType= *.9xlarge) || ($.requestParameters.instanceType= *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge)) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "EC2LargeInstanceEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "CloudTrailChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail)|| ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName= StopLogging) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "CloudTrailEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "ConsoleSignInFailureMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failedauthentication\") }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "ConsoleSignInFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "AuthorizationFailureMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "AuthorizationFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IamPolicyChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IAMPolicyEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "ConsoleSignInWithoutMfaMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "ConsoleSignInWithoutMfaCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "RootLoginMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "RootLoginEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "DisableOrDeleteCMKMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventSource=kms.amazonaws.com) && (($.eventName=DisableKey) || ($.eventName=ScheduleKeyDeletion))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "DisableOrDeleteCMKCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "AWSConfigChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventSource=config.amazonaws.com) && (($.eventName=StopConfigurationRecorder) || ($.eventName=DeleteDeliveryChannel) || ($.eventName=PutDeliveryChannel) || ($.eventName=PutConfigurationRecorder))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "AWSConfigChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "RouteTableChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventName=CreateRoute) || ($.eventName=CreateRouteTable) || ($.eventName=ReplaceRoute) || ($.eventName=ReplaceRouteTableAssociation) || ($.eventName=DeleteRouteTable) || ($.eventName=DeleteRoute) || ($.eventName=DisassociateRouteTable)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "RouteTableChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "S3BucketPolicyChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventSource=s3.amazonaws.com) && (($.eventName=PutBucketAcl) || ($.eventName=PutBucketPolicy) || ($.eventName=PutBucketCors) || ($.eventName=PutBucketLifecycle) || ($.eventName=PutBucketReplication) || ($.eventName=DeleteBucketPolicy) || ($.eventName=DeleteBucketCors) || ($.eventName=DeleteBucketLifecycle) || ($.eventName=DeleteBucketReplication))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "S3BucketPolicyChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "SSOAuthUnapprovedIPMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && (($.sourceIPAddress != 10.10.10.*) || ($.sourceIPAddress != 10.10.*) || ($.sourceIPAddress != 10.*))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "SSOAuthUnapprovedIPCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "UnencryptedFilesystemCreatedMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateFileSystem) && ($.responseElements.encrypted IS FALSE) } ",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "UnencryptedFilesystemCreatedCount",
+          "metric-value": "1"
+        }
+      ],
+      "alarms": {
+        "default-accounts": ["master"],
+        "default-regions": ["ca-central-1"],
+        "default-namespace": "CloudTrailMetrics",
+        "default-statistic": "Sum",
+        "default-period": 300,
+        "default-threshold-type": "Static",
+        "default-comparison-operator": "GreaterThanOrEqualToThreshold",
+        "default-threshold": 1,
+        "default-evaluation-periods": 1,
+        "default-treat-missing-data": "notBreaching",
+        "definitions": [
+          {
+            "alarm-name": "AWS-Security-Group-Changed",
+            "metric-name": "SecurityGroupEventCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Network-ACL-Changed",
+            "metric-name": "NetworkAclEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Network ACL (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Gateway-Changed",
+            "metric-name": "GatewayEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Customer or Internet Gateway (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-VPC-Changed",
+            "metric-name": "VpcEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a VPC, VPC peering connection or VPC connection to classic (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-EC2-Instances-Changed",
+            "metric-name": "EC2InstanceEventCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot any EC2 instance (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-EC2-Large-Instance-Changed",
+            "metric-name": "EC2LargeInstanceEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot a 4x, 8x, 9x, 10x, 12x, 16x, 18x, 24x, 32x-large EC2 instance (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-ClouadTrail-Changed",
+            "metric-name": "CloudTrailEventCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a CloudTrail trail, or to start or stop logging to a trail (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Console-SignIn-Failure",
+            "metric-name": "ConsoleSignInFailureCount",
+            "sns-alert-level": "High",
+            "threshold": 3,
+            "alarm-description": "Alarms when one or more unauthenticated API calls are made to sign into the console (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Authorization-Failure",
+            "metric-name": "AuthorizationFailureCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-IAM-Policy-Changed",
+            "metric-name": "IAMPolicyEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to change an IAM policy (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Console-SignIn-Without-MFA",
+            "metric-name": "ConsoleSignInWithoutMfaCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Root-Login",
+            "metric-name": "RootLoginEventCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when the root user successfully logs in one or more times (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Disable-Or-Delete-KMS-CMK",
+            "metric-name": "DisableOrDeleteCMKCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more Key Management Service Customer Managed Keys are disabled or scheduled for deletion (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Config-Changed",
+            "metric-name": "AWSConfigChangesCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more modifications are made to AWS Config Settings (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Route-Table-Changed",
+            "metric-name": "RouteTableChangesCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Route table (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-S3-Bucket-Policy-Changed",
+            "metric-name": "S3BucketPolicyChangesCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete an S3 Bucket policy (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-SSO-Authentication-From-Unapproved-IP",
+            "metric-name": "SSOAuthUnapprovedIPCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when someone authenticates using AWS SSO from an unauthorized IP address range."
+          },
+          {
+            "alarm-name": "AWS-Unencrypted-Filesystem-Created",
+            "metric-name": "UnencryptedFilesystemCreatedCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more API calls are made to create an Unencrypted filesystem (i.e. EFS) (in any account, any region of your AWS Organization)."
+          }
+        ]
+      }
+    }
   },
   "mandatory-account-configs": {
     "shared-network": {
@@ -312,7 +625,64 @@
               "ec2messages",
               "ssm",
               "ssmmessages",
-              "secretsmanager"
+              "secretsmanager",
+              "cloudformation",
+              "access-analyzer",
+              "application-autoscaling",
+              "appmesh-envoy-management",
+              "athena",
+              "autoscaling",
+              "autoscaling-plans",
+              "clouddirectory",
+              "cloudtrail",
+              "codebuild",
+              "codecommit",
+              "codecommit-fips",
+              "codepipeline",
+              "config",
+              "datasync",
+              "ecr.dkr",
+              "ecs",
+              "ecs-agent",
+              "ecs-telemetry",
+              "elasticfilesystem",
+              "elasticfilesystem-fips",
+              "elasticloadbalancing",
+              "elasticmapreduce",
+              "events",
+              "execute-api",
+              "git-codecommit",
+              "git-codecommit-fips",
+              "glue",
+              "kinesis-streams",
+              "kms",
+              "logs",
+              "monitoring",
+              "sagemaker.api",
+              "sagemaker.runtime",
+              "servicecatalog",
+              "sms",
+              "sns",
+              "sqs",
+              "storagegateway",
+              "sts",
+              "transfer",
+              "workspaces",
+              "awsconnector",
+              "ecr.api",
+              "kinesis-firehose",
+              "states",
+              "acm-pca",
+              "cassandra",
+              "ebs",
+              "elasticbeanstalk",
+              "elasticbeanstalk-health",
+              "email-smtp",
+              "license-manager",
+              "macie2",
+              "notebook",
+              "synthetics",
+              "transfer.server"
             ]
           },
           "resolvers": {
@@ -345,7 +715,8 @@
               "Default-route-table-propagation": false,
               "Auto-accept-sharing-attachments": true
             },
-            "route-tables": ["core", "segregated", "shared", "standalone"]
+            "route-tables": ["core", "segregated", "shared", "standalone"],
+            "tgw-routes": []
           }
         ]
       }
@@ -398,11 +769,7 @@
             "role": "PBMMAccel-Rsyslog-Role",
             "type": "ec2",
             "ssm-log-archive-access": true,
-            "policies": [
-              "AmazonSSMManagedInstanceCore",
-              "CloudWatchAgentServerPolicy",
-              "AmazonS3ReadOnlyAccess"
-            ],
+            "policies": ["AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "AmazonS3ReadOnlyAccess"],
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
@@ -1007,54 +1374,54 @@
       "deployments": {
         "firewalls": [
           {
-          "name": "Firewall",
-          "image-id": "ami-047aac44951feb9fb",
-          "instance-sizes": "c5n.xlarge",
-          "region": "ca-central-1",
-          "security-group": "Firewalls",
-          "fw-instance-role": "Firewall-Role",
-          "vpc": "Perimeter",
-          "ports": [
-            {
-              "name": "Public",
-              "subnet": "Public",
-              "create-eip": true,
-              "create-cgw": true
-            },
-            {
-              "name": "OnPremise",
-              "subnet": "OnPremise",
-              "create-eip": false,
-              "create-cgw": false
-            },
-            {
-              "name": "FWMgmt",
-              "subnet": "FWMgmt",
-              "create-eip": false,
-              "create-cgw": false
-            },
-            {
-              "name": "Proxy",
-              "subnet": "Proxy",
-              "create-eip": false,
-              "create-cgw": false
-            }
-          ],
-          "license": ["firewall/license1.lic", "firewall/license2.lic"],
-          "config": "firewall/firewall-example.txt",
-          "fw-cgw-name": "Perimeter_fw",
-          "fw-cgw-asn": 65523,
-          "fw-cgw-routing": "Dynamic",
-          "tgw-attach": {
-            "associate-to-tgw": "Main",
-            "account": "shared-network",
-            "name": "TGW-to-Perimeter",
-            "associate-type": "VPN",
-            "tgw-rt-associate": ["core"],
-            "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
-            "blackhole-route": false,
-            "attach-subnets": [],
-            "options": ["DNS-support"]
+            "name": "Firewall",
+            "image-id": "ami-047aac44951feb9fb",
+            "instance-sizes": "c5n.2xlarge",
+            "region": "ca-central-1",
+            "security-group": "Firewalls",
+            "fw-instance-role": "Firewall-Role",
+            "vpc": "Perimeter",
+            "ports": [
+              {
+                "name": "Public",
+                "subnet": "Public",
+                "create-eip": true,
+                "create-cgw": true
+              },
+              {
+                "name": "OnPremise",
+                "subnet": "OnPremise",
+                "create-eip": false,
+                "create-cgw": false
+              },
+              {
+                "name": "FWMgmt",
+                "subnet": "FWMgmt",
+                "create-eip": false,
+                "create-cgw": false
+              },
+              {
+                "name": "Proxy",
+                "subnet": "Proxy",
+                "create-eip": false,
+                "create-cgw": false
+              }
+            ],
+            "license": ["firewall/license1.lic", "firewall/license2.lic"],
+            "config": "firewall/firewall-example.txt",
+            "fw-cgw-name": "Perimeter_fw",
+            "fw-cgw-asn": 65523,
+            "fw-cgw-routing": "Dynamic",
+            "tgw-attach": {
+              "associate-to-tgw": "Main",
+              "account": "shared-network",
+              "name": "TGW-to-Perimeter",
+              "associate-type": "VPN",
+              "tgw-rt-associate": ["core"],
+              "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
+              "blackhole-route": false,
+              "attach-subnets": [],
+              "options": ["DNS-support"]
             }
           }
         ],
@@ -1078,6 +1445,7 @@
       "account-name": "primary",
       "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
+      "landing-zone-account-type": "primary",
       "share-mad-from": "",
       "src-filename": "config.json",
       "budget": {
@@ -1116,8 +1484,7 @@
         ]
       },
       "log-retention": 180,
-      "limits": {
-      },
+      "limits": {},
       "iam": {
         "users": [
           {
@@ -1206,13 +1573,22 @@
       "account-name": "log-archive",
       "ou": "core",
       "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
       "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "landing-zone-account-type": "security"
+    },
+    "shared-services": {
+      "account-name": "shared-services",
+      "ou": "core",
+      "email": "myemail+pbmmT-ss@example.com---------------------REPLACE----------------------",
+      "src-filename": "config.json",
+      "landing-zone-account-type": "shared-services"
     }
   },
   "workload-account-configs": {
@@ -2918,6 +3294,445 @@
           "route-tables": [
             {
               "name": "ProdVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Mgmt",
+              "inbound-rules": [
+                {
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
+                  "type": ["RDP", "SSH"],
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["segregated"],
+            "tgw-rt-propagate": ["core", "shared"],
+            "blackhole-route": true,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          },
+          "interface-endpoints": false
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      }
+    },
+    "UnClass": {
+      "type": "workload",
+      "share-mad-from": "operations",
+      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
+      "default-budgets": {
+        "name": "Default Unclass Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+pbmmT-budg@example.com"]
+          }
+        ]
+      },
+      "vpc": [
+        {
+          "deploy": "shared-network",
+          "name": "UnClass",
+          "cidr": "10.5.0.0/16",
+          "region": "ca-central-1",
+          "use-central-endpoints": true,
+          "flow-logs": "S3",
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.64/27",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.192.0/20",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.160.0/19",
+                  "disabled": true
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.208.0/20",
+                  "disabled": true
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "UnClass",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "UnClass",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.80.0/21",
+                  "disabled": true
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "UnClassVPC_Common",
               "routes": [
                 {
                   "destination": "0.0.0.0/0",
