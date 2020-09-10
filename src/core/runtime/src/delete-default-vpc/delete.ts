@@ -1,8 +1,9 @@
 import { EC2 } from '@aws-accelerator/common/src/aws/ec2';
 import { LoadConfigurationInput } from '../load-configuration-step';
-import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 
 interface DeleteVPCInput extends LoadConfigurationInput {
   accountId: string;
@@ -21,6 +22,7 @@ const CustomErrorMessage = [
 ];
 
 const sts = new STS();
+const organizations = new Organizations();
 export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
   console.log(`Deleting Default VPC in account ...`);
   console.log(JSON.stringify(input, null, 2));
@@ -32,11 +34,25 @@ export const handler = async (input: DeleteVPCInput): Promise<string[]> => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
+  const awsAccount = await organizations.getAccount(accountId);
+  if (!awsAccount) {
+    // This will never happen unless it is called explicitly with invalid AccountId
+    throw new Error(`Unable to retrieve account info from Organizations API for "${accountId}"`);
+  }
+  let excludeWorkloadRegions: string[] | undefined;
+  const accountConfig = acceleratorConfig
+    .getWorkloadAccountConfigs()
+    .find(([_, a]) => equalIgnoreCase(a.email, awsAccount.Email!));
+  if (accountConfig) {
+    excludeWorkloadRegions = accountConfig[1]['keep-default-vpc-regions'];
+  }
   const supportedRegions = acceleratorConfig['global-options']['supported-regions'];
   const excludeRegions = acceleratorConfig['global-options']['keep-default-vpc-regions'];
-  const regions = supportedRegions.filter(r => !excludeRegions.includes(r));
+  const regions = supportedRegions
+    .filter(r => !excludeRegions.includes(r))
+    .filter(w => !`${excludeWorkloadRegions || []}`.includes(w));
   console.log(`${accountId}: Excluding Deletion of  Default VPC for regions from account "${accountId}"...`);
-  console.log(`${accountId}: ${JSON.stringify(excludeRegions, null, 2)}`);
+  console.log(`${accountId}: ${JSON.stringify(excludeRegions.concat(`${excludeWorkloadRegions || []}`), null, 2)}`);
   const errors: string[] = [];
   const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
   for (const region of regions) {
