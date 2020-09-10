@@ -9,10 +9,8 @@ These installation instructions assume the prescribed architecture is being depl
 - [1. Installation, Upgrades and Basic Operations](#1-installation-upgrades-and-basic-operations)
   - [1.1. Prerequisites](#11-prerequisites)
     - [1.1.1. General](#111-general)
-    - [1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base) (Preferred)](#112-standalone-accelerator-pre-install-steps-no-alz-base-preferred)
-    - [1.1.3. ALZ Based Accelerator Pre-Install Steps (Not Recommended)](#113-alz-based-accelerator-pre-install-steps-not-recommended)
-    - [1.1.4. Remaining Pre-Install Steps - Both Installation Types](#114-remaining-pre-install-steps---both-installation-types)
-    - [1.1.5. AWS Internal Accounts Only](#115-aws-internal-accounts-only)
+    - [1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base)](#112-standalone-accelerator-pre-install-steps-no-alz-base)
+    - [1.1.3. AWS Internal Accounts Only](#113-aws-internal-accounts-only)
   - [1.2. Preparation](#12-preparation)
     - [1.2.1. Create GitHub Personal Access Token and Store in Secrets Manager](#121-create-github-personal-access-token-and-store-in-secrets-manager)
     - [1.2.2. Basic Accelerator Configuration](#122-basic-accelerator-configuration)
@@ -44,14 +42,12 @@ These installation instructions assume the prescribed architecture is being depl
 - Master or root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
-- Determine if you will install on top of ALZ or as a standalone installation
-  - If you don't already have the ALZ installed, you will be doing a standalone installation
-  - Even if you do have the ALZ installed, we recommend customers consider uninstalling the ALZ and proceeding with a standalone installation
 - Valid configuration file, updated to reflect your deployment (see below)
 - Determine your primary or Accelerator 'control' region. These instructions have been written assuming ca-central-1, but any supported region can be substituted.
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes
+- Existing ALZ customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
-### 1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base) (Preferred)
+### 1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base)
 
 Before installing, you must first:
 
@@ -64,46 +60,23 @@ Before installing, you must first:
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
 - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
-  (`Accel-Source-Bucket-Key`), Next
+  (`PBMMAccel-Source-Bucket-Key`), Next
 - Select a key administrator (Admin Role or Group for the root account), Next
 - Select key users (Admin Role or Group for the root account), Next
 - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
   - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_root_** account id.
 - Click Finish
 
-### 1.1.3. ALZ Based Accelerator Pre-Install Steps (Not Recommended)
-
-You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. It is strongly encouraged to upgrade to ALZ v2.4.0 before deploying the Accelerator.
-
-When deploying the ALZ select:
-
-1. Set `Lock StackSetExecution Role` to `No`
-2. For production deployments, deploy to `All regions`, or `ca-central-1` for testing
-3. Specify Non-Core OU Names: `Dev,Test,Prod,Central,UnClass,Sandbox` (case sensitive)
-   - these match the provided prescriptive Accelerator configuration file (config.example.json)
-
-Before installing, you must first:
-
-1. Set `alz-baseline=true` in the configuration file
-2. Login to the organization **root AWS account** where AWS Landing Zone is deployed with `AdministratorAccess`.
-3. **_Set the region to `ca-central-1`._**
-4. Enable IAM permissions to control access to use the `AwsLandingZoneKMSKey` KMS key.
-   - i.e. add a root entry - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_root_** account id.
-
-### 1.1.4. Remaining Pre-Install Steps - Both Installation Types
-
-In the master or root AWS account, manually:
-
-1. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
-2. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
-3. It is **_extremely important_** that **_all_** the account contact details be validated in the ROOT account before deploying any new sub-accounts.
+8. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
+9. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
+10. It is **_extremely important_** that **_all_** the account contact details be validated in the ROOT account before deploying any new sub-accounts.
 
 - This information is copied to every new sub-account on creation.
 - Subsequent changes to this information require manually updating it in **\*each** sub-account.
 - Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
 - Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
 
-### 1.1.5. AWS Internal Accounts Only
+### 1.1.3. AWS Internal Accounts Only
 
 If deploying to an internal AWS account, to successfully install the entire solution, you need to enable Private Marketplace (PMP) before starting:
 
@@ -131,7 +104,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    - Via AWS console
      - Store a new secret, and select `Other type of secrets`, `Plaintext`
      - Paste your secret with no formatting no leading or trailing spaces
-     - Select either the key you created above (`Accel-Source-Bucket-Key`) or the `AwsLandingZoneKMSKey`,
+     - Select either the key you created above (`PBMMAccel-Source-Bucket-Key`),
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
@@ -142,13 +115,14 @@ If deploying to an internal AWS account, to successfully install the entire solu
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
    - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
+
    1. For existing accounts, they must match identically to the ones defined in your AWS Landing Zone;
    2. For new accounts, they must reflect the new account name/email you want created;
    3. All new AWS accounts require a unique email address which has never before been used to create an AWS account;
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
    5. For a test deployment, the remainder of the values can be used as-is.
-3. In the ALZ version of the Accelerator, we strongly recommend removing _all_ workload accounts from the configuration file during initial deployment. Workload accounts can be added in the future. The ALZ AVM takes 42 minutes per sub-account. Additionally, importing existing accounts during initial deployment increases the risk of initial deployment failures.
-4. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
+
+3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
 
 ### 1.2.3. Production Accelerator Configuration
 
@@ -173,7 +147,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 4. Create an S3 bucket in your root account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
-   - the bucket should be `S3-KMS` encrypted using either the `AwsLandingZoneKMSKey` or the `Accel-Source-Bucket-Key` created above
+   - the bucket should be `S3-KMS` encrypted using the `PBMMAccel-Source-Bucket-Key` created above
 5. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
 6. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
@@ -191,7 +165,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ## 1.3. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-2. Download the CloudFormation template `AcceleratorInstaller.template.json` for the release you plan to install
+2. Download the CloudFormation template `AcceleratorInstallerXXX.template.json` for the release you plan to install
 3. Use the template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
@@ -309,8 +283,6 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - Assume an administrative role into the account
   - Execute the Accelerator provided CloudFormation template to create the required Accelerator bootstrapping role
 
-\* A slightly different process exists for ALZ versions of the Accelerator
-
 ### 2.0.4. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
 
 Flexibility:
@@ -396,13 +368,14 @@ Yes, currently customers can upgrade from whatever version they have deployed to
 - Always add any new items to the END of all lists or sections in the config file, otherwise
   - Update validation checks will fail (vpc's, subnets, share-to, etc.)
   - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute SM, and then re-add them, run SM)
-- To skip, remove or uninstall a component, you can simply change the section header
-  - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls
+- To skip, remove or uninstall a component, you can simply change the section header, instead of removing the section
+  - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use
+  - Objects with the parameter deploy: true, support setting the value to false to remove the deployment
 - As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have its capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (`100` to `101`) or they will fail to update
 - The sample firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
-- Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ou's must all be unique throughout the entire configuration file (also true for VPC names given nacl and security group design)
+- Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ou's must all be unique throughout the entire configuration file (also true for VPC names given nacl and security group referencing design)
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
 - **The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.**
 - You cannot move an account between top-level ou's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.

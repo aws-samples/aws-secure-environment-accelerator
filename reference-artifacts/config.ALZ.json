@@ -1,7 +1,7 @@
 {
   "global-options": {
     "alz-minimum-version": "v2.3.1",
-    "alz-baseline": false,
+    "alz-baseline": true,
     "ct-baseline": false,
     "central-log-retention": 730,
     "default-log-retention": 90,
@@ -1445,6 +1445,7 @@
       "account-name": "primary",
       "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
+      "landing-zone-account-type": "primary",
       "share-mad-from": "",
       "src-filename": "config.json",
       "budget": {
@@ -1572,13 +1573,22 @@
       "account-name": "log-archive",
       "ou": "core",
       "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "landing-zone-account-type": "log-archive"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
       "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json"
+      "src-filename": "config.json",
+      "landing-zone-account-type": "security"
+    },
+    "shared-services": {
+      "account-name": "shared-services",
+      "ou": "core",
+      "email": "myemail+pbmmT-ss@example.com---------------------REPLACE----------------------",
+      "src-filename": "config.json",
+      "landing-zone-account-type": "shared-services"
     }
   },
   "workload-account-configs": {
