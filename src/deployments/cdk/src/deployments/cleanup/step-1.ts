@@ -5,6 +5,7 @@ import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-rol
 import { ResourceCleanup } from '@aws-accelerator/custom-resource-cleanup';
 import { AccountBucketOutput } from '../defaults';
 import { Account } from '../../utils/accounts';
+import { ResourceCleanupOutputFinder, CfnResourceCleanupOutput } from './outputs';
 
 export interface VpcFlowLogsBucketPermissionsCleanupProps {
   accounts: Account[];
@@ -21,6 +22,16 @@ export interface VpcFlowLogsBucketPermissionsCleanupProps {
 export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
   const { accounts, accountStacks, config, outputs } = props;
 
+  // Finding the output for previous resource cleanup execution
+  const resourceCleanupOutput = ResourceCleanupOutputFinder.tryFindOneByName({
+    outputs,
+  });
+
+  // Checking if cleanup got executed in any of the previous SM runs
+  if (resourceCleanupOutput && resourceCleanupOutput.bucketPolicyCleanup) {
+    return;
+  }
+
   // Find the account default buckets in the outputs
   const accountBuckets = AccountBucketOutput.getAccountBuckets({
     accounts,
@@ -29,12 +40,11 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
     outputs,
   });
 
+  const logArchiveAccount = config['global-options']['central-log-services'].account;
   for (const accountKey of Object.keys(accountBuckets)) {
-    const defaultBucket = accountBuckets[accountKey];
-    console.log('default bucket', accountKey, defaultBucket.bucketName);
-    const logArchiveAccount = config['global-options']['central-log-services'].account;
-
+    // There is no default bucket got created in Log Archive account, skip cleanup
     if (logArchiveAccount === accountKey) {
+      console.log(`Skipping the deletion of LogArchive account bucket policy ${logArchiveAccount}`);
       continue;
     }
 
@@ -52,11 +62,18 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
     }
-    console.log('cleanup role output', accountKey, cleanupRoleOutput);
 
-    new ResourceCleanup(accountStack, `S3BucketPolicyCleanup${accountKey}`, {
-      bucketName: defaultBucket.bucketName,
+    new ResourceCleanup(accountStack, `BucketPolicyCleanup${accountKey}`, {
+      bucketName: accountBuckets[accountKey].bucketName,
       roleArn: cleanupRoleOutput.roleArn,
     });
   }
+
+  // Finding master account key from the configuration
+  const masterAccountKey = config.getMandatoryAccountKey('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+  // Writing to outputs to avoid future execution of Default bucket policy clean up custom resource
+  new CfnResourceCleanupOutput(masterAccountStack, `ResourceCleanupOutput${masterAccountKey}`, {
+    bucketPolicyCleanup: true,
+  })
 }
