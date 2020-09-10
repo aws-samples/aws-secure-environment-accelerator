@@ -552,6 +552,7 @@ export const MandatoryAccountConfigType = t.interface({
   'cwl-retention': optional(t.number),
   deleted: fromNullable(t.boolean, false),
   'src-filename': t.string,
+  'exclude-ou-albs': optional(t.boolean),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;

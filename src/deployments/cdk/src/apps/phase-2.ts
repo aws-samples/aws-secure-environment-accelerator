@@ -200,6 +200,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
             resourceType: 'security-group',
             targetAccountIds: [accountId],
             tags: securityGroup.tags.renderTags(),
+            region: securityGroupStack.region,
           })),
       });
     }

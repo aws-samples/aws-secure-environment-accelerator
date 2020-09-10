@@ -9,6 +9,7 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { createConfigRecorderName, createAggregatorName } from '@aws-accelerator/common-outputs/src/config';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { loadOutputs } from '../utils/load-outputs';
+import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 
 interface ConfigServiceInput extends LoadConfigurationInput {
   accountId: string;
@@ -61,10 +62,17 @@ export const handler = async (input: ConfigServiceInput): Promise<string[]> => {
   });
 
   const awsAccount = await organizations.getAccount(accountId);
+  if (!awsAccount) {
+    // This will never occur unless lambda is called explecitly with invalid AccountId
+    throw new Error(`Unable retrive account from Organizations api for "${accountId}"`);
+  }
   const configAccount = acceleratorConfig
     .getAccountConfigs()
-    .find(([_, accountConfig]) => accountConfig.email === awsAccount?.Email);
-  const accountKey = configAccount?.[0]!;
+    .find(([_, accountConfig]) => equalIgnoreCase(accountConfig.email, awsAccount.Email!));
+  if (!configAccount) {
+    throw new Error(`Account didn't find in Configuration "${accountId}" with email ${awsAccount.Email}`);
+  }
+  const accountKey = configAccount[0];
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const centralSecurityRegion = acceleratorConfig['global-options']['central-security-services'].region;
   const supportedRegions = acceleratorConfig['global-options']['supported-regions'];

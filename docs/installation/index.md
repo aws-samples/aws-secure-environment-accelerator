@@ -10,7 +10,7 @@ These installation instructions assume the prescribed architecture is being depl
   - [1.1. Prerequisites](#11-prerequisites)
     - [1.1.1. General](#111-general)
     - [1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base) (Preferred)](#112-standalone-accelerator-pre-install-steps-no-alz-base-preferred)
-    - [1.1.3. ALZ Based Accelerator Pre-Install Steps](#113-alz-based-accelerator-pre-install-steps)
+    - [1.1.3. ALZ Based Accelerator Pre-Install Steps (Not Recommended)](#113-alz-based-accelerator-pre-install-steps-not-recommended)
     - [1.1.4. Remaining Pre-Install Steps - Both Installation Types](#114-remaining-pre-install-steps---both-installation-types)
     - [1.1.5. AWS Internal Accounts Only](#115-aws-internal-accounts-only)
   - [1.2. Preparation](#12-preparation)
@@ -27,16 +27,15 @@ These installation instructions assume the prescribed architecture is being depl
     - [2.0.5. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#205-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
     - [2.0.6. How do I make changes to items I defined in the Accelerator configuration file during installation?](#206-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
     - [2.0.7. Is there anything my end users need to be aware of?](#207-is-there-anything-my-end-users-need-to-be-aware-of)
+    - [2.0.8. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?](#208-can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially)
 - [3. Notes](#3-notes)
   - [3.1. Upgrades](#31-upgrades)
-    - [3.1.1. Summary of Upgrade Steps (to v1.1.7 or v1.1.8)](#311-summary-of-upgrade-steps-to-v117-or-v118)
-    - [3.1.2. Summary of Upgrade Steps (to v1.1.4)](#312-summary-of-upgrade-steps-to-v114)
+    - [3.1.1. Summary of Upgrade Steps (all versions)](#311-summary-of-upgrade-steps-all-versions)
   - [3.2. Configuration File Hints and Tips](#32-configuration-file-hints-and-tips)
   - [3.3. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations](#33-considerations-importing-existing-aws-accounts--deploying-into-existing-aws-organizations)
   - [3.4. Design Constraints](#34-design-constraints)
 - [4. AWS Internal - Accelerator Release Process](#4-aws-internal---accelerator-release-process)
   - [4.1. Creating a new Accelerator Code Release](#41-creating-a-new-accelerator-code-release)
-  - [[action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml](#)
 
 ## 1.1. Prerequisites
 
@@ -72,7 +71,7 @@ Before installing, you must first:
   - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_root_** account id.
 - Click Finish
 
-### 1.1.3. ALZ Based Accelerator Pre-Install Steps
+### 1.1.3. ALZ Based Accelerator Pre-Install Steps (Not Recommended)
 
 You need an AWS account with the AWS Landing Zone (ALZ) v2.3.1 or v2.4.0 deployed. It is strongly encouraged to upgrade to ALZ v2.4.0 before deploying the Accelerator.
 
@@ -201,7 +200,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.1.8`, case sensitive
+   - the latest stable branch is currently `release/v1.2.0`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -361,43 +360,33 @@ It should be noted that we have added code to the Accelerator to block customers
 
 CloudWatch Log group deletion is prevented for security purposes. Users of the Accelerator environment will need to ensure they set CFN stack Log group retention type to RETAIN, or stack deletes will fail when attempting to delete a stack and your users will complain.
 
+### 2.0.8. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?
+
+Yes, currently customers can upgrade from whatever version they have deployed to the latest Accelerator version. Their is no requirement to perform sequential upgrades. In fact, we strongly discourage sequential upgrades.
+
 # 3. Notes
 
 ## 3.1. Upgrades
 
-- Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats
+- Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats.
+- Upgrades from v1.1.7 and below require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
+- Upgrades from versions v1.1.6 and below require updating the `GithubRepository` in the CFN stack, as we renamed the GitHub repo with release v1.1.7 to `aws-secure-environment-accelerator`.
 - Upgrades to v1.1.5 and above from v1.1.4 and below:
-  - requires providing the "overrideComparison": true flag to the State Machine, as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file when this parameter is provided.
+  - requires providing the "overrideComparison": true flag to the State Machine, as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file when this parameter is provided. (As the State Machine self-executes without the above parameter, it will fail on first run. Rerun the State Machine providing the parameter)
   - High probability of a State Machine failure due to a 1hr step timeout limitation. No easy fix available. Simply rerun the State Machine. We are reversing something from the v1.1.4 release which is extremely time consuming.
-- Releases before v1.1.8 incorrectly created and associated resolver rules for private DNS domains. If the associations are not manually removed before upgrade to v1.1.8, the State Machine will fail. We have provided a [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) which needs to be manually run in the `shared-network` account to assist in this cleanup process (or you can manually remove the resolver rule associations).
 
-\*\* If you have customized the FW configuration, make sure you have backed up the FW configs before upgrade. If you want your fw customizations automatically redeployed, simply add them into the appropriate firewall-example.txt configuration file.
+### 3.1.1. Summary of Upgrade Steps (all versions)
 
-### 3.1.1. Summary of Upgrade Steps (to v1.1.7 or v1.1.8)
-
-- Please note we changed the GitHub repo name with release v1.1.7
 - Ensure a valid Github token is stored in secrets manager
 - Update the config file in Code Commit with new parameters and updated parameter types (this is important as features are iterating rapidly)
-- For upgrades to v1.1.8, execute the `resolver-rule-cleanup.sh` cleanup script in the shared-network account or manually remove the rule to VPC associations
 - If you are replacing your GitHub Token:
   - Take note of the s3 bucket name from the stack parameters
   - Delete the Installer CFN stack (`PBMMAccel-what-you-provided`)
   - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
   - The pipeline will automatically run and trigger the upgraded state machine
 - If you are using a pre-existing GitHub token:
-  - Update the Installer CFN stack, providing the new `GithubRepository` name and `GithubBranch` associated with the release (eg. `aws-secure-environment-accelerator` and `release/v1.1.7`)
-  - Some releases, not this one, require replacing the CFN template
-  - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
-- In both cases the State Machine will fail upon execution, rerun the State Machine providing the "overrideComparison": true flag
-
-### 3.1.2. Summary of Upgrade Steps (to v1.1.4)
-
-- Ensure a valid Github token is stored in secrets manager
-- Update the config file with new parameters and updated parameter types
-- Remove the **_fw_** AND **_fwmgr_** from the config file
-- Delete the Installer CFN stack (take note of the s3 bucket name first)
-  - If you are using a pre-existing GitHub token, you can simply Update the stack
-- Redeploy the Installer CFN stack using the latest template
+  - Update the Installer CFN stack, providing the `GithubBranch` associated with the release (eg. `release/v1.2.0`)
+    - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 ## 3.2. Configuration File Hints and Tips
 
@@ -413,11 +402,11 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
 - Updates to NACL's requires changing the rule number (`100` to `101`) or they will fail to update
 - The sample firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
-- Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ou's must all be unique throughout the entire configuration file
+- Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ou's must all be unique throughout the entire configuration file (also true for VPC names given nacl and security group design)
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
-- The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.
+- **The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.**
 - You cannot move an account between top-level ou's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.
-- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. Once YAML is suppported we will be providing a version of the config file with comments describing the purpose of each configuration item
+- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. In future we will be providing a version of the config file with comments describing the purpose of each configuration item
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - We only support the subset of yaml that converts to JSON (we do not support anchors)
 - We do NOT support changing the `organization-admin-role`, this value must be set to `AWSCloudFormationStackSetExecutionRole` at this time.
@@ -428,13 +417,13 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
   - our early adopters have all successfully deployed into existing organizations
 - Existing AWS accounts _can_ also be imported into an Accelerator managed Organization
 - Caveats:
-  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
+  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts, worldwide. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
   - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance
     - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.)
   - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
   - We do NOT support _any_ workloads running or users operating in the root AWS account. The root AWS account MUST be tightly controlled
   - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
-  - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, their may be scenarios that cause an installation failure. In these situations, simply rectify the conflict and re-run the state machine.
+  - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, their may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
 
 ## 3.4. Design Constraints
 
@@ -453,20 +442,22 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
 ## 4.1. Creating a new Accelerator Code Release
 
 1. Ensure `master` is in a suitable state
-2. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
+2. Disable branch protection for both the `master` branch and for the `release/` branches
+3. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
 
    - On latest `master`, run: `git checkout -b release/vX.Y.Z`
    - **Important:** Certain git operations are ambiguous if tags and branches have the same name. Using the `release/` prefix reserves the actual version name for the tag itself; i.e. every `release/vX.Y.Z` branch will have a corresponding `vX.Y.Z` tag.
 
-3. Push that branch to GitHub (if created locally)
+4. Push that branch to GitHub (if created locally)
 
    - `git push origin release/vX.Y.Z`
 
-4. The release workflow will run, and create a **DRAFT** release if successful with all commits since the last tagged release.
-5. Prune the commits that have been added to the release notes (e.g. remove any low-information commits)
-6. Publish the release - this creates the git tag in the repo and marks the release as latest. It also bumps the `version` key in several project `package.json` files.
+5. The release workflow will run, and create a **DRAFT** release if successful with all commits since the last tagged release.
+6. Prune the commits that have been added to the release notes (e.g. remove any low-information commits)
+7. Publish the release - this creates the git tag in the repo and marks the release as latest. It also bumps the `version` key in several project `package.json` files.
+8. Re-enable branch protection for both the `master` branch and for the `release/` branches
 
-   - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**. If so, simply disable branch protection for `master`, re-run the Action, and then re-enable.
+   - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**, and why we are momentarily disabling branch protection.
 
    [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
 
