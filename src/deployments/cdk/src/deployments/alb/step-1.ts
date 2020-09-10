@@ -38,9 +38,17 @@ export async function step1(props: AlbStep1Props) {
   });
 
   const vpcConfigs = config.getVpcConfigs();
-  for (const { accountKey, albs: albConfigs } of config.getAlbConfigs()) {
+  for (const { ouKey, accountKey, albs: albConfigs } of config.getAlbConfigs()) {
     if (albConfigs.length === 0) {
       continue;
+    }
+
+    if (ouKey) {
+      const accountConfigs = config.getAccountConfigsForOu(ouKey);
+      const accountConfig = accountConfigs.find(([aKey, _]) => aKey === accountKey);
+      if (accountConfig && accountConfig[1]['exclude-ou-albs']) {
+        continue;
+      }
     }
 
     for (const albConfig of albConfigs) {
