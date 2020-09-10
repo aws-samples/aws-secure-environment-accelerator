@@ -1,5 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import * as s3 from '@aws-cdk/aws-s3';
+import * as iam from '@aws-cdk/aws-iam';
 import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '../../utils/accounts';
@@ -51,6 +52,30 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       config,
       encryptionKey: key,
     });
+
+    // Provide permissions to write VPC flow logs to the bucket
+    bucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+        actions: ['s3:PutObject'],
+        resources: [`${bucket.bucketArn}/${cdk.Aws.ACCOUNT_ID}/*`],
+        conditions: {
+          StringEquals: {
+            's3:x-amz-acl': 'bucket-owner-full-control',
+          },
+        },
+      }),
+    );
+
+    // Provide permissions to read bucket for VPC flow logs
+    bucket.addToResourcePolicy(
+      new iam.PolicyStatement({
+        principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
+        actions: ['s3:GetBucketAcl', 's3:ListBucket'],
+        resources: [`${bucket.bucketArn}`],
+      }),
+    );
+
     bucket.replicateTo({
       destinationBucket: centralLogBucket,
       destinationAccountId: logAccountId,

@@ -17,6 +17,7 @@ import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
+import * as cleanup from '../deployments/cleanup';
 
 /**********************************************************
  * DO NOT DEPEND ON OUTPUTS IN PHASE 0                    *
@@ -176,6 +177,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     logBucket,
+  });
+
+  await cleanup.step1({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
   });
 
   // TODO Deprecate these outputs
