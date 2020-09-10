@@ -477,16 +477,17 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     roleKey: 'LogGroupRole',
   });
   if (logGroupLambdaRoleOutput) {
-    const logGroups = zoneConfig?.names.public.map(phz => {
-      const logGroupName = createR53LogGroupName({
-        acceleratorPrefix: context.acceleratorPrefix,
-        domain: phz,
-      });
-      return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
-        logGroupName,
-        roleArn: logGroupLambdaRoleOutput.roleArn,
-      });
-    }) || [];
+    const logGroups =
+      zoneConfig?.names.public.map(phz => {
+        const logGroupName = createR53LogGroupName({
+          acceleratorPrefix: context.acceleratorPrefix,
+          domain: phz,
+        });
+        return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
+          logGroupName,
+          roleArn: logGroupLambdaRoleOutput.roleArn,
+        });
+      }) || [];
 
     if (logGroups.length > 0) {
       const wildcardLogGroupName = createR53LogGroupName({
