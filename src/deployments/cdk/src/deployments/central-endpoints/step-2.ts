@@ -1,4 +1,5 @@
 import * as c from '@aws-accelerator/common-config';
+import * as cdk from '@aws-cdk/core';
 import { AccountStacks } from '../../common/account-stacks';
 import {
   getStackJsonOutput,
@@ -9,11 +10,15 @@ import {
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { ResolverEndpoint, ResolverRule } from '@aws-accelerator/cdk-constructs/src/route53';
 import { JsonOutputValue } from '../../common/json-output';
+import { Account, getAccountId } from '../../utils/accounts';
+import * as ram from '@aws-cdk/aws-ram';
+import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 
 export interface CentralEndpointsStep2Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
+  accounts: Account[];
 }
 
 /**
@@ -23,16 +28,20 @@ export interface CentralEndpointsStep2Props {
  *  Resolver Rules for mad
  */
 export async function step2(props: CentralEndpointsStep2Props) {
-  const { accountStacks, config, outputs } = props;
+  const { accountStacks, config, outputs, accounts } = props;
   // Create resolvers for all VPC configs
   const vpcConfigs = config.getVpcConfigs();
   const madConfigs = config.getMadConfigs();
+  const zonesConfig = config['global-options'].zones;
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const resolversConfig = vpcConfig.resolvers;
     if (!resolversConfig) {
       console.debug(`Skipping resolver creation for VPC "${vpcConfig.name}" in account "${accountKey}"`);
       continue;
     }
+    const isRuleShareNeeded = !!zonesConfig.find(
+      zc => zc.account === accountKey && zc.region === vpcConfig.region && zc['resolver-vpc'] === vpcConfig.name,
+    );
     const vpcSubnet = vpcConfig.subnets?.find(s => s.name === resolversConfig.subnet);
     if (!vpcSubnet) {
       console.error(
@@ -87,11 +96,12 @@ export async function step2(props: CentralEndpointsStep2Props) {
       r53ResolverEndpoints.enableInboundEndpoint();
       resolverOutput.inBound = r53ResolverEndpoints.inboundEndpointRef;
     }
-
+    const onPremRules: string[] = [];
+    const madRules: string[] = [];
     if (resolversConfig.outbound) {
       r53ResolverEndpoints.enableOutboundEndpoint();
       resolverOutput.outBound = r53ResolverEndpoints.outboundEndpointRef;
-      const onPremRules: string[] = [];
+
       // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
       for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
         const rule = new ResolverRule(
@@ -112,7 +122,6 @@ export async function step2(props: CentralEndpointsStep2Props) {
       resolverRulesOutput.onPremRules = onPremRules;
 
       // Check for MAD configuration whose resolver is current account VPC
-      const madRules: string[] = [];
       const madConfigsWithVpc = madConfigs.filter(
         mc =>
           mc.mad['central-resolver-rule-account'] === accountKey &&
@@ -150,6 +159,50 @@ export async function step2(props: CentralEndpointsStep2Props) {
     new JsonOutputValue(accountStack, `ResolverOutput-${resolverOutput.vpcName}`, {
       type: 'GlobalOptionsOutput',
       value: resolverOutput,
+    });
+
+    if (!isRuleShareNeeded) {
+      console.info(`VPC "${vpcConfig.name}" is not part of Central VPC under zones configuration`);
+      continue;
+    }
+
+    const regionVpcs = config
+      .getVpcConfigs()
+      .filter(
+        vc =>
+          vc.vpcConfig.region === vpcConfig.region &&
+          vc.vpcConfig['use-central-endpoints'] &&
+          vc.accountKey !== accountKey,
+      );
+    if (!regionVpcs || regionVpcs.length === 0) {
+      console.info(`No VPCs to be shared with central Account VPC in region "${vpcConfig.region}"`);
+      continue;
+    }
+
+    const sharedToAccountKeys = regionVpcs.map(rv => rv.accountKey);
+    const sharedToAccountIds: string[] = sharedToAccountKeys.map(accId => getAccountId(accounts, accId)!);
+    if (sharedToAccountIds.length === 0) {
+      console.info(`No Accounts exists for sharing Resolver Rules in region : ${vpcConfig.region}`);
+      continue;
+    }
+
+    const ruleArns: string[] = [
+      ...madRules.map(
+        ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
+      )!,
+      ...onPremRules.map(
+        ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
+      )!,
+    ];
+
+    // share the route53 resolver rules
+    new ram.CfnResourceShare(accountStack, `ResolverRuleShare-${vpcConfig.name}`, {
+      name: createName({
+        name: `${vpcConfig.name}-ResolverRules`,
+      }),
+      allowExternalPrincipals: false,
+      principals: sharedToAccountIds,
+      resourceArns: ruleArns,
     });
   }
 }

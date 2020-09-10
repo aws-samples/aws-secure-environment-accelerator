@@ -48,11 +48,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   /**
    * CentralEndpoints.step2 creating resolver endpoints and rules for on-premise & mad
+   * Share Central resolver rules to remote Accounts which has VPC in same region
    */
   await centralEndpoints.step2({
     accountStacks,
     config: acceleratorConfig,
     outputs,
+    accounts,
   });
 
   await alb.step1({

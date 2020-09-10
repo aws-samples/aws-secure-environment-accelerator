@@ -1,75 +1,85 @@
-import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
-import * as ram from '@aws-cdk/aws-ram';
 import { getStackJsonOutput, ResolversOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
-import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import * as c from '@aws-accelerator/common-config';
+import * as route53resolver from '@aws-cdk/aws-route53resolver';
+import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 
 export interface CentralEndpointsStep3Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
-  accounts: Account[];
 }
 
 /**
- *  Sharing Central VPC Resolver Rules to remote VPC
- *  base on "use-central-endpoints"
+ *  Associate VPC to Hosted Zones and Resoler Rules in central vpc account
  */
 export async function step3(props: CentralEndpointsStep3Props) {
-  const { accountStacks, config, outputs, accounts } = props;
-  const zonesConfig = config['global-options'].zones;
-  for (const zoneConfig of zonesConfig) {
-    const centralAccountId = getAccountId(accounts, zoneConfig.account);
-    const regionVpcs = config
-      .getVpcConfigs()
-      .filter(
-        vc =>
-          vc.vpcConfig.region === zoneConfig.region &&
-          vc.vpcConfig['use-central-endpoints'] &&
-          vc.accountKey !== zoneConfig.account,
-      );
-    if (!regionVpcs || regionVpcs.length === 0) {
-      console.info(`No VPCs to be shared with central Account VPC "${zoneConfig.account}: ${zoneConfig.region}"`);
+  const { accountStacks, config, outputs } = props;
+  const centralPhzConfig = config["global-options"].zones.find(zc => zc.names);
+  for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
+    if (!vpcConfig['use-central-endpoints']) {
       continue;
     }
-    const sharedToAccountKeys = regionVpcs.map(rv => rv.accountKey);
-    const sharedToAccountIds: string[] = sharedToAccountKeys.map(accId => getAccountId(accounts, accId)!);
-    if (sharedToAccountIds.length === 0) {
-      console.info(`No Accounts exists for sharing Resolver Rules in region : ${zoneConfig.region}`);
+
+    if (accountKey === centralPhzConfig?.account && vpcConfig.region === centralPhzConfig.region && vpcConfig.name === centralPhzConfig["resolver-vpc"]) {
+      console.log(`Current VPC Config ${accountKey}: ${vpcConfig.region}:${vpcConfig.name} is central VPC for Hosted Zones`);
       continue;
     }
+
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
+      accountKey,
+      region: vpcConfig.region,
+      vpcName: vpcConfig.name,
+    });
+    if (!vpcOutput) {
+      console.error(`Cannot find resolved VPC with name "${vpcConfig.name}"`);
+      continue;
+    }
+
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
+    if (!accountStack) {
+      console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
+      continue;
+    }
+
+    const zoneConfig = config['global-options'].zones.find(z => z.region === vpcConfig.region);
+    if (!zoneConfig) {
+      console.error(`No Central VPC is defined in Region :: ${vpcConfig.region}`);
+      continue;
+    }
+
+    const localCentralVpcConfig = config.getVpcConfigs().find(vc => vc.accountKey === zoneConfig.account && vc.vpcConfig.name === zoneConfig["resolver-vpc"]);
+    if (!localCentralVpcConfig) {
+      console.error(`Central VPC Config is not found in Configuration under "global-options/zones": "${zoneConfig.account}: ${zoneConfig["resolver-vpc"]}"`);
+      continue;
+    }
+
     const resolversOutputs: ResolversOutput[] = getStackJsonOutput(outputs, {
       accountKey: zoneConfig.account,
       outputType: 'GlobalOptionsOutput',
     });
-    const resolversRegionOutputs = resolversOutputs.find(r => r.region === zoneConfig.region);
-    if (!resolversOutputs) {
-      console.warn(`No Resolvers rules are deployed in account "${zoneConfig.account}: ${zoneConfig.region}"`);
-    }
-    const ruleArns: string[] = [
-      ...resolversRegionOutputs?.rules?.madRules?.map(
-        ruleId => `arn:aws:route53resolver:${zoneConfig.region}:${centralAccountId}:resolver-rule/${ruleId}`,
-      )!,
-      ...resolversRegionOutputs?.rules?.onPremRules?.map(
-        ruleId => `arn:aws:route53resolver:${zoneConfig.region}:${centralAccountId}:resolver-rule/${ruleId}`,
-      )!,
-    ];
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(zoneConfig.account);
-    if (!accountStack) {
-      console.warn(`Cannot find account stack ${zoneConfig.account}`);
+    const resolverRegionoutputs = resolversOutputs.find(resOut => resOut.region === vpcConfig.region);
+    if (!resolverRegionoutputs) {
+      console.error(`Resolver rules are not Deployed in Central VPC Region ${zoneConfig.account}::${vpcConfig.region}`);
       continue;
     }
+    const ruleIds = [...resolverRegionoutputs.rules?.madRules!, ...resolverRegionoutputs.rules?.onPremRules!];
+    for (const ruleId of ruleIds) {
+      new route53resolver.CfnResolverRuleAssociation(accountStack, `Rule-Association-${ruleId}-${vpcConfig.name}`, {
+        resolverRuleId: ruleId,
+        vpcId: vpcOutput.vpcId,
+      });
+    }
 
-    // share the route53 resolver rules
-    new ram.CfnResourceShare(accountStack, `ResolverRuleShare-${zoneConfig['resolver-vpc']}`, {
-      name: createName({
-        name: `${zoneConfig['resolver-vpc']}-ResolverRules`,
-      }),
-      allowExternalPrincipals: false,
-      principals: sharedToAccountIds,
-      resourceArns: ruleArns,
-    });
+    const hostedZones: string[] = [];
+    // Associate VPC to Private Hosted Zones created using Central VPC of this region and external private hosted zones
+    // Retriving Global private Hosted Zones
+    hostedZones.push(...centralPhzConfig?.names.private!);
+
+    const centralinterfaceEndpoints = localCentralVpcConfig.vpcConfig["interface-endpoints"];
+    if (!centralinterfaceEndpoints) {
+      console.debug(`No interface endpoints found in Central VPC of region : ${zoneConfig.region}`);
+    }
   }
 }
