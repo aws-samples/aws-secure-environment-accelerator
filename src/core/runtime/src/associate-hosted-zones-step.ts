@@ -71,7 +71,7 @@ export const handler = async (input: AssociateHostedZonesInput) => {
 
   // get the private zones from global-options
   const globalOptionsConfig = config['global-options'];
-  const privateZones = globalOptionsConfig.zones.names.private;
+  const privateZones = globalOptionsConfig.zones[0].names.private;
 
   const accountHostedZones: AccountHostedZone[] = [];
   const accountRules: AccountRule[] = [];

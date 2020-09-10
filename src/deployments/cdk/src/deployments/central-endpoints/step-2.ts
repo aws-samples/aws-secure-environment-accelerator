@@ -7,8 +7,7 @@ import {
   StackOutput,
 } from '@aws-accelerator/common-outputs/src/stack-output';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { ResolverEndpoint } from '@aws-accelerator/cdk-constructs/src/route53';
-import { ResolverRule } from '@aws-accelerator/cdk-constructs/src/route53';
+import { ResolverEndpoint,ResolverRule } from '@aws-accelerator/cdk-constructs/src/route53';
 import { JsonOutputValue } from '../../common/json-output';
 
 export interface CentralEndpointsStep2Props {
@@ -79,7 +78,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
     );
     const resolverOutput: ResolversOutput = {
       vpcName: vpcConfig.name,
-      accountKey: accountKey,
+      accountKey,
       region: vpcConfig.region,
     };
     const resolverRulesOutput: ResolverRulesOutput = {};
@@ -148,7 +147,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
       resolverRulesOutput.madRules = madRules;
     }
     resolverOutput.rules = resolverRulesOutput;
-    new JsonOutputValue(accountStack!, `ResolverOutput-${resolverOutput.vpcName}`, {
+    new JsonOutputValue(accountStack, `ResolverOutput-${resolverOutput.vpcName}`, {
       type: 'GlobalOptionsOutput',
       value: resolverOutput,
     });
