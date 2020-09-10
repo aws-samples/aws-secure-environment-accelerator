@@ -620,14 +620,7 @@
           },
           "interface-endpoints": {
             "subnet": "Endpoint",
-            "endpoints": [
-              "ec2",
-              "ec2messages",
-              "ssm",
-              "ssmmessages",
-              "secretsmanager",
-              "cloudformation"
-            ]
+            "endpoints": ["ec2", "ec2messages", "ssm", "ssmmessages", "secretsmanager", "cloudformation"]
           },
           "resolvers": {
             "subnet": "Endpoint",
