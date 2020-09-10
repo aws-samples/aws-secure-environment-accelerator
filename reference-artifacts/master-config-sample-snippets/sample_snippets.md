@@ -4,6 +4,18 @@
 
 ---
 
+- Added an option to exclude the alb deployment on a specific workload account
+
+```
+  "workload-account-configs": {
+    "fun-acct": {
+      "exclude-ou-albs": true
+    }
+  }
+```
+
+---
+
 - Update Central Logging Kinesis stream shard count as accounts are added
 
 ```
