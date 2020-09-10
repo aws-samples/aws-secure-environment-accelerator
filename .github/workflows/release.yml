@@ -100,14 +100,19 @@ jobs:
       #     asset_name: ${{ steps.build.outputs.template_name }}
       #     asset_content_type: application/json
       - name: Create Reference Directory
+        id: reference
         run: |
           mkdir -p reference-material-${{ steps.format.outputs.numeric_release }}/docs
           mkdir -p reference-material-${{ steps.format.outputs.numeric_release }}/reference-artifacts
+          echo ::set-output name=dir::"reference-material-${{ steps.format.outputs.numeric_release }}"
+          echo ::set-output name=doc_dir::"reference-material-${{ steps.format.outputs.numeric_release }}/docs"
+          echo ::set-output name=artifact_dir::"reference-material-${{ steps.format.outputs.numeric_release }}/reference-artifacts"
+          echo ::set-output name=zip::"reference-material-${{ steps.format.outputs.numeric_release }}.zip"
 
       - name: Copy Sample Artifacts
         run: |
-          cp reference-artifacts/config.example.json               reference-material-${{ steps.format.outputs.numeric_release }}/reference-artifacts
-          cp reference-artifacts/Third-Party/firewall-example.txt  reference-material-${{ steps.format.outputs.numeric_release }}/reference-artifacts
+          cp reference-artifacts/config.example.json               ${{ steps.reference.outputs.artifact_dir }}
+          cp reference-artifacts/Third-Party/firewall-example.txt  ${{ steps.reference.outputs.artifact_dir }}
 
       - name: Generate HTML (pbmm-architecture)
         uses: docker://pandoc/latex:2.10
@@ -115,7 +120,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/pbmm-architecture.html
+            --output=${{ steps.reference.outputs.doc_dir }}/pbmm-architecture.html
             docs/architectures/pbmm/index.md
 
       - name: Generate HTML (developer-guide)
@@ -124,7 +129,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/developer-guide.html
+            --output=${{ steps.reference.outputs.doc_dir }}/developer-guide.html
             docs/developer/developer-guide.md
 
       - name: Generate HTML (operations-troubleshooting-guide)
@@ -133,7 +138,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/operations-troubleshooting-guide.html
+            --output=${{ steps.reference.outputs.doc_dir }}/operations-troubleshooting-guide.html
             docs/operations/operations-troubleshooting-guide.md
 
       - name: Generate HTML (customization-index)
@@ -142,7 +147,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/customization-index.html
+            --output=${{ steps.reference.outputs.doc_dir }}/customization-index.html
             docs/installation/customization-index.md
 
       - name: Generate HTML (index)
@@ -151,7 +156,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/index.html
+            --output=${{ steps.reference.outputs.doc_dir }}/index.html
             docs/installation/index.md
 
       - name: Generate HTML (README)
@@ -160,7 +165,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/README.html
+            --output=${{ steps.reference.outputs.doc_dir }}/README.html
             README.md
 
       - name: Generate HTML (multi-file-config-capabilities)
@@ -169,7 +174,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/multi-file-config-capabilities.html
+            --output=${{ steps.reference.outputs.doc_dir }}/multi-file-config-capabilities.html
             docs/installation/multi-file-config-capabilities.md
 
       - name: Generate HTML (sample_snippets)
@@ -178,7 +183,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/sample_snippets.html
+            --output=${{ steps.reference.outputs.doc_dir }}/sample_snippets.html
             ./reference-artifacts/master-config-sample-snippets/sample_snippets.md
 
       - name: Generate HTML (firewall_file_available_variables)
@@ -187,27 +192,27 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/firewall_file_available_variables.html
+            --output=${{ steps.reference.outputs.doc_dir }}/firewall_file_available_variables.html
             ./reference-artifacts/master-config-sample-snippets/firewall_file_available_variables.md
 
       - name: Zip Reference Materials
         run: |
-          zip -r reference-material-${{ steps.format.outputs.numeric_release }}.zip reference-material-${{ steps.format.outputs.numeric_release }}/
+          zip -r ${{ steps.reference.outputs.zip }} ${{ steps.reference.outputs.dir }}/
 
       - uses: actions/upload-artifact@master
         with:
-          name: reference-material-${{ steps.format.outputs.numeric_release }}.zip
-          path: reference-material-${{ steps.format.outputs.numeric_release }}.zip
+          name: ${{ steps.reference.outputs.zip }}
+          path: ${{ steps.reference.outputs.zip }}
       - name: Upload Release Asset (Reference)
         id: upload-release-asset-ref
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEMPLATE_PATH: reference-material-${{ steps.format.outputs.numeric_release }}.zip
+          TEMPLATE_PATH: ${{ steps.reference.outputs.zip }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: reference-material-${{ steps.format.outputs.numeric_release }}.zip
-          asset_name: reference-material-${{ steps.format.outputs.numeric_release }}.zip
+          asset_path: ${{ steps.reference.outputs.zip }}
+          asset_name: ${{ steps.reference.outputs.zip }}
           asset_content_type: application/zip
 
 
