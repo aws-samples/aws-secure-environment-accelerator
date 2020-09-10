@@ -160,7 +160,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/README.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/README.html
             README.md
 
       - name: Generate HTML (multi-file-config-capabilities)
@@ -169,7 +169,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/multi-file-config-capabilities.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/multi-file-config-capabilities.html
             docs/installation/multi-file-config-capabilities.md
 
       - name: Generate HTML (sample_snippets)
@@ -178,7 +178,7 @@ jobs:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
-            --output=reference-material-${{ steps.format.outputs.numeric_release }}/sample_snippets.html
+            --output=reference-material-${{ steps.format.outputs.numeric_release }}/docs/sample_snippets.html
             ./reference-artifacts/master-config-sample-snippets/sample_snippets.md
 
       - name: Generate HTML (firewall_file_available_variables)
