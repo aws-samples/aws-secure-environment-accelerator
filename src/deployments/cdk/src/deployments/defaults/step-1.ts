@@ -229,7 +229,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
         new iam.ServicePrincipal('cloudtrail.amazonaws.com'),
         new iam.ServicePrincipal('config.amazonaws.com'),
       ],
-      actions: ['s3:GetBucketAcl'],
+      actions: ['s3:GetBucketAcl', 's3:ListBucket'],
       resources: [`${logBucket.bucketArn}`],
     }),
   );
