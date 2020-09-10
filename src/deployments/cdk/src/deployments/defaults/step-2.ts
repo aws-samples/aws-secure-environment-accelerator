@@ -58,7 +58,7 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       new iam.PolicyStatement({
         principals: [new iam.ServicePrincipal('delivery.logs.amazonaws.com')],
         actions: ['s3:PutObject'],
-        resources: [`${bucket.bucketArn}/${cdk.Aws.ACCOUNT_ID}/*`],
+        resources: [`${bucket.bucketArn}/*`],
         conditions: {
           StringEquals: {
             's3:x-amz-acl': 'bucket-owner-full-control',
