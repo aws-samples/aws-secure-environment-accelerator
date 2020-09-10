@@ -88,17 +88,17 @@ jobs:
             ${{ steps.changelog.outputs.changelog }}
           draft: true
           prerelease: false
-      # - name: Upload Release Asset
-      #   id: upload-release-asset
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #     TEMPLATE_PATH: ${{ steps.build.outputs.template_path }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-      #     asset_path: ${{ steps.build.outputs.template_path }}
-      #     asset_name: ${{ steps.build.outputs.template_name }}
-      #     asset_content_type: application/json
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TEMPLATE_PATH: ${{ steps.build.outputs.template_path }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.build.outputs.template_path }}
+          asset_name: ${{ steps.build.outputs.template_name }}
+          asset_content_type: application/json
       - name: Create Reference Directory
         run: |
           mkdir -p reference-material/docs
@@ -109,7 +109,7 @@ jobs:
         with:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
-            --resource-path=.:docs/architectures/pbmm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             --output=reference-material/docs/pbmm-architecture.html
             docs/architectures/pbmm/index.md
 
@@ -118,7 +118,7 @@ jobs:
         with:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
-            --resource-path=.:docs/architectures/pbmm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             --output=reference-material/docs/developer-guide.html
             docs/developer/developer-guide.md
 
@@ -127,7 +127,7 @@ jobs:
         with:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
-            --resource-path=.:docs/architectures/pbmm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             --output=reference-material/docs/operations-troubleshooting-guide.html
             docs/operations/operations-troubleshooting-guide.md
 
@@ -136,7 +136,7 @@ jobs:
         with:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
-            --resource-path=.:docs/architectures/pbmm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             --output=reference-material/docs/customization-index.html
             docs/installation/customization-index.md
 
@@ -145,7 +145,7 @@ jobs:
         with:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
-            --resource-path=.:docs/architectures/pbmm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             --output=reference-material/docs/index.html
             docs/installation/index.md
 
@@ -154,7 +154,7 @@ jobs:
         with:
           args: >
             --standalone --self-contained --from=gfm --title="" --css=gfm.css
-            --resource-path=.:docs/architectures/pbmm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             --output=reference-material/README.html
             README.md
 
