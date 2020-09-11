@@ -4,18 +4,6 @@
 
 ---
 
-- Added an option to exclude the alb deployment on a specific workload account
-
-```
-  "workload-account-configs": {
-    "fun-acct": {
-      "exclude-ou-albs": true
-    }
-  }
-```
-
----
-
 - Update Central Logging Kinesis stream shard count as accounts are added
 
 ```
@@ -194,14 +182,16 @@
     "fun-acct": {
       "account-name": "TheFunAccount",
       "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
-      "ou": "Sandbox"
+      "ou": "Sandbox",
+      "exclude-ou-albs": true
     },
     "mydevacct1": {
       "account-name": "MyDev1",
       "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
       "ou": "Dev",
       "share-mad-from": "operations",
-      "enable-s3-public-access": true
+      "enable-s3-public-access": true,
+      "keep-default-vpc-regions": []
     }
   }
 ```

@@ -37,7 +37,6 @@ test('should return the correct account names', () => {
     'primary',
     'log-archive',
     'security',
-    'shared-services',
     'TheFunAccount',
     'MyDev1',
   ]);
