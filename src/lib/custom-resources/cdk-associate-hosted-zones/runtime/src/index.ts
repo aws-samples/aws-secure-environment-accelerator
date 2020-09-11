@@ -97,7 +97,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
   const vpcRoute53 = new AWS.Route53({
-    credentials: vpcAccountCredentials
+    credentials: vpcAccountCredentials,
   });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
@@ -105,7 +105,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
     hostedZoneRoute53 = new AWS.Route53({
-      credentials: hostedZoneAccountCredentials
+      credentials: hostedZoneAccountCredentials,
     });
   }
 
@@ -153,7 +153,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
   const vpcRoute53 = new AWS.Route53({
-    credentials: vpcAccountCredentials
+    credentials: vpcAccountCredentials,
   });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
@@ -161,7 +161,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
     hostedZoneRoute53 = new AWS.Route53({
-      credentials: hostedZoneAccountCredentials
+      credentials: hostedZoneAccountCredentials,
     });
   }
 
@@ -247,7 +247,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
   const vpcRoute53 = new AWS.Route53({
-    credentials: vpcAccountCredentials
+    credentials: vpcAccountCredentials,
   });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
@@ -255,7 +255,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
     hostedZoneRoute53 = new AWS.Route53({
-      credentials: hostedZoneAccountCredentials
+      credentials: hostedZoneAccountCredentials,
     });
   }
 

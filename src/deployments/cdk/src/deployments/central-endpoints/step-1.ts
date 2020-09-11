@@ -73,6 +73,7 @@ export async function step1(props: CentralEndpointsStep1Props) {
     outputs,
     accountKey: zoneConfig.account,
     vpcName: zoneConfig['resolver-vpc'],
+    region: zoneConfig.region,
   });
   if (!resolverVpc) {
     console.warn(`Cannot find resolver VPC with name "${zoneConfig['resolver-vpc']}"`);
