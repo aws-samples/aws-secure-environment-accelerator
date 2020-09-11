@@ -96,13 +96,17 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
-  const vpcRoute53 = new AWS.Route53(vpcAccountCredentials);
+  const vpcRoute53 = new AWS.Route53({
+    credentials: vpcAccountCredentials
+  });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
   let hostedZoneRoute53: AWS.Route53;
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
-    hostedZoneRoute53 = new AWS.Route53(hostedZoneAccountCredentials);
+    hostedZoneRoute53 = new AWS.Route53({
+      credentials: hostedZoneAccountCredentials
+    });
   }
 
   for (const hostedZoneId of hostedZoneIds) {
@@ -148,13 +152,17 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
-  const vpcRoute53 = new AWS.Route53(vpcAccountCredentials);
+  const vpcRoute53 = new AWS.Route53({
+    credentials: vpcAccountCredentials
+  });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
   let hostedZoneRoute53: AWS.Route53;
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
-    hostedZoneRoute53 = new AWS.Route53(hostedZoneAccountCredentials);
+    hostedZoneRoute53 = new AWS.Route53({
+      credentials: hostedZoneAccountCredentials
+    });
   }
 
   const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
@@ -238,13 +246,17 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
 
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
-  const vpcRoute53 = new AWS.Route53(vpcAccountCredentials);
+  const vpcRoute53 = new AWS.Route53({
+    credentials: vpcAccountCredentials
+  });
 
   let hostedZoneAccountCredentials: AWS.Credentials;
   let hostedZoneRoute53: AWS.Route53;
   if (vpcAccountId !== hostedZoneAccountId) {
     hostedZoneAccountCredentials = await sts.getCredentialsForAccountAndRole(hostedZoneAccountId, assumeRoleName);
-    hostedZoneRoute53 = new AWS.Route53(hostedZoneAccountCredentials);
+    hostedZoneRoute53 = new AWS.Route53({
+      credentials: hostedZoneAccountCredentials
+    });
   }
 
   for (const hostedZoneId of hostedZoneIds) {
