@@ -6,6 +6,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import { Account, getAccountId } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
 import { CfnAccountBucketOutput, AccountBuckets } from './outputs';
+import { CfnResourceCleanupOutput } from '../cleanup/outputs';
 
 export interface DefaultsStep2Props {
   accountStacks: AccountStacks;
@@ -91,5 +92,14 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       region: cdk.Aws.REGION,
     });
   }
+
+  // Finding master account key from the configuration
+  const masterAccountKey = config.getMandatoryAccountKey('master');
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+  // Writing to outputs to avoid future execution of Default bucket policy clean up custom resource
+  new CfnResourceCleanupOutput(masterAccountStack, `ResourceCleanupOutput${masterAccountKey}`, {
+    bucketPolicyCleanup: true,
+  });
+
   return buckets;
 }

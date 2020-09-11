@@ -5,7 +5,7 @@ import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-rol
 import { ResourceCleanup } from '@aws-accelerator/custom-resource-cleanup';
 import { AccountBucketOutput } from '../defaults';
 import { Account } from '../../utils/accounts';
-import { ResourceCleanupOutputFinder, CfnResourceCleanupOutput } from './outputs';
+import { ResourceCleanupOutputFinder } from './outputs';
 
 export interface VpcFlowLogsBucketPermissionsCleanupProps {
   accounts: Account[];
@@ -42,7 +42,7 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
 
   const logArchiveAccount = config['global-options']['central-log-services'].account;
   for (const accountKey of Object.keys(accountBuckets)) {
-    // There is no default bucket got created in Log Archive account, skip cleanup
+    // There is no default bucket in Log Archive account instead we have central log bucket, so skip cleanup
     if (logArchiveAccount === accountKey) {
       console.log(`Skipping the deletion of LogArchive account bucket policy ${logArchiveAccount}`);
       continue;
@@ -68,12 +68,4 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
       roleArn: cleanupRoleOutput.roleArn,
     });
   }
-
-  // Finding master account key from the configuration
-  const masterAccountKey = config.getMandatoryAccountKey('master');
-  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
-  // Writing to outputs to avoid future execution of Default bucket policy clean up custom resource
-  new CfnResourceCleanupOutput(masterAccountStack, `ResourceCleanupOutput${masterAccountKey}`, {
-    bucketPolicyCleanup: true,
-  });
 }
