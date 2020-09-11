@@ -181,8 +181,9 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           domain: interfaceEndpoint.hostedZone.name,
           hostedZoneId: interfaceEndpoint.hostedZone.ref,
           region: vpc.region,
+          zoneType: 'PRIVATE',
           serviceName: endpoint,
-          zoneType: 'private',
+          vpcName: vpc.name,
         });
         endpointCount++;
       }

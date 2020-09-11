@@ -1,7 +1,11 @@
 import * as t from 'io-ts';
 import { createStructuredOutputFinder } from './structured-output';
 import { StackOutput } from './stack-output';
-import { optional } from '@aws-accelerator/common-types';
+import { enumType, optional } from '@aws-accelerator/common-types';
+
+export const HOSTEDZONE = ['PUBLIC', 'PRIVATE'] as const;
+
+export const HostedZoneType = enumType<typeof HOSTEDZONE[number]>(HOSTEDZONE, 'HostedZoneType');
 
 export const HostedZoneOutput = t.interface(
   {
@@ -9,8 +13,9 @@ export const HostedZoneOutput = t.interface(
     region: t.string,
     hostedZoneId: t.string,
     domain: t.string,
-    zoneType: t.string,
+    zoneType: HostedZoneType,
     serviceName: optional(t.string),
+    vpcName: optional(t.string),
   },
   'HostedZoneOutput',
 );

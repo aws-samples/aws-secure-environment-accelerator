@@ -6,6 +6,7 @@ import { trimSpecialCharacters } from '@aws-accelerator/common-outputs/src/secre
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
 import * as r53 from '@aws-cdk/aws-route53';
+import { CfnHostedZoneOutput } from './outputs';
 
 export interface CentralEndpointsStep1Props {
   accountStacks: AccountStacks;
@@ -46,7 +47,7 @@ export async function step1(props: CentralEndpointsStep1Props) {
       domain,
     });
     const logGroupArn = `arn:aws:logs:${DNS_LOGGING_LOG_GROUP_REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${logGroupName}`;
-    new r53.CfnHostedZone(accountStack, `${domain.replace('.', '-')}_pz`, {
+    const hostedZone = new r53.CfnHostedZone(accountStack, `${domain.replace('.', '-')}_pz`, {
       name: domain,
       hostedZoneConfig: {
         comment: `PHZ - ${domain}`,
@@ -54,6 +55,16 @@ export async function step1(props: CentralEndpointsStep1Props) {
       queryLoggingConfig: {
         cloudWatchLogsLogGroupArn: logGroupArn,
       },
+    });
+
+    new CfnHostedZoneOutput(accountStack, `HostedZoneOutput-${domain.replace('.', '-')}`, {
+      accountKey: zoneConfig.account,
+      domain: domain,
+      hostedZoneId: hostedZone.ref,
+      region: zoneConfig.region,
+      zoneType: 'PUBLIC',
+      vpcName: undefined,
+      serviceName: undefined,
     });
   }
 
@@ -76,12 +87,22 @@ export async function step1(props: CentralEndpointsStep1Props) {
 
   // Create Private Hosted Zones
   for (const domain of privateHostedZones) {
-    new r53.CfnHostedZone(accountStack, `${domain.replace('.', '-')}_pz`, {
+    const hostedZone = new r53.CfnHostedZone(accountStack, `${domain.replace('.', '-')}_pz`, {
       name: domain,
       vpcs: [vpcProps],
       hostedZoneConfig: {
         comment: `PHZ - ${domain}`,
       },
+    });
+
+    new CfnHostedZoneOutput(accountStack, `HostedZoneOutput-${domain.replace('.', '-')}`, {
+      accountKey: zoneConfig.account,
+      domain: domain,
+      hostedZoneId: hostedZone.ref,
+      region: resolverVpc.region,
+      zoneType: 'PRIVATE',
+      vpcName: resolverVpc.vpcName,
+      serviceName: undefined,
     });
   }
 }
