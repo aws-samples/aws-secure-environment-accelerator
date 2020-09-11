@@ -113,7 +113,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
           vpcRegion: vpcConfig.region,
           hostedZoneAccountId,
           hostedZoneIds,
-          roleArn: `arn:aws:iam::${cdk.Aws.REGION}:role/${executionRole}`,
+          roleArn: `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${executionRole}`,
         },
       );
     } else {
@@ -134,7 +134,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
           vpcRegion: vpcConfig.region,
           hostedZoneAccountId,
           hostedZoneIds: globalPrivateHostedZoneIds,
-          roleArn: `arn:aws:iam::${cdk.Aws.REGION}:role/${executionRole}`,
+          roleArn: `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${executionRole}`,
         },
       );
     }
