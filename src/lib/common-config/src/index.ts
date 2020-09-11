@@ -553,6 +553,7 @@ export const MandatoryAccountConfigType = t.interface({
   deleted: fromNullable(t.boolean, false),
   'src-filename': t.string,
   'exclude-ou-albs': optional(t.boolean),
+  'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
