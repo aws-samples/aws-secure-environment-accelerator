@@ -15,8 +15,8 @@ export interface CentralEndpointsStep3Props {
  */
 export async function step3(props: CentralEndpointsStep3Props) {
   const { accountStacks, config, outputs } = props;
-  const centralPhzConfig = config['global-options'].zones.find(zc => zc.names);
   for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
+    const centralPhzConfig = config['global-options'].zones.find(zc => zc.region === vpcConfig.region);
     if (!vpcConfig['use-central-endpoints']) {
       continue;
     }
@@ -69,7 +69,9 @@ export async function step3(props: CentralEndpointsStep3Props) {
       accountKey: zoneConfig.account,
       outputType: 'GlobalOptionsOutput',
     });
-    const resolverRegionoutputs = resolversOutputs.find(resOut => resOut.region === vpcConfig.region);
+    const resolverRegionoutputs = resolversOutputs.find(
+      resOut => resOut.region === vpcConfig.region && resOut.vpcName === centralPhzConfig?.['resolver-vpc'],
+    );
     if (!resolverRegionoutputs) {
       console.error(`Resolver rules are not Deployed in Central VPC Region ${zoneConfig.account}::${vpcConfig.region}`);
       continue;
@@ -80,16 +82,6 @@ export async function step3(props: CentralEndpointsStep3Props) {
         resolverRuleId: ruleId,
         vpcId: vpcOutput.vpcId,
       });
-    }
-
-    const hostedZones: string[] = [];
-    // Associate VPC to Private Hosted Zones created using Central VPC of this region and external private hosted zones
-    // Retriving Global private Hosted Zones
-    hostedZones.push(...centralPhzConfig?.names.private!);
-
-    const centralinterfaceEndpoints = localCentralVpcConfig.vpcConfig['interface-endpoints'];
-    if (!centralinterfaceEndpoints) {
-      console.debug(`No interface endpoints found in Central VPC of region : ${zoneConfig.region}`);
     }
   }
 }

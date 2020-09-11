@@ -28,4 +28,13 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     config: acceleratorConfig,
     outputs,
   });
+
+  /**
+   * Associate Shared Rules to VPC
+   */
+  await centralEndpoints.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  })
 }

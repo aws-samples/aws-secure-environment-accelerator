@@ -35,10 +35,11 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
-import { createR53LogGroupName } from '../common/r53-zones';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { createR53LogGroupName } from '../deployments/central-endpoints';
+import * as centralEndpoints from '../deployments/central-endpoints';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -168,11 +169,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
           endpointCount = 0;
         }
-        new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
+        const interfaceEndpoint = new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
           serviceName: endpoint,
           vpcId: vpc.vpcId,
           vpcRegion: vpc.region,
           subnetIds,
+        });
+
+        new centralEndpoints.CfnHostedZoneOutput(endpointStack, `HostedZoneOutput-${endpoint}`, {
+          accountKey,
+          domain: interfaceEndpoint.hostedZone.name,
+          hostedZoneId: interfaceEndpoint.hostedZone.ref,
+          region: vpc.region,
+          serviceName: endpoint,
+          zoneType: 'private',
         });
         endpointCount++;
       }
