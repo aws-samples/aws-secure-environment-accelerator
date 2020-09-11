@@ -2,6 +2,7 @@ import { PhaseInput } from './shared';
 import * as securityHub from '../deployments/security-hub';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 import * as centralEndpoints from '../deployments/central-endpoints';
+import { Context } from '@aws-cdk/aws-stepfunctions';
 
 export interface RdgwArtifactsOutput {
   accountKey: string;
@@ -10,7 +11,7 @@ export interface RdgwArtifactsOutput {
   keyPrefix: string;
 }
 
-export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs, context }: PhaseInput) {
   // Deploy Security Hub Step-3 to disable specific controls
   await securityHub.step3({
     accountStacks,
@@ -36,5 +37,18 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     accountStacks,
     config: acceleratorConfig,
     outputs,
+  });
+
+
+  /**
+   * Associate Hosted Zones to VPC
+   */
+  await centralEndpoints.step4({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+    accounts,
+    executionRole: context.acceleratorPipelineRoleName,
+    assumeRole: context.acceleratorExecutionRoleName,
   });
 }

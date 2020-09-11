@@ -592,7 +592,7 @@ export const ZoneNamesConfigType = t.interface({
 export const GlobalOptionsZonesConfigType = t.interface({
   account: NonEmptyString,
   'resolver-vpc': NonEmptyString,
-  names: ZoneNamesConfigType,
+  names: optional(ZoneNamesConfigType),
   region: NonEmptyString,
 });
 

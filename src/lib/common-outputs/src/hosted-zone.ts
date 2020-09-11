@@ -23,7 +23,7 @@ export const HostedZoneOutput = t.interface(
 export type HostedZoneOutput = t.TypeOf<typeof HostedZoneOutput>;
 
 export const HostedZoneOutputFinder = createStructuredOutputFinder(HostedZoneOutput, finder => ({
-  tryFindOneByAccountAndRegionAndName: (props: {
+  tryFindOneByAccountAndRegionAndType: (props: {
     outputs: StackOutput[];
     accountKey?: string;
     region?: string;

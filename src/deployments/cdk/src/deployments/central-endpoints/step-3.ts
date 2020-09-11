@@ -15,12 +15,14 @@ export interface CentralEndpointsStep3Props {
  */
 export async function step3(props: CentralEndpointsStep3Props) {
   const { accountStacks, config, outputs } = props;
-  for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
+  const allVpcConfigs = config.getVpcConfigs();
+  for (const { accountKey, vpcConfig } of allVpcConfigs) {
     const centralPhzConfig = config['global-options'].zones.find(zc => zc.region === vpcConfig.region);
     if (!vpcConfig['use-central-endpoints']) {
       continue;
     }
 
+    // If Current VPC exists in global-options/zones then no need to share it with any Rules
     if (
       accountKey === centralPhzConfig?.account &&
       vpcConfig.region === centralPhzConfig.region &&
@@ -32,6 +34,7 @@ export async function step3(props: CentralEndpointsStep3Props) {
       continue;
     }
 
+    // Retrieving current VPCId
     const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
       outputs,
       accountKey,

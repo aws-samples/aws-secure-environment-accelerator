@@ -39,6 +39,11 @@ export async function step2(props: CentralEndpointsStep2Props) {
       console.debug(`Skipping resolver creation for VPC "${vpcConfig.name}" in account "${accountKey}"`);
       continue;
     }
+
+    /**
+     * Checking if current VPC is under Regional Central VPCs (global-options/zones), 
+     *  If yes the only we will share Rules from this account to another accounts
+     */
     const isRuleShareNeeded = !!zonesConfig.find(
       zc => zc.account === accountKey && zc.region === vpcConfig.region && zc['resolver-vpc'] === vpcConfig.name,
     );
