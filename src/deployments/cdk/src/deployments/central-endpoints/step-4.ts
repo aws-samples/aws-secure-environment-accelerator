@@ -39,7 +39,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
   const zonesConfig = config['global-options'].zones;
   let globalPrivateHostedZoneIds: string[] = [];
   const centralZoneConfig = zonesConfig.find(z => z.names);
-  const masterAccountKey = config["global-options"]["aws-org-master"].account;
+  const masterAccountKey = config['global-options']['aws-org-master'].account;
   if (centralZoneConfig) {
     const hostedZoneOutputs = HostedZoneOutputFinder.findAll({
       outputs,
@@ -101,40 +101,52 @@ export async function step4(props: CentralEndpointsStep4Props) {
         hostedZoneIds.push(...globalPrivateHostedZoneIds);
       }
       const hostedZoneAccountId = getAccountId(accounts, zoneConfig.account)!;
-      
-      new AssociateHostedZones(accountStack, `AssociateHostedZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`, {
-        assumeRoleName: assumeRole,
-        vpcAccountId,
-        vpcName: vpcConfig.name,
-        vpcId: vpcOutput.vpcId,
-        vpcRegion: vpcConfig.region,
-        hostedZoneAccountId,
-        hostedZoneIds,
-        roleArn: `arn:aws:iam::${cdk.Aws.REGION}:role/${executionRole}`,
-      });
+
+      new AssociateHostedZones(
+        accountStack,
+        `AssociateHostedZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`,
+        {
+          assumeRoleName: assumeRole,
+          vpcAccountId,
+          vpcName: vpcConfig.name,
+          vpcId: vpcOutput.vpcId,
+          vpcRegion: vpcConfig.region,
+          hostedZoneAccountId,
+          hostedZoneIds,
+          roleArn: `arn:aws:iam::${cdk.Aws.REGION}:role/${executionRole}`,
+        },
+      );
     } else {
       console.warn(`No Central VPC found for region "${vpcConfig.region}"`);
     }
 
     if (seperateGlobalHostedZonesAccount) {
       const hostedZoneAccountId = getAccountId(accounts, centralZoneConfig?.account!)!;
-      
-      new AssociateHostedZones(accountStack, `AssociatePrivateZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`, {
-        assumeRoleName: assumeRole,
-        vpcAccountId,
-        vpcName: vpcConfig.name,
-        vpcId: vpcOutput.vpcId,
-        vpcRegion: vpcConfig.region,
-        hostedZoneAccountId,
-        hostedZoneIds: globalPrivateHostedZoneIds,
-        roleArn: `arn:aws:iam::${cdk.Aws.REGION}:role/${executionRole}`,
-      });
+
+      new AssociateHostedZones(
+        accountStack,
+        `AssociatePrivateZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`,
+        {
+          assumeRoleName: assumeRole,
+          vpcAccountId,
+          vpcName: vpcConfig.name,
+          vpcId: vpcOutput.vpcId,
+          vpcRegion: vpcConfig.region,
+          hostedZoneAccountId,
+          hostedZoneIds: globalPrivateHostedZoneIds,
+          roleArn: `arn:aws:iam::${cdk.Aws.REGION}:role/${executionRole}`,
+        },
+      );
     }
   }
 }
 
-
-function getHostedZoneIds(allVpcConfigs: c.ResolvedVpcConfig[], zoneConfig: c.GlobalOptionsZonesConfig, vpcConfig: c.VpcConfig, outputs: StackOutput[]): string[] {
+function getHostedZoneIds(
+  allVpcConfigs: c.ResolvedVpcConfig[],
+  zoneConfig: c.GlobalOptionsZonesConfig,
+  vpcConfig: c.VpcConfig,
+  outputs: StackOutput[],
+): string[] {
   // Retriving Hosted Zone ids for interface endpoints to be shared
   const centralRegionalVpcConfig = allVpcConfigs.find(
     vc =>
@@ -143,20 +155,22 @@ function getHostedZoneIds(allVpcConfigs: c.ResolvedVpcConfig[], zoneConfig: c.Gl
       vc.vpcConfig.region === zoneConfig.region,
   );
   if (!centralRegionalVpcConfig) {
-    console.error(`VPC configuration not found for Central configuraiton "${zoneConfig.account}: ${zoneConfig.region}: ${zoneConfig['resolver-vpc']}" `);
+    console.error(
+      `VPC configuration not found for Central configuraiton "${zoneConfig.account}: ${zoneConfig.region}: ${zoneConfig['resolver-vpc']}" `,
+    );
     return [];
   }
   const centralEndpoints: string[] = [];
   const localEndpoints: string[] = [];
 
   // Get Endpoints from Central VPC Config
-  if (c.InterfaceEndpointConfig.is(centralRegionalVpcConfig.vpcConfig["interface-endpoints"])) {
-    centralEndpoints.push(...centralRegionalVpcConfig.vpcConfig["interface-endpoints"].endpoints);
+  if (c.InterfaceEndpointConfig.is(centralRegionalVpcConfig.vpcConfig['interface-endpoints'])) {
+    centralEndpoints.push(...centralRegionalVpcConfig.vpcConfig['interface-endpoints'].endpoints);
   }
 
   // Get Endpoints from Local VPC Config
-  if (c.InterfaceEndpointConfig.is(vpcConfig["interface-endpoints"])) {
-    localEndpoints.push(...vpcConfig["interface-endpoints"].endpoints);
+  if (c.InterfaceEndpointConfig.is(vpcConfig['interface-endpoints'])) {
+    localEndpoints.push(...vpcConfig['interface-endpoints'].endpoints);
   }
   const shareableEndpoints = centralEndpoints.filter(ce => !localEndpoints.includes(ce));
   const hostedZoneIds: string[] = [];
@@ -165,7 +179,11 @@ function getHostedZoneIds(allVpcConfigs: c.ResolvedVpcConfig[], zoneConfig: c.Gl
     accountKey: zoneConfig.account,
     region: zoneConfig.region,
   });
-  const vpcHostedZoneOutputs = regionalHostedZoneOutputs.filter(hz => hz.vpcName === zoneConfig["resolver-vpc"]);
-  hostedZoneIds.push(...vpcHostedZoneOutputs.filter(hz => hz.serviceName && shareableEndpoints.includes(hz.serviceName)).map(h => h.hostedZoneId));
+  const vpcHostedZoneOutputs = regionalHostedZoneOutputs.filter(hz => hz.vpcName === zoneConfig['resolver-vpc']);
+  hostedZoneIds.push(
+    ...vpcHostedZoneOutputs
+      .filter(hz => hz.serviceName && shareableEndpoints.includes(hz.serviceName))
+      .map(h => h.hostedZoneId),
+  );
   return hostedZoneIds;
 }

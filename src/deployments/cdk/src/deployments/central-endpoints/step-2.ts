@@ -41,7 +41,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
     }
 
     /**
-     * Checking if current VPC is under Regional Central VPCs (global-options/zones), 
+     * Checking if current VPC is under Regional Central VPCs (global-options/zones),
      *  If yes the only we will share Rules from this account to another accounts
      */
     const isRuleShareNeeded = !!zonesConfig.find(

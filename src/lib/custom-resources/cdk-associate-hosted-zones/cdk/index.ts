@@ -48,7 +48,7 @@ export class AssociateHostedZones extends cdk.Construct {
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-associate-hosted-zones-runtime');
     const lambdaDir = path.dirname(lambdaPath);
-    
+
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),

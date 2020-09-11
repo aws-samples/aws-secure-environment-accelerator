@@ -105,23 +105,19 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
     const hostedZoneProps = {
       HostedZoneId: hostedZoneId,
       VPC: {
-        VPCId: vpcId, 
+        VPCId: vpcId,
         VPCRegion: vpcRegion,
-      }
+      },
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
     }
 
     // associate VPC with Hosted zones
     try {
       console.log(`Associating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => 
-        vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise());
     } catch (e) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
@@ -134,9 +130,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
     }
   }
 
@@ -162,23 +156,19 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     const hostedZoneProps = {
       HostedZoneId: hostedZoneId,
       VPC: {
-        VPCId: vpcId, 
+        VPCId: vpcId,
         VPCRegion: vpcRegion,
-      }
+      },
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
     }
 
     // associate VPC with Hosted zones
     try {
       console.log(`Associating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => 
-        vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => vpcRoute53.associateVPCWithHostedZone(hostedZoneProps).promise());
     } catch (e) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
@@ -191,34 +181,27 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
     }
   }
-
 
   for (const hostedZoneId of removeAssociations) {
     const hostedZoneProps = {
       HostedZoneId: hostedZoneId,
       VPC: {
-        VPCId: vpcId, 
+        VPCId: vpcId,
         VPCRegion: vpcRegion,
-      }
+      },
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
     }
 
     // associate VPC with Hosted zones
     try {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => 
-        vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
     } catch (e) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
@@ -231,9 +214,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
     }
   }
 
@@ -247,7 +228,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { assumeRoleName, hostedZoneAccountId, hostedZoneIds, vpcAccountId, vpcId, vpcName, vpcRegion } = properties;
-  
+
   const vpcAccountCredentials = await sts.getCredentialsForAccountAndRole(vpcAccountId, assumeRoleName);
   const vpcRoute53 = new AWS.Route53(vpcAccountCredentials);
 
@@ -258,23 +239,19 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     const hostedZoneProps = {
       HostedZoneId: hostedZoneId,
       VPC: {
-        VPCId: vpcId, 
+        VPCId: vpcId,
         VPCRegion: vpcRegion,
-      }
+      },
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
     }
 
     // associate VPC with Hosted zones
     try {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
-      await throttlingBackOff(() => 
-        vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
     } catch (e) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
@@ -287,9 +264,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() =>
-        hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise()
-      );
+      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
     }
   }
 }

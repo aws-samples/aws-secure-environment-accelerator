@@ -39,7 +39,6 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     outputs,
   });
 
-
   /**
    * Associate Hosted Zones to VPC
    */
