@@ -2,7 +2,6 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import { Bucket } from '@aws-accelerator/cdk-constructs/src/s3';
-import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { createEncryptionKeyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { AccountStack } from '../../common/account-stacks';
 import { overrideLogicalId } from '../../utils/cdk';
@@ -30,15 +29,10 @@ export function createDefaultS3Key(props: { accountStack: AccountStack }): kms.K
  */
 export function createDefaultS3Bucket(props: {
   accountStack: AccountStack;
-  config: AcceleratorConfig;
   encryptionKey: kms.Key;
+  logRetention: number;
 }): Bucket {
-  const { accountStack, config, encryptionKey } = props;
-
-  const defaultLogRetention = config['global-options']['central-log-retention'];
-
-  const accountConfig = config.getAccountByKey(accountStack.accountKey);
-  const logRetention = accountConfig['log-retention'] ?? defaultLogRetention;
+  const { accountStack, encryptionKey, logRetention } = props;
 
   // Generate fixed bucket name so we can do initialize cross-account bucket replication
   const bucket = new Bucket(accountStack, 'DefaultBucket', {
