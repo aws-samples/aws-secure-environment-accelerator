@@ -15,10 +15,16 @@ export type ResourceCleanupOutput = t.TypeOf<typeof ResourceCleanupOutput>;
 export const CfnResourceCleanupOutput = createCfnStructuredOutput(ResourceCleanupOutput);
 
 export const ResourceCleanupOutputFinder = createStructuredOutputFinder(ResourceCleanupOutput, finder => ({
-  tryFindOneByName: (props: { outputs: StackOutput[]; accountKey?: string; region?: string }) =>
+  tryFindOneByName: (props: {
+    outputs: StackOutput[];
+    accountKey?: string;
+    region?: string;
+    bucketPolicyCleanup?: boolean;
+  }) =>
     finder.tryFindOne({
       outputs: props.outputs,
       accountKey: props.accountKey,
       region: props.region,
+      predicate: r => r.bucketPolicyCleanup === props.bucketPolicyCleanup,
     }),
 }));

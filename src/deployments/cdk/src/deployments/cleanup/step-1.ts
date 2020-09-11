@@ -25,10 +25,11 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
   // Finding the output for previous resource cleanup execution
   const resourceCleanupOutput = ResourceCleanupOutputFinder.tryFindOneByName({
     outputs,
+    bucketPolicyCleanup: true,
   });
 
   // Checking if cleanup got executed in any of the previous SM runs
-  if (resourceCleanupOutput && resourceCleanupOutput.bucketPolicyCleanup) {
+  if (resourceCleanupOutput) {
     return;
   }
 
