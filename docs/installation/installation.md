@@ -42,7 +42,7 @@ These installation instructions assume the prescribed architecture is being depl
 
 ### 1.1.1. General
 
-- Master or root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
+- Root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid configuration file, updated to reflect your deployment (see below)
@@ -411,7 +411,7 @@ Yes. The state machine captures a consistent input state of the requested config
 - Newly invited AWS accounts in an Organization will land in the root ou
 - Unlike newly created AWS accounts which immediately have a Deny-All SCP applied, imported accounts are not locked down as we do not want to break existing workloads (these account are already running without Accelerator guardrails)
 - In AWS Organizations, select ALL the newly invited AWS accounts and move them all at once to the correct destination OU (assuming the same OU for all accounts)
-- This will first trigger an automated update to the config file and then will trigger the state machine, which will automatically import the moved accounts into the Accelerator per the destination OU configuration
+- This will first trigger an automated update to the config file and then trigger the state machine, automatically importing the moved accounts into the Accelerator per the destination OU configuration
 - As previously documented, accounts CANNOT be moved between OU's to maintain compliance, so select the proper top-level OU with care
 - If you need to customize each of the accounts configurations, you can manually update the configuration file either before or after you move the account to the correct ou
   - if before, you also need to include the standard 4 account config file parameters, if after, you can simply add your new custom parameters to the account entry we created
@@ -420,6 +420,7 @@ Yes. The state machine captures a consistent input state of the requested config
   - customers can either manually initiate the state machine once the current execution completes, or, the currently running state machine can be stopped and restarted to capture all changes at once
   - Are you unsure if an account had its guardrails applied? The message sent to the state machine Status SNS topic (and corresponding email address) on a successful state machine execution provides a list of all successfully processed accounts.
 - The state machine is both highly parallel and highly resilient, stopping the state machine should not have any negative impact. Importing 1 or 10 accounts generally takes about the same amount of time for the Accelerator to process, so it may be worth stopping the current execution and rerunning to capture all changes in a single execution.
+- In a future release we will be adding a 2 min delay before triggering the state machine, allowing customers to make muliple changes within a short timeframe and have them all captured automatically in the same state machine execution.
 
 ### 3.3.2. Deploying the Accelerator into an existing Organization
 
