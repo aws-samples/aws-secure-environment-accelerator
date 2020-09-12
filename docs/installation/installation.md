@@ -429,7 +429,8 @@ Yes. The state machine captures a consistent input state of the requested config
   - we have provided a CloudFormation stack which can be executed in each sub-account to simplify this process
 - As stated above, we recommend starting with new AWS accounts for the mandatory functions (shared-network, perimeter, security, log-archive accounts).
 - To better ensure a clean initial deployment, we also recommend the installation be completed while ignoring most of your existing AWS sub-accounts, importing them post installation:
-  - create a new OU (i.e. `Imported-Accounts`), placing all existing accounts into this OU temporarily, and adding this OU name to the `global-options\ignored-ous` config parameter;
+  - create a new OU (i.e. `Imported-Accounts`), placing most of the existing accounts into this OU temporarily, and adding this OU name to the `global-options\ignored-ous` config parameter;
+  - any remaining accounts must be in the correct ou, per the Accelerator config file;
   - install the Accelerator;
   - import the skipped accounts into the Accelerator using the above import process, paying attention to the below notes
 - NOTES:
