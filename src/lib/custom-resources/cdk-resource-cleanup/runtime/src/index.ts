@@ -90,13 +90,13 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
         })
         .promise(),
     );
-    const hostedZoneIds = privateHostedZone.HostedZones.map(z => z.Id);
+    const hostedZoneIds = privateHostedZone.HostedZones.filter(p => p.Name === domain);
 
     for (const zoneId of hostedZoneIds) {
       await throttlingBackOff(() =>
         route53
           .deleteHostedZone({
-            Id: zoneId,
+            Id: zoneId.Id,
           })
           .promise(),
       );

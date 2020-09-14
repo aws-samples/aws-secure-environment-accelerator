@@ -49,7 +49,7 @@ export async function step2(props: Route53CleanupProps) {
     resolverRuleDomains.push(...(rulesDomain as string[]));
 
     resolverRuleDomains.push(...centralZonesDomain);
-    privateHostedZones.push(...centralZonesDomain);
+    privateHostedZones.push(...centralZonesDomain.map(z => `${z}.`));
 
     const cleanupRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       outputs,
