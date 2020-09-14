@@ -2,12 +2,15 @@ import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
+import { HandlerProperties } from '@aws-accelerator/custom-resource-cleanup-runtime';
 
 const resourceType = 'Custom::ResourceCleanup';
 
 export interface ResourceCleanupProps {
   roleArn: string;
   bucketName?: string;
+  rulesDomainNames?: string[];
+  phzDomainNames?: string[];
 }
 
 /**
@@ -21,13 +24,17 @@ export class ResourceCleanup extends cdk.Construct {
     super(scope, id);
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
 
+    const handlerProperties: HandlerProperties = {
+      bucketName: props.bucketName,
+      rulesDomainNames: props.rulesDomainNames,
+      phzDomainNames: props.phzDomainNames,
+    };
+
     const runtimeProps: ResourceCleanupProps = props;
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
-      properties: {
-        ...runtimeProps,
-      },
+      properties: handlerProperties,
     });
   }
 

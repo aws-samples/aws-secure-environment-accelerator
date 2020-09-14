@@ -186,6 +186,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
+  await cleanup.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   // TODO Deprecate these outputs
   const logArchiveAccountKey = acceleratorConfig['global-options']['central-log-services'].account;
   const logArchiveStack = accountStacks.getOrCreateAccountStack(logArchiveAccountKey);

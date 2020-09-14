@@ -32,6 +32,25 @@ export async function createResourceCleanupRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
+      actions: [
+        'route53resolver:ListResolverRules',
+        'route53resolver:ListResolverRuleAssociations',
+        'route53resolver:DisassociateResolverRule',
+        'route53resolver:DeleteResolverRule',
+      ],
+      resources: ['*'],
+    }),
+  );
+
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['route53:ListHostedZonesByName', 'route53:DeleteHostedZone'],
+      resources: ['*'],
+    }),
+  );
+
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
     }),
