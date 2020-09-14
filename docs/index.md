@@ -13,6 +13,8 @@
 
 ### - [Accelerator Developer Guide](./developer/developer-guide.md) (Early Draft)
 
+### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md) (Early Draft)
+
 ### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/index.md) (Early Draft)
 
 ### - [Frequently Asked Questions](./faq/faq.md)

@@ -141,6 +141,8 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Accelerator Developer Guide](./docs/developer/developer-guide.md) (Early Draft)
 
+### - [Contributing & Governance Guide](./CONTRIBUTING.md) (Early Draft)
+
 ### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/index.md) (Early Draft)
 
 ### - [Frequently Asked Questions](./docs/faq/faq.md) (Future)
