@@ -77,6 +77,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
       regionAssociationCounter[vpcConfig.region] = 1;
     }
 
+    // Includes max of 190 VPCs since we need 1 resource per VPC and 3 for Custom Resource.
     const stackSuffix = `HostedZonesAssc-${Math.ceil(regionAssociationCounter[vpcConfig.region] / 190)}`;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, vpcConfig.region, stackSuffix);
