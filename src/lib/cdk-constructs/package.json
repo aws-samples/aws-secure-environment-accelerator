@@ -40,6 +40,7 @@
     "@aws-cdk/aws-ssm": "1.46.0",
     "@aws-cdk/core": "1.46.0",
     "@aws-cdk/aws-securityhub": "1.46.0",
+    "@aws-cdk/aws-route53resolver": "1.46.0",
     "@aws-accelerator/custom-resource-cfn-sleep": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-ec2-keypair": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-s3-template": "workspace:^0.0.1",
