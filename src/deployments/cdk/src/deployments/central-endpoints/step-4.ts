@@ -77,7 +77,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
       regionAssociationCounter[vpcConfig.region] = 1;
     }
 
-    const stackSuffix = `HostedZonesAssc-${Math.ceil(regionAssociationCounter[vpcConfig.region] / 2)}`;
+    const stackSuffix = `HostedZonesAssc-${Math.ceil(regionAssociationCounter[vpcConfig.region] / 190)}`;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, vpcConfig.region, stackSuffix);
     if (!accountStack) {

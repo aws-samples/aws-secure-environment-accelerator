@@ -84,7 +84,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
     }
 
     // Max resource is decided based on resoource we are creating per vpc (2 endpoints + 2 sgs + 3 rules + 3 rule associations + 1 RAM)
-    const stackSuffix = `EndpointsRules-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 10)}`;
+    const stackSuffix = `EndpointsRules-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 15)}`;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
     if (!accountStack) {

@@ -83,7 +83,7 @@ export async function step3(props: CentralEndpointsStep3Props) {
       accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = 1;
     }
 
-    const stackSuffix = `RulesAssc-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 2)}`;
+    const stackSuffix = `RulesAssc-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 50)}`;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
     if (!accountStack) {
