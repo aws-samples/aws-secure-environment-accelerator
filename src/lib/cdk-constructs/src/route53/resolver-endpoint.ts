@@ -21,7 +21,7 @@ export interface ResolverEndpointProps {
 export class ResolverEndpoint extends cdk.Construct {
   private _inboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
   private _outboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
-  private _inboundEndpointIps: string[] = [];
+  // private _inboundEndpointIps: string[] = [];
 
   constructor(parent: cdk.Construct, id: string, private readonly props: ResolverEndpointProps) {
     super(parent, id);
@@ -54,12 +54,12 @@ export class ResolverEndpoint extends cdk.Construct {
       name: `${this.props.name} Inbound Endpoint`,
     });
 
-    const dnsIps = new R53DnsEndpointIps(this, 'InboundIp', {
-      resolverEndpointId: this._inboundEndpoint.ref,
-    });
+    // const dnsIps = new R53DnsEndpointIps(this, 'InboundIp', {
+    //   resolverEndpointId: this._inboundEndpoint.ref,
+    // });
 
-    // Every IP address that we supply to inbound endpoint will result in an DNS endpoint IP
-    this._inboundEndpointIps = ipAddresses.map((_, index) => dnsIps.getEndpointIpAddress(index));
+    // // Every IP address that we supply to inbound endpoint will result in an DNS endpoint IP
+    // this._inboundEndpointIps = ipAddresses.map((_, index) => dnsIps.getEndpointIpAddress(index));
 
     return this._inboundEndpoint;
   }
@@ -109,8 +109,8 @@ export class ResolverEndpoint extends cdk.Construct {
     return this.outboundEndpoint?.ref;
   }
 
-  get inboundEndpointIps(): string[] {
-    // Return a copy of the list so the original one isn't mutable
-    return [...this._inboundEndpointIps];
-  }
+  // get inboundEndpointIps(): string[] {
+  //   // Return a copy of the list so the original one isn't mutable
+  //   return [...this._inboundEndpointIps];
+  // }
 }

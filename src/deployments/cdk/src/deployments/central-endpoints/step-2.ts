@@ -33,6 +33,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
   const vpcConfigs = config.getVpcConfigs();
   const madConfigs = config.getMadConfigs();
   const zonesConfig = config['global-options'].zones;
+  const accountRulesCounter: { [accountKey: string]: number } = {};
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const resolversConfig = vpcConfig.resolvers;
     if (!resolversConfig) {
@@ -74,7 +75,18 @@ export async function step2(props: CentralEndpointsStep2Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
+    if (accountRulesCounter[`${accountKey}-${vpcConfig.region}`]) {
+      accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = ++accountRulesCounter[
+        `${accountKey}-${vpcConfig.region}`
+      ];
+    } else {
+      accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = 1;
+    }
+
+    // Max resource is decided based on resoource we are creating per vpc (2 endpoints + 2 sgs + 3 rules + 3 rule associations + 1 RAM)
+    const stackSuffix = `EndpointsRules-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 10)}`;
+
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
     if (!accountStack) {
       console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while deploying Resolver Endpoints`);
       continue;
