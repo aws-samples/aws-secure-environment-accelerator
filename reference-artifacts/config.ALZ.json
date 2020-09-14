@@ -3,8 +3,7 @@
     "alz-minimum-version": "v2.3.1",
     "alz-baseline": true,
     "ct-baseline": false,
-    "central-log-retention": 730,
-    "default-log-retention": 90,
+    "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
@@ -38,7 +37,6 @@
     "central-security-services": {
       "account": "security",
       "region": "ca-central-1",
-      "security-hub": true,
       "security-hub-excl-regions": [],
       "guardduty": true,
       "guardduty-excl-regions": [],
@@ -59,6 +57,7 @@
     "central-log-services": {
       "account": "log-archive",
       "region": "ca-central-1",
+      "s3-retention": 730,
       "cwl-glbl-exclusions": [],
       "cwl-exclusions": [],
       "ssm-to-s3": true,
@@ -969,7 +968,6 @@
           "vpc": "Perimeter",
           "subnets": "Public",
           "cert-name": "PerimSelf-SignedCert",
-          "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Public-Prod-ALB",
           "tg-stickiness": "1 hour",
@@ -1030,7 +1028,6 @@
           "vpc": "Perimeter",
           "subnets": "Public",
           "cert-name": "PerimSelf-SignedCert",
-          "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Public-DevTest-ALB",
           "tg-stickiness": "1 hour",
@@ -1346,7 +1343,7 @@
               "inbound-rules": [
                 {
                   "description": "All Allowed Inbound Traffic",
-                  "tcp-ports": [22, 443, 541, 3000, 8080],
+                  "tcp-ports": [443, 8080],
                   "source": ["0.0.0.0/0"]
                 },
                 {
@@ -1483,7 +1480,7 @@
           }
         ]
       },
-      "log-retention": 180,
+      "s3-retention": 180,
       "limits": {},
       "iam": {
         "users": [
@@ -2148,7 +2145,6 @@
           "vpc": "Dev",
           "subnets": "Web",
           "cert-name": "DevSelf-SignedCert",
-          "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Web",
           "tg-stickiness": "",
@@ -2621,7 +2617,6 @@
           "vpc": "Test",
           "subnets": "Web",
           "cert-name": "TestSelf-SignedCert",
-          "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Web",
           "tg-stickiness": "",
@@ -3094,7 +3089,6 @@
           "vpc": "Prod",
           "subnets": "Web",
           "cert-name": "ProdSelf-SignedCert",
-          "cert-arn": "",
           "security-policy": "ELBSecurityPolicy-FS-1-2-Res-2019-08",
           "security-group": "Web",
           "tg-stickiness": "",
