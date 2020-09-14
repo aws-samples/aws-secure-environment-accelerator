@@ -1,5 +1,4 @@
 import { PeeringConnection } from '../common/peering-connection';
-import { GlobalOptionsDeployment } from '../common/global-options';
 import { PhaseInput } from './shared';
 import * as alb from '../deployments/alb';
 import * as centralEndpoints from '../deployments/central-endpoints';
