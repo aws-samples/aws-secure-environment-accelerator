@@ -9,7 +9,7 @@ These installation instructions assume the prescribed architecture is being depl
 - [1. Installation, Upgrades and Basic Operations](#1-installation-upgrades-and-basic-operations)
   - [1.1. Prerequisites](#11-prerequisites)
     - [1.1.1. General](#111-general)
-    - [1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base)](#112-standalone-accelerator-pre-install-steps-no-alz-base)
+    - [1.1.2. Accelerator Pre-Install Steps](#112-accelerator-pre-install-steps)
     - [1.1.3. AWS Internal Accounts Only](#113-aws-internal-accounts-only)
   - [1.2. Preparation](#12-preparation)
     - [1.2.1. Create GitHub Personal Access Token and Store in Secrets Manager](#121-create-github-personal-access-token-and-store-in-secrets-manager)
@@ -26,11 +26,14 @@ These installation instructions assume the prescribed architecture is being depl
     - [2.0.6. How do I make changes to items I defined in the Accelerator configuration file during installation?](#206-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
     - [2.0.7. Is there anything my end users need to be aware of?](#207-is-there-anything-my-end-users-need-to-be-aware-of)
     - [2.0.8. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?](#208-can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially)
+    - [2.0.9. Can I update the config file while the State Machine is running? When will those changes be applied?](#209-can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied)
 - [3. Notes](#3-notes)
   - [3.1. Upgrades](#31-upgrades)
     - [3.1.1. Summary of Upgrade Steps (all versions)](#311-summary-of-upgrade-steps-all-versions)
   - [3.2. Configuration File Hints and Tips](#32-configuration-file-hints-and-tips)
   - [3.3. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations](#33-considerations-importing-existing-aws-accounts--deploying-into-existing-aws-organizations)
+    - [3.3.1. Process to import existing AWS accounts into an Accelerator managed Organization](#331-process-to-import-existing-aws-accounts-into-an-accelerator-managed-organization)
+    - [3.3.2. Deploying the Accelerator into an existing Organization](#332-deploying-the-accelerator-into-an-existing-organization)
   - [3.4. Design Constraints](#34-design-constraints)
 - [4. AWS Internal - Accelerator Release Process](#4-aws-internal---accelerator-release-process)
   - [4.1. Creating a new Accelerator Code Release](#41-creating-a-new-accelerator-code-release)
@@ -39,7 +42,7 @@ These installation instructions assume the prescribed architecture is being depl
 
 ### 1.1.1. General
 
-- Master or root AWS account (the AWS Accelerator cannot be deployed in an AWS sub-account)
+- Root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid configuration file, updated to reflect your deployment (see below)
@@ -47,7 +50,7 @@ These installation instructions assume the prescribed architecture is being depl
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes
 - Existing ALZ customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
-### 1.1.2. Standalone Accelerator Pre-Install Steps (No ALZ base)
+### 1.1.2. Accelerator Pre-Install Steps
 
 Before installing, you must first:
 
@@ -56,7 +59,7 @@ Before installing, you must first:
 3. Enable AWS Organizations
 4. Enable Service Control Policies
 5. In AWS Organizations, "Verify" the root account email address (this is a technical process)
-6. Set `alz-baseline=false` in the configuration file
+6. Ensure `alz-baseline=false` is set in the configuration file
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
 - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
@@ -116,7 +119,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
 
-   1. For existing accounts, they must match identically to the ones defined in your AWS Landing Zone;
+   1. For existing accounts, they must match identically to the account names and email addresses defined in AWS Organizations;
    2. For new accounts, they must reflect the new account name/email you want created;
    3. All new AWS accounts require a unique email address which has never before been used to create an AWS account;
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
@@ -141,7 +144,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]`
   - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]`
   - Wildcard TLS certificate for each of the 2 previous zones
-  - 2 Fortinet FortiGate firewall licenses (Eval licenses adequate)
+  - 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate)
   - We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
 4. Create an S3 bucket in your root account with versioning enabled `your-bucket-name`
@@ -218,8 +221,8 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### 1.3.1. Known Installation Issues
 
-- Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy Guardduty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
-- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the root AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the root account into the auto-created core ou and rerun the SM. This is resolved in v1.1.8.
+- Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy GuardDuty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
+- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the root AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the root account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
 
 # 2. Accelerator Basic Operation
 
@@ -310,11 +313,11 @@ Example:
 
 If your state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
 
-Ensuring the integrity of deployed guardrails is critical in operating and maintaining an environment hosting protected data. Based on customer feedback and security best practices, we purposely fail the state machine if we cannot successfuly deploy guardrails.
+Ensuring the integrity of deployed guardrails is critical in operating and maintaining an environment hosting protected data. Based on customer feedback and security best practices, we purposely fail the state machine if we cannot successfully deploy guardrails.
 
 Additionally, with millions of active customers each supporting different and diverse use cases and with the rapid rate of evolution of the AWS platform, sometimes we will encounter unexpected circumstances and the state machine might fail.
 
-We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As we find new issues, we continue to adjust the codebase to handle these situations smoothly and prevent state machine failures when it makes sense.
+We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As unhandled scenario's are brought to our attention, we continue to adjust the codebase to better handle these situations.
 
 Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
 
@@ -326,7 +329,7 @@ If you ask the Accelerator to do something that is not supported by the AWS plat
 
 Below we have also documented additional considerations when creating or updating the configuration file.
 
-It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide overide switches to allow these changes to be attempted forcefully.
+It should be noted that we have added code to the Accelerator to block customers from making many 'breaking' or impactful changes to their configuration files. If someone is positive they want to make these changes, we also provide override switches to allow these changes to be attempted forcefully.
 
 ### 2.0.7. Is there anything my end users need to be aware of?
 
@@ -334,13 +337,18 @@ CloudWatch Log group deletion is prevented for security purposes. Users of the A
 
 ### 2.0.8. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?
 
-Yes, currently customers can upgrade from whatever version they have deployed to the latest Accelerator version. Their is no requirement to perform sequential upgrades. In fact, we strongly discourage sequential upgrades.
+Yes, currently customers can upgrade from whatever version they have deployed to the latest Accelerator version. There is no requirement to perform sequential upgrades. In fact, we strongly discourage sequential upgrades.
+
+### 2.0.9. Can I update the config file while the State Machine is running? When will those changes be applied?
+
+Yes. The state machine captures a consistent input state of the requested configuration when it starts. The running Accelerator instance does not see or consider any configuration changes that occur after it has started. All configuration changes occurring after the state machine is running will only be leveraged on the _next_ state machine execution.
 
 # 3. Notes
 
 ## 3.1. Upgrades
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats.
+- Upgrades to v1.2.0 and above from v1.1.9 and below require setting `account-warming-required` to `false`, (Perimeter and Ops accounts) or the rsyslog and firewalls will be removed and then re-installed on the subsequent state machine execution
 - Upgrades from v1.1.7 and below require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
 - Upgrades from versions v1.1.6 and below require updating the `GithubRepository` in the CFN stack, as we renamed the GitHub repo with release v1.1.7 to `aws-secure-environment-accelerator`.
 - Upgrades to v1.1.5 and above from v1.1.4 and below:
@@ -367,7 +375,7 @@ Yes, currently customers can upgrade from whatever version they have deployed to
   - Shard count - can only increase/reduce by half the current limit. i.e. you can change from `1`-`2`, `2`-`3`, `4`-`6`
 - Always add any new items to the END of all lists or sections in the config file, otherwise
   - Update validation checks will fail (vpc's, subnets, share-to, etc.)
-  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute SM, and then re-add them, run SM)
+  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine)
 - To skip, remove or uninstall a component, you can simply change the section header, instead of removing the section
   - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use
   - Objects with the parameter deploy: true, support setting the value to false to remove the deployment
@@ -396,7 +404,40 @@ Yes, currently customers can upgrade from whatever version they have deployed to
   - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
   - We do NOT support _any_ workloads running or users operating in the root AWS account. The root AWS account MUST be tightly controlled
   - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
-  - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, their may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
+  - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, there may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
+
+### 3.3.1. Process to import existing AWS accounts into an Accelerator managed Organization
+
+- Newly invited AWS accounts in an Organization will land in the root ou
+- Unlike newly created AWS accounts which immediately have a Deny-All SCP applied, imported accounts are not locked down as we do not want to break existing workloads (these account are already running without Accelerator guardrails)
+- In AWS Organizations, select ALL the newly invited AWS accounts and move them all at once to the correct destination OU (assuming the same OU for all accounts)
+- This will first trigger an automated update to the config file and then trigger the state machine, automatically importing the moved accounts into the Accelerator per the destination OU configuration
+- As previously documented, accounts CANNOT be moved between OU's to maintain compliance, so select the proper top-level OU with care
+- If you need to customize each of the accounts configurations, you can manually update the configuration file either before or after you move the account to the correct ou
+  - if before, you also need to include the standard 4 account config file parameters, if after, you can simply add your new custom parameters to the account entry we created
+  - if you add your imported accounts to the config file, moving the first account to the correct ou will trigger the state machine. If you don't move all accounts to their correct ou's before the state machine validates the ou config your state machine will fail. Simply finish moving all accounts to their correct ou's and then rerun the state machine.
+- If additional accounts are moved into OUs while the state machine is executing, they will not trigger another state machine execution, those accounts will only be ingested on the next execution of the state machine
+  - customers can either manually initiate the state machine once the current execution completes, or, the currently running state machine can be stopped and restarted to capture all changes at once
+  - Are you unsure if an account had its guardrails applied? The message sent to the state machine Status SNS topic (and corresponding email address) on a successful state machine execution provides a list of all successfully processed accounts.
+- The state machine is both highly parallel and highly resilient, stopping the state machine should not have any negative impact. Importing 1 or 10 accounts generally takes about the same amount of time for the Accelerator to process, so it may be worth stopping the current execution and rerunning to capture all changes in a single execution.
+- In a future release we will be adding a 2 min delay before triggering the state machine, allowing customers to make muliple changes within a short timeframe and have them all captured automatically in the same state machine execution.
+
+### 3.3.2. Deploying the Accelerator into an existing Organization
+
+- As stated above, if the ALZ was previously deployed into the Organization, please work with your AWS account team to find the best mechanism to uninstall the ALZ solution
+- Ensure all existing sub-accounts have the `AWSCloudFormationStackSetExecutionRole` installed and set to trust the root AWS Organization account
+  - we have provided a CloudFormation stack which can be executed in each sub-account to simplify this process
+- As stated above, we recommend starting with new AWS accounts for the mandatory functions (shared-network, perimeter, security, log-archive accounts).
+- To better ensure a clean initial deployment, we also recommend the installation be completed while ignoring most of your existing AWS sub-accounts, importing them post installation:
+  - create a new OU (i.e. `Imported-Accounts`), placing most of the existing accounts into this OU temporarily, and adding this OU name to the `global-options\ignored-ous` config parameter;
+  - any remaining accounts must be in the correct ou, per the Accelerator config file;
+  - install the Accelerator;
+  - import the skipped accounts into the Accelerator using the above import process, paying attention to the below notes
+- NOTES:
+  - Do NOT move any accounts from any `ignored-ous` to the root ou, they will immediately be quarantined with a Deny-All SCP, they need to be moved directly to their destination ou
+  - As stated above, when importing accounts, there may be situations we are not able to fully handle
+    - If doing a mass import, we suggest you take a quick look and if the solution is not immediately obvious, move the account which caused the failure back to ignored-ous and continue importing the remainder of your accounts. Once you have the majority imported, you can circle back and import outstanding problem accounts with the ability to focus on each individual issue
+    - The challenge could be as simple as someone has instances running in a default VPC, which may require some cleanup effort before we can import (coming soon, you will be able to exclude single account/region combinations from default VPC deletion to gain the benefits of the rest of the guardrails while you migrate workloads out of the default VPC)
 
 ## 3.4. Design Constraints
 
@@ -408,7 +449,7 @@ Yes, currently customers can upgrade from whatever version they have deployed to
 - Only 1 auto-deployed MAD per AWS account is supported today.
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the root account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
-- Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and deprovision the first cluster when ready.
+- Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
 
 # 4. AWS Internal - Accelerator Release Process
 

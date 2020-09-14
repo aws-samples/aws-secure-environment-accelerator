@@ -158,10 +158,12 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     accountStack: logAccountStack,
   });
 
+  const defaultLogRetention = config['global-options']['central-log-services']['s3-retention'];
+
   const logBucket = createDefaultS3Bucket({
     accountStack: logAccountStack,
-    config,
     encryptionKey: logKey,
+    logRetention: defaultLogRetention!,
   });
 
   // Allow replication from all Accelerator accounts

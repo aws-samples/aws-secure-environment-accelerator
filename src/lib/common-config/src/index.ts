@@ -546,7 +546,7 @@ export const MandatoryAccountConfigType = t.interface({
   vpc: optional(t.array(VpcConfigType)),
   deployments: optional(DeploymentConfigType),
   alb: optional(t.array(AlbConfigType)),
-  'log-retention': optional(t.number),
+  's3-retention': optional(t.number),
   budget: optional(BudgetConfigType),
   'account-warming-required': optional(t.boolean),
   'cwl-retention': optional(t.number),
@@ -660,6 +660,7 @@ export const CentralServicesConfigType = t.interface({
   'config-aggr-excl-regions': optional(t.array(t.string)),
   'sns-excl-regions': optional(t.array(t.string)),
   'sns-subscription-emails': fromNullable(t.record(t.string, t.array(t.string)), {}),
+  's3-retention': optional(t.number),
 });
 
 export const ScpsConfigType = t.interface({
@@ -740,8 +741,7 @@ export const CloudWatchAlarmsConfigType = t.interface({
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
-  'central-log-retention': t.number,
-  'default-log-retention': t.number,
+  'default-s3-retention': t.number,
   'central-bucket': NonEmptyString,
   reports: ReportsConfigType,
   zones: GlobalOptionsZonesConfigType,
