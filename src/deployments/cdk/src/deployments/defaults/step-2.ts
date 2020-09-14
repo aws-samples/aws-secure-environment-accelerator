@@ -46,10 +46,15 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       accountStack,
     });
 
+    const defaultLogRetention = config['global-options']['default-s3-retention'];
+
+    const accountConfig = config.getAccountByKey(accountStack.accountKey);
+    const logRetention = accountConfig['s3-retention'] ?? defaultLogRetention;
+
     const bucket = createDefaultS3Bucket({
       accountStack,
-      config,
       encryptionKey: key,
+      logRetention,
     });
     bucket.replicateTo({
       destinationBucket: centralLogBucket,

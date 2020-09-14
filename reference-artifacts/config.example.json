@@ -3,8 +3,7 @@
     "alz-minimum-version": "v2.3.1",
     "alz-baseline": false,
     "ct-baseline": false,
-    "central-log-retention": 730,
-    "default-log-retention": 90,
+    "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
@@ -58,6 +57,7 @@
     "central-log-services": {
       "account": "log-archive",
       "region": "ca-central-1",
+      "s3-retention": 730,
       "cwl-glbl-exclusions": [],
       "cwl-exclusions": [],
       "ssm-to-s3": true,
@@ -1479,7 +1479,7 @@
           }
         ]
       },
-      "log-retention": 180,
+      "s3-retention": 180,
       "limits": {},
       "iam": {
         "users": [
