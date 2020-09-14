@@ -16,6 +16,7 @@ export interface CentralEndpointsStep3Props {
 export async function step3(props: CentralEndpointsStep3Props) {
   const { accountStacks, config, outputs } = props;
   const allVpcConfigs = config.getVpcConfigs();
+  const accountRulesCounter: { [accountKey: string]: number } = {};
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
     const centralPhzConfig = config['global-options'].zones.find(zc => zc.region === vpcConfig.region);
     if (!vpcConfig['use-central-endpoints']) {
@@ -46,12 +47,6 @@ export async function step3(props: CentralEndpointsStep3Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
-    if (!accountStack) {
-      console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
-      continue;
-    }
-
     const zoneConfig = config['global-options'].zones.find(z => z.region === vpcConfig.region);
     if (!zoneConfig) {
       console.error(`No Central VPC is defined in Region :: ${vpcConfig.region}`);
@@ -79,6 +74,23 @@ export async function step3(props: CentralEndpointsStep3Props) {
       console.error(`Resolver rules are not Deployed in Central VPC Region ${zoneConfig.account}::${vpcConfig.region}`);
       continue;
     }
+
+    if (accountRulesCounter[`${accountKey}-${vpcConfig.region}`]) {
+      accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = ++accountRulesCounter[
+        `${accountKey}-${vpcConfig.region}`
+      ];
+    } else {
+      accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = 1;
+    }
+
+    const stackSuffix = `RulesAssc-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 2)}`;
+
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
+    if (!accountStack) {
+      console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
+      continue;
+    }
+
     const ruleIds = [...resolverRegionoutputs.rules?.madRules!, ...resolverRegionoutputs.rules?.onPremRules!];
     for (const ruleId of ruleIds) {
       new route53resolver.CfnResolverRuleAssociation(accountStack, `Rule-Association-${ruleId}-${vpcConfig.name}`, {

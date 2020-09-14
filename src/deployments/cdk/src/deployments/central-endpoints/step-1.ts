@@ -37,8 +37,8 @@ export async function step1(props: CentralEndpointsStep1Props) {
     return;
   }
 
-  const publicHostedZones = zoneConfig.names.public;
-  const privateHostedZones = zoneConfig.names.private;
+  const publicHostedZones = zoneConfig.names?.public!;
+  const privateHostedZones = zoneConfig.names?.private!;
 
   // Create Public Hosted Zones
   for (const domain of publicHostedZones) {
@@ -59,7 +59,7 @@ export async function step1(props: CentralEndpointsStep1Props) {
 
     new CfnHostedZoneOutput(accountStack, `HostedZoneOutput-${domain.replace('.', '-')}`, {
       accountKey: zoneConfig.account,
-      domain: domain,
+      domain,
       hostedZoneId: hostedZone.ref,
       region: zoneConfig.region,
       zoneType: 'PUBLIC',
@@ -98,7 +98,7 @@ export async function step1(props: CentralEndpointsStep1Props) {
 
     new CfnHostedZoneOutput(accountStack, `HostedZoneOutput-${domain.replace('.', '-')}`, {
       accountKey: zoneConfig.account,
-      domain: domain,
+      domain,
       hostedZoneId: hostedZone.ref,
       region: resolverVpc.region,
       zoneType: 'PRIVATE',

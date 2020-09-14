@@ -38,7 +38,6 @@ import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/c
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
-import { createR53LogGroupName } from '../deployments/central-endpoints';
 import * as centralEndpoints from '../deployments/central-endpoints';
 
 export interface IamPolicyArtifactsOutput {
@@ -489,8 +488,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   });
   if (logGroupLambdaRoleOutput) {
     const logGroups =
-      zoneConfig?.names.public.map(phz => {
-        const logGroupName = createR53LogGroupName({
+      zoneConfig?.names?.public.map(phz => {
+        const logGroupName = centralEndpoints.createR53LogGroupName({
           acceleratorPrefix: context.acceleratorPrefix,
           domain: phz,
         });
@@ -501,7 +500,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       }) || [];
 
     if (logGroups.length > 0) {
-      const wildcardLogGroupName = createR53LogGroupName({
+      const wildcardLogGroupName = centralEndpoints.createR53LogGroupName({
         acceleratorPrefix: context.acceleratorPrefix,
         domain: '*',
       });

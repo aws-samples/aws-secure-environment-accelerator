@@ -194,10 +194,10 @@ export async function step2(props: CentralEndpointsStep2Props) {
     const ruleArns: string[] = [
       ...madRules.map(
         ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
-      )!,
+      ),
       ...onPremRules.map(
         ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
-      )!,
+      ),
     ];
 
     // share the route53 resolver rules

@@ -19,25 +19,11 @@ export interface CentralEndpointsStep4Props {
 /**
  *  Associate VPC to Hosted Zones to Vpcs based on use-central-endpoints
  */
-
-/**
- *
- * 1. Loop Zones Config
- * 2. reterive vpcconfigs based on zone config region from all vpcs config whose central-endpoints is enabled
- * 3. loop vpcs
- * 4. get VPCId from outputs and get zoneIds of (localIE - zonalIE)
- * 5. Call Custom Resource for associating VPC to zones with params (
- *     zones: string[];
- *     vpcAccountId: string;
- *     zoneAccountId: string;
- *     vpcId: string;
- *   )
- */
 export async function step4(props: CentralEndpointsStep4Props) {
   const { accountStacks, config, outputs, accounts, assumeRole, executionRole } = props;
   const allVpcConfigs = config.getVpcConfigs();
   const zonesConfig = config['global-options'].zones;
-  let globalPrivateHostedZoneIds: string[] = [];
+  const globalPrivateHostedZoneIds: string[] = [];
   const centralZoneConfig = zonesConfig.find(z => z.names);
   const masterAccountKey = config['global-options']['aws-org-master'].account;
   if (centralZoneConfig) {
@@ -50,11 +36,13 @@ export async function step4(props: CentralEndpointsStep4Props) {
     if (centralVpcHostedZones) {
       globalPrivateHostedZoneIds.push(
         ...centralVpcHostedZones
-          .filter(cvh => centralZoneConfig.names.private.includes(cvh.domain))
+          .filter(cvh => centralZoneConfig.names?.private.includes(cvh.domain))
           .map(hz => hz.hostedZoneId),
       );
     }
   }
+
+  const regionAssociationCounter: { [region: string]: number } = {};
 
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
     let seperateGlobalHostedZonesAccount = true;
@@ -83,7 +71,15 @@ export async function step4(props: CentralEndpointsStep4Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, vpcConfig.region);
+    if (regionAssociationCounter[vpcConfig.region]) {
+      regionAssociationCounter[vpcConfig.region] = ++regionAssociationCounter[vpcConfig.region];
+    } else {
+      regionAssociationCounter[vpcConfig.region] = 1;
+    }
+
+    const stackSuffix = `HostedZonesAssc-${Math.ceil(regionAssociationCounter[vpcConfig.region] / 2)}`;
+
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, vpcConfig.region, stackSuffix);
     if (!accountStack) {
       console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
       continue;
