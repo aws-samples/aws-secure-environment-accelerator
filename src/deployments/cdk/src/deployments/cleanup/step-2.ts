@@ -39,7 +39,7 @@ export async function step2(props: Route53CleanupProps) {
   // }
   // const madConfigs = config.getMadConfigs();
   // const madDomains = madConfigs.map(m => m.mad['dns-domain']);
-  
+
   const centralZonesDomain: string[] = config['global-options'].zones.names.private;
 
   for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
