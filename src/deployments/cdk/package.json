@@ -40,6 +40,7 @@
     "@aws-accelerator/custom-resource-accept-tgw-peering-attachment": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-acm-import-certificate": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-cfn-sleep": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-cleanup": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-cloud-trail": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-create-tgw-peering-attachment": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-cur-report-definition": "workspace:^0.0.1",

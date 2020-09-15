@@ -13,3 +13,4 @@ export * from './tgw-create-peering-roles';
 export * from './tgw-accept-peering-roles';
 export * from './logs-metric-filter-role';
 export * from './sns-subscriber-lambda-role';
+export * from './cleanup-role';

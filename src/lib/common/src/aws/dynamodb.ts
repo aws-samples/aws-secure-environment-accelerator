@@ -32,6 +32,18 @@ export class DynamoDB {
     return items;
   }
 
+  async isEmpty(tableName: string): Promise<boolean> {
+    const record = await throttlingBackOff(() =>
+      this.client
+        .scan({
+          TableName: tableName,
+          Limit: 1,
+        })
+        .promise(),
+    );
+    return !record.Count;
+  }
+
   async putItem(props: dynamodb.PutItemInput): Promise<void> {
     await throttlingBackOff(() => this.client.putItem(props).promise());
   }

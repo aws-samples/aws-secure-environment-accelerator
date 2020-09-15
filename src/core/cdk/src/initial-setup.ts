@@ -158,7 +158,7 @@ export namespace InitialSetup {
         functionPayload: {
           'inputConfig.$': '$',
           region: cdk.Aws.REGION,
-          'baseline.$': '$.configuration.baseline',
+          'baseline.$': '$.configuration.baselineOutput.baseline',
         },
         resultPath: 'DISCARD',
       });
@@ -174,8 +174,9 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
+          outputTableName: outputsTable.tableName,
         },
-        resultPath: '$.configuration.baseline',
+        resultPath: '$.configuration.baselineOutput',
       });
 
       const loadLandingZoneConfigurationTask = new CodeTask(this, 'Load Landing Zone Configuration', {
@@ -188,7 +189,9 @@ export namespace InitialSetup {
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
-          'baseline.$': '$.configuration.baseline',
+          'baseline.$': '$.configuration.baselineOutput.baseline',
+          'storeAllOutputs.$': '$.configuration.baselineOutput.storeAllOutputs',
+          'phases.$': '$.configuration.baselineOutput.phases',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
@@ -205,7 +208,9 @@ export namespace InitialSetup {
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
-          'baseline.$': '$.configuration.baseline',
+          'baseline.$': '$.configuration.baselineOutput.baseline',
+          'storeAllOutputs.$': '$.configuration.baselineOutput.storeAllOutputs',
+          'phases.$': '$.configuration.baselineOutput.phases',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
@@ -332,6 +337,8 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'baseline.$': '$.configuration.baseline',
+          'phases.$': '$.configuration.phases',
+          'storeAllOutputs.$': '$.configuration.storeAllOutputs',
           'regions.$': '$.configuration.regions',
           'accounts.$': '$.configuration.accounts',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
@@ -590,6 +597,43 @@ export namespace InitialSetup {
         return storeOutputsTask;
       };
 
+      const storeAllPhaseOutputs = new sfn.Map(this, `Store All Phase Outputs Map`, {
+        itemsPath: '$.phases',
+        resultPath: 'DISCARD',
+        maxConcurrency: 1,
+        parameters: {
+          'accounts.$': '$.accounts',
+          'regions.$': '$.regions',
+          acceleratorPrefix: props.acceleratorPrefix,
+          assumeRoleName: props.stateMachineExecutionRole,
+          outputsTable: outputsTable.tableName,
+          configRepositoryName: props.configRepositoryName,
+          'phaseNumber.$': '$$.Map.Item.Value',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+        },
+      });
+
+      const storeAllOutputsTask = new sfn.Task(this, `Store All Phase Outputs`, {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(storeOutputsStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            'regions.$': '$.regions',
+            acceleratorPrefix: props.acceleratorPrefix,
+            assumeRoleName: props.stateMachineExecutionRole,
+            outputsTable: outputsTable.tableName,
+            configRepositoryName: props.configRepositoryName,
+            'phaseNumber.$': '$.phaseNumber',
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
+      storeAllPhaseOutputs.iterator(storeAllOutputsTask);
+
       // TODO Create separate state machine for deployment
       const deployPhaseRolesTask = createDeploymentTask(-1, false);
       const storePreviousOutput = createStoreOutputTask(-1);
@@ -770,18 +814,25 @@ export namespace InitialSetup {
         .otherwise(commonStep1)
         .afterwards();
 
+      const commonStep2 = deployPhaseRolesTask
+        .next(storePreviousOutput)
+        .next(deployPhase0Task)
+        .next(storePhase0Output)
+        .next(verifyFilesTask)
+        .next(enableConfigChoice);
+
+      const storeAllOutputsChoice = new sfn.Choice(this, 'Store All Phase Outputs?')
+        .when(sfn.Condition.booleanEquals('$.storeAllOutputs', true), storeAllPhaseOutputs.next(commonStep2))
+        .otherwise(commonStep2)
+        .afterwards();
+
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
         .next(installRolesTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
         .next(enableTrustedAccessForServicesTask)
-        .next(deployPhaseRolesTask)
-        .next(storePreviousOutput)
-        .next(deployPhase0Task)
-        .next(storePhase0Output)
-        .next(verifyFilesTask)
-        .next(enableConfigChoice);
+        .next(storeAllOutputsChoice);
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
@@ -805,8 +856,14 @@ export namespace InitialSetup {
         .next(cloudFormationMasterRoleChoice);
 
       const baseLineChoice = new sfn.Choice(this, 'Baseline?')
-        .when(sfn.Condition.stringEquals('$.configuration.baseline', 'LANDING_ZONE'), alzConfigDefinition)
-        .when(sfn.Condition.stringEquals('$.configuration.baseline', 'ORGANIZATIONS'), orgConfigDefinition)
+        .when(
+          sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'LANDING_ZONE'),
+          alzConfigDefinition,
+        )
+        .when(
+          sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'ORGANIZATIONS'),
+          orgConfigDefinition,
+        )
         .otherwise(
           new sfn.Fail(this, 'Fail', {
             cause: 'Invalid Baseline supplied',
