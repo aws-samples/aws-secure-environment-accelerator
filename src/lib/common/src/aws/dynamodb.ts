@@ -33,10 +33,14 @@ export class DynamoDB {
   }
 
   async isEmpty(tableName: string): Promise<boolean> {
-    const record = await throttlingBackOff(() => this.client.scan({
-      TableName: tableName,
-      Limit: 1
-    }).promise());
+    const record = await throttlingBackOff(() =>
+      this.client
+        .scan({
+          TableName: tableName,
+          Limit: 1,
+        })
+        .promise(),
+    );
     return !record.Count;
   }
 
