@@ -5,7 +5,7 @@ export interface GetBaseLineInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
-  outputsTableName: string;
+  outputTableName: string;
   acceleratorVersion?: string;
 }
 
@@ -27,7 +27,7 @@ export const handler = async (input: GetBaseLineInput): Promise<GetBaseelineOutp
   console.log(`Loading configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configFilePath, configRepositoryName, configCommitId, outputsTableName } = input;
+  const { configFilePath, configRepositoryName, configCommitId, outputTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -47,9 +47,11 @@ export const handler = async (input: GetBaseLineInput): Promise<GetBaseelineOutp
     throw new Error(`Both "alz-baseline" and "ct-baseline" can't be true`);
   }
 
+  // Checking whether DynamoDB outputs table is empty or not
+  const storeAllOutputs = await dynamoDB.isEmpty(outputTableName);
   return {
     baseline,
-    storeAllOutputs: await dynamoDB.isEmpty(outputsTableName),
-    phases: [-1, 0, 1, 2, 3, 4, 5],
+    storeAllOutputs,
+    phases: [-1, 0, 1, 2, 3],
   };
 };

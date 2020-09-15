@@ -598,7 +598,7 @@ export namespace InitialSetup {
       };
 
       const storeAllPhaseOutputs = new sfn.Map(this, `Store All Phase Outputs Map`, {
-        itemsPath: `$.phases`,
+        itemsPath: '$.phases',
         resultPath: 'DISCARD',
         maxConcurrency: 1,
         parameters: {
