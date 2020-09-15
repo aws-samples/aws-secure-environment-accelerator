@@ -18,15 +18,6 @@ import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
 
-/**********************************************************
- * DO NOT DEPEND ON OUTPUTS IN PHASE 0                    *
- * SINCE WE ARE CREATING CENTRAL BUCKET IN PHASE-0        *
- * AND FRESH INSTALL WILL FAIL SINCE WE WILL NOT HAVE ANY *
- * OUTPUTS CREATED IN PHASE -1                            *
- * (EXCEPT) ACCOUNTWARMING SINCE WE DON'T NEED OUTPUTS    *
- * ACCOUNTWARMING IN FIRST RUN                            *
- **********************************************************/
-
 /**
  * This is the main entry point to deploy phase 0.
  *

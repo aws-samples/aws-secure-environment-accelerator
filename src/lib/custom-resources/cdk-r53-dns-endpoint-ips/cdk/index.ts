@@ -27,7 +27,7 @@ export class R53DnsEndpointIps extends cdk.Construct {
     };
 
     this.resource = new custom.AwsCustomResource(this, 'Resource', {
-      resourceType: 'Custom::LogResourcePolicy',
+      resourceType: 'Custom::GetResolverEndpointIps',
       onCreate: onCreateOrUpdate,
       onUpdate: onCreateOrUpdate,
       policy: custom.AwsCustomResourcePolicy.fromStatements([

@@ -1,7 +1,7 @@
 import * as cdk from '@aws-cdk/core';
 import * as r53Resolver from '@aws-cdk/aws-route53resolver';
 
-export interface Route53ResolverRuleProps {
+export interface ResolverRuleProps {
   vpcId: string;
   name: string;
   domain: string;
@@ -13,10 +13,10 @@ export interface Route53ResolverRuleProps {
 /**
  * Auxiliary construct that creates a Route53 resolver rule for the and associates it with the given VPC.
  */
-export class Route53ResolverRule extends cdk.Construct {
+export class ResolverRule extends cdk.Construct {
   private readonly rule: r53Resolver.CfnResolverRule;
 
-  constructor(parent: cdk.Construct, id: string, props: Route53ResolverRuleProps) {
+  constructor(parent: cdk.Construct, id: string, props: ResolverRuleProps) {
     super(parent, id);
     const targetIps = props.ipAddresses.map(ip => ({
       ip,
