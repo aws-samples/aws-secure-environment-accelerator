@@ -39,7 +39,7 @@ export class ResolverEndpoint extends cdk.Construct {
     const securityGroup = new ec2.CfnSecurityGroup(this, `InboundSecurityGroup`, {
       groupDescription: 'Security Group for Public Hosted Zone Inbound EndpointRoute53',
       vpcId: this.props.vpcId,
-      groupName: `${this.props.name}_inbound_sg`,
+      groupName: `${this.props.name}_inbound_endpoint_sg`,
     });
 
     const ipAddresses = this.props.subnetIds.map(subnetId => ({
@@ -76,7 +76,7 @@ export class ResolverEndpoint extends cdk.Construct {
     const securityGroup = new ec2.CfnSecurityGroup(this, `OutboundSecurityGroup`, {
       groupDescription: 'Security Group for Public Hosted Zone Outbound EndpointRoute53',
       vpcId: this.props.vpcId,
-      groupName: `${this.props.name}_outbound_sg`,
+      groupName: `${this.props.name}_outbound_endpoint_sg`,
     });
 
     const ipAddresses = this.props.subnetIds.map(subnetId => ({
