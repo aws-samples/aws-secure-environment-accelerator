@@ -27,10 +27,22 @@ import * as guardDutyDeployment from '../deployments/guardduty';
 import * as snsDeployment from '../deployments/sns';
 
 /**
- * This is the main entry point to deploy phase 2.
- *
- * The following resources are deployed in phase 2:
- *   - Creates Peering Connection
+ * This is the main entry point to deploy phase 2
+ * 
+ * - Create CloudTrail in Master account
+ * - Create VPC Peering Connection
+ * - Create Security Groups for shared VPC in sub accounts
+ * - Setup Security Hub in Security Account
+ * - Setup Cross Account CloudWatch logs sharing by creating roles in sub accounts
+ * - Enable VPC FlowLogs
+ * - Create Active Directory (MAD)
+ * - Create Firewall clusters
+ * - Create Firewall Management instance
+ * - Create Transit Gateway Routes, Association and Propagation
+ * - Enable Macie in Security account and Create Members, Update Config
+ * - GuardDuty - Add existing Org accounts as members and allow new accounts to be members and Publish
+ * - Create SNS Topics in Log Account
+ * - TGW Peering Attachments
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {

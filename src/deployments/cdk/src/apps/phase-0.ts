@@ -31,9 +31,28 @@ import * as rsyslogDeployment from '../deployments/rsyslog';
  * This is the main entry point to deploy phase 0.
  *
  * The following resources are deployed in phase 0:
- *   - Log archive bucket
- *   - Copy of the central bucket
+ * - Performs Account Warming if required
+ * - Sets IAM Password Policy for NonALZ Deployment
+ * - Defaults.step1
+ *   - Creates a Central Bucket in Master account.
+ *   - Creates a Central Log Bucket in Log-Service account.
+ *   - Create KMS encryption key for Default EBS Encryption.
+ *   - Creates a AES bucket that will be used to store ALB access logs in Log-Services Account.
+ * - Upload Atifacts to Central Bucket
+ * - KMS key for managing secrets
+ * - Create secrets that will later be used for IAM user creation.
+ * - Create Roles for Config Recorder and Aggregator for NonALZ Deployment
+ * - Create MAD Secrets (AD User Passwords)
+ * - Create Org Access Analyzer
+ * - Update Central Log Bucket Policy with respect to GuardDuty
+ * - Create Auto scaling service-linked role and Get ImageId of MAD, Rsyslog instance and store in outputs
+ * - Create a firewall EIP in every availability zone
+ * - Setup Budgets in Master Account
+ * - Create `CloudWatch-CrossAccountSharing-ListAccountsRole` for CloudWatch Cross account logs in Maste Account
+ * - Create Transit Gateway and Share to respective accounts
+ * - Create Roles required for CloudWatch Central Logging to Log Account
  */
+
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterAccountId = getAccountId(accounts, masterAccountKey);
