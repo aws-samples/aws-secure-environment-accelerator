@@ -41,6 +41,8 @@ export class RsysLogAutoScalingGroup extends cdk.Construct {
           },
         },
       ],
+      centralBucketName: props.centralBucketName,
+      logGroupName: props.logGroupName,
     });
 
     const autoScalingGroupSize = props.desiredInstanceHosts;
