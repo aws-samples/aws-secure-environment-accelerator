@@ -14,7 +14,13 @@ export interface ConfigurationOrganizationalUnit {
   ouName: string;
 }
 
-export const handler = async (input: LoadConfigurationInput): Promise<string> => {
+export interface GetBaseelineOutput {
+  baseline: string;
+  storeAllOutputs: boolean;
+  phases: number[];
+}
+
+export const handler = async (input: LoadConfigurationInput): Promise<GetBaseelineOutput> => {
   console.log(`Loading configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
@@ -37,5 +43,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<string> =>
   } else {
     throw new Error(`Both "alz-baseline" and "ct-baseline" can't be true`);
   }
-  return baseline;
+  return {
+    baseline,
+    storeAllOutputs: true,
+    phases: [-1, 0, 1, 2, 3, 4, 5],
+  };
 };
