@@ -1,10 +1,11 @@
-import { arrayEqual } from '@aws-accelerator/common/src/util/arrays';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
-export interface LoadConfigurationInput {
+export interface GetBaseLineInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
+  outputsTableName: string;
   acceleratorVersion?: string;
 }
 
@@ -20,11 +21,13 @@ export interface GetBaseelineOutput {
   phases: number[];
 }
 
-export const handler = async (input: LoadConfigurationInput): Promise<GetBaseelineOutput> => {
+const dynamoDB = new DynamoDB();
+
+export const handler = async (input: GetBaseLineInput): Promise<GetBaseelineOutput> => {
   console.log(`Loading configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configFilePath, configRepositoryName, configCommitId } = input;
+  const { configFilePath, configRepositoryName, configCommitId, outputsTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -43,9 +46,10 @@ export const handler = async (input: LoadConfigurationInput): Promise<GetBaseeli
   } else {
     throw new Error(`Both "alz-baseline" and "ct-baseline" can't be true`);
   }
+
   return {
     baseline,
-    storeAllOutputs: true,
+    storeAllOutputs: await dynamoDB.isEmpty(outputsTableName),
     phases: [-1, 0, 1, 2, 3, 4, 5],
   };
 };
