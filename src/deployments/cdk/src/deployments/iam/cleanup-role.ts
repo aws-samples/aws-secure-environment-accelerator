@@ -37,6 +37,7 @@ export async function createResourceCleanupRole(stack: AccountStack) {
         'route53resolver:ListResolverRuleAssociations',
         'route53resolver:DisassociateResolverRule',
         'route53resolver:DeleteResolverRule',
+        'ec2:DescribeVpcs',
       ],
       resources: ['*'],
     }),

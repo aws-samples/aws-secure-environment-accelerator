@@ -53,14 +53,18 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     for (const ruleId of resolverRuleIds || []) {
       let vpcIds = await getVpcIds(ruleId!);
       for (const vpcId of vpcIds || []) {
-        await throttlingBackOff(() =>
-          route53Resolver
-            .disassociateResolverRule({
-              ResolverRuleId: ruleId!,
-              VPCId: vpcId!,
-            })
-            .promise(),
-        );
+        try {
+          await throttlingBackOff(() =>
+            route53Resolver
+              .disassociateResolverRule({
+                ResolverRuleId: ruleId!,
+                VPCId: vpcId!,
+              })
+              .promise(),
+          );
+        } catch (error) {
+          console.warn(error);
+        }
       }
 
       do {
@@ -70,13 +74,17 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       } while ((vpcIds || []).length > 0);
 
       // Deleting resolver rule after disassociation of VPC Ids
-      await throttlingBackOff(() =>
-        route53Resolver
-          .deleteResolverRule({
-            ResolverRuleId: ruleId!,
-          })
-          .promise(),
-      );
+      try {
+        await throttlingBackOff(() =>
+          route53Resolver
+            .deleteResolverRule({
+              ResolverRuleId: ruleId!,
+            })
+            .promise(),
+        );
+      } catch (error) {
+        console.warn(error);
+      }
     }
   }
 
@@ -93,49 +101,61 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     const hostedZoneIds = privateHostedZone.HostedZones.filter(p => p.Name === domain);
 
     for (const zoneId of hostedZoneIds) {
-      await throttlingBackOff(() =>
-        route53
-          .deleteHostedZone({
-            Id: zoneId.Id,
-          })
-          .promise(),
-      );
+      try {
+        await throttlingBackOff(() =>
+          route53
+            .deleteHostedZone({
+              Id: zoneId.Id,
+            })
+            .promise(),
+        );
+      } catch (error) {
+        console.warn(error);
+      }
     }
   }
 }
 
 async function getVpcIds(resolverRuleId: string) {
   // Get the vpc associations for the resolver
-  const associations = await throttlingBackOff(() =>
-    route53Resolver
-      .listResolverRuleAssociations({
-        Filters: [
-          {
-            Name: 'ResolverRuleId',
-            Values: [resolverRuleId],
-          },
-        ],
-      })
-      .promise(),
-  );
+  try {
+    const associations = await throttlingBackOff(() =>
+      route53Resolver
+        .listResolverRuleAssociations({
+          Filters: [
+            {
+              Name: 'ResolverRuleId',
+              Values: [resolverRuleId],
+            },
+          ],
+        })
+        .promise(),
+    );
 
-  const vpcIds = associations.ResolverRuleAssociations?.map(a => a.VPCId);
-  return vpcIds;
+    const vpcIds = associations.ResolverRuleAssociations?.map(a => a.VPCId);
+    return vpcIds;
+  } catch (error) {
+    console.warn(error);
+  }
 }
 
 async function getResolverRuleIds(domain: string) {
   // Get the resolver rule details for the domain
-  const resolverRule = await throttlingBackOff(() =>
-    route53Resolver
-      .listResolverRules({
-        Filters: [
-          {
-            Name: 'DomainName',
-            Values: [domain],
-          },
-        ],
-      })
-      .promise(),
-  );
-  return resolverRule.ResolverRules?.map(r => r.Id);
+  try {
+    const resolverRule = await throttlingBackOff(() =>
+      route53Resolver
+        .listResolverRules({
+          Filters: [
+            {
+              Name: 'DomainName',
+              Values: [domain],
+            },
+          ],
+        })
+        .promise(),
+    );
+    return resolverRule.ResolverRules?.map(r => r.Id);
+  } catch (error) {
+    console.warn(error);
+  }
 }

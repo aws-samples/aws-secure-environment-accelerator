@@ -32,10 +32,15 @@ export async function step2(props: Route53CleanupProps) {
   }
 
   // TODO change based on latest config
-  // const centralZonesAccount = config['global-options'].zones.account;
-  const centralZonesDomain = config['global-options'].zones.names.private;
-
-  // TODO get MAD domains
+  // const centralVpcZoneConfig = config['global-options'].zones.find(zc => zc.names);
+  // const centralZonesDomain: string[] = [];
+  // if (centralVpcZoneConfig) {
+  //   centralZonesDomain.push(...(centralVpcZoneConfig.names?.private || []));
+  // }
+  // const madConfigs = config.getMadConfigs();
+  // const madDomains = madConfigs.map(m => m.mad['dns-domain']);
+  
+  const centralZonesDomain: string[] = config['global-options'].zones.names.private;
 
   for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
     const resolverRuleDomains: string[] = [];
@@ -45,8 +50,9 @@ export async function step2(props: Route53CleanupProps) {
       continue;
     }
 
-    const rulesDomain = vpcConfig['on-premise-rules']?.map(r => r.zone) || [];
-    resolverRuleDomains.push(...(rulesDomain as string[]));
+    const rulesDomain: string[] = vpcConfig['on-premise-rules']?.map(r => r.zone) || [];
+    // TODO Add MAD Domains also here
+    resolverRuleDomains.push(...rulesDomain);
 
     resolverRuleDomains.push(...centralZonesDomain);
     privateHostedZones.push(...centralZonesDomain.map(z => `${z}.`));
@@ -61,7 +67,7 @@ export async function step2(props: Route53CleanupProps) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!accountStack) {
       console.warn(`Cannot find account stack ${accountKey}`);
       continue;
@@ -69,7 +75,7 @@ export async function step2(props: Route53CleanupProps) {
 
     console.log('resolverRuleDomains', accountKey, resolverRuleDomains);
     console.log('privateHostedZones', accountKey, privateHostedZones);
-    new ResourceCleanup(accountStack, `Route53Cleanup${accountKey}`, {
+    new ResourceCleanup(accountStack, `Route53Cleanup${accountKey}-${vpcConfig.name}-${vpcConfig.region}`, {
       rulesDomainNames: resolverRuleDomains,
       phzDomainNames: privateHostedZones,
       roleArn: cleanupRoleOutput.roleArn,
