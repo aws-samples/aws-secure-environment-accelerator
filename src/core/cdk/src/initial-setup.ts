@@ -829,9 +829,9 @@ export namespace InitialSetup {
         .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), createConfigRecordersTask.next(commonStep1))
         .otherwise(commonStep1)
         .afterwards();
-      
-      const commonStep2 = deployPhaseRolesTask.
-        next(storePreviousOutput)
+
+      const commonStep2 = deployPhaseRolesTask
+        .next(storePreviousOutput)
         .next(deployPhase0Task)
         .next(storePhase0Output)
         .next(verifyFilesTask)
@@ -841,14 +841,14 @@ export namespace InitialSetup {
         .when(sfn.Condition.booleanEquals('$.storeAllOutputs', true), storeAllPhaseOutputs.next(commonStep2))
         .otherwise(commonStep2)
         .afterwards();
-      
+
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
         .next(installRolesTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
         .next(enableTrustedAccessForServicesTask)
-        .next(storeAllOutputsChoice)
+        .next(storeAllOutputsChoice);
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
@@ -872,8 +872,14 @@ export namespace InitialSetup {
         .next(cloudFormationMasterRoleChoice);
 
       const baseLineChoice = new sfn.Choice(this, 'Baseline?')
-        .when(sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'LANDING_ZONE'), alzConfigDefinition)
-        .when(sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'ORGANIZATIONS'), orgConfigDefinition)
+        .when(
+          sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'LANDING_ZONE'),
+          alzConfigDefinition,
+        )
+        .when(
+          sfn.Condition.stringEquals('$.configuration.baselineOutput.baseline', 'ORGANIZATIONS'),
+          orgConfigDefinition,
+        )
         .otherwise(
           new sfn.Fail(this, 'Fail', {
             cause: 'Invalid Baseline supplied',
