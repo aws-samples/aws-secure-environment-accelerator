@@ -28,7 +28,7 @@ import * as snsDeployment from '../deployments/sns';
 
 /**
  * This is the main entry point to deploy phase 2
- * 
+ *
  * - Create CloudTrail in Master account
  * - Create VPC Peering Connection
  * - Create Security Groups for shared VPC in sub accounts
