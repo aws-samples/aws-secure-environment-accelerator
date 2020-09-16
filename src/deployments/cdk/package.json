@@ -81,6 +81,8 @@
     "@aws-accelerator/custom-resource-ssm-session-manager-document": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-vpc-default-security-group": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-associate-hosted-zones": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-associate-resolver-rules": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-create-resolver-rule": "workspace:^0.0.1",
     "@aws-cdk/aws-accessanalyzer": "1.46.0",
     "@aws-cdk/aws-autoscaling": "1.46.0",
     "@aws-cdk/aws-budgets": "1.46.0",

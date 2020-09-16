@@ -15,7 +15,6 @@ export interface Context {
   acceleratorStateMachineName: string;
   configRootFilePath: string;
   installerVersion: string;
-  resourcesTableName: string;
 }
 
 export function loadContext(): Context {
@@ -42,6 +41,5 @@ export function loadContext(): Context {
     acceleratorStateMachineName: process.env.ACCELERATOR_STATE_MACHINE_NAME!,
     configRootFilePath: process.env.CONFIG_ROOT_FILE_PATH!,
     installerVersion: process.env.INSTALLER_VERSION!,
-    resourcesTableName: process.env.STACK_RESOURCES_TABLE_NAME!,
   };
 }

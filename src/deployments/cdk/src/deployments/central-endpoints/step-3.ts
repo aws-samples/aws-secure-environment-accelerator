@@ -1,8 +1,16 @@
 import { AccountStacks } from '../../common/account-stacks';
 import { getStackJsonOutput, ResolversOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { AssociateResolverRules } from '@aws-accelerator/custom-resource-associate-resolver-rules';
 import * as c from '@aws-accelerator/common-config';
 import * as route53resolver from '@aws-cdk/aws-route53resolver';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
+import { StaticResourcesOutput, StaticResourcesOutputFinder } from '@aws-accelerator/common-outputs/src/static-resource';
+
+
+// Changing this will result to redeploy most of the stack
+const MAX_RESOURCES_IN_STACK = 2;
+const RESOURCE_TYPE = 'ResolverRuleAssociation';
 
 export interface CentralEndpointsStep3Props {
   accountStacks: AccountStacks;
@@ -17,6 +25,20 @@ export async function step3(props: CentralEndpointsStep3Props) {
   const { accountStacks, config, outputs } = props;
   const allVpcConfigs = config.getVpcConfigs();
   const accountRulesCounter: { [accountKey: string]: number } = {};
+  const supportedregions = config['global-options']['supported-regions'];
+  
+  const allStaticResources: StaticResourcesOutput[] = StaticResourcesOutputFinder.findAll({
+    outputs,
+  }).filter(sr => sr.resourceType === RESOURCE_TYPE);
+  
+  const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[]} = {};
+  const accountRegionExistingResources: { [accountKey: string]: {
+    [region: string]: string[]
+  }} = {};
+  const accountRegionMaxSuffix: { [accountKey: string]: {
+    [region: string]: number
+  }} = {};
+
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
     const centralPhzConfig = config['global-options'].zones.find(zc => zc.region === vpcConfig.region);
     if (!vpcConfig['use-central-endpoints']) {
@@ -84,7 +106,7 @@ export async function step3(props: CentralEndpointsStep3Props) {
     }
 
     // Includes max of 50 VPCs, since we need 3 resource per VPC.
-    const stackSuffix = `RulesAssc-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 50)}`;
+    const stackSuffix = `RulesAssc-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 150)}`;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
     if (!accountStack) {
@@ -92,12 +114,20 @@ export async function step3(props: CentralEndpointsStep3Props) {
       continue;
     }
 
-    const ruleIds = [...resolverRegionoutputs.rules?.madRules!, ...resolverRegionoutputs.rules?.onPremRules!];
-    for (const ruleId of ruleIds) {
-      new route53resolver.CfnResolverRuleAssociation(accountStack, `Rule-Association-${ruleId}-${vpcConfig.name}`, {
-        resolverRuleId: ruleId,
-        vpcId: vpcOutput.vpcId,
-      });
+    const roleOutput = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey,
+      roleKey: 'CentralEndpointDeployment',
+    });
+    if (!roleOutput) {
+      continue;
     }
+
+    const ruleIds = [...resolverRegionoutputs.rules?.madRules!, ...resolverRegionoutputs.rules?.onPremRules!];
+    new AssociateResolverRules(accountStack, `Rule-Association-${vpcConfig.name}`, {
+      resolverRuleIds: ruleIds,
+      roleArn: roleOutput.roleArn,
+      vpcId: vpcOutput.vpcId,
+    });
   }
 }

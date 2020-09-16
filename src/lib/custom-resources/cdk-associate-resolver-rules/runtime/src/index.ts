@@ -1,0 +1,120 @@
+import * as AWS from 'aws-sdk';
+AWS.config.logger = console;
+import {
+  CloudFormationCustomResourceEvent,
+  CloudFormationCustomResourceDeleteEvent,
+  CloudFormationCustomResourceCreateEvent,
+  CloudFormationCustomResourceUpdateEvent,
+} from 'aws-lambda';
+import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
+import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
+
+export interface HandlerProperties {
+  vpcId: string;
+  resolverRuleIds: string[];
+}
+
+const route53Resolver = new AWS.Route53Resolver();
+
+export const handler = errorHandler(onEvent);
+
+async function onEvent(event: CloudFormationCustomResourceEvent) {
+  console.log(`Associating HostedZones to VPC..`);
+  console.log(JSON.stringify(event, null, 2));
+
+  // tslint:disable-next-line: switch-default
+  switch (event.RequestType) {
+    case 'Create':
+      return onCreate(event);
+    case 'Update':
+      return onUpdate(event);
+    case 'Delete':
+      return onDelete(event);
+  }
+}
+
+async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { resolverRuleIds, vpcId } = properties;
+  for (const ruleId of resolverRuleIds) {
+    try {
+      await throttlingBackOff(() =>
+        route53Resolver
+          .associateResolverRule({
+            ResolverRuleId: ruleId,
+            VPCId: vpcId,
+          })
+          .promise(),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  return {
+    physicalResourceId: `AssociateResolverRules-${vpcId}`,
+  };
+}
+
+async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { resolverRuleIds, vpcId } = properties;
+
+  const oldProperties = (event.OldResourceProperties as unknown) as HandlerProperties;
+  const newAssociations = resolverRuleIds.filter(rule => !oldProperties.resolverRuleIds.includes(rule));
+  const removeAssociations = oldProperties.resolverRuleIds.filter(rule => !resolverRuleIds.includes(rule));
+  for (const ruleId of newAssociations) {
+    try {
+      await throttlingBackOff(() =>
+        route53Resolver
+          .associateResolverRule({
+            ResolverRuleId: ruleId,
+            VPCId: vpcId,
+          })
+          .promise(),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  for (const ruleId of removeAssociations) {
+    try {
+      await throttlingBackOff(() =>
+        route53Resolver
+          .disassociateResolverRule({
+            ResolverRuleId: ruleId,
+            VPCId: vpcId,
+          })
+          .promise(),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  return {
+    physicalResourceId: `AssociateResolverRules-${vpcId}`,
+  };
+}
+
+async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  console.log(`Deleting Log Group Metric filter...`);
+  console.log(JSON.stringify(event, null, 2));
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { resolverRuleIds, vpcId } = properties;
+
+  for (const ruleId of resolverRuleIds) {
+    try {
+      await throttlingBackOff(() =>
+        route53Resolver
+          .disassociateResolverRule({
+            ResolverRuleId: ruleId,
+            VPCId: vpcId,
+          })
+          .promise(),
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+}

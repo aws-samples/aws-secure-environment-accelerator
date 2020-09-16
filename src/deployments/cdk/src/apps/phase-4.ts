@@ -43,7 +43,6 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
   /**
    * Associate Hosted Zones to VPC
    */
-  const staticResources = await loadStaticResources(context.resourcesTableName);
   await centralEndpoints.step4({
     accountStacks,
     config: acceleratorConfig,
@@ -51,8 +50,5 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     accounts,
     executionRole: context.acceleratorPipelineRoleName,
     assumeRole: context.acceleratorExecutionRoleName,
-    staticResources,
-    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
-    resourcesTableName: context.resourcesTableName,
   });
 }

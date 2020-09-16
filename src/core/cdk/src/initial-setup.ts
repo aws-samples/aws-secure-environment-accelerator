@@ -90,18 +90,6 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
-      const resourceTable = new dynamodb.Table(this, 'Resources', {
-        tableName: createName({
-          name: 'Resources',
-          suffixLength: 0,
-        }),
-        partitionKey: {
-          name: 'id',
-          type: dynamodb.AttributeType.STRING,
-        },
-        encryption: dynamodb.TableEncryption.DEFAULT,
-      });
-
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);
@@ -564,7 +552,6 @@ export namespace InitialSetup {
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,
           STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
-          STACK_RESOURCES_TABLE_NAME: resourceTable.tableName,
         };
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
           // tslint:disable-next-line: deprecation
