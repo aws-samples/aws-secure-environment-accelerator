@@ -87,8 +87,12 @@ export async function step2(props: CentralEndpointsStep2Props) {
     }
 
     let stackSuffix: string;
-    if (!!zonesConfig.find(zc => zc.account === accountKey && zc["resolver-vpc"] === vpcConfig.name && zc.region === vpcConfig.region)) {
-      stackSuffix= `EndpointsRules-${vpcConfig.name}`;
+    if (
+      !!zonesConfig.find(
+        zc => zc.account === accountKey && zc['resolver-vpc'] === vpcConfig.name && zc.region === vpcConfig.region,
+      )
+    ) {
+      stackSuffix = `EndpointsRules-${vpcConfig.name}`;
     } else {
       if (accountRulesCounter[`${accountKey}-${vpcConfig.region}`]) {
         accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = ++accountRulesCounter[
@@ -98,7 +102,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
         accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = 1;
       }
       // Includes max of 10 VPCs, since we need max 8 resources for one VPC
-      stackSuffix= `EndpointsRules-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 10)}`;
+      stackSuffix = `EndpointsRules-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 10)}`;
     }
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
@@ -136,14 +140,18 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
       // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
       for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
-        const rule = new CreateResolverRule(accountStack, `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`, {
-          domainName: onPremRuleConfig.zone,
-          resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
-          roleArn: roleOutput.roleArn,
-          targetIps: onPremRuleConfig['outbound-ips'],
-          vpcId: vpcOutput.vpcId,
-          name: `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`,
-        });
+        const rule = new CreateResolverRule(
+          accountStack,
+          `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`,
+          {
+            domainName: onPremRuleConfig.zone,
+            resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
+            roleArn: roleOutput.roleArn,
+            targetIps: onPremRuleConfig['outbound-ips'],
+            vpcId: vpcOutput.vpcId,
+            name: `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`,
+          },
+        );
         rule.node.addDependency(r53ResolverEndpoints);
         onPremRules.push(rule.ruleId);
       }
@@ -167,15 +175,19 @@ export async function step2(props: CentralEndpointsStep2Props) {
           continue;
         }
         madIPs = madOutput[0].dnsIps.split(',');
-        
-        const madRule = new CreateResolverRule(accountStack, `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-phz-rule`, {
-          domainName: mad['dns-domain'],
-          resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
-          roleArn: roleOutput.roleArn,
-          targetIps: madIPs,
-          vpcId: vpcOutput.vpcId,
-          name: `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-mad-phz-rule`,
-        });
+
+        const madRule = new CreateResolverRule(
+          accountStack,
+          `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-phz-rule`,
+          {
+            domainName: mad['dns-domain'],
+            resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
+            roleArn: roleOutput.roleArn,
+            targetIps: madIPs,
+            vpcId: vpcOutput.vpcId,
+            name: `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-mad-phz-rule`,
+          },
+        );
         madRule.node.addDependency(r53ResolverEndpoints.outboundEndpoint!);
         madRules.push(madRule.ruleId);
       }

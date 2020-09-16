@@ -5,8 +5,10 @@ import * as c from '@aws-accelerator/common-config';
 import * as route53resolver from '@aws-cdk/aws-route53resolver';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { StaticResourcesOutput, StaticResourcesOutputFinder } from '@aws-accelerator/common-outputs/src/static-resource';
-
+import {
+  StaticResourcesOutput,
+  StaticResourcesOutputFinder,
+} from '@aws-accelerator/common-outputs/src/static-resource';
 
 // Changing this will result to redeploy most of the stack
 const MAX_RESOURCES_IN_STACK = 2;
@@ -26,18 +28,22 @@ export async function step3(props: CentralEndpointsStep3Props) {
   const allVpcConfigs = config.getVpcConfigs();
   const accountRulesCounter: { [accountKey: string]: number } = {};
   const supportedregions = config['global-options']['supported-regions'];
-  
+
   const allStaticResources: StaticResourcesOutput[] = StaticResourcesOutputFinder.findAll({
     outputs,
   }).filter(sr => sr.resourceType === RESOURCE_TYPE);
-  
-  const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[]} = {};
-  const accountRegionExistingResources: { [accountKey: string]: {
-    [region: string]: string[]
-  }} = {};
-  const accountRegionMaxSuffix: { [accountKey: string]: {
-    [region: string]: number
-  }} = {};
+
+  const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[] } = {};
+  const accountRegionExistingResources: {
+    [accountKey: string]: {
+      [region: string]: string[];
+    };
+  } = {};
+  const accountRegionMaxSuffix: {
+    [accountKey: string]: {
+      [region: string]: number;
+    };
+  } = {};
 
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
     const centralPhzConfig = config['global-options'].zones.find(zc => zc.region === vpcConfig.region);

@@ -39,13 +39,14 @@ export async function centralEndpointDeploymentRole(stack: AccountStack) {
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: [
-      "route53resolver:ListResolverRules",
-      "ec2:DescribeVpcs",
-      "route53resolver:DeleteResolverRule",
-      "route53resolver:AssociateResolverRule",
-      "route53resolver:ListResolverRuleAssociations",
-      "route53resolver:CreateResolverRule",
-      "route53resolver:DisassociateResolverRule"],
+        'route53resolver:ListResolverRules',
+        'ec2:DescribeVpcs',
+        'route53resolver:DeleteResolverRule',
+        'route53resolver:AssociateResolverRule',
+        'route53resolver:ListResolverRuleAssociations',
+        'route53resolver:CreateResolverRule',
+        'route53resolver:DisassociateResolverRule',
+      ],
       resources: ['*'],
     }),
   );

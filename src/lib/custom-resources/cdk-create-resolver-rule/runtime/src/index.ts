@@ -50,7 +50,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
           RuleType: 'FORWARD',
           ResolverEndpointId: resolverEndpointId,
           TargetIps: targetIpParams,
-          Name: name
+          Name: name,
         })
         .promise(),
     );
@@ -76,7 +76,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     physicalResourceId: `CreateResolverRule-${resolverRuleId!}`,
     data: {
       RuleId: resolverRuleId,
-    }
+    },
   };
 }
 
@@ -86,24 +86,34 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { resolverEndpointId, name } = properties;
   let maxRetries = 20;
-  const resolverRule = await throttlingBackOff(() => route53Resolver.listResolverRules({
-    Filters: [{
-      Name: 'ResolverEndpointId',
-      Values: [resolverEndpointId]
-    },
-    {
-      Name: 'Name',
-      Values: [name]
-    }]
-  }).promise());
+  const resolverRule = await throttlingBackOff(() =>
+    route53Resolver
+      .listResolverRules({
+        Filters: [
+          {
+            Name: 'ResolverEndpointId',
+            Values: [resolverEndpointId],
+          },
+          {
+            Name: 'Name',
+            Values: [name],
+          },
+        ],
+      })
+      .promise(),
+  );
   for (const rule of resolverRule.ResolverRules! || []) {
     let associatedVpcs = await getVpcIds(rule.Id!);
 
     for (const vpcId of associatedVpcs! || []) {
-      await throttlingBackOff(() => route53Resolver.disassociateResolverRule({
-        ResolverRuleId: rule.Id!,
-        VPCId: vpcId!,
-      }).promise());
+      await throttlingBackOff(() =>
+        route53Resolver
+          .disassociateResolverRule({
+            ResolverRuleId: rule.Id!,
+            VPCId: vpcId!,
+          })
+          .promise(),
+      );
     }
 
     do {
@@ -112,9 +122,13 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       await delay(5000);
     } while ((associatedVpcs || []).length > 0 && maxRetries-- > 0);
 
-    await throttlingBackOff(() => route53Resolver.deleteResolverRule({
-      ResolverRuleId: rule.Id!,
-    }).promise());
+    await throttlingBackOff(() =>
+      route53Resolver
+        .deleteResolverRule({
+          ResolverRuleId: rule.Id!,
+        })
+        .promise(),
+    );
   }
 }
 
