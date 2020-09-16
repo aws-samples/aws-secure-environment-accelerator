@@ -148,7 +148,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
           vpcId: vpcOutput.vpcId,
           name: createRuleName(`${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`),
         });
-        rule.node.addDependency(r53ResolverEndpoints);
+        rule.node.addDependency(r53ResolverEndpoints.outboundEndpoint!);
         onPremRules.push(rule.ruleId);
       }
       resolverRulesOutput.onPremRules = onPremRules;
