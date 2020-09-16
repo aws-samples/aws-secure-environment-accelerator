@@ -6,6 +6,9 @@ import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/host
 import { Account, getAccountId } from '../../utils/accounts';
 import { AssociateHostedZones } from '@aws-accelerator/custom-resource-associate-hosted-zones';
 import * as cdk from '@aws-cdk/core';
+import { StaticResource } from '../../utils/static-resources';
+import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
 export interface CentralEndpointsStep4Props {
   accountStacks: AccountStacks;
@@ -14,13 +17,26 @@ export interface CentralEndpointsStep4Props {
   accounts: Account[];
   executionRole: string;
   assumeRole: string;
+  staticResources: StaticResource[];
+  acceleratorExecutionRoleName: string;
+  resourcesTableName: string;
 }
 
 /**
  *  Associate VPC to Hosted Zones to Vpcs based on use-central-endpoints
  */
 export async function step4(props: CentralEndpointsStep4Props) {
-  const { accountStacks, config, outputs, accounts, assumeRole, executionRole } = props;
+  const {
+    accountStacks,
+    config,
+    outputs,
+    accounts,
+    assumeRole,
+    executionRole,
+    staticResources,
+    acceleratorExecutionRoleName,
+    resourcesTableName,
+  } = props;
   const allVpcConfigs = config.getVpcConfigs();
   const zonesConfig = config['global-options'].zones;
   const globalPrivateHostedZoneIds: string[] = [];
@@ -42,7 +58,33 @@ export async function step4(props: CentralEndpointsStep4Props) {
     }
   }
 
-  const regionAssociationCounter: { [region: string]: number } = {};
+  const masterAccountId = getAccountId(accounts, masterAccountKey)!;
+
+  const sts = new STS();
+  const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(
+    masterAccountId,
+    acceleratorExecutionRoleName,
+  );
+
+  const dynamodb = new DynamoDB(masterAcctCredentials);
+
+  const existingRegionResources: { [region: string]: string[] } = {};
+  const updateStackResources: StaticResource[] = [];
+  const supportedregions = config['global-options']['supported-regions'];
+
+  const regionalMaxSuffix: { [region: string]: number } = {};
+  supportedregions.forEach(reg => {
+    const localSuffix = staticResources
+      .filter(sr => sr.resourceType === 'HostedZoneAssociation' && sr.region === reg)
+      .flatMap(r => r.suffix);
+    regionalMaxSuffix[reg] = localSuffix.length === 0 ? 1 : Math.max(...localSuffix);
+  });
+
+  supportedregions.forEach(reg => {
+    existingRegionResources[reg] = staticResources
+      .filter(sr => sr.region === reg && sr.resourceType === 'HostedZoneAssociation')
+      .flatMap(r => r.resources);
+  });
 
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
     let seperateGlobalHostedZonesAccount = true;
@@ -71,14 +113,37 @@ export async function step4(props: CentralEndpointsStep4Props) {
       continue;
     }
 
-    if (regionAssociationCounter[vpcConfig.region]) {
-      regionAssociationCounter[vpcConfig.region] = ++regionAssociationCounter[vpcConfig.region];
-    } else {
-      regionAssociationCounter[vpcConfig.region] = 1;
+    let suffix = regionalMaxSuffix[vpcConfig.region];
+    const existingResources = staticResources.find(
+      sr =>
+        sr.region === vpcConfig.region &&
+        sr.suffix === suffix &&
+        sr.resourceType === `HostedZoneAssociation` &&
+        sr.accountKey === masterAccountKey,
+    );
+    if (existingResources && existingResources.resources.length >= 2) {
+      regionalMaxSuffix[vpcConfig.region] = ++suffix;
     }
 
-    // Includes max of 190 VPCs since we need 1 resource per VPC and 3 for Custom Resource.
-    const stackSuffix = `HostedZonesAssc-${Math.ceil(regionAssociationCounter[vpcConfig.region] / 190)}`;
+    let stackSuffix = `HostedZonesAssc-${suffix}`;
+    let updateDbRequired = true;
+    const constructName = `AssociateHostedZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`;
+    const phzConstructName = `AssociatePrivateZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`;
+    if (existingRegionResources[vpcConfig.region].includes(constructName)) {
+      updateDbRequired = false;
+      const regionStacks = staticResources.filter(
+        sr =>
+          sr.region === vpcConfig.region &&
+          sr.resourceType === 'HostedZoneAssociation' &&
+          sr.accountKey === masterAccountKey,
+      );
+      for (const rs of regionStacks) {
+        if (rs.resources.includes(constructName)) {
+          stackSuffix = `HostedZonesAssc-${rs.suffix}`;
+          break;
+        }
+      }
+    }
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, vpcConfig.region, stackSuffix);
     if (!accountStack) {
@@ -98,43 +163,125 @@ export async function step4(props: CentralEndpointsStep4Props) {
         hostedZoneIds.push(...globalPrivateHostedZoneIds);
       }
       const hostedZoneAccountId = getAccountId(accounts, zoneConfig.account)!;
-
-      new AssociateHostedZones(
-        accountStack,
-        `AssociateHostedZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`,
-        {
-          assumeRoleName: assumeRole,
-          vpcAccountId,
-          vpcName: vpcConfig.name,
-          vpcId: vpcOutput.vpcId,
-          vpcRegion: vpcConfig.region,
-          hostedZoneAccountId,
-          hostedZoneIds,
-          roleArn: `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${executionRole}`,
-        },
-      );
+      new AssociateHostedZones(accountStack, constructName, {
+        assumeRoleName: assumeRole,
+        vpcAccountId,
+        vpcName: vpcConfig.name,
+        vpcId: vpcOutput.vpcId,
+        vpcRegion: vpcConfig.region,
+        hostedZoneAccountId,
+        hostedZoneIds,
+        roleArn: `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${executionRole}`,
+      });
     } else {
       console.warn(`No Central VPC found for region "${vpcConfig.region}"`);
     }
 
     if (seperateGlobalHostedZonesAccount) {
       const hostedZoneAccountId = getAccountId(accounts, centralZoneConfig?.account!)!;
-
-      new AssociateHostedZones(
-        accountStack,
-        `AssociatePrivateZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`,
-        {
-          assumeRoleName: assumeRole,
-          vpcAccountId,
-          vpcName: vpcConfig.name,
-          vpcId: vpcOutput.vpcId,
-          vpcRegion: vpcConfig.region,
-          hostedZoneAccountId,
-          hostedZoneIds: globalPrivateHostedZoneIds,
-          roleArn: `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${executionRole}`,
-        },
-      );
+      new AssociateHostedZones(accountStack, phzConstructName, {
+        assumeRoleName: assumeRole,
+        vpcAccountId,
+        vpcName: vpcConfig.name,
+        vpcId: vpcOutput.vpcId,
+        vpcRegion: vpcConfig.region,
+        hostedZoneAccountId,
+        hostedZoneIds: globalPrivateHostedZoneIds,
+        roleArn: `arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${executionRole}`,
+      });
     }
+
+    // Update stackResources Object if new resource came
+    if (updateDbRequired) {
+      const currentSuffixIndex = staticResources.findIndex(
+        sr =>
+          sr.region === vpcConfig.region &&
+          sr.suffix === suffix &&
+          sr.resourceType === 'HostedZoneAssociation' &&
+          sr.accountKey === masterAccountKey,
+      );
+      const localUpdateIndex = updateStackResources.findIndex(
+        sr =>
+          sr.region === vpcConfig.region &&
+          sr.suffix === suffix &&
+          sr.resourceType === 'HostedZoneAssociation' &&
+          sr.accountKey === masterAccountKey,
+      );
+      const vpcAssociationResources = [constructName];
+      if (seperateGlobalHostedZonesAccount) {
+        vpcAssociationResources.push(phzConstructName);
+      }
+      if (currentSuffixIndex === -1) {
+        staticResources.push({
+          accountKey: masterAccountKey,
+          id: `AssociateHostedZones-${vpcConfig.region}-${masterAccountKey}-${suffix}`,
+          region: vpcConfig.region,
+          resourceType: 'HostedZoneAssociation',
+          resources: vpcAssociationResources,
+          suffix,
+        });
+      } else {
+        const currentResourcesObject = staticResources[currentSuffixIndex];
+        currentResourcesObject.resources.push(...vpcAssociationResources);
+        staticResources[currentSuffixIndex] = currentResourcesObject;
+      }
+      if (localUpdateIndex === -1) {
+        updateStackResources.push({
+          accountKey: masterAccountKey,
+          id: `AssociateHostedZones-${vpcConfig.region}-${masterAccountKey}-${suffix}`,
+          region: vpcConfig.region,
+          resourceType: 'HostedZoneAssociation',
+          resources: vpcAssociationResources,
+          suffix,
+        });
+      } else {
+        const currentResourcesObject = updateStackResources[currentSuffixIndex];
+        currentResourcesObject.resources.push(...vpcAssociationResources);
+        updateStackResources[currentSuffixIndex] = currentResourcesObject;
+      }
+    }
+  }
+
+  for (const staticResource of updateStackResources) {
+    const updateExpression = dynamodb.getUpdateValueInput([
+      {
+        key: 'a',
+        name: 'accountKey',
+        type: 'S',
+        value: staticResource.accountKey,
+      },
+      {
+        key: 'r',
+        name: 'region',
+        type: 'S',
+        value: staticResource.region,
+      },
+      {
+        key: 'p',
+        name: 'suffix',
+        type: 'N',
+        value: `${staticResource.suffix}`,
+      },
+      {
+        key: 'res',
+        name: 'resources',
+        type: 'S',
+        value: JSON.stringify(staticResource.resources),
+      },
+      {
+        key: 'rt',
+        name: 'resourceType',
+        type: 'S',
+        value: staticResource.resourceType,
+      },
+    ]);
+    await dynamodb.updateItem({
+      TableName: resourcesTableName,
+      Key: {
+        id: { S: staticResource.id },
+      },
+      ...updateExpression,
+    });
   }
 }
 

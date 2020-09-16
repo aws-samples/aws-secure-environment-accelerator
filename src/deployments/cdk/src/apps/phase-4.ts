@@ -3,6 +3,7 @@ import * as securityHub from '../deployments/security-hub';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 import * as centralEndpoints from '../deployments/central-endpoints';
 import { Context } from '@aws-cdk/aws-stepfunctions';
+import { loadStaticResources } from '../utils/static-resources';
 
 export interface RdgwArtifactsOutput {
   accountKey: string;
@@ -42,6 +43,7 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
   /**
    * Associate Hosted Zones to VPC
    */
+  const staticResources = await loadStaticResources(context.resourcesTableName);
   await centralEndpoints.step4({
     accountStacks,
     config: acceleratorConfig,
@@ -49,5 +51,8 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     accounts,
     executionRole: context.acceleratorPipelineRoleName,
     assumeRole: context.acceleratorExecutionRoleName,
+    staticResources,
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
+    resourcesTableName: context.resourcesTableName,
   });
 }
