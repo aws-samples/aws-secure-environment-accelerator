@@ -46,7 +46,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       route53Resolver
         .createResolverRule({
           DomainName: domainName,
-          CreatorRequestId: `${resolverEndpointId}-${domainName}`,
+          CreatorRequestId: name,
           RuleType: 'FORWARD',
           ResolverEndpointId: resolverEndpointId,
           TargetIps: targetIpParams,
