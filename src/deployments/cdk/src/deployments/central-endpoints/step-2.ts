@@ -12,7 +12,7 @@ import { ResolverEndpoint, ResolverRule } from '@aws-accelerator/cdk-constructs/
 import { JsonOutputValue } from '../../common/json-output';
 import { Account, getAccountId } from '../../utils/accounts';
 import * as ram from '@aws-cdk/aws-ram';
-import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { createName, hashPath } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CreateResolverRule } from '@aws-accelerator/custom-resource-create-resolver-rule';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
@@ -142,14 +142,14 @@ export async function step2(props: CentralEndpointsStep2Props) {
       for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
         const rule = new CreateResolverRule(
           accountStack,
-          `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`,
+          `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`,
           {
             domainName: onPremRuleConfig.zone,
             resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
             roleArn: roleOutput.roleArn,
             targetIps: onPremRuleConfig['outbound-ips'],
             vpcId: vpcOutput.vpcId,
-            name: `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}-on-prem-phz-rule`,
+            name: createRuleName(`${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`),
           },
         );
         rule.node.addDependency(r53ResolverEndpoints);
@@ -178,14 +178,14 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
         const madRule = new CreateResolverRule(
           accountStack,
-          `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-phz-rule`,
+          `${domainToName(mad['dns-domain'])}-${vpcConfig.name}`,
           {
             domainName: mad['dns-domain'],
             resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
             roleArn: roleOutput.roleArn,
             targetIps: madIPs,
             vpcId: vpcOutput.vpcId,
-            name: `${domainToName(mad['dns-domain'])}-${vpcConfig.name}-mad-phz-rule`,
+            name: createRuleName(`${domainToName(mad['dns-domain'])}-${vpcConfig.name}`),
           },
         );
         madRule.node.addDependency(r53ResolverEndpoints.outboundEndpoint!);
@@ -248,3 +248,14 @@ export async function step2(props: CentralEndpointsStep2Props) {
 function domainToName(domain: string): string {
   return domain.replace(/\./gi, '-');
 }
+
+export function createRuleName(name: string): string {
+  const hash = hashPath([name], 8);
+  if (name.length > 44) {
+    name = name.substring(0, 44) + hash;
+  }
+  return createName({
+    name,
+  });
+}
+

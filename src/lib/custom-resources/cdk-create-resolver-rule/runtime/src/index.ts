@@ -60,7 +60,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
   }
 
   try {
-    const ruleAssociationResponse = await throttlingBackOff(() =>
+    await throttlingBackOff(() =>
       route53Resolver
         .associateResolverRule({
           ResolverRuleId: resolverRuleId,
