@@ -140,18 +140,14 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
       // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
       for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
-        const rule = new CreateResolverRule(
-          accountStack,
-          `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`,
-          {
-            domainName: onPremRuleConfig.zone,
-            resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
-            roleArn: roleOutput.roleArn,
-            targetIps: onPremRuleConfig['outbound-ips'],
-            vpcId: vpcOutput.vpcId,
-            name: createRuleName(`${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`),
-          },
-        );
+        const rule = new CreateResolverRule(accountStack, `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`, {
+          domainName: onPremRuleConfig.zone,
+          resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
+          roleArn: roleOutput.roleArn,
+          targetIps: onPremRuleConfig['outbound-ips'],
+          vpcId: vpcOutput.vpcId,
+          name: createRuleName(`${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`),
+        });
         rule.node.addDependency(r53ResolverEndpoints);
         onPremRules.push(rule.ruleId);
       }
@@ -176,18 +172,14 @@ export async function step2(props: CentralEndpointsStep2Props) {
         }
         madIPs = madOutput[0].dnsIps.split(',');
 
-        const madRule = new CreateResolverRule(
-          accountStack,
-          `${domainToName(mad['dns-domain'])}-${vpcConfig.name}`,
-          {
-            domainName: mad['dns-domain'],
-            resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
-            roleArn: roleOutput.roleArn,
-            targetIps: madIPs,
-            vpcId: vpcOutput.vpcId,
-            name: createRuleName(`${domainToName(mad['dns-domain'])}-${vpcConfig.name}`),
-          },
-        );
+        const madRule = new CreateResolverRule(accountStack, `${domainToName(mad['dns-domain'])}-${vpcConfig.name}`, {
+          domainName: mad['dns-domain'],
+          resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
+          roleArn: roleOutput.roleArn,
+          targetIps: madIPs,
+          vpcId: vpcOutput.vpcId,
+          name: createRuleName(`${domainToName(mad['dns-domain'])}-${vpcConfig.name}`),
+        });
         madRule.node.addDependency(r53ResolverEndpoints.outboundEndpoint!);
         madRules.push(madRule.ruleId);
       }
@@ -258,4 +250,3 @@ export function createRuleName(name: string): string {
     name,
   });
 }
-
