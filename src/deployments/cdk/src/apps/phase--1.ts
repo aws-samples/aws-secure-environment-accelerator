@@ -90,5 +90,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
   await globalRoles.createCleanupRoles({
     accountStacks,
     accounts,
+    config: acceleratorConfig,
   });
 }

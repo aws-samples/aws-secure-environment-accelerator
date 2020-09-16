@@ -42,10 +42,11 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
   });
 
   const logArchiveAccount = config['global-options']['central-log-services'].account;
+  const securityAccount = config['global-options']['central-security-services'].account;
   for (const accountKey of Object.keys(accountBuckets)) {
-    // There is no default bucket in Log Archive account instead we have central log bucket, so skip cleanup
-    if (logArchiveAccount === accountKey) {
-      console.log(`Skipping the deletion of LogArchive account bucket policy ${logArchiveAccount}`);
+    // Skip deletion of Log Archive and Security account default bucket policy
+    if (logArchiveAccount === accountKey || securityAccount === accountKey) {
+      console.log(`Skipping the deletion of bucket policy for account ${accountKey}`);
       continue;
     }
 

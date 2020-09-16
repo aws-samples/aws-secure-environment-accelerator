@@ -1,3 +1,4 @@
+import * as c from '@aws-accelerator/common-config/src';
 import * as iam from '@aws-cdk/aws-iam';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { createIamRoleOutput } from './outputs';
@@ -6,12 +7,20 @@ import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 export interface CleanupRoleProps {
   accountStacks: AccountStacks;
   accounts: Account[];
+  config: c.AcceleratorConfig;
 }
 
 export async function createCleanupRoles(props: CleanupRoleProps): Promise<void> {
-  const { accountStacks, accounts } = props;
+  const { accountStacks, accounts, config } = props;
 
+  const logArchiveAccount = config['global-options']['central-log-services'].account;
+  const securityAccount = config['global-options']['central-security-services'].account;
   for (const account of accounts) {
+    // Added condition to skip creation of role in Log Archive and Security accounts
+    if (logArchiveAccount === account.key || securityAccount === account.key) {
+      console.log(`Skipping the creation of cleanup role for account ${account.key}`);
+      continue;
+    }
     const accountStack = accountStacks.getOrCreateAccountStack(account.key);
     const cleanupRole = await createResourceCleanupRole(accountStack);
     createIamRoleOutput(accountStack, cleanupRole, 'ResourceCleanupRole');
