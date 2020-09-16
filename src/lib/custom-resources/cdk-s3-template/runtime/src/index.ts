@@ -86,6 +86,9 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         .waitFor('objectExists', {
           Bucket: outputBucketName,
           Key: outputPath,
+          $waiter: {
+            maxAttempts: 1,
+          },
         })
         .promise(),
     );
