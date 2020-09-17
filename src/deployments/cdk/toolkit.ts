@@ -157,6 +157,7 @@ export class CdkToolkit {
 
   async deployStack(stack: CloudFormationStackArtifact): Promise<StackOutput[]> {
     const stackExists = await this.cloudFormation.stackExists({ stack });
+    console.log(`Is ${stack.displayName} stack exists`, stackExists);
 
     const resources = Object.keys(stack.template.Resources || {});
     if (resources.length === 0) {
@@ -166,6 +167,32 @@ export class CdkToolkit {
         this.destroyStack(stack);
       }
       return [];
+    } else if (stackExists) {
+      const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
+      const cfn = sdk.cloudFormation();
+      console.log(`Calling describeStacks API for ${stack.displayName} stack`);
+      const existingStack = await cfn
+        .describeStacks({
+          StackName: stack.id,
+        })
+        .promise();
+      console.log(`Finding status of ${stack.displayName} stack`);
+      const stackStatus = existingStack.Stacks[0].StackStatus;
+      console.log(`${stack.displayName} stack status`, stackStatus);
+      try {
+        if (stackStatus === 'ROLLBACK_COMPLETE') {
+          console.log(`Calling updateTerminationProtection API on ${stack.displayName} stack`);
+          await cfn
+            .updateTerminationProtection({
+              StackName: stack.id,
+              EnableTerminationProtection: false,
+            })
+            .promise();
+          console.log(`Successfully disabled termination protection on ${stack.displayName}`);
+        }
+      } catch (e) {
+        console.warn(`Failed to disable termination protection for ${stack.displayName}: ${e}`);
+      }
     }
 
     try {
@@ -174,6 +201,7 @@ export class CdkToolkit {
       const tags = [...tagsForStack(stack)];
       console.log(tags.length);
 
+      console.log(`Calling deployStack API on ${stack.displayName} stack`);
       const result = await this.cloudFormation.deployStack({
         stack,
         deployName: stack.stackName,
@@ -215,25 +243,30 @@ export class CdkToolkit {
    * Destroy the given stack. It skips deletion when stack termination is turned on.
    */
   private async destroyStack(stack: CloudFormationStackArtifact): Promise<void> {
+    console.log(`Destroying stack ${stack.displayName}`);
     try {
       const sdk = await this.props.sdkProvider.forEnvironment(stack.environment, Mode.ForWriting);
       const cfn = sdk.cloudFormation();
+      console.log(`Trying to disable termination protection before destroying ${stack.displayName} stack`);
       await cfn
         .updateTerminationProtection({
           StackName: stack.id,
           EnableTerminationProtection: false,
         })
         .promise();
+      console.log(`Successfully disabled termination protection on ${stack.displayName} stack`);
     } catch (e) {
       console.warn(`${stack.displayName}: cannot disable stack termination protection`);
     }
     try {
+      console.log(`Calling destroyStack API on ${stack.displayName} stack`);
       await this.cloudFormation.destroyStack({
         stack,
         deployName: stack.stackName,
         roleArn: undefined,
         force: true,
       });
+      console.log(`Successfully destroyed/deleted the ${stack.displayName} stack`);
     } catch (e) {
       const errorMessage = `${e}`;
       if (errorMessage.includes('it may need to be manually deleted')) {
