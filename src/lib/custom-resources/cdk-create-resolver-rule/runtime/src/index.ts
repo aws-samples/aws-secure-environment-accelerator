@@ -56,6 +56,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     );
     resolverRuleId = ruleResponse.ResolverRule?.Id!;
   } catch (error) {
+    // TODO: Handle Errors
     throw new Error(error);
   }
 
@@ -69,6 +70,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
         .promise(),
     );
   } catch (error) {
+    // TODO: Handle Errors
     console.log(error);
   }
 

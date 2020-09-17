@@ -146,7 +146,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
           roleArn: roleOutput.roleArn,
           targetIps: onPremRuleConfig['outbound-ips'],
           vpcId: vpcOutput.vpcId,
-          name: createRuleName(`${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`),
+          name: createRuleName(`${vpcConfig.name}-onprem-${domainToName(onPremRuleConfig.zone)}`),
         });
         rule.node.addDependency(r53ResolverEndpoints.outboundEndpoint!);
         onPremRules.push(rule.ruleId);
@@ -178,7 +178,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
           roleArn: roleOutput.roleArn,
           targetIps: madIPs,
           vpcId: vpcOutput.vpcId,
-          name: createRuleName(`${domainToName(mad['dns-domain'])}-${vpcConfig.name}`),
+          name: createRuleName(`${vpcConfig.name}-mad-${domainToName(mad['dns-domain'])}`),
         });
         madRule.node.addDependency(r53ResolverEndpoints.outboundEndpoint!);
         madRules.push(madRule.ruleId);
