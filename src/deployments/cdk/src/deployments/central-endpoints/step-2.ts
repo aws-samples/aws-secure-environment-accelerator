@@ -285,7 +285,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
       value: resolverOutput,
     });
 
-    if (!isRuleShareNeeded) {
+    if (isRuleShareNeeded) {
       const regionVpcs = config
         .getVpcConfigs()
         .filter(
