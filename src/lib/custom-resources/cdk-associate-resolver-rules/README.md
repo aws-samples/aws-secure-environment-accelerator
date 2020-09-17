@@ -1,36 +1,13 @@
-# Security Hub Enable Standards
+# Associate Resolver Rule to VPC
 
-This is a custom resource to enable Security Hub Standards and disable specific controls Used `describeStandards`, `batchEnableStandards`, `describeStandardControls` and `updateStandardControls` API calls.
+This is a custom resource to Associate VPC to Resoulver Rule Used `associateResolverRule` and `disassociateResolverRule` API calls.
 
 ## Usage
 
-    import { SecurityHubEnable } from '@aws-accelerator/custom-resource-security-hub-enable';
+    import { AssociateResolverRules } from '@aws-accelerator/custom-resource-associate-resolver-rules';
 
-    const enableSecurityHubResource = new SecurityHubEnable(this, 'EnableSecurityHubStandards`, {
-        standards: standards.standards,
+    new AssociateResolverRules(accountStack, constructName, {
+      resolverRuleIds: ruleIds,
+      roleArn: roleOutput.roleArn,
+      vpcId: vpcOutput.vpcId,
     });
-
-## Input Example
-
-    [
-      {
-        "name": "AWS Foundational Security Best Practices v1.0.0",
-        "controls-to-disable": [
-          "IAM.1"
-        ]
-      },
-      {
-        "name": "PCI DSS v3.2.1",
-        "controls-to-disable": [
-          "PCI.IAM.3",
-          "PCIDSS8.3.1"
-        ]
-      },
-      {
-        "name": "CIS AWS Foundations Benchmark v1.2.0",
-        "controls-to-disable": [
-          "CIS.1.3",
-          "CIS1.11"
-        ]
-      }
-    ]
