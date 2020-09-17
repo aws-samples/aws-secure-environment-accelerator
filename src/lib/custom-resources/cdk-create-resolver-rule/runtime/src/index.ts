@@ -152,14 +152,20 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       })
       .promise(),
   );
-  for (const rule of resolverRule.ResolverRules! || []) {
-    let associatedVpcs = await getVpcIds(rule.Id!);
-
+  if (!resolverRule.ResolverRules) {
+    return;
+  }
+  const ruleId = resolverRule.ResolverRules[0].Id;
+  if (!ruleId) {
+    return;
+  }
+  if (event.PhysicalResourceId === `CreateResolverRule-${ruleId}`) {
+    let associatedVpcs = await getVpcIds(ruleId!);
     for (const vpcId of associatedVpcs! || []) {
       await throttlingBackOff(() =>
         route53Resolver
           .disassociateResolverRule({
-            ResolverRuleId: rule.Id!,
+            ResolverRuleId: ruleId,
             VPCId: vpcId!,
           })
           .promise(),
@@ -167,7 +173,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     }
 
     do {
-      associatedVpcs = await getVpcIds(rule.Id!);
+      associatedVpcs = await getVpcIds(ruleId);
       // Waiting to disassociate VPC Ids from the resolver rule
       await delay(5000);
     } while ((associatedVpcs || []).length > 0 && maxRetries-- > 0);
@@ -175,7 +181,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     await throttlingBackOff(() =>
       route53Resolver
         .deleteResolverRule({
-          ResolverRuleId: rule.Id!,
+          ResolverRuleId: ruleId,
         })
         .promise(),
     );

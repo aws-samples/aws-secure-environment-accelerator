@@ -114,7 +114,9 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { resolverRuleIds, vpcId } = properties;
-
+  if (event.PhysicalResourceId != `AssociateResolverRules-${vpcId}`) {
+    return;
+  }
   for (const ruleId of resolverRuleIds) {
     try {
       await throttlingBackOff(() =>

@@ -46,6 +46,7 @@ export async function centralEndpointDeploymentRole(stack: AccountStack) {
         'route53resolver:ListResolverRuleAssociations',
         'route53resolver:CreateResolverRule',
         'route53resolver:DisassociateResolverRule',
+        'route53resolver:UpdateResolverRule',
       ],
       resources: ['*'],
     }),
