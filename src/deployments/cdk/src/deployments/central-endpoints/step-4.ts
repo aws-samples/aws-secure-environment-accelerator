@@ -56,6 +56,11 @@ export async function step4(props: CentralEndpointsStep4Props) {
     accountKey: masterAccountKey,
   }).filter(sr => sr.resourceType === RESOURCE_TYPE);
 
+  // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
+  for (const sr of staticResources) {
+    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, `HostedZonesAssc-${sr.suffix}`);
+  }
+
   const existingRegionResources: { [region: string]: string[] } = {};
   const supportedregions = config['global-options']['supported-regions'];
 
