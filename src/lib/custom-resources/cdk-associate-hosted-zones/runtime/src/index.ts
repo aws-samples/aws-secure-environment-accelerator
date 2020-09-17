@@ -132,7 +132,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
       } else {
         // TODO Handle errors
         console.error(`Ignoring error while associating the hosted zone ${hostedZoneId} to VPC "${vpcName}"`);
-        console.error(e);
+        throw new Error(e);
       }
     }
 
@@ -219,12 +219,12 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
     } catch (e) {
-      if (e.code === 'ConflictingDomainExists') {
-        console.info('Domain already added; ignore this error and continue');
+      if (e.code === 'VPCAssociationNotFound') {
+        console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
       } else {
         // TODO Handle errors
         console.error(`Ignoring error while associating the hosted zone ${hostedZoneId} to VPC "${vpcName}"`);
-        console.error(e);
+        throw new Error(e);
       }
     }
 
@@ -277,13 +277,8 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
     } catch (e) {
-      if (e.code === 'ConflictingDomainExists') {
-        console.info('Domain already added; ignore this error and continue');
-      } else {
-        // TODO Handle errors
-        console.error(`Ignoring error while associating the hosted zone ${hostedZoneId} to VPC "${vpcName}"`);
+        console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
         console.error(e);
-      }
     }
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
