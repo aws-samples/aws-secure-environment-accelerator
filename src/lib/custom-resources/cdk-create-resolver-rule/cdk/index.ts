@@ -5,10 +5,15 @@ import * as lambda from '@aws-cdk/aws-lambda';
 
 const resourceType = 'Custom::CreateResolverRule';
 
+export interface TargetIp {
+  Ip: string;
+  Port: number;
+}
+
 export interface CreateResolverRuleProps {
   vpcId: string;
   domainName: string;
-  targetIps: string[];
+  targetIps: TargetIp[];
   resolverEndpointId: string;
   name: string;
   roleArn: string;

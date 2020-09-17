@@ -13,7 +13,7 @@ import { JsonOutputValue } from '../../common/json-output';
 import { Account, getAccountId } from '../../utils/accounts';
 import * as ram from '@aws-cdk/aws-ram';
 import { createName, hashPath } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CreateResolverRule } from '@aws-accelerator/custom-resource-create-resolver-rule';
+import { CreateResolverRule, TargetIp } from '@aws-accelerator/custom-resource-create-resolver-rule';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface CentralEndpointsStep2Props {
@@ -140,11 +140,15 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
       // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
       for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
+        const targetIps: TargetIp[] = onPremRuleConfig['outbound-ips'].map((ip) => ({
+          Ip: ip,
+          Port: 53
+        }));
         const rule = new CreateResolverRule(accountStack, `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`, {
           domainName: onPremRuleConfig.zone,
           resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
           roleArn: roleOutput.roleArn,
-          targetIps: onPremRuleConfig['outbound-ips'],
+          targetIps: targetIps,
           vpcId: vpcOutput.vpcId,
           name: createRuleName(`${vpcConfig.name}-onprem-${domainToName(onPremRuleConfig.zone)}`),
         });
@@ -171,12 +175,16 @@ export async function step2(props: CentralEndpointsStep2Props) {
           continue;
         }
         madIPs = madOutput[0].dnsIps.split(',');
+        const targetIps: TargetIp[] = madIPs.map((ip) => ({
+          Ip: ip,
+          Port: 53
+        }));
 
         const madRule = new CreateResolverRule(accountStack, `${domainToName(mad['dns-domain'])}-${vpcConfig.name}`, {
           domainName: mad['dns-domain'],
           resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
           roleArn: roleOutput.roleArn,
-          targetIps: madIPs,
+          targetIps: targetIps,
           vpcId: vpcOutput.vpcId,
           name: createRuleName(`${vpcConfig.name}-mad-${domainToName(mad['dns-domain'])}`),
         });

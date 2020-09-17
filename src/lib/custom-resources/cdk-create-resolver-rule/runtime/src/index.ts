@@ -7,7 +7,7 @@ import { delay, throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-u
 export interface HandlerProperties {
   vpcId: string;
   domainName: string;
-  targetIps: string[];
+  targetIps: AWS.Route53Resolver.TargetAddress[];
   resolverEndpointId: string;
   name: string;
 }
@@ -34,13 +34,6 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { targetIps, vpcId, domainName, resolverEndpointId, name } = properties;
-  const targetIpParams: AWS.Route53Resolver.TargetAddress[] = [];
-  targetIps.forEach(ip => {
-    targetIpParams.push({
-      Ip: ip,
-      Port: 53,
-    });
-  });
   let resolverRuleId: string;
   try {
     const ruleResponse = await throttlingBackOff(() =>
@@ -50,7 +43,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
           CreatorRequestId: name,
           RuleType: 'FORWARD',
           ResolverEndpointId: resolverEndpointId,
-          TargetIps: targetIpParams,
+          TargetIps: targetIps,
           Name: name,
         })
         .promise(),
