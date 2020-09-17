@@ -277,8 +277,8 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       console.log(`Disassociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
     } catch (e) {
-        console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
-        console.error(e);
+      console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
+      console.error(e);
     }
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
