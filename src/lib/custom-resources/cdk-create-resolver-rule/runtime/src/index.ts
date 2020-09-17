@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent } from 'aws-lambda';
+import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceCreateEvent, CloudFormationCustomResourceUpdateEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { delay, throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
@@ -23,15 +23,15 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   // tslint:disable-next-line: switch-default
   switch (event.RequestType) {
     case 'Create':
-      return onCreateOrUpdate(event);
+      return onCreate(event);
     case 'Update':
-      return onCreateOrUpdate(event);
+      return onUpdate(event);
     case 'Delete':
       return onDelete(event);
   }
 }
 
-async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
+async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { targetIps, vpcId, domainName, resolverEndpointId, name } = properties;
   let resolverRuleId: string;
@@ -66,6 +66,52 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
   } catch (error) {
     // TODO: Handle Errors
     console.log(error);
+  }
+
+  return {
+    physicalResourceId: `CreateResolverRule-${resolverRuleId!}`,
+    data: {
+      RuleId: resolverRuleId,
+    },
+  };
+}
+
+
+async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
+  const properties = (event.ResourceProperties as unknown) as HandlerProperties;
+  const { targetIps, domainName, resolverEndpointId, name } = properties;
+  let resolverRuleId: string;
+  try {
+    const ruleResponse = await throttlingBackOff(() => route53Resolver.listResolverRules({
+      Filters: [
+        {
+          Name: 'ResolverEndpointId',
+          Values: [resolverEndpointId],
+        },
+        {
+          Name: 'DomainName',
+          Values: [domainName],
+        },
+        {
+          Name: 'Name',
+          Values: [name],
+        }
+      ]
+    }).promise());   
+    const updateRule = await throttlingBackOff(() =>
+      route53Resolver
+        .updateResolverRule({
+          Config: {
+            TargetIps: targetIps,
+          },
+          ResolverRuleId: ruleResponse.ResolverRules?.[0].Id!,
+        })
+        .promise(),
+    );
+    resolverRuleId = updateRule.ResolverRule?.Id!;
+  } catch (error) {
+    // TODO: Handle Errors
+    throw new Error(error);
   }
 
   return {
