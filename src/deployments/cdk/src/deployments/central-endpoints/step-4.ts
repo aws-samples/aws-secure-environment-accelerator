@@ -13,8 +13,9 @@ import {
 import { CfnStaticResourcesOutput } from './outputs';
 
 // Changing this will result to redeploy most of the stack
-const MAX_RESOURCES_IN_STACK = 2;
+const MAX_RESOURCES_IN_STACK = 190;
 const RESOURCE_TYPE = 'HostedZoneAssociation';
+const STACK_COMMON_SUFFIX = 'HostedZonesAssc';
 
 export interface CentralEndpointsStep4Props {
   accountStacks: AccountStacks;
@@ -58,7 +59,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
 
   // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
   for (const sr of staticResources) {
-    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, `HostedZonesAssc-${sr.suffix}`);
+    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, `${STACK_COMMON_SUFFIX}-${sr.suffix}`);
   }
 
   const existingRegionResources: { [region: string]: string[] } = {};
@@ -108,7 +109,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
       regionalMaxSuffix[vpcConfig.region] = ++suffix;
     }
 
-    let stackSuffix = `HostedZonesAssc-${suffix}`;
+    let stackSuffix = `${STACK_COMMON_SUFFIX}-${suffix}`;
     let updateOutputsRequired = true;
     const constructName = `AssociateHostedZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`;
     const phzConstructName = `AssociatePrivateZones-${accountKey}-${vpcConfig.name}-${vpcConfig.region}`;
@@ -117,7 +118,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
       const regionStacks = staticResources.filter(sr => sr.region === vpcConfig.region);
       for (const rs of regionStacks) {
         if (rs.resources.includes(constructName)) {
-          stackSuffix = `HostedZonesAssc-${rs.suffix}`;
+          stackSuffix = `${STACK_COMMON_SUFFIX}-${rs.suffix}`;
           break;
         }
       }
@@ -181,7 +182,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
       if (currentSuffixIndex === -1) {
         const currentResourcesObject = {
           accountKey: masterAccountKey,
-          id: `AssociateHostedZones-${vpcConfig.region}-${masterAccountKey}-${suffix}`,
+          id: `${STACK_COMMON_SUFFIX}-${vpcConfig.region}-${masterAccountKey}-${suffix}`,
           region: vpcConfig.region,
           resourceType: RESOURCE_TYPE,
           resources: [constructName],
@@ -203,11 +204,11 @@ export async function step4(props: CentralEndpointsStep4Props) {
     const accountStack = accountStacks.tryGetOrCreateAccountStack(
       sr.accountKey,
       sr.region,
-      `HostedZonesAssc-${sr.suffix}`,
+      `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
     );
     if (!accountStack) {
       throw new Error(
-        `Not able to get or create stack for ${sr.accountKey}: ${sr.region}: HostedZonesAssc-${sr.suffix}`,
+        `Not able to get or create stack for ${sr.accountKey}: ${sr.region}: ${STACK_COMMON_SUFFIX}-${sr.suffix}`,
       );
     }
     new CfnStaticResourcesOutput(accountStack, `StaticResourceOutput-${sr.suffix}`, sr);

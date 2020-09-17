@@ -8,13 +8,25 @@ import {
   StackOutput,
 } from '@aws-accelerator/common-outputs/src/stack-output';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { ResolverEndpoint, ResolverRule } from '@aws-accelerator/cdk-constructs/src/route53';
+import { ResolverEndpoint } from '@aws-accelerator/cdk-constructs/src/route53';
 import { JsonOutputValue } from '../../common/json-output';
 import { Account, getAccountId } from '../../utils/accounts';
 import * as ram from '@aws-cdk/aws-ram';
 import { createName, hashPath } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CreateResolverRule, TargetIp } from '@aws-accelerator/custom-resource-create-resolver-rule';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import {
+  StaticResourcesOutput,
+  StaticResourcesOutputFinder,
+} from '@aws-accelerator/common-outputs/src/static-resource';
+import { CfnStaticResourcesOutput } from './outputs';
+
+// Changing these values will lead to redeploying all Phase-3 Endpoint stacks
+const MAX_RESOURCES_IN_STACK = 10;
+const RESOURCE_TYPE = 'ResolverEndpointAndRule';
+const CENTRAL_VPC_RESOURCE_TYPE = 'CentralVpcResolverEndpointAndRule';
+const STACK_COMMON_SUFFIX = 'ResolverEndpoints';
+const STACK_CENTRAL_VPC_COMMON_SUFFIX = 'CentralVpcResolverEndpoints';
 
 export interface CentralEndpointsStep2Props {
   accountStacks: AccountStacks;
@@ -36,6 +48,37 @@ export async function step2(props: CentralEndpointsStep2Props) {
   const madConfigs = config.getMadConfigs();
   const zonesConfig = config['global-options'].zones;
   const accountRulesCounter: { [accountKey: string]: number } = {};
+
+  const allStaticResources: StaticResourcesOutput[] = StaticResourcesOutputFinder.findAll({
+    outputs,
+  }).filter(sr => sr.resourceType === RESOURCE_TYPE);
+
+  const centralVpcStaticResources: StaticResourcesOutput[] = StaticResourcesOutputFinder.findAll({
+    outputs,
+  }).filter(sr => sr.resourceType === CENTRAL_VPC_RESOURCE_TYPE);
+
+  // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
+  for (const sr of allStaticResources) {
+    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, `${STACK_COMMON_SUFFIX}-${sr.suffix}`);
+  }
+
+  // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
+  for (const sr of centralVpcStaticResources) {
+    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, STACK_CENTRAL_VPC_COMMON_SUFFIX);
+  }
+
+  const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[] } = {};
+  const accountRegionExistingResources: {
+    [accountKey: string]: {
+      [region: string]: string[];
+    };
+  } = {};
+  const accountRegionMaxSuffix: {
+    [accountKey: string]: {
+      [region: string]: number;
+    };
+  } = {};
+
   for (const { accountKey, vpcConfig } of vpcConfigs) {
     const resolversConfig = vpcConfig.resolvers;
     if (!resolversConfig) {
@@ -86,23 +129,66 @@ export async function step2(props: CentralEndpointsStep2Props) {
       continue;
     }
 
+    let suffix: number;
     let stackSuffix: string;
-    if (
-      !!zonesConfig.find(
-        zc => zc.account === accountKey && zc['resolver-vpc'] === vpcConfig.name && zc.region === vpcConfig.region,
-      )
-    ) {
-      stackSuffix = `EndpointsRules-${vpcConfig.name}`;
+    let newResource = true;
+    const constructName = `${STACK_COMMON_SUFFIX}-${vpcConfig.name}`;
+
+    // Load all account stacks to object
+    if (!accountStaticResourcesConfig[accountKey]) {
+      accountStaticResourcesConfig[accountKey] = allStaticResources.filter(sr => sr.accountKey === accountKey);
+    }
+    if (!accountRegionMaxSuffix[accountKey]) {
+      accountRegionMaxSuffix[accountKey] = {};
+    }
+
+    // Load Max suffix for each region of account to object
+    if (!accountRegionMaxSuffix[accountKey][vpcConfig.region]) {
+      const localSuffix = accountStaticResourcesConfig[accountKey]
+        .filter(sr => sr.region === vpcConfig.region)
+        .flatMap(r => r.suffix);
+      accountRegionMaxSuffix[accountKey][vpcConfig.region] = localSuffix.length === 0 ? 1 : Math.max(...localSuffix);
+    }
+
+    if (!accountRegionExistingResources[accountKey]) {
+      const localRegionalResources = accountStaticResourcesConfig[accountKey]
+        .filter(sr => sr.region === vpcConfig.region)
+        .flatMap(sr => sr.resources);
+      accountRegionExistingResources[accountKey] = {};
+      accountRegionExistingResources[accountKey][vpcConfig.region] = localRegionalResources;
+    } else if (!accountRegionExistingResources[accountKey][vpcConfig.region]) {
+      const localRegionalResources = accountStaticResourcesConfig[accountKey]
+        .filter(sr => sr.region === vpcConfig.region)
+        .flatMap(sr => sr.resources);
+      accountRegionExistingResources[accountKey][vpcConfig.region] = localRegionalResources;
+    }
+
+    suffix = accountRegionMaxSuffix[accountKey][vpcConfig.region];
+    stackSuffix = `${STACK_COMMON_SUFFIX}-${suffix}`;
+    const centralVpc = !!zonesConfig.find(
+      zc => zc.account === accountKey && zc['resolver-vpc'] === vpcConfig.name && zc.region === vpcConfig.region,
+    );
+    if (centralVpc) {
+      stackSuffix = STACK_CENTRAL_VPC_COMMON_SUFFIX;
     } else {
-      if (accountRulesCounter[`${accountKey}-${vpcConfig.region}`]) {
-        accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = ++accountRulesCounter[
-          `${accountKey}-${vpcConfig.region}`
-        ];
+      if (accountRegionExistingResources[accountKey][vpcConfig.region].includes(constructName)) {
+        newResource = false;
+        const regionStacks = accountStaticResourcesConfig[accountKey].filter(sr => sr.region === vpcConfig.region);
+        for (const rs of regionStacks) {
+          if (rs.resources.includes(constructName)) {
+            stackSuffix = `${STACK_COMMON_SUFFIX}-${rs.suffix}`;
+            break;
+          }
+        }
       } else {
-        accountRulesCounter[`${accountKey}-${vpcConfig.region}`] = 1;
+        const existingResources = accountStaticResourcesConfig[accountKey].find(
+          sr => sr.region === vpcConfig.region && sr.suffix === suffix,
+        );
+        if (existingResources && existingResources.resources.length >= MAX_RESOURCES_IN_STACK) {
+          accountRegionMaxSuffix[accountKey][vpcConfig.region] = ++suffix;
+        }
+        stackSuffix = `${STACK_COMMON_SUFFIX}-${suffix}`;
       }
-      // Includes max of 10 VPCs, since we need max 8 resources for one VPC
-      stackSuffix = `EndpointsRules-${Math.ceil(accountRulesCounter[`${accountKey}-${vpcConfig.region}`] / 10)}`;
     }
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
@@ -114,7 +200,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
     // Call r53-resolver-endpoint per Account
     const r53ResolverEndpoints = new ResolverEndpoint(
       accountStack,
-      `ResolverEndpoints-${accountKey}-${vpcConfig.name}`,
+      `${STACK_COMMON_SUFFIX}-${accountKey}-${vpcConfig.name}`,
       {
         vpcId: vpcOutput.vpcId,
         name: vpcConfig.name,
@@ -148,7 +234,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
           domainName: onPremRuleConfig.zone,
           resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
           roleArn: roleOutput.roleArn,
-          targetIps: targetIps,
+          targetIps,
           vpcId: vpcOutput.vpcId,
           name: createRuleName(`${vpcConfig.name}-onprem-${domainToName(onPremRuleConfig.zone)}`),
         });
@@ -184,7 +270,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
           domainName: mad['dns-domain'],
           resolverEndpointId: r53ResolverEndpoints.outboundEndpointRef!,
           roleArn: roleOutput.roleArn,
-          targetIps: targetIps,
+          targetIps,
           vpcId: vpcOutput.vpcId,
           name: createRuleName(`${vpcConfig.name}-mad-${domainToName(mad['dns-domain'])}`),
         });
@@ -200,48 +286,99 @@ export async function step2(props: CentralEndpointsStep2Props) {
     });
 
     if (!isRuleShareNeeded) {
-      console.info(`VPC "${vpcConfig.name}" is not part of Central VPC under zones configuration`);
-      continue;
+      const regionVpcs = config
+        .getVpcConfigs()
+        .filter(
+          vc =>
+            vc.vpcConfig.region === vpcConfig.region &&
+            vc.vpcConfig['use-central-endpoints'] &&
+            vc.accountKey !== accountKey,
+        );
+      const sharedToAccountKeys = regionVpcs.map(rv => rv.accountKey);
+      const sharedToAccountIds: string[] = sharedToAccountKeys.map(accId => getAccountId(accounts, accId)!);
+      if (sharedToAccountIds.length > 0) {
+        const ruleArns: string[] = [
+          ...madRules.map(
+            ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
+          ),
+          ...onPremRules.map(
+            ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
+          ),
+        ];
+
+        // share the route53 resolver rules
+        new ram.CfnResourceShare(accountStack, `ResolverRuleShare-${vpcConfig.name}`, {
+          name: createName({
+            name: `${vpcConfig.name}-ResolverRules`,
+          }),
+          allowExternalPrincipals: false,
+          principals: sharedToAccountIds,
+          resourceArns: ruleArns,
+        });
+      }
     }
 
-    const regionVpcs = config
-      .getVpcConfigs()
-      .filter(
-        vc =>
-          vc.vpcConfig.region === vpcConfig.region &&
-          vc.vpcConfig['use-central-endpoints'] &&
-          vc.accountKey !== accountKey,
+    if (centralVpc) {
+      const currentResourcesObject = {
+        accountKey,
+        id: `${CENTRAL_VPC_RESOURCE_TYPE}-${vpcConfig.region}-${accountKey}-${suffix}`,
+        region: vpcConfig.region,
+        resourceType: CENTRAL_VPC_RESOURCE_TYPE,
+        resources: [`${STACK_CENTRAL_VPC_COMMON_SUFFIX}-${vpcConfig.name}`],
+        // Setting sufix to -1 since will only have one Central VPC per region
+        suffix: -1,
+      };
+      new CfnStaticResourcesOutput(
+        accountStack,
+        `CentralVpcResolverEndpointsOutput-${vpcConfig.name}`,
+        currentResourcesObject,
       );
-    if (!regionVpcs || regionVpcs.length === 0) {
-      console.info(`No VPCs to be shared with central Account VPC in region "${vpcConfig.region}"`);
-      continue;
     }
 
-    const sharedToAccountKeys = regionVpcs.map(rv => rv.accountKey);
-    const sharedToAccountIds: string[] = sharedToAccountKeys.map(accId => getAccountId(accounts, accId)!);
-    if (sharedToAccountIds.length === 0) {
-      console.info(`No Accounts exists for sharing Resolver Rules in region : ${vpcConfig.region}`);
-      continue;
+    if (newResource && !centralVpc) {
+      const currentSuffixIndex = allStaticResources.findIndex(
+        sr => sr.region === vpcConfig.region && sr.suffix === suffix && sr.accountKey === accountKey,
+      );
+      const currentAccountSuffixIndex = accountStaticResourcesConfig[accountKey].findIndex(
+        sr => sr.region === vpcConfig.region && sr.suffix === suffix,
+      );
+      if (currentSuffixIndex === -1) {
+        const currentResourcesObject = {
+          accountKey,
+          id: `${RESOURCE_TYPE}-${vpcConfig.region}-${accountKey}-${suffix}`,
+          region: vpcConfig.region,
+          resourceType: RESOURCE_TYPE,
+          resources: [constructName],
+          suffix,
+        };
+        allStaticResources.push(currentResourcesObject);
+        accountStaticResourcesConfig[accountKey].push(currentResourcesObject);
+      } else {
+        const currentResourcesObject = allStaticResources[currentSuffixIndex];
+        const currentAccountResourcesObject = accountStaticResourcesConfig[accountKey][currentAccountSuffixIndex];
+        if (!currentResourcesObject.resources.includes(constructName)) {
+          currentResourcesObject.resources.push(constructName);
+        }
+        if (!currentAccountResourcesObject.resources.includes(constructName)) {
+          currentAccountResourcesObject.resources.push(constructName);
+        }
+        allStaticResources[currentSuffixIndex] = currentResourcesObject;
+        accountStaticResourcesConfig[accountKey][currentAccountSuffixIndex] = currentAccountResourcesObject;
+      }
     }
-
-    const ruleArns: string[] = [
-      ...madRules.map(
-        ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
-      ),
-      ...onPremRules.map(
-        ruleId => `arn:aws:route53resolver:${vpcConfig.region}:${cdk.Aws.ACCOUNT_ID}:resolver-rule/${ruleId}`,
-      ),
-    ];
-
-    // share the route53 resolver rules
-    new ram.CfnResourceShare(accountStack, `ResolverRuleShare-${vpcConfig.name}`, {
-      name: createName({
-        name: `${vpcConfig.name}-ResolverRules`,
-      }),
-      allowExternalPrincipals: false,
-      principals: sharedToAccountIds,
-      resourceArns: ruleArns,
-    });
+  }
+  for (const sr of allStaticResources) {
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(
+      sr.accountKey,
+      sr.region,
+      `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
+    );
+    if (!accountStack) {
+      throw new Error(
+        `Not able to get or create stack for ${sr.accountKey}: ${sr.region}: ${STACK_COMMON_SUFFIX}-${sr.suffix}`,
+      );
+    }
+    new CfnStaticResourcesOutput(accountStack, `StaticResourceOutput-${sr.suffix}`, sr);
   }
 }
 

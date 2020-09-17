@@ -135,7 +135,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(JSON.stringify(event, null, 2));
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { resolverEndpointId, name } = properties;
-  let maxRetries = 20;
+  let maxRetries = 25;
   const resolverRule = await throttlingBackOff(() =>
     route53Resolver
       .listResolverRules({
