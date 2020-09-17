@@ -38,6 +38,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
   targetIps.forEach(ip => {
     targetIpParams.push({
       Ip: ip,
+      Port: 53,
     });
   });
   let resolverRuleId: string;

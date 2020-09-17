@@ -2,13 +2,6 @@ import aws from './aws-client';
 import * as dynamodb from 'aws-sdk/clients/dynamodb';
 import { throttlingBackOff } from './backoff';
 
-interface Attribute {
-  key: string;
-  value: string;
-  name: string;
-  type: 'S' | 'N' | 'B';
-}
-
 export class DynamoDB {
   private readonly client: aws.DynamoDB;
 
@@ -66,29 +59,5 @@ export class DynamoDB {
 
   async updateItem(props: dynamodb.UpdateItemInput): Promise<void> {
     await throttlingBackOff(() => this.client.updateItem(props).promise());
-  }
-
-  getUpdateValueInput(attributes: Attribute[]) {
-    if (attributes.length === 0) {
-      return;
-    }
-    const expAttributeNames: aws.DynamoDB.ExpressionAttributeNameMap = {};
-    const expAttributeValues: aws.DynamoDB.ExpressionAttributeValueMap = {};
-    let updateExpression: string = 'set ';
-    for (const att of attributes) {
-      const attributeValue: aws.DynamoDB.AttributeValue = {};
-      expAttributeNames[`#${att.key}`] = att.name;
-      attributeValue[att.type] = att.value;
-      expAttributeValues[`:${att.key}`] = attributeValue;
-      updateExpression += `#${att.key} = :${att.key},`;
-    }
-    // Remove "," if exists as last character
-    updateExpression = updateExpression.endsWith(',') ? updateExpression.slice(0, -1) : updateExpression;
-
-    return {
-      ExpressionAttributeNames: expAttributeNames,
-      UpdateExpression: updateExpression,
-      ExpressionAttributeValues: expAttributeValues,
-    };
   }
 }

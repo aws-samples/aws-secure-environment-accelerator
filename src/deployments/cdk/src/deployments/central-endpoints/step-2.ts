@@ -244,8 +244,9 @@ function domainToName(domain: string): string {
 export function createRuleName(name: string): string {
   const hash = hashPath([name], 8);
   if (name.length > 44) {
-    name = name.substring(0, 44) + hash;
+    name = name.substring(0, 44);
   }
+  name = name + hash;
   return createName({
     name,
   });
