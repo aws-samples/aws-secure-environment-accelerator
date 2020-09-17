@@ -1,6 +1,11 @@
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceCreateEvent, CloudFormationCustomResourceUpdateEvent } from 'aws-lambda';
+import {
+  CloudFormationCustomResourceEvent,
+  CloudFormationCustomResourceDeleteEvent,
+  CloudFormationCustomResourceCreateEvent,
+  CloudFormationCustomResourceUpdateEvent,
+} from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { delay, throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
@@ -76,28 +81,31 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
   };
 }
 
-
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const properties = (event.ResourceProperties as unknown) as HandlerProperties;
   const { targetIps, domainName, resolverEndpointId, name } = properties;
   let resolverRuleId: string;
   try {
-    const ruleResponse = await throttlingBackOff(() => route53Resolver.listResolverRules({
-      Filters: [
-        {
-          Name: 'ResolverEndpointId',
-          Values: [resolverEndpointId],
-        },
-        {
-          Name: 'DomainName',
-          Values: [domainName],
-        },
-        {
-          Name: 'Name',
-          Values: [name],
-        }
-      ]
-    }).promise());   
+    const ruleResponse = await throttlingBackOff(() =>
+      route53Resolver
+        .listResolverRules({
+          Filters: [
+            {
+              Name: 'ResolverEndpointId',
+              Values: [resolverEndpointId],
+            },
+            {
+              Name: 'DomainName',
+              Values: [domainName],
+            },
+            {
+              Name: 'Name',
+              Values: [name],
+            },
+          ],
+        })
+        .promise(),
+    );
     const updateRule = await throttlingBackOff(() =>
       route53Resolver
         .updateResolverRule({
