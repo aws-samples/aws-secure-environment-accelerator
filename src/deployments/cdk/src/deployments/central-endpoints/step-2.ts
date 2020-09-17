@@ -140,9 +140,9 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
       // For each on-premise domain defined in the parameters file, create a Resolver rule which points to the specified IP's
       for (const onPremRuleConfig of vpcConfig['on-premise-rules'] || []) {
-        const targetIps: TargetIp[] = onPremRuleConfig['outbound-ips'].map((ip) => ({
+        const targetIps: TargetIp[] = onPremRuleConfig['outbound-ips'].map(ip => ({
           Ip: ip,
-          Port: 53
+          Port: 53,
         }));
         const rule = new CreateResolverRule(accountStack, `${domainToName(onPremRuleConfig.zone)}-${vpcConfig.name}`, {
           domainName: onPremRuleConfig.zone,
@@ -175,9 +175,9 @@ export async function step2(props: CentralEndpointsStep2Props) {
           continue;
         }
         madIPs = madOutput[0].dnsIps.split(',');
-        const targetIps: TargetIp[] = madIPs.map((ip) => ({
+        const targetIps: TargetIp[] = madIPs.map(ip => ({
           Ip: ip,
-          Port: 53
+          Port: 53,
         }));
 
         const madRule = new CreateResolverRule(accountStack, `${domainToName(mad['dns-domain'])}-${vpcConfig.name}`, {
