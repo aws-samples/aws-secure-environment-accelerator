@@ -15,7 +15,6 @@ import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 
-
 /**
  * This is the main entry point to deploy phase 5
  *
