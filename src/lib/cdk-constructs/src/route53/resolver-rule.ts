@@ -23,7 +23,6 @@ export class ResolverRule extends cdk.Construct {
       port: '53',
     }));
 
-    // TODO: Use custom resource to create Rule and Association to handle delete action
     this.rule = new r53Resolver.CfnResolverRule(this, 'Rule', {
       domainName: props.domain,
       ruleType: props.ruleType,

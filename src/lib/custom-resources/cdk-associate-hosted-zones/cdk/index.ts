@@ -46,7 +46,6 @@ export class AssociateHostedZones extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    // TODO: Use existing Lambda function to avoid creating multiple Lambda function in same account and region in different stacks
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-associate-hosted-zones-runtime');
     const lambdaDir = path.dirname(lambdaPath);
 
