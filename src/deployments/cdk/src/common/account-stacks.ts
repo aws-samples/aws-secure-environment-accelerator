@@ -10,6 +10,7 @@ export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountId: string;
   accountKey: string;
   region: string;
+  suffix?: string;
 }
 
 /**
@@ -18,6 +19,7 @@ export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
 export class AccountStack extends AcceleratorStack {
   readonly accountId: string;
   readonly accountKey: string;
+  readonly suffix?: string;
 
   constructor(readonly app: cdk.Stage, id: string, props: AccountStackProps) {
     super(app, id, {
@@ -30,6 +32,7 @@ export class AccountStack extends AcceleratorStack {
 
     this.accountId = props.accountId;
     this.accountKey = props.accountKey;
+    this.suffix = props.suffix;
   }
 }
 
@@ -60,6 +63,10 @@ export class AccountApp extends cdk.Stage {
   get accountKey() {
     return this.stack.accountKey;
   }
+
+  get suffix() {
+    return this.stack.suffix;
+  }
 }
 
 export interface AccountStacksProps {
@@ -89,9 +96,11 @@ export class AccountStacks {
   /**
    * Get the existing stack for the given account or create a new stack if no such stack exists yet.
    */
-  tryGetOrCreateAccountStack(accountKey: string, region?: string): AccountStack | undefined {
+  tryGetOrCreateAccountStack(accountKey: string, region?: string, suffix?: string): AccountStack | undefined {
     const regionOrDefault = region ?? this.props.context.defaultRegion;
-    const existingApp = this.apps.find(s => s.accountKey === accountKey && s.stack.region === regionOrDefault);
+    const existingApp = !suffix
+      ? this.apps.find(s => s.accountKey === accountKey && s.stack.region === regionOrDefault)
+      : this.apps.find(s => s.accountKey === accountKey && s.stack.region === regionOrDefault && s.suffix === suffix);
     if (existingApp) {
       return existingApp.stack;
     }
@@ -101,8 +110,8 @@ export class AccountStacks {
       return undefined;
     }
 
-    const stackName = this.createStackName(accountKey, regionOrDefault);
-    const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault);
+    const stackName = this.createStackName(accountKey, regionOrDefault, suffix);
+    const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault, suffix);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
 
     const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
@@ -116,25 +125,32 @@ export class AccountStacks {
         acceleratorPrefix: this.props.context.acceleratorPrefix,
         terminationProtection,
         region: regionOrDefault,
+        suffix,
       },
     });
     this.apps.push(app);
     return app.stack;
   }
 
-  protected createStackName(accountKey: string, region: string) {
+  protected createStackName(accountKey: string, region: string, suffix?: string) {
     // BE CAREFUL CHANGING THE STACK NAME
     // When changed, it will create a new stack and delete the old one!
     const accountPrettyName = pascalCase(accountKey).replace('_', '');
-    return `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`;
+    const suffixPretty = suffix ? pascalCase(suffix).replace('_', '') : '';
+    return !suffix
+      ? `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}`
+      : `${this.props.context.acceleratorPrefix}${accountPrettyName}-Phase${this.props.phase}-${suffixPretty}`;
   }
 
-  protected createStackLogicalId(accountKey: string, region: string) {
+  protected createStackLogicalId(accountKey: string, region: string, suffix?: string) {
     // BE CAREFUL CHANGING THE STACK LOGICAL ID
     // When changed, it will generate new logical IDs for all resources in this stack and recreate all resources!
     const accountPrettyName = pascalCase(accountKey);
+    const suffixPretty = suffix ? pascalCase(suffix) : '';
     const regionPrettyName = region === this.props.context.defaultRegion ? '' : pascalCase(region);
-    const stackConstructId = `${accountPrettyName}Phase${this.props.phase}${regionPrettyName}`;
+    const stackConstructId = !suffix
+      ? `${accountPrettyName}Phase${this.props.phase}${regionPrettyName}`
+      : `${accountPrettyName}Phase${this.props.phase}${regionPrettyName}${suffixPretty}`;
     return stackConstructId;
   }
 }

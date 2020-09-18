@@ -398,7 +398,14 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
   return 'SUCCESS';
 }
 
+function sleep(milliseconds: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
 async function startStateMachine(stateMachineArn: string): Promise<string> {
+  // Setting 2 mins sleep before SM execution on Successfull account move.
+  await sleep(2 * 60 * 1000);
+
   const runningExecutions = await stepfunctions.listExecutions({
     stateMachineArn,
     statusFilter: 'RUNNING',

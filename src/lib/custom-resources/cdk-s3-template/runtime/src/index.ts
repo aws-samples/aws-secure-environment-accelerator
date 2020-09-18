@@ -76,6 +76,25 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
   } catch (e) {
     throw new Error(`Unable to put S3 object s3://${outputBucketName}/${outputPath}: ${e}`);
   }
+
+  try {
+    // Waiting for the template available in s3
+    // default delay is 5 seconds and max retry attempts is 20
+    console.debug(`Waiting for ${outputBucketName}/${outputPath}`);
+    await throttlingBackOff(() =>
+      s3
+        .waitFor('objectExists', {
+          Bucket: outputBucketName,
+          Key: outputPath,
+          $waiter: {
+            maxAttempts: 1,
+          },
+        })
+        .promise(),
+    );
+  } catch (error) {
+    throw new Error(`Unable to find S3 object s3://${outputBucketName}/${outputPath}: ${error}`);
+  }
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {

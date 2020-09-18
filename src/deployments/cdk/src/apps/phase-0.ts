@@ -17,15 +17,7 @@ import * as passwordPolicy from '../deployments/iam-password-policy';
 import * as transitGateway from '../deployments/transit-gateway';
 import { getAccountId } from '../utils/accounts';
 import * as rsyslogDeployment from '../deployments/rsyslog';
-
-/**********************************************************
- * DO NOT DEPEND ON OUTPUTS IN PHASE 0                    *
- * SINCE WE ARE CREATING CENTRAL BUCKET IN PHASE-0        *
- * AND FRESH INSTALL WILL FAIL SINCE WE WILL NOT HAVE ANY *
- * OUTPUTS CREATED IN PHASE -1                            *
- * (EXCEPT) ACCOUNTWARMING SINCE WE DON'T NEED OUTPUTS    *
- * ACCOUNTWARMING IN FIRST RUN                            *
- **********************************************************/
+import * as cleanup from '../deployments/cleanup';
 
 /**
  * This is the main entry point to deploy phase 0.
@@ -195,6 +187,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     logBucket,
+  });
+
+  await cleanup.step1({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  await cleanup.step2({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
   });
 
   // TODO Deprecate these outputs

@@ -226,6 +226,8 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: MasterPhase3 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: MasterPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: MasterPhase5UsEast1 1`] = `Array []`;
@@ -628,7 +630,7 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase1 1`] = `Array []`;
 
@@ -663,6 +665,8 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: MasterPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: MasterPhase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: MasterPhase5 1`] = `Array []`;
 
@@ -771,7 +775,7 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase1 1`] = `Array []`;
 
@@ -806,6 +810,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: MasterPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: MasterPhase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: MasterPhase5 1`] = `Array []`;
 
@@ -1034,7 +1040,7 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1069,6 +1075,8 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: MasterPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: MasterPhase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: MasterPhase5 1`] = `Array []`;
 
@@ -1167,7 +1175,7 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1202,6 +1210,8 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: MasterPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: MasterPhase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: MasterPhase5 1`] = `Array []`;
 
@@ -1296,7 +1306,7 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1378,6 +1388,8 @@ exports[`there should not be any unsupported resource changes for AWS::S3::Bucke
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: MasterPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: MasterPhase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: MasterPhase5 1`] = `Array []`;
 
@@ -1501,7 +1513,7 @@ exports[`there should not be any unsupported resource changes for AWS::S3::Bucke
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1604,6 +1616,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: MasterPhase3 1`] = `Array []`;
 
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: MasterPhase5 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: MasterPhase5UsEast1 1`] = `Array []`;
@@ -1676,7 +1690,7 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1762,6 +1776,8 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: MasterPhase2 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: MasterPhase3 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: MasterPhase4HostedZonesAssc1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: MasterPhase5 1`] = `Array []`;
 
@@ -1853,7 +1869,7 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase3 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase4 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase1 1`] = `Array []`;
 

@@ -59,6 +59,13 @@ export async function send(event: CloudFormationCustomResourceEvent, context: Co
           reject(error);
         });
 
+        request.on('response', response => {
+          if (response.statusCode! >= 400) {
+            console.log(`Found status code ${response.statusCode} - retrying: ` + response.statusMessage);
+            reject(response.statusMessage);
+          }
+        });
+
         request.write(responseBody);
         request.end();
       });

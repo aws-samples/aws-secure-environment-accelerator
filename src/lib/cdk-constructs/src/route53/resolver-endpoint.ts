@@ -1,11 +1,9 @@
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as r53resolver from '@aws-cdk/aws-route53resolver';
-import { Context } from '../utils/context';
 import { R53DnsEndpointIps } from '@aws-accelerator/custom-resource-r53-dns-endpoint-ips';
 
-export interface Route53ResolverEndpointProps {
-  context: Context;
+export interface ResolverEndpointProps {
   /**
    * The name that will be added to the description of the endpoint resolvers.
    */
@@ -20,12 +18,12 @@ export interface Route53ResolverEndpointProps {
   subnetIds: string[];
 }
 
-export class Route53ResolverEndpoint extends cdk.Construct {
+export class ResolverEndpoint extends cdk.Construct {
   private _inboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
   private _outboundEndpoint: r53resolver.CfnResolverEndpoint | undefined;
-  private _inboundEndpointIps: string[] = [];
+  // private _inboundEndpointIps: string[] = [];
 
-  constructor(parent: cdk.Construct, id: string, private readonly props: Route53ResolverEndpointProps) {
+  constructor(parent: cdk.Construct, id: string, private readonly props: ResolverEndpointProps) {
     super(parent, id);
   }
 
@@ -41,7 +39,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     const securityGroup = new ec2.CfnSecurityGroup(this, `InboundSecurityGroup`, {
       groupDescription: 'Security Group for Public Hosted Zone Inbound EndpointRoute53',
       vpcId: this.props.vpcId,
-      groupName: `${this.props.name}_inbound_sg`,
+      groupName: `${this.props.name}_inbound_endpoint_sg`,
     });
 
     const ipAddresses = this.props.subnetIds.map(subnetId => ({
@@ -55,13 +53,14 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Inbound Endpoint`,
     });
+    this._inboundEndpoint.addDependsOn(securityGroup);
 
-    const dnsIps = new R53DnsEndpointIps(this, 'InboundIp', {
-      resolverEndpointId: this._inboundEndpoint.ref,
-    });
+    // const dnsIps = new R53DnsEndpointIps(this, 'InboundIp', {
+    //   resolverEndpointId: this._inboundEndpoint.ref,
+    // });
 
-    // Every IP address that we supply to inbound endpoint will result in an DNS endpoint IP
-    this._inboundEndpointIps = ipAddresses.map((_, index) => dnsIps.getEndpointIpAddress(index));
+    // // Every IP address that we supply to inbound endpoint will result in an DNS endpoint IP
+    // this._inboundEndpointIps = ipAddresses.map((_, index) => dnsIps.getEndpointIpAddress(index));
 
     return this._inboundEndpoint;
   }
@@ -78,7 +77,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     const securityGroup = new ec2.CfnSecurityGroup(this, `OutboundSecurityGroup`, {
       groupDescription: 'Security Group for Public Hosted Zone Outbound EndpointRoute53',
       vpcId: this.props.vpcId,
-      groupName: `${this.props.name}_outbound_sg`,
+      groupName: `${this.props.name}_outbound_endpoint_sg`,
     });
 
     const ipAddresses = this.props.subnetIds.map(subnetId => ({
@@ -92,6 +91,7 @@ export class Route53ResolverEndpoint extends cdk.Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Outbound Endpoint`,
     });
+    this._outboundEndpoint.addDependsOn(securityGroup);
     return this._outboundEndpoint;
   }
 
@@ -111,8 +111,8 @@ export class Route53ResolverEndpoint extends cdk.Construct {
     return this.outboundEndpoint?.ref;
   }
 
-  get inboundEndpointIps(): string[] {
-    // Return a copy of the list so the original one isn't mutable
-    return [...this._inboundEndpointIps];
-  }
+  // get inboundEndpointIps(): string[] {
+  //   // Return a copy of the list so the original one isn't mutable
+  //   return [...this._inboundEndpointIps];
+  // }
 }

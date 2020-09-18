@@ -7,6 +7,8 @@ export interface LoadConfigurationInput {
   baseline?: BaseLineType;
   acceleratorVersion?: string;
   configRootFilePath?: string;
+  storeAllOutputs?: boolean;
+  phases?: number[];
 }
 
 export interface LoadConfigurationOutput {

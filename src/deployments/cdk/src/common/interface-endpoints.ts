@@ -14,6 +14,7 @@ export interface InterfaceEndpointProps {
  * SecurityGroup, VPCEndpoint, HostedZone and RecordSet.
  */
 export class InterfaceEndpoint extends cdk.Construct {
+  private _hostedZone: route53.CfnHostedZone;
   constructor(scope: cdk.Construct, id: string, props: InterfaceEndpointProps) {
     super(scope, id);
 
@@ -57,7 +58,7 @@ export class InterfaceEndpoint extends cdk.Construct {
     endpoint.addDependsOn(securityGroup);
 
     const hostedZoneName = zoneNameForRegionAndEndpointName(vpcRegion, serviceName);
-    const hostedZone = new route53.CfnHostedZone(this, 'Phz', {
+    this._hostedZone = new route53.CfnHostedZone(this, 'Phz', {
       name: hostedZoneName,
       vpcs: [
         {
@@ -69,15 +70,19 @@ export class InterfaceEndpoint extends cdk.Construct {
         comment: `zzEndpoint - ${serviceName}`,
       },
     });
-    hostedZone.addDependsOn(endpoint);
+    this._hostedZone.addDependsOn(endpoint);
 
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {
       type: 'A',
       name: hostedZoneName,
-      hostedZoneId: hostedZone.ref,
+      hostedZoneId: this._hostedZone.ref,
       aliasTarget: aliasTargetForServiceNameAndEndpoint(serviceName, endpoint),
     });
-    recordSet.addDependsOn(hostedZone);
+    recordSet.addDependsOn(this._hostedZone);
+  }
+
+  get hostedZone(): route53.CfnHostedZone {
+    return this._hostedZone;
   }
 }
 

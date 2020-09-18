@@ -83,14 +83,15 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "zones": {
+    "zones": [{
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
+      "region": "ca-central-1",
       "names": {
         "public": ["dept.cloud-nuage.canada.ca"],
         "private": ["dept.cloud-nuage.gc.ca"]
       }
-    },
+    }],
     "vpc-flow-logs": {
       "filter": "ALL",
       "interval": 60,
