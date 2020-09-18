@@ -130,8 +130,8 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
       if (e.code === 'ConflictingDomainExists') {
         console.info('Domain already added; ignore this error and continue');
       } else {
-        // TODO Handle errors
-        console.error(`Ignoring error while associating the hosted zone ${hostedZoneId} to VPC "${vpcName}"`);
+        console.error(`Error while associating the hosted zone "${hostedZoneId}" to VPC "${vpcName}"`);
+        console.error(e);
         throw new Error(e);
       }
     }
@@ -222,8 +222,8 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       if (e.code === 'VPCAssociationNotFound') {
         console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
       } else {
-        // TODO Handle errors
-        console.error(`Ignoring error while associating the hosted zone ${hostedZoneId} to VPC "${vpcName}"`);
+        console.error(`Error while associating the hosted zone "${hostedZoneId}" to VPC "${vpcName}"`);
+        console.error(e);
         throw new Error(e);
       }
     }

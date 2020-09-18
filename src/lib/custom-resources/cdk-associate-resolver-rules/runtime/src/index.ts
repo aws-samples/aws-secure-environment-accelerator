@@ -50,6 +50,8 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
       if (error.code === 'ResourceExistsException') {
         console.warn(`Resolver Rule ${ruleId} is already Associated to ${vpcId}`);
       } else {
+        console.error(`Error while Associating Resolver Rule "${ruleId}" to VPC ${vpcId}`);
+        console.error(error);
         throw new Error(error);
       }
     }
@@ -80,6 +82,8 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       if (error.code === 'ResourceExistsException') {
         console.warn(`Resolver Rule ${ruleId} is already Associated to ${vpcId}`);
       } else {
+        console.error(`Error while Associating Resolver Rule "${ruleId}" to VPC ${vpcId}`);
+        console.error(error);
         throw new Error(error);
       }
     }
@@ -99,6 +103,8 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       if (error.code === 'ResourceNotFoundException') {
         console.warn(`Resolver Rule ${ruleId} is not Associated to ${vpcId}`);
       } else {
+        console.error(`Error while Disassociate VPC "${vpcId}" from Resolver Rule "${ruleId}"`);
+        console.error(error);
         throw new Error(error);
       }
     }
