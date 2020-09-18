@@ -1,10 +1,11 @@
-import { arrayEqual } from '@aws-accelerator/common/src/util/arrays';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
-export interface LoadConfigurationInput {
+export interface GetBaseLineInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
+  outputTableName: string;
   acceleratorVersion?: string;
 }
 
@@ -14,11 +15,19 @@ export interface ConfigurationOrganizationalUnit {
   ouName: string;
 }
 
-export const handler = async (input: LoadConfigurationInput): Promise<string> => {
+export interface GetBaseelineOutput {
+  baseline: string;
+  storeAllOutputs: boolean;
+  phases: number[];
+}
+
+const dynamoDB = new DynamoDB();
+
+export const handler = async (input: GetBaseLineInput): Promise<GetBaseelineOutput> => {
   console.log(`Loading configuration...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configFilePath, configRepositoryName, configCommitId } = input;
+  const { configFilePath, configRepositoryName, configCommitId, outputTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -37,5 +46,12 @@ export const handler = async (input: LoadConfigurationInput): Promise<string> =>
   } else {
     throw new Error(`Both "alz-baseline" and "ct-baseline" can't be true`);
   }
-  return baseline;
+
+  // Checking whether DynamoDB outputs table is empty or not
+  const storeAllOutputs = await dynamoDB.isEmpty(outputTableName);
+  return {
+    baseline,
+    storeAllOutputs,
+    phases: [-1, 0, 1, 2, 3],
+  };
 };

@@ -9,7 +9,6 @@ export { handler as loadAccountsStep } from './load-accounts-step';
 export { handler as loadLandingZoneConfigurationStep } from './configuration/load-landing-zone-config';
 export { handler as loadOrganizationConfigurationStep } from './configuration/load-organizations-config';
 export { handler as loadLimitsStep } from './load-limits-step';
-export { handler as associateHostedZonesStep } from './associate-hosted-zones-step';
 export { handler as accountDefaultSettingsStep } from './account-default-settings-step';
 export { handler as storeStackOutputStep } from './store-stack-output-step';
 export { handler as enableDirectorySharingStep } from './enable-directory-sharing-step';

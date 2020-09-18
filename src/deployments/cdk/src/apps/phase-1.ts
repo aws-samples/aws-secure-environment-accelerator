@@ -35,10 +35,10 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
 import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
-import { createR53LogGroupName } from '../common/r53-zones';
 import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import * as centralEndpoints from '../deployments/central-endpoints';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -168,11 +168,21 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
           endpointCount = 0;
         }
-        new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
+        const interfaceEndpoint = new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
           serviceName: endpoint,
           vpcId: vpc.vpcId,
           vpcRegion: vpc.region,
           subnetIds,
+        });
+
+        new centralEndpoints.CfnHostedZoneOutput(endpointStack, `HostedZoneOutput-${endpoint}`, {
+          accountKey,
+          domain: interfaceEndpoint.hostedZone.name,
+          hostedZoneId: interfaceEndpoint.hostedZone.ref,
+          region: vpc.region,
+          zoneType: 'PRIVATE',
+          serviceName: endpoint,
+          vpcName: vpc.name,
         });
         endpointCount++;
       }
@@ -467,8 +477,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
    * Code to create LogGroups required for DNS Logging
    */
   const globalOptionsConfig = acceleratorConfig['global-options'];
-  const zonesConfig = globalOptionsConfig.zones;
-  const zonesAccountKey = zonesConfig.account;
+  const zoneConfig = globalOptionsConfig.zones.find(zc => zc.names);
+  const zonesAccountKey = zoneConfig?.account!;
 
   const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
   const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
@@ -477,19 +487,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     roleKey: 'LogGroupRole',
   });
   if (logGroupLambdaRoleOutput) {
-    const logGroups = zonesConfig.names.public.map(phz => {
-      const logGroupName = createR53LogGroupName({
-        acceleratorPrefix: context.acceleratorPrefix,
-        domain: phz,
-      });
-      return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
-        logGroupName,
-        roleArn: logGroupLambdaRoleOutput.roleArn,
-      });
-    });
+    const logGroups =
+      zoneConfig?.names?.public.map(phz => {
+        const logGroupName = centralEndpoints.createR53LogGroupName({
+          acceleratorPrefix: context.acceleratorPrefix,
+          domain: phz,
+        });
+        return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
+          logGroupName,
+          roleArn: logGroupLambdaRoleOutput.roleArn,
+        });
+      }) || [];
 
     if (logGroups.length > 0) {
-      const wildcardLogGroupName = createR53LogGroupName({
+      const wildcardLogGroupName = centralEndpoints.createR53LogGroupName({
         acceleratorPrefix: context.acceleratorPrefix,
         domain: '*',
       });
