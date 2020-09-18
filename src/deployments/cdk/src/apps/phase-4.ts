@@ -10,7 +10,6 @@ export interface RdgwArtifactsOutput {
   keyPrefix: string;
 }
 
-
 /**
  * This is the main entry point to deploy phase 4
  *

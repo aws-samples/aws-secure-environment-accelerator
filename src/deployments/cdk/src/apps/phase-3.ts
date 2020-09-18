@@ -11,7 +11,6 @@ import * as securityHub from '../deployments/security-hub';
 import * as macie from '../deployments/macie';
 import * as transitGateway from '../deployments/transit-gateway';
 
-
 /**
  * This is the main entry point to deploy phase 3
  *
