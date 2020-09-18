@@ -332,25 +332,31 @@ This step fails when
 
 #### 2.2.20. Deploy Phase 1
 
-- create VPCs;
-  - subnets;
-  - route tables;
-  - security groups;
-  - interface endpoints;
-  - transit gateway attachments;
-  - flow logs;
-  - resource sharing in case the VPC is shared;
-  - role to accept peering connection requests;
-- create firewalls (step 2);
-- create IAM roles (step 2);
-- create budgets (step 2);
-- create certificates (step 1);
-- create reports (step 1);
-- enable SSM (step 1);
-- enable Security Hub (step 1);
-- enable Macie (step 2);
-- enable GuardDuty (step 3);
-- enable central logging to S3 (step 1);
+- Create S3 Bucket in all accounts and replicate to Log Account Bucket
+- Deploy VPC:
+  - Vpc
+  - Subnets
+  - Subnet sharing (RAM)
+  - Route tables
+  - Internet gateways
+  - NAT gateways
+  - Interface endpoints
+  - Gateway endpoints
+  - Transit Gateway Attachments
+  - IAM Role required for VPC Peering Auto accept
+- Firewall images subscription check
+- Creates the customer gateways for the EIPs of the firewall
+- Create IAM Roles, Users in account based on configuration
+- Creates the additional budgets for the account stacks.
+- Import Certificates
+- Setup SSMSessionManagerDocument
+- Create Cost and Usage reports
+- Enable Macie in Master Account
+- GuardDuty setup in Security Account
+- Setup CWL Central Logging
+- Create Roles required for Flow Logs
+- Transit Gateway Peering
+- Create LogGroup required for DNS Logging
 
 #### 2.2.21. Store Phase 1 Output
 
@@ -368,14 +374,20 @@ This step calls a Lambda function that
 
 #### 2.2.23. Deploy Phase 2
 
-- create peering connections;
-- create security groups in shared account;
-- create MAD deployment (step 2);
-- create firewalls (step 3);
-- create firewall manager (step 1);
-- create transit gateways (step 2);
-- enable Security Hub (step 2);
-- enable Macie (step 3);
+- Create CloudTrail in Master account
+- Create VPC Peering Connection
+- Create Security Groups for shared VPC in sub accounts
+- Setup Security Hub in Security Account
+- Setup Cross Account CloudWatch logs sharing by creating roles in sub accounts
+- Enable VPC FlowLogs
+- Create Active Directory (MAD)
+- Create Firewall clusters
+- Create Firewall Management instance
+- Create Transit Gateway Routes, Association and Propagation
+- Enable Macie in Security account and Create Members, Update Config
+- GuardDuty - Add existing Org accounts as members and allow new accounts to be members and Publish
+- Create SNS Topics in Log Account
+- TGW Peering Attachments
 
 #### 2.2.24. Store Phase 2 Output
 
@@ -386,7 +398,10 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 - create peering connection routes;
 - create ALB (step 1);
 - create `rsyslog` deployment (step 2);
-- create hosted zones, resolver rules and resolver endpoints;
+- create hosted zones, resolver rules and resolver endpoints and Share;
+- Enable Security Hub and Invite Sub accounts as members;
+- TransitGateway Peering attachment and routes;
+- Macie update Session;
 
 #### 2.2.26. Store Phase 3 Output
 
@@ -394,7 +409,10 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 
 #### 2.2.27. Deploy Phase 4
 
-- share resolver rules;
+- SecurityHub Disable Controls
+- Creates CloudWatch Metrics on LogGroups
+- Associate Shared Resolver Rules to VPC
+- Associate Hosted Zones to VPC
 
 #### 2.2.28. Store Phase 4 Output
 
@@ -425,6 +443,8 @@ This step calls a Lambda function that shares Managed Active Directory according
   - create launch configuration;
   - create autoscaling group;
 - enable central logging to S3 (step 2);
+- Create CloudWatch Events for moveAccount, policyChanges and createAccount
+- Creates CloudWatch Alarms
 
 #### 2.2.33. Create AD Connector
 

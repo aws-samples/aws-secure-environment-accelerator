@@ -10,6 +10,16 @@ export interface RdgwArtifactsOutput {
   keyPrefix: string;
 }
 
+
+/**
+ * This is the main entry point to deploy phase 4
+ *
+ * - SecurityHub Disable Controls
+ * - Creates CloudWatch Metrics on LogGroups
+ * - Associate Shared Resolver Rules to VPC
+ * - Associate Hosted Zones to VPC
+ */
+
 export async function deploy({ acceleratorConfig, accounts, accountStacks, outputs, context }: PhaseInput) {
   // Deploy Security Hub Step-3 to disable specific controls
   await securityHub.step3({

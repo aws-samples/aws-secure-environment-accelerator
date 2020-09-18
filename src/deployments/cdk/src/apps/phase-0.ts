@@ -22,27 +22,28 @@ import * as cleanup from '../deployments/cleanup';
 /**
  * This is the main entry point to deploy phase 0.
  *
- * The following resources are deployed in phase 0:
- * - Performs Account Warming if required
- * - Sets IAM Password Policy for NonALZ Deployment
- * - Defaults.step1
- *   - Creates a Central Bucket in Master account.
- *   - Creates a Central Log Bucket in Log-Service account.
- *   - Create KMS encryption key for Default EBS Encryption.
- *   - Creates a AES bucket that will be used to store ALB access logs in Log-Services Account.
- * - Upload Atifacts to Central Bucket
- * - KMS key for managing secrets
- * - Create secrets that will later be used for IAM user creation.
- * - Create Roles for Config Recorder and Aggregator for NonALZ Deployment
- * - Create MAD Secrets (AD User Passwords)
- * - Create Org Access Analyzer
- * - Update Central Log Bucket Policy with respect to GuardDuty
- * - Create Auto scaling service-linked role and Get ImageId of MAD, Rsyslog instance and store in outputs
- * - Create a firewall EIP in every availability zone
- * - Setup Budgets in Master Account
- * - Create `CloudWatch-CrossAccountSharing-ListAccountsRole` for CloudWatch Cross account logs in Maste Account
- * - Create Transit Gateway and Share to respective accounts
- * - Create Roles required for CloudWatch Central Logging to Log Account
+ * - create default EBS encryption key;
+ * - create an AWS log bucket with encryption key;
+ * - create the central log services bucket with encryption key;
+ * - create the Accelerator configuration bucket with encryption key;
+ * - copy artifacts to the Accelerator configuration bucket:
+ *   - SCPs;
+ *   - firewall configuration;
+ * - account warming (step 1);
+ * - set password policy (step 1);
+ * - create IAM users (step 1):
+ *   - create passwords and store in Secrets Manager;
+ * - create MAD deployment (step 1):
+ *   - create passwords and store in Secrets Manager;
+ *   - create service-linked role;
+ * - create `rsyslog` deployment (step 1);
+ * - create firewalls (step 1);
+ * - create budgets (step 1);
+ * - create transit gateways (step 1);
+ * - create Route53 DNS logging log group;
+ * - enable Macie (step 1);
+ * - enable GuardDuty;
+ * - enable Access Analyzer;
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {

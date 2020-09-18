@@ -14,7 +14,6 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
-import * as centralEndpoints from '../deployments/central-endpoints';
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig

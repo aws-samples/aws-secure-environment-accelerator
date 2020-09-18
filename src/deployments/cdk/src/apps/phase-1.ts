@@ -49,7 +49,6 @@ export interface IamPolicyArtifactsOutput {
 /**
  * This is the main entry point to deploy phase 1.
  * - Create S3 Bucket in all accounts and replicate to Log Account Bucket
- * - Creates IAM Role required for VPC Peering Auto accept
  * - Deploy VPC:
  *   - Vpc
  *   - Subnets
@@ -60,6 +59,7 @@ export interface IamPolicyArtifactsOutput {
  *   - Interface endpoints
  *   - Gateway endpoints
  *   - Transit Gateway Attachments
+ *   - IAM Role required for VPC Peering Auto accept
  * - Firewall images subscription check
  * - Creates the customer gateways for the EIPs of the firewall
  * - Create IAM Roles, Users in account based on configuration
