@@ -1,36 +1,18 @@
-# Security Hub Enable Standards
+# Associate Hosted Zones to VPC
 
-This is a custom resource to enable Security Hub Standards and disable specific controls Used `describeStandards`, `batchEnableStandards`, `describeStandardControls` and `updateStandardControls` API calls.
+This is a custom resource to associate vpc to Hosted Zone Used `createVPCAssociationAuthorization`, `associateVPCWithHostedZone`, `deleteVPCAssociationAuthorization` and `deleteVPCAssociationAuthorization` API calls.
 
 ## Usage
 
-    import { SecurityHubEnable } from '@aws-accelerator/custom-resource-security-hub-enable';
+    import { AssociateHostedZones } from '@aws-accelerator/custom-resource-associate-hosted-zones';
 
-    const enableSecurityHubResource = new SecurityHubEnable(this, 'EnableSecurityHubStandards`, {
-        standards: standards.standards,
-    });
-
-## Input Example
-
-    [
-      {
-        "name": "AWS Foundational Security Best Practices v1.0.0",
-        "controls-to-disable": [
-          "IAM.1"
-        ]
-      },
-      {
-        "name": "PCI DSS v3.2.1",
-        "controls-to-disable": [
-          "PCI.IAM.3",
-          "PCIDSS8.3.1"
-        ]
-      },
-      {
-        "name": "CIS AWS Foundations Benchmark v1.2.0",
-        "controls-to-disable": [
-          "CIS.1.3",
-          "CIS1.11"
-        ]
-      }
-    ]
+    new AssociateHostedZones(accountStack, constructName, {
+        assumeRoleName: assumeRole,
+        vpcAccountId,
+        vpcName: vpcConfig.name,
+        vpcId: vpcOutput.vpcId,
+        vpcRegion: vpcConfig.region,
+        hostedZoneAccountId,
+        hostedZoneIds,
+        roleArn,
+      });

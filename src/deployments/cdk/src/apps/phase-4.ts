@@ -2,7 +2,6 @@ import { PhaseInput } from './shared';
 import * as securityHub from '../deployments/security-hub';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 import * as centralEndpoints from '../deployments/central-endpoints';
-import { Context } from '@aws-cdk/aws-stepfunctions';
 
 export interface RdgwArtifactsOutput {
   accountKey: string;

@@ -53,6 +53,7 @@ export class ResolverEndpoint extends cdk.Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Inbound Endpoint`,
     });
+    this._inboundEndpoint.addDependsOn(securityGroup);
 
     // const dnsIps = new R53DnsEndpointIps(this, 'InboundIp', {
     //   resolverEndpointId: this._inboundEndpoint.ref,
@@ -90,6 +91,7 @@ export class ResolverEndpoint extends cdk.Construct {
       securityGroupIds: [securityGroup.ref],
       name: `${this.props.name} Outbound Endpoint`,
     });
+    this._outboundEndpoint.addDependsOn(securityGroup);
     return this._outboundEndpoint;
   }
 

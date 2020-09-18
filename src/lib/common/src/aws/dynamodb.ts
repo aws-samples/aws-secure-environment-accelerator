@@ -24,6 +24,7 @@ export class DynamoDB {
     let token: dynamodb.Key | undefined;
     // TODO: Use common listgenerator when this api supports nextToken
     do {
+      // TODO: Use DynamoDB.Converter for scan and Query
       const response = await throttlingBackOff(() => this.client.scan(props).promise());
       token = response.LastEvaluatedKey;
       props.ExclusiveStartKey = token;

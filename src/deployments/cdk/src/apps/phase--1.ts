@@ -92,4 +92,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     accounts,
     config: acceleratorConfig,
   });
+
+  // Creates role for Resource cleanup custom resource
+  await globalRoles.createCentralEndpointDeploymentRole({
+    accountStacks,
+    config: acceleratorConfig,
+  });
 }
