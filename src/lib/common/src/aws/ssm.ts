@@ -43,6 +43,7 @@ export class SSM {
           Name: name,
           Type: 'String',
           Value: value,
+          Overwrite: true,
         })
         .promise(),
     );
