@@ -1,5 +1,18 @@
+import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { SSM } from '@aws-accelerator/common/src/aws/ssm';
+import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+
+export interface SaveOutputsInput {
+  acceleratorPrefix: string;
+  outputsTableName: string;
+  dynamodb: DynamoDB;
+  config: AcceleratorConfig;
+  account: Account;
+  ssm: SSM;
+  region: string;
+}
 
 export async function getOutput(tableName: string, key: string, dynamodb: DynamoDB): Promise<StackOutput[]> {
   const outputs: StackOutput[] = [];
