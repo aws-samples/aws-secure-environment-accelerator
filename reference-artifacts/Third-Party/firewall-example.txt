@@ -108,13 +108,8 @@ config global
     set port 514
     set server "future-rsyslog.nlb-domainname.com"
     set status disable
-    set csv disable
-    set reliable disable
-  end
-  config log syslogd filter
-    set traffic enable
-    set web enable
-    set url-filter enable
+    set format default
+    set mode reliable
   end
 end
 config vdom
