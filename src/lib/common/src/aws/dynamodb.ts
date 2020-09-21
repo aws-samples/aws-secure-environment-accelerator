@@ -60,4 +60,16 @@ export class DynamoDB {
   async updateItem(props: dynamodb.UpdateItemInput): Promise<void> {
     await throttlingBackOff(() => this.client.updateItem(props).promise());
   }
+
+  async getOutputValue(tableName: string, key: string): Promise<dynamodb.AttributeValue | undefined> {
+    const outputResponse =  await this.getItem({
+      Key: { id: { S: key } },
+      TableName: tableName,
+      AttributesToGet: ['outputValue']
+    });
+    if (!outputResponse.Item) {
+      return;
+    }
+    return outputResponse.Item.outputValue;
+  }
 }
