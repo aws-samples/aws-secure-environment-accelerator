@@ -79,6 +79,13 @@ export class S3Template extends cdk.Construct {
       }),
     );
 
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['s3:GetObject', 's3:ListBucket'],
+        resources: ['*'],
+      }),
+    );
+
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
