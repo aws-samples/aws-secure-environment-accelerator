@@ -62,10 +62,10 @@ export class DynamoDB {
   }
 
   async getOutputValue(tableName: string, key: string): Promise<dynamodb.AttributeValue | undefined> {
-    const outputResponse =  await this.getItem({
+    const outputResponse = await this.getItem({
       Key: { id: { S: key } },
       TableName: tableName,
-      AttributesToGet: ['outputValue']
+      AttributesToGet: ['outputValue'],
     });
     if (!outputResponse.Item) {
       return;

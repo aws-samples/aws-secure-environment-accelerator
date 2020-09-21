@@ -34,21 +34,3 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     status: 'SUCCESS',
   };
 };
-
-handler({
-  "acceleratorPrefix": "PBMMAccel-",
-  "outputsTableName": "PBMMAccel-Outputs",
-  "region": "eu-west-2",
-  "account": {
-      "arn": "arn:aws:organizations::538235518685:account/o-wdw2wt4bk9/233932606131",
-      "email": "nkoppula+non-alz-5-security@amazon.com",
-      "id": "233932606131",
-      "key": "security",
-      "name": "security",
-      "ou": "corerename",
-      "ouPath": "corerename"
-  },
-  configCommitId: 'master',
-  configFilePath: 'raw/config.json',
-  configRepositoryName: 'PBMMAccel-Config-Repo'
-});

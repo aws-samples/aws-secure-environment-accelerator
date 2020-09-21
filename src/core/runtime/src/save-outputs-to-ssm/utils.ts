@@ -1,4 +1,4 @@
-import { StackOutput } from "@aws-accelerator/common-outputs/src/stack-output"
+import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 
 export async function getOutput(tableName: string, key: string, dynamodb: DynamoDB): Promise<StackOutput[]> {
