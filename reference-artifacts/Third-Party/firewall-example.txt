@@ -87,7 +87,7 @@ config global
   end
   config system dns
     set primary 169.254.169.253
-    set secondary 1.1.1.1
+    set secondary 169.254.169.253
   end
   config system autoupdate push-update
     set status enable

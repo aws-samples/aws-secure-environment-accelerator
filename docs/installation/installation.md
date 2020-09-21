@@ -127,6 +127,8 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
 
+- If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the mgmt port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
+
 ### 1.2.3. Production Accelerator Configuration
 
 - **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
@@ -210,7 +212,13 @@ If deploying to an internal AWS account, to successfully install the entire solu
     3. Login to the firewalls and firewall manager appliance and set default passwords
        - Update firewall configuration per your organizations security best practices
        - manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
+         - login to each firewall, select `Log Settings`, check `Send logs to syslog`, put the NLB FQDN in the `IP Address/FQDN` field
        - manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
+         - login to each firewall, switch to `FG-traffic` vdom, select `Policies & Objects`, select `Addresses`, Expand `Addresses`
+         - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
+         - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
+         - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
+           - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
 
