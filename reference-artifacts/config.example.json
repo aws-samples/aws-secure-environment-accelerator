@@ -11,6 +11,7 @@
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
     "ignored-ous": [],
+    "additional-global-output-regions": [],
     "supported-regions": [
       "ap-northeast-1",
       "ap-northeast-2",

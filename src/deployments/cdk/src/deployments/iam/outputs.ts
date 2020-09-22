@@ -3,10 +3,17 @@ import * as iam from '@aws-cdk/aws-iam';
 import { createFixedSecretName } from '@aws-accelerator/common-outputs/src/secrets';
 
 import { createCfnStructuredOutput } from '../../common/structured-output';
-import { IamRoleOutput } from '@aws-accelerator/common-outputs/src/iam-role';
+import { IamRoleOutput, IamPolicyOutput } from '@aws-accelerator/common-outputs/src/iam-role';
+import { IamUserOutput, IamGroupOutput } from '@aws-accelerator/common-outputs/src/iam-users';
 import { AccountStack } from '../../common/account-stacks';
 
 export const CfnIamRoleOutput = createCfnStructuredOutput(IamRoleOutput);
+
+export const CfnIamPolicyOutput = createCfnStructuredOutput(IamPolicyOutput);
+
+export const CfnIamUserOutput = createCfnStructuredOutput(IamUserOutput);
+
+export const CfnIamGroupOutput = createCfnStructuredOutput(IamGroupOutput);
 
 export function createIamUserPasswordSecretName({
   acceleratorPrefix,

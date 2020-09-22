@@ -5,6 +5,7 @@ import { LoadConfigurationInput } from '../load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { saveNetworkOutputs } from './network-outputs';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
+import { saveIamOutputs } from './iam-outputs';
 
 export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -43,19 +44,40 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
+
+  const globalRegions = config["global-options"]["additional-global-output-regions"];
+  const smRegion = config["global-options"]["aws-org-master"].region;
+
+  // TODO preparing list of regions to create IAM parameters
+  const iamRegions = [...globalRegions, smRegion];
+
+  if (iamRegions.includes(region)) {
+    // Store Identity Outputs to SSM Parameter Store
+    await saveIamOutputs({
+      acceleratorPrefix,
+      config,
+      dynamodb,
+      outputsTableName,
+      assumeRoleName,
+      account,
+      region,
+      outputUtilsTableName,
+    });
+  }
+
   const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
   const ssm = new SSM(credentials, region);
   // Store Network Outputs to SSM Parameter Store
-  await saveNetworkOutputs({
-    acceleratorPrefix,
-    config,
-    dynamodb,
-    outputsTableName,
-    ssm,
-    account,
-    region,
-    outputUtilsTableName,
-  });
+  // await saveNetworkOutputs({
+  //   acceleratorPrefix,
+  //   config,
+  //   dynamodb,
+  //   outputsTableName,
+  //   ssm,
+  //   account,
+  //   region,
+  //   outputUtilsTableName,
+  // });
 
   return {
     status: 'SUCCESS',
