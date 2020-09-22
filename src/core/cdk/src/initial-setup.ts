@@ -90,6 +90,18 @@ export namespace InitialSetup {
         encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
+      const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
+        tableName: createName({
+          name: 'Output-Utils',
+          suffixLength: 0,
+        }),
+        partitionKey: {
+          name: 'id',
+          type: dynamodb.AttributeType.STRING,
+        },
+        encryption: dynamodb.TableEncryption.DEFAULT,
+      });
+
       // This is the maximum time before a build times out
       // The role used by the build should allow this session duration
       const buildTimeout = cdk.Duration.hours(4);

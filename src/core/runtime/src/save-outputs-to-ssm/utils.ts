@@ -14,6 +14,11 @@ export interface SaveOutputsInput {
   region: string;
 }
 
+export interface OutputUtilGenericType {
+  name: string;
+  index: number;
+}
+
 export async function getOutput(tableName: string, key: string, dynamodb: DynamoDB): Promise<StackOutput[]> {
   const outputs: StackOutput[] = [];
   const cfnOutputs = await dynamodb.getOutputValue(tableName, key);
