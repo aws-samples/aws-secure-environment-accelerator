@@ -60,6 +60,7 @@ export async function saveIamUsers(
   console.log('userIndices', userIndices);
   let userMaxIndex = userIndices.length === 0 ? 0 : Math.max(...userIndices);
   const updatedUsers: OutputUtilGenericType[] = [];
+  const removalObjects: OutputUtilGenericType[] = [...(users || [])];
 
   for (const iamConfig of iamConfigs) {
     if (!iamConfig || !iamConfig.users) {
@@ -75,7 +76,6 @@ export async function saveIamUsers(
         userKey: 'IamAccountUser',
         userName: user,
       });
-      console.log('userOutput', userOutput);
       if (!userOutput) {
         console.warn(`Didn't find IAM User "${user}" in output`);
         continue;
@@ -99,6 +99,25 @@ export async function saveIamUsers(
         index: currentIndex,
         name: userOutput.userName,
       });
+
+      const removalIndex = removalObjects.findIndex(
+        p => p.name === userOutput.userName,
+      );
+      if (removalIndex != -1) {
+        removalObjects.splice(removalIndex, 1);
+      }
+    }
+  }
+
+  for (const removeObject of removalObjects || []) {
+    const removalUsers = ([
+        `/${acceleratorPrefix}/ident/user/${removeObject.index}/name`,
+        `/${acceleratorPrefix}/ident/user/${removeObject.index}/arn`,
+      ])
+      .flatMap(s => s);
+
+    while (removalUsers.length > 0) {
+      await ssm.deleteParameters(removalUsers.splice(0, 10));
     }
   }
   return updatedUsers;
@@ -116,6 +135,7 @@ export async function saveIamGroups(
   console.log('groupIndices', groupIndices);
   let policyMaxIndex = groupIndices.length === 0 ? 0 : Math.max(...groupIndices);
   const updatedGroups: OutputUtilGenericType[] = [];
+  const removalObjects: OutputUtilGenericType[] = [...(groups || [])];
 
   for (const iamConfig of iamConfigs) {
     if (!iamConfig || !iamConfig.users) {
@@ -154,6 +174,25 @@ export async function saveIamGroups(
         index: currentIndex,
         name: groupOutput.groupName,
       });
+
+      const removalIndex = removalObjects.findIndex(
+        p => p.name === groupOutput.groupName,
+      );
+      if (removalIndex != -1) {
+        removalObjects.splice(removalIndex, 1);
+      }
+    }
+  }
+
+  for (const removeObject of removalObjects || []) {
+    const removalGroups = ([
+        `/${acceleratorPrefix}/ident/group/${removeObject.index}/name`,
+        `/${acceleratorPrefix}/ident/group/${removeObject.index}/arn`,
+      ])
+      .flatMap(s => s);
+
+    while (removalGroups.length > 0) {
+      await ssm.deleteParameters(removalGroups.splice(0, 10));
     }
   }
   return updatedGroups;
@@ -171,6 +210,7 @@ export async function saveIamPolicy(
   console.log('policyIndices', policyIndices);
   let policyMaxIndex = policyIndices.length === 0 ? 0 : Math.max(...policyIndices);
   const updatedPolicies: OutputUtilGenericType[] = [];
+  const removalObjects: OutputUtilGenericType[] = [...(policies || [])];
 
   for (const iamConfig of iamConfigs) {
     if (!iamConfig || !iamConfig.policies) {
@@ -208,6 +248,25 @@ export async function saveIamPolicy(
         index: currentIndex,
         name: policyOutput.policyName,
       });
+
+      const removalIndex = removalObjects.findIndex(
+        p => p.name === policyOutput.policyName,
+      );
+      if (removalIndex != -1) {
+        removalObjects.splice(removalIndex, 1);
+      }
+    }
+  }
+
+  for (const removeObject of removalObjects || []) {
+    const removalPolicies = ([
+        `/${acceleratorPrefix}/ident/policy/${removeObject.index}/name`,
+        `/${acceleratorPrefix}/ident/policy/${removeObject.index}/arn`,
+      ])
+      .flatMap(s => s);
+
+    while (removalPolicies.length > 0) {
+      await ssm.deleteParameters(removalPolicies.splice(0, 10));
     }
   }
   return updatedPolicies;
@@ -225,7 +284,7 @@ export async function saveIamRoles(
   console.log('roleIndices', roleIndices);
   let rolesMaxIndex = roleIndices.length === 0 ? 0 : Math.max(...roleIndices);
   const updatedRoles: OutputUtilGenericType[] = [];
-
+  const removalObjects: OutputUtilGenericType[] = [...(roles || [])];
 
   for (const iamConfig of iamConfigs) {
     if (!iamConfig || !iamConfig.roles) {
@@ -264,6 +323,25 @@ export async function saveIamRoles(
         index: currentIndex,
         name: roleOutput.roleName,
       });
+
+      const removalIndex = removalObjects.findIndex(
+        p => p.name === roleOutput.roleName,
+      );
+      if (removalIndex != -1) {
+        removalObjects.splice(removalIndex, 1);
+      }
+    }
+  }
+
+  for (const removeObject of removalObjects || []) {
+    const removalRoles = ([
+        `/${acceleratorPrefix}/ident/role/${removeObject.index}/name`,
+        `/${acceleratorPrefix}/ident/role/${removeObject.index}/arn`,
+      ])
+      .flatMap(s => s);
+
+    while (removalRoles.length > 0) {
+      await ssm.deleteParameters(removalRoles.splice(0, 10));
     }
   }
   return updatedRoles;
