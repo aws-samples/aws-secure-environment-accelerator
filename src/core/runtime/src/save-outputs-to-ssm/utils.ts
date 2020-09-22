@@ -12,6 +12,7 @@ export interface SaveOutputsInput {
   account: Account;
   ssm: SSM;
   region: string;
+  outputUtilsTableName: string;
 }
 
 export interface OutputUtilGenericType {
@@ -27,4 +28,12 @@ export async function getOutput(tableName: string, key: string, dynamodb: Dynamo
   }
   outputs.push(...JSON.parse(cfnOutputs.S));
   return outputs;
+}
+
+export async function getOutputUtil(tableName: string, key: string, dynamodb: DynamoDB) {
+  const outputUtils = await dynamodb.getOutputValue(tableName, key);
+  if (!outputUtils || !outputUtils.S) {
+    return;
+  }
+  return JSON.parse(outputUtils.S);
 }

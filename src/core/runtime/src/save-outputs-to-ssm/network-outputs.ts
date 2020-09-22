@@ -1,5 +1,5 @@
 import { getStackJsonOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { getOutput, OutputUtilGenericType, SaveOutputsInput } from './utils';
+import { getOutput, OutputUtilGenericType, SaveOutputsInput, getOutputUtil } from './utils';
 import {
   SecurityGroupsOutput,
   VpcOutputFinder,
@@ -47,13 +47,31 @@ function getIndex<T>(input: T[], searchName: string) {
  * @returns void
  */
 export async function saveNetworkOutputs(props: SaveOutputsInput) {
-  const { acceleratorPrefix, account, config, dynamodb, outputsTableName, ssm, region } = props;
-  const networkOutputUtils: OutputUtilNetwork = {
+  const { acceleratorPrefix, account, config, dynamodb, outputsTableName, ssm, region, outputUtilsTableName } = props;
+  const oldNetworkOutputUtils = await getOutputUtil(outputUtilsTableName, `${account.key}-${region}-network`, dynamodb);
+  // Existing index check happens on this variable
+  let networkOutputUtils: OutputUtilNetwork;
+  if (oldNetworkOutputUtils) {
+    networkOutputUtils = oldNetworkOutputUtils;
+  } else {
+    networkOutputUtils = {
+      vpcs: [],
+    };
+  }
+
+  // Storing new resource index and updating DDB in this variable
+  const newNetworkOutputs: OutputUtilNetwork = {
     vpcs: [],
   };
-  const removalNetworkOutputUtils: OutputUtilNetwork = {
+  if (!newNetworkOutputs.vpcs) {
+    newNetworkOutputs.vpcs = [];
+  }
+
+  // Removal from SSM Parameter store happens on left over in this variable
+  const removalObjects: OutputUtilNetwork = {
     vpcs: [...(networkOutputUtils.vpcs || [])],
   };
+
   const vpcConfigs = config.getVpcConfigs();
   const localVpcConfigs = vpcConfigs.filter(
     vc => vc.accountKey === account.key && vc.vpcConfig.region === region && !vc.ouKey,
@@ -81,16 +99,15 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
   let lvpcMaxIndex = lvpcIndices.length === 0 ? 0 : Math.max(...lvpcIndices);
   for (const resolvedVpcConfig of localVpcConfigs) {
     let currentIndex: number;
-    const previousVpcDetailsIndex = networkOutputUtils.vpcs.findIndex(
+    const previousIndex = networkOutputUtils.vpcs.findIndex(
       vpc => vpc.type === 'lvpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
     );
-
-    if (previousVpcDetailsIndex && previousVpcDetailsIndex >= 0) {
-      currentIndex = networkOutputUtils.vpcs[previousVpcDetailsIndex].index;
+    if (previousIndex >= 0) {
+      currentIndex = networkOutputUtils.vpcs[previousIndex].index;
     } else {
       currentIndex = ++lvpcMaxIndex;
     }
-    // getIndex(networkOutputUtils.lvpcs!, '')
+
     const vpcResult = await saveVpcOutputs({
       index: currentIndex,
       resolvedVpcConfig,
@@ -99,21 +116,17 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
       acceleratorPrefix,
       vpcPrefix: 'lvpc',
       account,
-      vpcUtil: previousVpcDetailsIndex ? networkOutputUtils.vpcs[previousVpcDetailsIndex] : undefined,
+      vpcUtil: previousIndex ? networkOutputUtils.vpcs[previousIndex] : undefined,
     });
     if (vpcResult) {
-      if (previousVpcDetailsIndex >= 0) {
-        networkOutputUtils.vpcs[previousVpcDetailsIndex] = vpcResult;
-      } else {
-        networkOutputUtils.vpcs.push(vpcResult);
-      }
+      newNetworkOutputs.vpcs.push(vpcResult);
     }
 
-    const removalVpcDetailsIndex = removalNetworkOutputUtils.vpcs?.findIndex(
+    const removalIndex = removalObjects.vpcs?.findIndex(
       vpc => vpc.type === 'lvpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
     );
-    if (removalVpcDetailsIndex && removalVpcDetailsIndex >= 0) {
-      removalNetworkOutputUtils.vpcs?.splice(removalVpcDetailsIndex);
+    if (removalIndex! >= 0) {
+      removalObjects.vpcs?.splice(removalIndex!);
     }
   }
 
@@ -121,11 +134,11 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
   let vpcMaxIndex = vpcIndices.length === 0 ? 0 : Math.max(...vpcIndices);
   for (const resolvedVpcConfig of localOuVpcConfigs) {
     let currentIndex: number;
-    const previousVpcDetailsIndex = networkOutputUtils.vpcs.findIndex(
+    const previousIndex = networkOutputUtils.vpcs.findIndex(
       vpc => vpc.type === 'vpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
     );
-    if (previousVpcDetailsIndex && previousVpcDetailsIndex >= 0) {
-      currentIndex = networkOutputUtils.vpcs[previousVpcDetailsIndex].index;
+    if (previousIndex >= 0) {
+      currentIndex = networkOutputUtils.vpcs[previousIndex].index;
     } else {
       currentIndex = ++vpcMaxIndex;
     }
@@ -137,22 +150,18 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
       acceleratorPrefix,
       vpcPrefix: 'vpc',
       account,
-      vpcUtil: previousVpcDetailsIndex ? networkOutputUtils.vpcs[previousVpcDetailsIndex] : undefined,
+      vpcUtil: previousIndex ? networkOutputUtils.vpcs[previousIndex] : undefined,
     });
 
     if (vpcResult) {
-      if (previousVpcDetailsIndex >= 0) {
-        networkOutputUtils.vpcs[previousVpcDetailsIndex] = vpcResult;
-      } else {
-        networkOutputUtils.vpcs.push(vpcResult);
-      }
+      newNetworkOutputs.vpcs.push(vpcResult);
     }
 
-    const removalVpcDetailsIndex = removalNetworkOutputUtils.vpcs?.findIndex(
+    const removalIndex = removalObjects.vpcs?.findIndex(
       vpc => vpc.type === 'vpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
     );
-    if (removalVpcDetailsIndex && removalVpcDetailsIndex >= 0) {
-      removalNetworkOutputUtils.vpcs?.splice(removalVpcDetailsIndex);
+    if (removalIndex! >= 0) {
+      removalObjects.vpcs?.splice(removalIndex!);
     }
   }
   if (sharedVpcConfigs.length > 0) {
@@ -164,11 +173,11 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
 
     for (const resolvedVpcConfig of sharedVpcConfigs) {
       let currentIndex: number;
-      const previousVpcDetailsIndex = networkOutputUtils.vpcs.findIndex(
+      const previousIndex = networkOutputUtils.vpcs.findIndex(
         vpc => vpc.type === 'vpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
       );
-      if (previousVpcDetailsIndex && previousVpcDetailsIndex >= 0) {
-        currentIndex = networkOutputUtils.vpcs[previousVpcDetailsIndex].index;
+      if (previousIndex >= 0) {
+        currentIndex = networkOutputUtils.vpcs[previousIndex].index;
       } else {
         currentIndex = ++vpcMaxIndex;
       }
@@ -188,37 +197,33 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
         account,
         sgOutputs: vpcSgOutputs?.securityGroupIds,
         sharedVpc: true,
-        vpcUtil: previousVpcDetailsIndex ? networkOutputUtils.vpcs[previousVpcDetailsIndex] : undefined,
+        vpcUtil: previousIndex ? networkOutputUtils.vpcs[previousIndex] : undefined,
       });
 
       if (vpcResult) {
-        if (previousVpcDetailsIndex >= 0) {
-          networkOutputUtils.vpcs[previousVpcDetailsIndex] = vpcResult;
-        } else {
-          networkOutputUtils.vpcs.push(vpcResult);
-        }
+        newNetworkOutputs.vpcs.push(vpcResult);
       }
 
-      const removalVpcDetailsIndex = removalNetworkOutputUtils.vpcs?.findIndex(
+      const removalIndex = removalObjects.vpcs?.findIndex(
         vpc => vpc.type === 'vpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
       );
-      if (removalVpcDetailsIndex && removalVpcDetailsIndex >= 0) {
-        removalNetworkOutputUtils.vpcs?.splice(removalVpcDetailsIndex);
+      if (removalIndex! >= 0) {
+        removalObjects.vpcs?.splice(removalIndex!);
       }
     }
   }
-  console.log(JSON.stringify(networkOutputUtils, null, 2));
+  //   console.log(JSON.stringify(newNetworkOutputs, null, 2));
 
   const updateExpression = getUpdateValueInput([
     {
       key: 'v',
       name: 'outputValue',
       type: 'S',
-      value: JSON.stringify(networkOutputUtils),
+      value: JSON.stringify(newNetworkOutputs),
     },
   ]);
   await dynamodb.updateItem({
-    TableName: `PBMMAccel-OutputUtils`,
+    TableName: outputUtilsTableName,
     Key: {
       id: { S: `${account.key}-${region}-network` },
     },
@@ -334,13 +339,13 @@ export async function saveSecurityGroups(props: {
   } = props;
   const sgIndices = securityGroupsUtil.flatMap(r => r.index) || [];
   let sgMaxIndex = sgIndices.length === 0 ? 0 : Math.max(...sgIndices);
-  const removalSgUtils = [...securityGroupsUtil];
+  const removalObjects = [...securityGroupsUtil];
   const updatedObjects: OutputUtilGenericType[] = [];
   for (const sgConfig of securityGroupsConfig) {
     let currentIndex: number;
-    const previousSgDetailsIndex = securityGroupsUtil.findIndex(sg => sg.name === sgConfig.name);
-    if (previousSgDetailsIndex && previousSgDetailsIndex >= 0) {
-      currentIndex = securityGroupsUtil[previousSgDetailsIndex].index;
+    const previousIndex = securityGroupsUtil.findIndex(sg => sg.name === sgConfig.name);
+    if (previousIndex >= 0) {
+      currentIndex = securityGroupsUtil[previousIndex].index;
     } else {
       currentIndex = ++sgMaxIndex;
     }
@@ -361,9 +366,9 @@ export async function saveSecurityGroups(props: {
     //   `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${sgIndex + 1}/id`,
     //   sgOutput.securityGroupId,
     // );
-    const removalSgDetailsIndex = removalSgUtils?.findIndex(r => r.name === sgConfig.name);
-    if (removalSgDetailsIndex && removalSgDetailsIndex >= 0) {
-      removalSgUtils?.splice(removalSgDetailsIndex);
+    const removalIndex = removalObjects?.findIndex(r => r.name === sgConfig.name);
+    if (removalIndex >= 0) {
+      removalObjects?.splice(removalIndex);
     }
   }
   return updatedObjects;
@@ -385,9 +390,9 @@ export async function saveRouteTables(props: {
   const updatedObjects: OutputUtilGenericType[] = [];
   for (const routeTableConfig of routeTablesConfig) {
     let currentIndex: number;
-    const previousRtDetailsIndex = routeTablesUtil.findIndex(r => r.name === routeTableConfig.name);
-    if (previousRtDetailsIndex && previousRtDetailsIndex >= 0) {
-      currentIndex = routeTablesUtil[previousRtDetailsIndex].index;
+    const previousIndex = routeTablesUtil.findIndex(r => r.name === routeTableConfig.name);
+    if (previousIndex >= 0) {
+      currentIndex = routeTablesUtil[previousIndex].index;
     } else {
       currentIndex = ++rtMaxIndex;
     }
@@ -403,9 +408,9 @@ export async function saveRouteTables(props: {
     //   `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/rt/${rtIndex + 1}/id`,
     //   routeTablesOutputs[routeTableConfig.name],
     // );
-    const removalRtDetailsIndex = removalObjects?.findIndex(r => r.name === routeTableConfig.name);
-    if (removalRtDetailsIndex && removalRtDetailsIndex >= 0) {
-      removalObjects?.splice(removalRtDetailsIndex);
+    const removalIndex = removalObjects?.findIndex(r => r.name === routeTableConfig.name);
+    if (removalIndex >= 0) {
+      removalObjects?.splice(removalIndex);
     }
   }
 
@@ -428,13 +433,13 @@ export async function saveSubnets(props: {
   const { acceleratorPrefix, ssm, subnetOutputs, subnetsConfig, vpcIndex, vpcName, vpcPrefix, subnetsUtil } = props;
   const subnetIndices = subnetsUtil.flatMap(s => s.index) || [];
   let subnetMaxIndex = subnetIndices.length === 0 ? 0 : Math.max(...subnetIndices);
-  const removalSubnetUtils = [...subnetsUtil];
+  const removalObjects = [...subnetsUtil];
   const updatedObjects: OutputUtilGenericType[] = [];
   for (const subnetConfig of subnetsConfig || []) {
     let currentIndex: number;
-    const previousSubnetDetailsIndex = subnetsUtil.findIndex(s => s.name === subnetConfig.name);
-    if (previousSubnetDetailsIndex && previousSubnetDetailsIndex >= 0) {
-      currentIndex = subnetsUtil[previousSubnetDetailsIndex].index;
+    const previousIndex = subnetsUtil.findIndex(s => s.name === subnetConfig.name);
+    if (previousIndex >= 0) {
+      currentIndex = subnetsUtil[previousIndex].index;
     } else {
       currentIndex = ++subnetMaxIndex;
     }
@@ -461,9 +466,9 @@ export async function saveSubnets(props: {
       //     subnetOutput.cidrBlock,
       //   );
     }
-    const removalSubnetDetailsIndex = subnetsUtil?.findIndex(s => s.name === subnetConfig.name);
-    if (removalSubnetDetailsIndex && removalSubnetDetailsIndex >= 0) {
-      removalSubnetUtils?.splice(removalSubnetDetailsIndex);
+    const removalIndex = removalObjects?.findIndex(s => s.name === subnetConfig.name);
+    if (removalIndex >= 0) {
+      removalObjects?.splice(removalIndex);
     }
   }
   return updatedObjects;

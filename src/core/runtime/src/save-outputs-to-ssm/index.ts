@@ -12,6 +12,7 @@ export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   region: string;
   outputsTableName: string;
   assumeRoleName: string;
+  outputUtilsTableName: string;
 }
 
 const dynamodb = new DynamoDB();
@@ -29,6 +30,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     account,
     assumeRoleName,
     region,
+    outputUtilsTableName,
   } = input;
   // Remove - if prefix ends with -
   const acceleratorPrefix = input.acceleratorPrefix.endsWith('-')
@@ -52,6 +54,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     ssm,
     account,
     region,
+    outputUtilsTableName,
   });
 
   return {
