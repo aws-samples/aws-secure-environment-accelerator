@@ -11,6 +11,18 @@ import * as securityHub from '../deployments/security-hub';
 import * as macie from '../deployments/macie';
 import * as transitGateway from '../deployments/transit-gateway';
 
+/**
+ * This is the main entry point to deploy phase 3
+ *
+ * - create peering connection routes
+ * - create ALB (step 1)
+ * - create `rsyslog` deployment (step 2)
+ * - create hosted zones, resolver rules and resolver endpoints and Share
+ * - Enable Security Hub and Invite Sub accounts as members
+ * - Macie update Session
+ * - TransitGateway Peering attachment and routes
+ */
+
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   /**
    * Code to create Peering Connection Routes in all accounts

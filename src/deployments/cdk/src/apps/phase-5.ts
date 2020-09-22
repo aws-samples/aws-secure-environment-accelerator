@@ -14,7 +14,17 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
-import * as centralEndpoints from '../deployments/central-endpoints';
+
+/**
+ * This is the main entry point to deploy phase 5
+ *
+ * - create Remote Desktop Gateway
+ *   - create launch configuration
+ *   - create autoscaling group
+ * - enable central logging to S3 (step 2)
+ * - Create CloudWatch Events for moveAccount, policyChanges and createAccount.
+ * - Creates CloudWatch Alarms
+ */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const accountNames = acceleratorConfig
