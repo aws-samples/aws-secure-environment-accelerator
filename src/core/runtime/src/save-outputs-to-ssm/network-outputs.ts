@@ -6,21 +6,18 @@ import {
   VpcSecurityGroupOutput,
   VpcSubnetOutput,
 } from '@aws-accelerator/common-outputs/src/vpc';
-import {
-  ResolvedVpcConfig,
-  SecurityGroupConfig,
-  RouteTableConfig,
-  SubnetConfig,
-} from '@aws-accelerator/common-config/';
+import { ResolvedVpcConfig, SecurityGroupConfig, SubnetConfig } from '@aws-accelerator/common-config/';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { getUpdateValueInput } from '../utils/dynamodb-requests';
 
+interface OutputUtilSubnet extends OutputUtilGenericType {
+  azs: string[];
+}
 interface OutputUtilVpc {
   name: string;
-  subnets: OutputUtilGenericType[];
+  subnets: OutputUtilSubnet[];
   securityGroups: OutputUtilGenericType[];
-  routeTables: OutputUtilGenericType[];
   index: number;
   type: 'vpc' | 'lvpc';
 }
@@ -125,8 +122,9 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
     const removalIndex = removalObjects.vpcs?.findIndex(
       vpc => vpc.type === 'lvpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
     );
+
     if (removalIndex! >= 0) {
-      removalObjects.vpcs?.splice(removalIndex!);
+      removalObjects.vpcs?.splice(removalIndex!, 1);
     }
   }
 
@@ -161,7 +159,7 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
       vpc => vpc.type === 'vpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
     );
     if (removalIndex! >= 0) {
-      removalObjects.vpcs?.splice(removalIndex!);
+      removalObjects.vpcs?.splice(removalIndex!, 1);
     }
   }
   if (sharedVpcConfigs.length > 0) {
@@ -208,11 +206,10 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
         vpc => vpc.type === 'vpc' && vpc.name === resolvedVpcConfig.vpcConfig.name,
       );
       if (removalIndex! >= 0) {
-        removalObjects.vpcs?.splice(removalIndex!);
+        removalObjects.vpcs?.splice(removalIndex!, 1);
       }
     }
   }
-  //   console.log(JSON.stringify(newNetworkOutputs, null, 2));
 
   const updateExpression = getUpdateValueInput([
     {
@@ -229,6 +226,33 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
     },
     ...updateExpression,
   });
+  for (const removeObject of removalObjects.vpcs || []) {
+    const removalSgs = removeObject.securityGroups
+      .map(sg => [
+        `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/sg/${sg.index}/name`,
+        `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/sg/${sg.index}/id`,
+      ])
+      .flatMap(s => s);
+    const removalSns = removeObject.subnets
+      .map(sn =>
+        sn.azs.map(snz => [
+          `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/net/${sn.index}/az${snz}/name`,
+          `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/net/${sn.index}/az${snz}/id`,
+          `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/net/${sn.index}/az${snz}/cidr`,
+        ]),
+      )
+      .flatMap(azSn => azSn)
+      .flatMap(sn => sn);
+    const removalVpc = [
+      `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/name`,
+      `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/id`,
+      `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/cidr`,
+    ];
+    const removeNames = [...removalSgs, ...removalSns, ...removalVpc];
+    while (removeNames.length > 0) {
+      await ssm.deleteParameters(removeNames.splice(0, 10));
+    }
+  }
 }
 
 async function saveVpcOutputs(props: {
@@ -252,7 +276,6 @@ async function saveVpcOutputs(props: {
     vpcUtil = {
       index,
       name: vpcConfig.name,
-      routeTables: [],
       securityGroups: [],
       subnets: [],
       type: vpcPrefix,
@@ -267,9 +290,9 @@ async function saveVpcOutputs(props: {
     console.warn(`VPC "${vpcConfig.name}" in account "${accountKey}" is not created`);
     return;
   }
-  //   await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
-  //   await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
-  //   await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
+  await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
+  await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
+  await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
   let subnetsConfig = vpcConfig.subnets;
   if (sharedVpc) {
     subnetsConfig = vpcConfig.subnets?.filter(
@@ -286,18 +309,6 @@ async function saveVpcOutputs(props: {
       vpcPrefix,
       vpcName: vpcConfig.name,
       subnetsUtil: vpcUtil.subnets,
-    });
-  }
-
-  if (vpcConfig['route-tables'] && vpcOutput.routeTables) {
-    vpcUtil.routeTables = await saveRouteTables({
-      routeTablesConfig: vpcConfig['route-tables'],
-      routeTablesOutputs: vpcOutput.routeTables,
-      ssm,
-      vpcIndex: index,
-      acceleratorPrefix,
-      vpcPrefix,
-      routeTablesUtil: vpcUtil.routeTables,
     });
   }
 
@@ -358,64 +369,18 @@ export async function saveSecurityGroups(props: {
       console.warn(`Didn't find SecurityGroup "${sgConfig.name}" in output`);
       continue;
     }
-    // await ssm.putParameter(
-    //   `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${sgIndex + 1}/name`,
-    //   `${sgConfig.name}_sg`,
-    // );
-    // await ssm.putParameter(
-    //   `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${sgIndex + 1}/id`,
-    //   sgOutput.securityGroupId,
-    // );
+    await ssm.putParameter(
+      `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${currentIndex}/name`,
+      `${sgConfig.name}_sg`,
+    );
+    await ssm.putParameter(
+      `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${currentIndex}/id`,
+      sgOutput.securityGroupId,
+    );
     const removalIndex = removalObjects?.findIndex(r => r.name === sgConfig.name);
     if (removalIndex >= 0) {
-      removalObjects?.splice(removalIndex);
+      removalObjects?.splice(removalIndex, 1);
     }
-  }
-  return updatedObjects;
-}
-
-export async function saveRouteTables(props: {
-  routeTablesConfig: RouteTableConfig[];
-  routeTablesOutputs: { [name: string]: string };
-  ssm: SSM;
-  vpcIndex: number;
-  acceleratorPrefix: string;
-  vpcPrefix: string;
-  routeTablesUtil: OutputUtilGenericType[];
-}): Promise<OutputUtilGenericType[]> {
-  const { acceleratorPrefix, routeTablesConfig, routeTablesOutputs, routeTablesUtil, ssm, vpcIndex, vpcPrefix } = props;
-  const routeTableIndices = routeTablesUtil.flatMap(r => r.index) || [];
-  let rtMaxIndex = routeTableIndices.length === 0 ? 0 : Math.max(...routeTableIndices);
-  const removalObjects = [...routeTablesUtil];
-  const updatedObjects: OutputUtilGenericType[] = [];
-  for (const routeTableConfig of routeTablesConfig) {
-    let currentIndex: number;
-    const previousIndex = routeTablesUtil.findIndex(r => r.name === routeTableConfig.name);
-    if (previousIndex >= 0) {
-      currentIndex = routeTablesUtil[previousIndex].index;
-    } else {
-      currentIndex = ++rtMaxIndex;
-    }
-    updatedObjects.push({
-      index: currentIndex,
-      name: routeTableConfig.name,
-    });
-    // await ssm.putParameter(
-    //   `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/rt/${rtIndex + 1}/name`,
-    //   `${routeTableConfig.name}_rt`,
-    // );
-    // await ssm.putParameter(
-    //   `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/rt/${rtIndex + 1}/id`,
-    //   routeTablesOutputs[routeTableConfig.name],
-    // );
-    const removalIndex = removalObjects?.findIndex(r => r.name === routeTableConfig.name);
-    if (removalIndex >= 0) {
-      removalObjects?.splice(removalIndex);
-    }
-  }
-
-  for (const removeObject of removalObjects) {
-    // TODO: Remove from SSM
   }
   return updatedObjects;
 }
@@ -428,13 +393,13 @@ export async function saveSubnets(props: {
   acceleratorPrefix: string;
   vpcPrefix: string;
   vpcName: string;
-  subnetsUtil: OutputUtilGenericType[];
-}): Promise<OutputUtilGenericType[]> {
+  subnetsUtil: OutputUtilSubnet[];
+}): Promise<OutputUtilSubnet[]> {
   const { acceleratorPrefix, ssm, subnetOutputs, subnetsConfig, vpcIndex, vpcName, vpcPrefix, subnetsUtil } = props;
   const subnetIndices = subnetsUtil.flatMap(s => s.index) || [];
   let subnetMaxIndex = subnetIndices.length === 0 ? 0 : Math.max(...subnetIndices);
   const removalObjects = [...subnetsUtil];
-  const updatedObjects: OutputUtilGenericType[] = [];
+  const updatedObjects: OutputUtilSubnet[] = [];
   for (const subnetConfig of subnetsConfig || []) {
     let currentIndex: number;
     const previousIndex = subnetsUtil.findIndex(s => s.name === subnetConfig.name);
@@ -446,6 +411,7 @@ export async function saveSubnets(props: {
     updatedObjects.push({
       index: currentIndex,
       name: subnetConfig.name,
+      azs: subnetConfig.definitions.filter(sn => !sn.disabled).map(s => s.az),
     });
     for (const subnetDef of subnetConfig.definitions.filter(sn => !sn.disabled)) {
       const subnetOutput = subnetOutputs.find(vs => vs.subnetName === subnetConfig.name && vs.az === subnetDef.az);
@@ -453,22 +419,22 @@ export async function saveSubnets(props: {
         console.warn(`Didn't find subnet "${subnetConfig.name}" in output`);
         continue;
       }
-      //   await ssm.putParameter(
-      //     `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetDef.az}/name`,
-      //     `${subnetOutput.subnetName}_${vpcName}_az${subnetOutput.az}_net`,
-      //   );
-      //   await ssm.putParameter(
-      //     `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/id`,
-      //     subnetOutput.subnetId,
-      //   );
-      //   await ssm.putParameter(
-      //     `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/cidr`,
-      //     subnetOutput.cidrBlock,
-      //   );
+      await ssm.putParameter(
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetDef.az}/name`,
+        `${subnetOutput.subnetName}_${vpcName}_az${subnetOutput.az}_net`,
+      );
+      await ssm.putParameter(
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/id`,
+        subnetOutput.subnetId,
+      );
+      await ssm.putParameter(
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/cidr`,
+        subnetOutput.cidrBlock,
+      );
     }
     const removalIndex = removalObjects?.findIndex(s => s.name === subnetConfig.name);
     if (removalIndex >= 0) {
-      removalObjects?.splice(removalIndex);
+      removalObjects?.splice(removalIndex, 1);
     }
   }
   return updatedObjects;

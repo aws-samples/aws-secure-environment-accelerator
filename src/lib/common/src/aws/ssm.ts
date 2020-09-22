@@ -48,4 +48,14 @@ export class SSM {
         .promise(),
     );
   }
+
+  async deleteParameters(names: string[]): Promise<void> {
+    await throttlingBackOff(() =>
+      this.client
+        .deleteParameters({
+          Names: names,
+        })
+        .promise(),
+    );
+  }
 }
