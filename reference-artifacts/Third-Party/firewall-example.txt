@@ -87,7 +87,7 @@ config global
   end
   config system dns
     set primary 169.254.169.253
-    set secondary 1.1.1.1
+    set secondary 169.254.169.253
   end
   config system autoupdate push-update
     set status enable
@@ -102,6 +102,14 @@ config global
   end
   config system probe-response
     set mode http-probe
+  end
+  config log syslogd setting
+    set facility user
+    set port 514
+    set server "future-rsyslog.nlb-domainname.com"
+    set status disable
+    set format default
+    set mode reliable
   end
 end
 config vdom
@@ -142,6 +150,7 @@ edit FG-traffic
   config vpn ipsec phase1-interface
     edit "tgw-vpn1"
       set interface "port1"
+      set dpd enable
       set local-gw ${PublicIp1}
       set keylife 28800
       set peertype any
@@ -165,6 +174,10 @@ edit FG-traffic
       set ip ${PublicCgwTunnelInsideAddress1} 255.255.255.255
       set remote-ip ${PublicVpnTunnelInsideAddress1} 255.255.255.255
 	  set explicit-web-proxy enable
+      set allowaccess ping
+      set type tunnel 
+      set tcp-mss 1379
+      set mtu 1427
     next
   end
   config firewall ippool
@@ -292,6 +305,8 @@ edit FG-traffic
   config webfilter profile
     edit "FG-Traffic-Baseline-Web-Filter"
       set comment "Web Filter baseline"
+      set log-all-url enable
+      set web-filter-referer-log enable
       config ftgd-wf
         set options error-allow
         config filters

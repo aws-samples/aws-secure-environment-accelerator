@@ -1048,7 +1048,7 @@
               "port": 7002,
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
-              "health-check-port": 7002,
+              "health-check-port": 7001,
               "lambda-filename": "",
               "target-instances": [
                 {
@@ -1066,7 +1066,7 @@
               "port": 7002,
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
-              "health-check-port": 7002,
+              "health-check-port": 7001,
               "lambda-filename": "",
               "target-instances": [
                 {
