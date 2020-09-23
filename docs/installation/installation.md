@@ -127,6 +127,8 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
 
+- If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the mgmt port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
+
 ### 1.2.3. Production Accelerator Configuration
 
 - **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
@@ -210,7 +212,13 @@ If deploying to an internal AWS account, to successfully install the entire solu
     3. Login to the firewalls and firewall manager appliance and set default passwords
        - Update firewall configuration per your organizations security best practices
        - manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
+         - login to each firewall, select `Log Settings`, check `Send logs to syslog`, put the NLB FQDN in the `IP Address/FQDN` field
        - manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
+         - login to each firewall, switch to `FG-traffic` vdom, select `Policies & Objects`, select `Addresses`, Expand `Addresses`
+         - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
+         - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
+         - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
+           - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
 
@@ -358,7 +366,7 @@ Yes. The state machine captures a consistent input state of the requested config
 ### 3.1.1. Summary of Upgrade Steps (all versions)
 
 - Ensure a valid Github token is stored in secrets manager
-- Update the config file in Code Commit with new parameters and updated parameter types (this is important as features are iterating rapidly)
+- Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
 - If you are replacing your GitHub Token:
   - Take note of the s3 bucket name from the stack parameters
   - Delete the Installer CFN stack (`PBMMAccel-what-you-provided`)
@@ -410,17 +418,19 @@ Yes. The state machine captures a consistent input state of the requested config
 
 - Newly invited AWS accounts in an Organization will land in the root ou
 - Unlike newly created AWS accounts which immediately have a Deny-All SCP applied, imported accounts are not locked down as we do not want to break existing workloads (these account are already running without Accelerator guardrails)
-- In AWS Organizations, select ALL the newly invited AWS accounts and move them all at once to the correct destination OU (assuming the same OU for all accounts)
-- This will first trigger an automated update to the config file and then trigger the state machine, automatically importing the moved accounts into the Accelerator per the destination OU configuration
+- In AWS Organizations, select ALL the newly invited AWS accounts and move them all (preferably at once) to the correct destination OU (assuming the same OU for all accounts)
+  - In case you need to move accounts to multiple OU's we have added a 2 minute delay before triggering the State Machine
+  - Any accounts moved after the 2 minute window will NOT be properly ingested, and will need to be ingested on a subsequent State Machine Execution
+- This will first trigger an automated update to the config file and then trigger the state machine after a 2 minute delay, automatically importing the moved accounts into the Accelerator per the destination OU configuration
 - As previously documented, accounts CANNOT be moved between OU's to maintain compliance, so select the proper top-level OU with care
 - If you need to customize each of the accounts configurations, you can manually update the configuration file either before or after you move the account to the correct ou
-  - if before, you also need to include the standard 4 account config file parameters, if after, you can simply add your new custom parameters to the account entry we created
-  - if you add your imported accounts to the config file, moving the first account to the correct ou will trigger the state machine. If you don't move all accounts to their correct ou's before the state machine validates the ou config your state machine will fail. Simply finish moving all accounts to their correct ou's and then rerun the state machine.
+  - if before, you also need to include the standard 4 account config file parameters, if after, you can simply add your new custom parameters to the account entry the Accelerator creates
+  - if you add your imported accounts to the config file, moving the first account to the correct ou will trigger the state machine after a 2 minutes delay. If you don't move all accounts to their correct ou's within 2 minutes, your state machine will fail. Simply finish moving all accounts to their correct ou's and then rerun the state machine.
 - If additional accounts are moved into OUs while the state machine is executing, they will not trigger another state machine execution, those accounts will only be ingested on the next execution of the state machine
   - customers can either manually initiate the state machine once the current execution completes, or, the currently running state machine can be stopped and restarted to capture all changes at once
   - Are you unsure if an account had its guardrails applied? The message sent to the state machine Status SNS topic (and corresponding email address) on a successful state machine execution provides a list of all successfully processed accounts.
 - The state machine is both highly parallel and highly resilient, stopping the state machine should not have any negative impact. Importing 1 or 10 accounts generally takes about the same amount of time for the Accelerator to process, so it may be worth stopping the current execution and rerunning to capture all changes in a single execution.
-- In a future release we will be adding a 2 min delay before triggering the state machine, allowing customers to make muliple changes within a short timeframe and have them all captured automatically in the same state machine execution.
+- We have added a 2 min delay before triggering the state machine, allowing customers to make muliple changes within a short timeframe and have them all captured automatically in the same state machine execution.
 
 ### 3.3.2. Deploying the Accelerator into an existing Organization
 

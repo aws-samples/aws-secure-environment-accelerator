@@ -22,10 +22,30 @@ import * as cleanup from '../deployments/cleanup';
 /**
  * This is the main entry point to deploy phase 0.
  *
- * The following resources are deployed in phase 0:
- *   - Log archive bucket
- *   - Copy of the central bucket
+ * - create default EBS encryption key;
+ * - create an AWS log bucket with encryption key;
+ * - create the central log services bucket with encryption key;
+ * - create the Accelerator configuration bucket with encryption key;
+ * - copy artifacts to the Accelerator configuration bucket:
+ *   - SCPs;
+ *   - firewall configuration;
+ * - account warming (step 1);
+ * - set password policy (step 1);
+ * - create IAM users (step 1):
+ *   - create passwords and store in Secrets Manager;
+ * - create MAD deployment (step 1):
+ *   - create passwords and store in Secrets Manager;
+ *   - create service-linked role;
+ * - create `rsyslog` deployment (step 1);
+ * - create firewalls (step 1);
+ * - create budgets (step 1);
+ * - create transit gateways (step 1);
+ * - create Route53 DNS logging log group;
+ * - enable Macie (step 1);
+ * - enable GuardDuty;
+ * - enable Access Analyzer;
  */
+
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const masterAccountId = getAccountId(accounts, masterAccountKey);

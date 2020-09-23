@@ -48,18 +48,31 @@ export interface IamPolicyArtifactsOutput {
 
 /**
  * This is the main entry point to deploy phase 1.
- *
- * The following resources are deployed in phase 1:
+ * - Create S3 Bucket in all accounts and replicate to Log Account Bucket
+ * - Deploy VPC:
  *   - Vpc
  *   - Subnets
  *   - Subnet sharing (RAM)
  *   - Route tables
- *   - Transit gateways
  *   - Internet gateways
  *   - NAT gateways
  *   - Interface endpoints
  *   - Gateway endpoints
- *   - Flow logs
+ *   - Transit Gateway Attachments
+ *   - IAM Role required for VPC Peering Auto accept
+ * - Firewall images subscription check
+ * - Creates the customer gateways for the EIPs of the firewall
+ * - Create IAM Roles, Users in account based on configuration
+ * - Creates the additional budgets for the account stacks.
+ * - Import Certificates
+ * - Setup SSMSessionManagerDocument
+ * - Create Cost and Usage reports
+ * - Enable Macie in Master Account
+ * - GuardDuty setup in Security Account
+ * - Setup CWL Central Logging
+ * - Create Roles required for Flow Logs
+ * - Transit Gateway Peering
+ * - Create LogGroup required for DNS Logging
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
