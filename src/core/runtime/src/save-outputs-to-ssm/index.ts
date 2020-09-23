@@ -6,6 +6,7 @@ import { saveNetworkOutputs } from './network-outputs';
 import { saveIamOutputs } from './iam-outputs';
 import { saveElbOutputs } from './elb-outputs';
 import { saveEventOutputs } from './event-outputs';
+import { saveEncryptsOutputs } from './encrypt-outputs';
 
 export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -90,6 +91,17 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
 
   // Store Event Outputs to SSM Parameter Store
   await saveEventOutputs({
+    acceleratorPrefix,
+    account,
+    assumeRoleName,
+    config,
+    dynamodb,
+    outputUtilsTableName,
+    outputsTableName,
+    region,
+  });
+
+  await saveEncryptsOutputs({
     acceleratorPrefix,
     account,
     assumeRoleName,
