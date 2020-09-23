@@ -26,12 +26,10 @@ interface OutputUtilNetwork {
   vpcs?: OutputUtilVpc[];
 }
 
-function getIndex<T>(input: T[], searchName: string) {
-  console.log(typeof input);
-}
 /**
  * Outputs for network related deployments will be found in following phases
- *
+ * - Phase-1
+ * - Phase-2
  */
 
 /**
@@ -113,7 +111,7 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
       acceleratorPrefix,
       vpcPrefix: 'lvpc',
       account,
-      vpcUtil: previousIndex ? networkOutputUtils.vpcs[previousIndex] : undefined,
+      vpcUtil: previousIndex >= 0 ? networkOutputUtils.vpcs[previousIndex] : undefined,
     });
     if (vpcResult) {
       newNetworkOutputs.vpcs.push(vpcResult);
@@ -148,7 +146,7 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
       acceleratorPrefix,
       vpcPrefix: 'vpc',
       account,
-      vpcUtil: previousIndex ? networkOutputUtils.vpcs[previousIndex] : undefined,
+      vpcUtil: previousIndex >= 0 ? networkOutputUtils.vpcs[previousIndex] : undefined,
     });
 
     if (vpcResult) {
@@ -195,7 +193,7 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
         account,
         sgOutputs: vpcSgOutputs?.securityGroupIds,
         sharedVpc: true,
-        vpcUtil: previousIndex ? networkOutputUtils.vpcs[previousIndex] : undefined,
+        vpcUtil: previousIndex >= 0 ? networkOutputUtils.vpcs[previousIndex] : undefined,
       });
 
       if (vpcResult) {
@@ -270,9 +268,11 @@ async function saveVpcOutputs(props: {
   const { acceleratorPrefix, account, index, outputs, resolvedVpcConfig, ssm, vpcPrefix, sgOutputs, sharedVpc } = props;
   const { accountKey, vpcConfig } = resolvedVpcConfig;
   let vpcUtil: OutputUtilVpc;
+  let updateRequired = false;
   if (props.vpcUtil) {
     vpcUtil = props.vpcUtil;
   } else {
+    updateRequired = true;
     vpcUtil = {
       index,
       name: vpcConfig.name,
@@ -290,9 +290,11 @@ async function saveVpcOutputs(props: {
     console.warn(`VPC "${vpcConfig.name}" in account "${accountKey}" is not created`);
     return;
   }
-  await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
-  await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
-  await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
+  if (updateRequired) {
+    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
+    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
+    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
+  }
   let subnetsConfig = vpcConfig.subnets;
   if (sharedVpc) {
     subnetsConfig = vpcConfig.subnets?.filter(
@@ -369,18 +371,31 @@ export async function saveSecurityGroups(props: {
       console.warn(`Didn't find SecurityGroup "${sgConfig.name}" in output`);
       continue;
     }
-    await ssm.putParameter(
-      `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${currentIndex}/name`,
-      `${sgConfig.name}_sg`,
-    );
-    await ssm.putParameter(
-      `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${currentIndex}/id`,
-      sgOutput.securityGroupId,
-    );
+    if (previousIndex < 0) {
+      await ssm.putParameter(
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${currentIndex}/name`,
+        `${sgConfig.name}_sg`,
+      );
+      await ssm.putParameter(
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${currentIndex}/id`,
+        sgOutput.securityGroupId,
+      );
+    }
+
     const removalIndex = removalObjects?.findIndex(r => r.name === sgConfig.name);
     if (removalIndex >= 0) {
       removalObjects?.splice(removalIndex, 1);
     }
+  }
+
+  const removeNames = removalObjects
+    .map(sg => [
+      `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${sg.index}/name`,
+      `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/sg/${sg.index}/id`,
+    ])
+    .flatMap(s => s);
+  while (removeNames.length > 0) {
+    await ssm.deleteParameters(removeNames.splice(0, 10));
   }
   return updatedObjects;
 }
@@ -419,23 +434,40 @@ export async function saveSubnets(props: {
         console.warn(`Didn't find subnet "${subnetConfig.name}" in output`);
         continue;
       }
-      await ssm.putParameter(
-        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetDef.az}/name`,
-        `${subnetOutput.subnetName}_${vpcName}_az${subnetOutput.az}_net`,
-      );
-      await ssm.putParameter(
-        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/id`,
-        subnetOutput.subnetId,
-      );
-      await ssm.putParameter(
-        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/cidr`,
-        subnetOutput.cidrBlock,
-      );
+      if (previousIndex < 0 || (previousIndex >= 0 && !subnetsUtil[previousIndex].azs.includes(subnetDef.az))) {
+        await ssm.putParameter(
+          `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetDef.az}/name`,
+          `${subnetOutput.subnetName}_${vpcName}_az${subnetOutput.az}_net`,
+        );
+        await ssm.putParameter(
+          `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/id`,
+          subnetOutput.subnetId,
+        );
+        await ssm.putParameter(
+          `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/cidr`,
+          subnetOutput.cidrBlock,
+        );
+      }
     }
     const removalIndex = removalObjects?.findIndex(s => s.name === subnetConfig.name);
     if (removalIndex >= 0) {
       removalObjects?.splice(removalIndex, 1);
     }
   }
+
+  const removeNames = removalObjects
+    .map(sn =>
+      sn.azs.map(snz => [
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${sn.index}/az${snz}/name`,
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${sn.index}/az${snz}/id`,
+        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${sn.index}/az${snz}/cidr`,
+      ]),
+    )
+    .flatMap(azSn => azSn)
+    .flatMap(sn => sn);
+  while (removeNames.length > 0) {
+    await ssm.deleteParameters(removeNames.splice(0, 10));
+  }
+
   return updatedObjects;
 }
