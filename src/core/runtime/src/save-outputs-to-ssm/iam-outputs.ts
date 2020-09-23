@@ -34,7 +34,16 @@ interface IamOutput {
  * @returns void
  */
 export async function saveIamOutputs(props: SaveOutputsInput) {
-  const { acceleratorPrefix, account, config, dynamodb, outputsTableName, assumeRoleName, region, outputUtilsTableName } = props;
+  const {
+    acceleratorPrefix,
+    account,
+    config,
+    dynamodb,
+    outputsTableName,
+    assumeRoleName,
+    region,
+    outputUtilsTableName,
+  } = props;
 
   const accountConfig = config.getMandatoryAccountConfigs().find(([accountKey, _]) => accountKey === account.key);
   const accountsIam: { [accountKey: string]: IamConfig[] } = {};
@@ -51,7 +60,7 @@ export async function saveIamOutputs(props: SaveOutputsInput) {
     return;
   }
 
-  const smRegion = config["global-options"]["aws-org-master"].region;
+  const smRegion = config['global-options']['aws-org-master'].region;
   const outputs: StackOutput[] = await getOutput(outputsTableName, `${account.key}-${smRegion}-1`, dynamodb);
   const ssmOutputs = await getIamSsmOutput(outputUtilsTableName, `${account.key}-${region}-identity`, dynamodb);
   // console.log('ssmOutputs', ssmOutputs);

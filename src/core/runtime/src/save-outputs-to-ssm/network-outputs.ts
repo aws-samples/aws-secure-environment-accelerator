@@ -1,5 +1,5 @@
 import { getStackJsonOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { getOutput, OutputUtilGenericType, SaveOutputsInput, getOutputUtil } from './utils';
+import { getOutput, OutputUtilGenericType, SaveOutputsInput, getIndexOutput, saveIndexOutput } from './utils';
 import {
   SecurityGroupsOutput,
   VpcOutputFinder,
@@ -9,7 +9,6 @@ import {
 import { ResolvedVpcConfig, SecurityGroupConfig, SubnetConfig } from '@aws-accelerator/common-config/';
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
-import { getUpdateValueInput } from '../utils/dynamodb-requests';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 
 interface OutputUtilSubnet extends OutputUtilGenericType {
@@ -43,8 +42,21 @@ interface OutputUtilNetwork {
  * @returns void
  */
 export async function saveNetworkOutputs(props: SaveOutputsInput) {
-  const { acceleratorPrefix, account, config, dynamodb, outputsTableName, assumeRoleName, region, outputUtilsTableName } = props;
-  const oldNetworkOutputUtils = await getOutputUtil(outputUtilsTableName, `${account.key}-${region}-network`, dynamodb);
+  const {
+    acceleratorPrefix,
+    account,
+    config,
+    dynamodb,
+    outputsTableName,
+    assumeRoleName,
+    region,
+    outputUtilsTableName,
+  } = props;
+  const oldNetworkOutputUtils = await getIndexOutput(
+    outputUtilsTableName,
+    `${account.key}-${region}-network`,
+    dynamodb,
+  );
   // Existing index check happens on this variable
   let networkOutputUtils: OutputUtilNetwork;
   if (oldNetworkOutputUtils) {
@@ -215,21 +227,12 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
     }
   }
 
-  const updateExpression = getUpdateValueInput([
-    {
-      key: 'v',
-      name: 'outputValue',
-      type: 'S',
-      value: JSON.stringify(newNetworkOutputs),
-    },
-  ]);
-  await dynamodb.updateItem({
-    TableName: outputUtilsTableName,
-    Key: {
-      id: { S: `${account.key}-${region}-network` },
-    },
-    ...updateExpression,
-  });
+  await saveIndexOutput(
+    outputUtilsTableName,
+    `${account.key}-${region}-network`,
+    JSON.stringify(newNetworkOutputs),
+    dynamodb,
+  );
   for (const removeObject of removalObjects.vpcs || []) {
     const removalSgs = removeObject.securityGroups
       .map(sg => [

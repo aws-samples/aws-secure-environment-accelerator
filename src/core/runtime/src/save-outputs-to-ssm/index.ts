@@ -45,8 +45,8 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     commitId: configCommitId,
   });
 
-  const globalRegions = config["global-options"]["additional-global-output-regions"];
-  const smRegion = config["global-options"]["aws-org-master"].region;
+  const globalRegions = config['global-options']['additional-global-output-regions'];
+  const smRegion = config['global-options']['aws-org-master'].region;
 
   // TODO preparing list of regions to create IAM parameters
   const iamRegions = [...globalRegions, smRegion];
@@ -65,19 +65,17 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     });
   }
 
-  const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
-  const ssm = new SSM(credentials, region);
   // Store Network Outputs to SSM Parameter Store
-  // await saveNetworkOutputs({
-  //   acceleratorPrefix,
-  //   config,
-  //   dynamodb,
-  //   outputsTableName,
-  //   ssm,
-  //   account,
-  //   region,
-  //   outputUtilsTableName,
-  // });
+  await saveNetworkOutputs({
+    acceleratorPrefix,
+    config,
+    dynamodb,
+    outputsTableName,
+    assumeRoleName,
+    account,
+    region,
+    outputUtilsTableName,
+  });
 
   return {
     status: 'SUCCESS',

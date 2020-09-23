@@ -100,9 +100,7 @@ export async function saveIamUsers(
         name: userOutput.userName,
       });
 
-      const removalIndex = removalObjects.findIndex(
-        p => p.name === userOutput.userName,
-      );
+      const removalIndex = removalObjects.findIndex(p => p.name === userOutput.userName);
       if (removalIndex != -1) {
         removalObjects.splice(removalIndex, 1);
       }
@@ -110,11 +108,10 @@ export async function saveIamUsers(
   }
 
   for (const removeObject of removalObjects || []) {
-    const removalUsers = ([
-        `/${acceleratorPrefix}/ident/user/${removeObject.index}/name`,
-        `/${acceleratorPrefix}/ident/user/${removeObject.index}/arn`,
-      ])
-      .flatMap(s => s);
+    const removalUsers = [
+      `/${acceleratorPrefix}/ident/user/${removeObject.index}/name`,
+      `/${acceleratorPrefix}/ident/user/${removeObject.index}/arn`,
+    ].flatMap(s => s);
 
     while (removalUsers.length > 0) {
       await ssm.deleteParameters(removalUsers.splice(0, 10));
@@ -175,9 +172,7 @@ export async function saveIamGroups(
         name: groupOutput.groupName,
       });
 
-      const removalIndex = removalObjects.findIndex(
-        p => p.name === groupOutput.groupName,
-      );
+      const removalIndex = removalObjects.findIndex(p => p.name === groupOutput.groupName);
       if (removalIndex != -1) {
         removalObjects.splice(removalIndex, 1);
       }
@@ -185,11 +180,10 @@ export async function saveIamGroups(
   }
 
   for (const removeObject of removalObjects || []) {
-    const removalGroups = ([
-        `/${acceleratorPrefix}/ident/group/${removeObject.index}/name`,
-        `/${acceleratorPrefix}/ident/group/${removeObject.index}/arn`,
-      ])
-      .flatMap(s => s);
+    const removalGroups = [
+      `/${acceleratorPrefix}/ident/group/${removeObject.index}/name`,
+      `/${acceleratorPrefix}/ident/group/${removeObject.index}/arn`,
+    ].flatMap(s => s);
 
     while (removalGroups.length > 0) {
       await ssm.deleteParameters(removalGroups.splice(0, 10));
@@ -249,9 +243,7 @@ export async function saveIamPolicy(
         name: policyOutput.policyName,
       });
 
-      const removalIndex = removalObjects.findIndex(
-        p => p.name === policyOutput.policyName,
-      );
+      const removalIndex = removalObjects.findIndex(p => p.name === policyOutput.policyName);
       if (removalIndex != -1) {
         removalObjects.splice(removalIndex, 1);
       }
@@ -259,11 +251,10 @@ export async function saveIamPolicy(
   }
 
   for (const removeObject of removalObjects || []) {
-    const removalPolicies = ([
-        `/${acceleratorPrefix}/ident/policy/${removeObject.index}/name`,
-        `/${acceleratorPrefix}/ident/policy/${removeObject.index}/arn`,
-      ])
-      .flatMap(s => s);
+    const removalPolicies = [
+      `/${acceleratorPrefix}/ident/policy/${removeObject.index}/name`,
+      `/${acceleratorPrefix}/ident/policy/${removeObject.index}/arn`,
+    ].flatMap(s => s);
 
     while (removalPolicies.length > 0) {
       await ssm.deleteParameters(removalPolicies.splice(0, 10));
@@ -324,9 +315,7 @@ export async function saveIamRoles(
         name: roleOutput.roleName,
       });
 
-      const removalIndex = removalObjects.findIndex(
-        p => p.name === roleOutput.roleName,
-      );
+      const removalIndex = removalObjects.findIndex(p => p.name === roleOutput.roleName);
       if (removalIndex != -1) {
         removalObjects.splice(removalIndex, 1);
       }
@@ -334,11 +323,10 @@ export async function saveIamRoles(
   }
 
   for (const removeObject of removalObjects || []) {
-    const removalRoles = ([
-        `/${acceleratorPrefix}/ident/role/${removeObject.index}/name`,
-        `/${acceleratorPrefix}/ident/role/${removeObject.index}/arn`,
-      ])
-      .flatMap(s => s);
+    const removalRoles = [
+      `/${acceleratorPrefix}/ident/role/${removeObject.index}/name`,
+      `/${acceleratorPrefix}/ident/role/${removeObject.index}/arn`,
+    ].flatMap(s => s);
 
     while (removalRoles.length > 0) {
       await ssm.deleteParameters(removalRoles.splice(0, 10));
