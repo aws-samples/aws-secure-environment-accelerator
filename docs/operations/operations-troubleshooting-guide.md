@@ -62,9 +62,9 @@
     - [4.2.1. Example 1](#421-example-1)
     - [4.2.2. Example 2:](#422-example-2)
     - [4.2.3. Example 3:](#423-example-3)
-  - [4.3. How-to](#43-how-to)
-    - [4.3.1. Restart the State Machine](#431-restart-the-state-machine)
-    - [4.3.2. Switch To a Managed Account](#432-switch-to-a-managed-account)
+- [5. How-to](#5-how-to)
+  - [5.1. Restart the State Machine](#51-restart-the-state-machine)
+  - [5.2. Switch To a Managed Account](#52-switch-to-a-managed-account)
 
 <!-- /TOC -->
 
@@ -93,13 +93,13 @@ The Accelerator-management `Installer` stack contains the necessary resources to
 
 ![Pipelines](img/pipelines.png)
 
-It consists of the following resources:
+The Installer stack consists of the following resources:
 
-- `PBMMAccel-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from
-  GitHub. It launches the CodeBuild project `PBMMAccel-InstallerProject_pl` and launches the Accelerator state machine.
+- `PBMMAccel-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from GitHub. It launches the CodeBuild project `PBMMAccel-InstallerProject_pl`, executes the `PBMMAccel-Installer-SaveApplicationVersion` Lambda and launches the Accelerator state machine.
 - `PBMMAccel-InstallerProject_pl`: this is a `AWS::CodeBuild::Project` that installs the Accelerator in AWS account.
-- `PBMMAccel-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after
-  CodeBuild deploys the Accelerator.
+- `PBMMAccel-Installer-SaveApplicationVersion`: this is a `AWS::Lambda::Function` that stores the current Accelerator version into Parameter Store.
+- `PBMMAccel-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after CodeBuild deploys the Accelerator.
+- Creation of AWS::DynamoDB::Table - `PBMMAccel-Parameters` and `PBMMAccel-Outputs` which are used for the internal operation of the Accelerator. `PBMMAccel-Outputs` is used to share CloudFormation stack outputs between regions, stacks and phases. `PBMMAccel-Parameters` is used to various configuration items like managed accounts, organizations structure, and limits.
 
 ![Installer Diagram](img/installer.png)
 
@@ -113,16 +113,16 @@ CDK bootstraps its environment and creates the `CDKToolkit` stack in the AWS acc
 
 CDK copies assets to the bootstrap bucket and bootstrap repository that are used by the Accelerator. The assets that are stored on S3 include default IAM policies, default SCPs, default firewall configuration. The assets that are pushed to ECR include the Accelerator Docker build image. This Docker image is responsible for deploying Accelerator resources using the CDK.
 
-CDK finally deploys the `Initial Setup` stack, and launches the Accelerator state machine. The Accelerator state machine is described in the next section.
+CDK finally deploys the `Initial Setup` stack. The Accelerator state machine is described in the next section.
 
-This diagram depicts the Accelerator Installer Code Pipeline as of v1.2.1:
+This diagram depicts the Accelerator Installer CodePipeline as of v1.2.1:
 
 ![Pipeline Steps](img/pipeline-steps.png)
 
 Once the Code Pipeline completes successfully:
 
 - the Accelerator codebase was pulled from GitHub
-- the Accelerator codebase was deployed/installed in the master account
+- the Accelerator codebase was deployed/installed in the master AWS account
 - parameter store `/accelerator/version` was updated with the new version information
   - this provides a full history of all Accelerator versions and upgrades
 - the newly installed Accelerator state machine is started
@@ -131,11 +131,13 @@ At this time the resources deployed by the Installer Stack are no longer require
 
 If the Installer Stack was removed, it would need to be re-installed to upgrade the Accelerator. If the stack was not removed, an Accelerator codebase upgrade often only requires updating a single stack parameter to point to the latest Accelerator code branch, and re-releasing the pipeline. No files to manually copy, change or update, an upgrade can be initiated with a simple variable update.
 
+![Accelerator Upgrade](img/upgrade-cfn.png)
+
 ## 3.2. Initial Setup Stack
 
 The Accelerator-management `Initial Setup` stack, named `PBMMAccel-InitialSetup`, consists of a state machine, named `PBMMAccel-MainStateMachine_sm`, that executes various steps to create the Accelerator-managed stacks and resources in the Accelerator-managed accounts. Using a state machine, we can clearly define the deployment process and systematically control branches of execution and handle exceptions.
 
-The Accelerator comprises a primary state machine `PBMMAccel-MainStateMachine_sm`, and eight supporting state machines. Customer will only ever Execute the `PBMMAccel-MainStateMachine_sm`. All troubleshooting will also typically begin with the `PBMMAccel-MainStateMachine_sm`.
+The Accelerator comprises a primary state machine `PBMMAccel-MainStateMachine_sm`, and nine supporting state machines (as of v1.2.1). Customer will only ever Execute the `PBMMAccel-MainStateMachine_sm`. All troubleshooting will also typically begin with the `PBMMAccel-MainStateMachine_sm`.
 
 ![All Accelerator State Machine](img/all-state-machines.png)
 
@@ -160,12 +162,8 @@ The stack additionally consists of the following resources:
 - AWS::IAM::Role
   - `PBMMAccel-L-SFN-MasterRole`
   - `PBMMAccel-L-SFN-Execution`
-  - An AWS::IAM::Role for every state machine (might be merged into a single role);
 - AWS::Lambda::Function
   - A Lambda function for every Lambda function step in the state machine.
-- AWS::DynamoDB::Table
-  - `PBMMAccel-Parameters`
-  - `PBMMAccel-Outputs`
 - AWS::StepFunctions::StateMachine
   - `PBMMAccel-ALZCreateAccount_sm`: See [_Create Landing Zone Account_](#create-landing-zone-account);
   - `PBMMAccel-OrgCreateAccount_sm`: See [_Create Organization Account_](#create-organization-account);
@@ -173,8 +171,9 @@ The stack additionally consists of the following resources:
   - `PBMMAccel-InstallRoles_sm`: See [_Install Execution Roles_](#install-execution-roles);
   - `PBMMAccel-DeleteDefaultVpcs_sfn`: See [_Delete Default VPCs_](#delete-default-vpcs);
   - `PBMMAccel-CodeBuild_sm`: See [_Deploy Phase 0_](#deploy-phase-0);
-  - `PBMMAccel-CreateConfigRecorder_sfn`;
-  - `PBMMAccel-CreateAdConnector_sm`: See [_Create AD Connector_](#create-ad-connector).
+  - `PBMMAccel-CreateConfigRecorder_sfn`: See [_Create Config Recorders_]();
+  - `PBMMAccel-CreateAdConnector_sm`: See [_Create AD Connector_](#create-ad-connector);
+  - `PBMMAccel-StoreOutputs_sm`: See [_Share Outputs_]() - new in v1.2.1.
 
 _Note: Most resources have a random suffix to their name. This is because we use CDK to deploy the resources. See [https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_ids]()_
 
@@ -247,7 +246,7 @@ This step starts the `PBMMAccel-ALZCreateAccount_sm` state machine. This state m
 
 _Executed only when using AWS Organizations baseline_
 
-This step validates that the OU structure defined in the Accelerator configuration file matches the OU structure defined in AWS Organizations. If any of the 2 systems are out of sync, we stop the Accelerator from executing to prevent catastrophic failures.
+This step validates that the OU structure defined in the Accelerator configuration file matches the OU and account structure defined in AWS Organizations. Missing OUs are created. If any AWS Accounts or OUs have been renamed, this step updates the configuration file with the latest information. Accounts located in the incorrect top-level OU cause a state machine failure.
 
 ### 3.2.8. Load Organization Configuration
 
@@ -260,6 +259,8 @@ This step fails when
 - an organizational unit that is used by the Accelerator can not be found;
 - an account is present in the Accelerator configuration but does not exist in AWS Organizations;
 - an account has a name, email address or organizational unit that is different from the Accelerator configuration.
+- ** returns accounts that have not been created **
+- duplicates some validation functionality
 
 ### 3.2.9. Install CloudFormation Role in root
 
@@ -277,11 +278,11 @@ Application of this SCP ensures that new AWS accounts cannot be used until they 
 
 ### 3.2.11. Load Organizational Units
 
-> TODO: Document
+This step calls a Lambda function that loads all Organizational Units. The Organizational Units are stored in the DynamoDB table `PBMMAccel-Parameters` in the root account. The Organizational Units will later be used to determine which configuration file options apply to an AWS account.
 
 ### 3.2.12. Load Accounts
 
-This step calls a Lambda function that loads all accounts and organizational units. The accounts and organizational units are stored in the DynamoDB table `PBMMAccel-Parameters` in the root account. The accounts and organizational units will later be used to deploy stacks in the correct accounts.
+This step calls a Lambda function that loads all accounts. The accounts are stored in the DynamoDB table `PBMMAccel-Parameters` in the root account. The accounts will later be used to deploy stacks in the correct accounts.
 
 ### 3.2.13. Install Execution Roles
 
@@ -310,7 +311,7 @@ This step calls a Lambda function that is responsible for
 
 ### 3.2.17. Store All Phase Outputs
 
-> TODO: Document
+This step only executes on the first run of the state machine after it has been upgraded to v1.2.0 or above. This step exists solely to support upgrades from Accelerator versions prior to v1.2.0 and can be removed when no existing customers are running versions older than v1.2.0. This steps populates the DynamoDB Outputs table with the outputs from previous executions which were previously stored in S3 (and at one time even stored in secrets manager).
 
 ### 3.2.18. Deploy Phase -1 (Negative one)
 
@@ -386,7 +387,7 @@ Why do we wait until so late in the state machine execution to perform this task
 
 ### 3.2.23. Create Config Recorders
 
-> TODO: Document
+This step starts the `PBMMAccel-CreateConfigRecorder_sfn` state machine. This state machine is responsible for creating Config recorders in all accounts and regions.
 
 ### 3.2.24. Add SCPs to Organization
 
@@ -487,7 +488,7 @@ See [_Deploy Phase 0_](#deploy-phase-0).
 
 ### 3.2.34. Associate Hosted Zones (Step removed in v1.2.1)
 
-This step calls a Lambda function that associates the private zones, all the interface endpoint zones, and the resolver rules with each VPC that leverages endpoint services.
+This step calls a Lambda function that associates the private zones, all the interface endpoint zones, and the resolver rules with each VPC that leverages endpoint services. This step was removed in v1.2.1 of the Accelerator codebase.
 
 ### 3.2.35. Add Tags to Shared Resources
 
@@ -667,9 +668,9 @@ Rather than tracing this failure through the sub-state machine and then into the
 Using your browser, from the top of the page, search for "FAIL", and we are immediately brought to the error. In this particular case we had an issue with the creation of VPC endpoints. We defined something not supported by the current configuration file. The solution was to simply remove the offending endpoints from the config file and re-run the state machine.
 ![Debug 11](img/debug11.png)
 
-## 4.3. How-to
+# 5. How-to
 
-### 4.3.1. Restart the State Machine
+## 5.1. Restart the State Machine
 
 The state machine can be stopped and restarted at any time. The Accelerator has been design to be able to rollback to a stable state, such that should the state machine be stopped or fail for any reason, subsequent state machine executions can simply proceed through the failed step without manual cleanup or issues (assuming the failure scenario has been resolved). An extensive amount of effort was placed on ensuring seamless customer recovery in failure situations. The Accelerator is indempotent - it can be run as many or as few times as desired with no negative effect. On each state machine execution, the state machine, primarily leveraging the capabilities of CDK, will evaluate the delta's between the old previously deployed configuration and the new configuration and update the environment as appropriate.
 
@@ -712,7 +713,7 @@ Providing any one or more of the following flags will only overide the specified
  }
 ```
 
-### 4.3.2. Switch To a Managed Account
+## 5.2. Switch To a Managed Account
 
 To switch from the root account to a managed account you can click on your account name in the AWS Console. Then choose `Switch Role` in the menu.
 
