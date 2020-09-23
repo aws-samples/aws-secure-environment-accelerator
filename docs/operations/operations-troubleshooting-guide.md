@@ -662,11 +662,11 @@ If you open the latest log stream in the opened log group (`/aws/lambda/PBMMAcce
 ### 4.2.3. Example 3:
 
 In the next example the state machine failed in one of the CodeBuild state machine steps, based on the `Resource` name of the failed step.
-![Debug 9](img/debug9.png)
+![Debug 9](img/debug9a.png)
 Rather than tracing this failure through the sub-state machine and then into the failed CodeBuild task, we are simply going to open AWS CodeBuild, and open the `PBMMAccel-DeployPrebuilt` task. The failed task should be on the top of the Codebuild `build run` list. Open the build job.
 ![Debug 10](img/debug10.png)
 Using your browser, from the top of the page, search for "FAIL", and we are immediately brought to the error. In this particular case we had an issue with the creation of VPC endpoints. We defined something not supported by the current configuration file. The solution was to simply remove the offending endpoints from the config file and re-run the state machine.
-![Debug 11](img/debug11.png)
+![Debug 11](img/debug11a.png)
 
 # 5. How-to
 
