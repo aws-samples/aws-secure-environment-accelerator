@@ -31,6 +31,7 @@ Contributions via pull requests are much appreciated. Before sending us a pull r
 1. You are working against the latest source on the _master_ branch.
 2. You check existing open, and recently merged, pull requests to make sure someone else hasn't addressed the problem already.
 3. You open an issue to discuss any significant work - we would hate for your time to be wasted.
+4. You have reviewed and are aligned with the `Accelerator Development First Principals`
 
 To send us a pull request, please:
 
@@ -43,6 +44,16 @@ To send us a pull request, please:
 
 GitHub provides additional document on [forking a repository](https://help.github.com/articles/fork-a-repo/) and
 [creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
+
+## Accelerator Development First Principals:
+
+1. All code needs to include proper and complete error handling including back-off and retry functionality
+2. If a guardrail fails to be deployed, all code must result in a state machine failure, with a descriptive message as to the cause of the fault
+3. All code, on failure, needs to properly and completely roll-back or cleanup. On a failure, users should not be required to manually cleanup in order to re-run the state machine
+4. All reasonable efforts should be taken to ensure resources don't fail to deploy (again retries or corrective code to prevent hitting common error situations)
+5. All code changes need to accommodate both new deployments and upgrades from _any_ existing Accelerator versions. A smooth upgrade path must be provided for existing customers. In certain cases an automated manual procedure could be provided to existing customers to perform before upgrade to enable a smooth upgrade, but it cannot involve removing idempotent resources (i.e. MAD). For example, remove your VPC endpoints prior to upgrading.
+6. All code should be delivered as Typescript. The project has worked hard to ensure a consistent and single language and runtime to ensure long-term supportability
+7. When developing, CDK should be selected first, a Custom Resource second, and only when the first two are not viable solutions, should a Lambda be considered
 
 ## Finding contributions to work on
 
