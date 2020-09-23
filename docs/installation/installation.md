@@ -27,6 +27,7 @@ These installation instructions assume the prescribed architecture is being depl
     - [2.0.7. Is there anything my end users need to be aware of?](#207-is-there-anything-my-end-users-need-to-be-aware-of)
     - [2.0.8. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?](#208-can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially)
     - [2.0.9. Can I update the config file while the State Machine is running? When will those changes be applied?](#209-can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied)
+    - [2.0.10. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?](#2010-how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies)
 - [3. Notes](#3-notes)
   - [3.1. Upgrades](#31-upgrades)
     - [3.1.1. Summary of Upgrade Steps (all versions)](#311-summary-of-upgrade-steps-all-versions)
@@ -350,6 +351,12 @@ Yes, currently customers can upgrade from whatever version they have deployed to
 ### 2.0.9. Can I update the config file while the State Machine is running? When will those changes be applied?
 
 Yes. The state machine captures a consistent input state of the requested configuration when it starts. The running Accelerator instance does not see or consider any configuration changes that occur after it has started. All configuration changes occurring after the state machine is running will only be leveraged on the _next_ state machine execution.
+
+### 2.0.10. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
+
+To overide items like SCP's or IAM policies, customers simply need to provide the identically names file in there input bucket. For as long as the file exists in the customers input bucket, the Accelerator will use the supplied version of the configuration item, rather than the Accelerator version.
+
+The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Acclerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of Accelerator supplied versions. If a customer wishes to revert to the sample configuration, simply removing the files from their S3 bucket and rerunning the accelerator will revert to the repo version of those files. Customer only need to provide the specific files they wish to overide, not all files.
 
 # 3. Notes
 
