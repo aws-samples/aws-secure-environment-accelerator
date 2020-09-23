@@ -1,11 +1,10 @@
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
-import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from '../load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { saveNetworkOutputs } from './network-outputs';
-import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 import { saveIamOutputs } from './iam-outputs';
+import { saveElbOutputs } from './elb-outputs';
 
 export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -17,10 +16,9 @@ export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
 }
 
 const dynamodb = new DynamoDB();
-const sts = new STS();
 
 export const handler = async (input: SaveOutputsToSsmInput) => {
-  console.log(`Adding service control policy to organization...`);
+  console.log(`Saving SM Outputs to SSM Parameter store...`);
   console.log(JSON.stringify(input, null, 2));
 
   const {
@@ -75,6 +73,18 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     account,
     region,
     outputUtilsTableName,
+  });
+
+  // Store ELB Outputs to SSM Parameter Store
+  await saveElbOutputs({
+    acceleratorPrefix,
+    account,
+    assumeRoleName,
+    config,
+    dynamodb,
+    outputUtilsTableName,
+    outputsTableName,
+    region,
   });
 
   return {

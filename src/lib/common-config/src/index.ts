@@ -554,6 +554,7 @@ export const MandatoryAccountConfigType = t.interface({
   'src-filename': t.string,
   'exclude-ou-albs': optional(t.boolean),
   'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
+  'populate-all-elbs-in-param-store': fromNullable(t.boolean, false),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;

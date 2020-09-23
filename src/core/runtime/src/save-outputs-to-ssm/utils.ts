@@ -59,7 +59,7 @@ export async function saveIndexOutput(
       key: 'v',
       name: 'value',
       type: 'S',
-      value: value,
+      value,
     },
   ]);
   await dynamodb.updateItem({

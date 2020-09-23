@@ -101,7 +101,7 @@ export async function saveIamUsers(
       });
 
       const removalIndex = removalObjects.findIndex(p => p.name === userOutput.userName);
-      if (removalIndex != -1) {
+      if (removalIndex !== -1) {
         removalObjects.splice(removalIndex, 1);
       }
     }
@@ -173,7 +173,7 @@ export async function saveIamGroups(
       });
 
       const removalIndex = removalObjects.findIndex(p => p.name === groupOutput.groupName);
-      if (removalIndex != -1) {
+      if (removalIndex !== -1) {
         removalObjects.splice(removalIndex, 1);
       }
     }
@@ -244,7 +244,7 @@ export async function saveIamPolicy(
       });
 
       const removalIndex = removalObjects.findIndex(p => p.name === policyOutput.policyName);
-      if (removalIndex != -1) {
+      if (removalIndex !== -1) {
         removalObjects.splice(removalIndex, 1);
       }
     }
@@ -316,7 +316,7 @@ export async function saveIamRoles(
       });
 
       const removalIndex = removalObjects.findIndex(p => p.name === roleOutput.roleName);
-      if (removalIndex != -1) {
+      if (removalIndex !== -1) {
         removalObjects.splice(removalIndex, 1);
       }
     }

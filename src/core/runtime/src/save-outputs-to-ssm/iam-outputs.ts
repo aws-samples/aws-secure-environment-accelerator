@@ -49,10 +49,10 @@ export async function saveIamOutputs(props: SaveOutputsInput) {
   const accountsIam: { [accountKey: string]: IamConfig[] } = {};
 
   // finding iam for account iam configs
-  prepareMandatoryAccountIamConfigs(accountsIam, accountConfig);
+  await prepareMandatoryAccountIamConfigs(accountsIam, accountConfig);
 
   // finding iam for ou iam configs
-  prepareOuAccountIamConfigs(config, account, accountsIam);
+  await prepareOuAccountIamConfigs(config, account, accountsIam);
   // console.log('Accounts Iam', Object.keys(accountsIam));
 
   // if no IAM Config found for the account, return
@@ -123,5 +123,5 @@ export async function saveIamOutputs(props: SaveOutputsInput) {
   };
   const iamIndexOutput = JSON.stringify(iamOutput);
   console.log('indexOutput', iamIndexOutput);
-  saveIndexOutput(outputUtilsTableName, `${account.key}-${region}-identity`, iamIndexOutput, dynamodb);
+  await saveIndexOutput(outputUtilsTableName, `${account.key}-${region}-identity`, iamIndexOutput, dynamodb);
 }
