@@ -10,6 +10,7 @@ import { ResolvedVpcConfig, SecurityGroupConfig, SubnetConfig } from '@aws-accel
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { getUpdateValueInput } from '../utils/dynamodb-requests';
+import { STS } from '@aws-accelerator/common/src/aws/sts';
 
 interface OutputUtilSubnet extends OutputUtilGenericType {
   azs: string[];
@@ -42,7 +43,7 @@ interface OutputUtilNetwork {
  * @returns void
  */
 export async function saveNetworkOutputs(props: SaveOutputsInput) {
-  const { acceleratorPrefix, account, config, dynamodb, outputsTableName, ssm, region, outputUtilsTableName } = props;
+  const { acceleratorPrefix, account, config, dynamodb, outputsTableName, assumeRoleName, region, outputUtilsTableName } = props;
   const oldNetworkOutputUtils = await getOutputUtil(outputUtilsTableName, `${account.key}-${region}-network`, dynamodb);
   // Existing index check happens on this variable
   let networkOutputUtils: OutputUtilNetwork;
@@ -92,6 +93,11 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
   }
   const lvpcIndices = networkOutputUtils.vpcs.filter(lv => lv.type === 'lvpc').flatMap(v => v.index) || [];
   let lvpcMaxIndex = lvpcIndices.length === 0 ? 0 : Math.max(...lvpcIndices);
+
+  const sts = new STS();
+  const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
+  const ssm = new SSM(credentials, region);
+
   for (const resolvedVpcConfig of localVpcConfigs) {
     let currentIndex: number;
     const previousIndex = networkOutputUtils.vpcs.findIndex(

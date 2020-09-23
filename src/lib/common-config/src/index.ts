@@ -764,6 +764,7 @@ export const GlobalOptionsConfigType = t.interface({
   'workloadaccounts-param-filename': t.string,
   'vpc-flow-logs': VpcFlowLogsConfigType,
   'additional-cwl-regions': fromNullable(t.record(t.string, AdditionalCwlRegionType), {}),
+  'additional-global-output-regions': fromNullable(t.array(t.string), []),
   cloudwatch: optional(
     t.interface({
       metrics: t.array(CloudWatchMetricFiltersConfigType),
