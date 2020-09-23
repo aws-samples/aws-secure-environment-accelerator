@@ -58,10 +58,13 @@
     - [4.1.4. Custom Resource](#414-custom-resource)
     - [4.1.5. CloudWatch](#415-cloudwatch)
     - [4.1.6. CodePipeline](#416-codepipeline)
-  - [Examples](#examples)
-  - [4.2. How-to](#42-how-to)
-    - [4.2.1. Restart the State Machine](#421-restart-the-state-machine)
-    - [4.2.2. Switch To a Managed Account](#422-switch-to-a-managed-account)
+  - [4.2. Examples](#42-examples)
+    - [4.2.1. Example 1](#421-example-1)
+    - [4.2.2. Example 2:](#422-example-2)
+    - [4.2.3. Example 3:](#423-example-3)
+  - [4.3. How-to](#43-how-to)
+    - [4.3.1. Restart the State Machine](#431-restart-the-state-machine)
+    - [4.3.2. Switch To a Managed Account](#432-switch-to-a-managed-account)
 
 <!-- /TOC -->
 
@@ -632,11 +635,41 @@ fields @timestamp, @message
 
 - "Internal Failure" incorrect Github token, repo or branch
 
-## Examples
+## 4.2. Examples
 
-## 4.2. How-to
+Lets walk through a couple of example:
 
-### 4.2.1. Restart the State Machine
+### 4.2.1. Example 1
+
+State Machine failed (Lambda), click on the grey box, then click on the Resource object:
+![Debug 1](img/debug1.png)
+Click on the red failed box, click on `Step Input`. The error is clearly indicated, we could not delete a Default VPC because the default VPC had dependencies, in a specified account and region. In this case several dependencies exist and need to be cleaned up to proceed (EIP's and something less obvious like security groups).
+![Debug 2](img/debug2.png)
+
+### 4.2.2. Example 2:
+
+In the next example the state machine failed (sub-state machine) on the create accounts step. In this case rather than clicking on the `Graph inspector` we are going to scroll down through the `Execution event history` underneath the Graph inspector. We are going to find the FIRST failed task from the top of the list and then select the state machine from the prior task:
+![Debug 4](img/debug4.png)
+We will then click onn the red failed box, select `Exception` and we can see a clear error message - we have exceeded the maximum number of AWS accounts allowed in your organization:
+![Debug 5](img/debug5.png)
+Alternatively, in case the `Exception` error is not clear, we can select `Details` and then select `CloudWatch logs` for the **end** of the `Resource` section:
+![Debug 6](img/debug6.png)
+If you open the latest log stream in the opened log group (`/aws/lambda/PBMMAccel-InitialSetup-StartAccountCreationHandler-1IZ2N4EP29D72`) and review the last several messages in the stream, the following clear message also appears:
+
+![Debug 7](img/debug7.png)
+
+### 4.2.3. Example 3:
+
+In the next example the state machine failed in one of the CodeBuild state machine steps, based on the `Resource` name of the failed step.
+![Debug 9](img/debug9.png)
+Rather than tracing this failure through the sub-state machine and then into the failed CodeBuild task, we are simply going to open AWS CodeBuild, and open the `PBMMAccel-DeployPrebuilt` task. The failed task should be on the top of the Codebuild `build run` list. Open the build job.
+![Debug 10](img/debug10.png)
+Using your browser, from the top of the page, search for "FAIL", and we are immediately brought to the error. In this particular case we had an issue with the creation of VPC endpoints. We defined something not supported by the current configuration file. The solution was to simply remove the offending endpoints from the config file and re-run the state machine.
+![Debug 11](img/debug11.png)
+
+## 4.3. How-to
+
+### 4.3.1. Restart the State Machine
 
 The state machine can be stopped and restarted at any time. The Accelerator has been design to be able to rollback to a stable state, such that should the state machine be stopped or fail for any reason, subsequent state machine executions can simply proceed through the failed step without manual cleanup or issues (assuming the failure scenario has been resolved). An extensive amount of effort was placed on ensuring seamless customer recovery in failure situations. The Accelerator is indempotent - it can be run as many or as few times as desired with no negative effect. On each state machine execution, the state machine, primarily leveraging the capabilities of CDK, will evaluate the delta's between the old previously deployed configuration and the new configuration and update the environment as appropriate.
 
@@ -679,7 +712,7 @@ Providing any one or more of the following flags will only overide the specified
  }
 ```
 
-### 4.2.2. Switch To a Managed Account
+### 4.3.2. Switch To a Managed Account
 
 To switch from the root account to a managed account you can click on your account name in the AWS Console. Then choose `Switch Role` in the menu.
 
