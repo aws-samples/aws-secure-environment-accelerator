@@ -4,6 +4,8 @@
 
 Installation of the provided prescriptive AWS architecture, as-is, requires a limit increase to support a minimum of 6 AWS accounts in the AWS Organization plus any additional required workload accounts.
 
+_Users are strongly encouraged to also read the Accelerator Operations/Troubleshooting Guide before installation. The Operations/Troubleshooting Guide provides details as to what is being performed at each stage of the installation process, including detailed troubleshooting guidance._
+
 These installation instructions assume the prescribed architecture is being deployed.
 
 - [1. Installation, Upgrades and Basic Operations](#1-installation-upgrades-and-basic-operations)
@@ -59,7 +61,7 @@ Before installing, you must first:
 2. **_Set the region to `ca-central-1`._**
 3. Enable AWS Organizations
 4. Enable Service Control Policies
-5. In AWS Organizations, "Verify" the root account email address (this is a technical process)
+5. In AWS Organizations, ["Verify"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/) the root account email address (this is a technical process)
 6. Ensure `alz-baseline=false` is set in the configuration file
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
@@ -102,7 +104,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### 1.2.1. Create GitHub Personal Access Token and Store in Secrets Manager
 
 1. You require a GitHub access token to access the code repository
-2. Instructions on how to create a personal access token are located here: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+2. Instructions on how to create a personal access token are located [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).
 3. Select the scope `repo: Full control over private repositories`.
 4. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token` (case sensitive).
    - Via AWS console
@@ -172,7 +174,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
 2. Download the CloudFormation template `AcceleratorInstallerXXX.template.json` for the release you plan to install
-3. Use the template to deploy a new stack in your AWS account
+3. Use the provided CloudFormation template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
 6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
@@ -187,12 +189,12 @@ If deploying to an internal AWS account, to successfully install the entire solu
 13. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
 14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
 15. **While the pipeline is running, review the list of [Known Installation Issues]([https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/docs/installation/index.md#Known-Installation-Issues) near the bottom on this document**
-16. Once the pipeline completes (typically 15-20 minutes), the state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
+16. Once the pipeline completes (typically 15-20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
 17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
 19. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
 20. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
-    1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the state machine to deploy the firewall products
+    1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`PBMMAccel-MainStateMachine_sm`) to deploy the firewall products
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
     3. Activate the Fortinet Fortigate BYOL AMI and the Fortinet FortiManager BYOL AMI at the URL: https://aws.amazon.com/marketplace/privatemarketplace
        - Note: you should see the private marketplace, including the custom color specified in prerequisite step 4 above.
@@ -200,7 +202,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ![marketplace](img/marketplace.png)
 
-21. Once the state machine completes successfully, confirm the status of your perimeter firewall deployment.
+21. Once themain state machine (`PBMMAccel-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
 22. If your perimeter firewalls were not deployed on first run, you will need to rerun the state machine. This happens when:
     1. you were unable to activate the firewall AMI's before stage 2 (step 19)
@@ -320,7 +322,7 @@ Example:
 
 ### 2.0.5. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
 
-If your state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
+If your main state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
 
 Ensuring the integrity of deployed guardrails is critical in operating and maintaining an environment hosting protected data. Based on customer feedback and security best practices, we purposely fail the state machine if we cannot successfully deploy guardrails.
 
@@ -332,7 +334,7 @@ Will your state machine fail at some point in time, likely. Will you be able to 
 
 ### 2.0.6. How do I make changes to items I defined in the Accelerator configuration file during installation?
 
-Simply update your configuration file and rerun the state machine! In most cases, it is that simple.
+Simply update your configuration file in CodeCommit and rerun the state machine! In most cases, it is that simple.
 
 If you ask the Accelerator to do something that is not supported by the AWS platform, the state machine will fail, so it needs to be a supported capability. For example, the platform does not allow you to change the CIDR block on a VPC, but you can accomplish this as you would today by using the Accelerator to deploy a new second VPC, manually migrating workloads, and then removing the deprecated VPC from the Accelerator configuration.
 

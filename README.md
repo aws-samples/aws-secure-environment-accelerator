@@ -2,9 +2,9 @@
 
 The AWS Accelerator is a tool designed to deploy and operate secure multi-account AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
-While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to meet the requirements of a broad range of governments and public sector organizations.
+While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to meet the multiple requirements of a broad range of governments and public sector organizations.
 
-Installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
+The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
 
 ## What specifically does the Accelerator deploy and manage?
 
@@ -16,15 +16,15 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 ### Creates AWS Account
 
-- Core Accounts - as many or as few as your organization requires, using the naming you desire
+- Core Accounts - as many or as few as your organization requires, using the naming you desire. These accounts are used to centralize core capabilities across the organization and provide `Control Panel` like capabilities across the environment. Common core accounts include:
   - Shared Network
   - Operations
   - Perimeter
   - Log-Archive
   - Security-Audit
-- Workload Accounts - automate mass account creation, or use AWS organizations to scale one account at a time
+- Workload Accounts - automate mass account creation, or use AWS organizations to scale one account at a time. These accounts are used to host a customers workloads and applications.
 - Scalable to 1000's of AWS accounts
-- Supports AWS Organizations nested ou's and importing existing AWS accounts
+- Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
 - Automatically submits limit increases, when required (complies with initial limits until increased)
 
@@ -78,14 +78,14 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Creates and configures AWS budgets (customizable per ou and per account)
 - Imports or requests certificates into AWS Certificate Manager
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
-- Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup
+- Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup (leverages marketplace)
 - Protects Accelerator deployed and managed objects
 - Sets Up SNS Alerting topics (High, Medium, Low, Blockhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
 
 ### Centralized Logging and Alerting
 
-- Deploys an rsyslog auto-scaling cluster behind an NLB, all syslogs forwarded to CWL
+- Deploys an rsyslog auto-scaling cluster behind a NLB, all syslogs forwarded to CloudWatch Logs
 - Centralizes logging to a single centralized S3 bucket (enables, configures and centralizes)
   - VPC Flow logs w/Enhanced metadata fields (also sent to CWL)
   - Organizational Cost and Usage Reports
@@ -116,7 +116,7 @@ When appropriate, it is envisioned that the AWS Accelerator will add the capabil
 This summarizes the installation process, the full installation document can be found in the documentation section below.
 
 - Create a config.json (or config.yaml) file to represent your organizations requirements (PBMM sample provided)
-- Create a Secrets Manager Secret which contains a GitHub token with access to the Accelerator code repo
+- Create a Secrets Manager Secret which contains a GitHub token that provides access to the Accelerator code repo
 - Create a unique S3 input bucket and place your config.json and any additional custom config files in the bucket
 - Download and execute the latest installer CloudFormation template in your root accounts preferred 'primary' region
 - Wait for:
