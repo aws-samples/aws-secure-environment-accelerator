@@ -137,7 +137,7 @@ This summarizes the installation process, the full installation document can be 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./docs/installation/customization-index.md) to sample config file and customization details
 
-### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md) (Early Draft)
+### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
 ### - [Accelerator Developer Guide](./docs/developer/developer-guide.md) (Early Draft)
 
