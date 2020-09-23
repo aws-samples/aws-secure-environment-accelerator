@@ -45,7 +45,9 @@ export async function saveKmsKeys(
 
   const kmsOutputs: KmsOutput[] = [];
 
+  // Below outputs will be created only in SM region
   if (region === smRegion) {
+    // Finding account default bucket KMS keys in other accounts (excluding Log Archive account)
     if (account.key !== logAccount) {
       const accountBuckets = AccountBucketOutputFinder.findAll({
         outputs,
@@ -60,6 +62,7 @@ export async function saveKmsKeys(
         })),
       );
     } else {
+      // Finding account bucket KMS key if it is Log Archive account
       const logBuckets = LogBucketOutputTypeOutputFinder.findAll({
         outputs,
         accountKey: account.key,
@@ -74,6 +77,7 @@ export async function saveKmsKeys(
       );
     }
 
+    // If it is master account, checking Central Bucket and Secrets Kms Keys
     if (account.key === masterAccount) {
       const centralBuckets = CentralBucketOutputFinder.findAll({
         outputs,
@@ -105,6 +109,7 @@ export async function saveKmsKeys(
     }
   }
 
+  // Finding EBS KMS keys for the account
   const ebsKeys = EbsKmsOutputFinder.findAll({
     outputs,
     accountKey: account.key,
@@ -119,6 +124,7 @@ export async function saveKmsKeys(
     })),
   );
 
+  // Finding SSM KMS keys for the account
   const ssmKeys = SsmKmsOutputFinder.findAll({
     outputs,
     accountKey: account.key,
@@ -192,6 +198,7 @@ export async function saveAcm(
 
   const acmOutputs: AcmOutput[] = [];
 
+  // Finding ACM certificates for the account
   const acmCerts = AcmOutputFinder.findAll({
     outputs,
     accountKey: account.key,

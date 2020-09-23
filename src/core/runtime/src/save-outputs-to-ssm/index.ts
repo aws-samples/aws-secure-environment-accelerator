@@ -101,6 +101,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     region,
   });
 
+  // Store Encrypt outputs to SSM Parameter Store
   await saveEncryptsOutputs({
     acceleratorPrefix,
     account,
