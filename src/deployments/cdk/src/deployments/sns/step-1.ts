@@ -9,6 +9,7 @@ import * as cdk from '@aws-cdk/core';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import * as iam from '@aws-cdk/aws-iam';
+import { CfnSnsTopicOutput } from './outputs';
 
 export interface SnsStep1Props {
   accountStacks: AccountStacks;
@@ -121,6 +122,12 @@ export async function step1(props: SnsStep1Props) {
           endpoint: snsSubscriberFunc.functionArn,
         });
       }
+
+      new CfnSnsTopicOutput(accountStack, `SnsNotificationTopic${notificationType}-Otuput`, {
+        topicArn: topic.topicArn,
+        topicKey: notificationType,
+        topicName: topic.topicName,
+      });
     }
   }
 }
