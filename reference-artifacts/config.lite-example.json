@@ -3,8 +3,7 @@
     "alz-minimum-version": "v2.3.1",
     "alz-baseline": false,
     "ct-baseline": false,
-    "central-log-retention": 730,
-    "default-log-retention": 90,
+    "default-s3-retention": 90,
     "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
     "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
     "default-cwl-retention": 731,
@@ -58,6 +57,7 @@
     "central-log-services": {
       "account": "log-archive",
       "region": "ca-central-1",
+      "s3-retention": 730,
       "cwl-glbl-exclusions": [],
       "cwl-exclusions": [],
       "ssm-to-s3": true,
@@ -83,14 +83,15 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "zones": {
+    "zones": [{
       "account": "shared-network",
       "resolver-vpc": "Endpoint",
+      "region": "ca-central-1",
       "names": {
         "public": ["dept.cloud-nuage.canada.ca"],
         "private": ["dept.cloud-nuage.gc.ca"]
       }
-    },
+    }],
     "vpc-flow-logs": {
       "filter": "ALL",
       "interval": 60,
@@ -984,7 +985,7 @@
               "port": 7002,
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
-              "health-check-port": 7002,
+              "health-check-port": 7001,
               "lambda-filename": "",
               "target-instances": [
                 {
@@ -1002,7 +1003,7 @@
               "port": 7002,
               "health-check-protocol": "HTTPS",
               "health-check-path": "/health-check",
-              "health-check-port": 7002,
+              "health-check-port": 7001,
               "lambda-filename": "",
               "target-instances": [
                 {
@@ -1413,7 +1414,7 @@
           }
         ]
       },
-      "log-retention": 180,
+      "s3-retention": 180,
       "limits": {},
       "iam": {
         "users": [

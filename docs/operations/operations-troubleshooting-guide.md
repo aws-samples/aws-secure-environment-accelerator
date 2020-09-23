@@ -680,7 +680,7 @@ The state machine will execute:
 - automatically when new AWS accounts are moved into any Accelerator controller OU in AWS Organizations
 - when someone manual starts it: `Step Functions`, `PBMMAccel-MainStateMachine_sm`, `Start Execution`, `Start Execution` (leave default values in name and json box)
 
-The state machine prevents users from accidentally performing certain major breaking changes, specifically unsupported AWS platform changes, changes that will fail to deploy, or changes that could be catastrophic to users. If someone knows exactly what they are doing and the full implications of these changes, we provide the option to overide these checks.
+The state machine prevents users from accidentally performing certain major breaking changes, specifically unsupported AWS platform changes, changes that will fail to deploy, or changes that could be catastrophic to users. If someone knows exactly what they are doing and the full implications of these changes, we provide the option to overide these checks. Customers should expect that items we have blocked CANNOT be changed after the Accelerator installation.
 
 **_These flags should be used with extreme caution. Specifying any of these flags without proper guidance will likely leave your Accelerator in a state of disrepair. These flags were added for internal purposes only - we do NOT support customers providing these flags._**
 

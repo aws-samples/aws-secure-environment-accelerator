@@ -143,7 +143,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Contributing & Governance Guide](./CONTRIBUTING.md) (Early Draft)
 
-### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/index.md) (Early Draft)
+### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
 ### - [Frequently Asked Questions](./docs/faq/faq.md) (Future)
 

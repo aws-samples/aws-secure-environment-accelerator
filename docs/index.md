@@ -15,7 +15,7 @@
 
 ### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md) (Early Draft)
 
-### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/index.md) (Early Draft)
+### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/architecture.md) (Early Draft)
 
 ### - [Frequently Asked Questions](./faq/faq.md)
 

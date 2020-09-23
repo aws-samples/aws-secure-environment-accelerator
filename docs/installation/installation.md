@@ -138,18 +138,23 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - Plan your OU structure, we are suggesting:
     - core, Central, Sandbox, Unclass, Dev, Test, Prod
     - These OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs)
+    - While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
   - 6 \* RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
-    - (one for each OU, except Sandbox which is not routable)
+    - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
+    - one block for each OU, except Sandbox which is not routable
     - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC
   - 2 \* RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
-    - (MAD, perimeter underlay)(non-GC customers can use address space from the core CIDR range)
+    - Used for MAD deployment and perimeter underlay network
+    - non-GC customers can drop the extra MAD subnets in the Central VPC and use address space from the core CIDR range for the perimeter VPC
   - 2 \* BGP ASN's (TGW, FW Cluster)(a third is required if you are deploying a VGW for DX connectivity)
   - A Unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.)
-  - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution
-  - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]`
-  - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]`
-  - Wildcard TLS certificate for each of the 2 previous zones
-  - 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate)
+    - Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult
+    - Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
+  - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
+  - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]` (can be added in future)
+  - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]` (can be added in future)
+  - Wildcard TLS certificate for each of the 2 previous zones (can be added in future)
+  - 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future)
   - We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
 4. Create an S3 bucket in your root account with versioning enabled `your-bucket-name`
@@ -160,7 +165,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 6. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
    - Sample available here: `./reference-artifacts/Third-Party/firewall-example.txt`
-   - If you don't have any license files, update the config file with an empty array []
+   - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
 7. Place any defined certificate files in the folder and path defined in the config file
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
    - Sample available here: `./reference-artifacts/Certs-Sample/*`
@@ -225,10 +230,12 @@ If deploying to an internal AWS account, to successfully install the entire solu
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
 
-24. During the installation we request required limit increases, resources dependent on these limits were not deployed
-    1. You should receive emails from support confirming the limit increases
-    2. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
-    3. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
+24. During the installation we request required limit increases, resources dependent on these limits will not be deployed
+    1. Limit increase requests are controlled through the Accelerator configuration file `"limits":{}` setting
+    2. The sample configuration file requests increases to your EIP count in the perimeter account and to the VPC count and Interface Endpoint count in the shared-network account
+    3. You should receive emails from support confirming the limit increases
+    4. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
+    5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
 
 ### 1.3.1. Known Installation Issues
 
