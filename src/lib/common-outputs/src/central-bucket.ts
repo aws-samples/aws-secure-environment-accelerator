@@ -7,6 +7,8 @@ export const CentralBucketOutput = t.interface(
     bucketName: t.string,
     bucketArn: t.string,
     encryptionKeyArn: t.string,
+    encryptionKeyName: t.string,
+    encryptionKeyId: t.string,
   },
   'CentralBucket',
 );

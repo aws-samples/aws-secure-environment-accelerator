@@ -6,11 +6,17 @@ import { createEncryptionKeyName } from '@aws-accelerator/cdk-accelerator/src/co
 import { AccountStack } from '../../common/account-stacks';
 import { overrideLogicalId } from '../../utils/cdk';
 
-export function createDefaultS3Key(props: { accountStack: AccountStack }): kms.Key {
+export interface KmsDetails {
+  encryptionKey: kms.Key;
+  alias: string;
+}
+
+export function createDefaultS3Key(props: { accountStack: AccountStack }): KmsDetails {
   const { accountStack } = props;
 
+  const keyAlias = createEncryptionKeyName('Bucket-Key');
   const encryptionKey = new kms.Key(accountStack, 'DefaultKey', {
-    alias: 'alias/' + createEncryptionKeyName('Bucket-Key'),
+    alias: `alias/${keyAlias}`,
     description: `Default bucket encryption key`,
   });
   encryptionKey.addToResourcePolicy(
@@ -21,7 +27,10 @@ export function createDefaultS3Key(props: { accountStack: AccountStack }): kms.K
       resources: ['*'],
     }),
   );
-  return encryptionKey;
+  return {
+    encryptionKey,
+    alias: keyAlias,
+  };
 }
 
 /**

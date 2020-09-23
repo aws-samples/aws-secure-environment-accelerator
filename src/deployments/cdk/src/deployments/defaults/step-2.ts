@@ -55,7 +55,7 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
 
     const bucket = createDefaultS3Bucket({
       accountStack,
-      encryptionKey: key,
+      encryptionKey: key.encryptionKey,
       logRetention,
     });
 
@@ -95,6 +95,8 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       bucketName: bucket.bucketName,
       encryptionKeyArn: bucket.encryptionKey!.keyArn,
       region: cdk.Aws.REGION,
+      encryptionKeyId: bucket.encryptionKey!.keyId,
+      encryptionKeyName: key.alias,
     });
   }
 
