@@ -93,13 +93,12 @@ The Accelerator-management `Installer` stack contains the necessary resources to
 
 ![Pipelines](img/pipelines.png)
 
-It consists of the following resources:
+The Installer stack consists of the following resources:
 
-- `PBMMAccel-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from
-  GitHub. It launches the CodeBuild project `PBMMAccel-InstallerProject_pl` and launches the Accelerator state machine.
+- `PBMMAccel-InstallerPipeline`: this is a `AWS::CodePipeline::Pipeline` that pulls the latest Accelerator code from GitHub. It launches the CodeBuild project `PBMMAccel-InstallerProject_pl`, executes the `PBMMAccel-Installer-SaveApplicationVersion` Lambda and launches the Accelerator state machine.
 - `PBMMAccel-InstallerProject_pl`: this is a `AWS::CodeBuild::Project` that installs the Accelerator in AWS account.
-- `PBMMAccel-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after
-  CodeBuild deploys the Accelerator.
+- `PBMMAccel-Installer-SaveApplicationVersion`: this is a `AWS::Lambda::Function` that stores the current Accelerator version into Parameter Store.
+- `PBMMAccel-Installer-StartExecution`: this is a `AWS::Lambda::Function` that launches the Accelerator after CodeBuild deploys the Accelerator.
 
 ![Installer Diagram](img/installer.png)
 
@@ -113,16 +112,16 @@ CDK bootstraps its environment and creates the `CDKToolkit` stack in the AWS acc
 
 CDK copies assets to the bootstrap bucket and bootstrap repository that are used by the Accelerator. The assets that are stored on S3 include default IAM policies, default SCPs, default firewall configuration. The assets that are pushed to ECR include the Accelerator Docker build image. This Docker image is responsible for deploying Accelerator resources using the CDK.
 
-CDK finally deploys the `Initial Setup` stack, and launches the Accelerator state machine. The Accelerator state machine is described in the next section.
+CDK finally deploys the `Initial Setup` stack. The Accelerator state machine is described in the next section.
 
-This diagram depicts the Accelerator Installer Code Pipeline as of v1.2.1:
+This diagram depicts the Accelerator Installer CodePipeline as of v1.2.1:
 
 ![Pipeline Steps](img/pipeline-steps.png)
 
 Once the Code Pipeline completes successfully:
 
 - the Accelerator codebase was pulled from GitHub
-- the Accelerator codebase was deployed/installed in the master account
+- the Accelerator codebase was deployed/installed in the master AWS account
 - parameter store `/accelerator/version` was updated with the new version information
   - this provides a full history of all Accelerator versions and upgrades
 - the newly installed Accelerator state machine is started
@@ -130,6 +129,8 @@ Once the Code Pipeline completes successfully:
 At this time the resources deployed by the Installer Stack are no longer required. The Installer stack **could** be removed (which would remove the Code Pipeline) with no impact on Accelerator functionality.
 
 If the Installer Stack was removed, it would need to be re-installed to upgrade the Accelerator. If the stack was not removed, an Accelerator codebase upgrade often only requires updating a single stack parameter to point to the latest Accelerator code branch, and re-releasing the pipeline. No files to manually copy, change or update, an upgrade can be initiated with a simple variable update.
+
+![Accelerator Upgrade](img/upgrade-cfn.png)
 
 ## 3.2. Initial Setup Stack
 
