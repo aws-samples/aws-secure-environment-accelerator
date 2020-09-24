@@ -1,6 +1,7 @@
+import * as path from 'path';
 import * as cdk from '@aws-cdk/core';
-import * as custom from '@aws-cdk/custom-resources';
 import * as iam from '@aws-cdk/aws-iam';
+import * as lambda from '@aws-cdk/aws-lambda';
 
 const resourceType = 'Custom::SSMIncreaseThroughput';
 
@@ -14,47 +15,33 @@ export interface SsmIncreaseThroughputProps {
  */
 export class SsmIncreaseThroughput extends cdk.Construct {
   private role: iam.IRole;
+  private readonly resource: cdk.CustomResource;
   constructor(scope: cdk.Construct, id: string, props: SsmIncreaseThroughputProps) {
     super(scope, id);
-
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
+    this.resource = new cdk.CustomResource(this, 'Resource', {
+      resourceType,
+      serviceToken: this.lambdaFunction.functionArn,
+    });
+  }
 
-    const physicalResourceId = custom.PhysicalResourceId.of('SSMParameterStoreIncreaseThroughput');
+  private get lambdaFunction(): lambda.Function {
+    const constructName = `${resourceType}Lambda`;
+    const stack = cdk.Stack.of(this);
+    const existing = stack.node.tryFindChild(constructName);
+    if (existing) {
+      return existing as lambda.Function;
+    }
 
-    const onCreateOrUpdate: custom.AwsSdkCall = {
-      service: 'SSM',
-      action: 'updateServiceSetting',
-      physicalResourceId,
-      parameters: {
-        SettingId: '/ssm/parameter-store/high-throughput-enabled',
-        SettingValue: 'true',
-      },
-    };
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-ssm-increase-throughput-runtime');
+    const lambdaDir = path.dirname(lambdaPath);
 
-    const onDelete: custom.AwsSdkCall = {
-      service: 'SSM',
-      action: 'updateServiceSetting',
-      physicalResourceId,
-      parameters: {
-        SettingId: '/ssm/parameter-store/high-throughput-enabled',
-        SettingValue: 'false',
-      },
-    };
-
-    new custom.AwsCustomResource(this, 'Resource', {
-      resourceType: resourceType,
-      onCreate: onCreateOrUpdate,
-      onUpdate: onCreateOrUpdate,
-      onDelete: onDelete,
-      policy: custom.AwsCustomResourcePolicy.fromStatements([
-        new iam.PolicyStatement({
-          actions: ['ssm:UpdateServiceSetting', 'ssm:ResetServiceSetting'],
-          resources: [
-            `arn:aws:ssm:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:servicesetting/ssm/parameter-store/high-throughput-enabled`,
-          ],
-        }),
-      ]),
+    return new lambda.Function(stack, constructName, {
+      runtime: lambda.Runtime.NODEJS_12_X,
+      code: lambda.Code.fromAsset(lambdaDir),
+      handler: 'index.handler',
       role: this.role,
+      timeout: cdk.Duration.minutes(15),
     });
   }
 }

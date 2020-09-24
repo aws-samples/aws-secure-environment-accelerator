@@ -41,5 +41,11 @@ async function createRole(stack: AccountStack) {
     }),
   );
 
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['ssm:UpdateServiceSetting', 'ssm:ResetServiceSetting'],
+      resources: [`arn:aws:ssm:*:${cdk.Aws.ACCOUNT_ID}:servicesetting/ssm/parameter-store/high-throughput-enabled`],
+    }),
+  );
   return role;
 }
