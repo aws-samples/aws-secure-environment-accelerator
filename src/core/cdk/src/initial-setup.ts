@@ -21,6 +21,7 @@ import { RunAcrossAccountsTask } from './tasks/run-across-accounts-task';
 import * as fs from 'fs';
 import * as sns from '@aws-cdk/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
+import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -511,7 +512,36 @@ export namespace InitialSetup {
         resultPath: 'DISCARD',
       });
 
-      const pass = new sfn.Pass(this, 'Success');
+      const storeOutputsToSsmStateMachine = new sfn.StateMachine(
+        this,
+        `${props.acceleratorPrefix}StoreOutputsToSsm_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}StoreOutputsToSsm_sm`,
+          definition: new StoreOutputsToSSMTask(this, 'StoreOutputsToSSM', {
+            lambdaCode,
+            role: pipelineRole,
+          }),
+        },
+      );
+
+      const storeAllOutputsToSsmTask = new sfn.Task(this, 'Store Outputs to SSM', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(storeOutputsToSsmStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            'regions.$': '$.regions',
+            acceleratorPrefix: props.acceleratorPrefix,
+            assumeRoleName: props.stateMachineExecutionRole,
+            outputsTableName: outputsTable.tableName,
+            configRepositoryName: props.configRepositoryName,
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
+            outputUtilsTableName: outputUtilsTable.tableName,
+          },
+        }),
+        resultPath: 'DISCARD',
+      });
 
       const detachQuarantineScpTask = new CodeTask(this, 'Detach Quarantine SCP', {
         functionProps: {
@@ -525,7 +555,7 @@ export namespace InitialSetup {
         },
         resultPath: 'DISCARD',
       });
-      detachQuarantineScpTask.next(pass);
+      detachQuarantineScpTask.next(storeAllOutputsToSsmTask);
 
       const enableTrustedAccessForServicesTask = new CodeTask(this, 'Enable Trusted Access For Services', {
         functionProps: {
@@ -802,7 +832,7 @@ export namespace InitialSetup {
 
       const baseLineCleanupChoice = new sfn.Choice(this, 'Baseline Clean Up?')
         .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), detachQuarantineScpTask)
-        .otherwise(pass);
+        .otherwise(storeAllOutputsToSsmTask);
 
       const commonStep1 = addScpTask.startState
         .next(deployPhase1Task)
