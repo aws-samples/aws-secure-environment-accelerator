@@ -14,6 +14,7 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
+import * as ssmDeployment from '../deployments/ssm';
 
 /**
  * This is the main entry point to deploy phase 5
@@ -24,6 +25,7 @@ import * as cloudWatchDeployment from '../deployments/cloud-watch';
  * - enable central logging to S3 (step 2)
  * - Create CloudWatch Events for moveAccount, policyChanges and createAccount.
  * - Creates CloudWatch Alarms
+ * - Increase SSM Parameter Store throughput in all accounts and supported regions
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
@@ -192,5 +194,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     config: acceleratorConfig,
     accounts,
+  });
+
+  /**
+   * Increasing SSM Parameter Store throughput in all accounts and supported regions
+   */
+  await ssmDeployment.step2({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
   });
 }
