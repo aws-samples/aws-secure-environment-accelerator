@@ -49,6 +49,10 @@ export class S3Template extends cdk.Construct {
     this.handlerProperties.parameters[key] = value;
   }
 
+  get replacements() {
+    return this.handlerProperties.parameters;
+  }
+
   get lambdaFunction(): lambda.Function {
     return this.ensureLambdaFunction();
   }

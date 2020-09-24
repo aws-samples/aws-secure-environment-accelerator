@@ -3,6 +3,7 @@ import { optional } from '@aws-accelerator/common-types';
 import { createCfnStructuredOutput } from '../../../common/structured-output';
 import { createStructuredOutputFinder } from '@aws-accelerator/common-outputs/src/structured-output';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { FirewallConfigReplacementsOutput } from '@aws-accelerator/common-outputs/src/firewall';
 
 export const FirewallInstanceOutput = t.interface(
   {
@@ -12,6 +13,8 @@ export const FirewallInstanceOutput = t.interface(
   },
   'FirewallInstanceOutput',
 );
+
+export const CfnFirewallConfigReplacementsOutput = createCfnStructuredOutput(FirewallConfigReplacementsOutput);
 
 export type FirewallInstanceOutput = t.TypeOf<typeof FirewallInstanceOutput>;
 

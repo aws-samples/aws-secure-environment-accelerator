@@ -50,7 +50,7 @@ export class FirewallInstance extends cdk.Construct {
   private readonly resource: ec2.CfnInstance;
   private readonly template: S3Template;
   private readonly networkInterfacesProps: ec2.CfnInstance.NetworkInterfaceProperty[] = [];
-
+  readonly instanceName: string;
   constructor(scope: cdk.Construct, id: string, private readonly props: FirewallInstanceProps) {
     super(scope, id);
 
@@ -110,6 +110,7 @@ export class FirewallInstance extends cdk.Construct {
       ),
     });
     cdk.Tag.add(this.resource, 'Name', this.props.name);
+    this.instanceName = this.props.name;
 
     this.resource.node.addDependency(this.template);
   }
@@ -203,5 +204,9 @@ export class FirewallInstance extends cdk.Construct {
 
   get instanceId() {
     return this.resource.ref;
+  }
+
+  get replacements(): { [key: string]: string} {
+    return this.template.replacements;
   }
 }

@@ -7,6 +7,7 @@ import { saveIamOutputs } from './iam-outputs';
 import { saveElbOutputs } from './elb-outputs';
 import { saveEventOutputs } from './event-outputs';
 import { saveEncryptsOutputs } from './encrypt-outputs';
+import { saveFirewallReplacementOutputs } from './firewall-outputs';
 
 export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -103,6 +104,18 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
 
   // Store Encrypt outputs to SSM Parameter Store
   await saveEncryptsOutputs({
+    acceleratorPrefix,
+    account,
+    assumeRoleName,
+    config,
+    dynamodb,
+    outputUtilsTableName,
+    outputsTableName,
+    region,
+  });
+
+  // Store Firewall Outputs to SSM Parameter Store
+  await saveFirewallReplacementOutputs({
     acceleratorPrefix,
     account,
     assumeRoleName,

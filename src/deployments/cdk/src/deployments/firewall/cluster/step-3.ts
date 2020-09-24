@@ -12,7 +12,12 @@ import {
 } from '@aws-accelerator/common-outputs/src/stack-output';
 import { FirewallCluster, FirewallInstance } from '@aws-accelerator/cdk-constructs/src/firewall';
 import { AccountStacks, AccountStack } from '../../../common/account-stacks';
-import { FirewallVpnConnection, CfnFirewallInstanceOutput, FirewallVpnConnectionOutputFinder } from './outputs';
+import {
+  FirewallVpnConnection,
+  CfnFirewallInstanceOutput,
+  FirewallVpnConnectionOutputFinder,
+  CfnFirewallConfigReplacementsOutput,
+} from './outputs';
 import { checkAccountWarming } from '../../account-warming/outputs';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
 import { RegionalBucket } from '../../defaults';
@@ -253,6 +258,19 @@ async function createFirewallCluster(props: {
         });
       }
     }
+  }
+
+  for (const instance of Object.values(instancePerAz)) {
+    const replacements: { [key: string]: string} = {};
+    Object.entries(instance.replacements).forEach( ([key, value]) => {
+      replacements[key.replace(/[^-a-zA-Z0-9_.]+/gi, '')] = value;
+    });
+    new CfnFirewallConfigReplacementsOutput(accountStack, `FirewallReplacementOutput${instance.instanceName}`, {
+      instanceId: instance.instanceId,
+      instanceName: instance.instanceName,
+      name: firewallConfig.name,
+      replacements,
+    });
   }
   return cluster;
 }
