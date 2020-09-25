@@ -6,14 +6,13 @@ import {
 } from '@aws-accelerator/common-outputs/src/static-resource';
 import { AccountStacks } from '../../common/account-stacks';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
-import { region } from '@aws-accelerator/common-types';
 import { CfnHostedZoneOutput, CfnStaticResourcesOutput } from '../central-endpoints';
 import { InterfaceEndpoint } from '../../common/interface-endpoints';
 import { pascalCase } from 'pascal-case';
 import { Limit, Limiter } from '../../utils/limits';
 
 // Changing this will result to redeploy most of the stack
-const MAX_RESOURCES_IN_STACK = 30;
+const MAX_RESOURCES_IN_STACK = 45;
 const RESOURCE_TYPE = 'INTERFACE_ENDPOINTS';
 const STACK_SUFFIX = 'VPCEndpoints';
 
