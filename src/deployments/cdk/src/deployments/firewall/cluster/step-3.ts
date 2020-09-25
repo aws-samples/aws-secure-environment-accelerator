@@ -261,8 +261,8 @@ async function createFirewallCluster(props: {
   }
 
   for (const instance of Object.values(instancePerAz)) {
-    const replacements: { [key: string]: string} = {};
-    Object.entries(instance.replacements).forEach( ([key, value]) => {
+    const replacements: { [key: string]: string } = {};
+    Object.entries(instance.replacements).forEach(([key, value]) => {
       replacements[key.replace(/[^-a-zA-Z0-9_.]+/gi, '')] = value;
     });
     new CfnFirewallConfigReplacementsOutput(accountStack, `FirewallReplacementOutput${instance.instanceName}`, {

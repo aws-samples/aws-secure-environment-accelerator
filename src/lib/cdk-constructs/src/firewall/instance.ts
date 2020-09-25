@@ -206,7 +206,7 @@ export class FirewallInstance extends cdk.Construct {
     return this.resource.ref;
   }
 
-  get replacements(): { [key: string]: string} {
+  get replacements(): { [key: string]: string } {
     return this.template.replacements;
   }
 }
