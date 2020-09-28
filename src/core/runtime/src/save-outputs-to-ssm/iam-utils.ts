@@ -248,6 +248,42 @@ export async function saveIamPolicy(
         removalObjects.splice(removalIndex, 1);
       }
     }
+
+    const ssmPolicyLength = iamConfig.roles?.filter(r => r['ssm-log-archive-access']).length;
+    if (ssmPolicyLength && ssmPolicyLength !== 0) {
+      const ssmPolicyOutput = IamPolicyOutputFinder.findOneByName({
+        outputs,
+        accountKey,
+        policyKey: 'IamSsmAccessPolicy',
+      });
+      if (!ssmPolicyOutput) {
+        console.warn(`Didn't find IAM SSM Log Archive Access Policy in output`);
+        continue;
+      }
+      let currentIndex: number;
+      const previousPolicyIndexDetails = policies.findIndex(p => p.name === ssmPolicyOutput.policyName);
+      if (previousPolicyIndexDetails >= 0) {
+        currentIndex = policies[previousPolicyIndexDetails].index;
+        console.log(`skipping creation of policy ${ssmPolicyOutput.policyName} in SSM`);
+      } else {
+        currentIndex = ++policyMaxIndex;
+        await ssm.putParameter(`/${acceleratorPrefix}/ident/policy/${currentIndex}/name`, `${ssmPolicyOutput.policyName}`);
+        await ssm.putParameter(`/${acceleratorPrefix}/ident/policy/${currentIndex}/arn`, ssmPolicyOutput.policyArn);
+        policies.push({
+          name: ssmPolicyOutput.policyName,
+          index: currentIndex,
+        });
+      }
+      updatedPolicies.push({
+        index: currentIndex,
+        name: ssmPolicyOutput.policyName,
+      });
+
+      const removalIndex = removalObjects.findIndex(p => p.name === ssmPolicyOutput.policyName);
+      if (removalIndex !== -1) {
+        removalObjects.splice(removalIndex, 1);
+      }
+    }
   }
 
   for (const removeObject of removalObjects || []) {

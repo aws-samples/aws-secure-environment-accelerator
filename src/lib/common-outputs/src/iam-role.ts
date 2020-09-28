@@ -49,4 +49,11 @@ export const IamPolicyOutputFinder = createStructuredOutputFinder(IamPolicyOutpu
       accountKey: props.accountKey,
       predicate: o => o.policyKey === props.policyKey && o.policyName === props.policyName,
     }),
+  findOneByName: (props: { outputs: StackOutput[]; accountKey: string; region?: string; policyKey?: string }) =>
+    finder.tryFindOne({
+      outputs: props.outputs,
+      accountKey: props.accountKey,
+      region: props.region,
+      predicate: o => o.policyKey === props.policyKey,
+    }),
 }));
