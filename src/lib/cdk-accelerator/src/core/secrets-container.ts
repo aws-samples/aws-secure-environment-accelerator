@@ -30,13 +30,15 @@ export interface SecretsContainerProps extends Omit<secrets.SecretProps, 'encryp
  */
 export class SecretsContainer extends cdk.Construct {
   readonly encryptionKey: kms.Key;
+  readonly keyAlias: string;
   readonly principals: iam.IPrincipal[] = [];
 
   constructor(scope: cdk.Construct, name: string) {
     super(scope, name);
 
+    this.keyAlias = createEncryptionKeyName(`Secrets-Key`);
     this.encryptionKey = new kms.Key(this, `EncryptionKey`, {
-      alias: 'alias/' + createEncryptionKeyName(`Secrets-Key`),
+      alias: `alias/${this.keyAlias}`,
       description: 'Key used to encrypt/decrypt secrets',
     });
 
@@ -84,6 +86,10 @@ export class SecretsContainer extends cdk.Construct {
     // Keep track of the principals that need access so we can add them later to the key policy
     this.principals.push(...props.principals);
     return secret;
+  }
+
+  get alias() {
+    return this.keyAlias;
   }
 
   protected onPrepare(): void {

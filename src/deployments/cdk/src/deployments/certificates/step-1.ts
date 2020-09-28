@@ -6,7 +6,7 @@ import * as c from '@aws-accelerator/common-config/src';
 import { AcmImportCertificate } from '@aws-accelerator/custom-resource-acm-import-certificate';
 import { AccountStacks } from '../../common/account-stacks';
 import { pascalCase } from 'pascal-case';
-import { createCertificateSecretName } from './outputs';
+import { createCertificateSecretName, CfnAcmOutput } from './outputs';
 
 export interface CertificatesStep1Props {
   accountStacks: AccountStacks;
@@ -77,6 +77,11 @@ function createCertificate(props: {
       name: createCertificateSecretName(certificate.name),
       description: `Certificate ARN for certificate ${certificate.name}`,
       secretString: resource.certificateArn,
+    });
+
+    new CfnAcmOutput(scope, `Cert${certificatePrettyName}Output`, {
+      certificateName: certificate.name,
+      certificateArn: resource.certificateArn,
     });
   }
 }

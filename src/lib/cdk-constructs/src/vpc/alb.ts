@@ -79,4 +79,16 @@ export class ApplicationLoadBalancer extends cdk.Construct {
     });
     this.listeners.push(listener);
   }
+
+  get name(): string {
+    return this.resource.name!;
+  }
+
+  get dns(): string {
+    return this.resource.attrDnsName;
+  }
+
+  get hostedZoneId(): string {
+    return this.resource.attrCanonicalHostedZoneId;
+  }
 }

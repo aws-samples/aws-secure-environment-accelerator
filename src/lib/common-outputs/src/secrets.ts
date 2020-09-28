@@ -1,3 +1,6 @@
+import * as t from 'io-ts';
+import { createStructuredOutputFinder } from './structured-output';
+
 /**
  * Remove special characters from the start and end of a string.
  */
@@ -12,3 +15,16 @@ export function createFixedSecretName(props: { acceleratorPrefix: string; parts:
   const { acceleratorPrefix, parts } = props;
   return [trimSpecialCharacters(acceleratorPrefix), ...parts].join('/');
 }
+
+export const SecretEncryptionKeyOutput = t.interface(
+  {
+    encryptionKeyName: t.string,
+    encryptionKeyId: t.string,
+    encryptionKeyArn: t.string,
+  },
+  'SecretEncryptionKeyOutput',
+);
+
+export type SecretEncryptionKeyOutput = t.TypeOf<typeof SecretEncryptionKeyOutput>;
+
+export const SecretEncryptionKeyOutputFinder = createStructuredOutputFinder(SecretEncryptionKeyOutput, () => ({}));

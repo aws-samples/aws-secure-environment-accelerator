@@ -11,7 +11,7 @@ import {
   createEncryptionKeyName,
   createRoleName,
 } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput } from './outputs';
+import { CfnLogBucketOutput, CfnAesBucketOutput, CfnCentralBucketOutput, CfnEbsKmsOutput } from './outputs';
 import { AccountStacks } from '../../common/account-stacks';
 import { Account } from '../../utils/accounts';
 import { createDefaultS3Bucket, createDefaultS3Key } from './shared';
@@ -84,8 +84,9 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
     bucketName: centralBucketName,
   });
 
+  const keyAlias = createEncryptionKeyName('Config-Key');
   const encryptionKey = new kms.Key(masterAccountStack, 'CentralBucketKey', {
-    alias: 'alias/' + createEncryptionKeyName('Config-Key'),
+    alias: `alias/${keyAlias}`,
     description: 'Key used to encrypt/decrypt the copy of central S3 bucket',
   });
 
@@ -137,6 +138,8 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
     bucketName: bucket.bucketName,
     encryptionKeyArn: encryptionKey.keyArn,
     region: cdk.Aws.REGION,
+    encryptionKeyId: encryptionKey.keyId,
+    encryptionKeyName: keyAlias,
   });
 
   return bucket;
@@ -162,7 +165,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
 
   const logBucket = createDefaultS3Bucket({
     accountStack: logAccountStack,
-    encryptionKey: logKey,
+    encryptionKey: logKey.encryptionKey,
     logRetention: defaultLogRetention!,
   });
 
@@ -265,6 +268,8 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     bucketName: logBucket.bucketName,
     encryptionKeyArn: logBucket.encryptionKey!.keyArn,
     region: cdk.Aws.REGION,
+    encryptionKeyId: logBucket.encryptionKey!.keyId,
+    encryptionKeyName: logKey.alias,
   });
 
   logBucket.encryptionKey?.addToResourcePolicy(
@@ -362,9 +367,10 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
         continue;
       }
 
+      const keyAlias = createEncryptionKeyName('EBS-Key');
       // Default EBS encryption key
       const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
-        alias: 'alias/' + createEncryptionKeyName('EBS-Key'),
+        alias: `alias/${keyAlias}`,
         description: 'Key used to encrypt/decrypt EBS by default',
       });
 
@@ -386,6 +392,12 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
         ...accountEbsEncryptionKeys[localAccountKey],
         [region]: key,
       };
+
+      new CfnEbsKmsOutput(accountStack, 'EbsEncryptionKey', {
+        encryptionKeyName: keyAlias,
+        encryptionKeyId: key.keyId,
+        encryptionKeyArn: key.keyArn,
+      });
     }
   }
   return accountEbsEncryptionKeys;

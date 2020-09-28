@@ -7,6 +7,12 @@ import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { Account } from '../../utils/accounts';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { StructuredOutput, createCfnStructuredOutput } from '../../common/structured-output';
+import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
+import { SsmKmsOutput } from '@aws-accelerator/common-outputs/src/ssm';
+
+export const CfnEbsKmsOutput = createCfnStructuredOutput(EbsKmsOutput);
+
+export const CfnSsmKmsOutput = createCfnStructuredOutput(SsmKmsOutput);
 
 export interface RegionalBucket extends s3.IBucket {
   region: string;
@@ -37,6 +43,8 @@ const AccountBucketOutputType = t.interface(
     bucketArn: t.string,
     encryptionKeyArn: t.string,
     region: t.string,
+    encryptionKeyName: t.string,
+    encryptionKeyId: t.string,
   },
   'AccountBucket',
 );
@@ -49,6 +57,8 @@ const LogBucketOutputType = t.interface(
     bucketArn: t.string,
     encryptionKeyArn: t.string,
     region: t.string,
+    encryptionKeyName: t.string,
+    encryptionKeyId: t.string,
   },
   'LogBucket',
 );
@@ -61,6 +71,8 @@ const CentralBucketOutputType = t.interface(
     bucketArn: t.string,
     encryptionKeyArn: t.string,
     region: t.string,
+    encryptionKeyName: t.string,
+    encryptionKeyId: t.string,
   },
   'CentralBucket',
 );

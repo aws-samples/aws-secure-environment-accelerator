@@ -16,6 +16,7 @@ import * as globalRoles from '../deployments/iam';
  *   - Creating required roles for TransitGatewayAcceptPeeringAttachment custom resource
  *   - Creating required roles for createLogsMetricFilter custom resource
  *   - Creating required roles for SnsSubscriberLambda custom resource
+ *   - Creating required role for SsmIncreaseThroughput custom resource
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts }: PhaseInput) {
   // creates roles for macie custom resources
@@ -97,5 +98,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
   await globalRoles.createCentralEndpointDeploymentRole({
     accountStacks,
     config: acceleratorConfig,
+  });
+
+  // Creates required role for SsmIncreaseThroughput custom resource
+  await globalRoles.createSsmThroughputRole({
+    accountStacks,
+    accounts,
   });
 }

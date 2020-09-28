@@ -13,7 +13,7 @@ import { getVpcSharedAccountKeys } from '../../common/vpc-subnet-sharing';
 import { Account } from '../../utils/accounts';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { SSMSessionManagerDocument } from '@aws-accelerator/custom-resource-ssm-session-manager-document';
-import { AccountBuckets } from '../defaults';
+import { AccountBuckets, CfnSsmKmsOutput } from '../defaults';
 
 export interface SSMStep1Props {
   accountStacks: AccountStacks;
@@ -67,8 +67,9 @@ export async function step1(props: SSMStep1Props) {
         continue;
       }
 
+      const keyAlias = createEncryptionKeyName('SSM-Key');
       const ssmKey = new Key(accountStack, 'SSM-Key', {
-        alias: 'alias/' + createEncryptionKeyName('SSM-Key'),
+        alias: `alias/${keyAlias}`,
         trustAccountIdentities: true,
       });
       ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
@@ -98,6 +99,12 @@ export async function step1(props: SSMStep1Props) {
         ...accountRegionSsmDocuments[localAccountKey],
         [region]: ssmKey,
       };
+
+      new CfnSsmKmsOutput(accountStack, 'SsmEncryptionKey', {
+        encryptionKeyName: keyAlias,
+        encryptionKeyId: ssmKey.keyId,
+        encryptionKeyArn: ssmKey.keyArn,
+      });
     }
   }
 }

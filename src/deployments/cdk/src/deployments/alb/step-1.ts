@@ -6,6 +6,7 @@ import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
 import { ApplicationLoadBalancer } from '@aws-accelerator/cdk-constructs/src/vpc';
+import { CfnLoadBalancerOutput } from './outputs';
 import {
   AcceleratorConfig,
   AlbConfig,
@@ -172,6 +173,14 @@ export function createAlb(
     certificateArn: certificateSecret.toString(),
     actionType: albConfig['action-type'],
     targetGroupArns: targetGroupIds,
+  });
+
+  new CfnLoadBalancerOutput(accountStack, `Alb${albConfig.name}-Output`, {
+    displayName: balancer.name,
+    dnsName: balancer.dns,
+    hostedZoneId: balancer.hostedZoneId,
+    name: albConfig.name,
+    type: 'APPLICATION',
   });
 }
 
