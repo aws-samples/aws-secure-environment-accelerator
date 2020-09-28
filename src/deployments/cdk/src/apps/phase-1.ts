@@ -462,7 +462,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           acceleratorPrefix: context.acceleratorPrefix,
           domain: phz,
         });
-        return new LogGroup(zonesStack, `Route53HostedZoneLogGroup`, {
+        return new LogGroup(zonesStack, `Route53HostedZoneLogGroup${pascalCase(phz)}`, {
           logGroupName,
           roleArn: logGroupLambdaRoleOutput.roleArn,
         });
