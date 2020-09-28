@@ -211,7 +211,16 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+      try {
+        await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+      } catch (e) {
+        if (e.code === 'NoSuchHostedZone') {
+          console.info(`No Domain exists with ID "${hostedZoneId}"; ignore this error and continue`);
+          continue;
+        } else {
+          throw new Error(e);
+        }
+      }
     }
 
     // associate VPC with Hosted zones
@@ -273,7 +282,13 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     };
     // authorize association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+      try {
+        await throttlingBackOff(() => hostedZoneRoute53.createVPCAssociationAuthorization(hostedZoneProps).promise());
+      } catch (e) {
+        console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
+        console.error(e);
+        continue;
+      }
     }
 
     // associate VPC with Hosted zones
