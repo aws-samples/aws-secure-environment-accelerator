@@ -48,6 +48,10 @@ These installation instructions assume the prescribed architecture is being depl
 - Root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
+  - From the Root AWS Organization account select:
+    - Support -> Support Center -> Create Case, then select
+    - Service Limit Increase -> Limit Type: Organizations -> Limit: Number of Accounts
+    - You must wait for your ticket to be resolved before installing the solution.
 - Valid configuration file, updated to reflect your deployment (see below)
 - Determine your primary or Accelerator 'control' region. These instructions have been written assuming ca-central-1, but any supported region can be substituted.
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes
