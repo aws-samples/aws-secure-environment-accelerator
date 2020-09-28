@@ -267,7 +267,10 @@ export async function saveIamPolicy(
         console.log(`skipping creation of policy ${ssmPolicyOutput.policyName} in SSM`);
       } else {
         currentIndex = ++policyMaxIndex;
-        await ssm.putParameter(`/${acceleratorPrefix}/ident/policy/${currentIndex}/name`, `${ssmPolicyOutput.policyName}`);
+        await ssm.putParameter(
+          `/${acceleratorPrefix}/ident/policy/${currentIndex}/name`,
+          `${ssmPolicyOutput.policyName}`,
+        );
         await ssm.putParameter(`/${acceleratorPrefix}/ident/policy/${currentIndex}/arn`, ssmPolicyOutput.policyArn);
         policies.push({
           name: ssmPolicyOutput.policyName,
