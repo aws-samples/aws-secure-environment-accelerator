@@ -103,7 +103,7 @@ export async function step3(props: VpcStep3Props) {
     suffix = accountRegionMaxSuffix[accountKey][vpcConfig.region];
     stackSuffix = `${STACK_SUFFIX}-${suffix}`;
     for (const endpoint of endpointsConfig.endpoints) {
-      if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.name)) {
+      if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.region, vpcConfig.name)) {
         console.log(
           `Skipping endpoint "${endpoint}" creation in VPC "${vpcConfig.name}". Reached maximum interface endpoints per VPC`,
         );

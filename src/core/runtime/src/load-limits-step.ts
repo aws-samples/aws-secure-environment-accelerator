@@ -70,10 +70,12 @@ export const handler = async (input: LoadLimitsInput) => {
     commitId: configCommitId,
   });
 
+  const defaultRegion: string = config['global-options']['aws-org-master'].region!;
+
   // Capture limit results
   const limits: LimitOutput[] = [];
 
-  const accountConfigs = config.getAccountConfigs();
+  const accountConfigs = [config.getAccountConfigs()[0]];
   for (const [accountKey, accountConfig] of accountConfigs) {
     const accountId = getAccountId(accounts, accountKey);
 
@@ -82,9 +84,18 @@ export const handler = async (input: LoadLimitsInput) => {
       continue;
     }
 
-    const sts = new STS();
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
-    const quotas = new ServiceQuotas(credentials);
+    const regions: string[] = Array.from(
+      new Set(
+        config
+          .getVpcConfigs()
+          .filter(vc => vc.accountKey === accountKey)
+          .map(accConfig => accConfig.vpcConfig.region),
+      ),
+    );
+
+    if (!regions.includes(defaultRegion)) {
+      regions.push(defaultRegion);
+    }
 
     // First check that all limits in the config exist
     const limitConfig = accountConfig.limits;
@@ -97,59 +108,68 @@ export const handler = async (input: LoadLimitsInput) => {
       }
     }
 
-    // The fetch all supported limits and request an increase if necessary
-    for (const [limitKey, limitCode] of Object.entries(LIMITS)) {
-      if (!limitKeysFromConfig.includes(limitKey)) {
-        console.info(`Cannot find limit with key "${limitKey}" in accelerator config`);
-        continue;
-      }
-      if (!limitCode.enabled) {
-        console.warn(`The limit "${limitKey}" is not enabled`);
-        continue;
-      }
+    for (const region of regions) {
+      const sts = new STS();
+      const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+      const quotas = new ServiceQuotas(credentials, region);
 
-      const quota = await quotas.getServiceQuotaOrDefault({
-        ServiceCode: limitCode.serviceCode,
-        QuotaCode: limitCode.quotaCode,
-      });
-      let value = quota.Value!;
-      const accountLimitConfig = limitConfig[limitKey];
-      if (accountLimitConfig && accountLimitConfig['customer-confirm-inplace']) {
-        value = accountLimitConfig.value;
+      // The fetch all supported limits and request an increase if necessary
+      for (const [limitKey, limitCode] of Object.entries(LIMITS)) {
+        if (!limitKeysFromConfig.includes(limitKey)) {
+          console.info(`Cannot find limit with key "${limitKey}" in accelerator config`);
+          continue;
+        }
+        if (!limitCode.enabled) {
+          console.warn(`The limit "${limitKey}" is not enabled`);
+          continue;
+        }
+
+        const quota = await quotas.getServiceQuotaOrDefault({
+          ServiceCode: limitCode.serviceCode,
+          QuotaCode: limitCode.quotaCode,
+        });
+        let value = quota.Value!;
+        const accountLimitConfig = limitConfig[limitKey];
+        if (accountLimitConfig && accountLimitConfig['customer-confirm-inplace']) {
+          value = accountLimitConfig.value;
+        }
+
+        // Keep track of limits so we can return them at the end of this function
+        limits.push({
+          accountKey,
+          limitKey,
+          serviceCode: limitCode.serviceCode,
+          quotaCode: limitCode.quotaCode,
+          value,
+          region,
+        });
+
+        if (!accountLimitConfig) {
+          console.debug(`Quota "${limitKey}" has no desired value for account "${accountKey}"`);
+          continue;
+        }
+
+        const desiredValue = accountLimitConfig.value;
+
+        if (value >= desiredValue) {
+          console.debug(`Quota "${limitKey}" already has a value equal or larger than the desired value`);
+          continue;
+        }
+        if (!quota.Adjustable) {
+          console.warn(`Quota "${limitKey}" is not adjustable`);
+          continue;
+        }
+
+        if (region === defaultRegion) {
+          // Request the increase or renew if the previous request was more than two days ago
+          await quotas.renewServiceQuotaIncrease({
+            ServiceCode: limitCode.serviceCode,
+            QuotaCode: limitCode.quotaCode,
+            DesiredValue: desiredValue,
+            MinTimeBetweenRequestsMillis: 1000 * 60 * 60 * 24 * 2, // Two days in milliseconds
+          });
+        }
       }
-
-      // Keep track of limits so we can return them at the end of this function
-      limits.push({
-        accountKey,
-        limitKey,
-        serviceCode: limitCode.serviceCode,
-        quotaCode: limitCode.quotaCode,
-        value,
-      });
-
-      if (!accountLimitConfig) {
-        console.debug(`Quota "${limitKey}" has no desired value for account "${accountKey}"`);
-        continue;
-      }
-
-      const desiredValue = accountLimitConfig.value;
-
-      if (value >= desiredValue) {
-        console.debug(`Quota "${limitKey}" already has a value equal or larger than the desired value`);
-        continue;
-      }
-      if (!quota.Adjustable) {
-        console.warn(`Quota "${limitKey}" is not adjustable`);
-        continue;
-      }
-
-      // Request the increase or renew if the previous request was more than two days ago
-      await quotas.renewServiceQuotaIncrease({
-        ServiceCode: limitCode.serviceCode,
-        QuotaCode: limitCode.quotaCode,
-        DesiredValue: desiredValue,
-        MinTimeBetweenRequestsMillis: 1000 * 60 * 60 * 24 * 2, // Two days in milliseconds
-      });
     }
   }
 
