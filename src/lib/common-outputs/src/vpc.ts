@@ -53,6 +53,7 @@ export const VpcOutput = t.interface(
 );
 
 export type VpcOutput = t.TypeOf<typeof VpcOutput>;
+export type VpcSubnetOutput = t.TypeOf<typeof VpcSubnetOutput>;
 
 export const VpcOutputFinder = createStructuredOutputFinder(VpcOutput, finder => ({
   tryFindOneByAccountAndRegionAndName: (props: {

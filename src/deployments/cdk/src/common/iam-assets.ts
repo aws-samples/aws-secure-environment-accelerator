@@ -10,6 +10,7 @@ import {
 import { Account, getAccountId } from '../utils/accounts';
 import { IBucket } from '@aws-cdk/aws-s3';
 import { createPolicyName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { CfnIamPolicyOutput, CfnIamRoleOutput, CfnIamUserOutput, CfnIamGroupOutput } from '../deployments/iam';
 
 export interface IamAssetsProps {
   accountKey: string;
@@ -47,6 +48,11 @@ export class IamAssets extends cdk.Construct {
         );
       }
       customerManagedPolicies[policyName] = iamPolicy;
+      new CfnIamPolicyOutput(this, `IamPolicy${policyName}Output`, {
+        policyName: iamPolicy.managedPolicyName,
+        policyArn: iamPolicy.managedPolicyArn,
+        policyKey: 'IamCustomerManagedPolicy',
+      });
     };
 
     // method to create IAM User & Group
@@ -56,12 +62,24 @@ export class IamAssets extends cdk.Construct {
         managedPolicies: policies.map(x => iam.ManagedPolicy.fromAwsManagedPolicyName(x)),
       });
 
+      new CfnIamGroupOutput(this, `IamGroup${groupName}Output`, {
+        groupName: iamGroup.groupName,
+        groupArn: iamGroup.groupArn,
+        groupKey: 'IamAccountGroup',
+      });
+
       for (const userId of userIds) {
         const iamUser = new iam.User(this, `IAM-User-${userId}-${accountKey}`, {
           userName: userId,
           password: userPasswords[userId],
           groups: [iamGroup],
           permissionsBoundary: customerManagedPolicies[boundaryPolicy],
+        });
+
+        new CfnIamUserOutput(this, `IamUser${userId}Output`, {
+          userName: iamUser.userName,
+          userArn: iamUser.userArn,
+          userKey: 'IamAccountUser',
         });
       }
     };
@@ -133,6 +151,11 @@ export class IamAssets extends cdk.Construct {
           resources: [logBucket.arnForObjects('*')],
         }),
       );
+      new CfnIamPolicyOutput(this, `IamSsmPolicyOutput`, {
+        policyName: iamSSMLogArchiveAccessPolicy.managedPolicyName,
+        policyArn: iamSSMLogArchiveAccessPolicy.managedPolicyArn,
+        policyKey: 'IamSsmAccessPolicy',
+      });
       return iamSSMLogArchiveAccessPolicy;
     };
 
@@ -194,6 +217,12 @@ export class IamAssets extends cdk.Construct {
               instanceProfileName: createIamInstanceProfileName(iamRole.role),
             });
           }
+
+          new CfnIamRoleOutput(this, `IamRole${iamRole.role}Output`, {
+            roleName: role.roleName,
+            roleArn: role.roleArn,
+            roleKey: 'IamAccountRole',
+          });
 
           if (iamRole['ssm-log-archive-access'] && ssmLogArchivePolicy) {
             role.addManagedPolicy(ssmLogArchivePolicy);

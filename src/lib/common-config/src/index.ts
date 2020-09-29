@@ -554,6 +554,7 @@ export const MandatoryAccountConfigType = t.interface({
   'src-filename': t.string,
   'exclude-ou-albs': optional(t.boolean),
   'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
+  'populate-all-elbs-in-param-store': fromNullable(t.boolean, false),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -764,6 +765,7 @@ export const GlobalOptionsConfigType = t.interface({
   'workloadaccounts-param-filename': t.string,
   'vpc-flow-logs': VpcFlowLogsConfigType,
   'additional-cwl-regions': fromNullable(t.record(t.string, AdditionalCwlRegionType), {}),
+  'additional-global-output-regions': fromNullable(t.array(t.string), []),
   cloudwatch: optional(
     t.interface({
       metrics: t.array(CloudWatchMetricFiltersConfigType),

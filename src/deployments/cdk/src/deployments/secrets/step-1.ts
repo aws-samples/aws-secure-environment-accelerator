@@ -21,6 +21,8 @@ export async function step1(props: SecretsStep1Props) {
   new StructuredOutput<SecretEncryptionKeyOutput>(masterAccountStack, 'SecretEncryptionKey', {
     type: SecretEncryptionKeyOutputType,
     value: {
+      encryptionKeyName: secretsContainer.alias,
+      encryptionKeyId: secretsContainer.encryptionKey.keyId,
       encryptionKeyArn: secretsContainer.encryptionKey.keyArn,
     },
   });

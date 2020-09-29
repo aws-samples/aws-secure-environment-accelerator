@@ -21,3 +21,23 @@ export const IamRoleOutputFinder = createStructuredOutputFinder(SSMOutput, finde
       predicate: o => o.roleKey === props.roleKey,
     }),
 }));
+
+export const SsmKmsOutput = t.interface(
+  {
+    encryptionKeyName: t.string,
+    encryptionKeyId: t.string,
+    encryptionKeyArn: t.string,
+  },
+  'SsmKms',
+);
+
+export type SsmKmsOutput = t.TypeOf<typeof SsmKmsOutput>;
+
+export const SsmKmsOutputFinder = createStructuredOutputFinder(SsmKmsOutput, finder => ({
+  findOneByName: (props: { outputs: StackOutput[]; accountKey: string; region?: string }) =>
+    finder.tryFindOne({
+      outputs: props.outputs,
+      accountKey: props.accountKey,
+      region: props.region,
+    }),
+}));
