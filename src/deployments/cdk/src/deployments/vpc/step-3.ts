@@ -12,7 +12,7 @@ import { pascalCase } from 'pascal-case';
 import { Limit, Limiter } from '../../utils/limits';
 
 // Changing this will result to redeploy most of the stack
-const MAX_RESOURCES_IN_STACK = 45;
+const MAX_RESOURCES_IN_STACK = 30;
 const RESOURCE_TYPE = 'INTERFACE_ENDPOINTS';
 const STACK_SUFFIX = 'VPCEndpoints';
 
@@ -105,7 +105,9 @@ export async function step3(props: VpcStep3Props) {
     for (const endpoint of endpointsConfig.endpoints) {
       if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.region, vpcConfig.name)) {
         console.log(
-          `Skipping endpoint "${endpoint}" creation in VPC "${vpcConfig.name}". Reached maximum interface endpoints per VPC`, accountKey, vpcConfig.region
+          `Skipping endpoint "${endpoint}" creation in VPC "${vpcConfig.name}". Reached maximum interface endpoints per VPC`,
+          accountKey,
+          vpcConfig.region,
         );
         continue;
       }
