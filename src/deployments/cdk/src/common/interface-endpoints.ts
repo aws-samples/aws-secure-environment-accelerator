@@ -60,7 +60,7 @@ export class InterfaceEndpoint extends cdk.Construct {
 
     // Sleep 1 to 10 random seconds after creation of the vpc endpoint to avoid RateExceeded issue with Route53 api accross regions
     const sleep = new CfnSleep(this, 'Sleep', {
-      sleep: Math.floor((Math.random() * (10000 - 1000 + 1) + 3000)),
+      sleep: Math.floor(Math.random() * (10000 - 1000 + 1) + 1000),
     });
     sleep.node.addDependency(endpoint);
 
