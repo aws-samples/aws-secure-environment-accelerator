@@ -1,6 +1,7 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
+import { CfnSleep } from '@aws-accelerator/custom-resource-cfn-sleep';
 
 export interface InterfaceEndpointProps {
   serviceName: string;
@@ -57,6 +58,12 @@ export class InterfaceEndpoint extends cdk.Construct {
     });
     endpoint.addDependsOn(securityGroup);
 
+    // Sleep 1 to 10 random seconds after creation of the vpc endpoint to avoid RateExceeded issue with Route53 api accross regions
+    const sleep = new CfnSleep(this, 'Sleep', {
+      sleep: Math.floor((Math.random() * (10000 - 1000 + 1) + 3000)),
+    });
+    sleep.node.addDependency(endpoint);
+
     const hostedZoneName = zoneNameForRegionAndEndpointName(vpcRegion, serviceName);
     this._hostedZone = new route53.CfnHostedZone(this, 'Phz', {
       name: hostedZoneName,
@@ -70,7 +77,7 @@ export class InterfaceEndpoint extends cdk.Construct {
         comment: `zzEndpoint - ${serviceName}`,
       },
     });
-    this._hostedZone.addDependsOn(endpoint);
+    this._hostedZone.node.addDependency(sleep);
 
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {
       type: 'A',
