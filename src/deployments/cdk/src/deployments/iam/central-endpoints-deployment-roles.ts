@@ -54,6 +54,13 @@ export async function centralEndpointDeploymentRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
+      actions: ['route53:List*', 'route53:DeleteHostedZone', 'route53:CreateHostedZone'],
+      resources: ['*'],
+    }),
+  );
+
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
     }),

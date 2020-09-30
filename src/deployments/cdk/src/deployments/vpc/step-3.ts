@@ -10,6 +10,7 @@ import { CfnHostedZoneOutput, CfnStaticResourcesOutput } from '../central-endpoi
 import { InterfaceEndpoint } from '../../common/interface-endpoints';
 import { pascalCase } from 'pascal-case';
 import { Limit, Limiter } from '../../utils/limits';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 // Changing this will result to redeploy most of the stack
 const MAX_RESOURCES_IN_STACK = 30;
@@ -102,6 +103,15 @@ export async function step3(props: VpcStep3Props) {
     // Get Account & Region Current Max Suffix and update it when it is changed
     suffix = accountRegionMaxSuffix[accountKey][vpcConfig.region];
     stackSuffix = `${STACK_SUFFIX}-${suffix}`;
+
+    const roleOutput = IamRoleOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey,
+      roleKey: 'CentralEndpointDeployment',
+    });
+    if (!roleOutput) {
+      continue;
+    }
     for (const endpoint of endpointsConfig.endpoints) {
       if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.region, vpcConfig.name)) {
         console.log(
@@ -143,13 +153,14 @@ export async function step3(props: VpcStep3Props) {
           vpcId: vpcOutput.vpcId,
           vpcRegion: vpcConfig.region,
           subnetIds: vpcOutput.subnets.filter(sn => sn.subnetName === endpointsConfig.subnet).map(s => s.subnetId),
+          roleArn: roleOutput.roleArn,
         },
       );
 
       new CfnHostedZoneOutput(accountStack, `HostedZoneOutput-${vpcConfig.name}-${pascalCase(endpoint)}`, {
         accountKey,
         domain: interfaceEndpoint.hostedZone.name,
-        hostedZoneId: interfaceEndpoint.hostedZone.ref,
+        hostedZoneId: interfaceEndpoint.hostedZone.id,
         region: vpcConfig.region,
         zoneType: 'PRIVATE',
         serviceName: endpoint,
