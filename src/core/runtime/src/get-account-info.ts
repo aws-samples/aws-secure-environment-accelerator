@@ -4,18 +4,22 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
+import { MandatoryAccountType } from '@aws-accelerator/common-config';
+import { loadAccounts } from './utils/load-accounts';
 
 export interface GetAccountInfoInput extends LoadConfigurationInput {
-  accountId: string;
+  accountId?: string;
+  accountType?: MandatoryAccountType;
+  accountsTableName?: string;
 }
 
 const organizations = new Organizations();
-
+const dynamodb = new DynamoDB();
 export const handler = async (input: GetAccountInfoInput) => {
   console.log(`Get Account Info...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accountId, configCommitId, configFilePath, configRepositoryName } = input;
+  const { accountId, configCommitId, configFilePath, configRepositoryName, accountType, accountsTableName } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const acceleratorConfig = await loadAcceleratorConfig({
@@ -23,8 +27,19 @@ export const handler = async (input: GetAccountInfoInput) => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
-
-  const awsAccount = await organizations.getAccount(accountId);
+  if (accountType) {
+    const accountKey = acceleratorConfig.getMandatoryAccountKey(accountType);
+    const accounts = await loadAccounts(accountsTableName!, dynamodb)
+    const account = accounts.find(acc => acc.key === accountKey);
+    const rootOrg = await organizations.describeOrganization();
+    if (!account) {
+      throw new Error('Operations account not found');
+    }
+    // Setting Root Organization if in "OU"
+    account.ou = rootOrg?.Id!;
+    return account;
+  } 
+  const awsAccount = await organizations.getAccount(accountId!);
   if (!awsAccount) {
     throw new Error(`Unable retrive account from Organizations api for "${accountId}"`);
   }
@@ -40,7 +55,7 @@ export const handler = async (input: GetAccountInfoInput) => {
   const account: Account = {
     arn: awsAccount.Arn!,
     email: awsAccount.Email!,
-    id: accountId,
+    id: accountId!,
     key: accountKey,
     name: awsAccount.Name!,
     ou,

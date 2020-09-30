@@ -6,13 +6,14 @@ interface CreateStackInput {
   stackCapabilities: string[];
   stackParameters: { [key: string]: string };
   stackTemplate: StackTemplateLocation;
+  accountId?: string;
 }
 
 export const handler = async (input: CreateStackInput) => {
   console.log(`Creating stack...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { stackName, stackCapabilities, stackParameters, stackTemplate } = input;
+  const { stackName, stackCapabilities, stackParameters, stackTemplate, accountId } = input;
 
   console.debug(`Creating stack template`);
   console.debug(stackTemplate);

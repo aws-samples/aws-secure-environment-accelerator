@@ -1,0 +1,56 @@
+Description: The CDK Toolkit Stack. It manages resources necessary for managing your Cloud Applications with AWS CDK.
+Parameters:
+  OrganizationId:
+    Type: String
+Resources:
+  StagingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  StagingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: StagingBucket
+      PolicyDocument:
+        Id: AccessControl
+        Version: "2012-10-17"
+        Statement:
+          - Action: s3:*
+            Effect: Deny
+            Resource:
+              - Fn::Sub: ${StagingBucket.Arn}
+              - Fn::Sub: ${StagingBucket.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+            Principal: "*"
+          - Action: s3:*
+            Effect: Allow
+            Resource:
+              - Fn::Sub: ${StagingBucket.Arn}
+              - Fn::Sub: ${StagingBucket.Arn}/*
+            Condition:
+              StringEquals:
+                aws:PrincipalOrgID: !Ref OrganizationId
+            Principal: "*"
+Outputs:
+  BucketName:
+    Description: The name of the S3 bucket owned by the CDK toolkit stack
+    Value:
+      Ref: StagingBucket
+  BucketDomainName:
+    Description: The domain name of the S3 bucket owned by the CDK toolkit stack
+    Value:
+      Fn::GetAtt:
+        - StagingBucket
+        - RegionalDomainName

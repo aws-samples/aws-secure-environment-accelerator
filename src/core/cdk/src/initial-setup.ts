@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import * as sns from '@aws-cdk/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
 import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
+import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -357,6 +358,42 @@ export namespace InitialSetup {
           'configRootFilePath.$': '$.configuration.configRootFilePath',
         },
         resultPath: '$',
+      });
+
+      const bootstrapOperationsTemplate = new s3assets.Asset(this, 'CloudFormationOperationsBootstrapTemplate', {
+        path: path.join(__dirname, 'assets', 'operations-cdk-bucket.yml'),
+      });
+
+      const cdkBootstrapStateMachine = new sfn.StateMachine(
+        this,
+        `${props.acceleratorPrefix}CDKBootstrap_sm`,
+        {
+          stateMachineName: `${props.acceleratorPrefix}CDKBootstrap_sm`,
+          definition: new CDKBootstrapTask(this, 'CDKBootstrap', {
+            lambdaCode,
+            role: pipelineRole,
+            acceleratorPrefix: props.acceleratorPrefix,
+            operationsBootstrapObjectKey: bootstrapOperationsTemplate.s3ObjectKey,
+            s3BucketName: bootstrapOperationsTemplate.s3BucketName,
+            assumeRoleName: props.stateMachineExecutionRole,
+          }),
+        },
+      );
+
+      const cdkBootstrapTask = new sfn.Task(this, 'Bootstram Environment', {
+        // tslint:disable-next-line: deprecation
+        task: new tasks.StartExecution(cdkBootstrapStateMachine, {
+          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
+          input: {
+            'accounts.$': '$.accounts',
+            'regions.$': '$.regions',
+            accountsTableName: parametersTable.tableName,
+            configRepositoryName: props.configRepositoryName,
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
+          },
+        }),
+        resultPath: 'DISCARD',
       });
 
       const installCfnRoleMasterTemplate = new s3assets.Asset(this, 'CloudFormationExecutionRoleTemplate', {
@@ -870,6 +907,7 @@ export namespace InitialSetup {
 
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
+        .next(cdkBootstrapTask)
         .next(installRolesTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
