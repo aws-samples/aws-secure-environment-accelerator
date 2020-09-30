@@ -70,7 +70,7 @@ export const handler = async (input: LoadLimitsInput) => {
     commitId: configCommitId,
   });
 
-  const defaultRegion: string = config['global-options']['aws-org-master'].region!;
+  const defaultRegion: string = config['global-options']['aws-org-master'].region;
 
   // Capture limit results
   const limits: LimitOutput[] = [];
