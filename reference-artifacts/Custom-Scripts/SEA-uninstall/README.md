@@ -1,6 +1,6 @@
 ## AWS SEA Uninstall Script
 
-The cleanup scrip is intended for development to assist in removig resources created by the accelerator. It currently does not support running with the Landing Zone or Control Tower baselines.
+The cleanup script is intended for development to assist in removing resources created by the accelerator. It currently does not support running with the Landing Zone or Control Tower baselines.
 
 ## Details
 The logic of the script is the following:
