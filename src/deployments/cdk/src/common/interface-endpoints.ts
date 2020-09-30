@@ -1,15 +1,12 @@
 import * as ec2 from '@aws-cdk/aws-ec2';
 import * as route53 from '@aws-cdk/aws-route53';
 import * as cdk from '@aws-cdk/core';
-import { CreateHostedZone } from '@aws-accelerator/custom-resource-create-hosted-zone';
-import { domain } from 'process';
 
 export interface InterfaceEndpointProps {
   serviceName: string;
   vpcId: string;
   vpcRegion: string;
   subnetIds: string[];
-  roleArn: string;
 }
 
 /**
@@ -17,12 +14,11 @@ export interface InterfaceEndpointProps {
  * SecurityGroup, VPCEndpoint, HostedZone and RecordSet.
  */
 export class InterfaceEndpoint extends cdk.Construct {
-  private _hostedZone: CreateHostedZone;
-  private _hostedZoneName: string;
+  private _hostedZone: route53.CfnHostedZone;
   constructor(scope: cdk.Construct, id: string, props: InterfaceEndpointProps) {
     super(scope, id);
 
-    const { serviceName, vpcId, vpcRegion, subnetIds, roleArn } = props;
+    const { serviceName, vpcId, vpcRegion, subnetIds } = props;
 
     // Create a new security groupo per endpoint
     const securityGroup = new ec2.CfnSecurityGroup(this, `ep_${serviceName}`, {
@@ -61,44 +57,35 @@ export class InterfaceEndpoint extends cdk.Construct {
     });
     endpoint.addDependsOn(securityGroup);
 
-    this._hostedZoneName = zoneNameForRegionAndEndpointName(vpcRegion, serviceName);
-    // this._hostedZone = new route53.CfnHostedZone(this, 'Phz', {
-    //   name: hostedZoneName,
-    //   vpcs: [
-    //     {
-    //       vpcId,
-    //       vpcRegion,
-    //     },
-    //   ],
-    //   hostedZoneConfig: {
-    //     comment: `zzEndpoint - ${serviceName}`,
-    //   },
-    // });
-
-    this._hostedZone = new CreateHostedZone(this, 'Phz', {
-      domain: this._hostedZoneName,
-      comment: `zzEndpoint - ${serviceName}`,
-      region: vpcRegion,
-      roleArn,
-      vpcId,
+    const hostedZoneName = zoneNameForRegionAndEndpointName(vpcRegion, serviceName);
+    this._hostedZone = new route53.CfnHostedZone(this, 'Phz', {
+      name: hostedZoneName,
+      vpcs: [
+        {
+          vpcId,
+          vpcRegion,
+        },
+      ],
+      hostedZoneConfig: {
+        comment: `zzEndpoint - ${serviceName}`,
+      },
     });
 
-    this._hostedZone.node.addDependency(endpoint);
+    
+
+    this._hostedZone.addDependsOn(endpoint);
 
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {
       type: 'A',
-      name: this._hostedZoneName,
-      hostedZoneId: this._hostedZone.zoneId,
+      name: hostedZoneName,
+      hostedZoneId: this._hostedZone.ref,
       aliasTarget: aliasTargetForServiceNameAndEndpoint(serviceName, endpoint),
     });
     recordSet.node.addDependency(this._hostedZone);
   }
 
-  get hostedZone(): { name: string; id: string } {
-    return {
-      name: this._hostedZone.zoneId,
-      id: this._hostedZoneName,
-    };
+  get hostedZone(): route53.CfnHostedZone {
+    return this._hostedZone;
   }
 }
 

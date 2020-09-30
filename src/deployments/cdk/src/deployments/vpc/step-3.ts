@@ -104,14 +104,6 @@ export async function step3(props: VpcStep3Props) {
     suffix = accountRegionMaxSuffix[accountKey][vpcConfig.region];
     stackSuffix = `${STACK_SUFFIX}-${suffix}`;
 
-    const roleOutput = IamRoleOutputFinder.tryFindOneByName({
-      outputs,
-      accountKey,
-      roleKey: 'CentralEndpointDeployment',
-    });
-    if (!roleOutput) {
-      continue;
-    }
     for (const endpoint of endpointsConfig.endpoints) {
       if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.region, vpcConfig.name)) {
         console.log(
@@ -153,14 +145,13 @@ export async function step3(props: VpcStep3Props) {
           vpcId: vpcOutput.vpcId,
           vpcRegion: vpcConfig.region,
           subnetIds: vpcOutput.subnets.filter(sn => sn.subnetName === endpointsConfig.subnet).map(s => s.subnetId),
-          roleArn: roleOutput.roleArn,
         },
       );
 
       new CfnHostedZoneOutput(accountStack, `HostedZoneOutput-${vpcConfig.name}-${pascalCase(endpoint)}`, {
         accountKey,
         domain: interfaceEndpoint.hostedZone.name,
-        hostedZoneId: interfaceEndpoint.hostedZone.id,
+        hostedZoneId: interfaceEndpoint.hostedZone.ref,
         region: vpcConfig.region,
         zoneType: 'PRIVATE',
         serviceName: endpoint,

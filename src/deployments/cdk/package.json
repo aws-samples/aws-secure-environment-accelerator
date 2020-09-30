@@ -84,7 +84,6 @@
     "@aws-accelerator/custom-resource-associate-resolver-rules": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-create-resolver-rule": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-ssm-increase-throughput": "workspace:^0.0.1",
-    "@aws-accelerator/custom-resource-create-hosted-zone": "workspace:^0.0.1",
     "@aws-cdk/aws-accessanalyzer": "1.46.0",
     "@aws-cdk/aws-autoscaling": "1.46.0",
     "@aws-cdk/aws-budgets": "1.46.0",
