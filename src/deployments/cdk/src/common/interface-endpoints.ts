@@ -74,7 +74,6 @@ export class InterfaceEndpoint extends cdk.Construct {
     //     comment: `zzEndpoint - ${serviceName}`,
     //   },
     // });
-    
 
     this._hostedZone = new CreateHostedZone(this, 'Phz', {
       domain: this._hostedZoneName,
@@ -95,7 +94,7 @@ export class InterfaceEndpoint extends cdk.Construct {
     recordSet.node.addDependency(this._hostedZone);
   }
 
-  get hostedZone(): {name: string; id: string;} {
+  get hostedZone(): { name: string; id: string } {
     return {
       name: this._hostedZone.zoneId,
       id: this._hostedZoneName,
