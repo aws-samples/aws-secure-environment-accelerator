@@ -27,7 +27,6 @@ export const handler = async (input: Partial<CheckStepInput>) => {
     return {
       status: 'SUCCESS',
       statusReason: stack.StackStatusReason || '',
-      outputs: stack.Outputs,
     };
   } else if (FAILED_STATUSES.includes(status)) {
     return {

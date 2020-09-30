@@ -75,7 +75,7 @@ export const handler = async (input: LoadLimitsInput) => {
   // Capture limit results
   const limits: LimitOutput[] = [];
 
-  const accountConfigs = [config.getAccountConfigs()[0]];
+  const accountConfigs = config.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const accountId = getAccountId(accounts, accountKey);
 

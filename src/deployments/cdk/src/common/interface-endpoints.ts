@@ -71,8 +71,6 @@ export class InterfaceEndpoint extends cdk.Construct {
       },
     });
 
-    
-
     this._hostedZone.addDependsOn(endpoint);
 
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {
@@ -81,7 +79,7 @@ export class InterfaceEndpoint extends cdk.Construct {
       hostedZoneId: this._hostedZone.ref,
       aliasTarget: aliasTargetForServiceNameAndEndpoint(serviceName, endpoint),
     });
-    recordSet.node.addDependency(this._hostedZone);
+    recordSet.addDependsOn(this._hostedZone);
   }
 
   get hostedZone(): route53.CfnHostedZone {
