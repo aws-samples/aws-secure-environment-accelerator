@@ -2,7 +2,7 @@
 
 The cleanup script is intended for development to assist in removing resources created by the accelerator. It currently does not support running with the Landing Zone or Control Tower baselines.
 
-This uninstall script is a work in-progress and was designed for use by our development and test teams in **_non-production_** envionments. This script is destructive - **use at your own risk**.
+This uninstall script is a work in-progress and was designed for use by our development and test teams in **_non-production_** environments. This script is destructive - **use at your own risk**.
 
 ## Details
 The logic of the script is the following:
