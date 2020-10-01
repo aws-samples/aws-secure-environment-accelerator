@@ -24,6 +24,7 @@ export { handler as notifySMFailure } from './notify-statemachine-failure';
 export { handler as notifySMSuccess } from './notify-statemachine-success';
 export { handler as getAccountInfo } from './get-account-info';
 export { handler as saveOutputsToSSM } from './save-outputs-to-ssm';
+export { handler as getBootstrapOutput } from './get-bootstrap-output';
 
 // TODO Replace with
 //   export * as codebuild from './codebuild';

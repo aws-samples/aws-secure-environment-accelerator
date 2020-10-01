@@ -64,6 +64,7 @@ export namespace InitialSetup {
       super(scope, id);
 
       const { enablePrebuiltProject } = props;
+      const bootStrapStackName = `${props.acceleratorPrefix}CDKToolkit`;
 
       const lambdaPath = require.resolve('@aws-accelerator/accelerator-runtime');
       const lambdaDir = path.dirname(lambdaPath);
@@ -364,21 +365,23 @@ export namespace InitialSetup {
         path: path.join(__dirname, 'assets', 'operations-cdk-bucket.yml'),
       });
 
-      const cdkBootstrapStateMachine = new sfn.StateMachine(
-        this,
-        `${props.acceleratorPrefix}CDKBootstrap_sm`,
-        {
-          stateMachineName: `${props.acceleratorPrefix}CDKBootstrap_sm`,
-          definition: new CDKBootstrapTask(this, 'CDKBootstrap', {
-            lambdaCode,
-            role: pipelineRole,
-            acceleratorPrefix: props.acceleratorPrefix,
-            operationsBootstrapObjectKey: bootstrapOperationsTemplate.s3ObjectKey,
-            s3BucketName: bootstrapOperationsTemplate.s3BucketName,
-            assumeRoleName: props.stateMachineExecutionRole,
-          }),
-        },
-      );
+      const bootstrapAccountTemplate = new s3assets.Asset(this, 'CloudFormationBootstrapTemplate', {
+        path: path.join(__dirname, 'assets', 'account-cdk-bootstrap.yml'),
+      });
+
+      const cdkBootstrapStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}CDKBootstrap_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}CDKBootstrap_sm`,
+        definition: new CDKBootstrapTask(this, 'CDKBootstrap', {
+          lambdaCode,
+          role: pipelineRole,
+          acceleratorPrefix: props.acceleratorPrefix,
+          operationsBootstrapObjectKey: bootstrapOperationsTemplate.s3ObjectKey,
+          s3BucketName: bootstrapOperationsTemplate.s3BucketName,
+          assumeRoleName: props.stateMachineExecutionRole,
+          accountBootstrapObjectKey: bootstrapAccountTemplate.s3ObjectKey,
+          bootStrapStackName,
+        }),
+      });
 
       const cdkBootstrapTask = new sfn.Task(this, 'Bootstram Environment', {
         // tslint:disable-next-line: deprecation
@@ -631,6 +634,7 @@ export namespace InitialSetup {
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,
           STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
+          BOOTSTRAP_STACK_NAME: bootStrapStackName,
         };
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
           // tslint:disable-next-line: deprecation

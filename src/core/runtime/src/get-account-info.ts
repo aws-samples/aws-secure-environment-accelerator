@@ -28,17 +28,17 @@ export const handler = async (input: GetAccountInfoInput) => {
     commitId: configCommitId,
   });
   if (accountType) {
-    const accountKey = acceleratorConfig.getMandatoryAccountKey(accountType);
-    const accounts = await loadAccounts(accountsTableName!, dynamodb)
-    const account = accounts.find(acc => acc.key === accountKey);
+    const mandatoryAccountKey = acceleratorConfig.getMandatoryAccountKey(accountType);
+    const accounts = await loadAccounts(accountsTableName!, dynamodb);
+    const mandatoryAccount = accounts.find(acc => acc.key === mandatoryAccountKey);
     const rootOrg = await organizations.describeOrganization();
-    if (!account) {
-      throw new Error('Operations account not found');
+    if (!mandatoryAccount) {
+      throw new Error(`${accountType} account not found`);
     }
     // Setting Root Organization if in "OU"
-    account.ou = rootOrg?.Id!;
-    return account;
-  } 
+    mandatoryAccount.ou = rootOrg?.Id!;
+    return mandatoryAccount;
+  }
   const awsAccount = await organizations.getAccount(accountId!);
   if (!awsAccount) {
     throw new Error(`Unable retrive account from Organizations api for "${accountId}"`);

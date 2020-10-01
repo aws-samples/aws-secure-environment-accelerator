@@ -1,0 +1,24 @@
+Description: The CDK Toolkit Stack. It was created by `cdk bootstrap` and manages resources necessary for managing your Cloud Applications with AWS CDK.
+Parameters:
+  BucketName:
+    Type: String
+  BucketDomainName:
+    Type: String
+Conditions:
+  CreateNewBucket:
+    Fn::Equals:
+      - "false"
+      - "true"
+Resources:
+  StagingBucket:
+    Condition: CreateNewBucket
+    Type: AWS::S3::Bucket
+Outputs:
+  BucketName:
+    Description: The name of the S3 bucket owned by the CDK toolkit stack
+    Value:
+      Ref: BucketName
+  BucketDomainName:
+    Description: The domain name of the S3 bucket owned by the CDK toolkit stack
+    Value:
+      Ref: BucketDomainName

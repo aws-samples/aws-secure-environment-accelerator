@@ -1,5 +1,6 @@
 import { CloudFormation, objectToCloudFormationParameters } from '@aws-accelerator/common/src/aws/cloudformation';
 import { StackTemplateLocation, getTemplateBody } from '../create-stack-set/create-stack-set';
+import { STS } from '@aws-accelerator/common/src/aws/sts';
 
 interface CreateStackInput {
   stackName: string;
@@ -7,21 +8,29 @@ interface CreateStackInput {
   stackParameters: { [key: string]: string };
   stackTemplate: StackTemplateLocation;
   accountId?: string;
+  assumeRoleName?: string;
+  region?: string;
 }
 
+const sts = new STS();
 export const handler = async (input: CreateStackInput) => {
   console.log(`Creating stack...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { stackName, stackCapabilities, stackParameters, stackTemplate, accountId } = input;
+  const { stackName, stackCapabilities, stackParameters, stackTemplate, accountId, assumeRoleName, region } = input;
 
   console.debug(`Creating stack template`);
   console.debug(stackTemplate);
 
   // Load the template body from the given location
   const templateBody = await getTemplateBody(stackTemplate);
-
-  const cfn = new CloudFormation();
+  let cfn: CloudFormation;
+  if (accountId) {
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName!);
+    cfn = new CloudFormation(credentials, region);
+  } else {
+    cfn = new CloudFormation();
+  }
   await cfn.createOrUpdateStack({
     StackName: stackName,
     TemplateBody: templateBody,

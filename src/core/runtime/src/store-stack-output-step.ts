@@ -2,9 +2,6 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
-import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
-import { LoadConfigurationInput } from './load-configuration-step';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { getUpdateValueInput } from './utils/dynamodb-requests';
 

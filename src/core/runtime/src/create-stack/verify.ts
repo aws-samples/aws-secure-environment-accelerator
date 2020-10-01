@@ -1,19 +1,29 @@
 import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
+import { STS } from '@aws-accelerator/common/src/aws/sts';
 
 const SUCCESS_STATUSES = ['CREATE_COMPLETE', 'UPDATE_COMPLETE'];
 const FAILED_STATUSES = ['CREATE_FAILED', 'ROLLBACK_COMPLETE', 'ROLLBACK_FAILED', 'UPDATE_ROLLBACK_COMPLETE'];
 
 interface CheckStepInput {
   stackName?: string;
+  accountId?: string;
+  assumeRoleName?: string;
+  region?: string;
 }
-
+const sts = new STS();
 export const handler = async (input: Partial<CheckStepInput>) => {
   console.log(`Verifying stack with parameters ${JSON.stringify(input, null, 2)}`);
 
-  const { stackName } = input;
+  const { stackName, accountId, assumeRoleName, region } = input;
 
   // Deploy the stack using the assumed role in the current region
-  const cfn = new CloudFormation();
+  let cfn: CloudFormation;
+  if (accountId) {
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName!);
+    cfn = new CloudFormation(credentials, region);
+  } else {
+    cfn = new CloudFormation();
+  }
   const stack = await cfn.describeStack(stackName!);
   if (!stack) {
     return {
@@ -27,6 +37,7 @@ export const handler = async (input: Partial<CheckStepInput>) => {
     return {
       status: 'SUCCESS',
       statusReason: stack.StackStatusReason || '',
+      outputs: stack.Outputs,
     };
   } else if (FAILED_STATUSES.includes(status)) {
     return {

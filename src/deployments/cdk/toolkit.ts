@@ -53,7 +53,8 @@ export class CdkToolkit {
     // TODO Use the Accelerator prefix
     // TODO Remove configuration dependency
     const settings = this.props.configuration.settings;
-    this.toolkitStackName = ToolkitInfo.determineName(settings.get(['toolkitStackName']));
+    const env = process.env;
+    this.toolkitStackName = env.BOOTSTRAP_STACK_NAME || ToolkitInfo.determineName(settings.get(['toolkitStackName']));
     this.toolkitBucketName = settings.get(['toolkitBucket', 'bucketName']);
     this.toolkitKmsKey = settings.get(['toolkitBucket', 'kmsKeyId']);
     this.tags = settings.get(['tags']);
