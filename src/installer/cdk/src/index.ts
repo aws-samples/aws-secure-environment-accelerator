@@ -162,7 +162,7 @@ async function main() {
         build: {
           commands: [
             'cd src/core/cdk',
-            'pnpx cdk bootstrap --require-approval never',
+            `pnpx cdk bootstrap --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
             'pnpx cdk deploy --require-approval never',
           ],
         },
