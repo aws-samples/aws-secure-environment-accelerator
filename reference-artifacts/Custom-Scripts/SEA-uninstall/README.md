@@ -69,7 +69,9 @@ The logic of the script is the following:
 
 2. Install the python3 required libaries (ex: ``pip3 install -r requirements.txt``)
 
-3. Execute the script ``python3 aws-sea-cleanup.py``
+3. Before running this script you must manually delete AWS SSO. 
+
+4. Execute the script ``python3 aws-sea-cleanup.py``
 
 
 ## Considerations
