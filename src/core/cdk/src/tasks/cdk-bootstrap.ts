@@ -168,7 +168,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
           stackName: bootStrapStackName,
           stackCapabilities: ['CAPABILITY_NAMED_IAM'],
           stackParameters: {
-            'BucketName.$': '$.bootstrapRegion.bucketDomain',
+            'BucketName.$': '$.bootstrapRegion.bucketName',
             'BucketDomainName.$': '$.bootstrapRegion.bucketDomain',
           },
           stackTemplate: {
