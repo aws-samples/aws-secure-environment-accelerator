@@ -183,7 +183,7 @@ This step calls a Lambda function that finds or creates the configuration reposi
 
 The configuration file `config.json` or `config.yaml` is parsed and validated. This step will fail if both file types exist, the configuration file is not valid JSON or YAML or does not adhere to the configuration file specification. Internally the Accelerator always leverages JSON, but accepts JSON or YAML as the source input file and converts it to JSON prior to each execution, storing the converted and fully expanded file if in the raw folder.
 
-![CodeCommit](img/CodeCommit-repo.png)
+![CodeCommit](img/codecommit-repo.png)
 
 ### 3.2.2. Get Baseline from Configuration
 
