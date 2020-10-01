@@ -118,7 +118,6 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         'stackOutputs.$': '$.bootstrap',
         'accounts.$': '$.accounts',
         'operationsAccountId.$': '$.operationsAccount.id',
-        currentAccountId: cdk.Aws.ACCOUNT_ID,
       },
       functionProps: {
         role,
@@ -178,6 +177,8 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
           'accountId.$': '$.accountId',
           assumeRoleName,
           'region.$': '$.bootstrapRegion.region',
+          ignoreAccountId: cdk.Aws.ACCOUNT_ID,
+          ignoreRegion: cdk.Aws.REGION,
         },
       }),
       resultPath: 'DISCARD',

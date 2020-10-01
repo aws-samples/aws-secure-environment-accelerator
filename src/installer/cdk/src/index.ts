@@ -163,7 +163,7 @@ async function main() {
           commands: [
             'cd src/core/cdk',
             `pnpx cdk bootstrap --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
-            'pnpx cdk deploy --require-approval never',
+            `pnpx cdk deploy --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
           ],
         },
       },

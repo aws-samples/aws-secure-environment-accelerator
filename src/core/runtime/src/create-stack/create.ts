@@ -10,6 +10,8 @@ interface CreateStackInput {
   accountId?: string;
   assumeRoleName?: string;
   region?: string;
+  ignoreAccountId?: string;
+  ignoreRegion?: string;
 }
 
 const sts = new STS();
@@ -17,8 +19,13 @@ export const handler = async (input: CreateStackInput) => {
   console.log(`Creating stack...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { stackName, stackCapabilities, stackParameters, stackTemplate, accountId, assumeRoleName, region } = input;
+  const { stackName, stackCapabilities, stackParameters, stackTemplate, accountId, assumeRoleName, region, ignoreAccountId, ignoreRegion } = input;
 
+  if (ignoreAccountId && ignoreAccountId === accountId && !ignoreRegion) {
+    return;
+  } else if (ignoreAccountId && ignoreRegion && ignoreAccountId === accountId && ignoreRegion === region) {
+    return;
+  }
   console.debug(`Creating stack template`);
   console.debug(stackTemplate);
 
