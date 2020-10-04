@@ -39,6 +39,7 @@ import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
 import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import * as centralEndpoints from '../deployments/central-endpoints';
+import { CfnResourceStackCleanupOutput } from '../deployments/cleanup/outputs';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -536,4 +537,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       }
     }
   }
+
+  const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
+  // Writing to outputs to avoid future execution of resource clean up custom resource
+  new CfnResourceStackCleanupOutput(masterAccountStack, `ResourceStackCleanupOutput${masterAccountKey}`, {
+    cdkStackCleanup: true,
+  });
 }
