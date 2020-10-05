@@ -24,6 +24,11 @@
                   "Ref": "AssumedByRoleArn"
                 }
               }
+            },
+            {
+              "Action": "s3:*",
+              "Effect": "Allow",
+              "Resource": "arn:aws:s3:::pbmmaccel-cdktoolkit-stagingbucket-*"
             }
           ],
           "Version": "2012-10-17"
