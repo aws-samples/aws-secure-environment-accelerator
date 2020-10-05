@@ -1,73 +1,78 @@
 {
   "Parameters": {
-    "RoleName": {
-      "Type": "String"
-    },
-    "MaxSessionDuration": {
-      "Type": "Number"
-    },
-    "AssumedByRoleArn": {
-      "Type": "CommaDelimitedList"
-    }
+      "RoleName": {
+          "Type": "String"
+      },
+      "MaxSessionDuration": {
+          "Type": "Number"
+      },
+      "AssumedByRoleArn": {
+          "Type": "CommaDelimitedList"
+      }
   },
   "Resources": {
-    "Role1ABCC5F0": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "AWS": {
-                  "Ref": "AssumedByRoleArn"
-                }
-              }
-            },
-            {
-              "Action": "s3:*",
-              "Effect": "Allow",
-              "Resource": "arn:aws:s3:::pbmmaccel-cdktoolkit-stagingbucket-*",
-              "Principal": {
-                "AWS": {
-                  "Ref": "AssumedByRoleArn"
-                }
-              }
-            }
-          ],
-          "Version": "2012-10-17"
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":iam::aws:policy/AdministratorAccess"
+      "Role1ABCC5F0": {
+          "Type": "AWS::IAM::Role",
+          "Properties": {
+              "AssumeRolePolicyDocument": {
+                  "Statement": [
+                      {
+                          "Action": "sts:AssumeRole",
+                          "Effect": "Allow",
+                          "Principal": {
+                              "AWS": {
+                                  "Ref": "AssumedByRoleArn"
+                              }
+                          }
+                      }
+                  ],
+                  "Version": "2012-10-17"
+              },
+              "ManagedPolicyArns": [
+                  {
+                      "Fn::Join": [
+                          "",
+                          [
+                              "arn:",
+                              {
+                                  "Ref": "AWS::Partition"
+                              },
+                              ":iam::aws:policy/AdministratorAccess"
+                          ]
+                      ]
+                  }
+              ],
+              "Policies": [
+                  {
+                      "PolicyName": "CDKAssetsPolicy",
+                      "PolicyDocument": {
+                          "Statement": [
+                              {
+                                  "Action": "s3:*",
+                                  "Effect": "Allow",
+                                  "Resource": "arn:aws:s3:::pbmmaccel-cdktoolkit-stagingbucket-*"
+                              }
+                          ],
+                          "Version": "2012-10-17"
+                      }
+                  }
+              ],
+              "RoleName": {
+                  "Ref": "RoleName"
+              },
+              "MaxSessionDuration": {
+                  "Ref": "MaxSessionDuration"
+              },
+              "Tags": [
+                  {
+                      "Key": "Accelerator",
+                      "Value": "PBMM"
+                  }
               ]
-            ]
+          },
+          "Metadata": {
+              "aws:cdk:path": "AssumeRole/Role/Resource"
           }
-        ],
-        "RoleName": {
-          "Ref": "RoleName"
-        },
-        "MaxSessionDuration": {
-          "Ref": "MaxSessionDuration"
-        },
-        "Tags": [
-          {
-            "Key": "Accelerator",
-            "Value": "PBMM"
-          }
-        ]
-      },
-      "Metadata": {
-        "aws:cdk:path": "AssumeRole/Role/Resource"
       }
-    }
   }
 }
