@@ -115,7 +115,7 @@ async function main() {
   installerProjectRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: ['s3:*'],
-      resources: [`arn:aws:s3:::cdktoolkit-stagingbucket-*`],
+      resources: [`arn:aws:s3:::${acceleratorPrefix.toLowerCase()}cdktoolkit-stagingbucket-*`],
     }),
   );
 
