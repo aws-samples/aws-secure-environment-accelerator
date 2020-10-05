@@ -85,6 +85,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         definition: new CreateStackTask(this, 'Bootstrap Operations Acccount Task', {
           lambdaCode,
           role,
+          suffix: 'Operations'
         }),
       },
     );
