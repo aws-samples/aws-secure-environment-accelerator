@@ -1133,6 +1133,7 @@ Array [
       "DefaultRouteTablePropagation": "disable",
       "Description": undefined,
       "DnsSupport": "enable",
+      "MulticastSupport": undefined,
       "Tags": Array [
         Object {
           "Key": "Accelerator",
