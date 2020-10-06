@@ -7,6 +7,7 @@ import * as actions from '@aws-cdk/aws-codepipeline-actions';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 import * as s3 from '@aws-cdk/aws-s3';
+import { Aspects } from '@aws-cdk/core';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
@@ -339,7 +340,7 @@ async function main() {
     ],
   });
 
-  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName));
+  Aspects.of(stack).add(new cdk.Tag('Accelerator', acceleratorName));
 }
 
 // tslint:disable-next-line: no-floating-promises

@@ -3,6 +3,7 @@ import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { expect, haveResource, haveResourceLike } from '@aws-cdk/assert';
 import { AcceleratorNameTagger } from '../../src/core';
+import { Aspects } from '@aws-cdk/core';
 
 test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
   const stack = new cdk.Stack();
@@ -11,7 +12,7 @@ test('should add the Name tag with the correct suffix to ec2.Vpc', () => {
     cidr: '10.0.0.1/24',
   });
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
@@ -35,7 +36,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnVpc', () => {
     cidrBlock: '10.0.0.1/24',
   });
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
@@ -61,7 +62,7 @@ test('should add the Name tag with the correct suffix to ec2.Subnet', () => {
     availabilityZone: 'ca-central-1a',
   });
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
@@ -87,7 +88,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnSubnet', () => {
     availabilityZone: 'ca-central-1a',
   });
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
@@ -111,7 +112,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnRouteTable', () 
     vpcId: '1',
   });
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
@@ -133,7 +134,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGateway',
 
   new ec2.CfnTransitGateway(stack, 'Main', {});
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
@@ -157,7 +158,7 @@ test('should add the Name tag with the correct suffix to ec2.CfnTransitGatewayRo
     transitGatewayId: '1',
   });
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
@@ -181,7 +182,7 @@ test('should not add suffix if the suffix is already there', () => {
     cidr: '10.0.0.1/24',
   });
 
-  stack.node.applyAspect(new AcceleratorNameTagger());
+  Aspects.of(stack).add(new AcceleratorNameTagger());
 
   // Make sure the aspects get applied
   cdk.ConstructNode.prepare(stack.node);
