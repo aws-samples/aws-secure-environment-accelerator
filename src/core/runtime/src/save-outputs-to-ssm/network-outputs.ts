@@ -311,7 +311,10 @@ async function saveVpcOutputs(props: {
     vpcUtil.parameters?.push('cidr');
   }
   if (!vpcUtil.parameters.includes('cidr2')) {
-    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`, vpcConfig.cidr2?.toCidrString()!);
+    await ssm.putParameter(
+      `/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`,
+      vpcConfig.cidr2?.toCidrString()!,
+    );
     vpcUtil.parameters?.push('cidr2');
   }
   let subnetsConfig = vpcConfig.subnets;
@@ -447,7 +450,7 @@ export async function saveSubnets(props: {
       index: currentIndex,
       name: subnetConfig.name,
       azs: subnetConfig.definitions.filter(sn => !sn.disabled).map(s => s.az),
-    }
+    };
     for (const subnetDef of subnetConfig.definitions.filter(sn => !sn.disabled)) {
       const subnetOutput = subnetOutputs.find(vs => vs.subnetName === subnetConfig.name && vs.az === subnetDef.az);
       if (!subnetOutput) {
