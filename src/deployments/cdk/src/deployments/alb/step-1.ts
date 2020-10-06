@@ -181,6 +181,7 @@ export function createAlb(
     hostedZoneId: balancer.hostedZoneId,
     name: albConfig.name,
     type: 'APPLICATION',
+    arn: balancer.arn,
   });
 }
 
