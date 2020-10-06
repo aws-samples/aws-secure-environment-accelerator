@@ -9,7 +9,7 @@
   "devDependencies": {
     "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
-    "aws-cdk": "1.46.0",
+    "aws-cdk": "1.66.0",
     "aws-sdk": "2.668.0",
     "babel-jest": "25.2.0",
     "jest": "25.2.4",
@@ -22,14 +22,14 @@
     "typescript": "3.8.3"
   },
   "dependencies": {
-    "@aws-cdk/aws-codebuild": "1.46.0",
-    "@aws-cdk/aws-codecommit": "1.46.0",
-    "@aws-cdk/aws-codepipeline": "1.46.0",
-    "@aws-cdk/aws-codepipeline-actions": "1.46.0",
-    "@aws-cdk/aws-iam": "1.46.0",
-    "@aws-cdk/aws-lambda": "1.46.0",
-    "@aws-cdk/aws-s3": "1.46.0",
-    "@aws-cdk/core": "1.46.0"
+    "@aws-cdk/aws-codebuild": "1.66.0",
+    "@aws-cdk/aws-codecommit": "1.66.0",
+    "@aws-cdk/aws-codepipeline": "1.66.0",
+    "@aws-cdk/aws-codepipeline-actions": "1.66.0",
+    "@aws-cdk/aws-iam": "1.66.0",
+    "@aws-cdk/aws-lambda": "1.66.0",
+    "@aws-cdk/aws-s3": "1.66.0",
+    "@aws-cdk/core": "1.66.0"
   },
   "jest": {
     "preset": "ts-jest",

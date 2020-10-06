@@ -8,9 +8,9 @@
   "main": "cdk/index.ts",
   "version": "0.0.1", 
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.46.0", 
-    "@aws-cdk/core": "1.46.0", 
-    "@aws-cdk/aws-lambda": "1.46.0"
+    "@aws-cdk/aws-iam": "1.66.0", 
+    "@aws-cdk/core": "1.66.0", 
+    "@aws-cdk/aws-lambda": "1.66.0"
   }, 
   "devDependencies": {
     "tslint": "6.1.0", 
