@@ -76,7 +76,6 @@ export namespace InitialSetup {
           suffixLength: 0,
         }),
         partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-        encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
@@ -88,7 +87,6 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
-        encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
       const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
@@ -100,7 +98,6 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
-        encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
       // This is the maximum time before a build times out
