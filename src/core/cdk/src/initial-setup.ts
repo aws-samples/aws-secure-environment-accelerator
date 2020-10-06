@@ -538,6 +538,7 @@ export namespace InitialSetup {
             'configFilePath.$': '$.configFilePath',
             'configCommitId.$': '$.configCommitId',
             outputUtilsTableName: outputUtilsTable.tableName,
+            accountsTableName: parametersTable.tableName,
           },
         }),
         resultPath: 'DISCARD',
