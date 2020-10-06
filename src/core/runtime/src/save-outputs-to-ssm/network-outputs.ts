@@ -467,7 +467,7 @@ export async function saveSubnets(props: {
       }
 
       if (previousIndex >= 0) {
-        const previousParams = subnetsUtil[previousIndex].parameters!;
+        const previousParams = subnetsUtil[previousIndex].parameters || [];
         if (subnetDef.cidr2 && !previousParams.includes('cidr2')) {
           newSubnetUtil.parameters?.push('cidr2');
           await ssm.putParameter(

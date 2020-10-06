@@ -289,7 +289,7 @@ async function saveElbOutputsImpl(props: {
         await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/account`, getAccountId(accounts, accountKey)!);
       }
     } else {
-      const previousParams = lbUtil[previousIndex].parameters!;
+      const previousParams = lbUtil[previousIndex].parameters || [];
       if (!previousParams.includes('name')) {
         await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/name`, nlbOutput.displayName);
       }
