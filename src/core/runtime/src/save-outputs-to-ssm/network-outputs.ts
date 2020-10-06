@@ -275,11 +275,9 @@ async function saveVpcOutputs(props: {
   const { acceleratorPrefix, account, index, outputs, resolvedVpcConfig, ssm, vpcPrefix, sgOutputs, sharedVpc } = props;
   const { accountKey, vpcConfig } = resolvedVpcConfig;
   let vpcUtil: OutputUtilVpc;
-  let updateRequired = false;
   if (props.vpcUtil) {
     vpcUtil = props.vpcUtil;
   } else {
-    updateRequired = true;
     vpcUtil = {
       index,
       name: vpcConfig.name,
@@ -297,20 +295,22 @@ async function saveVpcOutputs(props: {
     console.warn(`VPC "${vpcConfig.name}" in account "${accountKey}" is not created`);
     return;
   }
-  const previousParams = vpcUtil.parameters || [];
-  if (!previousParams.includes('name')) {
+  if (!vpcUtil.parameters) {
+    vpcUtil.parameters = [];
+  }
+  if (!vpcUtil.parameters.includes('name')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
     vpcUtil.parameters?.push('name');
   }
-  if (!previousParams.includes('id')) {
+  if (!vpcUtil.parameters.includes('id')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
     vpcUtil.parameters?.push('id');
   }
-  if (!previousParams.includes('cidr')) {
+  if (!vpcUtil.parameters.includes('cidr')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
     vpcUtil.parameters?.push('cidr');
   }
-  if (!previousParams.includes('cidr2')) {
+  if (!vpcUtil.parameters.includes('cidr2')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`, vpcConfig.cidr2?.toCidrString()!);
     vpcUtil.parameters?.push('cidr2');
   }
@@ -348,6 +348,7 @@ async function saveVpcOutputs(props: {
       securityGroupsUtil: vpcUtil.securityGroups,
     });
   }
+  console.log(vpcUtil);
   return vpcUtil;
 }
 
