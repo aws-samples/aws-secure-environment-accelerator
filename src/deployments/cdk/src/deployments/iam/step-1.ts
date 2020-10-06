@@ -26,7 +26,7 @@ export async function createConfigServiceRoles(props: IamConfigServiceRoleProps)
       roleName: createRoleName(`ConfigRecorderRole`),
       description: `${acceleratorPrefix} Config Recorder Role`,
       assumedBy: new iam.ServicePrincipal('config.amazonaws.com'),
-      managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSConfigRole')],
+      managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWS_ConfigRole')],
     });
 
     /**
