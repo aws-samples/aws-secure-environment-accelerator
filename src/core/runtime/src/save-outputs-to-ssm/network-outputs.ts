@@ -252,6 +252,7 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
       `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/name`,
       `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/id`,
       `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/cidr`,
+      `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/cidr2`,
     ];
     const removeNames = [...removalSgs, ...removalSns, ...removalVpc];
     while (removeNames.length > 0) {
@@ -300,22 +301,19 @@ async function saveVpcOutputs(props: {
   }
   if (!vpcUtil.parameters.includes('name')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
-    vpcUtil.parameters?.push('name');
+    vpcUtil.parameters.push('name');
   }
   if (!vpcUtil.parameters.includes('id')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
-    vpcUtil.parameters?.push('id');
+    vpcUtil.parameters.push('id');
   }
   if (!vpcUtil.parameters.includes('cidr')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
-    vpcUtil.parameters?.push('cidr');
+    vpcUtil.parameters.push('cidr');
   }
-  if (!vpcUtil.parameters.includes('cidr2')) {
-    await ssm.putParameter(
-      `/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`,
-      vpcConfig.cidr2?.toCidrString()!,
-    );
-    vpcUtil.parameters?.push('cidr2');
+  if (!vpcUtil.parameters.includes('cidr2') && vpcConfig.cidr2) {
+    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`, vpcConfig.cidr2.toCidrString());
+    vpcUtil.parameters.push('cidr2');
   }
   let subnetsConfig = vpcConfig.subnets;
   if (sharedVpc) {
@@ -486,7 +484,6 @@ export async function saveSubnets(props: {
         `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${sn.index}/az${snz}/name`,
         `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${sn.index}/az${snz}/id`,
         `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${sn.index}/az${snz}/cidr`,
-        `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${sn.index}/az${snz}/cidr2`,
       ]),
     )
     .flatMap(azSn => azSn)
