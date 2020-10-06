@@ -40,7 +40,7 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
     const hostedZone = await throttlingBackOff(() =>
       route53
         .createHostedZone({
-          CallerReference: `${vpcId}-${domain}-${new Date().toTimeString()}`,
+          CallerReference: `${vpcId}-${domain}-${new Date().getTime()}`,
           Name: domain,
           HostedZoneConfig: {
             Comment: comment,
@@ -96,7 +96,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
         .promise(),
     );
     const hostedZoneId = hostedZones.HostedZoneSummaries.find(hz => hz.Name === domain)?.HostedZoneId;
-    // Sleep 1 to 10 random seconds after creation of the vpc endpoint to avoid RateExceeded issue with Route53 api accross regions
+    // Sleep 1 to 10 random seconds after creation of the vpc endpoint to avoid RateExceeded issue with Route53 api across regions
     await delay(Math.floor(Math.random() * (10000 - 1000 + 1) + 1000));
     await throttlingBackOff(() =>
       route53

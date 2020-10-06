@@ -231,7 +231,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
       if (e.code === 'VPCAssociationNotFound') {
         console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
       } else if (e.code === 'NoSuchHostedZone') {
-        console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
+        console.warn(`The specified hosted zone "${hostedZoneId}" doesn't exist.`);
         continue;
       } else {
         console.error(`Error while associating the hosted zone "${hostedZoneId}" to VPC "${vpcName}"`);
@@ -248,7 +248,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
         if (e.code === 'VPCAssociationNotFound') {
           console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
         } else if (e.code === 'NoSuchHostedZone') {
-          console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
+          console.warn(`The specified hosted zone "${hostedZoneId}" doesn't exist.`);
         } else {
           console.error(`Error while associating the hosted zone "${hostedZoneId}" to VPC "${vpcName}"`);
           console.error(e);
@@ -314,6 +314,7 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
       console.error(e);
       if (e.code === 'NoSuchHostedZone') {
+        console.warn(`The specified hosted zone "${hostedZoneId}" doesn't exist.`);
         continue;
       }
     }

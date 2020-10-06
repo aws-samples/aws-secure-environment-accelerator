@@ -76,6 +76,7 @@ export const handler = async (input: LoadLimitsInput) => {
   const limits: LimitOutput[] = [];
 
   const accountConfigs = config.getAccountConfigs();
+  const sts = new STS();
   for (const [accountKey, accountConfig] of accountConfigs) {
     const accountId = getAccountId(accounts, accountKey);
 
@@ -109,7 +110,6 @@ export const handler = async (input: LoadLimitsInput) => {
     }
 
     for (const region of regions) {
-      const sts = new STS();
       const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
       const quotas = new ServiceQuotas(credentials, region);
 
