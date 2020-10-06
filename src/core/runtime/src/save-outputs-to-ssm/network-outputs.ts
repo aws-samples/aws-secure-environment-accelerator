@@ -14,11 +14,9 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 interface OutputUtilSubnet extends OutputUtilGenericType {
   azs: string[];
 }
-interface OutputUtilVpc {
-  name: string;
+interface OutputUtilVpc extends OutputUtilGenericType {
   subnets: OutputUtilSubnet[];
   securityGroups: OutputUtilGenericType[];
-  index: number;
   type: 'vpc' | 'lvpc';
 }
 
@@ -299,10 +297,22 @@ async function saveVpcOutputs(props: {
     console.warn(`VPC "${vpcConfig.name}" in account "${accountKey}" is not created`);
     return;
   }
-  if (updateRequired) {
+  const previousParams = vpcUtil.parameters || [];
+  if (!previousParams.includes('name')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
+    vpcUtil.parameters?.push('name');
+  }
+  if (!previousParams.includes('id')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
+    vpcUtil.parameters?.push('id');
+  }
+  if (!previousParams.includes('cidr')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
+    vpcUtil.parameters?.push('cidr');
+  }
+  if (!previousParams.includes('cidr2')) {
+    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`, vpcConfig.cidr2?.toCidrString()!);
+    vpcUtil.parameters?.push('cidr2');
   }
   let subnetsConfig = vpcConfig.subnets;
   if (sharedVpc) {
@@ -436,7 +446,6 @@ export async function saveSubnets(props: {
       index: currentIndex,
       name: subnetConfig.name,
       azs: subnetConfig.definitions.filter(sn => !sn.disabled).map(s => s.az),
-      parameters: ['name', 'id', 'cidr'],
     }
     for (const subnetDef of subnetConfig.definitions.filter(sn => !sn.disabled)) {
       const subnetOutput = subnetOutputs.find(vs => vs.subnetName === subnetConfig.name && vs.az === subnetDef.az);
@@ -457,24 +466,6 @@ export async function saveSubnets(props: {
           `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/cidr`,
           subnetOutput.cidrBlock,
         );
-        if (subnetDef.cidr2) {
-          newSubnetUtil.parameters?.push('cidr2');
-          await ssm.putParameter(
-            `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/cidr2`,
-            subnetDef.cidr2.toCidrString(),
-          );
-        }
-      }
-
-      if (previousIndex >= 0) {
-        const previousParams = subnetsUtil[previousIndex].parameters || [];
-        if (subnetDef.cidr2 && !previousParams.includes('cidr2')) {
-          newSubnetUtil.parameters?.push('cidr2');
-          await ssm.putParameter(
-            `/${acceleratorPrefix}/network/${vpcPrefix}/${vpcIndex}/net/${currentIndex}/az${subnetOutput.az}/cidr2`,
-            subnetDef.cidr2.toCidrString(),
-          );
-        }
       }
     }
 
