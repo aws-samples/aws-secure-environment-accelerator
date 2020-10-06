@@ -300,7 +300,7 @@ async function saveElbOutputsImpl(props: {
         await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/arn`, nlbOutput.arn);
       }
       if (!previousParams.includes('account') && source === 'remote') {
-        await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/account`, accountKey);
+        await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/account`, getAccountId(accounts, accountKey)!);
       }
       lbUtil.splice(previousIndex, 1);
     }
