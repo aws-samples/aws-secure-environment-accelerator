@@ -285,6 +285,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       });
       subscriptionCheckDone.push(accountKey);
     }
+
+    // Creates resolver query logging and associate to the VPC
+    await vpcDeployment.step4({
+      accountKey,
+      accountStacks,
+      acceleratorPrefix: context.acceleratorPrefix,
+      outputs,
+      vpcConfig,
+      vpcId: vpc!.id,
+    });
   }
 
   // Create the firewall

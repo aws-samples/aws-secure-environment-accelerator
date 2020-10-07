@@ -76,7 +76,6 @@ export namespace InitialSetup {
           suffixLength: 0,
         }),
         partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
-        encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
       const outputsTable = new dynamodb.Table(this, 'Outputs', {
@@ -88,7 +87,6 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
-        encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
       const outputUtilsTable = new dynamodb.Table(this, 'OutputUtils', {
@@ -100,7 +98,6 @@ export namespace InitialSetup {
           name: 'id',
           type: dynamodb.AttributeType.STRING,
         },
-        encryption: dynamodb.TableEncryption.DEFAULT,
       });
 
       // This is the maximum time before a build times out
@@ -260,6 +257,7 @@ export namespace InitialSetup {
         },
       );
 
+      // tslint:disable-next-line: deprecation
       const createLandingZoneAccountTask = new sfn.Task(this, 'Create Landing Zone Account', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createLandingZoneAccountStateMachine, {
@@ -306,6 +304,7 @@ export namespace InitialSetup {
         },
       });
 
+      // tslint:disable-next-line: deprecation
       const createOrganizationAccountTask = new sfn.Task(this, 'Create Organization Account', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createOrganizationAccountStateMachine, {
@@ -376,6 +375,7 @@ export namespace InitialSetup {
         },
       );
 
+      // tslint:disable-next-line: deprecation
       const installCfnRoleMasterTask = new sfn.Task(this, 'Install CloudFormation Role in Master', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(installCfnRoleMasterStateMachine, {
@@ -407,6 +407,7 @@ export namespace InitialSetup {
         }),
       });
 
+      // tslint:disable-next-line: deprecation
       const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(installRolesStateMachine, {
@@ -442,6 +443,7 @@ export namespace InitialSetup {
         }),
       });
 
+      // tslint:disable-next-line: deprecation
       const deleteVpcTask = new sfn.Task(this, 'Delete Default Vpcs', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(deleteVpcSfn, {
@@ -524,6 +526,7 @@ export namespace InitialSetup {
         },
       );
 
+      // tslint:disable-next-line: deprecation
       const storeAllOutputsToSsmTask = new sfn.Task(this, 'Store Outputs to SSM', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(storeOutputsToSsmStateMachine, {
@@ -596,6 +599,7 @@ export namespace InitialSetup {
           CONFIG_BRANCH_NAME: props.configBranchName,
           STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
         };
+        // tslint:disable-next-line: deprecation
         const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
           // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(codeBuildStateMachine, {
@@ -619,6 +623,7 @@ export namespace InitialSetup {
       });
 
       const createStoreOutputTask = (phase: number) => {
+        // tslint:disable-next-line: deprecation
         const storeOutputsTask = new sfn.Task(this, `Store Phase ${phase} Outputs`, {
           // tslint:disable-next-line: deprecation
           task: new tasks.StartExecution(storeOutputsStateMachine, {
@@ -657,6 +662,7 @@ export namespace InitialSetup {
         },
       });
 
+      // tslint:disable-next-line: deprecation
       const storeAllOutputsTask = new sfn.Task(this, `Store All Phase Outputs`, {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(storeOutputsStateMachine, {
@@ -706,6 +712,7 @@ export namespace InitialSetup {
         }),
       });
 
+      // tslint:disable-next-line: deprecation
       const createConfigRecordersTask = new sfn.Task(this, 'Create Config Recorders', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createConfigRecorderSfn, {
@@ -800,6 +807,7 @@ export namespace InitialSetup {
         }),
       });
 
+      // tslint:disable-next-line: deprecation
       const createAdConnectorTask = new sfn.Task(this, 'Create AD Connector', {
         // tslint:disable-next-line: deprecation
         task: new tasks.StartExecution(createAdConnectorStateMachine, {
@@ -836,6 +844,7 @@ export namespace InitialSetup {
         .otherwise(storeAllOutputsToSsmTask);
 
       const commonStep1 = addScpTask.startState
+        // tslint:disable-next-line: deprecation
         .next(deployPhase1Task)
         .next(storePhase1Output)
         .next(accountDefaultSettingsTask)
@@ -853,11 +862,13 @@ export namespace InitialSetup {
         .next(baseLineCleanupChoice);
 
       const enableConfigChoice = new sfn.Choice(this, 'Create Config Recorders?')
+        // tslint:disable-next-line: deprecation
         .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), createConfigRecordersTask.next(commonStep1))
         .otherwise(commonStep1)
         .afterwards();
 
       const commonStep2 = deployPhaseRolesTask
+        // tslint:disable-next-line: deprecation
         .next(storePreviousOutput)
         .next(deployPhase0Task)
         .next(storePhase0Output)
@@ -870,6 +881,7 @@ export namespace InitialSetup {
         .afterwards();
 
       const commonDefinition = loadOrganizationsTask.startState
+        // tslint:disable-next-line: deprecation
         .next(loadAccountsTask)
         .next(installRolesTask)
         .next(deleteVpcTask)
@@ -879,6 +891,7 @@ export namespace InitialSetup {
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
+        // tslint:disable-next-line: deprecation
         .next(addRoleToServiceCatalog)
         .next(createLandingZoneAccountsTask)
         .next(commonDefinition);
@@ -891,10 +904,12 @@ export namespace InitialSetup {
         .otherwise(createOrganizationAccountsTask)
         .afterwards();
 
+      // tslint:disable-next-line: deprecation
       installCfnRoleMasterTask.next(createOrganizationAccountsTask).next(commonDefinition);
 
       // // Organizations Config Setup
       const orgConfigDefinition = validateOuConfiguration.startState
+        // tslint:disable-next-line: deprecation
         .next(loadOrgConfigurationTask)
         .next(cloudFormationMasterRoleChoice);
 

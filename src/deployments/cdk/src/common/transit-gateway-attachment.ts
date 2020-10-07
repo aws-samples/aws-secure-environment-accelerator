@@ -15,7 +15,7 @@ export class TransitGatewayAttachment extends cdk.Construct {
     super(parent, name);
 
     this.resource = new ec2.CfnTransitGatewayAttachment(this, 'Resource', props);
-    cdk.Tag.add(this.resource, 'Name', props.name, { priority: 1000 });
+    cdk.Tags.of(this.resource).add('Name', props.name, { priority: 1000 });
   }
 
   get transitGatewayAttachmentId(): string {

@@ -339,7 +339,7 @@ async function main() {
     ],
   });
 
-  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName));
+  cdk.Aspects.of(stack).add(new cdk.Tag('Accelerator', acceleratorName));
 }
 
 // tslint:disable-next-line: no-floating-promises

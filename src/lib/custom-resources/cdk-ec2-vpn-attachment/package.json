@@ -13,9 +13,9 @@
   "private": true, 
   "version": "0.0.1", 
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.46.0", 
-    "@aws-cdk/core": "1.46.0", 
-    "@aws-cdk/custom-resources": "1.46.0"
+    "@aws-cdk/aws-iam": "1.66.0", 
+    "@aws-cdk/core": "1.66.0", 
+    "@aws-cdk/custom-resources": "1.66.0"
   }, 
   "devDependencies": {
     "tslint-config-standard": "9.0.0", 
