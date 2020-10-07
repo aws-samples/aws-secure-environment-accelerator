@@ -290,7 +290,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     await vpcDeployment.step4({
       accountKey,
       accountStacks,
-      context,
+      acceleratorPrefix: context.acceleratorPrefix,
       outputs,
       vpcConfig,
       vpcId: vpc!.id,

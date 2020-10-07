@@ -13,7 +13,7 @@ export interface VpcStep4Props {
   accountKey: string;
   accountStacks: AccountStacks;
   outputs: StackOutput[];
-  context: Context;
+  acceleratorPrefix: string;
 }
 
 export async function step4(props: VpcStep4Props) {
@@ -21,7 +21,7 @@ export async function step4(props: VpcStep4Props) {
 }
 
 function createVpcDnsQueryLogging(props: VpcStep4Props) {
-  const { vpcConfig, vpcId, accountStacks, accountKey, outputs, context } = props;
+  const { vpcConfig, vpcId, accountStacks, accountKey, outputs, acceleratorPrefix } = props;
 
   if (!vpcConfig['dns-resolver-logging']) {
     return;
@@ -50,7 +50,7 @@ function createVpcDnsQueryLogging(props: VpcStep4Props) {
 
   const queryLoggingConfig = new CfnResolverQueryLoggingConfig(accountStack, `Rql${vpcConfig.name}`, {
     destinationArn: logGroup.logGroupArn,
-    name: `${context.acceleratorPrefix}rql-${vpcConfig.name}`,
+    name: `${acceleratorPrefix}rql-${vpcConfig.name}`,
   });
 
   new CfnResolverQueryLoggingConfigAssociation(accountStack, `RqlAssoc${vpcConfig.name}`, {
