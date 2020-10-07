@@ -116,6 +116,7 @@ export function createNlb(
     hostedZoneId: balancer.hostedZoneId,
     name: 'RsyslogNLB',
     type: 'NETWORK',
+    arn: balancer.arn,
   });
 }
 

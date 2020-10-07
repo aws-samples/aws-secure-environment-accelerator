@@ -44,6 +44,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
+        'accountsTableName.$': '$.accountsTableName',
       },
     });
 
@@ -72,6 +73,7 @@ export class StoreOutputsToSSMTask extends sfn.StateMachineFragment {
         'configFilePath.$': '$.configFilePath',
         'configCommitId.$': '$.configCommitId',
         'outputUtilsTableName.$': '$.outputUtilsTableName',
+        'accountsTableName.$': '$.accountsTableName',
       },
     });
 

@@ -29,7 +29,7 @@ export const handler = async (input: StoreStackOutputInput) => {
   const credentials = await sts.getCredentialsForAccountAndRole(account.id, assumeRoleName);
   const cfn = new CloudFormation(credentials, region);
   const stacks = cfn.listStacksGenerator({
-    StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE'],
+    StackStatusFilter: ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'UPDATE_ROLLBACK_COMPLETE'],
   });
 
   const outputs: StackOutput[] = [];
