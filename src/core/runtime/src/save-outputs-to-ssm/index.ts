@@ -8,6 +8,7 @@ import { saveElbOutputs } from './elb-outputs';
 import { saveEventOutputs } from './event-outputs';
 import { saveEncryptsOutputs } from './encrypt-outputs';
 import { saveFirewallReplacementOutputs } from './firewall-outputs';
+import { loadAccounts } from './../utils/load-accounts';
 
 export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
@@ -16,6 +17,7 @@ export interface SaveOutputsToSsmInput extends LoadConfigurationInput {
   outputsTableName: string;
   assumeRoleName: string;
   outputUtilsTableName: string;
+  accountsTableName: string;
 }
 
 const dynamodb = new DynamoDB();
@@ -33,6 +35,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     assumeRoleName,
     region,
     outputUtilsTableName,
+    accountsTableName,
   } = input;
   // Remove - if prefix ends with -
   const acceleratorPrefix = input.acceleratorPrefix.endsWith('-')
@@ -45,6 +48,9 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     filePath: configFilePath,
     commitId: configCommitId,
   });
+
+  // Retrive Accounts from DynamoDB
+  const accounts = await loadAccounts(accountsTableName, dynamodb);
 
   const globalRegions = config['global-options']['additional-global-output-regions'];
   const smRegion = config['global-options']['aws-org-master'].region;
@@ -88,6 +94,7 @@ export const handler = async (input: SaveOutputsToSsmInput) => {
     outputUtilsTableName,
     outputsTableName,
     region,
+    accounts,
   });
 
   // Store Event Outputs to SSM Parameter Store

@@ -13,6 +13,7 @@ export const LoadBalancerOutput = t.interface(
     name: t.string,
     displayName: t.string,
     type: LoadBalancerType,
+    arn: t.string,
   },
   'LoadBalancerOutput',
 );
