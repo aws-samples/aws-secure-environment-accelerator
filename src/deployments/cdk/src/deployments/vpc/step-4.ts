@@ -53,9 +53,8 @@ function createVpcDnsQueryLogging(props: VpcStep4Props) {
     name: `${context.acceleratorPrefix}rql-${vpcConfig.name}`,
   });
 
-  const queryLogAssoc = new CfnResolverQueryLoggingConfigAssociation(accountStack, `RqlAssoc${vpcConfig.name}`, {
+  new CfnResolverQueryLoggingConfigAssociation(accountStack, `RqlAssoc${vpcConfig.name}`, {
     resolverQueryLogConfigId: queryLoggingConfig.ref,
     resourceId: vpcId,
   });
-  queryLogAssoc.addDependsOn(queryLoggingConfig);
 }

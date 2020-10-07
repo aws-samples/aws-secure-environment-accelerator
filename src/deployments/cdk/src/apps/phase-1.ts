@@ -287,7 +287,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
 
     // Creates resolver query logging and associate to the VPC
-    console.log(`Creating dns logging for vpc ${vpcConfig.name}`);
     await vpcDeployment.step4({
       accountKey,
       accountStacks,
