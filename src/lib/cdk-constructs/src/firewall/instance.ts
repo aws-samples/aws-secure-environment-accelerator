@@ -109,7 +109,7 @@ export class FirewallInstance extends cdk.Construct {
         ),
       ),
     });
-    cdk.Tag.add(this.resource, 'Name', this.props.name);
+    cdk.Tags.of(this.resource).add('Name', this.props.name);
     this.instanceName = this.props.name;
 
     this.resource.node.addDependency(this.template);
