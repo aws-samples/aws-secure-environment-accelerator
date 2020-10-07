@@ -67,7 +67,6 @@ export async function step3(props: VpcStep3Props) {
 
     let suffix: number;
     let stackSuffix: string;
-    let newResource = true;
 
     // Load all account stacks to object
     if (!accountStaticResourcesConfig[accountKey]) {
@@ -105,6 +104,7 @@ export async function step3(props: VpcStep3Props) {
     stackSuffix = `${STACK_SUFFIX}-${suffix}`;
 
     for (const endpoint of endpointsConfig.endpoints) {
+      let newResource = true;
       if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.region, vpcConfig.name)) {
         console.log(
           `Skipping endpoint "${endpoint}" creation in VPC "${vpcConfig.name}". Reached maximum interface endpoints per VPC`,
