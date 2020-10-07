@@ -4,6 +4,16 @@
 
 ---
 
+- Creates DNS query logging and associate to the VPC
+
+```
+    "vpc": {
+	  "dns-resolver-logging": true
+    }
+```
+
+---
+
 - Update Central Logging Kinesis stream shard count as accounts are added
 
 ```
