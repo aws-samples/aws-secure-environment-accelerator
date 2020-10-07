@@ -105,7 +105,7 @@ export async function saveFirewallReplacementOutputs(props: SaveOutputsInput) {
         );
       }
     } else {
-      const previousReplacements = Object.keys(outputUtils.firewalls[previousIndex].replacements);
+      const previousReplacements = outputUtils.firewalls[previousIndex].replacements;
       const currentReplacements = Object.keys(output.replacements);
       for (const replacement of currentReplacements.filter(cr => !previousReplacements.includes(cr))) {
         await ssm.putParameter(

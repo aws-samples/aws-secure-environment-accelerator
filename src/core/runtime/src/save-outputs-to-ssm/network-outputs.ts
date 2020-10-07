@@ -14,11 +14,9 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 interface OutputUtilSubnet extends OutputUtilGenericType {
   azs: string[];
 }
-interface OutputUtilVpc {
-  name: string;
+interface OutputUtilVpc extends OutputUtilGenericType {
   subnets: OutputUtilSubnet[];
   securityGroups: OutputUtilGenericType[];
-  index: number;
   type: 'vpc' | 'lvpc';
 }
 
@@ -254,6 +252,7 @@ export async function saveNetworkOutputs(props: SaveOutputsInput) {
       `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/name`,
       `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/id`,
       `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/cidr`,
+      `/${acceleratorPrefix}/network/${removeObject.type}/${removeObject.index}/cidr2`,
     ];
     const removeNames = [...removalSgs, ...removalSns, ...removalVpc];
     while (removeNames.length > 0) {
@@ -277,11 +276,9 @@ async function saveVpcOutputs(props: {
   const { acceleratorPrefix, account, index, outputs, resolvedVpcConfig, ssm, vpcPrefix, sgOutputs, sharedVpc } = props;
   const { accountKey, vpcConfig } = resolvedVpcConfig;
   let vpcUtil: OutputUtilVpc;
-  let updateRequired = false;
   if (props.vpcUtil) {
     vpcUtil = props.vpcUtil;
   } else {
-    updateRequired = true;
     vpcUtil = {
       index,
       name: vpcConfig.name,
@@ -299,10 +296,24 @@ async function saveVpcOutputs(props: {
     console.warn(`VPC "${vpcConfig.name}" in account "${accountKey}" is not created`);
     return;
   }
-  if (updateRequired) {
+  if (!vpcUtil.parameters) {
+    vpcUtil.parameters = [];
+  }
+  if (!vpcUtil.parameters.includes('name')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/name`, `${vpcOutput.vpcName}_vpc`);
+    vpcUtil.parameters.push('name');
+  }
+  if (!vpcUtil.parameters.includes('id')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/id`, vpcOutput.vpcId);
+    vpcUtil.parameters.push('id');
+  }
+  if (!vpcUtil.parameters.includes('cidr')) {
     await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr`, vpcOutput.cidrBlock);
+    vpcUtil.parameters.push('cidr');
+  }
+  if (!vpcUtil.parameters.includes('cidr2') && vpcConfig.cidr2) {
+    await ssm.putParameter(`/${acceleratorPrefix}/network/${vpcPrefix}/${index}/cidr2`, vpcConfig.cidr2.toCidrString());
+    vpcUtil.parameters.push('cidr2');
   }
   let subnetsConfig = vpcConfig.subnets;
   if (sharedVpc) {
@@ -338,6 +349,7 @@ async function saveVpcOutputs(props: {
       securityGroupsUtil: vpcUtil.securityGroups,
     });
   }
+  console.log(vpcUtil);
   return vpcUtil;
 }
 
@@ -432,11 +444,11 @@ export async function saveSubnets(props: {
     } else {
       currentIndex = ++subnetMaxIndex;
     }
-    updatedObjects.push({
+    const newSubnetUtil: OutputUtilSubnet = {
       index: currentIndex,
       name: subnetConfig.name,
       azs: subnetConfig.definitions.filter(sn => !sn.disabled).map(s => s.az),
-    });
+    };
     for (const subnetDef of subnetConfig.definitions.filter(sn => !sn.disabled)) {
       const subnetOutput = subnetOutputs.find(vs => vs.subnetName === subnetConfig.name && vs.az === subnetDef.az);
       if (!subnetOutput) {
@@ -458,6 +470,8 @@ export async function saveSubnets(props: {
         );
       }
     }
+
+    updatedObjects.push(newSubnetUtil);
     const removalIndex = removalObjects?.findIndex(s => s.name === subnetConfig.name);
     if (removalIndex >= 0) {
       removalObjects?.splice(removalIndex, 1);

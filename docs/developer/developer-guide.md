@@ -398,7 +398,7 @@ The following example illustrates its purpose.
 ```typescript
 const stack = new cdk.Stack();
 new ec2.CfnVpc(stack, 'SharedNetwork', {});
-stack.node.applyAspect(new AcceleratorNameTagger());
+Aspects.of(stack).add(new AcceleratorNameTagger());
 ```
 
 The example above synthesizes to the following CloudFormation template.
