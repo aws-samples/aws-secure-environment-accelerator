@@ -46,6 +46,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Zone sharing and VPC associations
 - Managed Active Directory sharing, including R53 DNS resolver rule creation/sharing
 - Automated TGW inter-region peering
+- Populate Parameter Store with all `user` objects to be used by customers' IaC
 
 ### Identity
 
@@ -86,18 +87,19 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### Centralized Logging and Alerting
 
 - Deploys an rsyslog auto-scaling cluster behind a NLB, all syslogs forwarded to CloudWatch Logs
+- Centralized access to "Cloud Security Service" Consoles from designated AWS account
 - Centralizes logging to a single centralized S3 bucket (enables, configures and centralizes)
   - VPC Flow logs w/Enhanced metadata fields (also sent to CWL)
   - Organizational Cost and Usage Reports
   - CloudTrail Logs including S3 Data Plane Logs (also sent to CWL)
   - All CloudWatch Logs (includes rsyslog logs)
   - Config History and Snapshots
-  - Route 53 Public Zone Logs
+  - Route 53 Public Zone Logs (also sent to CWL)
   - GuardDuty Findings
   - Macie Discovery results
   - ALB Logs
-  - SSM Session Logs
-- Centralized access to "Cloud Security Service" Consoles from designated AWS account
+  - SSM Session Logs (also sent to CWL)
+  - Resolver Query Logs (also sent to CWL)
 
 ## Relationship with AWS Landing Zone Solution (ALZ)
 
@@ -136,6 +138,7 @@ This summarizes the installation process, the full installation document can be 
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./docs/installation/customization-index.md) to sample config file and customization details
+- [Link](./docs/architectures/pbmm/log-file-locations.md) to AWS SEA Central Logging Bucket Structures
 
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
