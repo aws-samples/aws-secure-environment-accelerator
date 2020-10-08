@@ -32,6 +32,14 @@
 
 ---
 
+- Valid options for vpc flow logs setting on each VPC
+
+```
+"flow-logs": "S3"  ---> S3, CWL, BOTH
+```
+
+---
+
 - Macie Frequency Supported Values:
 
 ```
