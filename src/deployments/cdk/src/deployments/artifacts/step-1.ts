@@ -57,6 +57,17 @@ export async function step1(props: ArtifactsStep1Props) {
     centralBucket,
     destinationKeyPrefix: 'rsyslog',
   });
+
+  // upload SSM-Document Artifacts
+  uploadArtifacts({
+    accountStack: masterAccountStack,
+    artifactName: 'SsmDocument',
+    artifactFolderName: 'ssm-documents',
+    artifactKeyPrefix: 'ssm-documents',
+    centralBucket,
+    destinationKeyPrefix: 'ssm-documents',
+    keepExistingFiles: true,
+  });
 }
 
 function uploadArtifacts(props: {
@@ -66,6 +77,7 @@ function uploadArtifacts(props: {
   artifactKeyPrefix: string;
   centralBucket: s3.IBucket;
   destinationKeyPrefix?: string;
+  keepExistingFiles?: boolean;
 }) {
   const {
     accountStack,
@@ -74,6 +86,7 @@ function uploadArtifacts(props: {
     artifactKeyPrefix,
     centralBucket,
     destinationKeyPrefix,
+    keepExistingFiles,
   } = props;
   const accountKey = accountStack.accountKey;
 
@@ -96,6 +109,7 @@ function uploadArtifacts(props: {
     sources: [s3deployment.Source.asset(artifactsFolderPath)],
     destinationBucket: centralBucket,
     destinationKeyPrefix,
+    prune: !keepExistingFiles,
   });
 
   // outputs to store reference artifacts s3 bucket information

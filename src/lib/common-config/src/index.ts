@@ -741,6 +741,17 @@ export const CloudWatchAlarmsConfigType = t.interface({
   definitions: t.array(CloudWatchAlarmDefinitionConfigType),
 });
 
+export const SsmDocument = t.interface({
+  name: t.string,
+  description: t.string,
+  template: t.string,
+  'shared-to-accounts': fromNullable(t.array(t.string), []),
+})
+export const SsmAutomation = t.interface({
+  accounts: t.array(t.string),
+  region: t.string,
+  documents: t.array(SsmDocument),
+})
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
@@ -773,6 +784,7 @@ export const GlobalOptionsConfigType = t.interface({
       alarms: CloudWatchAlarmsConfigType,
     }),
   ),
+  'ssm-automation': fromNullable(t.array(SsmAutomation), []),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
