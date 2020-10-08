@@ -16,6 +16,10 @@ export interface AssociateHostedZonesProps {
   roleArn: string;
 }
 
+/*******************************************
+ * Currently this module is not being used *
+ *******************************************/
+
 export interface AssociateHostedZonesRuntimeProps extends Omit<AssociateHostedZonesProps, 'roleArn'> {}
 /**
  * Custom resource that will create SSM Document.
