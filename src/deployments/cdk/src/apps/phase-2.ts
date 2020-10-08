@@ -45,7 +45,7 @@ import * as snsDeployment from '../deployments/sns';
  * - TGW Peering Attachments
  */
 
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs, limiter }: PhaseInput) {
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
   // Find the account buckets in the outputs
@@ -328,6 +328,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
+    outputs,
+  });
+
+  await vpcDeployment.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    limiter,
     outputs,
   });
 }

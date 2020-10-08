@@ -230,6 +230,9 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
     } catch (e) {
       if (e.code === 'VPCAssociationNotFound') {
         console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
+      } else if (e.code === 'NoSuchHostedZone') {
+        console.warn(`The specified hosted zone "${hostedZoneId}" doesn't exist.`);
+        continue;
       } else {
         console.error(`Error while associating the hosted zone "${hostedZoneId}" to VPC "${vpcName}"`);
         console.error(e);
@@ -239,7 +242,19 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+      try {
+        await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+      } catch (e) {
+        if (e.code === 'VPCAssociationNotFound') {
+          console.warn(`The specified VPC "${vpcId}" and hosted zone "${hostedZoneId}" are not currently associated.`);
+        } else if (e.code === 'NoSuchHostedZone') {
+          console.warn(`The specified hosted zone "${hostedZoneId}" doesn't exist.`);
+        } else {
+          console.error(`Error while associating the hosted zone "${hostedZoneId}" to VPC "${vpcName}"`);
+          console.error(e);
+          throw new Error(e);
+        }
+      }
     }
   }
 
@@ -298,11 +313,20 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     } catch (e) {
       console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
       console.error(e);
+      if (e.code === 'NoSuchHostedZone') {
+        console.warn(`The specified hosted zone "${hostedZoneId}" doesn't exist.`);
+        continue;
+      }
     }
 
     // delete association of VPC with Hosted zones when VPC and Hosted Zones are defined in two different accounts
     if (vpcAccountId !== hostedZoneAccountId) {
-      await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+      try {
+        await throttlingBackOff(() => hostedZoneRoute53.deleteVPCAssociationAuthorization(hostedZoneProps).promise());
+      } catch (e) {
+        console.error(`Ignoring error while deleting Association and stack ${hostedZoneId} to VPC "${vpcName}"`);
+        console.error(e);
+      }
     }
   }
 }

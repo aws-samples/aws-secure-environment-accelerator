@@ -13,4 +13,5 @@ export interface LimitOutput {
   serviceCode: string;
   quotaCode: string;
   value: number;
+  region: string;
 }
