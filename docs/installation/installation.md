@@ -513,6 +513,8 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
 
    [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
 
+9. Note that a successful run of this workflow will automatically kick off the "Generate Documentation" workflow. That workflow may be initiated at any time manually via the GitHub Actions UI (since it is configured as a `workflow_dispatch` action).
+
 ---
 
 [...Return to Accelerator Table of Contents](../index.md)
