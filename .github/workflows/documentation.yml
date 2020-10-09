@@ -119,6 +119,21 @@ jobs:
             --pdf-engine=xelatex
             ./reference-artifacts/master-config-sample-snippets/firewall_file_available_variables.md
 
+      - name: PDF output 2g
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=documentation/2g-AWS-SEA-logging-locations.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/architectures/pbmm/log-file-locations.md
+
       - name: PDF output 3
         uses: docker://pandoc/latex:2.10
         with:
@@ -168,8 +183,8 @@ jobs:
 
       - name: Zip
         run: |
-          zip -r documentation.zip documentation/
+          zip -r AWS-SEA-Documentation.zip documentation/
       - uses: actions/upload-artifact@master
         with:
-          name: documentation.zip
-          path: documentation.zip
+          name: AWS-SEA-Documentation
+          path: AWS-SEA-Documentation.zip
