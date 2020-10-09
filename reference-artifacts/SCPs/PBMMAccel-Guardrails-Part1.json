@@ -121,7 +121,7 @@
       }
     },
     {
-      "Sid": "DenyKeyRoles",
+      "Sid": "DenyRoles",
       "Effect": "Deny",
       "Action": ["iam:*"],
       "Resource": [
@@ -139,7 +139,7 @@
       }
     },
     {
-      "Sid": "DenySSMDel",
+      "Sid": "DenySSM",
       "Effect": "Deny",
       "Action": [
         "ssm:DeleteParameter",
@@ -164,7 +164,7 @@
       }
     },
     {
-      "Sid": "DenyLogDel",
+      "Sid": "DenyLog",
       "Effect": "Deny",
       "Action": [
         "ec2:DeleteFlowLogs",
@@ -176,6 +176,7 @@
         "logs:DeleteLogDelivery",
         "logs:DeleteDestination",
         "logs:PutRetentionPolicy",
+        "logs:PutSubscriptionFilter",
         "logs:DeleteLogStream"
       ],
       "Resource": "*",
@@ -189,7 +190,7 @@
       }
     },
     {
-      "Sid": "DenyLeaveOrg",
+      "Sid": "DenyOrg",
       "Effect": "Deny",
       "Action": "organizations:LeaveOrganization",
       "Resource": "*"

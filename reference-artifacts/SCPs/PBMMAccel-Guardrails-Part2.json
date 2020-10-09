@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "BlockMarketplacePMP",
+      "Sid": "BlockPMP",
       "Effect": "Deny",
       "Action": [
         "aws-marketplace:CreatePrivateMarketplace",
@@ -40,7 +40,7 @@
       }
     },
     {
-      "Sid": "EnforceEbsEncryption",
+      "Sid": "EbsEncrypt1",
       "Effect": "Deny",
       "Action": "ec2:RunInstances",
       "Resource": "arn:aws:ec2:*:*:volume/*",
@@ -51,7 +51,7 @@
       }
     },
     {
-      "Sid": "EnforceEBSVolumeEncryption",
+      "Sid": "EBSEncrypt2",
       "Effect": "Deny",
       "Action": "ec2:CreateVolume",
       "Resource": "*",
@@ -62,7 +62,18 @@
       }
     },
     {
-      "Sid": "EnforceRdsEncryption",
+      "Sid": "EFSEncrypt",
+      "Effect": "Deny",
+      "Action": "elasticfilesystem:CreateFileSystem",
+      "Resource": "*",
+      "Condition": {
+        "Bool": {
+          "elasticfilesystem:Encrypted": "false"
+        }
+      }
+    },
+    {
+      "Sid": "RdsEncrypt",
       "Effect": "Deny",
       "Action": "rds:CreateDBInstance",
       "Resource": "arn:aws:rds:*:*:db:*",
@@ -76,7 +87,7 @@
       }
     },
     {
-      "Sid": "EnforceAuroraEncryption",
+      "Sid": "AuroraEncrypt",
       "Effect": "Deny",
       "Action": "rds:CreateDBCluster",
       "Resource": "*",
@@ -86,6 +97,32 @@
         },
         "Bool": {
           "rds:StorageEncrypted": "false"
+        }
+      }
+    },
+    {
+      "Action": ["ssm:CreateDocument", "ssm:UpdateDocument", "ssm:DeleteDocument"],
+      "Effect": "Deny",
+      "Resource": ["arn:aws:ssm:::document/SSM-SessionManagerRunShell"],
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
+      "Effect": "Deny",
+      "Action": ["kms:DeleteAlias", "kms:UpdateAlias", "kms:DisableKey", "kms:ImportKeyMaterial", "kms:PutKeyPolicy"],
+      "Resource": "arn:aws:kms:::alias/PBMMAccel*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
         }
       }
     },
@@ -104,7 +141,26 @@
       }
     },
     {
-      "Sid": "DenyGDSHFMAAChange",
+      "Sid": "DenyLog2",
+      "Effect": "Deny",
+      "Action": [
+        "logs:AssociateKmsKey",
+        "logs:DisassociateKmsKey",
+        "logs:PutDestination",
+        "logs:PutDestinationPolicy"
+      ],
+      "Resource": "arn:aws:logs:::log-group:*PBMMAccel*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenySecurity",
       "Effect": "Deny",
       "Action": [
         "guardduty:AcceptInvitation",
