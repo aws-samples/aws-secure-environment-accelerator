@@ -26,7 +26,7 @@ jobs:
           mkdir ${PREFIX}-${SUFFIX}
           echo ::set-output name=prefix::$(echo "${PREFIX}")
           echo ::set-output name=suffix::$(echo "${SUFFIX}")
-          echo ::set-output name=directory::$(echo "${PREFIX}-${SUFFIX}")
+          echo ::set-output name=dir::$(echo "${PREFIX}-${SUFFIX}")
 
 
       - name: PDF output 0
