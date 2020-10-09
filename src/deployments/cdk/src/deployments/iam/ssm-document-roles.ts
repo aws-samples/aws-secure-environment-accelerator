@@ -27,7 +27,7 @@ export async function createSSMDocumentRoles(props: SSMDocumentProps): Promise<v
 }
 
 export async function ssmCreateDocumentRole(stack: AccountStack) {
-  const role = new iam.Role(stack, 'Custom::SSMDocument', {
+  const role = new iam.Role(stack, 'Custom::CreateSSMDocument', {
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 

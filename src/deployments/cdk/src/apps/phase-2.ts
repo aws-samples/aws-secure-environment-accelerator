@@ -247,7 +247,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-
   await vpcDeployment.step2({
     accountBuckets,
     accountStacks,
@@ -333,7 +332,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  const masterAccountKey = acceleratorConfig["global-options"]["aws-org-master"].account;
+  const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   await vpcDeployment.step3({
     accountStacks,

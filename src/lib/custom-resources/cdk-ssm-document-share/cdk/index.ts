@@ -6,7 +6,7 @@ import * as lambda from '@aws-cdk/aws-lambda';
 const resourceType = 'Custom::SSMDocumentShare';
 
 export interface SSMDocumentShareProps {
-  name: string
+  name: string;
   accountIds: string[];
   roleArn: string;
 }

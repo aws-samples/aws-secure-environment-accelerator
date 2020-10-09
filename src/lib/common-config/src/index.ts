@@ -537,7 +537,7 @@ export const SsmShareAutomation = t.interface({
   account: t.string,
   regions: t.array(t.string),
   documents: t.array(t.string),
-})
+});
 
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
@@ -753,12 +753,12 @@ export const SsmDocument = t.interface({
   name: t.string,
   description: t.string,
   template: t.string,
-})
+});
 export const SsmAutomation = t.interface({
   accounts: t.array(t.string),
   regions: t.array(t.string),
   documents: t.array(SsmDocument),
-})
+});
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,

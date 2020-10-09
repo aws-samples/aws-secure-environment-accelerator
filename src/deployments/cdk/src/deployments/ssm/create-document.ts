@@ -22,7 +22,15 @@ export interface CreateDocumentProps {
 }
 
 export async function createDocument(props: CreateDocumentProps) {
-  const { acceleratorExecutionRoleName, config, centralAccountId, centralBucketName, accountStacks, accounts, outputs } = props;
+  const {
+    acceleratorExecutionRoleName,
+    config,
+    centralAccountId,
+    centralBucketName,
+    accountStacks,
+    accounts,
+    outputs,
+  } = props;
   const documentContents = await getSsmDocumentsContent({
     assumeRoleName: acceleratorExecutionRoleName,
     config,
@@ -39,7 +47,7 @@ export async function createDocument(props: CreateDocumentProps) {
     for (const accountKey of documentConfig.accounts) {
       const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
         outputs,
-        accountKey: accountKey,
+        accountKey,
         roleKey: 'SSMDocumentRole',
       });
       for (const document of documentConfig.documents) {
@@ -98,7 +106,7 @@ export async function createDocument(props: CreateDocumentProps) {
           if (shareAccountIds.length === 0) {
             continue;
           }
-          // Share Document to accounts          
+          // Share Document to accounts
           if (!ssmDocumentRole) {
             console.error(`SSMDocument Create Role not found in account "${accountKey}"`);
             continue;
@@ -107,19 +115,19 @@ export async function createDocument(props: CreateDocumentProps) {
             accountIds: shareAccountIds,
             name: ssmDocument.name!,
             roleArn: ssmDocumentRole.roleArn,
-          })
+          });
         }
       }
     }
   }
 }
 
-const getSsmDocumentsContent = async (props: {
+async function getSsmDocumentsContent (props: {
   assumeRoleName: string;
   sourceAccountId: string;
   sourceBucketName: string;
   config: c.AcceleratorConfig;
-}): Promise<{ [accountKey: string]: { [documentName: string]: string } } | undefined> => {
+}): Promise<{ [accountKey: string]: { [documentName: string]: string } } | undefined> {
   const { assumeRoleName, sourceAccountId, sourceBucketName, config } = props;
 
   const sts = new STS();
