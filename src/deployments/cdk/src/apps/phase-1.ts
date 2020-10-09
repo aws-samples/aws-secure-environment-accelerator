@@ -157,50 +157,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, props);
     const vpc = vpcStack.vpc;
 
-    const endpointConfig = vpcConfig['interface-endpoints'];
-    if (InterfaceEndpointConfig.is(endpointConfig)) {
-      const subnetName = endpointConfig.subnet;
-      const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
-      if (subnetIds.length === 0) {
-        console.warn(`Cannot find subnet ID with name "${subnetName}'`);
-        return;
-      }
-
-      let endpointCount = 0;
-      let endpointStackIndex = 0;
-      let endpointStack;
-      for (const endpoint of endpointConfig.endpoints) {
-        if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
-          console.log(
-            `Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Reached maximum interface endpoints per VPC`,
-          );
-          continue;
-        }
-
-        if (!endpointStack || endpointCount >= 30) {
-          endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
-          endpointCount = 0;
-        }
-        const interfaceEndpoint = new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
-          serviceName: endpoint,
-          vpcId: vpc.vpcId,
-          vpcRegion: vpc.region,
-          subnetIds,
-        });
-
-        new centralEndpoints.CfnHostedZoneOutput(endpointStack, `HostedZoneOutput-${endpoint}`, {
-          accountKey,
-          domain: interfaceEndpoint.hostedZone.name,
-          hostedZoneId: interfaceEndpoint.hostedZone.ref,
-          region: vpc.region,
-          zoneType: 'PRIVATE',
-          serviceName: endpoint,
-          vpcName: vpc.name,
-        });
-        endpointCount++;
-      }
-    }
-
     // Store the VPC output so that subsequent phases can access the output
     new vpcDeployment.CfnVpcOutput(vpc, `VpcOutput`, {
       accountKey,

@@ -46,7 +46,7 @@ import * as ssmDeployment from '../deployments/ssm';
  * - TGW Peering Attachments
  */
 
-export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs, limiter }: PhaseInput) {
   const securityAccountKey = acceleratorConfig.getMandatoryAccountKey('central-security');
 
   // Find the account buckets in the outputs
@@ -335,6 +335,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   const masterAccountKey = acceleratorConfig["global-options"]["aws-org-master"].account;
   const masterAccountId = getAccountId(accounts, masterAccountKey);
+  await vpcDeployment.step3({
+    accountStacks,
+    config: acceleratorConfig,
+    limiter,
+    outputs,
+  });
+
   await ssmDeployment.createDocument({
     acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
     centralAccountId: masterAccountId!,

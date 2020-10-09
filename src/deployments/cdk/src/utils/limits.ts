@@ -48,6 +48,16 @@ export function tryGetQuotaByAccountAndLimit(
   return limitOutput?.value;
 }
 
+export function tryGetQuotaByAccountRegionAndLimit(
+  limits: LimitOutputs,
+  accountKey: string,
+  limit: Limit,
+  region: string,
+): number | undefined {
+  const limitOutput = limits.find(a => a.accountKey === accountKey && a.limitKey === limit && a.region === region);
+  return limitOutput?.value;
+}
+
 export class Limiter {
   readonly limits: LimitOutputs;
   readonly counts: { [index: string]: number } = {};
@@ -56,12 +66,12 @@ export class Limiter {
     this.limits = limits;
   }
 
-  create(accountKey: string, limit: Limit, suffix?: string): boolean {
-    const quota = tryGetQuotaByAccountAndLimit(this.limits, accountKey, limit);
+  create(accountKey: string, limit: Limit, region: string, suffix?: string): boolean {
+    const quota = tryGetQuotaByAccountRegionAndLimit(this.limits, accountKey, limit, region);
     if (!quota) {
       return true;
     }
-    const index = `${accountKey}/${limit}/${suffix}`;
+    const index = `${accountKey}/${region}/${limit}/${suffix}`;
     const count = this.counts[index] ?? 0;
     if (count < quota) {
       this.counts[index] = count + 1;

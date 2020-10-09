@@ -30,6 +30,7 @@ These installation instructions assume the prescribed architecture is being depl
     - [2.0.8. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?](#208-can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially)
     - [2.0.9. Can I update the config file while the State Machine is running? When will those changes be applied?](#209-can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied)
     - [2.0.10. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?](#2010-how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies)
+    - [2.0.11. I wish to be in compliance with the 12 TBS Guardrails, what don't you cover with the provided sample architecture?](#2011-i-wish-to-be-in-compliance-with-the-12-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture)
 - [3. Notes](#3-notes)
   - [3.1. Upgrades](#31-upgrades)
     - [3.1.1. Summary of Upgrade Steps (all versions)](#311-summary-of-upgrade-steps-all-versions)
@@ -367,15 +368,26 @@ To overide items like SCP's or IAM policies, customers simply need to provide th
 
 The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Acclerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of Accelerator supplied versions. If a customer wishes to revert to the sample configuration, simply removing the specific files from their S3 bucket and rerunning the accelerator will revert to the repo version of the removed files. Customer only need to provide the specific files they wish to overide, not all files.
 
+### 2.0.11. I wish to be in compliance with the 12 TBS Guardrails, what don't you cover with the provided sample architecture?
+
+The AWS SEA allows for a lot of flexibility in deployed architectures. If used, the provided PBMM sample architecture was designed to deliver on the technical portion of _all_ 12 of the GC guardrails, when automation was possible.
+
+What don't we cover? Assigning MFA to users is a manual process. Specifically you need to procure Yubikeys for your root/break glass users, and enable a suitable form of MFA for _all_ other users (i.e. virtual, email, other). The guardrails also include some organizational processes (i.e. break glass procedures, or signing an MOU with CCCS) which customers will need to work through independently.
+
+While AWS is providing the tools to help customer be compliant with the 12 PBMM guardrails (which were developed in collaboration with the GC) - it's up to each customers ITSec organization to assess and determine if the deployed controls actually meet their security requirements.
+
+Finally, while we started with a goal of delivering on the 12 guardrails, we believe we have extended well beyond those security controls, to further help customers move towards meeting the full PBMM technical control profile (official documentation is weak in this area at this time).
+
 # 3. Notes
 
 ## 3.1. Upgrades
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats.
-- Upgrades to v1.2.0 and above from v1.1.9 and below require setting `account-warming-required` to `false`, (Perimeter and Ops accounts) or the rsyslog and firewalls will be removed and then re-installed on the subsequent state machine execution
-- Upgrades from v1.1.7 and below require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
-- Upgrades from versions v1.1.6 and below require updating the `GithubRepository` in the CFN stack, as we renamed the GitHub repo with release v1.1.7 to `aws-secure-environment-accelerator`.
-- Upgrades to v1.1.5 and above from v1.1.4 and below:
+- Upgrades to `v1.2.2 and above` from v1.2.1 and below - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint vpc in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
+- Upgrades to `v1.2.0 and above` from v1.1.9 and below require setting `account-warming-required` to `false`, (Perimeter and Ops accounts) or the rsyslog and firewalls will be removed and then re-installed on the subsequent state machine execution
+- Upgrades from `v1.1.7 and below` require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
+- Upgrades from `v1.1.6 and below` require updating the `GithubRepository` in the CFN stack, as we renamed the GitHub repo with release v1.1.7 to `aws-secure-environment-accelerator`.
+- Upgrades to `v1.1.5 and above` from v1.1.4 and below:
   - requires providing the "overrideComparison": true flag to the State Machine, as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file when this parameter is provided. (As the State Machine self-executes without the above parameter, it will fail on first run. Rerun the State Machine providing the parameter)
   - High probability of a State Machine failure due to a 1hr step timeout limitation. No easy fix available. Simply rerun the State Machine. We are reversing something from the v1.1.4 release which is extremely time consuming.
 
@@ -389,7 +401,7 @@ The Accelerator was designed to allow customers complete customization capabilit
   - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
   - The pipeline will automatically run and trigger the upgraded state machine
 - If you are using a pre-existing GitHub token:
-  - Update the Installer CFN stack, providing the `GithubBranch` associated with the release (eg. `release/v1.2.0`)
+  - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.2`)
     - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 ## 3.2. Configuration File Hints and Tips
@@ -500,6 +512,8 @@ The Accelerator was designed to allow customers complete customization capabilit
    - Note: The `Publish` operation will run [the following GitHub Action][action], which merges the `release/vX.Y.Z` branch to `master`. **Branch Protection in GitHub will cause this to fail**, and why we are momentarily disabling branch protection.
 
    [action]: https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/.github/workflows/publish.yml
+
+9. Note that a successful run of this workflow will automatically kick off the "Generate Documentation" workflow. That workflow may be initiated at any time manually via the GitHub Actions UI (since it is configured as a `workflow_dispatch` action).
 
 ---
 

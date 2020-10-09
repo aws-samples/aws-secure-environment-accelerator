@@ -1,3 +1,5 @@
+### Currently this module is not being used ###
+
 # Associate Hosted Zones to VPC
 
 This is a custom resource to associate vpc to Hosted Zone Used `createVPCAssociationAuthorization`, `associateVPCWithHostedZone`, `deleteVPCAssociationAuthorization` and `deleteVPCAssociationAuthorization` API calls.
