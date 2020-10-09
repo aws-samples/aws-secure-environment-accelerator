@@ -2,7 +2,6 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows: ["Merge Release Branch"]
-    branches: [master]
     types:
       - completed
 
