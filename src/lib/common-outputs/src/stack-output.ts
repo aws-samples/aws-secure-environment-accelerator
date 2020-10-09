@@ -59,7 +59,7 @@ export function getStackJsonOutput(outputs: StackOutput[], filter: StackJsonOutp
             return value;
           }
         }
-      // eslint-disable-next-line no-empty  
+        // eslint-disable-next-line no-empty
       } catch {}
       return null;
     })
