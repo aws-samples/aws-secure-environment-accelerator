@@ -18,7 +18,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Copying S3 objects...`);
   console.log(JSON.stringify(event, null, 2));
 
-  // tslint:disable-next-line: switch-default
+  // eslint-disable-next-line default-case
   switch (event.RequestType) {
     case 'Create':
       return onCreate(event);

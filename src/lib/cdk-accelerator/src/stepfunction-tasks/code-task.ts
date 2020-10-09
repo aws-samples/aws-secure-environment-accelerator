@@ -12,7 +12,7 @@ export namespace CodeTask {
    */
   export type FunctionProps = Pick<lambda.FunctionProps, 'code'> & Partial<Omit<lambda.FunctionProps, 'runtime'>>;
 
-  // tslint:disable-next-line: deprecation
+  // eslint-disable-next-line deprecation/deprecation
   export interface Props extends Partial<Omit<sfn.TaskProps, 'task'>> {
     /**
      * The payload that is used for the `InvokeFunction` task.
@@ -29,7 +29,7 @@ export namespace CodeTask {
  * Class that represents a step function invoke function task.
  */
 export class CodeTask extends sfn.StateMachineFragment {
-  // tslint:disable-next-line: deprecation
+  // eslint-disable-next-line deprecation/deprecation
   public readonly startState: sfn.Task;
   public readonly endStates: sfn.INextable[];
 
@@ -43,9 +43,9 @@ export class CodeTask extends sfn.StateMachineFragment {
       ...props.functionProps,
     });
 
-    // tslint:disable-next-line: deprecation
+    // eslint-disable-next-line deprecation/deprecation
     const task = new sfn.Task(this, id, {
-      // tslint:disable-next-line: deprecation
+      // eslint-disable-next-line deprecation/deprecation
       task: new tasks.InvokeFunction(func, {
         payload: props.functionPayload,
       }),
@@ -53,7 +53,7 @@ export class CodeTask extends sfn.StateMachineFragment {
     });
 
     // Retriable exceptions, Using all defaults for interval: 1, maxAttempts: 3, backoffRate: 2
-    // tslint:disable-next-line: deprecation
+    // eslint-disable-next-line deprecation/deprecation
     task.addRetry({
       errors: ['ServiceUnavailableException'],
     });
@@ -63,7 +63,7 @@ export class CodeTask extends sfn.StateMachineFragment {
   }
 
   addCatch(handler: sfn.IChainable, props?: sfn.CatchProps): this {
-    // tslint:disable-next-line: deprecation
+    // eslint-disable-next-line deprecation/deprecation
     this.startState.addCatch(handler, props);
     return this;
   }

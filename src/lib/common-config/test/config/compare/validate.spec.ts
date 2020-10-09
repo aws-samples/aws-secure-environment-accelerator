@@ -1,4 +1,4 @@
-// tslint:disable:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as fs from 'fs';
 import * as path from 'path';
 import * as validate from '../../../src/compare/validate';

@@ -43,7 +43,7 @@ export interface StackJsonOutputFilter {
   outputType?: string;
 }
 
-// tslint:disable-next-line: no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getStackJsonOutput(outputs: StackOutput[], filter: StackJsonOutputFilter = {}): any[] {
   return outputs
     .map(output => {
@@ -59,6 +59,7 @@ export function getStackJsonOutput(outputs: StackOutput[], filter: StackJsonOutp
             return value;
           }
         }
+      // eslint-disable-next-line no-empty  
       } catch {}
       return null;
     })

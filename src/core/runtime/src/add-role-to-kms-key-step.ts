@@ -35,7 +35,7 @@ export const handler = async (input: AddRoleToKmsKeyInput) => {
 
   // Parse the policy and find the statement
   const content = JSON.parse(policy);
-  // tslint:disable-next-line: no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const statements: any[] = content.Statement;
   if (!statements) {
     console.warn(`The default KMS key policy for key "${kmsKeyId}" does not have a Statement field`);

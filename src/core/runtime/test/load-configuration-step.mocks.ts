@@ -10,9 +10,9 @@ import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 aws.config.logger = console;
 
 type DeepPartial<T> = {
-  // tslint:disable-next-line: array-type
-  [P in keyof T]?: T[P] extends Array<infer U> // tslint:disable-next-line: array-type
-    ? Array<DeepPartial<U>> // tslint:disable-next-line: no-shadowed-variable
+  // eslint-disable-next-line @typescript-eslint array-type
+  [P in keyof T]?: T[P] extends Array<infer U> // eslint-disable-next-line @typescript-eslint array-type
+    ? Array<DeepPartial<U>> //eslint-disable-next-line @typescript-eslint no-shadow
     : T[P] extends ReadonlyArray<infer U>
     ? ReadonlyArray<DeepPartial<U>>
     : DeepPartial<T[P]>;
