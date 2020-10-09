@@ -1,5 +1,5 @@
 description: 
-schemaVersion: '0.4'
+schemaVersion: '0.3'
 assumeRole: '{{ AutomationAssumeRole }}'
 parameters:
   LogDestination:
