@@ -70,6 +70,7 @@ export class InterfaceEndpoint extends cdk.Construct {
         comment: `zzEndpoint - ${serviceName}`,
       },
     });
+
     this._hostedZone.addDependsOn(endpoint);
 
     const recordSet = new route53.CfnRecordSet(this, 'RecordSet', {

@@ -16,9 +16,10 @@ export interface RenewServiceQuotaIncrease {
 export class ServiceQuotas {
   private readonly client: aws.ServiceQuotas;
 
-  public constructor(credentials?: aws.Credentials) {
+  public constructor(credentials?: aws.Credentials, region?: string) {
     this.client = new aws.ServiceQuotas({
       credentials,
+      region,
     });
   }
 

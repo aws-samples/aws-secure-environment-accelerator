@@ -3,36 +3,29 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as lambda from '@aws-cdk/aws-lambda';
 
-const resourceType = 'Custom::AssociateHostedZones';
+const resourceType = 'Custom::CreateHostedZone';
 
-export interface AssociateHostedZonesProps {
-  assumeRoleName: string;
-  vpcAccountId: string;
-  vpcName: string;
+export interface CreateHostedZoneProps {
   vpcId: string;
-  vpcRegion: string;
-  hostedZoneAccountId: string;
-  hostedZoneIds: string[];
+  domain: string;
+  region: string;
+  comment: string;
   roleArn: string;
 }
 
-/*******************************************
- * Currently this module is not being used *
- *******************************************/
-
-export interface AssociateHostedZonesRuntimeProps extends Omit<AssociateHostedZonesProps, 'roleArn'> {}
+export interface CreateHostedZoneRuntimeProps extends Omit<CreateHostedZoneProps, 'roleArn'> {}
 /**
- * Custom resource that will create SSM Document.
+ * Custom resource that will create Resolver Rule.
  */
-export class AssociateHostedZones extends cdk.Construct {
+export class CreateHostedZone extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
   private role: iam.IRole;
 
-  constructor(scope: cdk.Construct, id: string, props: AssociateHostedZonesProps) {
+  constructor(scope: cdk.Construct, id: string, props: CreateHostedZoneProps) {
     super(scope, id);
     this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
 
-    const runtimeProps: AssociateHostedZonesRuntimeProps = props;
+    const runtimeProps: CreateHostedZoneRuntimeProps = props;
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
@@ -40,6 +33,10 @@ export class AssociateHostedZones extends cdk.Construct {
         ...runtimeProps,
       },
     });
+  }
+
+  get zoneId(): string {
+    return this.resource.getAttString('ZoneId');
   }
 
   private get lambdaFunction(): lambda.Function {
@@ -50,7 +47,7 @@ export class AssociateHostedZones extends cdk.Construct {
       return existing as lambda.Function;
     }
 
-    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-associate-hosted-zones-runtime');
+    const lambdaPath = require.resolve('@aws-accelerator/custom-resource-create-hosted-zone-runtime');
     const lambdaDir = path.dirname(lambdaPath);
 
     return new lambda.Function(stack, constructName, {
