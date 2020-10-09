@@ -45,7 +45,7 @@ export class StructuredOutput<T> extends cdk.Construct {
     });
   }
 
-  //eslint-disable-next-line @typescript-eslint/no-shadow
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   static fromOutputs<T>(outputs: StackOutput[], filter: StructuredOutputFilter<T>): T[] {
     return findValuesFromOutputs({
       outputs,

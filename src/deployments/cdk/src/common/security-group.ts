@@ -92,6 +92,7 @@ export class SecurityGroup extends cdk.Construct {
       const outboundRules = securityGroup['outbound-rules'];
       if (inboundRules) {
         for (const [ruleId, rule] of inboundRules.entries()) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           const ruleParams = this.prepareSecurityGroupRuleProps(accountKey, groupName, rule, vpcConfigs!);
           if (ruleParams.length === 0) {
             continue;
@@ -103,6 +104,7 @@ export class SecurityGroup extends cdk.Construct {
       }
       if (outboundRules) {
         for (const [ruleId, rule] of outboundRules.entries()) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           const ruleParams = this.prepareSecurityGroupRuleProps(accountKey, groupName, rule, vpcConfigs!);
           if (ruleParams.length === 0) {
             continue;

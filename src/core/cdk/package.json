@@ -6,7 +6,7 @@
     "bootstrap": "pnpx cdk bootstrap",
     "deploy": "pnpx cdk deploy",
     "synth": "pnpx cdk synth",
-    "lint": "eslint -c .eslintrc.json --ext .ts 'src/**/*.ts'"
+    "lint": "eslint --ext .ts 'src/**/*.ts'"
   },
   "devDependencies": {
     "@types/jest": "25.1.4",

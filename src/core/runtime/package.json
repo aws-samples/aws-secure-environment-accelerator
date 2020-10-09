@@ -6,7 +6,7 @@
     "build": "pnpx webpack-cli --config webpack.config.ts",
     "prepare": "pnpx webpack-cli --config webpack.config.ts",
     "test": "pnpx jest",
-    "lint": "eslint -c .eslintrc.json --ext .ts 'src/**/*.ts'"
+    "lint": "eslint --ext .ts 'src/**/*.ts'"
   },
   "main": "dist/index.js",
   "devDependencies": {

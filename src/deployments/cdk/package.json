@@ -5,7 +5,7 @@
   "scripts": {
     "build": "pnpx tsc --noEmit",
     "test": "pnpx jest",
-    "lint": "eslint -c .eslintrc.json --ext .ts 'src/**/*.ts'",
+    "lint": "eslint --ext .ts 'src/**/*.ts'",
     "synth": "pnpx cdk synth"
   },
   "devDependencies": {
