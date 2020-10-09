@@ -17,15 +17,23 @@ jobs:
           sudo apt install librsvg2-bin
           sudo apt install 'fonts-dejavu*'
 
-      - name: Mkdir documentation
+      - name: Setup Env
+        id: setup
+        env:
+          PREFIX: AWS-SEA
+          SUFFIX: Documentation
         run: |
-          mkdir documentation
+          mkdir ${PREFIX}-${SUFFIX}
+          echo ::set-output name=prefix::$(echo "${PREFIX}")
+          echo ::set-output name=suffix::$(echo "${SUFFIX}")
+          echo ::set-output name=directory::$(echo "${PREFIX}-${SUFFIX}")
+
 
       - name: PDF output 0
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/0-AWS-SEA-Solution-Summary.pdf
+            --output=${{ steps.setup.outputs.dir }}/0-${{ steps.setup.outputs.prefix }}-Solution-Summary.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -40,7 +48,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/1-AWS-SEA-Installation-Guide.pdf
+            --output=${{ steps.setup.outputs.dir }}/1-${{ steps.setup.outputs.prefix }}-Installation-Guide.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -55,7 +63,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/2a-AWS-SEA-Config-File-Options-ToC.pdf
+            --output=${{ steps.setup.outputs.dir }}/2a-${{ steps.setup.outputs.prefix }}-Config-File-Options-ToC.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -68,13 +76,13 @@ jobs:
 
       - name: Copy file output 2b
         run: |
-          cp reference-artifacts/config.example.json documentation/2b-AWS-SEA-config.example.json
+          cp reference-artifacts/config.example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.example.json
 
       - name: PDF output 2c
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/2c-AWS-SEA-Multi-file-Config-Capabilities.pdf
+            --output=${{ steps.setup.outputs.dir }}/2c-${{ steps.setup.outputs.prefix }}-Multi-file-Config-Capabilities.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -89,7 +97,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/2d-AWS-SEA-Config-Sample-Snippets.pdf
+            --output=${{ steps.setup.outputs.dir }}/2d-${{ steps.setup.outputs.prefix }}-Config-Sample-Snippets.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -102,13 +110,13 @@ jobs:
 
       - name: Copy file output 2e
         run: |
-          cp reference-artifacts/Third-Party/firewall-example.txt documentation/2e-AWS-SEA-firewall-example.txt
+          cp reference-artifacts/Third-Party/firewall-example.txt ${{ steps.setup.outputs.dir }}/2e-${{ steps.setup.outputs.prefix }}-firewall-example.txt
 
       - name: PDF output 2f
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/2f-AWS-SEA-Firewall-config-Customizations.pdf
+            --output=${{ steps.setup.outputs.dir }}/2f-${{ steps.setup.outputs.prefix }}-Firewall-config-Customizations.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -123,7 +131,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/2g-AWS-SEA-logging-locations.pdf
+            --output=${{ steps.setup.outputs.dir }}/2g-${{ steps.setup.outputs.prefix }}-logging-locations.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -138,7 +146,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/3-AWS-SEA-Operations-Troubleshooting-Guide.pdf
+            --output=${{ steps.setup.outputs.dir }}/3-${{ steps.setup.outputs.prefix }}-Operations-Troubleshooting-Guide.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -155,7 +163,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/4-AWS-SEA-Developer-Guide.pdf
+            --output=${{ steps.setup.outputs.dir }}/4-${{ steps.setup.outputs.prefix }}-Developer-Guide.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -170,7 +178,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=documentation/5-AWS-SEA-PBMM-Architecture.pdf
+            --output=${{ steps.setup.outputs.dir }}/5-${{ steps.setup.outputs.prefix }}-PBMM-Architecture.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -183,8 +191,8 @@ jobs:
 
       - name: Zip
         run: |
-          zip -r AWS-SEA-Documentation.zip documentation/
+          zip -r ${{ steps.setup.outputs.dir }}.zip ${{ steps.setup.outputs.dir }}/
       - uses: actions/upload-artifact@master
         with:
-          name: AWS-SEA-Documentation
-          path: AWS-SEA-Documentation.zip
+          name: ${{ steps.setup.outputs.dir }}
+          path: ${{ steps.setup.outputs.dir }}.zip
