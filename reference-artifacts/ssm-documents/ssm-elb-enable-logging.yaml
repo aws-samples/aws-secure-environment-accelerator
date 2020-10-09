@@ -4,24 +4,42 @@ assumeRole: '{{ AutomationAssumeRole }}'
 parameters:
   LogDestination:
     type: String
-  LogDestinationPrefix:
-    type: String
-  LoadBalancerArn:
+  LoadBalancer:
     type: String
   AutomationAssumeRole:
     type: String
     default: ''
 mainSteps:
+  - name: getAccount
+    action: 'aws:executeAwsApi'
+    inputs:
+      Service: sts
+      Api: get_caller_identity
+    outputs:
+      - Name: Id
+        Selector: $.Account
+        Type: String
+  - name: getLoadBalancer
+    action: 'aws:executeAwsApi'
+    inputs:
+      Service: elbv2
+      Api: describe_load_balancers
+      Names:
+        - '{{ LoadBalancer }}'
+    outputs:
+      - Name: Arn
+        Selector: $.LoadBalancers[0].LoadBalancerArn
+        Type: String
   - name: enableLogging
     action: 'aws:executeAwsApi'
     inputs:
       Service: elbv2
       Api: modify_load_balancer_attributes
-      LoadBalancerArn: '{{ LoadBalancerArn }}'
+      LoadBalancerArn: '{{ getLoadBalancer.Arn }}'
       Attributes:
         - Key: access_logs.s3.enabled
           Value: 'true'
         - Key: access_logs.s3.bucket
           Value: '{{ LogDestination }}'
         - Key: access_logs.s3.prefix
-          Value: '{{ LogDestinationPrefix }}'
+          Value: '{{ getAccount.Id }}/{{ LoadBalancer }}'

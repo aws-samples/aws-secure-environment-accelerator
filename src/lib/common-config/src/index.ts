@@ -533,6 +533,12 @@ export const LimitConfig = t.interface({
   'customer-confirm-inplace': fromNullable(t.boolean, false),
 });
 
+export const SsmShareAutomation = t.interface({
+  account: t.string,
+  regions: t.array(t.string),
+  documents: t.array(t.string),
+})
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -556,6 +562,7 @@ export const MandatoryAccountConfigType = t.interface({
   'exclude-ou-albs': optional(t.boolean),
   'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
   'populate-all-elbs-in-param-store': fromNullable(t.boolean, false),
+  'ssm-automation': fromNullable(t.array(SsmShareAutomation), []),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -575,6 +582,7 @@ export const OrganizationalUnitConfigType = t.interface({
   alb: optional(t.array(AlbConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   'default-budgets': optional(BudgetConfigType),
+  'ssm-automation': fromNullable(t.array(SsmShareAutomation), []),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
@@ -745,11 +753,10 @@ export const SsmDocument = t.interface({
   name: t.string,
   description: t.string,
   template: t.string,
-  'shared-to-accounts': fromNullable(t.array(t.string), []),
 })
 export const SsmAutomation = t.interface({
   accounts: t.array(t.string),
-  region: t.string,
+  regions: t.array(t.string),
   documents: t.array(SsmDocument),
 })
 export const GlobalOptionsConfigType = t.interface({

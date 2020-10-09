@@ -12,36 +12,28 @@ export interface SSMDocumentProps {
 }
 
 export async function createSSMDocumentRoles(props: SSMDocumentProps): Promise<void> {
-  const { accountStacks, accounts, config } = props;
+  const { accountStacks, accounts } = props;
   const accountRoles: { [accountKey: string]: iam.IRole } = {};
-  for (const { accountKey, vpcConfig, ouKey } of config.getVpcConfigs()) {
-    const vpcSharedTo = getVpcSharedAccountKeys(accounts, vpcConfig, ouKey);
-    vpcSharedTo.push(accountKey);
-    const accountKeys = Array.from(new Set(vpcSharedTo));
-    for (const localAccountKey of accountKeys) {
-      if (accountRoles[localAccountKey]) {
-        continue;
-      }
-      const accountStack = accountStacks.tryGetOrCreateAccountStack(localAccountKey);
-      if (!accountStack) {
-        console.warn(`Cannot find account stack ${localAccountKey}`);
-        continue;
-      }
-      const ssmRole = await ssmCreateDocumentRole(accountStack);
-      accountRoles[localAccountKey] = ssmRole;
-      createIamRoleOutput(accountStack, ssmRole, 'SSMSessionManagerDocument');
+  for (const account of accounts) {
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
+    if (!accountStack) {
+      console.warn(`Cannot find account stack ${account.key}`);
+      continue;
     }
+    const ssmRole = await ssmCreateDocumentRole(accountStack);
+    accountRoles[account.key] = ssmRole;
+    createIamRoleOutput(accountStack, ssmRole, 'SSMDocumentRole');
   }
 }
 
 export async function ssmCreateDocumentRole(stack: AccountStack) {
-  const role = new iam.Role(stack, 'Custom::SSMSessionManagerDocument', {
+  const role = new iam.Role(stack, 'Custom::SSMDocument', {
     assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
   });
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['ssm:DescribeDocument', 'ssm:UpdateDocument', 'ssm:CreateDocument'],
+      actions: ['ssm:DescribeDocument', 'ssm:UpdateDocument', 'ssm:CreateDocument', 'ssm:ModifyDocumentPermission'],
       resources: ['*'],
     }),
   );

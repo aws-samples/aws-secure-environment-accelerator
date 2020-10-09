@@ -341,5 +341,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     centralBucketName: centralBucket.bucketName,
     config: acceleratorConfig,
     accountStacks,
+    accounts,
+    outputs,
   });
 }

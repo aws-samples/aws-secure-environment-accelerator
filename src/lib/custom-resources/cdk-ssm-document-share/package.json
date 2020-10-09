@@ -1,5 +1,5 @@
 {
-  "name": "@aws-accelerator/custom-resource-ssm-session-manager-document",
+  "name": "@aws-accelerator/custom-resource-ssm-document-share",
   "peerDependencies": {
     "@aws-cdk/aws-iam": "^1.66.0", 
     "@aws-cdk/core": "^1.66.0"
@@ -19,6 +19,6 @@
     "tslint-config-prettier": "1.18.0", 
     "@types/cfn-response": "1.0.3", 
     "@types/node": "12.12.6", 
-    "@aws-accelerator/custom-resource-ssm-session-manager-document-runtime": "workspace:^0.0.1"
+    "@aws-accelerator/custom-resource-ssm-document-share-runtime": "workspace:^0.0.1"
   }
 }

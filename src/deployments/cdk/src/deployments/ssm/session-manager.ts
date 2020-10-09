@@ -50,7 +50,7 @@ export async function step1(props: SSMStep1Props) {
       const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
         outputs,
         accountKey: localAccountKey,
-        roleKey: 'SSMSessionManagerDocument',
+        roleKey: 'SSMDocumentRole',
       });
 
       const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
