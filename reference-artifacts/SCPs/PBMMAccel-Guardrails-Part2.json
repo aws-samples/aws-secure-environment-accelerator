@@ -143,13 +143,28 @@
     {
       "Sid": "DenyLog2",
       "Effect": "Deny",
-      "Action": [
-        "logs:AssociateKmsKey",
-        "logs:DisassociateKmsKey",
-        "logs:PutDestination",
-        "logs:PutDestinationPolicy"
-      ],
+      "Action": ["logs:AssociateKmsKey", "logs:DisassociateKmsKey", "logs:PutDestination", "logs:PutDestinationPolicy"],
       "Resource": "arn:aws:logs:::log-group:*PBMMAccel*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyPolicy",
+      "Effect": "Deny",
+      "Action": [
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:DeletePolicyVersion",
+        "iam:SetDefaultPolicyVersion",
+        "iam:CreatePolicyVersion"
+      ],
+      "Resource": "arn:aws:iam::*:policy/PBMMAccel-*",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
