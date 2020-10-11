@@ -117,10 +117,11 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### 1.2.2. Basic Accelerator Configuration
 
-1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) file as base
+1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) or [`config.lite-example.json`](../../reference-artifacts/config.lite-example.json) files as base
    - Use the version from the Github code branch you are deploying from as some parameters have changed over time
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
-   - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
+   - These configuration files can be used, as-is, with only minor modification to successfully deploy the standard architecture
+   - These files are described in more detail [here](./customization-index.md)
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
 
    1. For existing accounts, they must match identically to the account names and email addresses defined in AWS Organizations;
@@ -383,7 +384,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
 ## 3.1. Upgrades
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats.
-- Upgrades to `v1.2.1 and above` from v1.2.0 and below - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint vpc in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
+- Upgrades to `v1.2.1 and above` from v1.2.0 and below - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint vpc in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
 - Upgrades to `v1.2.0 and above` from v1.1.9 and below require setting `account-warming-required` to `false`, (Perimeter and Ops accounts) or the rsyslog and firewalls will be removed and then re-installed on the subsequent state machine execution
 - Upgrades from `v1.1.7 and below` require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
 - Upgrades from `v1.1.6 and below` require updating the `GithubRepository` in the CFN stack, as we renamed the GitHub repo with release v1.1.7 to `aws-secure-environment-accelerator`.
@@ -411,7 +412,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - Shard count - can only increase/reduce by half the current limit. i.e. you can change from `1`-`2`, `2`-`3`, `4`-`6`
 - Always add any new items to the END of all lists or sections in the config file, otherwise
   - Update validation checks will fail (vpc's, subnets, share-to, etc.)
-  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine)
+  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine) - this challenge no longer exists as of v1.2.1.
 - To skip, remove or uninstall a component, you can simply change the section header, instead of removing the section
   - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use
   - Objects with the parameter deploy: true, support setting the value to false to remove the deployment
