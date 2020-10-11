@@ -132,13 +132,14 @@ This summarizes the installation process, the full installation document can be 
     - deploy, configure and guardrail multiple accounts at the same time
     - change Accelerator configuration settings
 
-# **Documentation** (Linked)
+# **Documentation**
 
 ### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-- [Link](./docs/installation/customization-index.md) to sample config file and customization details
-- [Link](./docs/architectures/pbmm/log-file-locations.md) to AWS SEA Central Logging Bucket Structures
+- [Link](./docs/installation/customization-index.md) to sample config files and customization details
+- AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
+- Unofficial [Roadmap](./docs/roadmap.md)
 
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
@@ -152,4 +153,8 @@ This summarizes the installation process, the full installation document can be 
 
 ---
 
-[...Go to Accelerator Table of Contents](./docs/index.md)
+Note: A ZIP file containing a PDF version of all documentation can be found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/actions?query=workflow%3A%22Generate+Documentation%22).
+
+---
+
+[Go to Accelerator Table of Contents](./docs/index.md)

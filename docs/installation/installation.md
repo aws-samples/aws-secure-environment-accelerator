@@ -117,10 +117,11 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### 1.2.2. Basic Accelerator Configuration
 
-1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) file as base
+1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) or [`config.lite-example.json`](../../reference-artifacts/config.lite-example.json) files as base
    - Use the version from the Github code branch you are deploying from as some parameters have changed over time
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
-   - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
+   - These configuration files can be used, as-is, with only minor modification to successfully deploy the standard architecture
+   - These files are described in more detail [here](./customization-index.md)
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
 
    1. For existing accounts, they must match identically to the account names and email addresses defined in AWS Organizations;
