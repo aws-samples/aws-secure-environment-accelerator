@@ -9,6 +9,7 @@ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { StructuredOutput, createCfnStructuredOutput } from '../../common/structured-output';
 import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
 import { SsmKmsOutput } from '@aws-accelerator/common-outputs/src/ssm';
+import { optional } from '@aws-accelerator/common-types';
 
 export const CfnEbsKmsOutput = createCfnStructuredOutput(EbsKmsOutput);
 
@@ -43,8 +44,8 @@ const AccountBucketOutputType = t.interface(
     bucketArn: t.string,
     encryptionKeyArn: t.string,
     region: t.string,
-    encryptionKeyName: t.string,
-    encryptionKeyId: t.string,
+    encryptionKeyName: optional(t.string),
+    encryptionKeyId: optional(t.string),
   },
   'AccountBucket',
 );
@@ -57,8 +58,8 @@ const LogBucketOutputType = t.interface(
     bucketArn: t.string,
     encryptionKeyArn: t.string,
     region: t.string,
-    encryptionKeyName: t.string,
-    encryptionKeyId: t.string,
+    encryptionKeyName: optional(t.string),
+    encryptionKeyId: optional(t.string),
   },
   'LogBucket',
 );
