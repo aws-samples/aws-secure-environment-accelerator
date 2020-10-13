@@ -3,7 +3,7 @@ import { AccountStacks } from '../../common/account-stacks';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { ResourceCleanup } from '@aws-accelerator/custom-resource-cleanup';
-import { AccountBucketOutput } from '../defaults';
+import { AccountBucketOutputFinder } from '../defaults';
 import { Account } from '../../utils/accounts';
 import { ResourceCleanupOutputFinder } from './outputs';
 
@@ -33,40 +33,39 @@ export async function step1(props: VpcFlowLogsBucketPermissionsCleanupProps) {
     return;
   }
 
-  // Find the account default buckets in the outputs
-  const accountBuckets = AccountBucketOutput.getAccountBuckets({
-    accounts,
-    accountStacks,
-    config,
-    outputs,
-  });
-
-  const logArchiveAccount = config['global-options']['central-log-services'].account;
   const securityAccount = config['global-options']['central-security-services'].account;
-  for (const accountKey of Object.keys(accountBuckets)) {
+  for (const account of accounts) {
+    const accountBucket = AccountBucketOutputFinder.tryFindOneByName({
+      outputs,
+      accountKey: account.key,
+    });
+    if (!accountBucket) {
+      continue;
+    }
+
     // Skip deletion of Log Archive and Security account default bucket policy
-    if (logArchiveAccount === accountKey || securityAccount === accountKey) {
-      console.log(`Skipping the deletion of bucket policy for account ${accountKey}`);
+    if (securityAccount === account.key) {
+      console.log(`Skipping the deletion of bucket policy for account ${account.key}`);
       continue;
     }
 
     const cleanupRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       outputs,
-      accountKey,
+      accountKey: account.key,
       roleKey: 'ResourceCleanupRole',
     });
     if (!cleanupRoleOutput) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(account.key);
     if (!accountStack) {
-      console.warn(`Cannot find account stack ${accountKey}`);
+      console.warn(`Cannot find account stack ${account.key}`);
       continue;
     }
 
-    new ResourceCleanup(accountStack, `BucketPolicyCleanup${accountKey}`, {
-      bucketName: accountBuckets[accountKey].bucketName,
+    new ResourceCleanup(accountStack, `BucketPolicyCleanup${account.key}`, {
+      bucketName: accountBucket.bucketName,
       roleArn: cleanupRoleOutput.roleArn,
     });
   }
