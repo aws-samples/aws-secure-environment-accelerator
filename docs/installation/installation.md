@@ -75,7 +75,10 @@ Before installing, you must first:
 - Click Finish
 
 8. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
-9. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
+
+- With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
+
+9.  Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
 10. It is **_extremely important_** that **_all_** the account contact details be validated in the ROOT account before deploying any new sub-accounts.
 
 - This information is copied to every new sub-account on creation.
@@ -99,6 +102,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    - Due to PMP provisioning delays, this sometimes fails when attempted immediately following enablement of PMP - retry after 20 minutes.
 9. Wait a couple of minutes while it adds item to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
+10. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
 
 ## 1.2. Preparation
 
@@ -189,7 +193,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.2.0`, case sensitive
+   - the latest stable branch is currently `release/v1.2.1b`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -199,7 +203,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 16. Once the pipeline completes (typically 15-20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
 17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-19. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
+19. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
 20. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`PBMMAccel-MainStateMachine_sm`) to deploy the firewall products
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
@@ -402,7 +406,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
   - The pipeline will automatically run and trigger the upgraded state machine
 - If you are using a pre-existing GitHub token:
-  - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.2`)
+  - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.1b`)
     - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 ## 3.2. Configuration File Hints and Tips
