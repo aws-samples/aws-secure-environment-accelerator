@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "BlockPMP",
+      "Sid": "PMP",
       "Effect": "Deny",
       "Action": [
         "aws-marketplace:CreatePrivateMarketplace",
@@ -21,7 +21,7 @@
       "Condition": {}
     },
     {
-      "Sid": "DenyRoot",
+      "Sid": "Root",
       "Effect": "Deny",
       "NotAction": [
         "iam:CreateVirtualMFADevice",
@@ -40,7 +40,7 @@
       }
     },
     {
-      "Sid": "EbsEncrypt1",
+      "Sid": "Ebs1",
       "Effect": "Deny",
       "Action": "ec2:RunInstances",
       "Resource": "arn:aws:ec2:*:*:volume/*",
@@ -51,7 +51,7 @@
       }
     },
     {
-      "Sid": "EBSEncrypt2",
+      "Sid": "EBS2",
       "Effect": "Deny",
       "Action": "ec2:CreateVolume",
       "Resource": "*",
@@ -62,7 +62,7 @@
       }
     },
     {
-      "Sid": "EFSEncrypt",
+      "Sid": "EFS",
       "Effect": "Deny",
       "Action": "elasticfilesystem:CreateFileSystem",
       "Resource": "*",
@@ -73,7 +73,7 @@
       }
     },
     {
-      "Sid": "RdsEncrypt",
+      "Sid": "Rds",
       "Effect": "Deny",
       "Action": "rds:CreateDBInstance",
       "Resource": "arn:aws:rds:*:*:db:*",
@@ -87,7 +87,7 @@
       }
     },
     {
-      "Sid": "AuroraEncrypt",
+      "Sid": "Aurora",
       "Effect": "Deny",
       "Action": "rds:CreateDBCluster",
       "Resource": "*",
@@ -97,19 +97,6 @@
         },
         "Bool": {
           "rds:StorageEncrypted": "false"
-        }
-      }
-    },
-    {
-      "Action": ["ssm:CreateDocument", "ssm:UpdateDocument", "ssm:DeleteDocument"],
-      "Effect": "Deny",
-      "Resource": ["arn:aws:ssm:::document/SSM-SessionManagerRunShell"],
-      "Condition": {
-        "ArnNotLike": {
-          "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
         }
       }
     },
@@ -127,7 +114,7 @@
       }
     },
     {
-      "Sid": "DenyRDGWRole",
+      "Sid": "RDGW",
       "Effect": "Deny",
       "Action": ["iam:*"],
       "Resource": "arn:aws:iam::*:role/PBMMAccel-RDGW-Role",
@@ -141,7 +128,7 @@
       }
     },
     {
-      "Sid": "DenyLog2",
+      "Sid": "Log2",
       "Effect": "Deny",
       "Action": ["logs:AssociateKmsKey", "logs:DisassociateKmsKey", "logs:PutDestination", "logs:PutDestinationPolicy"],
       "Resource": "arn:aws:logs:::log-group:*PBMMAccel*",
@@ -155,7 +142,7 @@
       }
     },
     {
-      "Sid": "DenyPolicy",
+      "Sid": "IAM",
       "Effect": "Deny",
       "Action": [
         "iam:CreatePolicy",
@@ -167,24 +154,45 @@
       "Resource": "arn:aws:iam::*:policy/PBMMAccel-*",
       "Condition": {
         "ArnNotLike": {
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/PBMMAccel-*"]
+        }
+      }
+    },
+    {
+      "Sid": "Kinesis",
+      "Effect": "Deny",
+      "Action": [
+        "kinesis:Create*",
+        "kinesis:Decrease*",
+        "kinesis:Delete*",
+        "kinesis:Deregister*",
+        "kinesis:Start*",
+        "kinesis:Stop*",
+        "kinesis:Update*",
+        "firehose:Create*",
+        "firehose:Delete*",
+        "firehose:Start*",
+        "firehose:Stop*",
+        "firehose:Update*"
+      ],
+      "Resource": ["arn:aws:firehose:*:*:deliverystream/PBMMAccel*", "arn:aws:kinesis:*:*:stream/PBMMAccel*"],
+      "Condition": {
+        "ArnNotLike": {
           "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
     },
     {
-      "Sid": "DenySecurity",
+      "Sid": "Security",
       "Effect": "Deny",
       "Action": [
         "guardduty:AcceptInvitation",
         "guardduty:DeclineInvitations",
-        "guardduty:DeleteDetector",
-        "guardduty:DeleteInvitations",
-        "guardduty:DeleteMembers",
-        "guardduty:DeletePublishingDestination",
-        "guardduty:DisassociateFromMasterAccount",
-        "guardduty:DisassociateMembers",
+        "guardduty:Delete*",
+        "guardduty:Disassociate*",
         "guardduty:StopMonitoringMembers",
         "guardduty:UpdateDetector",
         "guardduty:UpdateFindingsFeedback",
