@@ -10,7 +10,7 @@ information to effectively respond to your bug report or contribution.
 
 The AWS Secure Environment Accelerator will use GitHub [Issues](https://docs.github.com/en/github/managing-your-work-on-github/creating-an-issue) and [Pull Request](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request) mechanisms for community engagement. AWS employees, AWS partners, customers and the general public, can create Issue(s) for the repo, such as: bugs, feature requests, or questions on the code itself. You should not communicate [security](#security-issue-notifications) issues through GitHub.
 
-Stakeholders are also encouraged to create Pull Requests that could potentially address issues or add functionality. Stakeholders can also express sentiments on issues such as upvote/downvote in order to influence prioritization. The Product Manager working with all stakeholders use a GitHub Kanban board to publicly document the ongoing project work and prioritization using the available feedback.
+Stakeholders are also encouraged to create Pull Requests that could potentially address issues or add functionality. Stakeholders can also express sentiments on issues such as upvote/downvote in order to influence prioritization. The Product Manager, working with all stakeholders, will use a GitHub Kanban board to publicly document the ongoing project work and prioritization using the available feedback.
 
 ## Reporting Bugs/Feature Requests
 
@@ -19,10 +19,11 @@ We welcome you to use the GitHub issue tracker to report bugs or suggest feature
 When filing an issue, please check existing open, or recently closed, issues to make sure somebody else hasn't already
 reported the issue. Please try to include as much information as you can. Details like these are incredibly useful:
 
-- A reproducible test case or series of steps
 - The version of our code being used
+- A reproducible test case or series of steps
 - Any modifications you've made relevant to the bug
 - Anything unusual about your environment or deployment
+- Error messages and information as detailed in Section 4 of the Accelerator Operations & Troubleshooting Guide
 
 ## Contributing via Pull Requests
 
@@ -51,13 +52,14 @@ GitHub provides additional document on [forking a repository](https://help.githu
 2. If a guardrail fails to be deployed, all code must result in a state machine failure, with a descriptive message as to the cause of the fault
 3. All code, on failure, needs to properly and completely roll-back or cleanup. On a failure, users should not be required to manually cleanup in order to re-run the state machine
 4. All reasonable efforts should be taken to ensure resources don't fail to deploy (again retries or corrective code to prevent hitting common error situations)
-5. All code changes need to accommodate both new deployments and upgrades from _any_ existing Accelerator versions. A smooth upgrade path must be provided for existing customers. In certain cases an automated manual procedure could be provided to existing customers to perform before upgrade to enable a smooth upgrade, but it cannot involve removing idempotent resources (i.e. MAD). For example, remove your VPC endpoints prior to upgrading.
+5. All code changes need to accommodate both new deployments and upgrades from _any_ existing Accelerator versions. A smooth upgrade path must be provided for existing customers. In certain cases an automated pre-upgrade procedure could be provided to existing customers to perform before an upgrade to enable a smooth upgrade. This cannot involve removing idempotent resources (i.e. MAD). For example, remove your VPC endpoints prior to upgrading.
 6. All code should be delivered as Typescript. The project has worked hard to ensure a consistent and single language and runtime to ensure long-term supportability
 7. When developing, CDK should be selected first, a Custom Resource second, and only when the first two are not viable solutions, should a Lambda be considered
+8. When adding new features, they must be off by default and enabled with a new config file variable, allowing customers the option to enable and disable the feature during deployment, upgrade, or at a future time. A new features functionality should not be hard-coded, but be configurable through the configuration file.
 
 ## Finding contributions to work on
 
-Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any 'help wanted' issues is a great place to start.
+Review the unofficial roadmap or look at the existing issues for a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any 'help wanted' issues is a great place to start.
 
 ## Code of Conduct
 
