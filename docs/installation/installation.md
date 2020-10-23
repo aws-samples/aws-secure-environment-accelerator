@@ -135,8 +135,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
    5. For a test deployment, the remainder of the values can be used as-is.
 
 3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
+   1. When deploying regions other than ca-central-1, you need to validate all the Interface Endpoints defined in the config file are actually supported in the region you are deploying in.
 
-- If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the mgmt port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
+- If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
 
 ### 1.2.3. Production Accelerator Configuration
 
@@ -213,7 +214,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ![marketplace](img/marketplace.png)
 
-21. Once themain state machine (`PBMMAccel-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
+21. Once the main state machine (`PBMMAccel-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
 22. If your perimeter firewalls were not deployed on first run, you will need to rerun the state machine. This happens when:
     1. you were unable to activate the firewall AMI's before stage 2 (step 19)
@@ -342,7 +343,7 @@ Ensuring the integrity of deployed guardrails is critical in operating and maint
 
 Additionally, with millions of active customers each supporting different and diverse use cases and with the rapid rate of evolution of the AWS platform, sometimes we will encounter unexpected circumstances and the state machine might fail.
 
-We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As unhandled scenario's are brought to our attention, we continue to adjust the codebase to better handle these situations.
+We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc.). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As new scenario's are brought to our attention, we continue to adjust the codebase to better handle these situations.
 
 Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
 
@@ -370,9 +371,13 @@ Yes. The state machine captures a consistent input state of the requested config
 
 ### 2.0.10. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
 
-To overide items like SCP's or IAM policies, customers simply need to provide the identically named file in there input bucket. As long as the file exists in the correct folder in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version. SCP's need to be placed into a folder named `scp` and iam policies in a folder named `iam-policy` (case sensative).
+To override items like SCP's or IAM policies, customers simply need to provide the identically named file in there input bucket. As long as the file exists in the correct folder in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version. Customer SCP's need to be placed into a folder named `scp` and iam policies in a folder named `iam-policy` (case sensitive).
 
-The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Acclerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of Accelerator supplied versions. If a customer wishes to revert to the sample configuration, simply removing the specific files from their S3 bucket and rerunning the accelerator will revert to the repo version of the removed files. Customer only need to provide the specific files they wish to overide, not all files.
+The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Accelerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place new or updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of or in addition to Accelerator supplied versions. If a customer wishes to revert to the sample configuration, simply removing the specific files from their S3 bucket and rerunning the accelerator will revert to the repo version of the removed files. Customer only need to provide the specific files they wish to override, not all files.
+
+Customers can also define additional SCPs (or modify existing SCPs) using the name, description and filename of their choosing, and deploy them by referencing them on the appropriate organizational unit in the config file.
+
+NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be excercised if the provided SCPs are modified. We will be improving documenation as to which SCPs deliver security functionality versus those protecting the Accelerator itself in a future release.
 
 ### 2.0.11. I wish to be in compliance with the 12 TBS Guardrails, what don't you cover with the provided sample architecture?
 
@@ -389,7 +394,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
 ## 3.1. Upgrades
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats.
-- Upgrades to `v1.2.1 and above` from v1.2.0 and below - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint vpc in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
+- Upgrades to `v1.2.1 and above` from v1.2.0 and below - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
 - Upgrades to `v1.2.0 and above` from v1.1.9 and below require setting `account-warming-required` to `false`, (Perimeter and Ops accounts) or the rsyslog and firewalls will be removed and then re-installed on the subsequent state machine execution
 - Upgrades from `v1.1.7 and below` require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
 - Upgrades from `v1.1.6 and below` require updating the `GithubRepository` in the CFN stack, as we renamed the GitHub repo with release v1.1.7 to `aws-secure-environment-accelerator`.
@@ -416,7 +421,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - For example, CWL retention only supports specific retention values (not any number)
   - Shard count - can only increase/reduce by half the current limit. i.e. you can change from `1`-`2`, `2`-`3`, `4`-`6`
 - Always add any new items to the END of all lists or sections in the config file, otherwise
-  - Update validation checks will fail (vpc's, subnets, share-to, etc.)
+  - Update validation checks will fail (VPC's, subnets, share-to, etc.)
   - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine) - this challenge no longer exists as of v1.2.1.
 - To skip, remove or uninstall a component, you can simply change the section header, instead of removing the section
   - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use
@@ -441,13 +446,14 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - our early adopters have all successfully deployed into existing organizations
 - Existing AWS accounts _can_ also be imported into an Accelerator managed Organization
 - Caveats:
-  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts, worldwide. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
+  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts, worldwide. The inability to delete default VPC's in pre-existing accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
   - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance
     - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.)
   - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
   - We do NOT support _any_ workloads running or users operating in the root AWS account. The root AWS account MUST be tightly controlled
   - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
   - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, there may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
+  - If the Firewall Manager administrative account is already set for your organization, it needs to be unset before starting a deployment.
 
 ### 3.3.1. Process to import existing AWS accounts into an Accelerator managed Organization
 
@@ -465,7 +471,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - customers can either manually initiate the state machine once the current execution completes, or, the currently running state machine can be stopped and restarted to capture all changes at once
   - Are you unsure if an account had its guardrails applied? The message sent to the state machine Status SNS topic (and corresponding email address) on a successful state machine execution provides a list of all successfully processed accounts.
 - The state machine is both highly parallel and highly resilient, stopping the state machine should not have any negative impact. Importing 1 or 10 accounts generally takes about the same amount of time for the Accelerator to process, so it may be worth stopping the current execution and rerunning to capture all changes in a single execution.
-- We have added a 2 min delay before triggering the state machine, allowing customers to make muliple changes within a short timeframe and have them all captured automatically in the same state machine execution.
+- We have added a 2 min delay before triggering the state machine, allowing customers to make multiple changes within a short timeframe and have them all captured automatically in the same state machine execution.
 
 ### 3.3.2. Deploying the Accelerator into an existing Organization
 

@@ -633,9 +633,11 @@
 
 ---
 
-- Future description
+- Creating a VPC Virtual Gateway
 ```
-{future sample}
+          "vgw": {
+            "asn": 65522
+          },
 ```
 
 ---
