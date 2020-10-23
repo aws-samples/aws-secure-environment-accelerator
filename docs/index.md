@@ -16,11 +16,13 @@
 
 ### - [Accelerator Developer Guide](./developer/developer-guide.md) (Early Draft)
 
-### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md) (Early Draft)
+### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md)
 
 ### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/architecture.md) (Early Draft)
 
-### - [Frequently Asked Questions](./faq/faq.md) (Future)
+### - Frequently Asked Questions
+
+- See section 2 of the Accelerator Installation, Upgrades and Basic Operations Guide
 
 ---
 
