@@ -453,6 +453,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - We do NOT support _any_ workloads running or users operating in the root AWS account. The root AWS account MUST be tightly controlled
   - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
   - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, there may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
+  - If the Firewall Manager administrative account is already set for your organization, it needs to be unset before starting a deployment.
 
 ### 3.3.1. Process to import existing AWS accounts into an Accelerator managed Organization
 
