@@ -260,6 +260,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
   "fun-acct": {
     "account-name": "TheFunAccount",
     "email": "myemail+pbmmT-funacct@example.com",
+    "src-filename": "config.json",
     "ou": "Sandbox"
   }
   ```
