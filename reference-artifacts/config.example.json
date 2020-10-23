@@ -1120,7 +1120,9 @@
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": false,
+          "vgw": {
+            "asn": 65522
+          },
           "pcx": false,
           "natgw": false,
           "subnets": [
