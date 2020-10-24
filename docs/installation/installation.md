@@ -105,7 +105,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 10. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
     - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.2.3 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
-![New AMI ID](new-ami-id.png)
+![New AMI ID](img/new-ami-id.png)
 
 ## 1.2. Preparation
 
