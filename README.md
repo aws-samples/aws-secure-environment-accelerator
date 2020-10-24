@@ -22,7 +22,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Perimeter
   - Log-Archive
   - Security-Audit
-- Workload Accounts - automate mass account creation, or use AWS organizations to scale one account at a time. These accounts are used to host a customers workloads and applications.
+- Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customers workloads and applications.
 - Scalable to 1000's of AWS accounts
 - Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required

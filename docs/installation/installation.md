@@ -103,6 +103,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
 9. Wait a couple of minutes while it adds item to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
 10. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.2.3 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+
+![New AMI ID](new-ami-id.png)
 
 ## 1.2. Preparation
 
@@ -135,7 +138,9 @@ If deploying to an internal AWS account, to successfully install the entire solu
    5. For a test deployment, the remainder of the values can be used as-is.
 
 3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
-   1. When deploying regions other than ca-central-1, you need to validate all the Interface Endpoints defined in the config file are actually supported in the region you are deploying in.
+   1. When deploying regions other than ca-central-1, you need to:
+      - validate all the Interface Endpoints defined in the config file are actually supported in the region you are deploying in.
+      - update the firewall and firewall manager AMI id's to reflect the regional AMI id
 
 - If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
 
