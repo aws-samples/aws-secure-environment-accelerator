@@ -67,15 +67,16 @@ export class SecurityGroup extends cdk.Construct {
 
     const cleanVersion = sv.clean(installerVersion, { loose: true });
     let isUpdateDescription = false;
+    const newSgDescriptionVersion = '1.2.2';
     if (cleanVersion) {
       // Checking only "major, minor, patch" versions. Ignoring characters appended to release tag
       if (sv.coerce(installerVersion)) {
-        isUpdateDescription = sv.gte(sv.coerce(installerVersion)?.raw!, '1.2.1');
+        isUpdateDescription = sv.gte(sv.coerce(installerVersion)?.raw!, newSgDescriptionVersion);
       } else {
-        isUpdateDescription = sv.gte(installerVersion, '1.2.1');
+        isUpdateDescription = sv.gte(installerVersion, newSgDescriptionVersion);
       }
     } else {
-      isUpdateDescription = sv.satisfies('1.2.1', installerVersion);
+      isUpdateDescription = sv.satisfies(newSgDescriptionVersion, installerVersion);
     }
 
     // const securityGroups = vpcConfig['security-groups'];
