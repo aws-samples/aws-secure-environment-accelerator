@@ -318,8 +318,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0387a84800f5858d5',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Web_Central_aza_net' },
@@ -329,8 +329,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-075ca0d93563a4d6e',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Web_Central_azb_net' },
@@ -340,8 +340,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0b70e3e849949cc0c',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'App_Central_aza_net' },
@@ -351,8 +351,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-04e252c39434bbb19',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'App_Central_azb_net' },
@@ -362,8 +362,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-00bbd856fec06c15b',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Data_Central_aza_net' },
@@ -373,8 +373,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0ace127f373a1b274',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Data_Central_azb_net' },
@@ -384,8 +384,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-05eff632d6af56d17',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Mgmt_Central_aza_net' },
@@ -395,8 +395,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-03dc090bc09c84439',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Mgmt_Central_azb_net' },
@@ -406,8 +406,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-02809ab1988c1ec82',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'GCWide_Central_aza_net' },
@@ -417,8 +417,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0f4514137baa07759',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'GCWide_Central_azb_net' },
@@ -438,8 +438,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -449,8 +449,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -460,8 +460,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -471,8 +471,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -482,8 +482,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -493,8 +493,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -504,8 +504,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -515,8 +515,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -526,8 +526,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -537,8 +537,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -698,9 +698,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h',
-          bucketName: 'pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:007307298200:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
+          bucketName: 'DOC-EXAMPLE-BUCKET',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:555555555555:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -823,7 +823,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'MadAutoScalingRole',
         value: {
           roleArn:
-            'arn:aws:iam::278816265654:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling_PBMM',
+            'arn:aws:iam::111111111111:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling_PBMM',
         },
       }),
     },
@@ -835,7 +835,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'IamRole',
         value: {
           roleName: 'PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
-          roleArn: 'arn:aws:iam::278816265654:role/PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
+          roleArn: 'arn:aws:iam::111111111111:role/PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
           roleKey: 'LogGroupRole',
         },
       }),
@@ -868,7 +868,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-0affc8ea940417638',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Mgmt_sg' },
@@ -878,7 +878,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-0c91bf1bc94e5797f',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Web_sg' },
@@ -888,7 +888,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-08f5b682020bf1c61',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'App_sg' },
@@ -898,7 +898,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-041abd65f62750b6e',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Data_sg' },
@@ -919,7 +919,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           vpcName: 'Central',
           directoryId: 'd-9d672434ad',
           dnsIps: '100.96.252.103,100.96.252.233',
-          passwordArn: 'arn:aws:secretsmanager:ca-central-1:687384172140:secret:PBMMAccel/operations/mad/password',
+          passwordArn: 'arn:aws:secretsmanager:ca-central-1:111111111111:secret:PBMMAccel/operations/mad/password',
         },
       }),
     },
@@ -930,9 +930,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-operations-phase1-cacentral1-qwupe8qc06ka',
-          bucketName: 'pbmmaccel-operations-phase1-cacentral1-qwupe8qc06ka',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:278816265654:key/4e0a5d05-a3ba-4b19-b60e-5f26631d874a',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET1',
+          bucketName: 'DOC-EXAMPLE-BUCKET1',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/4e0a5d05-a3ba-4b19-b60e-5f26631d874a',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1014,9 +1014,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-perimeter-phase1-cacentral1-kfs7sxfgn49u',
-          bucketName: 'pbmmaccel-perimeter-phase1-cacentral1-kfs7sxfgn49u',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:422986242298:key/ccff8373-96f9-4ced-a167-38476316b235',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET2',
+          bucketName: 'DOC-EXAMPLE-BUCKET2',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:777777777777:key/ccff8373-96f9-4ced-a167-38476316b235',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1103,9 +1103,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase1-cacentral1-o4irpt8n8i3p',
-          bucketName: 'pbmmaccel-master-phase1-cacentral1-o4irpt8n8i3p',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:687384172140:key/e147a41e-7ada-427f-9b6b-75cdd706e313',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET3',
+          bucketName: 'DOC-EXAMPLE-BUCKET3',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/e147a41e-7ada-427f-9b6b-75cdd706e313',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1120,8 +1120,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'IamPolicyArtifactsOutput',
         value: {
           accountKey: 'master',
-          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
-          bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
+          bucketName: 'DOC-EXAMPLE-BUCKET',
           keyPrefix: 'iam-policy',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1135,9 +1135,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'CentralBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
-          bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:687384172140:key/c94a571b-25da-44a1-ac85-366d333ffb2a',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
+          bucketName: 'DOC-EXAMPLE-BUCKET',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/c94a571b-25da-44a1-ac85-366d333ffb2a',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1152,8 +1152,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'RdgwArtifactsOutput',
         value: {
           accountKey: 'master',
-          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
-          bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
+          bucketName: 'DOC-EXAMPLE-BUCKET',
           keyPrefix: 'config/scripts/',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1167,9 +1167,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'LogBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-logarchive-phase0-cacentral1-1fdlszygo5q6l',
-          bucketName: 'pbmmaccel-logarchive-phase0-cacentral1-1fdlszygo5q6l',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:272091715658:key/18f7a4af-2fbb-4a4f-a597-7b0bae016c36',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET1',
+          bucketName: 'DOC-EXAMPLE-BUCKET1',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:222222222222:key/18f7a4af-2fbb-4a4f-a597-7b0bae016c36',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1183,8 +1183,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AesBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-logarchive-phase0-aescacentral1-7iadcqkmhk3i',
-          bucketName: 'pbmmaccel-logarchive-phase0-aescacentral1-7iadcqkmhk3i',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET1',
+          bucketName: 'DOC-EXAMPLE-BUCKET1',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1198,9 +1198,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-security-phase1-cacentral1-1udpzdaewgqu3',
-          bucketName: 'pbmmaccel-security-phase1-cacentral1-1udpzdaewgqu3',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:122259674264:key/ba5d50a0-e25d-4d7e-b15e-bad6d4054310',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET2',
+          bucketName: 'DOC-EXAMPLE-BUCKET2',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:333333333333:key/ba5d50a0-e25d-4d7e-b15e-bad6d4054310',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1214,9 +1214,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-sharedservices-phase1-cacentral1-1crul1c6woto0',
-          bucketName: 'pbmmaccel-sharedservices-phase1-cacentral1-1crul1c6woto0',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:378053304141:key/f6c1ec02-e1cb-4ace-8abf-25574551cf32',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET3',
+          bucketName: 'DOC-EXAMPLE-BUCKET3',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:666666666666:key/f6c1ec02-e1cb-4ace-8abf-25574551cf32',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1264,9 +1264,9 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
       outputValue: JSON.stringify({
         type: 'AccountBucket',
         value: {
-          bucketArn: 'arn:aws:s3:::pbmmaccel-funacct-phase1-cacentral1-1qsru3dws5n76',
-          bucketName: 'pbmmaccel-funacct-phase1-cacentral1-1qsru3dws5n76',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:934027390063:key/7592bb9b-43d1-45d3-be51-bbc59cb06471',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET3',
+          bucketName: 'DOC-EXAMPLE-BUCKET3',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:888888888888:key/7592bb9b-43d1-45d3-be51-bbc59cb06471',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1282,8 +1282,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           accountKey: 'master',
           artifactName: 'SCP',
-          bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
-          bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
+          bucketArn: 'arn:aws:s3:::DOC-EXAMPLE-BUCKET',
+          bucketName: 'DOC-EXAMPLE-BUCKET',
           keyPrefix: 'scp',
         },
       }),
