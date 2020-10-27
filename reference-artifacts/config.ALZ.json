@@ -641,7 +641,6 @@
               "cloudtrail",
               "codebuild",
               "codecommit",
-              "codecommit-fips",
               "codepipeline",
               "config",
               "datasync",
@@ -650,13 +649,11 @@
               "ecs-agent",
               "ecs-telemetry",
               "elasticfilesystem",
-              "elasticfilesystem-fips",
               "elasticloadbalancing",
               "elasticmapreduce",
               "events",
               "execute-api",
               "git-codecommit",
-              "git-codecommit-fips",
               "glue",
               "kinesis-streams",
               "kms",
@@ -1128,9 +1125,7 @@
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": {
-            "asn": 65522
-          },
+          "vgw": false,
           "pcx": false,
           "natgw": false,
           "subnets": [
