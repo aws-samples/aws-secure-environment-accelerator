@@ -126,6 +126,7 @@
     "@aws-cdk/aws-stepfunctions": "1.66.0",
     "@aws-cdk/core": "1.66.0",
     "@aws-cdk/custom-resources": "1.66.0",
+    "@aws-cdk/region-info": "1.66.0",
     "@types/cfn-response": "^1.0.3",
     "@types/semver": "^7.3.3",
     "colors": "1.4.0",
