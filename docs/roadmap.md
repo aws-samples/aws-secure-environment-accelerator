@@ -52,6 +52,7 @@
   - Adopt a JSON pointer syntax in config file (allow duplicate object naming)
   - improve consistency, remove type mutations, ensure multiples are implemented (or remove them until supported)
   - config file to become a contract
+- Automated KMS CMK rotation capabilities
 
 ## WISH LIST
 
