@@ -65,8 +65,18 @@ export class SecurityGroup extends cdk.Construct {
     super(parent, name);
     const { securityGroups, accountKey, vpcId, vpcConfigs, vpcName, installerVersion, sharedAccountKey } = props;
 
-    const isUpdateDescription =
-      sv.clean(installerVersion) === null ? sv.satisfies('1.2.1', installerVersion) : sv.gte(installerVersion, '1.2.1');
+    const cleanVersion = sv.clean(installerVersion, { loose: true });
+    let isUpdateDescription = false;
+    if (cleanVersion) {
+      // Checking only "major, minor, patch" versions. Ignoring characters appended to release tag
+      if (sv.coerce(installerVersion)) {
+        isUpdateDescription = sv.gte(sv.coerce(installerVersion)?.raw!, '1.2.1');
+      } else {
+        isUpdateDescription = sv.gte(installerVersion, '1.2.1');
+      }
+    } else {
+      isUpdateDescription = sv.satisfies('1.2.1', installerVersion);
+    }
 
     // const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
