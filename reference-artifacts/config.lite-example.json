@@ -90,8 +90,8 @@
         "resolver-vpc": "Endpoint",
         "region": "ca-central-1",
         "names": {
-          "public": ["dept.cloud-nuage.canada.ca"],
-          "private": ["dept.cloud-nuage.gc.ca"]
+          "public": ["cloud-hosted-publicdomain.example.ca"],
+          "private": ["cloud-hosted-privatedomain.example.ca"]
         }
       }
     ],
@@ -628,11 +628,11 @@
           },
           "on-premise-rules": [
             {
-              "zone": "dept-private.gc.ca",
+              "zone": "on-premise-privatedomain1.example.ca",
               "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             },
             {
-              "zone": "private-domain1.example.ca",
+              "zone": "on-premise-privatedomain2.example.ca",
               "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             }
           ]
