@@ -794,6 +794,7 @@ export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
 
 export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface CloudWatchDefaultAlarmDefinition extends Omit<CloudWatchAlarmsConfig, 'definitions'> {
   /**
    * Interface definition for Default definition of CloudWatch alarm

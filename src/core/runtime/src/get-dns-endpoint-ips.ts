@@ -11,9 +11,9 @@ function sendResponsePromise(
   physicalResourceId?: string,
 ): Promise<unknown> {
   return new Promise(resolve => {
-    // tslint:disable-next-line:deprecation
+    // eslint-disable-next-line deprecation/deprecation
     context.done = resolve;
-    // tslint:disable-next-line
+    // eslint-disable-next-line
     sendResponse(event, context, responseStatus, responseData, physicalResourceId);
   });
 }

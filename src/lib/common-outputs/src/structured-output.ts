@@ -42,7 +42,7 @@ export function createStructuredOutputFinder<T, X = {}>(
     },
   };
   const extension = extend ? extend(finder) : undefined;
-  // tslint:disable-next-line: prefer-object-spread
+  // eslint-disable-next-line prefer-object-spread
   return Object.assign(finder, extension);
 }
 

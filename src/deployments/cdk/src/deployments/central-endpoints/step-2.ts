@@ -251,7 +251,6 @@ export async function step2(props: CentralEndpointsStep2Props) {
           mc.mad['central-resolver-rule-vpc'] === vpcConfig.name,
       );
       for (const { accountKey: madAccountKey, mad } of madConfigsWithVpc) {
-        let madIPs: string[];
         const madOutput = getStackJsonOutput(outputs, {
           accountKey: madAccountKey,
           outputType: 'MadOutput',
@@ -260,7 +259,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
           console.warn(`MAD is not deployed yet in account ${accountKey}`);
           continue;
         }
-        madIPs = madOutput[0].dnsIps.split(',');
+        const madIPs: string[] = madOutput[0].dnsIps.split(',');
         const targetIps: TargetIp[] = madIPs.map(ip => ({
           Ip: ip,
           Port: 53,

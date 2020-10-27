@@ -9,7 +9,7 @@ export const handler = async (event: CloudFormationCustomResourceEvent): Promise
   console.log(`Finding launch time...`);
   console.log(JSON.stringify(event, null, 2));
 
-  // tslint:disable-next-line: switch-default
+  // eslint-disable-next-line default-case
   switch (event.RequestType) {
     case 'Create':
       return onCreate(event);

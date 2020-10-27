@@ -15,7 +15,7 @@ export function getFormattedObject(input: string, format: FormatType) {
   return yaml.load(input);
 }
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function getStringFromObject(input: any, format: FormatType) {
   if (format === JSON_FORMAT) {
     return JSON.stringify(input, null, 2);
@@ -72,7 +72,7 @@ export class RawConfig {
     };
   }
 
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async load(configElement: any, loadFiles: PutFileEntry[]) {
     if (configElement.__LOAD) {
       if (typeof configElement.__LOAD === 'string') {

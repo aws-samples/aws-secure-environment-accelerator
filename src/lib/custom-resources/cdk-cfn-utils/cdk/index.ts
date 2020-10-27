@@ -17,7 +17,7 @@ export function throttlingBackOff<T>(
   });
 }
 
-// tslint:disable-next-line: no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isThrottlingError = (e: any) =>
   e.errorType === 'TooManyRequestsException' ||
   e.code === 'Throttling' ||

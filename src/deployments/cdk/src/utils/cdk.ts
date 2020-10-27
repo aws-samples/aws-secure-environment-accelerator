@@ -7,7 +7,7 @@ export function overrideLogicalId(construct: cdk.Construct, logicalId: string) {
   bucket.overrideLogicalId(sanitized);
 }
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Type<T> = new (...args: any[]) => T;
 
 export function findChildOfType<T>(type: Type<T>, construct: cdk.Construct): T {

@@ -116,7 +116,7 @@ async function removeAccountConfig(account: Account): Promise<string> {
     }
   } else {
     const accountConfigResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
-    // tslint:disable-next-line: no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const accountsConfig: { [accountKey: string]: any } = getFormattedObject(
       accountConfigResponse.fileContent.toString(),
       format,

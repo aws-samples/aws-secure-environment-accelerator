@@ -281,7 +281,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   return latestCommitId || configCommitId;
 };
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function updateAccountConfig(accountConfig: any, accountInfo: UpdateAccountOutput) {
   if (accountInfo.email) {
     accountConfig.email = accountInfo.email;
