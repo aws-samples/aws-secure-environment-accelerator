@@ -109,7 +109,7 @@ The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Ac
 
 ## Relationship with AWS Control Tower
 
-AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Towers limited regional coverage, limited functionality and lack of customizability has made it unsuitable in meeting their requirements.
+AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Tower does not meet their compliance requirements as it does not yet have the required features and capabilities, and is not available in the customers required AWS regions.
 
 When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we initially allowed with the ALZ.
 
