@@ -1,2 +1,12 @@
 AWS Secure Environment Accelerator
 Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+Notes:
+- No third party modules or packages are being redistributed
+- Third party dependencies are leveraged and pulled in at runtime (as per the various packages.json files)
+- Third party dependencies with known more restrictive licensing:
+  - original-fs uses LGPLv3
+- Additionally, this solution deploys commercial software products, if configured, including:
+  - Amazon Linux 2 w/rsyslog
+  - Windows Server
+  - 3rd party firewall software
