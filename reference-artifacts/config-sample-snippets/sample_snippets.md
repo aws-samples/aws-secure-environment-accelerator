@@ -638,6 +638,39 @@
           "vgw": {
             "asn": 65522
           },
+...
+          "route-tables": [
+            {
+              "name": "Public_Shared",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_azA",
+              "routes": [
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "VGW"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_azB",
+              "routes": [
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "VGW"
+                }
+              ]
+            }
+          ]
+
+		  
+		  
 ```
 
 ---
