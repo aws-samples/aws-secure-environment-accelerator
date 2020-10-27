@@ -919,7 +919,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           vpcName: 'Central',
           directoryId: 'd-9d672434ad',
           dnsIps: '100.96.252.103,100.96.252.233',
-          passwordArn: 'arn:aws:secretsmanager:ca-central-1:687384172140:secret:PBMMAccel/operations/mad/password',
+          passwordArn: 'arn:aws:secretsmanager:ca-central-1:111111111111:secret:PBMMAccel/operations/mad/password',
         },
       }),
     },
@@ -1105,7 +1105,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase1-cacentral1-o4irpt8n8i3p',
           bucketName: 'pbmmaccel-master-phase1-cacentral1-o4irpt8n8i3p',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:687384172140:key/e147a41e-7ada-427f-9b6b-75cdd706e313',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/e147a41e-7ada-427f-9b6b-75cdd706e313',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -1137,7 +1137,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           bucketArn: 'arn:aws:s3:::pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
           bucketName: 'pbmmaccel-master-phase0-configcacentral1-3574bod3khwt',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:687384172140:key/c94a571b-25da-44a1-ac85-366d333ffb2a',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/c94a571b-25da-44a1-ac85-366d333ffb2a',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
