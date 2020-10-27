@@ -10,19 +10,17 @@
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./installation/customization-index.md) to sample config files and customization details
-- AWS SEA Central Logging [Bucket Structures](./architectures/pbmm/log-file-locations.md)
+- [Link](./architectures/pbmm/log-file-locations.md) to AWS SEA Central Logging Bucket Structures
 
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md)
 
 ### - [Accelerator Developer Guide](./developer/developer-guide.md) (Early Draft)
 
-### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md)
+### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md) (Early Draft)
 
 ### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/architecture.md) (Early Draft)
 
-### - Frequently Asked Questions
-
-- See section 2 of the Accelerator Installation, Upgrades and Basic Operations Guide
+### - [Frequently Asked Questions](./faq/faq.md)
 
 ---
 

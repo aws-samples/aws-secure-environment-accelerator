@@ -209,7 +209,7 @@ The `Initial Setup` stack is similar to the `Installer` stack, as in that it run
 - we use a AWS Step Functions State Machine to run the various steps instead of CodePipeline;
 - we deploy multiple stacks, called `Phase` stacks, in Accelerator-managed accounts. These `Phase` stacks contain Accelerator-managed resources.
 
-In order to install these `Phase` stacks in Accelerator-managed accounts, we need access to those accounts. We create a stack set in the master account that has instances in all Accelerator-managed accounts. This stack set contains what we call the `PipelineRole`.
+In order to install these `Phase` stacks in Accelerator-managed accounts, we need access to those accounts. We create a stack set in the Organization Management (root) account that has instances in all Accelerator-managed accounts. This stack set contains what we call the `PipelineRole`.
 
 The code for the steps in the state machine is in `src/core/runtime`. All the steps are in different files but are compiled into a single file. We used to compile all the steps separately but we would hit a limit in the amount of parameters in the generated CloudFormation template. Each step would have its own CDK asset that would introduce three new parameters. We quickly reached the limit of 60 parameters in a CloudFormation template and decided to compile the steps into a single file and use it across all different Lambda functions.
 
@@ -342,7 +342,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, outpu
 
 ##### 2.1.3.2. Passing Outputs Between Phases
 
-The CodeBuild step that is responsible for deploying a `Phase` stack runs in the master account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
+The CodeBuild step that is responsible for deploying a `Phase` stack runs in the Organization Management (root) account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
 
 After a `Phase-X` is deployed in all Accelerator-managed accounts, a step in the `Initial Setup` state machine collects all the `Phase-X` stack outputs in all Accelerator-managed accounts and regions and stores theses outputs in S3.
 
@@ -362,7 +362,7 @@ Later on in the project we started decoupling the Accelerator config from the co
 
 At the time of writing, CDK does not support cross-account deployments of stacks. It is possible however to write a CDK plugin and implement your own credential loader for cross-account deployment.
 
-We wrote a CDK plugin that can assume a role into another account. In our case, the master account will assume the `PipelineRole` in an Accelerator-managed account to deploy stacks.
+We wrote a CDK plugin that can assume a role into another account. In our case, the Organization Management (root) account will assume the `PipelineRole` in an Accelerator-managed account to deploy stacks.
 
 #### 2.2.2. CDK API
 

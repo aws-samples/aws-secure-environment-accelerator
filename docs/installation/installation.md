@@ -46,37 +46,40 @@ These installation instructions assume the prescribed architecture is being depl
 
 ### 1.1.1. General
 
-- Root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
+- Management or root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid configuration file, updated to reflect your deployment (see below)
-- Determine your primary or Accelerator 'control' region. These instructions have been written assuming ca-central-1, but any supported region can be substituted.
-- The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes
+- Determine your primary or Accelerator 'control' or 'home' region. These instructions have been written assuming `ca-central-1`, but any supported region can be substituted.
+- The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in section 3.3 below
 - Existing ALZ customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
 ### 1.1.2. Accelerator Pre-Install Steps
 
 Before installing, you must first:
 
-1. Login to the organization **root AWS account** with `AdministratorAccess`.
+1. Login to the Organization **Management or root AWS account** with `AdministratorAccess`.
 2. **_Set the region to `ca-central-1`._**
 3. Enable AWS Organizations
 4. Enable Service Control Policies
-5. In AWS Organizations, ["Verify"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/) the root account email address (this is a technical process)
+5. In AWS Organizations, ["Verify"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/) the Organization Management (root) account email address (this is a technical process)
 6. Ensure `alz-baseline=false` is set in the configuration file
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
 - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
   (`PBMMAccel-Source-Bucket-Key`), Next
-- Select a key administrator (Admin Role or Group for the root account), Next
-- Select key users (Admin Role or Group for the root account), Next
+- Select a key administrator (Admin Role or Group for the Organization Management account), Next
+- Select key users (Admin Role or Group for the Organization Management account), Next
 - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
-  - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_root_** account id.
+  - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
 - Click Finish
 
 8. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
-9. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
-10. It is **_extremely important_** that **_all_** the account contact details be validated in the ROOT account before deploying any new sub-accounts.
+
+- With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
+
+9.  Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
+10. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
 
 - This information is copied to every new sub-account on creation.
 - Subsequent changes to this information require manually updating it in **\*each** sub-account.
@@ -87,7 +90,7 @@ Before installing, you must first:
 
 If deploying to an internal AWS account, to successfully install the entire solution, you need to enable Private Marketplace (PMP) before starting:
 
-1. In the root account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
+1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click Create Marketplace
 3. Go to Profile sub-tab, click the `Not Live` slider to make it `Live`
 4. Click the `Software requests` slider to turn `Requests off`
@@ -99,6 +102,10 @@ If deploying to an internal AWS account, to successfully install the entire solu
    - Due to PMP provisioning delays, this sometimes fails when attempted immediately following enablement of PMP - retry after 20 minutes.
 9. Wait a couple of minutes while it adds item to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
+10. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.2.3 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+
+![New AMI ID](img/new-ami-id.png)
 
 ## 1.2. Preparation
 
@@ -117,10 +124,11 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### 1.2.2. Basic Accelerator Configuration
 
-1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) file as base
-   - Use the version from the Github code branch you are deploying from as some parameters have changed over time
+1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) or [`config.lite-example.json`](../../reference-artifacts/config.lite-example.json) files as base
+   - Use the version from the Github code branch you are deploying from as some parameters change over time
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
-   - This configuration file can be used, as-is, with only minor modification to successfully deploy the standard architecture
+   - These configuration files can be used, as-is, with only minor modification to successfully deploy the standard architecture
+   - These files are described in more detail [here](./customization-index.md)
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
 
    1. For existing accounts, they must match identically to the account names and email addresses defined in AWS Organizations;
@@ -130,8 +138,18 @@ If deploying to an internal AWS account, to successfully install the entire solu
    5. For a test deployment, the remainder of the values can be used as-is.
 
 3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
-
-- If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the mgmt port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
+4. When deploying to regions other than ca-central-1, you need to:
+   1. Replace all occurences of ca-central-1 in the config file with your home region
+   2. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10)
+   3. Validate all the Interface Endpoints defined in your config file are supported in your home region (main concern is the Endpoint VPC)
+   4. Replace `ca-central-1` with your home region in two scp files
+      - copy `PBMMAccel-Guardrails-PBMM-Only.json` and `PBMMAccel-Guardrails-Unclass-Only.json` from `\reference-artifacts\SCPs` in the repo
+      - replace all occurences of `ca-central-1` with your home region (leave `us-east-1`)
+      - in the Unclass SCP, update requested regions with any additional regions you wish accounts in the Unclass OU to leverage (or remove all regions except your home region and ca-central-1)
+      - after step 4 below, place the two files in a folder named `scp` in your accelerator bucket
+   5. At this time, alb deployments will fail (fix planned), you need to either:
+      - remove all alb's from the deployment; or
+      - after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
 
 ### 1.2.3. Production Accelerator Configuration
 
@@ -158,7 +176,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
   - 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future)
   - We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
 
-4. Create an S3 bucket in your root account with versioning enabled `your-bucket-name`
+4. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
    - the bucket should be `S3-KMS` encrypted using the `PBMMAccel-Source-Bucket-Key` created above
@@ -188,7 +206,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.2.0`, case sensitive
+   - the latest stable branch is currently `release/v1.2.1b`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -198,7 +216,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 16. Once the pipeline completes (typically 15-20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
 17. The state machine takes several hours to execute on an initial installation. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
-19. You will receive an email from the State Machine SNS topic. Please confirm the email subscription to enable receipt of state machine status messages. Until completed you will not receive any email messages.
+19. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
 20. After the perimeter account is created in AWS Organizations, but before the Accelerator reaches Stage 2:
     1. NOTE: If you miss the step, or fail to execute it in time, no need to be concerned, you will simply need to re-run the main state machine (`PBMMAccel-MainStateMachine_sm`) to deploy the firewall products
     2. Login to the **perimeter** sub-account (Assume your `organization-admin-role`)
@@ -208,7 +226,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ![marketplace](img/marketplace.png)
 
-21. Once themain state machine (`PBMMAccel-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
+21. Once the main state machine (`PBMMAccel-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
 22. If your perimeter firewalls were not deployed on first run, you will need to rerun the state machine. This happens when:
     1. you were unable to activate the firewall AMI's before stage 2 (step 19)
@@ -217,7 +235,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 23. The Accelerator installation is complete, but several manual steps remain:
 
     1. recover root passwords for all sub-accounts
-    2. enable MFA for **all** IAM users and **all** root users
+    2. enable MFA for **all** IAM users and **all** Organization Management (root) account users
     3. Login to the firewalls and firewall manager appliance and set default passwords
        - Update firewall configuration per your organizations security best practices
        - manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
@@ -241,7 +259,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### 1.3.1. Known Installation Issues
 
 - Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy GuardDuty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
-- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the root AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the root account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
+- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the Organization Management AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the Organization Management account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
 
 # 2. Accelerator Basic Operation
 
@@ -255,6 +273,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
   "fun-acct": {
     "account-name": "TheFunAccount",
     "email": "myemail+pbmmT-funacct@example.com",
+    "src-filename": "config.json",
     "ou": "Sandbox"
   }
   ```
@@ -336,7 +355,7 @@ Ensuring the integrity of deployed guardrails is critical in operating and maint
 
 Additionally, with millions of active customers each supporting different and diverse use cases and with the rapid rate of evolution of the AWS platform, sometimes we will encounter unexpected circumstances and the state machine might fail.
 
-We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As unhandled scenario's are brought to our attention, we continue to adjust the codebase to better handle these situations.
+We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc.). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As new scenario's are brought to our attention, we continue to adjust the codebase to better handle these situations.
 
 Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
 
@@ -364,9 +383,13 @@ Yes. The state machine captures a consistent input state of the requested config
 
 ### 2.0.10. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
 
-To overide items like SCP's or IAM policies, customers simply need to provide the identically names file in there input bucket. As long as the file exists in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version.
+To override items like SCP's or IAM policies, customers simply need to provide the identically named file in there input bucket. As long as the file exists in the correct folder in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version. Customer SCP's need to be placed into a folder named `scp` and iam policies in a folder named `iam-policy` (case sensitive).
 
-The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Acclerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of Accelerator supplied versions. If a customer wishes to revert to the sample configuration, simply removing the specific files from their S3 bucket and rerunning the accelerator will revert to the repo version of the removed files. Customer only need to provide the specific files they wish to overide, not all files.
+The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Accelerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place new or updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of or in addition to Accelerator supplied versions. If a customer wishes to revert to the sample configuration, simply removing the specific files from their S3 bucket and rerunning the accelerator will revert to the repo version of the removed files. Customer only need to provide the specific files they wish to override, not all files.
+
+Customers can also define additional SCPs (or modify existing SCPs) using the name, description and filename of their choosing, and deploy them by referencing them on the appropriate organizational unit in the config file.
+
+NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be excercised if the provided SCPs are modified. We will be improving documenation as to which SCPs deliver security functionality versus those protecting the Accelerator itself in a future release.
 
 ### 2.0.11. I wish to be in compliance with the 12 TBS Guardrails, what don't you cover with the provided sample architecture?
 
@@ -383,7 +406,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
 ## 3.1. Upgrades
 
 - Always compare your configuration file with the config file from the latest release to validate new or changed parameters or changes in parameter types / formats.
-- Upgrades to `v1.2.2 and above` from v1.2.1 and below - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint vpc in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
+- Upgrades to `v1.2.1 and above` from v1.2.0 and below - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
 - Upgrades to `v1.2.0 and above` from v1.1.9 and below require setting `account-warming-required` to `false`, (Perimeter and Ops accounts) or the rsyslog and firewalls will be removed and then re-installed on the subsequent state machine execution
 - Upgrades from `v1.1.7 and below` require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
 - Upgrades from `v1.1.6 and below` require updating the `GithubRepository` in the CFN stack, as we renamed the GitHub repo with release v1.1.7 to `aws-secure-environment-accelerator`.
@@ -401,7 +424,7 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
   - The pipeline will automatically run and trigger the upgraded state machine
 - If you are using a pre-existing GitHub token:
-  - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.2`)
+  - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.1b`)
     - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 ## 3.2. Configuration File Hints and Tips
@@ -410,8 +433,8 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - For example, CWL retention only supports specific retention values (not any number)
   - Shard count - can only increase/reduce by half the current limit. i.e. you can change from `1`-`2`, `2`-`3`, `4`-`6`
 - Always add any new items to the END of all lists or sections in the config file, otherwise
-  - Update validation checks will fail (vpc's, subnets, share-to, etc.)
-  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine)
+  - Update validation checks will fail (VPC's, subnets, share-to, etc.)
+  - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine) - this challenge no longer exists as of v1.2.1.
 - To skip, remove or uninstall a component, you can simply change the section header, instead of removing the section
   - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use
   - Objects with the parameter deploy: true, support setting the value to false to remove the deployment
@@ -427,6 +450,8 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - We only support the subset of yaml that converts to JSON (we do not support anchors)
 - We do NOT support changing the `organization-admin-role`, this value must be set to `AWSCloudFormationStackSetExecutionRole` at this time.
+- Adding more than approximately 50 _new_ VPC Interface Endpoints across _all_ regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.
+- If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
 
 ## 3.3. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations
 
@@ -434,13 +459,14 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - our early adopters have all successfully deployed into existing organizations
 - Existing AWS accounts _can_ also be imported into an Accelerator managed Organization
 - Caveats:
-  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts, worldwide. The inability to delete default VPC's in preexisting accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
+  - Per AWS Best Practices, the Accelerator deletes the default VPC's in all AWS accounts, worldwide. The inability to delete default VPC's in pre-existing accounts will fail the installation/account import process. Ensure default VPC's can or are deleted before importing existing accounts. On failure, either rectify the situation, or remove the account from Accelerator management and rerun the state machine
   - The Accelerator will NOT alter existing (legacy) constructs (e.g. VPC's, EBS volumes, etc.). For imported and pre-existing accounts, objects the Accelerator prevents from being created using preventative guardrails will continue to exist and not conform to the prescriptive security guidance
     - Existing workloads should be migrated to Accelerator managed VPC's and legacy VPC's deleted to gain the full governance benefits of the Accelerator (centralized flow logging, centralized ingress/egress, no IGW's, Session Manager access, existing non-encrypted EBS volumes, etc.)
   - Existing AWS services will be reconfigured as defined in the Accelerator configuration file (overwriting existing settings)
-  - We do NOT support _any_ workloads running or users operating in the root AWS account. The root AWS account MUST be tightly controlled
+  - We do NOT support _any_ workloads running or users operating in the Organization Management (root) AWS account. The Organization Management (root) AWS account MUST be tightly controlled
   - Importing existing _workload_ accounts is fully supported, we do NOT support, recommend and strongly discourage importing mandatory accounts, unless they were clean/empty accounts. Mandatory accounts are critical to ensuring governance across the entire solution
   - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, there may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
+  - If the Firewall Manager administrative account is already set for your organization, it needs to be unset before starting a deployment.
 
 ### 3.3.1. Process to import existing AWS accounts into an Accelerator managed Organization
 
@@ -458,12 +484,12 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
   - customers can either manually initiate the state machine once the current execution completes, or, the currently running state machine can be stopped and restarted to capture all changes at once
   - Are you unsure if an account had its guardrails applied? The message sent to the state machine Status SNS topic (and corresponding email address) on a successful state machine execution provides a list of all successfully processed accounts.
 - The state machine is both highly parallel and highly resilient, stopping the state machine should not have any negative impact. Importing 1 or 10 accounts generally takes about the same amount of time for the Accelerator to process, so it may be worth stopping the current execution and rerunning to capture all changes in a single execution.
-- We have added a 2 min delay before triggering the state machine, allowing customers to make muliple changes within a short timeframe and have them all captured automatically in the same state machine execution.
+- We have added a 2 min delay before triggering the state machine, allowing customers to make multiple changes within a short timeframe and have them all captured automatically in the same state machine execution.
 
 ### 3.3.2. Deploying the Accelerator into an existing Organization
 
 - As stated above, if the ALZ was previously deployed into the Organization, please work with your AWS account team to find the best mechanism to uninstall the ALZ solution
-- Ensure all existing sub-accounts have the `AWSCloudFormationStackSetExecutionRole` installed and set to trust the root AWS Organization account
+- Ensure all existing sub-accounts have the `AWSCloudFormationStackSetExecutionRole` installed and set to trust the Organization Management (root) AWS Organization account
   - we have provided a CloudFormation stack which can be executed in each sub-account to simplify this process
 - As stated above, we recommend starting with new AWS accounts for the mandatory functions (shared-network, perimeter, security, log-archive accounts).
 - To better ensure a clean initial deployment, we also recommend the installation be completed while ignoring most of your existing AWS sub-accounts, importing them post installation:
@@ -479,21 +505,21 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
 
 ## 3.4. Design Constraints
 
-- The root account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the root account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the root account.
+- The Organization Management (root) account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the Organization Management (root) account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the Organization Management (root) account.
 - While generally protected, do not delete/update/change s3 buckets with CDK, CFN, or PBMMAccel- in _any_ sub-accounts.- ALB automated deployments only supports Forward and not redirect rules.
-- AWS Config Aggregator is deployed in the Organization root account as enablement through Organizations is simpler to implement. AWS Organizations only supports deploying the Aggregator in the Org root account and not in a designated administrative account at this time. Once supported, we plan to update the code to move the Aggregator administrative account.
-- An Organization CloudTrail is deployed, which is created in the primary region in the root AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the root account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases.
+- AWS Config Aggregator is deployed in the Organization Management (root) account as enablement through Organizations is simpler to implement. AWS Organizations only supports deploying the Aggregator in the Organization Management (root) account and not in a designated administrative account at this time. Once supported, we plan to update the code to move the Aggregator administrative account.
+- An Organization CloudTrail is deployed, which is created in the primary region in the Organization Management (root) AWS account. All AWS account CloudTrails are centralized into this single CloudWatch Log Group. Starting in v1.1.9 this is where we deploy the CloudWatch Alarms which trigger for ALL accounts in the organization. Security Hub will erroneously report that the only account and/or region that is compliant with certain rules is the primary region of the Organization Management (root) account. We are working with the Security Hub team to rectify this situation in future Security Hub/Accelerator releases.
 - Amazon Detective - we have chosen not to enable at this time.
 - Only 1 auto-deployed MAD per AWS account is supported today.
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
-- If the root account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
+- If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
 
 # 4. AWS Internal - Accelerator Release Process
 
 ## 4.1. Creating a new Accelerator Code Release
 
-1. Ensure `master` is in a suitable state
+1. Ensure `master` branch is in a suitable state
 2. Disable branch protection for both the `master` branch and for the `release/` branches
 3. Create a version branch with [SemVer](https://semver.org/) semantics and a `release/` prefix: e.g. `release/v1.0.5`
 

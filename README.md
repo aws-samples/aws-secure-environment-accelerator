@@ -1,8 +1,8 @@
 # AWS Secure Environment Accelerator
 
-The AWS Accelerator is a tool designed to deploy and operate secure multi-account AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
+The AWS Accelerator is a tool designed to help deploy and operate secure multi-account AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
-While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to meet the multiple requirements of a broad range of governments and public sector organizations.
+While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to help meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to help meet the multiple requirements of a broad range of governments and public sector organizations.
 
 The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
 
@@ -22,7 +22,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Perimeter
   - Log-Archive
   - Security-Audit
-- Workload Accounts - automate mass account creation, or use AWS organizations to scale one account at a time. These accounts are used to host a customers workloads and applications.
+- Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customers workloads and applications.
 - Scalable to 1000's of AWS accounts
 - Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
@@ -105,7 +105,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ.
 
-The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`.
+The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`. The Accelerator is now a completely standalone solution.
 
 ## Relationship with AWS Control Tower
 
@@ -132,24 +132,31 @@ This summarizes the installation process, the full installation document can be 
     - deploy, configure and guardrail multiple accounts at the same time
     - change Accelerator configuration settings
 
-# **Documentation** (Linked)
+# **Documentation**
 
 ### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-- [Link](./docs/installation/customization-index.md) to sample config file and customization details
-- [Link](./docs/architectures/pbmm/log-file-locations.md) to AWS SEA Central Logging Bucket Structures
+- [Link](./docs/installation/customization-index.md) to sample config files and customization details
+- AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
+- Unofficial [Roadmap](./docs/roadmap.md)
 
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
 ### - [Accelerator Developer Guide](./docs/developer/developer-guide.md) (Early Draft)
 
-### - [Contributing & Governance Guide](./CONTRIBUTING.md) (Early Draft)
+### - [Contributing & Governance Guide](./CONTRIBUTING.md)
 
 ### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
-### - [Frequently Asked Questions](./docs/faq/faq.md) (Future)
+### - Frequently Asked Questions
+
+- See section 2 of the Accelerator Installation, Upgrades and Basic Operations Guide
 
 ---
 
-[...Go to Accelerator Table of Contents](./docs/index.md)
+Note: A ZIP file containing a PDF version of all documentation can be found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/actions?query=workflow%3A%22Generate+Documentation%22).
+
+---
+
+[Go to Accelerator Table of Contents](./docs/index.md)

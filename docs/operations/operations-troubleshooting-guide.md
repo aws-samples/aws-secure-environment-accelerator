@@ -122,7 +122,7 @@ This diagram depicts the Accelerator Installer CodePipeline as of v1.2.1:
 Once the Code Pipeline completes successfully:
 
 - the Accelerator codebase was pulled from GitHub
-- the Accelerator codebase was deployed/installed in the master AWS account
+- the Accelerator codebase was deployed/installed in the Organization Management (root) AWS account
 - parameter store `/accelerator/version` was updated with the new version information
   - this provides a full history of all Accelerator versions and upgrades
 - the newly installed Accelerator state machine is started
