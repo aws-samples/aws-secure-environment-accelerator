@@ -318,8 +318,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0387a84800f5858d5',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Web_Central_aza_net' },
@@ -329,8 +329,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-075ca0d93563a4d6e',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Web_Central_azb_net' },
@@ -340,8 +340,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0b70e3e849949cc0c',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'App_Central_aza_net' },
@@ -351,8 +351,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-04e252c39434bbb19',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'App_Central_azb_net' },
@@ -362,8 +362,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-00bbd856fec06c15b',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Data_Central_aza_net' },
@@ -373,8 +373,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0ace127f373a1b274',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Data_Central_azb_net' },
@@ -384,8 +384,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-05eff632d6af56d17',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Mgmt_Central_aza_net' },
@@ -395,8 +395,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-03dc090bc09c84439',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Mgmt_Central_azb_net' },
@@ -406,8 +406,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-02809ab1988c1ec82',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'GCWide_Central_aza_net' },
@@ -417,8 +417,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'subnet-0f4514137baa07759',
             resourceType: 'subnet',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'GCWide_Central_azb_net' },
@@ -438,8 +438,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -449,8 +449,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -460,8 +460,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -471,8 +471,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -482,8 +482,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -493,8 +493,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -504,8 +504,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -515,8 +515,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -526,8 +526,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -537,8 +537,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'vpc-0d0b4cd029857165a',
             resourceType: 'vpc',
-            sourceAccountId: '007307298200',
-            targetAccountIds: ['278816265654'],
+            sourceAccountId: '555555555555',
+            targetAccountIds: ['111111111111'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Central_vpc' },
@@ -700,7 +700,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           bucketArn: 'arn:aws:s3:::pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h',
           bucketName: 'pbmmaccel-sharednetwork-phase1-cacentral1-18vq0emthri3h',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:007307298200:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:555555555555:key/d54a8acb-694c-4fc5-9afe-ca2b263cd0b3',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
@@ -823,7 +823,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'MadAutoScalingRole',
         value: {
           roleArn:
-            'arn:aws:iam::278816265654:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling_PBMM',
+            'arn:aws:iam::111111111111:role/aws-service-role/autoscaling.amazonaws.com/AWSServiceRoleForAutoScaling_PBMM',
         },
       }),
     },
@@ -835,7 +835,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         type: 'IamRole',
         value: {
           roleName: 'PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
-          roleArn: 'arn:aws:iam::278816265654:role/PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
+          roleArn: 'arn:aws:iam::111111111111:role/PBMMAccel-Operations-Phas-CustomLogsLogGroup49AC86-IC4E7M6MR366',
           roleKey: 'LogGroupRole',
         },
       }),
@@ -868,7 +868,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-0affc8ea940417638',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Mgmt_sg' },
@@ -878,7 +878,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-0c91bf1bc94e5797f',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Web_sg' },
@@ -888,7 +888,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-08f5b682020bf1c61',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'App_sg' },
@@ -898,7 +898,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
           {
             resourceId: 'sg-041abd65f62750b6e',
             resourceType: 'security-group',
-            targetAccountIds: ['007307298200'],
+            targetAccountIds: ['555555555555'],
             tags: [
               { key: 'Accelerator', value: 'PBMM' },
               { key: 'Name', value: 'Data_sg' },
@@ -932,7 +932,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
         value: {
           bucketArn: 'arn:aws:s3:::pbmmaccel-operations-phase1-cacentral1-qwupe8qc06ka',
           bucketName: 'pbmmaccel-operations-phase1-cacentral1-qwupe8qc06ka',
-          encryptionKeyArn: 'arn:aws:kms:ca-central-1:278816265654:key/4e0a5d05-a3ba-4b19-b60e-5f26631d874a',
+          encryptionKeyArn: 'arn:aws:kms:ca-central-1:111111111111:key/4e0a5d05-a3ba-4b19-b60e-5f26631d874a',
           region: 'ca-central-1',
           encryptionKeyName: 'EncryptionKey',
           encryptionKeyId: 'XXXXXXXXXXXXXXXXX',
