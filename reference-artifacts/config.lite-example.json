@@ -1158,10 +1158,6 @@
               "name": "FWMgmt_azA",
               "routes": [
                 {
-                  "destination": "10.0.0.0/8",
-                  "target": "VGW"
-                },
-                {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
                   "name": "Firewall",
@@ -1177,10 +1173,6 @@
             {
               "name": "FWMgmt_azB",
               "routes": [
-                {
-                  "destination": "10.0.0.0/8",
-                  "target": "VGW"
-                },
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
