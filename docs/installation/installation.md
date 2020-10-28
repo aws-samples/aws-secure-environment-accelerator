@@ -151,7 +151,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
       - replace all occurences of `ca-central-1` with your home region (leave `us-east-1`)
       - in the Unclass SCP, update requested regions with any additional regions you wish accounts in the Unclass OU to leverage (or remove all regions except your home region and ca-central-1)
       - after step 4 below, place the two files in a folder named `scp` in your accelerator bucket
-   5. At this time, alb deployments will fail (fix planned), you need to either:
+   5. For releases prior to v1.2.2, alb deployments will fail, you need to either:
       - remove all alb's from the deployment; or
       - after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
 
@@ -210,7 +210,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.2.1b`, case sensitive
+   - the latest stable branch is currently `release/v1.2.2`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -263,7 +263,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ### 2.3.1. Known Installation Issues
 
-- Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. We are working on a fix (appears to be an eventual consistency issue).
+- Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. This is resolved in v1.2.2.
 - Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy GuardDuty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
 - Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the Organization Management AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the Organization Management account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
 
@@ -437,7 +437,7 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
 
 4. If you are using a pre-existing GitHub token:
 
-   - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.1b`)
+   - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.2`)
      - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 # 5. Notes
