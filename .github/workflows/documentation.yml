@@ -83,6 +83,10 @@ jobs:
         run: |
           cp reference-artifacts/config.example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.example.json
 
+      - name: Copy file output 2b1
+        run: |
+          cp reference-artifacts/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
+          
       - name: PDF output 2c
         uses: docker://pandoc/latex:2.10
         with:
