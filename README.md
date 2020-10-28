@@ -151,7 +151,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - Frequently Asked Questions
 
-- See section 2 of the Accelerator Installation, Upgrades and Basic Operations Guide
+- See section 3. of the Accelerator Installation, Upgrades and Basic Operations Guide
 
 ---
 
