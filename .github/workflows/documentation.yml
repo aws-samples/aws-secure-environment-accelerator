@@ -111,7 +111,7 @@ jobs:
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
-            ./reference-artifacts/master-config-sample-snippets/sample_snippets.md
+            ./reference-artifacts/config-sample-snippets/sample_snippets.md
 
       - name: Copy file output 2e
         run: |
@@ -130,7 +130,7 @@ jobs:
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
-            ./reference-artifacts/master-config-sample-snippets/firewall_file_available_variables.md
+            ./reference-artifacts/config-sample-snippets/firewall_file_available_variables.md
 
       - name: PDF output 2g
         uses: docker://pandoc/latex:2.10
