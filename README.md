@@ -10,7 +10,7 @@ The installation of the provided prescriptive architecture is reasonably simple,
 
 A common misconception is that the AWS Secure Environment Accelerator only deploys security services, not true. The Accelerator is capable of deploying a complete end-to-end hybrid enterprise multi-region cloud environment.
 
-Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with mininal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
+Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with minimal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
 
 Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated but customizable manner:
 
@@ -22,7 +22,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Perimeter
   - Log-Archive
   - Security-Audit
-- Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customers workloads and applications.
+- Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customer's workloads and applications.
 - Scalable to 1000's of AWS accounts
 - Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
@@ -35,7 +35,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
-- All completely and indivdiually customizable (per account, VPC, subnet, or OU)
+- All completely and individually customizable (per account, VPC, subnet, or OU)
 - Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
 - Deletes default VPC's (worldwide)
 
@@ -81,7 +81,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 - Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup (leverages marketplace)
 - Protects Accelerator deployed and managed objects
-- Sets Up SNS Alerting topics (High, Medium, Low, Blockhole priorities)
+- Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
 
 ### Centralized Logging and Alerting
@@ -148,6 +148,8 @@ This summarizes the installation process, the full installation document can be 
 ### - [Contributing & Governance Guide](./CONTRIBUTING.md)
 
 ### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
+
+- PBMM Architecture Diagrams [pdf](./architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf)
 
 ### - Frequently Asked Questions
 

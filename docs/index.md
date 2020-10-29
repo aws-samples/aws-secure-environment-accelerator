@@ -20,6 +20,8 @@
 
 ### - [Prescriptive PBMM Architecture Design Document](./architectures/pbmm/architecture.md) (Early Draft)
 
+- PBMM Architecture Diagrams [pdf](./architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf)
+
 ### - Frequently Asked Questions
 
 - See section 3. of the Accelerator Installation, Upgrades and Basic Operations Guide

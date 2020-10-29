@@ -49,13 +49,13 @@ GitHub provides additional document on [forking a repository](https://help.githu
 ## Accelerator Development First Principals:
 
 1. All code needs to include proper and complete error handling including back-off and retry functionality
-2. If a guardrail fails to be deployed, all code must result in a state machine failure, with a descriptive message as to the cause of the fault
+2. If a security guardrail fails to be deployed, all code must result in a state machine failure, with a descriptive message as to the cause of the fault
 3. All code, on failure, needs to properly and completely roll-back or cleanup. On a failure, users should not be required to manually cleanup in order to re-run the state machine
 4. All reasonable efforts should be taken to ensure resources don't fail to deploy (again retries or corrective code to prevent hitting common error situations)
-5. All code changes need to accommodate both new deployments and upgrades from _any_ existing Accelerator versions. A smooth upgrade path must be provided for existing customers. In certain cases an automated pre-upgrade procedure could be provided to existing customers to perform before an upgrade to enable a smooth upgrade. This cannot involve removing idempotent resources (i.e. MAD). For example, remove your VPC endpoints prior to upgrading.
+5. All code changes need to accommodate both new deployments and upgrades from _any_ existing Accelerator version. A smooth upgrade path must be provided for existing customers. In certain cases an automated pre-upgrade procedure could be provided to existing customers to perform before an upgrade to enable a smooth upgrade. This cannot involve removing non-idempotent resources (i.e. MAD). For example, you must remove your VPC endpoints prior to upgrade.
 6. All code should be delivered as Typescript. The project has worked hard to ensure a consistent and single language and runtime to ensure long-term supportability
 7. When developing, CDK should be selected first, a Custom Resource second, and only when the first two are not viable solutions, should a Lambda be considered
-8. When adding new features, they must be off by default and enabled with a new config file variable, allowing customers the option to enable and disable the feature during deployment, upgrade, or at a future time. A new features functionality should not be hard-coded, but be configurable through the configuration file.
+8. When adding new features, they must be off by default and enabled with a new config file variable, allowing customers the option to enable and disable the feature during deployment, upgrade, or at a future time. Functionality for new features should not be hard-coded, and must be configurable through the configuration file.
 
 ## Finding contributions to work on
 
