@@ -200,5 +200,5 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: ${{ steps.setup.outputs.dir }}.zip
+          name: ${{ steps.setup.outputs.dir }}
           path: ${{ steps.setup.outputs.dir }}/
