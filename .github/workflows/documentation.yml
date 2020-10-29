@@ -86,7 +86,7 @@ jobs:
       - name: Copy file output 2b1
         run: |
           cp reference-artifacts/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
-          
+
       - name: PDF output 2c
         uses: docker://pandoc/latex:2.10
         with:
@@ -198,10 +198,7 @@ jobs:
             --pdf-engine=xelatex
             docs/architectures/pbmm/architecture.md
 
-      - name: Zip
-        run: |
-          zip -r ${{ steps.setup.outputs.dir }}.zip ${{ steps.setup.outputs.dir }}/
       - uses: actions/upload-artifact@master
         with:
           name: ${{ steps.setup.outputs.dir }}
-          path: ${{ steps.setup.outputs.dir }}.zip
+          path: ${{ steps.setup.outputs.dir }}/
