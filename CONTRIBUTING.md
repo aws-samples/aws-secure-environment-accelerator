@@ -32,7 +32,7 @@ Contributions via pull requests are much appreciated. Before sending us a pull r
 1. You are working against the latest source on the _master_ branch.
 2. You check existing open, and recently merged, pull requests to make sure someone else hasn't addressed the problem already.
 3. You open an issue to discuss any significant work - we would hate for your time to be wasted.
-4. You have reviewed and are aligned with the `Accelerator Development First Principals`
+4. You have reviewed and are aligned with the `Accelerator Development First Principles`
 
 To send us a pull request, please:
 
@@ -46,7 +46,7 @@ To send us a pull request, please:
 GitHub provides additional document on [forking a repository](https://help.github.com/articles/fork-a-repo/) and
 [creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 
-## Accelerator Development First Principals:
+## Accelerator Development First Principles:
 
 1. All code needs to include proper and complete error handling including back-off and retry functionality
 2. If a security guardrail fails to be deployed, all code must result in a state machine failure, with a descriptive message as to the cause of the fault

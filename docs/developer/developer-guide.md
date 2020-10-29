@@ -2,7 +2,7 @@
 
 This document is a reference document. Instead of reading through it in linear order, you can use it to look up specific issues as needed.
 
-It is important to read the [Operations Guide](../operations/operations-troubleshooting-guide.md) before reading this document.  If you're interested in actively contributing to the project, you should also review the [Governance and Contributing Guide](../CONTRIBUTING.md).
+It is important to read the [Operations Guide](../operations/operations-troubleshooting-guide.md) before reading this document. If you're interested in actively contributing to the project, you should also review the [Governance and Contributing Guide](../CONTRIBUTING.md).
 
 # Table of Contents
 
@@ -119,7 +119,7 @@ CloudFormation is used to deploy both the Accelerator stacks and resources and t
 
 ### 1.3. CDK
 
-AWS CDK is used to define the cloud resources in a familiar programming language. While AWS CDK supports TypeScript, JavaScript, Python, Java, and C#/.Net, the contributions should be made in Typescript, as outlined in the [Accelerator Development First Principals](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/ae8282d4537320763736fa56e05b743ce1c02611/CONTRIBUTING.md#accelerator-development-first-principals).
+AWS CDK is used to define the cloud resources in a familiar programming language. While AWS CDK supports TypeScript, JavaScript, Python, Java, and C#/.Net, the contributions should be made in Typescript, as outlined in the [Accelerator Development First Principles](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/ae8282d4537320763736fa56e05b743ce1c02611/CONTRIBUTING.md#accelerator-development-first-principles).
 
 Developers can use programming languages to define reusable cloud components known as Constructs. You compose these together into Stacks and Apps. Learn more at https://docs.aws.amazon.com/cdk/latest/guide/home.html
 
