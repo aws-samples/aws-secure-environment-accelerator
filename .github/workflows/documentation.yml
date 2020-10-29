@@ -197,6 +197,11 @@ jobs:
             -V documentclass=report
             --pdf-engine=xelatex
             docs/architectures/pbmm/architecture.md
+            
+      - name: Copy file output 5b
+        run: |
+          cp docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/5b-${{ steps.setup.outputs.prefix }}-PBMM_Accel_Account_Network_VPC.pdf
+
 
       - uses: actions/upload-artifact@master
         with:
