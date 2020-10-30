@@ -6,6 +6,8 @@ While flexible, the AWS Accelerator is delivered with a sample configuration fil
 
 The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
 
+![Diagram](/docs/operations/img/ASEA-high-level-architecture.png)
+
 ## What specifically does the Accelerator deploy and manage?
 
 A common misconception is that the AWS Secure Environment Accelerator only deploys security services, not true. The Accelerator is capable of deploying a complete end-to-end hybrid enterprise multi-region cloud environment.
