@@ -113,6 +113,39 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ## 2.2. Preparation
 
+### 2.2.1 Before Starting to Install
+
+**For any deployment of the Accelerator which is intended to be used for real workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for workloads, you can almost certainly leave the default config values.**
+
+#### 2.2.1.1 OU Structure Planning
+Plan your OU structure carefully. By default, we suggest: `Core, Central, Sandbox, Unclass, Dev, Test, Prod`. These OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs).
+
+**Note:** While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
+
+#### 2.2.1.2 Network Configuration Planning
+You will need the following network constructs:
+
+1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
+  - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
+  - one block for each OU, except Sandbox which is not routable
+  - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC
+2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
+  - Used for MAD deployment and perimeter underlay network
+  - non-GC customers can drop the extra MAD subnets in the Central VPC and use address space from the core CIDR range for the perimeter VPC
+3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
+
+#### 2.2.1.3 DNS, Domain Name, TLS Certificate Planning
+You must decide on:
+1. A unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
+2. DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
+3. DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]` (can be added in future)
+4. DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]` (can be added in future)
+5. Wildcard TLS certificate for each of the 2 previous zones (can be added in future)
+
+#### 2.2.1.4 License and Email Address Planning
+1. 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future)
+1. We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
+
 ### 2.2.1. Create GitHub Personal Access Token and Store in Secrets Manager
 
 1. You require a GitHub access token to access the code repository
@@ -154,48 +187,22 @@ If deploying to an internal AWS account, to successfully install the entire solu
    5. For releases prior to v1.2.2, alb deployments will fail, you need to either:
       - remove all alb's from the deployment; or
       - after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
-
-### 2.2.3. Production Accelerator Configuration
-
-- **For a production deployment, THIS REQUIRES EXTENSIVE PREPARATION AND PLANNING**
-  - Plan your OU structure, we are suggesting:
-    - core, Central, Sandbox, Unclass, Dev, Test, Prod
-    - These OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs)
-    - While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
-  - 6 \* RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
-    - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
-    - one block for each OU, except Sandbox which is not routable
-    - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC
-  - 2 \* RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
-    - Used for MAD deployment and perimeter underlay network
-    - non-GC customers can drop the extra MAD subnets in the Central VPC and use address space from the core CIDR range for the perimeter VPC
-  - 2 \* BGP ASN's (TGW, FW Cluster)(a third is required if you are deploying a VGW for DX connectivity)
-  - A Unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.)
-    - Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult
-    - Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
-  - DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
-  - DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]` (can be added in future)
-  - DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]` (can be added in future)
-  - Wildcard TLS certificate for each of the 2 previous zones (can be added in future)
-  - 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future)
-  - We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
-
-4. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
+5. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
    - the bucket should be `S3-KMS` encrypted using the `PBMMAccel-Source-Bucket-Key` created above
-5. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
-6. Place the firewall configuration and license files in the folder and path defined in the config file
+6. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
+7. Place the firewall configuration and license files in the folder and path defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
    - Sample available here: `./reference-artifacts/Third-Party/firewall-example.txt`
    - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
-7. Place any defined certificate files in the folder and path defined in the config file
+8. Place any defined certificate files in the folder and path defined in the config file
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
    - Sample available here: `./reference-artifacts/Certs-Sample/*`
    - Ideally you would generate real certificates using your existing certificate authority
    - Should you wish, instructions are provided to aid in generating your own self-signed certificates (Self signed certificates are NOT secure and simply for demo purposes)
    - Use the examples to demonstrate Accelerator TLS functionality only
-8. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
+9. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
    - Installation **will fail** if this step is skipped
 
 ## 2.3. Installation
