@@ -10,6 +10,7 @@
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./installation/customization-index.md) to sample config files and customization details
+- More [details](./installation/what-we-do-where.md) as to WHAT we do and WHERE we support it (regions, accounts, etc.)
 - AWS SEA Central Logging [Bucket Structures](./architectures/pbmm/log-file-locations.md)
 
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md)
