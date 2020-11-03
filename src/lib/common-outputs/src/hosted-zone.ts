@@ -36,4 +36,52 @@ export const HostedZoneOutputFinder = createStructuredOutputFinder(HostedZoneOut
         (props.region === undefined || output.region === props.region) &&
         (props.zoneType === undefined || output.zoneType === props.zoneType),
     }),
+
+  findAllByAccountRegionVpcAndType: (props: {
+    outputs: StackOutput[];
+    accountKey?: string;
+    region?: string;
+    zoneType?: string;
+    vpcName?: string;
+  }) =>
+    finder.findAll({
+      outputs: props.outputs,
+      predicate: output =>
+        (props.accountKey === undefined || output.accountKey === props.accountKey) &&
+        (props.region === undefined || output.region === props.region) &&
+        (props.zoneType === undefined || output.zoneType === props.zoneType) &&
+        (props.vpcName === undefined || output.vpcName === props.vpcName),
+    }),
+
+  findAllEndpointsByAccountRegionVpcAndType: (props: {
+    outputs: StackOutput[];
+    accountKey?: string;
+    region?: string;
+    vpcName?: string;
+  }) =>
+    finder.findAll({
+      outputs: props.outputs,
+      predicate: output =>
+        (props.accountKey === undefined || output.accountKey === props.accountKey) &&
+        (props.region === undefined || output.region === props.region) &&
+        (props.vpcName === undefined || output.vpcName === props.vpcName) &&
+        output.zoneType === 'PRIVATE' &&
+        !!output.serviceName,
+    }),
+
+  tryFindOneByAccountRegionVpcAndService: (props: {
+    outputs: StackOutput[];
+    accountKey?: string;
+    region?: string;
+    service?: string;
+    vpcName?: string;
+  }) =>
+    finder.findOne({
+      outputs: props.outputs,
+      predicate: output =>
+        (props.accountKey === undefined || output.accountKey === props.accountKey) &&
+        (props.region === undefined || output.region === props.region) &&
+        (props.service === undefined || output.serviceName === props.service) &&
+        (props.vpcName === undefined || output.vpcName === props.vpcName),
+    }),
 }));
