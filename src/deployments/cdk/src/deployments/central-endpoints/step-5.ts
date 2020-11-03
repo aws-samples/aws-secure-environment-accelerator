@@ -123,7 +123,7 @@ export async function step5(props: CentralEndpointsStep5Props) {
         ),
       );
       const hostedZoneAccountId = getAccountId(accounts, regionalZoneConfig.account)!;
-      new DisAssociateHostedZones(accountStack, 'constructName', {
+      new DisAssociateHostedZones(accountStack, `DisAssociateRemoteEndpointZones-${vpcConfig.name}-${accountKey}`, {
         assumeRoleName: assumeRole,
         vpcAccountId,
         vpcName: vpcConfig.name,
