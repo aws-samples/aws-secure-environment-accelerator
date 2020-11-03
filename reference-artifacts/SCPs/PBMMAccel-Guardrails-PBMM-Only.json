@@ -8,6 +8,8 @@
         "ec2:AcceptVpcPeeringConnection",
         "ec2:AttachEgressOnlyInternetGateway",
         "ec2:AttachInternetGateway",
+        "ec2:CreateDefaultSubnet",
+        "ec2:CreateDefaultVpc",
         "ec2:CreateEgressOnlyInternetGateway",
         "ec2:CreateInternetGateway",
         "ec2:CreateNatGateway",
