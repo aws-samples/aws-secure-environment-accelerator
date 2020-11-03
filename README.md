@@ -107,11 +107,11 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ.
 
-The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`. The Accelerator is now a completely standalone solution.
+The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`. The Accelerator is now a completely standalone solution.
 
 ## Relationship with AWS Control Tower
 
-AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Tower does not meet their compliance requirements as it does not yet have the required features and capabilities, and is not available in the customers required AWS regions.
+AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service.
 
 When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we initially allowed with the ALZ.
 
