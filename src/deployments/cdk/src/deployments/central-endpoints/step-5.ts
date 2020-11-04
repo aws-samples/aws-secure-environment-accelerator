@@ -31,8 +31,8 @@ export async function step5(props: CentralEndpointsStep5Props) {
 
   const regionalZoneOutputs: { [regino: string]: HostedZoneOutput[] } = {};
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
-    // TODO: Handle removal from local VPC
     if (!vpcConfig['use-central-endpoints']) {
+      // This is handled in Phase-4 Master account Stack
       continue;
     }
 

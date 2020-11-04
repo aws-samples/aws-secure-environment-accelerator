@@ -505,8 +505,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   /**
    * DisAssociate HostedZone to VPC
-   * - On removal of InterfaceEndpoint in Central VPC
-   * - On removal of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint in Central VPC
+   * - On Adding of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint also esists in Central VPC
    */
 
   await centralEndpoints.step5({
