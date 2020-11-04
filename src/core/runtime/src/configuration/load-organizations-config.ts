@@ -154,7 +154,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     }
 
     const account = awsAccounts.find(a => equalIgnoreCase(a.Email!, accountConfigEmail));
-    if (account) {
+    if (account && account.Status !== 'SUSPENDED') {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
       if (!accountInOu) {
