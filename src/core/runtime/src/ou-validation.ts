@@ -215,6 +215,9 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   for (const [ouId, accounts] of Object.entries(awsOuAccountMap)) {
     const suspendedAccounts = accounts.filter(account => account.Status === 'SUSPENDED');
     for (const suspendedAccount of suspendedAccounts) {
+      if (ouId === suspendedOu.Id) {
+        continue;
+      }
       await organizations.moveAccount({
         AccountId: suspendedAccount.Id!,
         DestinationParentId: suspendedOu.Id!,
