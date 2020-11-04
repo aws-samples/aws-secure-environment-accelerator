@@ -122,8 +122,14 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
       console.log(`DisAssociating hosted zone ${hostedZoneId} with VPC ${vpcId} ${vpcName}...`);
       await throttlingBackOff(() => vpcRoute53.disassociateVPCFromHostedZone(hostedZoneProps).promise());
     } catch (e) {
-      if (e.code === 'ConflictingDomainExists') {
-        console.info('Domain already added; ignore this error and continue');
+      if (e.code === 'NoSuchHostedZone') {
+        console.warn(`Hosted Zone not found: "${hostedZoneAccountId}:${hostedZoneId}"`);
+      } else if (e.code === 'VPCAssociationNotFound') {
+        console.warn(
+          `VPC "${vpcAccountId}:${vpcRegion}:${vpcId}" Association not found to Hosted Zone: "${hostedZoneAccountId}:${hostedZoneId}"`,
+        );
+      } else if (e.code === 'InvalidVPCId') {
+        console.warn(`Invalid VPC "${vpcAccountId}:${vpcRegion}:${vpcId}"`);
       } else {
         console.error(`Error while Disassociating the hosted zone "${hostedZoneId}" to VPC "${vpcName}"`);
         console.error(e);
@@ -143,6 +149,6 @@ async function onCreateOrUpdate(event: CloudFormationCustomResourceEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  console.log(`Nothing to perform in Custom Resource Delete for DisAssociate HostedZones...`);
+  console.log(`Nothing to perform in Custom Resource Delete Action for DisAssociate HostedZones...`);
   console.log(JSON.stringify(event, null, 2));
 }

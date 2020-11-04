@@ -37,22 +37,6 @@ export const HostedZoneOutputFinder = createStructuredOutputFinder(HostedZoneOut
         (props.zoneType === undefined || output.zoneType === props.zoneType),
     }),
 
-  findAllByAccountRegionVpcAndType: (props: {
-    outputs: StackOutput[];
-    accountKey?: string;
-    region?: string;
-    zoneType?: string;
-    vpcName?: string;
-  }) =>
-    finder.findAll({
-      outputs: props.outputs,
-      predicate: output =>
-        (props.accountKey === undefined || output.accountKey === props.accountKey) &&
-        (props.region === undefined || output.region === props.region) &&
-        (props.zoneType === undefined || output.zoneType === props.zoneType) &&
-        (props.vpcName === undefined || output.vpcName === props.vpcName),
-    }),
-
   findAllEndpointsByAccountRegionVpcAndType: (props: {
     outputs: StackOutput[];
     accountKey?: string;

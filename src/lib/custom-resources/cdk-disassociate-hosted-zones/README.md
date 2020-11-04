@@ -1,14 +1,14 @@
 ### Currently this module is not being used ###
 
-# Associate Hosted Zones to VPC
+# DisAssociate Hosted Zones to VPC
 
-This is a custom resource to associate vpc to Hosted Zone Used `createVPCAssociationAuthorization`, `associateVPCWithHostedZone`, `deleteVPCAssociationAuthorization` and `deleteVPCAssociationAuthorization` API calls.
+This is a custom resource to associate vpc to Hosted Zone Used `createVPCAssociationAuthorization`, `disassociateVPCFromHostedZone` and `deleteVPCAssociationAuthorization` API calls.
 
 ## Usage
 
-    import { AssociateHostedZones } from '@aws-accelerator/custom-resource-associate-hosted-zones';
+    import { DisAssociateHostedZones } from '@aws-accelerator/custom-resource-disassociate-hosted-zones';
 
-    new AssociateHostedZones(accountStack, constructName, {
+    new DisAssociateHostedZones(accountStack, constructName, {
         assumeRoleName: assumeRole,
         vpcAccountId,
         vpcName: vpcConfig.name,

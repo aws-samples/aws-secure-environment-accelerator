@@ -17,7 +17,11 @@ export interface CentralEndpointsStep5Props {
 }
 
 /**
- *  DisAssociate Hosted Zones to Vpcs
+ *  - Disassociate Central Regional Hosted Zones to Regional Vpcs if those are newly added to Local VPC in phases-1 and create local Endpoint and HostedZone in Phase-2
+ *  - If we remove Interface endpoint in Local VPC that gets removed in Phase-2 stack and Associate to Central Regional Hosted Zones happens in Phase-4 Master Account (No Changes required)
+ * Note: If use-central-endpoints: false and also added one regional Interface endpoint to Local VPC, Will fail we need to perform in two steps since we don't have track on "use-central-endpoints" flag
+ *   1. Add required Interface endpoint first so that we disassociate from regional Hosted Zone in Phase-1 and create one in Phase-2
+ *   2. Change use-cenral-endopints: false, So that we disassociate all endpoint Hosted  Zones to vpc
  */
 export async function step5(props: CentralEndpointsStep5Props) {
   const { accountStacks, config, outputs, accounts, assumeRole, executionRole } = props;
@@ -26,9 +30,6 @@ export async function step5(props: CentralEndpointsStep5Props) {
   const masterAccountKey = config['global-options']['aws-org-master'].account;
 
   const regionalZoneOutputs: { [regino: string]: HostedZoneOutput[] } = {};
-  config['global-options']['supported-regions'].map(region =>
-    accountStacks.tryGetOrCreateAccountStack(masterAccountKey, region, 'HostedZoneDisAssociation'),
-  );
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
     // TODO: Handle removal from local VPC
     if (!vpcConfig['use-central-endpoints']) {
@@ -54,11 +55,7 @@ export async function step5(props: CentralEndpointsStep5Props) {
       continue;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(
-      masterAccountKey,
-      vpcConfig.region,
-      'HostedZoneDisAssociation',
-    );
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, vpcConfig.region);
     if (!accountStack) {
       console.error(
         `Cannot find account stack ${accountKey}: ${vpcConfig.region}, while DisAssociating Resolver Rules`,
