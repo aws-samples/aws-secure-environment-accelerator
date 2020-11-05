@@ -95,12 +95,12 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     previousAccounts,
     awsAccounts,
   });
-  config = updateAccountResponse.config;
 
   // change config based on rename Accounts
   const suspendedAccountsResponse = updateSuspendedAccounts({
-    config,
+    config: updateAccountResponse.config,
     awsAccounts,
+    updatedAccounts: updateAccountResponse.updatedAccounts,
   });
 
   config = suspendedAccountsResponse.config;
@@ -112,7 +112,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     awsOus: awsOusWithPath,
     rootConfigString,
     format,
-    updatedAccounts: updateAccountResponse.updatedAccounts,
+    updatedAccounts: suspendedAccountsResponse.updatedAccounts,
   });
   config = updateOrgResponse.config;
   rootConfig = getFormattedObject(updateOrgResponse.rootConfig, format);
@@ -419,17 +419,17 @@ const updateRenamedAccounts = (props: {
 const updateSuspendedAccounts = (props: {
   config: AcceleratorUpdateConfig;
   awsAccounts: org.Account[];
+  updatedAccounts: UpdateAccountsOutput;
 }): {
   config: AcceleratorConfig;
   updatedAccounts: UpdateAccountsOutput;
 } => {
-  const { awsAccounts, config } = props;
+  const { awsAccounts, config, updatedAccounts } = props;
   // Directly reading from config instead of using methods to create actual config objects
   const updateMandatoryAccounts = config['mandatory-account-configs'];
   const updateWorkLoadAccounts = config['workload-account-configs'];
   const mandatoryAccountConfigs = Object.entries(config['mandatory-account-configs']);
   const workLoadAccountsConfig = Object.entries(config['workload-account-configs']);
-  const updatedAccounts: UpdateAccountsOutput = {};
   for (const awsAccount of awsAccounts.filter(acc => acc.Status === 'SUSPENDED')) {
     let isMandatoryAccount = true;
     let accountConfig = mandatoryAccountConfigs.find(([_, value]) =>
