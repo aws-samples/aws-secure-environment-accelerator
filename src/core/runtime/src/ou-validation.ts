@@ -97,6 +97,14 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   });
   config = updateAccountResponse.config;
 
+  // change config based on rename Accounts
+  const suspendedAccountsResponse = updateSuspendedAccounts({
+    config,
+    awsAccounts,
+  });
+
+  config = suspendedAccountsResponse.config;
+
   // change config based on rename Organizational Units
   const updateOrgResponse = await updateRenamedOrganizationalUnits({
     config,
@@ -393,6 +401,69 @@ const updateRenamedAccounts = (props: {
       updatedAccounts[accountConfig[0]] = {
         email: currentAccount.Email,
         name: currentAccount.Name,
+        filename: accountConfig[1]['src-filename'],
+        type: 'workload',
+      };
+    }
+  }
+
+  config['mandatory-account-configs'] = updateMandatoryAccounts;
+  config['workload-account-configs'] = updateWorkLoadAccounts;
+  return {
+    config,
+    updatedAccounts,
+  };
+};
+
+
+const updateSuspendedAccounts = (props: {
+  config: AcceleratorUpdateConfig;
+  awsAccounts: org.Account[];
+}): {
+  config: AcceleratorConfig;
+  updatedAccounts: UpdateAccountsOutput;
+} => {
+  const { awsAccounts, config } = props;
+  // Directly reading from config instead of using methods to create actual config objects
+  const updateMandatoryAccounts = config['mandatory-account-configs'];
+  const updateWorkLoadAccounts = config['workload-account-configs'];
+  const mandatoryAccountConfigs = Object.entries(config['mandatory-account-configs']);
+  const workLoadAccountsConfig = Object.entries(config['workload-account-configs']);
+  const updatedAccounts: UpdateAccountsOutput = {};
+  for (const awsAccount of awsAccounts.filter(acc => acc.Status === 'SUSPENDED')) {
+    let isMandatoryAccount = true;
+    let accountConfig = mandatoryAccountConfigs.find(([_, value]) =>
+      equalIgnoreCase(value.email, awsAccount.Email!),
+    );
+    if (!accountConfig) {
+      accountConfig = workLoadAccountsConfig.find(([_, value]) => equalIgnoreCase(value.email, awsAccount.Email!));
+      isMandatoryAccount = false;
+    }
+    if (!accountConfig) {
+      console.log(`Account "${awsAccount.Email!} not found in config, Ignoring"`);
+      continue;
+    }
+    if (isMandatoryAccount) {
+      // Update Account in Mandatory Accounts
+      updateMandatoryAccounts[accountConfig[0]]['account-name'] = awsAccount.Name!;
+      updateMandatoryAccounts[accountConfig[0]].email = awsAccount.Email!;
+      updateMandatoryAccounts[accountConfig[0]].deleted = true;
+      // Storing account changes for updating actual configuration
+      updatedAccounts[accountConfig[0]] = {
+        email: awsAccount.Email,
+        name: awsAccount.Name,
+        filename: accountConfig[1]['src-filename'],
+        type: 'mandatory',
+      };
+    } else {
+      // Update Account in Workload Accounts
+      updateWorkLoadAccounts[accountConfig[0]]['account-name'] = awsAccount.Name!;
+      updateWorkLoadAccounts[accountConfig[0]].email = awsAccount.Email!;
+      updateWorkLoadAccounts[accountConfig[0]].deleted = true;
+      // Storing account changes for updating actual configuration
+      updatedAccounts[accountConfig[0]] = {
+        email: awsAccount.Email,
+        name: awsAccount.Name,
         filename: accountConfig[1]['src-filename'],
         type: 'workload',
       };
