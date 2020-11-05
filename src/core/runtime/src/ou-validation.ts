@@ -306,6 +306,7 @@ function updateAccountConfig(accountConfig: any, accountInfo: UpdateAccountOutpu
   if (accountInfo['ou-path']) {
     accountConfig['ou-path'] = accountInfo['ou-path'];
   }
+  accountConfig.deleted = accountInfo.deleted;
   return accountConfig;
 }
 async function loadAccounts(tableName: string, itemId: string): Promise<Account[]> {
@@ -342,6 +343,7 @@ interface UpdateAccountOutput {
   ou?: string;
   'ou-path'?: string;
   type: 'mandatory' | 'workload';
+  deleted?: boolean;
 }
 
 const updateRenamedAccounts = (props: {
@@ -454,6 +456,7 @@ const updateSuspendedAccounts = (props: {
         name: awsAccount.Name,
         filename: accountConfig[1]['src-filename'],
         type: 'mandatory',
+        deleted: true,
       };
     } else {
       // Update Account in Workload Accounts
@@ -466,6 +469,7 @@ const updateSuspendedAccounts = (props: {
         name: awsAccount.Name,
         filename: accountConfig[1]['src-filename'],
         type: 'workload',
+        deleted: true,
       };
     }
   }
