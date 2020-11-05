@@ -41,6 +41,16 @@ export const handler = async (input: Partial<VerifyStackSetInput>) => {
       statusReason: '',
     };
   }
+
+
+  const inOperableInstances = instances.filter(i => i.Status === 'INOPERABLE');
+  if (inOperableInstances.length > 0) {
+    return {
+      status: 'IN_OPERABLE',
+      statusReason: 'INOPERABLE instances to be cleared',
+    }
+  }
+  
   return {
     status: 'FAILURE',
     statusReason: `There are ${nonCurrentInstances.length} non-current instances`,

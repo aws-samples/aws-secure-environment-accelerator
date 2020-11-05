@@ -129,6 +129,30 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       },
     });
 
+    const deleteInOperableInstancesTask = new CodeTask(scope, `Start Stack Set InOperable Instance Deletion`, {
+      resultPath: deleteInstancesTaskResultPath,
+      functionPayload: {
+        'stackName.$': '$.stackName',
+        'instanceAccounts.$': '$.instanceAccounts',
+        'instanceRegions.$': '$.instanceRegions',
+        retainStacks: true,
+      },
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.createStackSet.deleteStackSetInstances',
+      },
+    });
+
+    const verifyDeleteInOperableInstancesTask = new CodeTask(scope, 'Verify Stack Set InOperable Instances Deletion', {
+      resultPath: verifyDeleteInstancesTaskResultPath,
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.createStackSet.verify',
+      },
+    });
+
     const waitTask = new sfn.Wait(scope, 'Wait For Stack Set Creation', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
@@ -142,6 +166,10 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
     });
 
     const waitDeleteInstancesTask = new sfn.Wait(scope, 'Wait for Stack Set Instances Deletion', {
+      time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
+    });
+
+    const waitDeleteInOperableInstancesTask = new sfn.Wait(scope, 'Wait for Stack Set InOperable Instances Deletion', {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
@@ -170,6 +198,7 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
     updateInstancesTask.next(
       new sfn.Choice(scope, 'Stack Set Instances Updated?')
         .when(sfn.Condition.stringEquals(updateInstancesTaskStatusPath, 'UP_TO_DATE'), deleteInstancesTask)
+        .when(sfn.Condition.stringEquals(updateInstancesTaskStatusPath, 'IN_OPERABLE'), deleteInstancesTask)
         .when(sfn.Condition.stringEquals(updateInstancesTaskStatusPath, 'SUCCESS'), waitUpdateInstancesTask)
         .otherwise(fail)
         .afterwards(),
@@ -180,6 +209,7 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       .next(
         new sfn.Choice(scope, 'Stack Set Instances Update Done?')
           .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'SUCCESS'), deleteInstancesTask)
+          .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'IN_OPERABLE'), deleteInstancesTask)
           .when(sfn.Condition.stringEquals(verifyUpdateInstancesTaskStatusPath, 'IN_PROGRESS'), waitUpdateInstancesTask)
           .otherwise(fail)
           .afterwards(),
@@ -193,12 +223,32 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
         .afterwards(),
     );
 
+
+    deleteInOperableInstancesTask.next(
+      new sfn.Choice(scope, 'Stack Set InOperable Instances Deleted?')
+        .when(sfn.Condition.stringEquals(deleteInstancesTaskStatusPath, 'UP_TO_DATE'), pass)
+        .when(sfn.Condition.stringEquals(deleteInstancesTaskStatusPath, 'SUCCESS'), waitDeleteInOperableInstancesTask)
+        .otherwise(fail)
+        .afterwards(),
+    );
+
     waitDeleteInstancesTask
       .next(verifyDeleteInstancesTask)
       .next(
         new sfn.Choice(scope, 'Stack Set Instances Deletion Done?')
           .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_OPERABLE'), deleteInOperableInstancesTask)
           .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'), waitDeleteInstancesTask)
+          .otherwise(fail)
+          .afterwards(),
+      );
+
+    waitDeleteInOperableInstancesTask
+      .next(verifyDeleteInOperableInstancesTask)
+      .next(
+        new sfn.Choice(scope, 'Stack Set InOperable Instances Deletion Done?')
+          .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'SUCCESS'), pass)
+          .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'), waitDeleteInOperableInstancesTask)
           .otherwise(fail)
           .afterwards(),
       );
