@@ -417,7 +417,6 @@ const updateRenamedAccounts = (props: {
   };
 };
 
-
 const updateSuspendedAccounts = (props: {
   config: AcceleratorUpdateConfig;
   awsAccounts: org.Account[];
@@ -434,9 +433,7 @@ const updateSuspendedAccounts = (props: {
   const workLoadAccountsConfig = Object.entries(config['workload-account-configs']);
   for (const awsAccount of awsAccounts.filter(acc => acc.Status === 'SUSPENDED')) {
     let isMandatoryAccount = true;
-    let accountConfig = mandatoryAccountConfigs.find(([_, value]) =>
-      equalIgnoreCase(value.email, awsAccount.Email!),
-    );
+    let accountConfig = mandatoryAccountConfigs.find(([_, value]) => equalIgnoreCase(value.email, awsAccount.Email!));
     if (!accountConfig) {
       accountConfig = workLoadAccountsConfig.find(([_, value]) => equalIgnoreCase(value.email, awsAccount.Email!));
       isMandatoryAccount = false;

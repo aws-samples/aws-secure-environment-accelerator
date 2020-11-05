@@ -223,7 +223,6 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
         .afterwards(),
     );
 
-
     deleteInOperableInstancesTask.next(
       new sfn.Choice(scope, 'Stack Set InOperable Instances Deleted?')
         .when(sfn.Condition.stringEquals(deleteInstancesTaskStatusPath, 'UP_TO_DATE'), pass)
@@ -237,7 +236,10 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       .next(
         new sfn.Choice(scope, 'Stack Set Instances Deletion Done?')
           .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'SUCCESS'), pass)
-          .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_OPERABLE'), deleteInOperableInstancesTask)
+          .when(
+            sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_OPERABLE'),
+            deleteInOperableInstancesTask,
+          )
           .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'), waitDeleteInstancesTask)
           .otherwise(fail)
           .afterwards(),
@@ -248,7 +250,10 @@ export class CreateStackSetTask extends sfn.StateMachineFragment {
       .next(
         new sfn.Choice(scope, 'Stack Set InOperable Instances Deletion Done?')
           .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'SUCCESS'), pass)
-          .when(sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'), waitDeleteInOperableInstancesTask)
+          .when(
+            sfn.Condition.stringEquals(verifyDeleteInstancesTaskStatusPath, 'IN_PROGRESS'),
+            waitDeleteInOperableInstancesTask,
+          )
           .otherwise(fail)
           .afterwards(),
       );
