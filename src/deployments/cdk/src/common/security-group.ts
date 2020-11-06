@@ -65,8 +65,19 @@ export class SecurityGroup extends cdk.Construct {
     super(parent, name);
     const { securityGroups, accountKey, vpcId, vpcConfigs, vpcName, installerVersion, sharedAccountKey } = props;
 
-    const isUpdateDescription =
-      sv.clean(installerVersion) === null ? sv.satisfies('1.2.1', installerVersion) : sv.gte(installerVersion, '1.2.1');
+    const cleanVersion = sv.clean(installerVersion, { loose: true });
+    let isUpdateDescription = false;
+    const newSgDescriptionVersion = '1.2.2';
+    if (cleanVersion) {
+      // Checking only "major, minor, patch" versions. Ignoring characters appended to release tag
+      if (sv.coerce(installerVersion)) {
+        isUpdateDescription = sv.gte(sv.coerce(installerVersion)?.raw!, newSgDescriptionVersion);
+      } else {
+        isUpdateDescription = sv.gte(installerVersion, newSgDescriptionVersion);
+      }
+    } else {
+      isUpdateDescription = sv.satisfies(newSgDescriptionVersion, installerVersion);
+    }
 
     // const securityGroups = vpcConfig['security-groups'];
     // Create all security groups
@@ -92,6 +103,7 @@ export class SecurityGroup extends cdk.Construct {
       const outboundRules = securityGroup['outbound-rules'];
       if (inboundRules) {
         for (const [ruleId, rule] of inboundRules.entries()) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           const ruleParams = this.prepareSecurityGroupRuleProps(accountKey, groupName, rule, vpcConfigs!);
           if (ruleParams.length === 0) {
             continue;
@@ -103,6 +115,7 @@ export class SecurityGroup extends cdk.Construct {
       }
       if (outboundRules) {
         for (const [ruleId, rule] of outboundRules.entries()) {
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
           const ruleParams = this.prepareSecurityGroupRuleProps(accountKey, groupName, rule, vpcConfigs!);
           if (ruleParams.length === 0) {
             continue;

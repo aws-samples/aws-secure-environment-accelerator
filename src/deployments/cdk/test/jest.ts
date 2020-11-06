@@ -1,4 +1,4 @@
-// tslint:disable:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as cdk from '@aws-cdk/core';
 import { SynthUtils } from '@aws-cdk/assert';
 

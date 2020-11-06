@@ -2,7 +2,6 @@ on:
   workflow_dispatch:
   workflow_run:
     workflows: ["Merge Release Branch"]
-    branches: [master]
     types:
       - completed
 
@@ -84,6 +83,10 @@ jobs:
         run: |
           cp reference-artifacts/config.example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.example.json
 
+      - name: Copy file output 2b1
+        run: |
+          cp reference-artifacts/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
+
       - name: PDF output 2c
         uses: docker://pandoc/latex:2.10
         with:
@@ -112,7 +115,7 @@ jobs:
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
-            ./reference-artifacts/master-config-sample-snippets/sample_snippets.md
+            ./reference-artifacts/config-sample-snippets/sample_snippets.md
 
       - name: Copy file output 2e
         run: |
@@ -131,7 +134,7 @@ jobs:
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
-            ./reference-artifacts/master-config-sample-snippets/firewall_file_available_variables.md
+            ./reference-artifacts/config-sample-snippets/firewall_file_available_variables.md
 
       - name: PDF output 2g
         uses: docker://pandoc/latex:2.10
@@ -194,11 +197,13 @@ jobs:
             -V documentclass=report
             --pdf-engine=xelatex
             docs/architectures/pbmm/architecture.md
-
-      - name: Zip
+            
+      - name: Copy file output 5b
         run: |
-          zip -r ${{ steps.setup.outputs.dir }}.zip ${{ steps.setup.outputs.dir }}/
+          cp docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/5b-${{ steps.setup.outputs.prefix }}-PBMM_Accel_Account_Network_VPC.pdf
+
+
       - uses: actions/upload-artifact@master
         with:
           name: ${{ steps.setup.outputs.dir }}
-          path: ${{ steps.setup.outputs.dir }}.zip
+          path: ${{ steps.setup.outputs.dir }}/

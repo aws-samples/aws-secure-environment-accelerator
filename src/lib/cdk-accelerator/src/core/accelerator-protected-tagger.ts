@@ -6,7 +6,7 @@ type Action = (value: cdk.IConstruct) => boolean;
 /**
  * Auxiliary interface to allow types as a method parameter.
  */
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Type<T> = new (...args: any[]) => T;
 
 const ACCEL_P_TAG = 'Accel-P';

@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 
-// tslint:disable-next-line: no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Producer = () => any;
 
 export interface JsonOutputProps extends Omit<cdk.CfnOutputProps, 'value'> {
@@ -8,7 +8,7 @@ export interface JsonOutputProps extends Omit<cdk.CfnOutputProps, 'value'> {
   /**
    * Function used to produce a value or the value itself.
    */
-  // tslint:disable-next-line: no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly value: any | Producer;
 }
 

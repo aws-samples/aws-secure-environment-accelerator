@@ -14,7 +14,7 @@ const cur = new AWS.CUR({
 });
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  // tslint:disable-next-line: switch-default
+  // eslint-disable-next-line default-case
   switch (event.RequestType) {
     case 'Create':
       return onCreate(event);

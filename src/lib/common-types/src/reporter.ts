@@ -2,7 +2,7 @@ import { Context, getFunctionName, ValidationError } from 'io-ts';
 import { Reporter } from 'io-ts/lib/Reporter';
 import { fold } from 'fp-ts/lib/Either';
 
-// tslint:disable-next-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function stringify(v: any): string {
   if (typeof v === 'function') {
     return getFunctionName(v);

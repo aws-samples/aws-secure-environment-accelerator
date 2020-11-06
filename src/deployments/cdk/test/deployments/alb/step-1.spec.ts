@@ -1,4 +1,4 @@
-// tslint:disable:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import 'jest';
 import * as cdk from '@aws-cdk/core';
 import { createAlbName, createTargetGroupName } from '../../../src/deployments/alb/step-1';

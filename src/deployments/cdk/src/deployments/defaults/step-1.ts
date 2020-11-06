@@ -2,6 +2,7 @@ import * as cdk from '@aws-cdk/core';
 import * as iam from '@aws-cdk/aws-iam';
 import * as kms from '@aws-cdk/aws-kms';
 import * as s3 from '@aws-cdk/aws-s3';
+import { RegionInfo } from '@aws-cdk/region-info';
 import { EbsDefaultEncryption } from '@aws-accelerator/custom-resource-ec2-ebs-default-encryption';
 import { S3CopyFiles } from '@aws-accelerator/custom-resource-s3-copy-files';
 import { S3PublicAccessBlock } from '@aws-accelerator/custom-resource-s3-public-access-block';
@@ -30,7 +31,7 @@ export interface DefaultsStep1Props {
 export interface DefaultsStep1Result {
   centralBucketCopy: s3.Bucket;
   centralLogBucket: s3.Bucket;
-  aesLogBucket: s3.Bucket;
+  aesLogBucket?: s3.Bucket;
   accountEbsEncryptionKeys: AccountRegionEbsEncryptionKeys;
 }
 
@@ -293,6 +294,13 @@ function createAesLogBucket(props: DefaultsStep1Props) {
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
+  const regionInfo = RegionInfo.get(logAccountStack.region);
+  const elbv2Account = regionInfo?.elbv2Account;
+  if (!elbv2Account) {
+    console.warn(`Cannot enable access logging; don't know ELBv2 account for region ${logAccountConfig.region}`);
+    return;
+  }
+
   const logBucket = new s3.Bucket(logAccountStack, 'AesBucket', {
     versioned: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -306,10 +314,9 @@ function createAesLogBucket(props: DefaultsStep1Props) {
 
   accounts.map(a => logBucket.grantRead(new iam.AccountPrincipal(a.id)));
 
-  // TODO remove hard coded ELB ca-central-1 region account id
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: [new iam.AccountPrincipal('985666609251')],
+      principals: [new iam.AccountPrincipal(elbv2Account)],
       actions: ['s3:PutObject'],
       resources: [`${logBucket.bucketArn}/*`],
     }),

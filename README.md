@@ -1,16 +1,18 @@
 # AWS Secure Environment Accelerator
 
-The AWS Accelerator is a tool designed to deploy and operate secure multi-account AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
+The AWS Accelerator is a tool designed to help deploy and operate secure multi-account, multi-region AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
-While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to meet the multiple requirements of a broad range of governments and public sector organizations.
+While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to help meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of customized architectures and enables the solution to help meet the multitude of requirements of a broad range of governments and public sector organizations.
 
 The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
+
+![Diagram](/docs/operations/img/ASEA-high-level-architecture.png)
 
 ## What specifically does the Accelerator deploy and manage?
 
 A common misconception is that the AWS Secure Environment Accelerator only deploys security services, not true. The Accelerator is capable of deploying a complete end-to-end hybrid enterprise multi-region cloud environment.
 
-Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with mininal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
+Additionally, while the Accelerator is initially responsible for deploying a prescribed architecture, it more importantly allows for organizations to operate, evolve, and maintain their cloud architecture and security controls over time and as they grow, with minimal effort, often using native AWS tools. Customers don't have to change the way they operate in AWS.
 
 Specifically the accelerator deploys and manages the following functionality, both at initial accelerator deployment and as new accounts are created, added, or onboarded in a completely automated but customizable manner:
 
@@ -22,7 +24,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Perimeter
   - Log-Archive
   - Security-Audit
-- Workload Accounts - automate mass account creation, or use AWS organizations to scale one account at a time. These accounts are used to host a customers workloads and applications.
+- Workload Accounts - automated concurrent mass account creation or use AWS organizations to scale one account at a time. These accounts are used to host a customer's workloads and applications.
 - Scalable to 1000's of AWS accounts
 - Supports AWS Organizations nested [ou's](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_ous.html) and importing existing AWS accounts
 - Performs 'account warming' to establish initial limits, when required
@@ -31,11 +33,11 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### Creates Networking
 
 - Transit Gateways and TGW route tables (incl. inter-region peering)
-- Centralized and/or Local VPC's
+- Centralized and/or Local (bespoke) VPC's
 - Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
-- All completely and indivdiually customizable (per account, VPC, subnet, or OU)
+- All completely and individually customizable (per account, VPC, subnet, or OU)
 - Layout and customize your VPCs, subnets, CIDRs and connectivity the way you want
 - Deletes default VPC's (worldwide)
 
@@ -81,7 +83,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Deploys both perimeter and account level ALB's w/Lambda health checks, certificates and TLS policies
 - Deploys & configures 3rd party firewall clusters and management instances w/vendor best practices and sample security policies, w/automated TGW ECMP BGP tunnel standup (leverages marketplace)
 - Protects Accelerator deployed and managed objects
-- Sets Up SNS Alerting topics (High, Medium, Low, Blockhole priorities)
+- Sets Up SNS Alerting topics (High, Medium, Low, Blackhole priorities)
 - Deploys CloudWatch Log Metrics and Alarms
 
 ### Centralized Logging and Alerting
@@ -105,11 +107,11 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ.
 
-The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`.
+The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`. The Accelerator is now a completely standalone solution.
 
 ## Relationship with AWS Control Tower
 
-AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Towers limited regional coverage, limited functionality and lack of customizability has made it unsuitable in meeting their requirements.
+AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service.
 
 When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we initially allowed with the ALZ.
 
@@ -132,24 +134,34 @@ This summarizes the installation process, the full installation document can be 
     - deploy, configure and guardrail multiple accounts at the same time
     - change Accelerator configuration settings
 
-# **Documentation** (Linked)
+# **Documentation**
 
 ### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-- [Link](./docs/installation/customization-index.md) to sample config file and customization details
-- [Link](./docs/architectures/pbmm/log-file-locations.md) to AWS SEA Central Logging Bucket Structures
+- [Link](./docs/installation/customization-index.md) to sample config files and customization details
+- More [details](./docs/installation/what-we-do-where.md) as to WHAT we do and WHERE we support it (regions, accounts, etc.)
+- AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
+- Unofficial [Roadmap](./docs/roadmap.md)
 
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
 ### - [Accelerator Developer Guide](./docs/developer/developer-guide.md) (Early Draft)
 
-### - [Contributing & Governance Guide](./CONTRIBUTING.md) (Early Draft)
+### - [Contributing & Governance Guide](./CONTRIBUTING.md)
 
 ### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
-### - [Frequently Asked Questions](./docs/faq/faq.md) (Future)
+- AWS PBMM Architecture Sample [Diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
+
+### - Frequently Asked Questions
+
+- See section 3. of the Accelerator Installation, Upgrades and Basic Operations Guide
 
 ---
 
-[...Go to Accelerator Table of Contents](./docs/index.md)
+Note: A ZIP file containing a PDF version of all documentation can be found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/actions?query=workflow%3A%22Generate+Documentation%22).
+
+---
+
+[Go to Accelerator Table of Contents](./docs/index.md)

@@ -32,7 +32,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Importing certificate...`);
   console.log(JSON.stringify(event, null, 2));
 
-  // tslint:disable-next-line: switch-default
+  // eslint-disable-next-line default-case
   switch (event.RequestType) {
     case 'Create':
       return onCreate(event);

@@ -90,8 +90,8 @@
         "resolver-vpc": "Endpoint",
         "region": "ca-central-1",
         "names": {
-          "public": ["dept.cloud-nuage.canada.ca"],
-          "private": ["dept.cloud-nuage.gc.ca"]
+          "public": ["cloud-hosted-publicdomain.example.ca"],
+          "private": ["cloud-hosted-privatedomain.example.ca"]
         }
       }
     ],
@@ -641,7 +641,6 @@
               "cloudtrail",
               "codebuild",
               "codecommit",
-              "codecommit-fips",
               "codepipeline",
               "config",
               "datasync",
@@ -650,13 +649,11 @@
               "ecs-agent",
               "ecs-telemetry",
               "elasticfilesystem",
-              "elasticfilesystem-fips",
               "elasticloadbalancing",
               "elasticmapreduce",
               "events",
               "execute-api",
               "git-codecommit",
-              "git-codecommit-fips",
               "glue",
               "kinesis-streams",
               "kms",
@@ -696,11 +693,11 @@
           },
           "on-premise-rules": [
             {
-              "zone": "dept-private.gc.ca",
+              "zone": "on-premise-privatedomain1.example.ca",
               "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             },
             {
-              "zone": "private-domain1.example.ca",
+              "zone": "on-premise-privatedomain2.example.ca",
               "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             }
           ]
@@ -1128,9 +1125,7 @@
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": {
-            "asn": 65522
-          },
+          "vgw": false,
           "pcx": false,
           "natgw": false,
           "subnets": [
@@ -1228,10 +1223,6 @@
               "name": "FWMgmt_azA",
               "routes": [
                 {
-                  "destination": "10.0.0.0/8",
-                  "target": "VGW"
-                },
-                {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
                   "name": "Firewall",
@@ -1247,10 +1238,6 @@
             {
               "name": "FWMgmt_azB",
               "routes": [
-                {
-                  "destination": "10.0.0.0/8",
-                  "target": "VGW"
-                },
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",

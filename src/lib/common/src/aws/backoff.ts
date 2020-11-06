@@ -15,8 +15,10 @@ export function throttlingBackOff<T>(
   });
 }
 
-// tslint:disable-next-line: no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isThrottlingError = (e: any) =>
+  e.code === 'InsufficientDeliveryPolicyException' || // Retry for ConfigService
+  e.code === 'NoAvailableDeliveryChannelException' || // Retry for ConfigService
   e.code === 'TooManyRequestsException' ||
   e.code === 'Throttling' ||
   e.code === 'ThrottlingException' ||
