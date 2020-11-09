@@ -3,7 +3,7 @@
   "peerDependencies": {
     "aws-lambda": "^1.0.5", 
     "exponential-backoff": "^3.0.0", 
-    "aws-sdk": "^2.668.0"
+    "aws-sdk": "^2.787.0"
   },
   "main": "cdk/index.ts",
   "private": true, 
@@ -11,7 +11,7 @@
   "dependencies": {
     "aws-lambda": "1.0.5", 
     "exponential-backoff": "3.0.0", 
-    "aws-sdk": "2.668.0"
+    "aws-sdk": "2.787.0"
   }, 
   "devDependencies": {
     "@types/node": "12.12.6", 
