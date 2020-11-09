@@ -5,7 +5,7 @@ import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import * as ec2 from '@aws-cdk/aws-ec2';
-import { AcceleratorConfig, PeeringConnectionConfig, VpcConfigType } from '@aws-accelerator/common-config/src';
+import { PeeringConnectionConfig, VpcConfigType } from '@aws-accelerator/common-config/src';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
 import { SecurityGroup } from '../common/security-group';
 import { AddTagsToResourcesOutput } from '../common/add-tags-to-resources-output';
@@ -26,8 +26,6 @@ import * as centralServices from '../deployments/central-services';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import * as snsDeployment from '../deployments/sns';
 import * as ssmDeployment from '../deployments/ssm';
-import { STS } from '@aws-accelerator/common/src/aws/sts';
-import { S3 } from '@aws-accelerator/common/src/aws/s3';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -342,49 +340,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     limiter,
     outputs,
   });
-
-
-  const getSsmDocumentsContent = async(): Promise<{ [accountKey: string]: { [documentName: string]: string } } | undefined> => {
-  
-    const sts = new STS();
-    console.log("Assuming Master Account Role", masterAccountId);
-    const sourceAccountCredentials = await sts.getCredentialsForAccountAndRole(masterAccountId!, context.acceleratorExecutionRoleName);
-  
-    const s3 = new S3(sourceAccountCredentials);
-    const artifactsPrefix = 'ssm-documents/';
-    const documentsConfig = acceleratorConfig['global-options']['ssm-automation'];
-    const accountDocumentContents: { [accountKey: string]: { [documentName: string]: string } } = {};
-    for (const documentConfig of documentsConfig) {
-      for (const accountKey of documentConfig.accounts) {
-        if (!accountDocumentContents[accountKey]) {
-          accountDocumentContents[accountKey] = {};
-        }
-      }
-      for (const document of documentConfig.documents) {
-        const documentKey = artifactsPrefix + document.template;
-        try {
-          const documentContent = await s3.getObjectBodyAsString({
-            Bucket: centralBucket.bucketName,
-            Key: documentKey,
-          });
-          documentConfig.accounts.map(accountKey => {
-            accountDocumentContents[accountKey][document.name] = documentContent;
-          });
-        } catch (e) {
-          console.warn(`Cannot load SSM Document Content s3://${centralBucket.bucketName}/${documentKey}`);
-          throw e;
-        }
-      }
-    }
-    console.log(accountDocumentContents);
-    return accountDocumentContents;
-  };
-
-  const documentContents = await getSsmDocumentsContent();
-  if (!documentContents) {
-    console.warn(`No SSM Documents found in S3`);
-    return;
-  }
   
   await ssmDeployment.createDocument({
     acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
