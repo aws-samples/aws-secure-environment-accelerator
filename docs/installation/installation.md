@@ -250,6 +250,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
          - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
          - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
            - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
+           - Detailed steps can be read [here](./guides/public-facing-workload-via-fortigate.md).
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
     6. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
