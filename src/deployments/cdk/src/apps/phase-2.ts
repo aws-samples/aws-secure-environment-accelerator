@@ -340,7 +340,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     limiter,
     outputs,
   });
-  
+
   await ssmDeployment.createDocument({
     acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
     centralAccountId: masterAccountId!,
@@ -351,4 +351,3 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 }
-

@@ -122,7 +122,7 @@ export async function createDocument(props: CreateDocumentProps) {
   }
 }
 
-async function getSsmDocumentsContent (props: {
+async function getSsmDocumentsContent(props: {
   assumeRoleName: string;
   sourceAccountId: string;
   sourceBucketName: string;
@@ -160,4 +160,4 @@ async function getSsmDocumentsContent (props: {
     }
   }
   return accountDocumentContents;
-};
+}

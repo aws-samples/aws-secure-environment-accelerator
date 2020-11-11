@@ -539,6 +539,12 @@ export const SsmShareAutomation = t.interface({
   documents: t.array(t.string),
 });
 
+export const AwsConfigRules = t.interface({
+  'excl-regions': t.array(t.string),
+  rules: t.array(NonEmptyString),
+  'remediate-regions': optional(t.array(t.string)),
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -583,6 +589,7 @@ export const OrganizationalUnitConfigType = t.interface({
   vpc: optional(t.array(VpcConfigType)),
   'default-budgets': optional(BudgetConfigType),
   'ssm-automation': fromNullable(t.array(SsmShareAutomation), []),
+  'aws-config': fromNullable(t.array(AwsConfigRules), []),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
@@ -759,6 +766,32 @@ export const SsmAutomation = t.interface({
   regions: t.array(t.string),
   documents: t.array(SsmDocument),
 });
+
+export const AwsConfigRuleDefaults = t.interface({
+  remediation: t.boolean,
+  'remediation-attempts': t.number,
+  'remediation-retry-seconds': t.number,
+  'remediation-concurrency': t.number,
+});
+
+export const AwsConfigManagedRule = t.interface({
+  name: NonEmptyString,
+  remediation: optional(t.boolean),
+  'remediation-attempts': optional(t.number),
+  'remediation-retry-seconds': optional(t.number),
+  'remediation-concurrency': optional(t.number),
+  'remediation-action': t.string,
+});
+
+export const AwsConfigManagedRules = t.interface({
+  defaults: AwsConfigRuleDefaults,
+  rules: t.array(AwsConfigManagedRule),
+});
+
+export const AwsConfig = t.interface({
+  'managed-rules': AwsConfigManagedRules,
+});
+
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
@@ -792,6 +825,7 @@ export const GlobalOptionsConfigType = t.interface({
     }),
   ),
   'ssm-automation': fromNullable(t.array(SsmAutomation), []),
+  'aws-config': optional(AwsConfig),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;

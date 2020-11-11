@@ -7,7 +7,7 @@ import { EbsDefaultEncryption } from '@aws-accelerator/custom-resource-ec2-ebs-d
 import { S3CopyFiles } from '@aws-accelerator/custom-resource-s3-copy-files';
 import { S3PublicAccessBlock } from '@aws-accelerator/custom-resource-s3-public-access-block';
 import { Organizations } from '@aws-accelerator/custom-resource-organization';
-import { AcceleratorConfig, VpcConfig } from '@aws-accelerator/common-config/src';
+import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import {
   createEncryptionKeyName,
   createRoleName,
