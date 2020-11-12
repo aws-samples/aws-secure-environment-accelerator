@@ -59,7 +59,7 @@ These are pairs of targets (one for each firewall) that direct traffic from the 
 2) Enter the following parameter values:
    - Target group name: Public-DevTest-SampleApp-azA
    - Protocol: HTTPS
-   - Port: (pick an used port on the Firewall). Example 7006
+   - Port: (pick an unused port on the Firewall). Example 7006
    - VPC: Perimeter_VPC
 
 ![ALB New Target Group](img/public-facing-workload-via-fortigate/Picture7.png)
@@ -78,7 +78,7 @@ These are pairs of targets (one for each firewall) that direct traffic from the 
 
 --- 
 
-*** ALB Listener Rule Configuration
+### ALB Listener Rule Configuration
 
 1) Create a DNS entry for the web application that resolves to the perimeter ALB being configured. For example: webapplication.mydomain.ca resolves to 'Public-DevTest-perimeter-alb-1616856287.ca-central-1.elb.amazonaws.com'
 
@@ -144,7 +144,7 @@ The following configuration will be executed per Firewall instance (twice with t
 
 7. Make note of the used ip address in the Details column. In the example above “100.96.250.22”.
 
-8. Ensure that you haven't navigated away and are in the **Virtual IPs** page. Click the CLI command icon in the top right corner. Note that the following must be done in the CLI and can't be done in the user interface.
+8. Click the CLI command icon in the top right corner. Note that the following must be done using the CLI.
 
 ![FGVIPsCLI](img/public-facing-workload-via-fortigate/Picture21.png)
 
