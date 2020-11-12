@@ -33,7 +33,16 @@ export async function ssmCreateDocumentRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['ssm:DescribeDocument', 'ssm:UpdateDocument', 'ssm:CreateDocument', 'ssm:ModifyDocumentPermission'],
+      actions: [
+        'ssm:DescribeDocument',
+        'ssm:DeleteDocument',
+        'ssm:UpdateDocumentDefaultVersion',
+        'ssm:DescribeDocumentPermission',
+        'ssm:UpdateDocument',
+        'ssm:CreateDocument',
+        'ssm:ModifyDocumentPermission',
+        'ssm:GetDocument',
+      ],
       resources: ['*'],
     }),
   );

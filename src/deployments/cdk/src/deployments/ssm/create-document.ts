@@ -3,11 +3,10 @@ import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import * as c from '@aws-accelerator/common-config';
 import { AccountStacks } from '../../common/account-stacks';
 import * as yaml from 'js-yaml';
-import { Document } from '@aws-accelerator/cdk-constructs/src/ssm';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import * as ssm from '@aws-cdk/aws-ssm';
 import { Account, getAccountId } from '../../utils/accounts';
 import { SSMDocumentShare } from '@aws-accelerator/custom-resource-ssm-document-share';
+import { SSMDocument } from '@aws-accelerator/custom-resource-ssm-create-document';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
@@ -42,7 +41,7 @@ export async function createDocument(props: CreateDocumentProps) {
     return;
   }
   const documentsConfig = config['global-options']['ssm-automation'];
-  const ssmdocuments: { [accountKey: string]: { [region: string]: { [documentName: string]: ssm.CfnDocument } } } = {};
+  const ssmdocuments: { [accountKey: string]: { [region: string]: { [documentName: string]: SSMDocument } } } = {};
   for (const documentConfig of documentsConfig) {
     for (const accountKey of documentConfig.accounts) {
       const ssmDocumentRole = IamRoleOutputFinder.tryFindOneByName({
@@ -67,11 +66,19 @@ export async function createDocument(props: CreateDocumentProps) {
             name: document.name,
             suffixLength: 0,
           });
-          const ssmDocument = new Document(accountStack, document.name, {
-            content,
-            documentType: 'Automation',
+          // Share Document to accounts
+          if (!ssmDocumentRole) {
+            console.error(`SSMDocument Create Role not found in account "${accountKey}"`);
+            continue;
+          }
+
+          const ssmDocument = new SSMDocument(accountStack, `SsmDocument-${document.name}`, {
+            content: JSON.stringify(content),
             name: documentName,
+            roleArn: ssmDocumentRole.roleArn,
+            type: 'Automation',
           });
+
           if (!ssmdocuments[accountKey]) {
             ssmdocuments[accountKey] = {};
             ssmdocuments[accountKey][region] = {};
@@ -106,23 +113,20 @@ export async function createDocument(props: CreateDocumentProps) {
           if (shareAccountIds.length === 0) {
             continue;
           }
-          // Share Document to accounts
-          if (!ssmDocumentRole) {
-            console.error(`SSMDocument Create Role not found in account "${accountKey}"`);
-            continue;
-          }
-          new SSMDocumentShare(accountStack, `Share${document.name}`, {
+
+          const ssmDocumentShare = new SSMDocumentShare(accountStack, `SsmDocument${document.name}`, {
             accountIds: shareAccountIds,
-            name: ssmDocument.name!,
+            name: documentName,
             roleArn: ssmDocumentRole.roleArn,
           });
+          ssmDocumentShare.node.addDependency(ssmDocument);
         }
       }
     }
   }
 }
 
-async function getSsmDocumentsContent (props: {
+async function getSsmDocumentsContent(props: {
   assumeRoleName: string;
   sourceAccountId: string;
   sourceBucketName: string;
@@ -160,4 +164,4 @@ async function getSsmDocumentsContent (props: {
     }
   }
   return accountDocumentContents;
-};
+}

@@ -95,13 +95,17 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
       physicalResourceId: `SSMDocumentShare-${name}`,
     };
   }
-  await throttlingBackOff(() =>
-    ssm
-      .modifyDocumentPermission({
-        Name: name,
-        PermissionType: 'Share',
-        AccountIdsToRemove: accountIds,
-      })
-      .promise(),
-  );
+  try {
+    await throttlingBackOff(() =>
+      ssm
+        .modifyDocumentPermission({
+          Name: name,
+          PermissionType: 'Share',
+          AccountIdsToRemove: accountIds,
+        })
+        .promise(),
+    );
+  } catch (error) {
+    console.warn(error);
+  }
 }
