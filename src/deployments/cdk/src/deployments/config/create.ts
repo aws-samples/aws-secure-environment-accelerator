@@ -40,6 +40,7 @@ export async function createRule(props: CreateRuleProps) {
     }
     const ouAwsConfigRuleConfigs = ouConfig['aws-config'];
     for (const [accountKey, accountConfig] of config.getAccountConfigsForOu(ouKey)) {
+      const awsAccountConfigRuleConfig = accountConfig['aws-config'];
       for (const awsConfigRuleConfig of ouAwsConfigRuleConfigs) {
         for (const ruleName of awsConfigRuleConfig.rules) {
           console.log(
@@ -60,6 +61,10 @@ export async function createRule(props: CreateRuleProps) {
             awsConfigRule['remediation-concurrency'] || configRuleDefaults['remediation-concurrency'];
           for (const region of config['global-options']['supported-regions']) {
             if (awsConfigRuleConfig['excl-regions'].includes(region)) {
+              continue;
+            }
+            const isRuleIgnored = awsAccountConfigRuleConfig.find(ac => ac['excl-rules'].includes(ruleName) && ac.regions.includes(region));
+            if (isRuleIgnored) {
               continue;
             }
             const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, region);
@@ -126,6 +131,7 @@ export async function createRule(props: CreateRuleProps) {
                 }
               }
             }
+            
             const remediationParams = getRemediationParameters({
               outputs,
               remediationParams: awsConfigRule['remediation-params'],

@@ -541,8 +541,13 @@ export const SsmShareAutomation = t.interface({
 
 export const AwsConfigRules = t.interface({
   'excl-regions': t.array(t.string),
-  rules: t.array(NonEmptyString),
+  rules: t.array(t.string),
   'remediate-regions': optional(t.array(t.string)),
+});
+
+export const AwsConfigAccountConfig = t.interface({
+  regions: t.array(t.string),
+  'excl-rules': t.array(t.string),
 });
 
 export const MandatoryAccountConfigType = t.interface({
@@ -569,6 +574,7 @@ export const MandatoryAccountConfigType = t.interface({
   'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
   'populate-all-elbs-in-param-store': fromNullable(t.boolean, false),
   'ssm-automation': fromNullable(t.array(SsmShareAutomation), []),
+  'aws-config': fromNullable(t.array(AwsConfigAccountConfig), []),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
