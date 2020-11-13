@@ -179,7 +179,10 @@ export namespace LogBucketOutput {
     });
   }
 
-  export function getBucketArn(props: { config: AcceleratorConfig; outputs: StackOutput[] }): string {
+  export function getBucketDetails(props: { config: AcceleratorConfig; outputs: StackOutput[] }): {
+    arn: string;
+    name: string;
+  } {
     const logAccountConfig = props.config['global-options']['central-log-services'];
     const logAccountKey = logAccountConfig.account;
 
@@ -191,7 +194,10 @@ export namespace LogBucketOutput {
     if (!logBucketOutput) {
       throw new Error(`Cannot find central log bucket for log account ${logAccountKey}`);
     }
-    return logBucketOutput.bucketArn;
+    return {
+      arn: logBucketOutput.bucketArn,
+      name: logBucketOutput.bucketName,
+    };
   }
 }
 

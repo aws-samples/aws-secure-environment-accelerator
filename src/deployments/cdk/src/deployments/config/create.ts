@@ -237,10 +237,10 @@ export function getConfigRuleParameters(params: {
 
 export function getParameterValue(input: string, outputs: StackOutput[], config: c.AcceleratorConfig): string {
   if (input === 'LogArchiveBucket') {
-    return LogBucketOutput.getBucketArn({
+    return LogBucketOutput.getBucketDetails({
       config,
       outputs,
-    });
+    }).name;
   }
   return '';
 }
