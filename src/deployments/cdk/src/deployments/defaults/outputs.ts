@@ -191,7 +191,7 @@ export namespace LogBucketOutput {
 
     const logBucketOutputs = StructuredOutput.fromOutputs(props.outputs, {
       accountKey: logAccountKey,
-      type: LogBucketOutputType,
+      type: AesBucketOutputType,
     });
     const logBucketOutput = logBucketOutputs?.[0];
     if (!logBucketOutput) {
