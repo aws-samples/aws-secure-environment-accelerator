@@ -20,7 +20,7 @@ const ssm = new AWS.SSM();
 export const handler = errorHandler(onEvent);
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
-  console.log(`SSM Document Create...`);
+  console.log('SSM Document Create...');
   console.log(JSON.stringify(event, null, 2));
 
   // tslint:disable-next-line: switch-default
@@ -51,7 +51,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 }
 
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
-  console.log(`SSM Document Update...`);
+  console.log('SSM Document Update...');
   console.log(JSON.stringify(event, null, 2));
   const { content, name } = (event.ResourceProperties as unknown) as HandlerProperties;
   const ssmDocument = await throttlingBackOff(() =>
@@ -78,7 +78,7 @@ async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
-  console.log(`SSM Document Delete...`);
+  console.log('SSM Document Delete...');
   console.log(JSON.stringify(event, null, 2));
   const { name } = (event.ResourceProperties as unknown) as HandlerProperties;
   if (event.PhysicalResourceId === `SSMDocument-${name}`) {

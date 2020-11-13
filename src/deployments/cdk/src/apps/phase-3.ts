@@ -128,7 +128,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-
   await awsConfig.createRule({
     acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
     centralAccountId: '',
@@ -137,5 +136,5 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     outputs,
-  })
+  });
 }
