@@ -24,7 +24,7 @@ mainSteps:
       Service: elbv2
       Api: describe_load_balancers
       LoadBalancerArns:
-        - '{{ LoadBalancer }}'
+        - '{{ LoadBalancerArn }}'
     outputs:
       - Name: Name
         Selector: $.LoadBalancers[0].LoadBalancerName
@@ -34,7 +34,7 @@ mainSteps:
     inputs:
       Service: elbv2
       Api: modify_load_balancer_attributes
-      LoadBalancerArn: '{{ LoadBalancer }}'
+      LoadBalancerArn: '{{ LoadBalancerArn }}'
       Attributes:
         - Key: access_logs.s3.enabled
           Value: 'true'

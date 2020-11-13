@@ -63,7 +63,9 @@ export async function createRule(props: CreateRuleProps) {
             if (awsConfigRuleConfig['excl-regions'].includes(region)) {
               continue;
             }
-            const isRuleIgnored = awsAccountConfigRuleConfig.find(ac => ac['excl-rules'].includes(ruleName) && ac.regions.includes(region));
+            const isRuleIgnored = awsAccountConfigRuleConfig.find(
+              ac => ac['excl-rules'].includes(ruleName) && ac.regions.includes(region),
+            );
             if (isRuleIgnored) {
               continue;
             }
@@ -131,7 +133,7 @@ export async function createRule(props: CreateRuleProps) {
                 }
               }
             }
-            
+
             const remediationParams = getRemediationParameters({
               outputs,
               remediationParams: awsConfigRule['remediation-params'],
