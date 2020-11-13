@@ -4,7 +4,7 @@ assumeRole: '{{ AutomationAssumeRole }}'
 parameters:
   LogDestination:
     type: String
-  LoadBalancer:
+  LoadBalancerArn:
     type: String
   AutomationAssumeRole:
     type: String
