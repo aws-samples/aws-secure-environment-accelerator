@@ -786,7 +786,7 @@ export const AwsConfigManagedRule = t.interface({
   'remediation-attempts': optional(t.number),
   'remediation-retry-seconds': optional(t.number),
   'remediation-concurrency': optional(t.number),
-  'remediation-action': t.string,
+  'remediation-action': optional(t.string),
   'remediation-params': fromNullable(t.record(t.string, t.string), {}),
   parameters: fromNullable(t.record(t.string, t.string), {}),
 });

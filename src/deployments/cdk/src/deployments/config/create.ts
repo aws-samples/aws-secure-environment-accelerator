@@ -96,22 +96,23 @@ export async function createRule(props: CreateRuleProps) {
             if (!remediation || !awsConfigRule['remediation-action']) {
               continue;
             }
+            const remediationAction = awsConfigRule['remediation-action'];
 
             const ssmDocumentsConfig = config['global-options']['ssm-automation'];
             const remediationActionName = createName({
-              name: awsConfigRule['remediation-action'],
+              name: remediationAction,
               suffixLength: 0,
             });
             let targetId = remediationActionName;
             const ssmDocInGlobalOptions = ssmDocumentsConfig.find(
               d =>
-                d.documents.find(dc => dc.name === awsConfigRule['remediation-action']) &&
+                d.documents.find(dc => dc.name === remediationAction) &&
                 d.regions.includes(region) &&
                 d.accounts.includes(accountKey),
             );
             if (!ssmDocInGlobalOptions) {
               const ssmDocInAccount = accountConfig['ssm-automation'].find(d =>
-                d.documents.includes(awsConfigRule['remediation-action']),
+                d.documents.includes(remediationAction),
               );
               if (ssmDocInAccount) {
                 targetId = `arn:aws:ssm:${cdk.Aws.REGION}:${getAccountId(
@@ -120,7 +121,7 @@ export async function createRule(props: CreateRuleProps) {
                 )}:document/${remediationActionName}`;
               } else {
                 const ssmDocInOu = ouConfig['ssm-automation'].find(d =>
-                  d.documents.includes(awsConfigRule['remediation-action']),
+                  d.documents.includes(remediationAction),
                 );
                 if (ssmDocInOu) {
                   targetId = `arn:aws:ssm:${cdk.Aws.REGION}:${getAccountId(
