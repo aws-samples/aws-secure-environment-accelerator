@@ -80,6 +80,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
         `Cannot find account with name "${accountConfig['account-name']}" and email "${accountConfig.email}"`,
       );
     }
+    if (organizationAccount.Status === 'SUSPENDED') {
+      console.warn(`Account ${accountKey} is suspended`);
+      continue;
+    }
 
     accounts.push({
       key: accountKey,

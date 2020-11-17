@@ -6,13 +6,14 @@ interface DeleteStackSetInstancesInput {
   stackName: string;
   instanceAccounts: string[];
   instanceRegions: string[];
+  retainStacks?: boolean;
 }
 
 export const handler = async (input: DeleteStackSetInstancesInput) => {
   console.log(`Deleting stack set instances...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { stackName, instanceAccounts, instanceRegions } = input;
+  const { stackName, instanceAccounts, instanceRegions, retainStacks } = input;
 
   const existingInstances = await cfn.listStackInstances(stackName);
   const existingInstanceAccountIds = existingInstances.map(i => i.Account!);
@@ -31,7 +32,7 @@ export const handler = async (input: DeleteStackSetInstancesInput) => {
     StackSetName: stackName,
     Accounts: instanceAccountsToBeDeleted,
     Regions: instanceRegions,
-    RetainStacks: false,
+    RetainStacks: !!retainStacks,
   });
 
   return {

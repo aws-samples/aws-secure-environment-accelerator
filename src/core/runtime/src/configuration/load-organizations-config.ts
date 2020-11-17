@@ -64,6 +64,8 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     ignoredOuIds.push(...awsOusWithPath.filter(ou => ou.Name === ignoredOu).map(o => o.Id!));
   }
 
+  const suspendedOuId = awsOusWithPath.find(ou => ou.Name === 'Suspended' && ou.Path === 'Suspended')?.Id!;
+
   console.log(`Found organizational units:`);
   console.log(JSON.stringify(awsOusWithPath, null, 2));
 
@@ -74,6 +76,7 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   // Store the discovered accounts and OUs in these objects
   const configurationAccounts: ConfigurationAccount[] = [];
   const accountsInIgnoredOus: ConfigurationAccount[] = [];
+  const accountsInSuspendedOu: ConfigurationAccount[] = [];
   const configurationOus: ConfigurationOrganizationalUnit[] = [];
 
   // -------------------------------- \\
@@ -154,7 +157,23 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     }
 
     const account = awsAccounts.find(a => equalIgnoreCase(a.Email!, accountConfigEmail));
-    if (account) {
+    if (account && account.Status === 'SUSPENDED') {
+      const accountsInOu = awsOuAccountMap[suspendedOuId];
+      const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
+      if (!accountInOu) {
+        errors.push(`The account with name "${accountConfigName}" is not in OU "Suspended".`);
+        continue;
+      }
+      accountsInSuspendedOu.push({
+        accountId: account?.Id,
+        accountKey,
+        accountName: accountConfigName,
+        emailAddress: accountConfig.email,
+        organizationalUnit: organizationalUnitName,
+        isMandatoryAccount: mandatoryAccountKeys.includes(accountKey),
+        ouPath: organizationalUnitPath,
+      });
+    } else if (account) {
       const accountsInOu = awsOuAccountMap[organizationalUnit.Id!];
       const accountInOu = accountsInOu?.find(a => a.Id === account.Id);
       if (!accountInOu) {
@@ -193,6 +212,9 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
     if (ignoredOuIds.includes(organizationalUnit.Id!)) {
       continue;
     }
+    if (organizationalUnit.Id === suspendedOuId) {
+      continue;
+    }
     const acceleratorAccountsInOu = configurationAccounts.filter(account => account.ouPath === organizationalUnit.Path);
     if (accountsInOu.length > acceleratorAccountsInOu.length) {
       errors.push(
@@ -224,7 +246,6 @@ export const handler = async (input: LoadConfigurationInput): Promise<LoadOrgani
   }
 
   const installCloudFormationMasterRole = config['global-options']['install-cloudformation-master-role'];
-
   return {
     ...input,
     organizationalUnits: configurationOus,
