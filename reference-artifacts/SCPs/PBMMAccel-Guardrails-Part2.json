@@ -79,7 +79,7 @@
       "Resource": "arn:aws:rds:*:*:db:*",
       "Condition": {
         "StringNotLike": {
-          "rds:DatabaseEngine": "aurora*"
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
         },
         "Bool": {
           "rds:StorageEncrypted": "false"
@@ -93,7 +93,7 @@
       "Resource": "*",
       "Condition": {
         "StringLike": {
-          "rds:DatabaseEngine": "aurora*"
+          "rds:DatabaseEngine": ["aurora*", "docdb*", "neptune"]
         },
         "Bool": {
           "rds:StorageEncrypted": "false"
