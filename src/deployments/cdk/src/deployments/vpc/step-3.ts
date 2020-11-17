@@ -11,6 +11,7 @@ import { InterfaceEndpoint } from '../../common/interface-endpoints';
 import { pascalCase } from 'pascal-case';
 import { Limit, Limiter } from '../../utils/limits';
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
+import { HostedZoneOutputFinder } from '@aws-accelerator/common-outputs/src/hosted-zone';
 
 // Changing this will result to redeploy most of the stack
 const MAX_RESOURCES_IN_STACK = 30;
@@ -103,6 +104,19 @@ export async function step3(props: VpcStep3Props) {
     suffix = accountRegionMaxSuffix[accountKey][vpcConfig.region];
     stackSuffix = `${STACK_SUFFIX}-${suffix}`;
 
+    const hostedZoneOutputs = HostedZoneOutputFinder.findAll({
+      outputs,
+      accountKey,
+      region: vpcConfig.region,
+    });
+    const prevVpcEndpoints = hostedZoneOutputs
+      .filter(phz => phz.zoneType === 'PRIVATE' && phz.vpcName === vpcConfig.name && !!phz.serviceName)
+      .map(hz => hz.serviceName);
+    const removedVpcEndpoints = prevVpcEndpoints.filter(ed => endpointsConfig.endpoints.indexOf(ed!) < 0);
+    removedVpcEndpoints.map(() => {
+      // Increasing Limiter to handle removed Interface endpoints from config w.r.t InterfaceEndpoints limits
+      limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.region, vpcConfig.name);
+    });
     for (const endpoint of endpointsConfig.endpoints) {
       let newResource = true;
       if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpcConfig.region, vpcConfig.name)) {

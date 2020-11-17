@@ -257,6 +257,7 @@ You must decide on:
          - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
          - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
            - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
+           - Detailed steps can be read [here](./guides/public-facing-workload-via-fortigate.md).
     4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
     6. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
@@ -457,11 +458,16 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
 - Always add any new items to the END of all lists or sections in the config file, otherwise
   - Update validation checks will fail (VPC's, subnets, share-to, etc.)
   - VPC endpoint deployments will fail - do NOT re-order or insert VPC endpoints (unless you first remove them all completely, execute the state machine, then re-add them, and again run the state machine) - this challenge no longer exists as of v1.2.1.
-- To skip, remove or uninstall a component, you can simply change the section header, instead of removing the section
+- To skip, remove or uninstall a component, you can often simply change the section header, instead of removing the section
   - change "deployments"/"firewalls" to "deployments"/"xxfirewalls" and it will uninstall the firewalls and maintain the old config file settings for future use
   - Objects with the parameter deploy: true, support setting the value to false to remove the deployment
 - As you grow and add AWS accounts, the Kinesis Data stream in the log-archive account will need to be monitored and have its capacity (shard count) increased by setting `"kinesis-stream-shard-count"` variable under `"central-log-services"` in the config file
 - Updates to NACL's requires changing the rule number (`100` to `101`) or they will fail to update
+- Adding subnets to existing VPC's are likely to cause nacl, route table and TGW attachment issues. When adding a new subnet, you need to:
+  - increment any impacted nacl id's in the config file (CFN does not allow nacl updates)
+  - make a minor change to any impacted route table names (`MyRouteTable` to `MyRouteTable1`) (CFN does not allow updates to route table associated ids)
+  - if adding a subnet that is associated with the TGW, you need to remove the TGW association (`"tgw-attach"` to `"xxtgw-attach"` for the VPC) and then re-attach on a subsequent state machine execution
+  - as the tgw attachment issues will cause a customer network outage, it is in the backlog to intercept the `TransitGatewayAttachment` and instead use a `ModifyTransitGatewayVpcAttachment` call, preventing outages when adding a new az to a TGW
 - The sample firewall configuration uses an instance with **4** NIC's, make sure you use an instance size that supports 4 ENI's
 - Re-enabling individual security controls in Security Hub requires toggling the entire security standard off and on again, controls can be disabled at any time
 - Firewall names, CGW names, TGW names, MAD Directory ID, account keys, and ou's must all be unique throughout the entire configuration file (also true for VPC names given nacl and security group referencing design)
@@ -473,6 +479,8 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
 - We only support the subset of yaml that converts to JSON (we do not support anchors)
 - We do NOT support changing the `organization-admin-role`, this value must be set to `AWSCloudFormationStackSetExecutionRole` at this time.
 - Adding more than approximately 50 _new_ VPC Interface Endpoints across _all_ regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.
+- if `use-central-endpoints` is changed from true to false, you cannot add a local vpc endpoint on the same state machine execution (add the endpoint on a prior or subsequent execution)
+  - in versions 1.2.0 through 1.2.2 there is a issue adding local endpoints when a central endpoint already exists for the vpc
 - If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
 
 ## 5.2. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations

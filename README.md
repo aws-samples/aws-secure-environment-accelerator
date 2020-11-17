@@ -1,10 +1,12 @@
 # AWS Secure Environment Accelerator
 
-The AWS Accelerator is a tool designed to help deploy and operate secure multi-account AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
+The AWS Accelerator is a tool designed to help deploy and operate secure multi-account, multi-region AWS environments on an ongoing basis. The power of the solution is the configuration file that drives the architecture deployed by the tool. This enables extensive flexibility and for the completely automated deployment of a customized architecture within AWS without changing a single line of code.
 
-While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to help meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of these customized architectures and enables the solution to help meet the multiple requirements of a broad range of governments and public sector organizations.
+While flexible, the AWS Accelerator is delivered with a sample configuration file which deploys an opinionated and prescriptive architecture designed to help meet the security and operational requirements of many governments around the world (initial focus was the Government of Canada). Tuning the parameters within the configuration file allows for the deployment of customized architectures and enables the solution to help meet the multitude of requirements of a broad range of governments and public sector organizations.
 
 The installation of the provided prescriptive architecture is reasonably simple, deploying a customized architecture does require extensive understanding of the AWS platform.
+
+![Diagram](/docs/operations/img/ASEA-high-level-architecture.png)
 
 ## What specifically does the Accelerator deploy and manage?
 
@@ -31,7 +33,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### Creates Networking
 
 - Transit Gateways and TGW route tables (incl. inter-region peering)
-- Centralized and/or Local VPC's
+- Centralized and/or Local (bespoke) VPC's
 - Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
 - Route 53 Private and Public Zones, Resolver Rules and Endpoints, VPC Endpoint Overloaded Zones
@@ -105,11 +107,11 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ.
 
-The AWS Accelerator is a superset of the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`. The Accelerator is now a completely standalone solution.
+The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`. The Accelerator is now a completely standalone solution.
 
 ## Relationship with AWS Control Tower
 
-AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service. Many Public Sector customers have found Control Tower does not meet their compliance requirements as it does not yet have the required features and capabilities, and is not available in the customers required AWS regions.
+AWS Control Tower is the successor to the ALZ, but offered as an AWS managed service.
 
 When appropriate, it is envisioned that the AWS Accelerator will add the capability to be deployed on top of AWS Control Tower, as we initially allowed with the ALZ.
 
@@ -138,6 +140,7 @@ This summarizes the installation process, the full installation document can be 
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./docs/installation/customization-index.md) to sample config files and customization details
+- More [details](./docs/installation/what-we-do-where.md) as to WHAT we do and WHERE we support it (regions, accounts, etc.)
 - AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
 - Unofficial [Roadmap](./docs/roadmap.md)
 
