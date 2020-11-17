@@ -12,14 +12,20 @@ These installation instructions assume the prescribed architecture is being depl
 - [2. Installation](#2-installation)
   - [2.1. Prerequisites](#21-prerequisites)
     - [2.1.1. General](#211-general)
-    - [2.1.2. Accelerator Pre-Install Steps](#212-accelerator-pre-install-steps)
-    - [2.1.3. AWS Internal Accounts Only](#213-aws-internal-accounts-only)
-  - [2.2. Preparation](#22-preparation)
-    - [2.2.1. Create GitHub Personal Access Token and Store in Secrets Manager](#221-create-github-personal-access-token-and-store-in-secrets-manager)
-    - [2.2.2. Basic Accelerator Configuration](#222-basic-accelerator-configuration)
-    - [2.2.3. Production Accelerator Configuration](#223-production-accelerator-configuration)
-  - [2.3. Installation](#23-installation)
-    - [2.3.1. Known Installation Issues](#231-known-installation-issues)
+  - [2.2. Production Deployment Planning](#22-production-deployment-planning)
+    - [2.2.1. General](#221-general)
+    - [2.2.2. OU Structure Planning](#222-ou-structure-planning)
+    - [2.2.3. Network Configuration Planning](#223-network-configuration-planning)
+    - [2.2.4. DNS, Domain Name, TLS Certificate Planning](#224-dns-domain-name-tls-certificate-planning)
+    - [2.2.5. License and Email Address Planning](#225-license-and-email-address-planning)
+  - [2.3. Accelerator Pre-Install Steps](#23-accelerator-pre-install-steps)
+    - [2.3.1. General](#231-general)
+    - [2.3.2. Create GitHub Personal Access Token and Store in Secrets Manager](#232-create-github-personal-access-token-and-store-in-secrets-manager)
+    - [2.3.3. AWS Internal Accounts Only](#233-aws-internal-accounts-only)
+  - [2.4. Basic Accelerator Configuration](#24-basic-accelerator-configuration)
+  - [2.5. Installation](#25-installation)
+    - [2.5.1. Known Installation Issues](#251-known-installation-issues)
+  - [2.6. Post-Installation](#26-post-installation)
 - [3. Accelerator Basic Operation](#3-accelerator-basic-operation)
     - [3.0.1. How do I add new AWS accounts to my AWS Organization?](#301-how-do-i-add-new-aws-accounts-to-my-aws-organization)
     - [3.0.2. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)](#302-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for-standalone-version-only)
@@ -58,7 +64,53 @@ These installation instructions assume the prescribed architecture is being depl
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in section 5.2 below
 - Existing ALZ customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
-### 2.1.2. Accelerator Pre-Install Steps
+## 2.2. Production Deployment Planning
+
+### 2.2.1. General
+
+**For any deployment of the Accelerator which is intended to be used for real workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for workloads, you can almost certainly leave the default config values.**
+
+### 2.2.2. OU Structure Planning
+
+Plan your OU structure carefully. By default, we suggest: `Core, Central, Sandbox, Unclass, Dev, Test, Prod`. These OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs).
+
+**Note:** While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can top-level OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
+
+### 2.2.3. Network Configuration Planning
+
+You will need the following network constructs:
+
+1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
+
+- VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
+- one block for each OU, except Sandbox which is not routable (Sandbox OU will use a 7th non-routed address block)
+- the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC (with extra addresses remaining for future use)
+
+2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
+
+- Used for MAD deployment and perimeter underlay network
+- non-GC customers can a) drop the extra MAD subnets in the Central VPC (i.e. CIDR2) and b) replace the perimeter VPC address space with the extra unused addresses from the core CIDR range
+
+3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
+
+### 2.2.4. DNS, Domain Name, TLS Certificate Planning
+
+You must decide on:
+
+1. A unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
+2. DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
+3. DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]` (can be added in future)
+4. DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]` (can be added in future)
+5. Wildcard TLS certificate for each of the 2 previous zones (can be added/changed in future)
+
+### 2.2.5. License and Email Address Planning
+
+1. 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future)
+1. We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
+
+## 2.3. Accelerator Pre-Install Steps
+
+### 2.3.1. General
 
 Before installing, you must first:
 
@@ -90,7 +142,20 @@ Before installing, you must first:
 - Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
 - Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
 
-### 2.1.3. AWS Internal Accounts Only
+### 2.3.2. Create GitHub Personal Access Token and Store in Secrets Manager
+
+1. You require a GitHub access token to access the code repository
+2. Instructions on how to create a personal access token are located [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).
+3. Select the scope `repo: Full control over private repositories`.
+4. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token` (case sensitive).
+   - Via AWS console
+     - Store a new secret, and select `Other type of secrets`, `Plaintext`
+     - Paste your secret with no formatting no leading or trailing spaces
+     - Select either the key you created above (`PBMMAccel-Source-Bucket-Key`),
+     - Set the secret name to `accelerator/github-token` (case sensitive)
+     - Select `Disable rotation`
+
+### 2.3.3. AWS Internal Accounts Only
 
 If deploying to an internal AWS account, to successfully install the entire solution, you need to enable Private Marketplace (PMP) before starting:
 
@@ -111,55 +176,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 
 ![New AMI ID](img/new-ami-id.png)
 
-## 2.2. Preparation
-
-### 2.2.0 Before Starting to Install
-
-**For any deployment of the Accelerator which is intended to be used for real workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for workloads, you can almost certainly leave the default config values.**
-
-#### 2.2.0.1 OU Structure Planning
-Plan your OU structure carefully. By default, we suggest: `Core, Central, Sandbox, Unclass, Dev, Test, Prod`. These OUs correspond with major permission shifts in the SDLC cycle and NOT every stage an organization has in their SDLC cycle (i.e. QA or pre-prod would be included in one of the other OUs).
-
-**Note:** While OUs can be renamed or additional OUs added at a later point in time, deployed AWS accounts CANNOT be moved between top-level OUs (guardrail violation), nor can OUs easily be deleted (requires deleting all AWS accounts from within the OU first).
-
-#### 2.2.0.2 Network Configuration Planning
-You will need the following network constructs:
-
-1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
-  - VPC CIDR blocks cannot be changed after installation, this is simply the way the AWS platform works, given everything is built on top of them. Carefully consider your address block selection.
-  - one block for each OU, except Sandbox which is not routable
-  - the "core" Class B range will be split to support the Endpoint VPC and Perimeter VPC
-2. Two (2) RFC6598 /23 address blocks (Government of Canada (GC) requirement only)
-  - Used for MAD deployment and perimeter underlay network
-  - non-GC customers can drop the extra MAD subnets in the Central VPC and use address space from the core CIDR range for the perimeter VPC
-3. Two (2) BGP ASN's (For the Transit Gateway and Firewall Cluster - note: a third is required if you are deploying a VGW for DirectConnect connectivity.)
-
-#### 2.2.0.3 DNS, Domain Name, TLS Certificate Planning
-You must decide on:
-1. A unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
-2. DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
-3. DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]` (can be added in future)
-4. DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]` (can be added in future)
-5. Wildcard TLS certificate for each of the 2 previous zones (can be added in future)
-
-#### 2.2.0.4 License and Email Address Planning
-1. 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future)
-1. We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
-
-### 2.2.1. Create GitHub Personal Access Token and Store in Secrets Manager
-
-1. You require a GitHub access token to access the code repository
-2. Instructions on how to create a personal access token are located [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).
-3. Select the scope `repo: Full control over private repositories`.
-4. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token` (case sensitive).
-   - Via AWS console
-     - Store a new secret, and select `Other type of secrets`, `Plaintext`
-     - Paste your secret with no formatting no leading or trailing spaces
-     - Select either the key you created above (`PBMMAccel-Source-Bucket-Key`),
-     - Set the secret name to `accelerator/github-token` (case sensitive)
-     - Select `Disable rotation`
-
-### 2.2.2. Basic Accelerator Configuration
+## 2.4. Basic Accelerator Configuration
 
 1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) or [`config.lite-example.json`](../../reference-artifacts/config.lite-example.json) files as base
    - Use the version from the Github code branch you are deploying from as some parameters change over time
@@ -184,9 +201,6 @@ You must decide on:
       - replace all occurences of `ca-central-1` with your home region (leave `us-east-1`)
       - in the Unclass SCP, update requested regions with any additional regions you wish accounts in the Unclass OU to leverage (or remove all regions except your home region and ca-central-1)
       - after step 4 below, place the two files in a folder named `scp` in your accelerator bucket
-   5. For releases prior to v1.2.2, alb deployments will fail, you need to either:
-      - remove all alb's from the deployment; or
-      - after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
 5. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file
    - the bucket name _must_ be the same in both spots
@@ -203,9 +217,10 @@ You must decide on:
    - Should you wish, instructions are provided to aid in generating your own self-signed certificates (Self signed certificates are NOT secure and simply for demo purposes)
    - Use the examples to demonstrate Accelerator TLS functionality only
 9. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
-   - Installation **will fail** if this step is skipped
 
-## 2.3. Installation
+- Installation **will fail** if this step is skipped
+
+## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
 2. Download the CloudFormation template `AcceleratorInstallerXXX.template.json` for the release you plan to install
@@ -243,15 +258,26 @@ You must decide on:
     1. you were unable to activate the firewall AMI's before stage 2 (step 19)
     2. we were not able to fully activate your account before we were ready to deploy your firewalls
     3. In these cases, simply select the `PBMMAccel-MainStateMachine_sm` in Step Functions and select `Start Execution`
-23. The Accelerator installation is complete, but several manual steps remain:
 
-    1. recover root passwords for all sub-accounts
-    2. enable MFA for **all** IAM users and **all** Organization Management (root) account users
+### 2.5.1. Known Installation Issues
+
+- All releases - During Guardduty deployment, occassionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. As the credentials timed out, we cannot properly cleanup the failed stack. You need to manually find the failed stack in the specific account/region, delete it, and then rerun the state machine. We have been unable to resolve this issue.
+- Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. This is resolved in v1.2.2.
+- Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy GuardDuty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
+- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the Organization Management AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the Organization Management account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
+- For releases prior to v1.2.2 where the home region is not ca-central-1, alb deployments will fail, you need to either: a) remove all alb's from the deployment; or b) after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
+
+## 2.6. Post-Installation
+
+1.  The Accelerator installation is complete, but several manual steps remain:
+
+    1. Recover root passwords for all sub-accounts
+    2. Enable MFA for **all** IAM users and **all** Organization Management (root) account users
     3. Login to the firewalls and firewall manager appliance and set default passwords
        - Update firewall configuration per your organizations security best practices
-       - manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
+       - Manually update firewall configuration to forward all logs to the Accelerator deployed NLB addresses fronting the rsyslog cluster
          - login to each firewall, select `Log Settings`, check `Send logs to syslog`, put the NLB FQDN in the `IP Address/FQDN` field
-       - manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
+       - Manually update the firewall configuration to connect perimeter ALB high port flows through to internal account ALB's
          - login to each firewall, switch to `FG-traffic` vdom, select `Policies & Objects`, select `Addresses`, Expand `Addresses`
          - Set `Prod1-ALB-FQDN` to point to a reliable sub-account ALB FQDN, this is used for full-path health checks on **_all_** ALB's
          - Set additional `DevX-ALB-FQDN`, `TestX-ALB-FQDN` and `ProdX-ALB-FQDN` to point to workload account ALB FQDNs
@@ -262,18 +288,12 @@ You must decide on:
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
     6. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
-24. During the installation we request required limit increases, resources dependent on these limits will not be deployed
+2.  During the installation we request required limit increases, resources dependent on these limits will not be deployed
     1. Limit increase requests are controlled through the Accelerator configuration file `"limits":{}` setting
     2. The sample configuration file requests increases to your EIP count in the perimeter account and to the VPC count and Interface Endpoint count in the shared-network account
     3. You should receive emails from support confirming the limit increases
     4. On the next state machine execution, resources blocked by limits should be deployed (i.e. additional VPC's and Endpoints)
     5. If more than 2 days elapses without the limits being increased, on the next state machine execution, they will be re-requested
-
-### 2.3.1. Known Installation Issues
-
-- Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. This is resolved in v1.2.2.
-- Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy GuardDuty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
-- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the Organization Management AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the Organization Management account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
 
 # 3. Accelerator Basic Operation
 
