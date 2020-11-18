@@ -120,9 +120,7 @@ export async function createRule(props: CreateRuleProps) {
                   ssmDocInAccount.account,
                 )}:document/${remediationActionName}`;
               } else {
-                const ssmDocInOu = ouConfig['ssm-automation'].find(d =>
-                  d.documents.includes(remediationAction),
-                );
+                const ssmDocInOu = ouConfig['ssm-automation'].find(d => d.documents.includes(remediationAction));
                 if (ssmDocInOu) {
                   targetId = `arn:aws:ssm:${cdk.Aws.REGION}:${getAccountId(
                     accounts,
@@ -136,7 +134,9 @@ export async function createRule(props: CreateRuleProps) {
             } else if (config['global-options']['default-ssm-documents'].includes(remediationAction)) {
               targetId = remediationAction;
             } else {
-              console.warn(`Invalid SSM-Document given in "remediation-action" for AWS Config Rule ${awsConfigRule.name}`)
+              console.warn(
+                `Invalid SSM-Document given in "remediation-action" for AWS Config Rule ${awsConfigRule.name}`,
+              );
               continue;
             }
 
