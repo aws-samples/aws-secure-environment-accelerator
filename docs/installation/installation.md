@@ -256,7 +256,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
 22. If your perimeter firewalls were not deployed on first run, you will need to rerun the state machine. This happens when:
     1. you were unable to activate the firewall AMI's before stage 2 (step 19)
-    2. we were not able to fully activate your account before we were ready to deploy your firewalls
+    2. we were not able to fully activate your account before we were ready to deploy your firewalls. This case can be identified by a running EC2 micro instance in the account, or by looking for the following log entry 'Minimum 15 minutes of account warming required for account'.
     3. In these cases, simply select the `PBMMAccel-MainStateMachine_sm` in Step Functions and select `Start Execution`
 
 ### 2.5.1. Known Installation Issues
