@@ -16,6 +16,7 @@ import { TransitGatewayOutputFinder, TransitGatewayOutput } from '@aws-accelerat
 import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gateway/outputs';
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
+import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
 
 export interface VpcCommonProps {
   /**
@@ -97,6 +98,7 @@ export interface VpcProps extends VpcCommonProps {
   outputs: StackOutput[];
   acceleratorName: string;
   installerVersion: string;
+  vpcOutput?: VpcOutput;
 }
 
 export class VpcStack extends NestedStack {
@@ -148,6 +150,7 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
       accountStacks,
       acceleratorName,
       installerVersion,
+      vpcOutput,
     } = props.vpcProps;
     const vpcName = props.vpcProps.vpcConfig.name;
 
@@ -309,10 +312,21 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         const associateConfig = tgwAttach['tgw-rt-associate'] || [];
         const propagateConfig = tgwAttach['tgw-rt-propagate'] || [];
         const blackhole = tgwAttach['blackhole-route'];
-
-        const subnetIds = attachSubnetsConfig.flatMap(
-          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-        );
+        const subnetIds: string[] = [];
+        if (vpcOutput && vpcOutput.initialSubnets.length > 0) {
+           subnetIds.push(...attachSubnetsConfig.flatMap(
+            subnet => vpcOutput.initialSubnets.filter(s => s.subnetName === subnet).map(sub => sub.subnetId) || [],
+          ));
+        } else if (vpcOutput) {
+          subnetIds.push(...attachSubnetsConfig.flatMap(
+            subnet => vpcOutput.subnets.filter(s => s.subnetName === subnet).map(sub => sub.subnetId) || [],
+          ));
+        } else {
+          subnetIds.push(...attachSubnetsConfig.flatMap(
+            subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+          ));
+        }
+        console.log(subnetIds, "**********", vpcConfig.name, accountKey);
         if (subnetIds.length === 0) {
           // TODO Throw or warn?
           // throw new Error(`Cannot attach to TGW ${tgw.name}: no subnets found to attach to for VPC ${vpcConfig.name}`);
@@ -351,6 +365,8 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
             ],
           });
         }
+
+        // TODO: Custom resource for modify transit gateway attachment
 
         // in case TGW attachment is created for the same account, we create using the same stack
         // otherwise, we will store tgw attachment output and do it in next phase
