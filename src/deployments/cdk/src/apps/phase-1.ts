@@ -523,4 +523,18 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       }
     }
   }
+
+  /**
+   * DisAssociate HostedZone to VPC
+   * - On Adding of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint also esists in Central VPC
+   */
+
+  await centralEndpoints.step5({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+    executionRole: context.acceleratorPipelineRoleName,
+    assumeRole: context.acceleratorExecutionRoleName,
+  });
 }
