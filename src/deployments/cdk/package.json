@@ -96,6 +96,7 @@
     "@aws-accelerator/custom-resource-create-resolver-rule": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-ssm-increase-throughput": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-disassociate-hosted-zones": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment": "workspace:^0.0.1",
     "@aws-cdk/aws-accessanalyzer": "1.66.0",
     "@aws-cdk/aws-autoscaling": "1.66.0",
     "@aws-cdk/aws-budgets": "1.66.0",
