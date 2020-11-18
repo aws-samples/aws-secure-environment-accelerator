@@ -105,4 +105,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
     accountStacks,
     accounts,
   });
+
+  // Creates required role for SsmIncreaseThroughput custom resource
+  await globalRoles.createEc2OperationsRoles({
+    accountStacks,
+    accounts,
+  });
 }

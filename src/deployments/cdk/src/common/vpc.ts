@@ -17,6 +17,8 @@ import { CfnTransitGatewayAttachmentOutput } from '../deployments/transit-gatewa
 import { AddTagsToResourcesOutput } from './add-tags-to-resources-output';
 import { VpcDefaultSecurityGroup } from '@aws-accelerator/custom-resource-vpc-default-security-group';
 import { VpcOutput } from '@aws-accelerator/common-outputs/src/vpc';
+import { ModifyTransitGatewayAttachment } from '@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment';
+import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface VpcCommonProps {
   /**
@@ -314,19 +316,28 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
         const blackhole = tgwAttach['blackhole-route'];
         const subnetIds: string[] = [];
         if (vpcOutput && vpcOutput.initialSubnets.length > 0) {
-           subnetIds.push(...attachSubnetsConfig.flatMap(
-            subnet => vpcOutput.initialSubnets.filter(s => s.subnetName === subnet).map(sub => sub.subnetId) || [],
-          ));
+          subnetIds.push(
+            ...attachSubnetsConfig.flatMap(
+              subnet =>
+                vpcOutput.initialSubnets
+                  .filter(s => s.subnetName === subnet)
+                  .map(sub => this.azSubnets.getAzSubnetIdForNameAndAz(sub.subnetName, sub.az)!) || [],
+            ),
+          );
         } else if (vpcOutput) {
-          subnetIds.push(...attachSubnetsConfig.flatMap(
-            subnet => vpcOutput.subnets.filter(s => s.subnetName === subnet).map(sub => sub.subnetId) || [],
-          ));
+          subnetIds.push(
+            ...attachSubnetsConfig.flatMap(
+              subnet =>
+                vpcOutput.subnets
+                  .filter(s => s.subnetName === subnet)
+                  .map(sub => this.azSubnets.getAzSubnetIdForNameAndAz(sub.subnetName, sub.az)!) || [],
+            ),
+          );
         } else {
-          subnetIds.push(...attachSubnetsConfig.flatMap(
-            subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
-          ));
+          subnetIds.push(
+            ...attachSubnetsConfig.flatMap(subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || []),
+          );
         }
-        console.log(subnetIds, "**********", vpcConfig.name, accountKey);
         if (subnetIds.length === 0) {
           // TODO Throw or warn?
           // throw new Error(`Cannot attach to TGW ${tgw.name}: no subnets found to attach to for VPC ${vpcConfig.name}`);
@@ -342,6 +353,25 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           subnetIds,
           transitGatewayId: tgw.tgwId,
         });
+
+        const currentSubnets = attachSubnetsConfig.flatMap(
+          subnet => this.azSubnets.getAzSubnetIdsForSubnetName(subnet) || [],
+        );
+
+        const ec2OpsRole = IamRoleOutputFinder.tryFindOneByName({
+          outputs: props.vpcProps.outputs,
+          accountKey,
+          roleKey: 'Ec2Operations',
+        });
+        if (ec2OpsRole) {
+          const modifyTgwAttach = new ModifyTransitGatewayAttachment(this, 'ModifyTgwAttach', {
+            roleArn: ec2OpsRole.roleArn,
+            subnetIds: currentSubnets,
+            transitGatewayAttachmentId: tgwAttachment.transitGatewayAttachmentId,
+            ignoreWhileDeleteSubnets: subnetIds,
+          });
+          modifyTgwAttach.node.addDependency(tgwAttachment);
+        }
 
         // TODO add VPC To TGW attachment output
         this.tgwAttachments.push({

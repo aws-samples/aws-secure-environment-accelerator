@@ -154,10 +154,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
 
     const vpcStackPrettyName = pascalCase(props.vpcConfig.name);
-    
+
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, props);
     const vpc = vpcStack.vpc;
-    
+
     const subnets = vpc.azSubnets.subnets.map(s => ({
       subnetId: s.subnet.ref,
       subnetName: s.subnetName,
