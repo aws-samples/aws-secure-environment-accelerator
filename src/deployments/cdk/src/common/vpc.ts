@@ -396,8 +396,6 @@ export class Vpc extends cdk.Construct implements constructs.Vpc {
           });
         }
 
-        // TODO: Custom resource for modify transit gateway attachment
-
         // in case TGW attachment is created for the same account, we create using the same stack
         // otherwise, we will store tgw attachment output and do it in next phase
         if (tgwAttach.account === accountKey) {

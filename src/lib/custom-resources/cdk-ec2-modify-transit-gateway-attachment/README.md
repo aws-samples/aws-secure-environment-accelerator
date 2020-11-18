@@ -1,20 +1,14 @@
-### Currently this module is not being used ###
+# Add Subnets to Existing Transit Gateway Attachment
 
-# Associate Hosted Zones to VPC
-
-This is a custom resource to associate vpc to Hosted Zone Used `createVPCAssociationAuthorization`, `associateVPCWithHostedZone`, `deleteVPCAssociationAuthorization` and `deleteVPCAssociationAuthorization` API calls.
+This is a custom resource to add Subnets to Existing Transit Gateway Attachment,  Used `describeTransitGatewayVpcAttachments` and `modifyTransitGatewayVpcAttachment` API calls.
 
 ## Usage
 
-    import { AssociateHostedZones } from '@aws-accelerator/custom-resource-associate-hosted-zones';
+    import { ModifyTransitGatewayAttachment } from '@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment';
 
-    new AssociateHostedZones(accountStack, constructName, {
-        assumeRoleName: assumeRole,
-        vpcAccountId,
-        vpcName: vpcConfig.name,
-        vpcId: vpcOutput.vpcId,
-        vpcRegion: vpcConfig.region,
-        hostedZoneAccountId,
-        hostedZoneIds,
-        roleArn,
-      });
+    const modifyTgwAttach = new ModifyTransitGatewayAttachment(this, 'ModifyTgwAttach', {
+      roleArn: ec2OpsRole.roleArn,
+      subnetIds: currentSubnets,
+      transitGatewayAttachmentId: tgwAttachment.transitGatewayAttachmentId,
+      ignoreWhileDeleteSubnets: subnetIds,
+    });
