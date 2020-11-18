@@ -133,6 +133,11 @@ export async function createRule(props: CreateRuleProps) {
                   continue;
                 }
               }
+            } else if (config['global-options']['default-ssm-documents'].includes(remediationAction)) {
+              targetId = remediationAction;
+            } else {
+              console.warn(`Invalid SSM-Document given in "remediation-action" for AWS Config Rule ${awsConfigRule.name}`)
+              continue;
             }
 
             const remediationParams = getRemediationParameters({

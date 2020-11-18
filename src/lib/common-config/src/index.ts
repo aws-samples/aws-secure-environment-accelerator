@@ -834,6 +834,7 @@ export const GlobalOptionsConfigType = t.interface({
   ),
   'ssm-automation': fromNullable(t.array(SsmAutomation), []),
   'aws-config': optional(AwsConfig),
+  'default-ssm-documents': fromNullable(t.array(t.string), []),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
