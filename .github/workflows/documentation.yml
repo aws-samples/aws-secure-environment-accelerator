@@ -1,0 +1,209 @@
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Merge Release Branch"]
+    types:
+      - completed
+
+name: Generate Documentation
+
+jobs:
+
+  render:
+
+    name: Render
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install xetex
+        run: |
+          sudo apt-get install texlive-xetex
+          sudo apt install librsvg2-bin
+          sudo apt install 'fonts-dejavu*'
+
+      - name: Setup Env
+        id: setup
+        env:
+          PREFIX: AWS-SEA
+          SUFFIX: Documentation
+        run: |
+          mkdir ${PREFIX}-${SUFFIX}
+          echo ::set-output name=prefix::$(echo "${PREFIX}")
+          echo ::set-output name=suffix::$(echo "${SUFFIX}")
+          echo ::set-output name=dir::$(echo "${PREFIX}-${SUFFIX}")
+
+
+      - name: PDF output 0
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/0-${{ steps.setup.outputs.prefix }}-Solution-Summary.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            README.md
+
+      - name: PDF output 1
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/1-${{ steps.setup.outputs.prefix }}-Installation-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/installation.md
+
+      - name: PDF output 2a
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2a-${{ steps.setup.outputs.prefix }}-Config-File-Options-ToC.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/customization-index.md
+
+      - name: Copy file output 2b
+        run: |
+          cp reference-artifacts/config.example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.example.json
+
+      - name: Copy file output 2b1
+        run: |
+          cp reference-artifacts/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
+
+      - name: PDF output 2c
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2c-${{ steps.setup.outputs.prefix }}-Multi-file-Config-Capabilities.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/multi-file-config-capabilities.md
+
+      - name: PDF output 2d
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2d-${{ steps.setup.outputs.prefix }}-Config-Sample-Snippets.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            ./reference-artifacts/config-sample-snippets/sample_snippets.md
+
+      - name: Copy file output 2e
+        run: |
+          cp reference-artifacts/Third-Party/firewall-example.txt ${{ steps.setup.outputs.dir }}/2e-${{ steps.setup.outputs.prefix }}-firewall-example.txt
+
+      - name: PDF output 2f
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2f-${{ steps.setup.outputs.prefix }}-Firewall-config-Customizations.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            ./reference-artifacts/config-sample-snippets/firewall_file_available_variables.md
+
+      - name: PDF output 2g
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2g-${{ steps.setup.outputs.prefix }}-logging-locations.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/architectures/pbmm/log-file-locations.md
+
+      - name: PDF output 3
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/3-${{ steps.setup.outputs.prefix }}-Operations-Troubleshooting-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/operations/operations-troubleshooting-guide.md
+
+
+
+      - name: PDF output 4
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/4-${{ steps.setup.outputs.prefix }}-Developer-Guide.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/developer/developer-guide.md
+
+      - name: PDF output 5
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/5-${{ steps.setup.outputs.prefix }}-PBMM-Architecture.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/architectures/pbmm/architecture.md
+            
+      - name: Copy file output 5b
+        run: |
+          cp docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/5b-${{ steps.setup.outputs.prefix }}-PBMM_Accel_Account_Network_VPC.pdf
+
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: ${{ steps.setup.outputs.dir }}
+          path: ${{ steps.setup.outputs.dir }}/

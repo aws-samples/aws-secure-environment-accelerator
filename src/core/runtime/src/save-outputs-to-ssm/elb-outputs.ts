@@ -3,6 +3,7 @@ import { getOutput, OutputUtilGenericType, SaveOutputsInput, getIndexOutput, sav
 import { SSM } from '@aws-accelerator/common/src/aws/ssm';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { LoadBalancerOutputFinder, LoadBalancerOutput } from '@aws-accelerator/common-outputs/src/elb';
+import { Account, getAccountId } from '@aws-accelerator/common-outputs/src/accounts';
 
 interface OutputUtilLbType extends OutputUtilGenericType {
   account: string;
@@ -36,6 +37,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
     assumeRoleName,
     region,
     outputUtilsTableName,
+    accounts,
   } = props;
   const oldElbOutputUtils = await getIndexOutput(outputUtilsTableName, `${account.key}-${region}-lelb`, dynamodb);
   // Existing index check happens on this variable
@@ -76,6 +78,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
       type: 'nlb',
       accountKey: account.key,
       source: 'local',
+      accounts: accounts!,
     })
   ).lbs;
 
@@ -88,6 +91,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
       type: 'alb',
       accountKey: account.key,
       source: 'local',
+      accounts: accounts!,
     })
   ).lbs;
 
@@ -172,6 +176,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
       accountKey,
       source: 'remote',
       maxIndex: maxNlbIndex,
+      accounts: accounts!,
     });
     newRemoteElbOutputs.nlbs.push(...saveNlbOp.lbs);
     maxNlbIndex = saveNlbOp.currentMaxIndex!;
@@ -185,6 +190,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
       accountKey,
       source: 'remote',
       maxIndex: maxAlbIndex,
+      accounts: accounts!,
     });
     newRemoteElbOutputs.albs.push(...saveAlbOp.lbs);
     maxAlbIndex = saveAlbOp.currentMaxIndex!;
@@ -207,6 +213,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
           `/${acceleratorPrefix}/elb/nlb/${nlb.index}/name`,
           `/${acceleratorPrefix}/elb/nlb/${nlb.index}/dns`,
           `/${acceleratorPrefix}/elb/nlb/${nlb.index}/account`,
+          `/${acceleratorPrefix}/elb/nlb/${nlb.index}/arn`,
         ]),
     )
     .flatMap(s => s)
@@ -219,6 +226,7 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
           `/${acceleratorPrefix}/elb/alb/${alb.index}/name`,
           `/${acceleratorPrefix}/elb/alb/${alb.index}/dns`,
           `/${acceleratorPrefix}/elb/alb/${alb.index}/account`,
+          `/${acceleratorPrefix}/elb/alb/${alb.index}/arn`,
         ]),
     )
     .flatMap(s => s)
@@ -238,11 +246,12 @@ async function saveElbOutputsImpl(props: {
   accountKey: string;
   source: 'local' | 'remote';
   maxIndex?: number;
+  accounts: Account[];
 }): Promise<{
   lbs: OutputUtilLbType[];
   currentMaxIndex?: number;
 }> {
-  const { acceleratorPrefix, lbOutputs, lbUtil, ssm, type, accountKey, source } = props;
+  const { acceleratorPrefix, lbOutputs, lbUtil, ssm, type, accountKey, source, accounts } = props;
   const lbPrefix = source === 'local' ? 'lelb' : 'elb';
   if (lbUtil.length === 0 && lbOutputs.length === 0) {
     return {
@@ -265,20 +274,43 @@ async function saveElbOutputsImpl(props: {
     } else {
       currentIndex = ++maxIndex;
     }
-    newLbUtils.push({
+
+    const lbOutput: OutputUtilLbType = {
       name: nlbOutput.name,
       index: currentIndex,
       account: accountKey,
-    });
+      parameters: ['name', 'dns', 'arn', 'account'],
+    };
     if (previousIndex < 0) {
       await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/name`, nlbOutput.displayName);
       await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/dns`, nlbOutput.dnsName);
+      await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/arn`, nlbOutput.arn);
       if (source === 'remote') {
-        await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/account`, accountKey);
+        await ssm.putParameter(
+          `/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/account`,
+          getAccountId(accounts, accountKey)!,
+        );
       }
     } else {
+      const previousParams = lbUtil[previousIndex].parameters || [];
+      if (!previousParams.includes('name')) {
+        await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/name`, nlbOutput.displayName);
+      }
+      if (!previousParams.includes('dns')) {
+        await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/dns`, nlbOutput.dnsName);
+      }
+      if (!previousParams.includes('arn')) {
+        await ssm.putParameter(`/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/arn`, nlbOutput.arn);
+      }
+      if (!previousParams.includes('account') && source === 'remote') {
+        await ssm.putParameter(
+          `/${acceleratorPrefix}/${lbPrefix}/${type}/${currentIndex}/account`,
+          getAccountId(accounts, accountKey)!,
+        );
+      }
       lbUtil.splice(previousIndex, 1);
     }
+    newLbUtils.push(lbOutput);
   }
 
   const removeNames = lbUtil
@@ -286,6 +318,7 @@ async function saveElbOutputsImpl(props: {
       `/${acceleratorPrefix}/${lbPrefix}/${type}/${lb.index}/name`,
       `/${acceleratorPrefix}/${lbPrefix}/${type}/${lb.index}/dns`,
       `/${acceleratorPrefix}/${lbPrefix}/${type}/${lb.index}/account`,
+      `/${acceleratorPrefix}/${lbPrefix}/${type}/${lb.index}/arn`,
     ])
     .flatMap(s => s);
   while (removeNames.length > 0) {

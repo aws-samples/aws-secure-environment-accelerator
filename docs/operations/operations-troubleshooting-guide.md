@@ -122,7 +122,7 @@ This diagram depicts the Accelerator Installer CodePipeline as of v1.2.1:
 Once the Code Pipeline completes successfully:
 
 - the Accelerator codebase was pulled from GitHub
-- the Accelerator codebase was deployed/installed in the master AWS account
+- the Accelerator codebase was deployed/installed in the Organization Management (root) AWS account
 - parameter store `/accelerator/version` was updated with the new version information
   - this provides a full history of all Accelerator versions and upgrades
 - the newly installed Accelerator state machine is started
@@ -183,7 +183,7 @@ This step calls a Lambda function that finds or creates the configuration reposi
 
 The configuration file `config.json` or `config.yaml` is parsed and validated. This step will fail if both file types exist, the configuration file is not valid JSON or YAML or does not adhere to the configuration file specification. Internally the Accelerator always leverages JSON, but accepts JSON or YAML as the source input file and converts it to JSON prior to each execution, storing the converted and fully expanded file if in the raw folder.
 
-![CodeCommit](img/CodeCommit-repo.png)
+![CodeCommit](img/codecommit-repo.png)
 
 ### 3.2.2. Get Baseline from Configuration
 

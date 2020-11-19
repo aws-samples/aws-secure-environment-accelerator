@@ -10,6 +10,7 @@ import * as s3 from '@aws-cdk/aws-s3';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
+  // eslint-disable-next-line no-process-exit
   process.exit(1);
 });
 
@@ -339,8 +340,8 @@ async function main() {
     ],
   });
 
-  stack.node.applyAspect(new cdk.Tag('Accelerator', acceleratorName));
+  cdk.Aspects.of(stack).add(new cdk.Tag('Accelerator', acceleratorName));
 }
 
-// tslint:disable-next-line: no-floating-promises
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 main();

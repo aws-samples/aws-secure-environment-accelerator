@@ -15,11 +15,13 @@ export interface SaveOutputsInput {
   assumeRoleName: string;
   region: string;
   outputUtilsTableName: string;
+  accounts?: Account[];
 }
 
 export interface OutputUtilGenericType {
   name: string;
   index: number;
+  parameters?: string[];
 }
 
 export async function getOutput(tableName: string, key: string, dynamodb: DynamoDB): Promise<StackOutput[]> {

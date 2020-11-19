@@ -2,7 +2,7 @@
 
 This document is a reference document. Instead of reading through it in linear order, you can use it to look up specific issues as needed.
 
-It is important to read the [Operations Guide](../operations/operations-troubleshooting-guide.md) before reading this document.  If you're interested in actively contributing to the project, you should also review the [Governance and Contributing Guide](../CONTRIBUTING.md).
+It is important to read the [Operations Guide](../operations/operations-troubleshooting-guide.md) before reading this document. If you're interested in actively contributing to the project, you should also review the [Governance and Contributing Guide](../CONTRIBUTING.md).
 
 # Table of Contents
 
@@ -119,7 +119,9 @@ CloudFormation is used to deploy both the Accelerator stacks and resources and t
 
 ### 1.3. CDK
 
-https://docs.aws.amazon.com/cdk/latest/guide/home.html
+AWS CDK is used to define the cloud resources in a familiar programming language. While AWS CDK supports TypeScript, JavaScript, Python, Java, and C#/.Net, the contributions should be made in Typescript, as outlined in the [Accelerator Development First Principles](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/ae8282d4537320763736fa56e05b743ce1c02611/CONTRIBUTING.md#accelerator-development-first-principles).
+
+Developers can use programming languages to define reusable cloud components known as Constructs. You compose these together into Stacks and Apps. Learn more at https://docs.aws.amazon.com/cdk/latest/guide/home.html
 
 ## 2. Development
 
@@ -209,7 +211,7 @@ The `Initial Setup` stack is similar to the `Installer` stack, as in that it run
 - we use a AWS Step Functions State Machine to run the various steps instead of CodePipeline;
 - we deploy multiple stacks, called `Phase` stacks, in Accelerator-managed accounts. These `Phase` stacks contain Accelerator-managed resources.
 
-In order to install these `Phase` stacks in Accelerator-managed accounts, we need access to those accounts. We create a stack set in the master account that has instances in all Accelerator-managed accounts. This stack set contains what we call the `PipelineRole`.
+In order to install these `Phase` stacks in Accelerator-managed accounts, we need access to those accounts. We create a stack set in the Organization Management (root) account that has instances in all Accelerator-managed accounts. This stack set contains what we call the `PipelineRole`.
 
 The code for the steps in the state machine is in `src/core/runtime`. All the steps are in different files but are compiled into a single file. We used to compile all the steps separately but we would hit a limit in the amount of parameters in the generated CloudFormation template. Each step would have its own CDK asset that would introduce three new parameters. We quickly reached the limit of 60 parameters in a CloudFormation template and decided to compile the steps into a single file and use it across all different Lambda functions.
 
@@ -342,7 +344,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, outpu
 
 ##### 2.1.3.2. Passing Outputs Between Phases
 
-The CodeBuild step that is responsible for deploying a `Phase` stack runs in the master account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
+The CodeBuild step that is responsible for deploying a `Phase` stack runs in the Organization Management (root) account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
 
 After a `Phase-X` is deployed in all Accelerator-managed accounts, a step in the `Initial Setup` state machine collects all the `Phase-X` stack outputs in all Accelerator-managed accounts and regions and stores theses outputs in S3.
 
@@ -362,7 +364,7 @@ Later on in the project we started decoupling the Accelerator config from the co
 
 At the time of writing, CDK does not support cross-account deployments of stacks. It is possible however to write a CDK plugin and implement your own credential loader for cross-account deployment.
 
-We wrote a CDK plugin that can assume a role into another account. In our case, the master account will assume the `PipelineRole` in an Accelerator-managed account to deploy stacks.
+We wrote a CDK plugin that can assume a role into another account. In our case, the Organization Management (root) account will assume the `PipelineRole` in an Accelerator-managed account to deploy stacks.
 
 #### 2.2.2. CDK API
 
@@ -398,7 +400,7 @@ The following example illustrates its purpose.
 ```typescript
 const stack = new cdk.Stack();
 new ec2.CfnVpc(stack, 'SharedNetwork', {});
-stack.node.applyAspect(new AcceleratorNameTagger());
+Aspects.of(stack).add(new AcceleratorNameTagger());
 ```
 
 The example above synthesizes to the following CloudFormation template.
@@ -630,7 +632,7 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Creating KMS grant...`);
   console.log(JSON.stringify(event, null, 2));
 
-  // tslint:disable-next-line: switch-default
+  // eslint-disable-next-line default-case
   switch (event.RequestType) {
     case 'Create':
       return onCreate(event);

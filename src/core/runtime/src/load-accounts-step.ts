@@ -57,8 +57,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
 
   const accountConfigs = config.getAccountConfigs();
   for (const [accountKey, accountConfig] of accountConfigs) {
-    let organizationAccount;
-    organizationAccount = activeAccounts.find(a => {
+    const organizationAccount = activeAccounts.find(a => {
       return equalIgnoreCase(a.Email!, accountConfig.email);
     });
 
@@ -80,6 +79,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       throw new Error(
         `Cannot find account with name "${accountConfig['account-name']}" and email "${accountConfig.email}"`,
       );
+    }
+    if (organizationAccount.Status === 'SUSPENDED') {
+      console.warn(`Account ${accountKey} is suspended`);
+      continue;
     }
 
     accounts.push({

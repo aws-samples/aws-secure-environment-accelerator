@@ -40,6 +40,7 @@ import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resourc
 import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import * as centralEndpoints from '../deployments/central-endpoints';
 import { CfnResourceStackCleanupOutput } from '../deployments/cleanup/outputs';
+import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
 
 export interface IamPolicyArtifactsOutput {
   bucketArn: string;
@@ -145,7 +146,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   // Auxiliary method to create a VPC in the account with given account key
   const createVpc = (accountKey: string, props: VpcProps): Vpc | undefined => {
-    const { vpcConfig } = props;
+    const { vpcConfig, vpcOutput } = props;
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!accountStack) {
@@ -158,48 +159,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const vpcStack = new VpcStack(accountStack, `VpcStack${vpcStackPrettyName}`, props);
     const vpc = vpcStack.vpc;
 
-    const endpointConfig = vpcConfig['interface-endpoints'];
-    if (InterfaceEndpointConfig.is(endpointConfig)) {
-      const subnetName = endpointConfig.subnet;
-      const subnetIds = vpc.azSubnets.getAzSubnetIdsForSubnetName(subnetName);
-      if (subnetIds.length === 0) {
-        console.warn(`Cannot find subnet ID with name "${subnetName}'`);
-        return;
-      }
-
-      let endpointCount = 0;
-      let endpointStackIndex = 0;
-      let endpointStack;
-      for (const endpoint of endpointConfig.endpoints) {
-        if (!limiter.create(accountKey, Limit.VpcInterfaceEndpointsPerVpc, vpc.name)) {
-          console.log(
-            `Skipping endpoint "${endpoint}" creation in VPC "${vpc.name}". Reached maximum interface endpoints per VPC`,
-          );
-          continue;
-        }
-
-        if (!endpointStack || endpointCount >= 30) {
-          endpointStack = new NestedStack(accountStack, `Endpoint${endpointStackIndex++}`);
-          endpointCount = 0;
-        }
-        const interfaceEndpoint = new InterfaceEndpoint(endpointStack, pascalCase(endpoint), {
-          serviceName: endpoint,
-          vpcId: vpc.vpcId,
-          vpcRegion: vpc.region,
-          subnetIds,
-        });
-
-        new centralEndpoints.CfnHostedZoneOutput(endpointStack, `HostedZoneOutput-${endpoint}`, {
-          accountKey,
-          domain: interfaceEndpoint.hostedZone.name,
-          hostedZoneId: interfaceEndpoint.hostedZone.ref,
-          region: vpc.region,
-          zoneType: 'PRIVATE',
-          serviceName: endpoint,
-          vpcName: vpc.name,
-        });
-        endpointCount++;
-      }
+    const subnets = vpc.azSubnets.subnets.map(s => ({
+      subnetId: s.subnet.ref,
+      subnetName: s.subnetName,
+      az: s.az,
+      cidrBlock: s.cidrBlock,
+    }));
+    const initialSubnets: VpcSubnetOutput[] = [];
+    if (vpcOutput && vpcOutput.initialSubnets.length === 0) {
+      initialSubnets.push(...vpcOutput.subnets);
+    } else if (vpcOutput) {
+      initialSubnets.push(...vpcOutput.initialSubnets);
+    } else {
+      initialSubnets.push(...subnets);
     }
 
     // Store the VPC output so that subsequent phases can access the output
@@ -210,12 +182,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcName: props.vpcConfig.name,
       cidrBlock: props.vpcConfig.cidr.toCidrString(),
       additionalCidrBlocks: vpc.additionalCidrBlocks,
-      subnets: vpc.azSubnets.subnets.map(s => ({
-        subnetId: s.subnet.ref,
-        subnetName: s.subnetName,
-        az: s.az,
-        cidrBlock: s.cidrBlock,
-      })),
+      subnets,
       routeTables: vpc.routeTableNameToIdMap,
       securityGroups: Object.entries(vpc.securityGroup?.securityGroupNameMapping || {}).map(
         ([name, securityGroup]) => ({
@@ -224,6 +191,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         }),
       ),
       tgwAttachments: vpc.tgwAVpcAttachments,
+      initialSubnets,
     });
 
     return vpcStack.vpc;
@@ -244,6 +212,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         ouKey ? ` and organizational unit "${ouKey}"` : ''
       }`,
     );
+
+    const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
+      outputs,
+      accountKey,
+      region: vpcConfig.region,
+      vpcName: vpcConfig.name,
+    });
+
     const vpc = createVpc(accountKey, {
       accountKey,
       accountStacks,
@@ -256,6 +232,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       outputs,
       acceleratorName,
       installerVersion,
+      vpcOutput,
     });
 
     const pcxConfig = vpcConfig.pcx;
@@ -286,6 +263,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       });
       subscriptionCheckDone.push(accountKey);
     }
+
+    // Creates resolver query logging and associate to the VPC
+    await vpcDeployment.step4({
+      accountKey,
+      accountStacks,
+      acceleratorPrefix: context.acceleratorPrefix,
+      outputs,
+      vpcConfig,
+      vpcId: vpc!.id,
+    });
   }
 
   // Create the firewall
@@ -542,5 +529,19 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   // Writing to outputs to avoid future execution of resource clean up custom resource
   new CfnResourceStackCleanupOutput(masterAccountStack, `ResourceStackCleanupOutput${masterAccountKey}`, {
     cdkStackCleanup: true,
+  });
+
+  /**
+   * DisAssociate HostedZone to VPC
+   * - On Adding of InterfaceEndpoint in local VPC whose use-central-endpoint: true and Endpoint also esists in Central VPC
+   */
+
+  await centralEndpoints.step5({
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    outputs,
+    executionRole: context.acceleratorPipelineRoleName,
+    assumeRole: context.acceleratorExecutionRoleName,
   });
 }

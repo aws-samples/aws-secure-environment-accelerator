@@ -4,6 +4,16 @@
 
 ---
 
+- Creates DNS query logging and associate to the VPC
+
+```
+    "vpc": {
+	  "dns-resolver-logging": true
+    }
+```
+
+---
+
 - Update Central Logging Kinesis stream shard count as accounts are added
 
 ```
@@ -18,6 +28,14 @@
 
 ```
      “cwl-retention”: 180
+```
+
+---
+
+- Valid options for vpc flow logs setting on each VPC
+
+```
+"flow-logs": "S3"  ---> S3, CWL, BOTH
 ```
 
 ---
@@ -615,9 +633,44 @@
 
 ---
 
-- Future description
+- Creating a VPC Virtual Gateway
 ```
-{future sample}
+          "vgw": {
+            "asn": 65522
+          },
+...
+          "route-tables": [
+            {
+              "name": "Public_Shared",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "IGW"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_azA",
+              "routes": [
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "VGW"
+                }
+              ]
+            },
+            {
+              "name": "FWMgmt_azB",
+              "routes": [
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "VGW"
+                }
+              ]
+            }
+          ]
+
+		  
+		  
 ```
 
 ---

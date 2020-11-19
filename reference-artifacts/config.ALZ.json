@@ -11,6 +11,7 @@
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
     "ignored-ous": [],
+    "additional-global-output-regions": [],
     "supported-regions": [
       "ap-northeast-1",
       "ap-northeast-2",
@@ -83,15 +84,17 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "zones": [{
-      "account": "shared-network",
-      "resolver-vpc": "Endpoint",
-      "region": "ca-central-1",
-      "names": {
-        "public": ["dept.cloud-nuage.canada.ca"],
-        "private": ["dept.cloud-nuage.gc.ca"]
+    "zones": [
+      {
+        "account": "shared-network",
+        "resolver-vpc": "Endpoint",
+        "region": "ca-central-1",
+        "names": {
+          "public": ["cloud-hosted-publicdomain.example.ca"],
+          "private": ["cloud-hosted-privatedomain.example.ca"]
+        }
       }
-    }],
+    ],
     "vpc-flow-logs": {
       "filter": "ALL",
       "interval": 60,
@@ -574,7 +577,8 @@
           "cidr": "10.7.0.0/22",
           "region": "ca-central-1",
           "use-central-endpoints": false,
-          "flow-logs": "S3",
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -637,7 +641,6 @@
               "cloudtrail",
               "codebuild",
               "codecommit",
-              "codecommit-fips",
               "codepipeline",
               "config",
               "datasync",
@@ -646,13 +649,11 @@
               "ecs-agent",
               "ecs-telemetry",
               "elasticfilesystem",
-              "elasticfilesystem-fips",
               "elasticloadbalancing",
               "elasticmapreduce",
               "events",
               "execute-api",
               "git-codecommit",
-              "git-codecommit-fips",
               "glue",
               "kinesis-streams",
               "kms",
@@ -692,11 +693,11 @@
           },
           "on-premise-rules": [
             {
-              "zone": "dept-private.gc.ca",
+              "zone": "on-premise-privatedomain1.example.ca",
               "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             },
             {
-              "zone": "private-domain1.example.ca",
+              "zone": "on-premise-privatedomain2.example.ca",
               "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             }
           ]
@@ -908,6 +909,7 @@
       "ou": "core",
       "account-warming-required": true,
       "src-filename": "config.json",
+      "populate-all-elbs-in-param-store": true,
       "limits": {
         "Amazon EC2/Number of EIPs": {
           "value": 5,
@@ -1120,11 +1122,10 @@
           "cidr2": "100.96.250.0/23",
           "region": "ca-central-1",
           "use-central-endpoints": false,
-          "flow-logs": "S3",
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": true,
-          "vgw": {
-            "asn": 65522
-          },
+          "vgw": false,
           "pcx": false,
           "natgw": false,
           "subnets": [
@@ -1222,10 +1223,6 @@
               "name": "FWMgmt_azA",
               "routes": [
                 {
-                  "destination": "10.0.0.0/8",
-                  "target": "VGW"
-                },
-                {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
                   "name": "Firewall",
@@ -1241,10 +1238,6 @@
             {
               "name": "FWMgmt_azB",
               "routes": [
-                {
-                  "destination": "10.0.0.0/8",
-                  "target": "VGW"
-                },
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
@@ -1513,7 +1506,8 @@
           "cidr": "10.249.1.0/24",
           "region": "ca-central-1",
           "use-central-endpoints": false,
-          "flow-logs": "S3",
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -1691,6 +1685,7 @@
           "region": "ca-central-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": false,
           "vgw": false,
           "pcx": {
@@ -2167,7 +2162,8 @@
           "cidr": "10.2.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": "S3",
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -2639,7 +2635,8 @@
           "cidr": "10.3.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": "CWL",
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -3111,7 +3108,8 @@
           "cidr": "10.4.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": "CWL",
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -3550,7 +3548,8 @@
           "cidr": "10.5.0.0/16",
           "region": "ca-central-1",
           "use-central-endpoints": true,
-          "flow-logs": "S3",
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": false,
           "vgw": false,
           "pcx": false,
@@ -3990,6 +3989,7 @@
           "region": "ca-central-1",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
           "igw": true,
           "vgw": false,
           "pcx": false,

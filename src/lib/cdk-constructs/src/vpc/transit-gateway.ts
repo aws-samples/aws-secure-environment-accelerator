@@ -28,7 +28,7 @@ export class TransitGateway extends cdk.Construct {
       autoAcceptSharedAttachments: enableDisableProperty(props.autoAcceptSharedAttachments ?? false),
       amazonSideAsn: props.asn,
     });
-    cdk.Tag.add(this.resource, 'Name', `${props.name}_tgw`, { priority: 1000 });
+    cdk.Tags.of(this.resource).add('Name', `${props.name}_tgw`, { priority: 1000 });
   }
 
   get ref(): string {
@@ -40,7 +40,7 @@ export class TransitGateway extends cdk.Construct {
     const routeTable = new ec2.CfnTransitGatewayRouteTable(this, `Route${index}`, {
       transitGatewayId: this.resource.ref,
     });
-    cdk.Tag.add(routeTable, 'Name', `${this.props.name}_tgw_${name}_rt`, { priority: 1000 });
+    cdk.Tags.of(routeTable).add('Name', `${this.props.name}_tgw_${name}_rt`, { priority: 1000 });
 
     this.routeTables.push(routeTable);
     this.tgwRouteTableNameToIdMap[name] = routeTable.ref;

@@ -1,4 +1,3 @@
-// tslint:disable:no-invalid-template-strings
 import { IPv4CidrRange } from 'ip-num';
 import * as cdk from '@aws-cdk/core';
 import * as ec2 from '@aws-cdk/aws-ec2';
@@ -109,7 +108,7 @@ export class FirewallInstance extends cdk.Construct {
         ),
       ),
     });
-    cdk.Tag.add(this.resource, 'Name', this.props.name);
+    cdk.Tags.of(this.resource).add('Name', this.props.name);
     this.instanceName = this.props.name;
 
     this.resource.node.addDependency(this.template);
@@ -177,6 +176,7 @@ export class FirewallInstance extends cdk.Construct {
   }
 
   private addVpcReplacements() {
+    // eslint-disable-next-line no-template-curly-in-string
     this.template.addReplacement('${Hostname}', this.props.hostname);
 
     const addVpcReplacement = (cidrBlock: string, suffix: string) => {

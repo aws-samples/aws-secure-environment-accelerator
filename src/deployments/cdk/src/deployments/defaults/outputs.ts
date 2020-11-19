@@ -9,6 +9,8 @@ import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { StructuredOutput, createCfnStructuredOutput } from '../../common/structured-output';
 import { EbsKmsOutput } from '@aws-accelerator/common-outputs/src/ebs';
 import { SsmKmsOutput } from '@aws-accelerator/common-outputs/src/ssm';
+import { optional } from '@aws-accelerator/common-types';
+import { createStructuredOutputFinder } from '@aws-accelerator/common-outputs/src/structured-output';
 
 export const CfnEbsKmsOutput = createCfnStructuredOutput(EbsKmsOutput);
 
@@ -43,8 +45,8 @@ const AccountBucketOutputType = t.interface(
     bucketArn: t.string,
     encryptionKeyArn: t.string,
     region: t.string,
-    encryptionKeyName: t.string,
-    encryptionKeyId: t.string,
+    encryptionKeyName: optional(t.string),
+    encryptionKeyId: optional(t.string),
   },
   'AccountBucket',
 );
@@ -57,8 +59,8 @@ const LogBucketOutputType = t.interface(
     bucketArn: t.string,
     encryptionKeyArn: t.string,
     region: t.string,
-    encryptionKeyName: t.string,
-    encryptionKeyId: t.string,
+    encryptionKeyName: optional(t.string),
+    encryptionKeyId: optional(t.string),
   },
   'LogBucket',
 );
@@ -94,6 +96,15 @@ export const CfnAccountBucketOutput = createCfnStructuredOutput(AccountBucketOut
 export const CfnLogBucketOutput = createCfnStructuredOutput(LogBucketOutputType);
 export const CfnCentralBucketOutput = createCfnStructuredOutput(CentralBucketOutputType);
 export const CfnAesBucketOutput = createCfnStructuredOutput(AesBucketOutputType);
+
+export const AccountBucketOutputFinder = createStructuredOutputFinder(AccountBucketOutputType, finder => ({
+  tryFindOneByName: (props: { outputs: StackOutput[]; accountKey?: string; region?: string }) =>
+    finder.tryFindOne({
+      outputs: props.outputs,
+      accountKey: props.accountKey,
+      region: props.region,
+    }),
+}));
 
 export namespace AccountBucketOutput {
   /**

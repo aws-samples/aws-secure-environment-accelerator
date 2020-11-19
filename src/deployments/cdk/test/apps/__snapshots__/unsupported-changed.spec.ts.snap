@@ -454,11 +454,11 @@ Array [
 ]
 `;
 
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PerimeterPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: PerimeterPhase3 1`] = `Array []`;
 
@@ -606,12 +606,6 @@ Array [
 ]
 `;
 
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase1VpcStackCentralB4A762DD 1`] = `Array []`;
@@ -628,9 +622,11 @@ exports[`there should not be any unsupported resource changes for AWS::Budgets::
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::Budgets::Budget: SharedServicesPhase1 1`] = `Array []`;
 
@@ -731,11 +727,11 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PerimeterPhase1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PerimeterPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: PerimeterPhase3 1`] = `Array []`;
 
@@ -750,12 +746,6 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase1 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
@@ -773,9 +763,11 @@ exports[`there should not be any unsupported resource changes for AWS::Directory
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::DirectoryService::MicrosoftAD: SharedServicesPhase1 1`] = `Array []`;
 
@@ -869,8 +861,6 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PerimeterPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PerimeterPhase1 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
@@ -1002,6 +992,8 @@ Array [
 ]
 `;
 
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
+
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: PerimeterPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SecurityPhase0 1`] = `Array []`;
@@ -1015,12 +1007,6 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase1 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
@@ -1038,9 +1024,11 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Inst
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::Instance: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1106,11 +1094,11 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: PerimeterPhase1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: PerimeterPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: PerimeterPhase3 1`] = `Array []`;
 
@@ -1133,6 +1121,7 @@ Array [
       "DefaultRouteTablePropagation": "disable",
       "Description": undefined,
       "DnsSupport": "enable",
+      "MulticastSupport": undefined,
       "Tags": Array [
         Object {
           "Key": "Accelerator",
@@ -1151,12 +1140,6 @@ Array [
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase1VpcStackCentralB4A762DD 1`] = `Array []`;
@@ -1173,9 +1156,11 @@ exports[`there should not be any unsupported resource changes for AWS::EC2::Tran
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::EC2::TransitGateway: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1241,11 +1226,11 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: PerimeterPhase1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: PerimeterPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: PerimeterPhase3 1`] = `
 Array [
@@ -1282,12 +1267,6 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase1VpcStackCentralB4A762DD 1`] = `Array []`;
@@ -1304,9 +1283,11 @@ exports[`there should not be any unsupported resource changes for AWS::ElasticLo
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::ElasticLoadBalancingV2::LoadBalancer: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1449,11 +1430,11 @@ Array [
 ]
 `;
 
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PerimeterPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: PerimeterPhase3 1`] = `Array []`;
 
@@ -1489,12 +1470,6 @@ Array [
 ]
 `;
 
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase1VpcStackCentralB4A762DD 1`] = `Array []`;
@@ -1511,9 +1486,11 @@ exports[`there should not be any unsupported resource changes for AWS::S3::Bucke
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::S3::Bucket: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1646,11 +1623,11 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PerimeterPhase1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PerimeterPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: PerimeterPhase3 1`] = `Array []`;
 
@@ -1665,12 +1642,6 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase1 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
@@ -1688,9 +1659,11 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::ResourcePolicy: SharedServicesPhase1 1`] = `Array []`;
 
@@ -1825,11 +1798,11 @@ Array [
 ]
 `;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PerimeterPhase1Endpoint02EC98C35 1`] = `Array []`;
-
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PerimeterPhase1VpcStackPerimeter0F2B12AF 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PerimeterPhase2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PerimeterPhase2VpcEndpoints1 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: PerimeterPhase3 1`] = `Array []`;
 
@@ -1844,12 +1817,6 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase1 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase1Endpoint0CD50B8FF 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase1Endpoint20AE19710 1`] = `Array []`;
-
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase1Endpoint125DF8CB0 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase1UsEast1 1`] = `Array []`;
 
@@ -1867,9 +1834,11 @@ exports[`there should not be any unsupported resource changes for AWS::SecretsMa
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase2 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase3 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase2VpcEndpoints1 1`] = `Array []`;
 
-exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase0 1`] = `Array []`;
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase2VpcEndpoints2 1`] = `Array []`;
+
+exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedNetworkPhase3 1`] = `Array []`;
 
 exports[`there should not be any unsupported resource changes for AWS::SecretsManager::Secret: SharedServicesPhase1 1`] = `Array []`;
 

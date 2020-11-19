@@ -16,3 +16,4 @@ export * from './sns-subscriber-lambda-role';
 export * from './cleanup-role';
 export * from './central-endpoints-deployment-roles';
 export * from './ssm-throughput-roles';
+export * from './ec2';

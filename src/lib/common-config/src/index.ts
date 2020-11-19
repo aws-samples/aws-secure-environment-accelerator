@@ -203,6 +203,7 @@ export const VpcConfigType = t.interface({
   cidr,
   cidr2: optional(cidr),
   'use-central-endpoints': fromNullable(t.boolean, false),
+  'dns-resolver-logging': fromNullable(t.boolean, false),
   'flow-logs': FlowLogsDestinationTypes,
   'log-retention': optional(t.number),
   igw: t.union([t.boolean, t.undefined]),
@@ -793,6 +794,7 @@ export type RsyslogConfig = t.TypeOf<typeof RsyslogConfig>;
 
 export type AlbConfig = t.TypeOf<typeof AlbConfigType>;
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface CloudWatchDefaultAlarmDefinition extends Omit<CloudWatchAlarmsConfig, 'definitions'> {
   /**
    * Interface definition for Default definition of CloudWatch alarm

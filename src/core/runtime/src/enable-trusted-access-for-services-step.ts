@@ -90,5 +90,5 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   // Finding the first entry of the parameter version
   const installerVersion = parameterHistoryList.find(p => p.Version === 1);
   const installerVersionValue = JSON.parse(installerVersion!.Value!);
-  return !installerVersionValue.AcceleratorVersion ? '<1.2.1' : installerVersionValue.AcceleratorVersion;
+  return !installerVersionValue.AcceleratorVersion ? '<1.2.2' : installerVersionValue.AcceleratorVersion;
 };

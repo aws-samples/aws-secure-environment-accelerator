@@ -50,7 +50,7 @@ export const handler = async (input: StoreStackOutputInput) => {
     stack.Outputs?.forEach(output =>
       outputs.push({
         accountKey,
-        outputKey: `${output.OutputKey}sjkdh`,
+        outputKey: `${output.OutputKey}`,
         outputValue: output.OutputValue,
         outputDescription: output.Description,
         outputExportName: output.ExportName,

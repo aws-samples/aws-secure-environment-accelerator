@@ -58,4 +58,8 @@ export class NetworkLoadBalancer extends cdk.Construct {
   get hostedZoneId(): string {
     return this.resource.attrCanonicalHostedZoneId;
   }
+
+  get arn(): string {
+    return this.resource.ref;
+  }
 }

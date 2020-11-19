@@ -3,17 +3,17 @@ import * as cdk from '@aws-cdk/core';
 import * as cxschema from '@aws-cdk/cloud-assembly-schema';
 import { CloudAssembly, CloudFormationStackArtifact, Environment } from '@aws-cdk/cx-api';
 import { ToolkitInfo, Mode } from 'aws-cdk';
-import { setVerbose } from 'aws-cdk/lib/logging';
-import { bootstrapEnvironment } from 'aws-cdk/lib/api/bootstrap';
-import { Configuration } from 'aws-cdk/lib/settings';
+import { setLogLevel } from 'aws-cdk/lib/logging';
+import { Bootstrapper } from 'aws-cdk/lib/api/bootstrap';
+import { Configuration, Command } from 'aws-cdk/lib/settings';
 import { SdkProvider } from 'aws-cdk/lib/api/aws-auth';
 import { CloudFormationDeployments } from 'aws-cdk/lib/api/cloudformation-deployments';
 import { PluginHost } from 'aws-cdk/lib/plugin';
 import { AssumeProfilePlugin } from '@aws-accelerator/cdk-plugin-assume-role/src/assume-role-plugin';
 import { fulfillAll } from './promise';
 
-// Set verbose logging
-setVerbose(true);
+// Set debug logging
+setLogLevel(1);
 
 // Register the assume role plugin
 const assumeRolePlugin = new AssumeProfilePlugin();
@@ -64,6 +64,7 @@ export class CdkToolkit {
     const assemblies = apps.map(app => app.synth());
 
     const configuration = new Configuration({
+      _: [Command.BOOTSTRAP, ...[]],
       pathMetadata: false,
       assetMetadata: false,
       versionReporting: false,
@@ -95,16 +96,18 @@ export class CdkToolkit {
     const trustedAccounts: string[] = [];
     const cloudFormationExecutionPolicies: string[] = [];
 
-    await bootstrapEnvironment(environment, this.props.sdkProvider, {
+    await new Bootstrapper({
+      source: 'legacy',
+    }).bootstrapEnvironment(environment, this.props.sdkProvider, {
       toolkitStackName: this.toolkitStackName,
       roleArn: undefined,
       force: true,
+      execute: true,
+      tags: this.tags,
       parameters: {
         bucketName: this.toolkitBucketName,
         cloudFormationExecutionPolicies,
-        execute: true,
         kmsKeyId: this.toolkitKmsKey,
-        tags: this.tags,
         trustedAccounts,
       },
     });

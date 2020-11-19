@@ -4,6 +4,7 @@ import { InitialSetup } from './initial-setup';
 
 process.on('unhandledRejection', (reason, _) => {
   console.error(reason);
+  // eslint-disable-next-line no-process-exit
   process.exit(1);
 });
 
@@ -54,5 +55,5 @@ async function main() {
   });
 }
 
-// tslint:disable-next-line: no-floating-promises
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 main();
