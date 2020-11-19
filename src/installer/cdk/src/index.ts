@@ -163,7 +163,7 @@ async function main() {
         build: {
           commands: [
             'cd src/core/cdk',
-            'export CDK_NEW_BOOTST=1',
+            'export CDK_NEW_BOOTSTRAP=1',
             `pnpx cdk bootstrap --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
             `pnpx cdk deploy --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
           ],

@@ -97,9 +97,9 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         input: {
           stackName: bootStrapStackName,
           stackCapabilities: ['CAPABILITY_NAMED_IAM'],
-          stackParameters: {
-            'OrganizationId.$': '$.organizationId',
-          },
+          // stackParameters: {
+          //   'OrganizationId.$': '$.organizationId',
+          // },
           stackTemplate: {
             s3BucketName,
             s3ObjectKey: operationsBootstrapObjectKey,
