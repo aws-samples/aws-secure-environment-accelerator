@@ -490,6 +490,43 @@
           }
         ]
       }
+    },
+    "ssm-automation": [
+      {
+        "accounts": ["operations"],
+        "regions": ["ca-central-1"],
+        "documents": [
+          {
+            "name": "SSM-ELB-Enable-Logging",
+            "description": "Calls the AWS CLI to enable access logs on a specified ELB.",
+            "template": "ssm-elb-enable-logging.yaml"
+          }
+        ]
+      }
+    ],
+    "aws-config": {
+      "managed-rules": {
+        "defaults": {
+          "remediation": false,
+          "remediation-attempts": 5,
+          "remediation-retry-seconds": 60,
+          "remediation-concurrency": 10
+        },
+        "rules": [
+          {
+            "name": "ELB_LOGGING_ENABLED",
+            "remediation-action": "SSM-ELB-Enable-Logging",
+            "remediation": true,
+            "parameters": {
+              "s3BucketNames": "${SEA::LogArchiveAesBucket}"
+            },
+            "remediation-params": {
+              "LoadBalancerArn": "RESOURCE_ID",
+              "LogDestination": "${SEA::LogArchiveAesBucket}"
+            }
+          }
+        ]
+      }
     }
   },
   "mandatory-account-configs": {
@@ -1620,7 +1657,21 @@
             "emails": ["myemail+pbmmT-budg@example.com"]
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     },
     "Central": {
       "type": "mandatory",
@@ -2066,7 +2117,21 @@
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     },
     "Dev": {
       "type": "workload",
@@ -2539,7 +2604,21 @@
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     },
     "Test": {
       "type": "workload",
@@ -3012,7 +3091,21 @@
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     },
     "Prod": {
       "type": "workload",
@@ -3485,7 +3578,21 @@
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     },
     "UnClass": {
       "type": "workload",
@@ -3925,7 +4032,21 @@
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     },
     "Sandbox": {
       "type": "workload",
