@@ -48,6 +48,7 @@ export const handler = async (input: VerifyFilesInput) => {
   await verifyCertificates(masterAccountKey, outputs, acceleratorConfig, errors);
   await verifyFirewallFiles(masterAccountKey, outputs, acceleratorConfig, errors);
   await verifyRsyslogFiles(outputs, errors);
+  await verifySsmDocumentFiles(outputs, acceleratorConfig, errors);
 
   if (errors.length > 0) {
     throw new Error(`There were errors while loading the configuration:\n${errors.join('\n')}`);
@@ -198,4 +199,24 @@ function listIamPolicyFileNames(config: c.AcceleratorConfig): string[] {
     }
   }
   return policyFileNames;
+}
+
+async function verifySsmDocumentFiles(
+  outputs: StackOutput[],
+  config: c.AcceleratorConfig,
+  errors: string[],
+): Promise<void> {
+  const artifactOutput = ArtifactOutputFinder.findOneByName({
+    outputs,
+    artifactName: 'SsmDocument',
+  });
+  const ssmDocumentsBucketName = artifactOutput.bucketName;
+  const ssmDocumentsBucketPrefix = artifactOutput.keyPrefix;
+
+  const globalOptionsConfig = config['global-options'];
+  const automationDocuments = globalOptionsConfig['ssm-automation'].flatMap(d =>
+    d.documents.flatMap(dc => dc.template),
+  );
+  const ssmDocuments = automationDocuments.map(ssmDoc => `${ssmDocumentsBucketPrefix}/${ssmDoc}`);
+  await verifyFiles(ssmDocumentsBucketName, ssmDocuments, errors);
 }

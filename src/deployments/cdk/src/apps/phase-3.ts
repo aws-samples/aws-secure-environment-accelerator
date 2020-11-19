@@ -10,6 +10,7 @@ import { CentralBucketOutput, AccountBucketOutput } from '../deployments/default
 import * as securityHub from '../deployments/security-hub';
 import * as macie from '../deployments/macie';
 import * as transitGateway from '../deployments/transit-gateway';
+import * as awsConfig from '../deployments/config';
 
 /**
  * This is the main entry point to deploy phase 3
@@ -124,6 +125,16 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accountStacks,
     accounts,
     config: acceleratorConfig,
+    outputs,
+  });
+
+  await awsConfig.createRule({
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
+    centralAccountId: '',
+    centralBucketName: centralBucket.bucketName,
+    config: acceleratorConfig,
+    accountStacks,
+    accounts,
     outputs,
   });
 }

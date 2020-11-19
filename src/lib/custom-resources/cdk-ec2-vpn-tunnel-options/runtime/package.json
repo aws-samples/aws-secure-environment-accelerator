@@ -11,7 +11,7 @@
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-cfn-utils": "workspace:^0.0.1", 
     "xml2js": "0.4.23", 
-    "aws-sdk": "2.668.0", 
+    "aws-sdk": "2.787.0", 
     "aws-lambda": "1.0.5"
   }, 
   "scripts": {

@@ -46,7 +46,6 @@ export async function step1(props: CreateCloudTrailProps) {
 
   const organizations = new Organizations(masterAccountStack, 'Organizations');
   const organizationId = organizations.organizationId;
-  console.log('organizationId', organizationId);
 
   const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
     outputs,

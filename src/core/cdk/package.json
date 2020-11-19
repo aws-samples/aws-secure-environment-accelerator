@@ -56,7 +56,7 @@
     "@aws-cdk/aws-stepfunctions-tasks": "1.66.0",
     "@aws-cdk/core": "1.66.0",
     "@types/cfn-response": "^1.0.3",
-    "aws-sdk": "2.668.0",
+    "aws-sdk": "2.787.0",
     "cfn-response": "^1.0.1",
     "tempy": "0.5.0"
   },

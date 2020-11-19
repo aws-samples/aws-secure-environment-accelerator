@@ -1,0 +1,31 @@
+{
+  "name": "@aws-accelerator/custom-resource-ssm-document-share-runtime", 
+  "externals": [
+    "aws-lambda", 
+    "aws-sdk"
+  ], 
+  "private": true, 
+  "source": "src/index.ts", 
+  "version": "0.0.1", 
+  "dependencies": {
+    "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1", 
+    "@aws-accelerator/custom-resource-cfn-utils": "workspace:^0.0.1",
+    "exponential-backoff": "3.0.0", 
+    "aws-sdk": "2.787.0", 
+    "aws-lambda": "1.0.5"
+  }, 
+  "scripts": {
+    "prepare": "webpack-cli --config webpack.config.ts"
+  }, 
+  "devDependencies": {
+    "ts-loader": "7.0.5", 
+    "typescript": "3.8.3", 
+    "@types/aws-lambda": "8.10.46", 
+    "webpack": "4.42.1", 
+    "@aws-accelerator/custom-resource-runtime-webpack-base": "workspace:^0.0.1", 
+    "@types/node": "12.12.6", 
+    "webpack-cli": "3.3.11"
+  }, 
+  "main": "dist/index.js", 
+  "types": "dist/index.d.ts"
+}
