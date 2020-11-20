@@ -71,6 +71,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       parameters: {
         'accountId.$': '$.operationsAccount.id',
         'organizationId.$': '$.operationsAccount.ou',
+        'accounts.$': '$.accounts',
         'region.$': '$$.Map.Item.Value',
         acceleratorPrefix,
         assumeRoleName,
@@ -97,9 +98,9 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         input: {
           stackName: bootStrapStackName,
           stackCapabilities: ['CAPABILITY_NAMED_IAM'],
-          // stackParameters: {
-          //   'OrganizationId.$': '$.organizationId',
-          // },
+          stackParameters: {
+            'TrustedAccounts.$': '$.accounts',
+          },
           stackTemplate: {
             s3BucketName,
             s3ObjectKey: operationsBootstrapObjectKey,

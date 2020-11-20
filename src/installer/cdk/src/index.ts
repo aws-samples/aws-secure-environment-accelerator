@@ -164,7 +164,7 @@ async function main() {
           commands: [
             'cd src/core/cdk',
             'export CDK_NEW_BOOTSTRAP=1',
-            `pnpx cdk bootstrap --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
+            `pnpx cdk bootstrap aws://${cdk.Aws.ACCOUNT_ID}/${cdk.Aws.REGION} --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
             `pnpx cdk deploy --require-approval never --toolkit-stack-name=${acceleratorPrefix}CDKToolkit`,
           ],
         },
