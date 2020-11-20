@@ -1,6 +1,6 @@
 {
   "app": "pnpx ts-node src/index.ts",
   "context": {
-    "@aws-cdk/core:enableStackNameDuplicates": "true"
+    "@aws-cdk/core:newStyleStackSynthesis": "true"
   }
 }
