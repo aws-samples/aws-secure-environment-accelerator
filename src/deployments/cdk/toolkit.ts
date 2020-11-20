@@ -97,7 +97,7 @@ export class CdkToolkit {
     const cloudFormationExecutionPolicies: string[] = [];
 
     await new Bootstrapper({
-      source: 'legacy',
+      source: 'default',
     }).bootstrapEnvironment(environment, this.props.sdkProvider, {
       toolkitStackName: this.toolkitStackName,
       roleArn: undefined,

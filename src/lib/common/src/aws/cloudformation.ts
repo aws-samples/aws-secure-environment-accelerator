@@ -201,21 +201,15 @@ export class CloudFormation {
 }
 
 export function objectToCloudFormationParameters(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  obj: { [key: string]: any } | undefined,
+  obj: { [key: string]: string } | undefined,
 ): cfn.Parameter[] | undefined {
   if (!obj) {
     return undefined;
   }
-  return Object.getOwnPropertyNames(obj).map(key => { 
-    const param: cfn.Parameter = {
+  return Object.getOwnPropertyNames(obj).map(key => {
+    return {
       ParameterKey: key,
+      ParameterValue: obj[key],
     };
-    if (typeof obj[key] === 'string') {
-      param.ParameterValue = obj[key].toString();
-    } else if (typeof obj[key] !== 'string' && obj[key].length > 0){
-      param.ParameterValue = obj[key].join(',');
-    }
-    return param;
   });
 }

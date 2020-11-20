@@ -5,8 +5,7 @@ import { STS } from '@aws-accelerator/common/src/aws/sts';
 interface CreateStackInput {
   stackName: string;
   stackCapabilities: string[];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  stackParameters: { [key: string]: any };
+  stackParameters: { [key: string]: string };
   stackTemplate: StackTemplateLocation;
   accountId?: string;
   assumeRoleName?: string;

@@ -33,6 +33,10 @@ Parameters:
     AllowedValues:
       - "true"
       - "false"
+  OrganizationId:
+    Description: Root OrganizationId to give access to staging Bucket to all accounts under Organization
+    Default: ""
+    Type: String
 Conditions:
   HasTrustedAccounts:
     Fn::Not:
@@ -172,6 +176,16 @@ Resources:
             Condition:
               Bool:
                 aws:SecureTransport: "false"
+            Principal: "*"
+          - Sid: AllowOrgAcccountsAccess
+            Action: s3:*
+            Effect: Allow
+            Resource:
+              - Fn::Sub: ${StagingBucket.Arn}
+              - Fn::Sub: ${StagingBucket.Arn}/*
+            Condition:
+              StringEquals:
+                aws:PrincipalOrgID: !Ref OrganizationId
             Principal: "*"
   ContainerAssetsRepository:
     Type: AWS::ECR::Repository
