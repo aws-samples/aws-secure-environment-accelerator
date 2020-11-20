@@ -10,7 +10,7 @@ export namespace CodeTask {
    *   * `handler`, `runtime` are excluded;
    *   * other properties are optional.
    */
-  export type FunctionProps = Pick<lambda.FunctionProps, 'code'> & Partial<Omit<lambda.FunctionProps, 'runtime'>>;
+  export type FunctionProps = Pick<lambda.FunctionProps, 'code'> & Partial<Omit<lambda.FunctionProps, 'runtime'>> & Partial<Omit<lambda.FunctionProps, 'memorySize'>>;
 
   // eslint-disable-next-line deprecation/deprecation
   export interface Props extends Partial<Omit<sfn.TaskProps, 'task'>> {
@@ -40,6 +40,7 @@ export class CodeTask extends sfn.StateMachineFragment {
       timeout: cdk.Duration.minutes(15),
       runtime: lambda.Runtime.NODEJS_12_X,
       handler: 'index.handler',
+      memorySize: 512,
       ...props.functionProps,
     });
 
