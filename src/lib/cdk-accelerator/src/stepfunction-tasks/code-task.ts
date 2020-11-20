@@ -10,7 +10,9 @@ export namespace CodeTask {
    *   * `handler`, `runtime` are excluded;
    *   * other properties are optional.
    */
-  export type FunctionProps = Pick<lambda.FunctionProps, 'code'> & Partial<Omit<lambda.FunctionProps, 'runtime'>> & Partial<Omit<lambda.FunctionProps, 'memorySize'>>;
+  export type FunctionProps = Pick<lambda.FunctionProps, 'code'> &
+    Partial<Omit<lambda.FunctionProps, 'runtime'>> &
+    Partial<Omit<lambda.FunctionProps, 'memorySize'>>;
 
   // eslint-disable-next-line deprecation/deprecation
   export interface Props extends Partial<Omit<sfn.TaskProps, 'task'>> {
