@@ -9,7 +9,7 @@
   "version": "0.0.1", 
   "dependencies": {
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1", 
-    "aws-sdk": "2.668.0", 
+    "aws-sdk": "2.787.0", 
     "aws-lambda": "1.0.5"
   }, 
   "scripts": {

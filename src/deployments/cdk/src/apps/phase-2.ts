@@ -25,6 +25,7 @@ import * as macie from '../deployments/macie';
 import * as centralServices from '../deployments/central-services';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import * as snsDeployment from '../deployments/sns';
+import * as ssmDeployment from '../deployments/ssm';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -331,10 +332,22 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
+  const masterAccountKey = acceleratorConfig['global-options']['aws-org-master'].account;
+  const masterAccountId = getAccountId(accounts, masterAccountKey);
   await vpcDeployment.step3({
     accountStacks,
     config: acceleratorConfig,
     limiter,
+    outputs,
+  });
+
+  await ssmDeployment.createDocument({
+    acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
+    centralAccountId: masterAccountId!,
+    centralBucketName: centralBucket.bucketName,
+    config: acceleratorConfig,
+    accountStacks,
+    accounts,
     outputs,
   });
 }

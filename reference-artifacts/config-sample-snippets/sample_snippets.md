@@ -672,6 +672,25 @@
 		  
 		  
 ```
+---
+
+- Disable a Config rule on a per account basis - add this to either workload or mandatory accounts sections
+```
+      "aws-config": [
+        {
+          "regions": ["ca-central-1", "us-east-1"],
+          "excl-rules": ["ELB_LOGGING_ENABLED"]
+        }
+      ]
+```
+
+---
+
+- Future description
+```
+{future sample}
+```
+
 
 ---
 

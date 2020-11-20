@@ -178,6 +178,30 @@ export namespace LogBucketOutput {
       region: logBucketOutput.region,
     });
   }
+
+  export function getBucketDetails(props: {
+    config: AcceleratorConfig;
+    outputs: StackOutput[];
+  }): {
+    arn: string;
+    name: string;
+  } {
+    const logAccountConfig = props.config['global-options']['central-log-services'];
+    const logAccountKey = logAccountConfig.account;
+
+    const logBucketOutputs = StructuredOutput.fromOutputs(props.outputs, {
+      accountKey: logAccountKey,
+      type: AesBucketOutputType,
+    });
+    const logBucketOutput = logBucketOutputs?.[0];
+    if (!logBucketOutput) {
+      throw new Error(`Cannot find central log bucket for log account ${logAccountKey}`);
+    }
+    return {
+      arn: logBucketOutput.bucketArn,
+      name: logBucketOutput.bucketName,
+    };
+  }
 }
 
 export namespace AesBucketOutput {

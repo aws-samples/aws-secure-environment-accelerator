@@ -533,6 +533,23 @@ export const LimitConfig = t.interface({
   'customer-confirm-inplace': fromNullable(t.boolean, false),
 });
 
+export const SsmShareAutomation = t.interface({
+  account: t.string,
+  regions: t.array(t.string),
+  documents: t.array(t.string),
+});
+
+export const AwsConfigRules = t.interface({
+  'excl-regions': t.array(t.string),
+  rules: t.array(t.string),
+  'remediate-regions': optional(t.array(t.string)),
+});
+
+export const AwsConfigAccountConfig = t.interface({
+  regions: t.array(t.string),
+  'excl-rules': t.array(t.string),
+});
+
 export const MandatoryAccountConfigType = t.interface({
   'landing-zone-account-type': optional(LandingZoneAccountConfigType),
   'account-name': t.string,
@@ -556,6 +573,8 @@ export const MandatoryAccountConfigType = t.interface({
   'exclude-ou-albs': optional(t.boolean),
   'keep-default-vpc-regions': fromNullable(t.array(t.string), []),
   'populate-all-elbs-in-param-store': fromNullable(t.boolean, false),
+  'ssm-automation': fromNullable(t.array(SsmShareAutomation), []),
+  'aws-config': fromNullable(t.array(AwsConfigAccountConfig), []),
 });
 
 export type MandatoryAccountConfig = t.TypeOf<typeof MandatoryAccountConfigType>;
@@ -575,6 +594,8 @@ export const OrganizationalUnitConfigType = t.interface({
   alb: optional(t.array(AlbConfigType)),
   vpc: optional(t.array(VpcConfigType)),
   'default-budgets': optional(BudgetConfigType),
+  'ssm-automation': fromNullable(t.array(SsmShareAutomation), []),
+  'aws-config': fromNullable(t.array(AwsConfigRules), []),
 });
 
 export type OrganizationalUnitConfig = t.TypeOf<typeof OrganizationalUnitConfigType>;
@@ -741,6 +762,44 @@ export const CloudWatchAlarmsConfigType = t.interface({
   definitions: t.array(CloudWatchAlarmDefinitionConfigType),
 });
 
+export const SsmDocument = t.interface({
+  name: t.string,
+  description: t.string,
+  template: t.string,
+});
+export const SsmAutomation = t.interface({
+  accounts: t.array(t.string),
+  regions: t.array(t.string),
+  documents: t.array(SsmDocument),
+});
+
+export const AwsConfigRuleDefaults = t.interface({
+  remediation: t.boolean,
+  'remediation-attempts': t.number,
+  'remediation-retry-seconds': t.number,
+  'remediation-concurrency': t.number,
+});
+
+export const AwsConfigManagedRule = t.interface({
+  name: NonEmptyString,
+  remediation: optional(t.boolean),
+  'remediation-attempts': optional(t.number),
+  'remediation-retry-seconds': optional(t.number),
+  'remediation-concurrency': optional(t.number),
+  'remediation-action': optional(t.string),
+  'remediation-params': fromNullable(t.record(t.string, t.string), {}),
+  parameters: fromNullable(t.record(t.string, t.string), {}),
+});
+
+export const AwsConfigManagedRules = t.interface({
+  defaults: AwsConfigRuleDefaults,
+  rules: t.array(AwsConfigManagedRule),
+});
+
+export const AwsConfig = t.interface({
+  'managed-rules': AwsConfigManagedRules,
+});
+
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
@@ -773,6 +832,9 @@ export const GlobalOptionsConfigType = t.interface({
       alarms: CloudWatchAlarmsConfigType,
     }),
   ),
+  'ssm-automation': fromNullable(t.array(SsmAutomation), []),
+  'aws-config': optional(AwsConfig),
+  'default-ssm-documents': fromNullable(t.array(t.string), []),
 });
 
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
