@@ -4,7 +4,7 @@ import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-accelerator/com
 import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { getFormattedObject, getStringFromObject, equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
-import { pretty } from '@aws-accelerator/common/src/util/perttier';
+import { pretty } from '@aws-accelerator/common/src/util/prettier';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 
 interface RemoveAccountOrganization extends ScheduledEvent {
