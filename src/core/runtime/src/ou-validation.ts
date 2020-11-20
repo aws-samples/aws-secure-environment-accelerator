@@ -118,9 +118,13 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   rootConfig = getFormattedObject(updateOrgResponse.rootConfig, format);
   // Update Config from 'updateRenamedAccouns' and 'updateRenamedOrganizations'
   const updatedAccounts = updateOrgResponse.updatedAccounts;
+  console.log("Converting to Set");
   const updateAccountFilenames = [...new Set(Object.entries(updatedAccounts).map(([_, accInfo]) => accInfo.filename))];
+  console.log("Conversion Done");
   const updateFiles: { filePath: string; fileContent: string }[] = [];
-  for (const filename of updateAccountFilenames) {
+  
+  updateAccountFilenames.map(async(filename) => {
+    console.log(`Update required for Config in file "${filename}"`);
     const accountsInFile = Object.entries(updatedAccounts).filter(([_, accInfo]) => accInfo.filename === filename);
     if (filename === configRootFilePath) {
       for (const [accKey, accountInFile] of accountsInFile) {
@@ -147,7 +151,36 @@ export const handler = async (input: ValdationInput): Promise<string> => {
         fileContent: pretty(getStringFromObject(accountObject, format), format),
       });
     }
-  }
+  });
+
+  // for (const filename of updateAccountFilenames) {
+  //   const accountsInFile = Object.entries(updatedAccounts).filter(([_, accInfo]) => accInfo.filename === filename);
+  //   if (filename === configRootFilePath) {
+  //     for (const [accKey, accountInFile] of accountsInFile) {
+  //       if (accountInFile.type === 'mandatory') {
+  //         rootConfig['mandatory-account-configs'][accKey] = updateAccountConfig(
+  //           rootConfig['mandatory-account-configs'][accKey],
+  //           accountInFile,
+  //         );
+  //       } else {
+  //         rootConfig['workload-account-configs'][accKey] = updateAccountConfig(
+  //           rootConfig['workload-account-configs'][accKey],
+  //           accountInFile,
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     const accountResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
+  //     const accountObject = getFormattedObject(accountResponse.fileContent.toString(), format);
+  //     for (const [accKey, accountInFile] of accountsInFile) {
+  //       accountObject[accKey] = updateAccountConfig(accountObject[accKey], accountInFile);
+  //     }
+  //     updateFiles.push({
+  //       filePath: filename,
+  //       fileContent: pretty(getStringFromObject(accountObject, format), format),
+  //     });
+  //   }
+  // }
   updateFiles.push({
     filePath: configRootFilePath!,
     fileContent: pretty(getStringFromObject(rootConfig, format), format),
