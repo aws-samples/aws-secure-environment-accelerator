@@ -6,7 +6,7 @@ import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { delay } from '@aws-accelerator/common/src/util/delay';
 import { pascalCase } from 'pascal-case';
 import * as crypto from 'crypto';
-import { pretty } from '@aws-accelerator/common/src/util/perttier';
+import { pretty } from '@aws-accelerator/common/src/util/prettier';
 import {
   getFormattedObject,
   getStringFromObject,

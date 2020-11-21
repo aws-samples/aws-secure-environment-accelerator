@@ -7,6 +7,7 @@ export const FormatConfigType = enumType<typeof FORMATS[number]>(FORMATS);
 export type FormatType = t.TypeOf<typeof FormatConfigType>;
 
 export function pretty(input: string, format: FormatType) {
+  console.log(`Applying Prettier for format "${format}"`);
   return prettier.format(input, {
     parser: format,
     tabWidth: 2,

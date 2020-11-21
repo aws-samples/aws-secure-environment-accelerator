@@ -2,7 +2,7 @@ import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import * as yaml from 'js-yaml';
 import { S3 } from '../aws/s3';
 import { CodeCommit } from '../aws/codecommit';
-import { pretty, FormatType } from './perttier';
+import { pretty, FormatType } from './prettier';
 import { RAW_CONFIG_FILE, JSON_FORMAT } from './constants';
 
 export function getFormattedObject(input: string, format: FormatType) {
