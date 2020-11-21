@@ -4,7 +4,7 @@
 
 ### - [Solution Summary / Repo root](../README.md)
 
-- Unofficial [Roadmap](./roadmap.md)
+- Unofficial [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects)
 
 ### - [Installation, Upgrades and Basic Operations Guide](./installation/installation.md)
 
