@@ -142,7 +142,7 @@ This summarizes the installation process, the full installation document can be 
 - [Link](./docs/installation/customization-index.md) to sample config files and customization details
 - More [details](./docs/installation/what-we-do-where.md) as to WHAT we do and WHERE we support it (regions, accounts, etc.)
 - AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
-- Unofficial [Roadmap](./docs/roadmap.md)
+- Unofficial [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects)
 
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
