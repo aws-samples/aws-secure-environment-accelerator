@@ -114,6 +114,11 @@ async function updateConfig(detectorId: string) {
         .updateOrganizationConfiguration({
           AutoEnable: true,
           DetectorId: detectorId,
+          DataSources: {
+            S3Logs: {
+              AutoEnable: true,
+            },            
+          }
         })
         .promise(),
     );
@@ -134,7 +139,7 @@ async function isConfigurationAutoEnabled(detectorId: string): Promise<boolean> 
         })
         .promise(),
     );
-    return response.AutoEnable;
+    return response.AutoEnable && response.DataSources?.S3Logs.AutoEnable!;
   } catch (error) {
     console.error(
       `Error Occurred while checking configuration auto enabled of GuardDuty ${error.code}: ${error.message}`,
