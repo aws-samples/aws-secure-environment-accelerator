@@ -19,6 +19,7 @@ export interface AccountDetail {
 export interface HandlerProperties {
   deligatedAdminAccountId: string;
   memberAccounts: AccountDetail[];
+  s3Protection: boolean;
 }
 
 export const handler = errorHandler(onEvent);
@@ -57,11 +58,12 @@ async function onCreateOrUpdate(
       data: {},
     };
   }
-  // Update Config to handle new Account created under Organization
-  await updateConfig(detectorId);
 
   // Create Members in Security Account
-  const { memberAccounts } = properties;
+  const { memberAccounts, s3Protection} = properties;
+  // Update Config to handle new Account created under Organization
+  await updateConfig(detectorId, s3Protection);
+
   if (memberAccounts.length > 0) {
     await createMembers(memberAccounts, detectorId);
   }
@@ -106,7 +108,7 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
 }
 
 // Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-async function updateConfig(detectorId: string) {
+async function updateConfig(detectorId: string, s3Protection: boolean) {
   try {
     console.log(`Calling api "guardduty.updateOrganizationConfiguration()", ${detectorId}`);
     await throttlingBackOff(() =>
@@ -116,7 +118,7 @@ async function updateConfig(detectorId: string) {
           DetectorId: detectorId,
           DataSources: {
             S3Logs: {
-              AutoEnable: true,
+              AutoEnable: s3Protection,
             },            
           }
         })
