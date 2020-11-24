@@ -4,6 +4,7 @@ import {
   CloudFormationCustomResourceEvent,
   CloudFormationCustomResourceCreateEvent,
   CloudFormationCustomResourceUpdateEvent,
+  CloudFormationCustomResourceDeleteEvent,
 } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
@@ -34,6 +35,8 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
       return onCreateOrUpdate(event);
     case 'Update':
       return onCreateOrUpdate(event);
+    case 'Delete':
+      return onDelete(event);
   }
 }
 
@@ -50,7 +53,7 @@ async function onCreateOrUpdate(
     };
   }
 
-  const { memberAccounts, s3Protection} = properties;
+  const { memberAccounts, s3Protection } = properties;
   const isAutoEnabled = await isConfigurationAutoEnabled(detectorId, s3Protection);
   if (isAutoEnabled) {
     console.log(`GuardDuty is already enabled ORG Level`);
@@ -108,19 +111,19 @@ async function createMembers(memberAccounts: AccountDetail[], detectorId: string
 }
 
 // Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
-async function updateConfig(detectorId: string, s3Protection: boolean) {
+async function updateConfig(detectorId: string, s3Protection: boolean, autoEnable = true) {
   try {
     console.log(`Calling api "guardduty.updateOrganizationConfiguration()", ${detectorId}`);
     await throttlingBackOff(() =>
       guardduty
         .updateOrganizationConfiguration({
-          AutoEnable: true,
+          AutoEnable: autoEnable,
           DetectorId: detectorId,
           DataSources: {
             S3Logs: {
               AutoEnable: s3Protection,
-            },            
-          }
+            },
+          },
         })
         .promise(),
     );
@@ -141,7 +144,7 @@ async function isConfigurationAutoEnabled(detectorId: string, s3Protection: bool
         })
         .promise(),
     );
-    return response.AutoEnable && (response.DataSources?.S3Logs.AutoEnable! === s3Protection);
+    return response.AutoEnable && response.DataSources?.S3Logs.AutoEnable! === s3Protection;
   } catch (error) {
     console.error(
       `Error Occurred while checking configuration auto enabled of GuardDuty ${error.code}: ${error.message}`,
@@ -155,7 +158,9 @@ async function updateDataSource(memberAccounts: AccountDetail[], detectorId: str
     return;
   }
   try {
-    console.log(`Calling api "guardduty.updateMemberDetectors()", ${memberAccounts}, ${detectorId} to disable S3Protection`);
+    console.log(
+      `Calling api "guardduty.updateMemberDetectors()", ${memberAccounts}, ${detectorId} to disable S3Protection`,
+    );
     await throttlingBackOff(() =>
       guardduty
         .updateMemberDetectors({
@@ -164,14 +169,31 @@ async function updateDataSource(memberAccounts: AccountDetail[], detectorId: str
           DataSources: {
             S3Logs: {
               Enable: false,
-            }
-          }
+            },
+          },
+        })
+        .promise(),
+    );
+  } catch (error) {
+    console.error(`Error Occurred while updateMemberDetectors of GuardDuty ${error.code}: ${error.message}`);
+    throw error;
+  }
+}
+
+async function deleteMembers(memberAccounts: AccountDetail[], detectorId: string) {
+  try {
+    console.log(`Calling api "guardduty.createMembers()", ${memberAccounts}, ${detectorId}`);
+    await throttlingBackOff(() =>
+      guardduty
+        .deleteMembers({
+          DetectorId: detectorId,
+          AccountIds: memberAccounts.map(acc => acc.AccountId),
         })
         .promise(),
     );
   } catch (error) {
     console.error(
-      `Error Occurred while updateMemberDetectors of GuardDuty ${error.code}: ${error.message}`,
+      `Error Occurred while creating members in Delegator Account of GuardDuty ${error.code}: ${error.message}`,
     );
     throw error;
   }
@@ -183,4 +205,22 @@ function getPropertiesFromEvent(event: CloudFormationCustomResourceEvent) {
     properties.s3Protection = properties.s3Protection === 'true';
   }
   return properties;
+}
+
+async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
+  console.log('Delete Action GuardDuty Admin Setup');
+  if (event.PhysicalResourceId != physicalResourceId) {
+    return;
+  }
+  const properties = getPropertiesFromEvent(event);
+  const { memberAccounts } = properties;
+  try {
+    const detectorId = await getDetectorId();
+    await updateConfig(detectorId!, false, false);
+    await updateDataSource(memberAccounts, detectorId!, false);
+    await deleteMembers(memberAccounts, detectorId!);
+  } catch (error) {
+    console.warn('Exception while performing Delete Action');
+    console.warn(error);
+  }
 }
