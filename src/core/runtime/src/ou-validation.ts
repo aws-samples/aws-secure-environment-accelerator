@@ -6,11 +6,9 @@ import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { OrganizationalUnit as ConfigOrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { LoadConfigurationInput } from './load-configuration-step';
-import { FormatType, pretty } from '@aws-accelerator/common/src/util/perttier';
+import { FormatType, pretty } from '@aws-accelerator/common/src/util/prettier';
 import { getFormattedObject, getStringFromObject, equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
-import { PutFileEntry } from 'aws-sdk/clients/codecommit';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
-import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput } from './utils/dynamodb-requests';
 
@@ -36,7 +34,7 @@ const codecommit = new CodeCommit();
  * - Attach QNO Scp to all free accounts under root and Suspended OU
  */
 export const handler = async (input: ValdationInput): Promise<string> => {
-  console.log(`Loading Organization baseline configuration...`);
+  console.log(`Performing OU Validation...`);
   console.log(JSON.stringify(input, null, 2));
 
   const {
@@ -122,9 +120,9 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const updateAccountFilenames = [...new Set(Object.entries(updatedAccounts).map(([_, accInfo]) => accInfo.filename))];
   console.log("Conversion Done");
   const updateFiles: { filePath: string; fileContent: string }[] = [];
-  
-  updateAccountFilenames.map(async(filename) => {
-    console.log(`Update required for Config in file "${filename}"`);
+
+  updateAccountFilenames.map(async filename => {
+    console.log(`Update Config required in file "${filename}"`);
     const accountsInFile = Object.entries(updatedAccounts).filter(([_, accInfo]) => accInfo.filename === filename);
     if (filename === configRootFilePath) {
       for (const [accKey, accountInFile] of accountsInFile) {
@@ -153,43 +151,23 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     }
   });
 
-  // for (const filename of updateAccountFilenames) {
-  //   const accountsInFile = Object.entries(updatedAccounts).filter(([_, accInfo]) => accInfo.filename === filename);
-  //   if (filename === configRootFilePath) {
-  //     for (const [accKey, accountInFile] of accountsInFile) {
-  //       if (accountInFile.type === 'mandatory') {
-  //         rootConfig['mandatory-account-configs'][accKey] = updateAccountConfig(
-  //           rootConfig['mandatory-account-configs'][accKey],
-  //           accountInFile,
-  //         );
-  //       } else {
-  //         rootConfig['workload-account-configs'][accKey] = updateAccountConfig(
-  //           rootConfig['workload-account-configs'][accKey],
-  //           accountInFile,
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     const accountResponse = await codecommit.getFile(configRepositoryName, filename, configBranch);
-  //     const accountObject = getFormattedObject(accountResponse.fileContent.toString(), format);
-  //     for (const [accKey, accountInFile] of accountsInFile) {
-  //       accountObject[accKey] = updateAccountConfig(accountObject[accKey], accountInFile);
-  //     }
-  //     updateFiles.push({
-  //       filePath: filename,
-  //       fileContent: pretty(getStringFromObject(accountObject, format), format),
-  //     });
-  //   }
-  // }
-  updateFiles.push({
-    filePath: configRootFilePath!,
-    fileContent: pretty(getStringFromObject(rootConfig, format), format),
-  });
-
-  updateFiles.push({
-    filePath: configFilePath,
-    // Raw Config file alway be "json" irrespective of Configuration Format
-    fileContent: pretty(getStringFromObject(config, JSON_FORMAT), JSON_FORMAT),
+  [
+    {
+      filePath: configRootFilePath!,
+      content: rootConfig,
+      format,
+    },
+    {
+      filePath: configFilePath,
+      content: config,
+      // Raw Config file alway be "json" irrespective of Configuration Format
+      format: JSON_FORMAT,
+    },
+  ].map(c => {
+    updateFiles.push({
+      filePath: c.filePath,
+      fileContent: pretty(getStringFromObject(c.content, c.format as FormatType), c.format as FormatType),
+    });
   });
   let latestCommitId = '';
   try {
