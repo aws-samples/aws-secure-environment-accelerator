@@ -262,7 +262,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### 2.5.1. Known Installation Issues
 
 - All releases - During Guardduty deployment, occassionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. As the credentials timed out, we cannot properly cleanup the failed stack. You need to manually find the failed stack in the specific account/region, delete it, and then rerun the state machine. We have been unable to resolve this issue.
-- All releases - YAML config file only - we are seeing the OUValidation Lambda randomly timeout and are investigating the cause. Simply rerun the state machine.
+- All releases - YAML config file only - we are seeing the OUValidation Lambda randomly timeout and are investigating the cause. Simply rerun the state machine. This is resolved in v1.2.3.
 - Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. This is resolved in v1.2.2.
 - Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy GuardDuty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
 - Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the Organization Management AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the Organization Management account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
@@ -466,7 +466,7 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
 
 4. If you are using a pre-existing GitHub token:
 
-   - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.2`)
+   - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.3`)
      - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 # 5. Notes

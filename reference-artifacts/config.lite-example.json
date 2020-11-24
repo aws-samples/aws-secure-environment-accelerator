@@ -41,6 +41,8 @@
       "security-hub-excl-regions": [],
       "guardduty": true,
       "guardduty-excl-regions": [],
+      "guardduty-s3": true,
+      "guardduty-s3-excl-regions": [],
       "cwl": true,
       "access-analyzer": true,
       "config-excl-regions": [],
