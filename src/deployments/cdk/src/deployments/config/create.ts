@@ -131,7 +131,7 @@ export async function createRule(props: CreateRuleProps) {
                   continue;
                 }
               }
-            } else if(ssmDocInGlobalOptions) {
+            } else if (ssmDocInGlobalOptions) {
               targetId = remediationActionName;
             } else if (config['global-options']['default-ssm-documents'].includes(remediationAction)) {
               targetId = remediationAction;
