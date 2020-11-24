@@ -292,7 +292,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     outputs,
   });
 
-  
   /**
    * Step 2 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
    * Step 3 of https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_organizations.html
