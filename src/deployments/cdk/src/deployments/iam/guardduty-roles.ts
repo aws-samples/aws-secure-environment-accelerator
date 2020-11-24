@@ -73,7 +73,7 @@ export async function createAdminSetupRole(stack: AccountStack) {
         'guardduty:CreateMembers',
         'guardduty:UpdateOrganizationConfiguration',
         'guardduty:DescribeOrganizationConfiguration',
-        'guardduty:UpdateMemberDetectors',
+        'guardduty:UpdateDetector',
         'guardduty:DeleteMembers',
       ],
       resources: ['*'],
