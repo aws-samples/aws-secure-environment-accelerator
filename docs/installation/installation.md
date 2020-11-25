@@ -262,11 +262,11 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ### 2.5.1. Known Installation Issues
 
 - All releases - During Guardduty deployment, occassionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. As the credentials timed out, we cannot properly cleanup the failed stack. You need to manually find the failed stack in the specific account/region, delete it, and then rerun the state machine. We have been unable to resolve this issue.
-- All releases - YAML config file only - we are seeing the OUValidation Lambda randomly timeout and are investigating the cause. Simply rerun the state machine. This is resolved in v1.2.3.
+- Releases prior to v1.2.3 using a YAML config file - we are seeing the OUValidation Lambda randomly timeout. Simply rerun the state machine. This is resolved in v1.2.3.
 - Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. This is resolved in v1.2.2.
 - Standalone Accelerator v1.1.6 and v1.1.7 may experience a state machine failure when attempting to deploy GuardDuty in at least one random region. Simply rerun the State Machine. This is resolved in v1.1.8.
 - Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the Organization Management AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the Organization Management account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
-- For releases prior to v1.2.2 where the home region is not ca-central-1, alb deployments will fail, you need to either: a) remove all alb's from the deployment; or b) after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
+- Releases prior to v1.2.2 where the home region is not ca-central-1, alb deployments will fail, you need to either: a) remove all alb's from the deployment; or b) after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
 
 ## 2.6. Post-Installation
 
