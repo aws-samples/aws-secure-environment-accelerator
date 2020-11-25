@@ -54,6 +54,8 @@ async function onCreateOrUpdate(
   }
 
   const { memberAccounts, s3Protection } = properties;
+  await updateS3Protection(detectorId, s3Protection);
+
   const isAutoEnabled = await isConfigurationAutoEnabled(detectorId, s3Protection);
   if (isAutoEnabled) {
     console.log(`GuardDuty is already enabled ORG Level`);
@@ -68,7 +70,7 @@ async function onCreateOrUpdate(
 
   if (memberAccounts.length > 0) {
     await createMembers(memberAccounts, detectorId);
-    await updateDataSource(memberAccounts, detectorId, s3Protection);
+    await updateMemberDataSource(memberAccounts, detectorId, s3Protection);
   }
 
   return {
@@ -153,7 +155,7 @@ async function isConfigurationAutoEnabled(detectorId: string, s3Protection: bool
   }
 }
 
-async function updateDataSource(memberAccounts: AccountDetail[], detectorId: string, s3Protection: boolean) {
+async function updateMemberDataSource(memberAccounts: AccountDetail[], detectorId: string, s3Protection: boolean) {
   if (s3Protection) {
     return;
   }
@@ -177,6 +179,26 @@ async function updateDataSource(memberAccounts: AccountDetail[], detectorId: str
   } catch (error) {
     console.error(`Error Occurred while updateMemberDetectors of GuardDuty ${error.code}: ${error.message}`);
     throw error;
+  }
+}
+
+async function updateS3Protection(detectorId: string, s3Protection: boolean) {
+  try {
+    await throttlingBackOff(() =>
+      guardduty
+        .updateDetector({
+          DetectorId: detectorId,
+          DataSources: {
+            S3Logs: {
+              Enable: s3Protection,
+            },
+          },
+        })
+        .promise(),
+    );
+  } catch (error) {
+    console.warn('Error while calling guardduty.updateDetector');
+    console.warn(error);
   }
 }
 
@@ -216,8 +238,9 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   const { memberAccounts } = properties;
   try {
     const detectorId = await getDetectorId();
+    await updateS3Protection(detectorId!, false);
     await updateConfig(detectorId!, false, false);
-    await updateDataSource(memberAccounts, detectorId!, false);
+    await updateMemberDataSource(memberAccounts, detectorId!, false);
     await deleteMembers(memberAccounts, detectorId!);
   } catch (error) {
     console.warn('Exception while performing Delete Action');
