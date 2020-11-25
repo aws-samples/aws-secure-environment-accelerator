@@ -127,15 +127,17 @@ export async function createRule(props: CreateRuleProps) {
                     ssmDocInOu.account,
                   )}:document/${remediationActionName}`;
                 } else {
-                  console.warn(`No Remediation is not Created in account "${accountKey}" and region "${region}"`);
+                  console.warn(`No Remediation is Created in account "${accountKey}" and region "${region}"`);
                   continue;
                 }
               }
+            } else if (ssmDocInGlobalOptions) {
+              targetId = remediationActionName;
             } else if (config['global-options']['default-ssm-documents'].includes(remediationAction)) {
               targetId = remediationAction;
             } else {
               console.warn(
-                `Invalid SSM-Document given in "remediation-action" for AWS Config Rule ${awsConfigRule.name}`,
+                `Invalid SSM-Document given in "remediation-action" for AWS Config Rule ${awsConfigRule.name}, ${accountKey}`,
               );
               continue;
             }

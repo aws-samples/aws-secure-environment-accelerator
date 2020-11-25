@@ -13,6 +13,7 @@ export interface AccountDetail {
 export interface GuardDutyAdminSetupProps {
   memberAccounts: AccountDetail[];
   roleArn: string;
+  s3Protection: boolean;
 }
 
 /**
@@ -28,6 +29,7 @@ export class GuardDutyAdminSetup extends cdk.Construct {
 
     const handlerProperties = {
       memberAccounts: props.memberAccounts,
+      s3Protection: props.s3Protection,
     };
 
     const adminSetup = this.lambdaFunction(props.roleArn);

@@ -1,6 +1,6 @@
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { CloudFormationCustomResourceDeleteEvent, CloudFormationCustomResourceEvent } from 'aws-lambda';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 
@@ -54,14 +54,33 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       }
     }
   }
+  return {
+    physicalResourceId: `IAM-Role-${event.ResourceProperties.roleName}`,
+    data: {},
+  };
 }
 
 async function onUpdate(event: CloudFormationCustomResourceEvent) {
   return onCreate(event);
 }
 
-async function onDelete(_: CloudFormationCustomResourceEvent) {
+async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   console.log(`Nothing to do for delete...`);
+  if (event.PhysicalResourceId != `IAM-Role-${event.ResourceProperties.roleName}`) {
+    return;
+  }
+  try {
+    await throttlingBackOff(() =>
+      iam
+        .deleteRole({
+          RoleName: event.ResourceProperties.roleName,
+        })
+        .promise(),
+    );
+  } catch (error) {
+    console.warn('Exception while delete role', event.ResourceProperties.roleName);
+    console.warn(error);
+  }
 }
 
 function buildCreateRoleRequest(

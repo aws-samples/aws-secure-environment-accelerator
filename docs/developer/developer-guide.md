@@ -8,78 +8,79 @@ It is important to read the [Operations Guide](../operations/operations-troubles
 
 <!-- TOC depthFrom:2 -->
 
-- [1. Technology Stack](#1-technology-stack)
-  - [1.1. TypeScript and NodeJS](#11-typescript-and-nodejs)
-    - [1.1.1. pnpm](#111-pnpm)
-    - [1.1.2. prettier](#112-prettier)
-    - [1.1.3. tslint](#113-tslint)
-  - [1.2. CloudFormation](#12-cloudformation)
-  - [1.3. CDK](#13-cdk)
-- [2. Development](#2-development)
-  - [2.1. Project Structure](#21-project-structure)
-    - [2.1.1. Installer Stack](#211-installer-stack)
-    - [2.1.2. Initial Setup Stack](#212-initial-setup-stack)
-      - [2.1.2.1. CodeBuild and Prebuilt Docker Image](#2121-codebuild-and-prebuilt-docker-image)
-      - [2.1.2.2. Passing Data to Phase Steps and Phase Stacks](#2122-passing-data-to-phase-steps-and-phase-stacks)
-    - [2.1.3. Phase Steps and Phase Stacks](#213-phase-steps-and-phase-stacks)
-      - [2.1.3.1. Phases and Deployments](#2131-phases-and-deployments)
-      - [2.1.3.2. Passing Outputs Between Phases](#2132-passing-outputs-between-phases)
-      - [2.1.3.3. Decoupling Configuration from Constructs](#2133-decoupling-configuration-from-constructs)
-  - [2.2. Libraries & Tools](#22-libraries--tools)
-    - [2.2.1. CDK Assume Role Plugin](#221-cdk-assume-role-plugin)
-    - [2.2.2. CDK API](#222-cdk-api)
-    - [2.2.3. AWS SDK Wrappers](#223-aws-sdk-wrappers)
-    - [2.2.4. Configuration File Parsing](#224-configuration-file-parsing)
-      - [2.2.4.1. `AcceleratorNameTagger`](#2241-acceleratornametagger)
-      - [2.2.4.2. `AcceleratorStack`](#2242-acceleratorstack)
-      - [2.2.4.3. Name Generator](#2243-name-generator)
-      - [2.2.4.4. `AccountStacks`](#2244-accountstacks)
-      - [2.2.4.5. `Vpc` and `ImportedVpc`](#2245-vpc-and-importedvpc)
-      - [2.2.4.6. `Limiter`](#2246-limiter)
-    - [2.2.5. Creating Stack Outputs](#225-creating-stack-outputs)
-      - [2.2.5.1. Adding Tags to Shared Resources in Destination Account](#2251-adding-tags-to-shared-resources-in-destination-account)
-    - [2.2.6. Custom Resources](#226-custom-resources)
-      - [2.2.6.1. Externalizing `aws-sdk`](#2261-externalizing-aws-sdk)
-      - [2.2.6.2. cfn-response](#2262-cfn-response)
-      - [2.2.6.3. cfn-tags](#2263-cfn-tags)
-      - [2.2.6.4. webpack-base](#2264-webpack-base)
-  - [2.3. Workarounds](#23-workarounds)
-    - [2.3.1. Stacks with Same Name in Different Regions](#231-stacks-with-same-name-in-different-regions)
-    - [2.3.2. Account Warming](#232-account-warming)
-  - [2.4. Local Development](#24-local-development)
-    - [2.4.1. Installer Stack](#241-installer-stack)
-    - [2.4.2. Initial Setup Stack](#242-initial-setup-stack)
-    - [2.4.3. Phase Stacks](#243-phase-stacks)
-  - [2.5. Testing](#25-testing)
-    - [2.5.1. Validating Immutable Property Changes and Logical ID Changes](#251-validating-immutable-property-changes-and-logical-id-changes)
-    - [2.5.2. Upgrade CDK](#252-upgrade-cdk)
-- [3. Best Practices](#3-best-practices)
-  - [3.1. TypeScript and NodeJS](#31-typescript-and-nodejs)
-    - [3.1.1. Handle Unhandled Promises](#311-handle-unhandled-promises)
-  - [3.2. CloudFormation](#32-cloudformation)
-    - [3.2.1. Cross-Account/Region References](#321-cross-accountregion-references)
-    - [3.2.2. Resource Names and Logical IDs](#322-resource-names-and-logical-ids)
-    - [3.2.3. Changing Logical IDs](#323-changing-logical-ids)
-    - [3.2.4. Changing (Immutable) Properties](#324-changing-immutable-properties)
-  - [3.3. CDK](#33-cdk)
-    - [3.3.1. Logical IDs](#331-logical-ids)
-    - [3.3.2. Moving Resources between Nested Stacks](#332-moving-resources-between-nested-stacks)
-    - [3.3.3. L1 vs. L2 Constructs](#333-l1-vs-l2-constructs)
-    - [3.3.4. CDK Code Dependency on Lambda Function Code](#334-cdk-code-dependency-on-lambda-function-code)
-    - [3.3.5. Custom Resource](#335-custom-resource)
-    - [3.3.6. Escape Hatches](#336-escape-hatches)
-      - [3.3.6.1. AutoScaling Group Metadata](#3361-autoscaling-group-metadata)
-      - [3.3.6.2. Secret `SecretValue`](#3362-secret-secretvalue)
-- [4. Contributing Guidelines](#4-contributing-guidelines)
-  - [4.1. How-to](#41-how-to)
-    - [4.1.1. Adding New Functionality?](#411-adding-new-functionality)
-    - [4.1.2. Create a CDK Lambda Function with Lambda Runtime Code](#412-create-a-cdk-lambda-function-with-lambda-runtime-code)
-    - [4.1.3. Create a Custom Resource](#413-create-a-custom-resource)
-    - [4.1.4. Run All Unit Tests](#414-run-all-unit-tests)
-    - [4.1.5. Accept Unit Test Snapshot Changes](#415-accept-unit-test-snapshot-changes)
-    - [4.1.6. Validate Code with Prettier](#416-validate-code-with-prettier)
-    - [4.1.7. Format Code with Prettier](#417-format-code-with-prettier)
-    - [4.1.8. Validate Code with `tslint`](#418-validate-code-with-tslint)
+- [Developer Guide](#developer-guide)
+- [Table of Contents](#table-of-contents)
+  - [1. Technology Stack](#1-technology-stack)
+    - [1.1. TypeScript and NodeJS](#11-typescript-and-nodejs)
+      - [1.1.1. pnpm](#111-pnpm)
+      - [1.1.2. prettier](#112-prettier)
+      - [1.1.3. eslint](#113-eslint)
+    - [1.2. CloudFormation](#12-cloudformation)
+    - [1.3. CDK](#13-cdk)
+  - [2. Development](#2-development)
+    - [2.1. Project Structure](#21-project-structure)
+      - [2.1.1. Installer Stack](#211-installer-stack)
+      - [2.1.2. Initial Setup Stack](#212-initial-setup-stack)
+        - [2.1.2.1. CodeBuild and Prebuilt Docker Image](#2121-codebuild-and-prebuilt-docker-image)
+        - [2.1.2.2. Passing Data to Phase Steps and Phase Stacks](#2122-passing-data-to-phase-steps-and-phase-stacks)
+      - [2.1.3. Phase Steps and Phase Stacks](#213-phase-steps-and-phase-stacks)
+        - [2.1.3.1. Phases and Deployments](#2131-phases-and-deployments)
+        - [2.1.3.2. Passing Outputs between Phases](#2132-passing-outputs-between-phases)
+        - [2.1.3.3. Decoupling Configuration from Constructs](#2133-decoupling-configuration-from-constructs)
+    - [2.2. Libraries & Tools](#22-libraries--tools)
+      - [2.2.1. CDK Assume Role Plugin](#221-cdk-assume-role-plugin)
+      - [2.2.2. CDK API](#222-cdk-api)
+      - [2.2.3. AWS SDK Wrappers](#223-aws-sdk-wrappers)
+      - [2.2.4. Configuration File Parsing](#224-configuration-file-parsing)
+        - [2.2.4.1. `AcceleratorNameTagger`](#2241-acceleratornametagger)
+        - [2.2.4.2. `AcceleratorStack`](#2242-acceleratorstack)
+        - [2.2.4.3. Name Generator](#2243-name-generator)
+        - [2.2.4.4. `AccountStacks`](#2244-accountstacks)
+        - [2.2.4.5. `Vpc` and `ImportedVpc`](#2245-vpc-and-importedvpc)
+        - [2.2.4.6. `Limiter`](#2246-limiter)
+      - [2.2.5. Creating Stack Outputs](#225-creating-stack-outputs)
+        - [2.2.5.1. Adding Tags to Shared Resources in Destination Account](#2251-adding-tags-to-shared-resources-in-destination-account)
+      - [2.2.6. Custom Resources](#226-custom-resources)
+        - [2.2.6.1. Externalizing `aws-sdk`](#2261-externalizing-aws-sdk)
+        - [2.2.6.2. cfn-response](#2262-cfn-response)
+        - [2.2.6.3. cfn-tags](#2263-cfn-tags)
+        - [2.2.6.4. webpack-base](#2264-webpack-base)
+    - [2.3. Workarounds](#23-workarounds)
+      - [2.3.1. Stacks with Same Name in Different Regions](#231-stacks-with-same-name-in-different-regions)
+    - [2.4. Local Development](#24-local-development)
+      - [2.4.1. Installer Stack](#241-installer-stack)
+      - [2.4.2. Initial Setup Stack](#242-initial-setup-stack)
+      - [2.4.3. Phase Stacks](#243-phase-stacks)
+    - [2.5. Testing](#25-testing)
+      - [2.5.1. Validating Immutable Property Changes and Logical ID Changes](#251-validating-immutable-property-changes-and-logical-id-changes)
+      - [2.5.2. Upgrade CDK](#252-upgrade-cdk)
+  - [3. Best Practices](#3-best-practices)
+    - [3.1. TypeScript and NodeJS](#31-typescript-and-nodejs)
+      - [3.1.1. Handle Unhandled Promises](#311-handle-unhandled-promises)
+    - [3.2. CloudFormation](#32-cloudformation)
+      - [3.2.1. Cross-Account/Region References](#321-cross-accountregion-references)
+      - [3.2.2. Resource Names and Logical IDs](#322-resource-names-and-logical-ids)
+      - [3.2.3. Changing Logical IDs](#323-changing-logical-ids)
+      - [3.2.4. Changing (Immutable) Properties](#324-changing-immutable-properties)
+    - [3.3. CDK](#33-cdk)
+      - [3.3.1. Logical IDs](#331-logical-ids)
+      - [3.3.2. Moving Resources between Nested Stacks](#332-moving-resources-between-nested-stacks)
+      - [3.3.3. L1 vs. L2 Constructs](#333-l1-vs-l2-constructs)
+      - [3.3.4. CDK Code Dependency on Lambda Function Code](#334-cdk-code-dependency-on-lambda-function-code)
+      - [3.3.5. Custom Resource](#335-custom-resource)
+      - [3.3.6. Escape Hatches](#336-escape-hatches)
+        - [3.3.6.1. AutoScaling Group Metadata](#3361-autoscaling-group-metadata)
+        - [3.3.6.2. Secret `SecretValue`](#3362-secret-secretvalue)
+  - [4. Contributing Guidelines](#4-contributing-guidelines)
+    - [4.1. How-to](#41-how-to)
+      - [4.1.1. Adding New Functionality?](#411-adding-new-functionality)
+      - [4.1.2. Create a CDK Lambda Function with Lambda Runtime Code](#412-create-a-cdk-lambda-function-with-lambda-runtime-code)
+      - [4.1.3. Create a Custom Resource](#413-create-a-custom-resource)
+      - [4.1.4. Run All Unit Tests](#414-run-all-unit-tests)
+      - [4.1.5. Accept Unit Test Snapshot Changes](#415-accept-unit-test-snapshot-changes)
+      - [4.1.6. Validate Code with Prettier](#416-validate-code-with-prettier)
+      - [4.1.7. Format Code with Prettier](#417-format-code-with-prettier)
+      - [4.1.8. Validate Code with `tslint`](#418-validate-code-with-tslint)
 
 <!-- /TOC -->
 
@@ -99,7 +100,7 @@ https://pnpm.js.org
 
 https://pnpm.js.org/en/workspaces
 
-The binary `pnpx` can be used to run binaries that belong to `pnpm` packages in the workspace.
+The binary `pnpx` runs binaries that belong to `pnpm` packages in the workspace.
 
 https://pnpm.js.org/en/pnpx-cli
 
@@ -107,19 +108,17 @@ https://pnpm.js.org/en/pnpx-cli
 
 We use [`prettier`](https://prettier.io) to format code in this repository. A GitHub action makes sure that all the code in a pull requests adheres to the configured `prettier` rules. See [Github Actions](#github-actions).
 
-#### 1.1.3. tslint
+#### 1.1.3. eslint
 
-We use [`tslint`](https://palantir.github.io/tslint) as a static analysis tool that checks our TypeScript code. A GitHub action makes sure that all the code in a pull requests adheres to the configured `tslint` rules. See [Github Actions](#github-actions).
-
-> _Action Item:_ Migrate to `eslint` as `tslint` is deprecated but is still being used by this project. We can look at [`aws-cdk` pull request #8946](https://github.com/aws/aws-cdk/pull/8946) as an example to migrate.
+We use [`eslint`](https://eslint.org/) as a static analysis tool that checks our TypeScript code. A GitHub action makes sure that all the code in a pull requests adheres to the configured `eslint` rules. See [Github Actions](#github-actions).
 
 ### 1.2. CloudFormation
 
-CloudFormation is used to deploy both the Accelerator stacks and resources and the deployed stacks and resources. See [Operations Guide: System Overview](../operations/operations-troubleshooting-guide.md) for the distinction between Accelerator resources and deployed resources.
+CloudFormation deploys both the Accelerator stacks and resources and the deployed stacks and resources. See [Operations Guide: System Overview](../operations/operations-troubleshooting-guide.md) for the distinction between Accelerator resources and deployed resources.
 
 ### 1.3. CDK
 
-AWS CDK is used to define the cloud resources in a familiar programming language. While AWS CDK supports TypeScript, JavaScript, Python, Java, and C#/.Net, the contributions should be made in Typescript, as outlined in the [Accelerator Development First Principles](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/ae8282d4537320763736fa56e05b743ce1c02611/CONTRIBUTING.md#accelerator-development-first-principles).
+AWS CDK defines the cloud resources in a familiar programming language. While AWS CDK supports TypeScript, JavaScript, Python, Java, and C#/.Net, the contributions should be made in Typescript, as outlined in the [Accelerator Development First Principles](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/ae8282d4537320763736fa56e05b743ce1c02611/CONTRIBUTING.md#accelerator-development-first-principles).
 
 Developers can use programming languages to define reusable cloud components known as Constructs. You compose these together into Stacks and Apps. Learn more at https://docs.aws.amazon.com/cdk/latest/guide/home.html
 
@@ -127,9 +126,9 @@ Developers can use programming languages to define reusable cloud components kno
 
 There are different types of projects in this monorepo.
 
-1. CDK code and compile to CloudFormation or use the CDK toolkit to deploy to AWS;
-2. Runtime code and is used by our CDK code to deploy Lambda functions;
-3. Reusable code; both for use by our CDK code and or runtime code.
+1. Projects containing CDK code that compiles to CloudFormation templates and deploy to AWS using the CDK toolkit;
+2. Projects containing runtime code that is used by the CDK code to deploy Lambda functions;
+3. Projects containing reusable code; both for use by the CDK code and/or runtime code.
 
 The CDK code either deploys Accelerator-management resources or Accelerator-managed resources. See the [Operations Guide](../operations/operations-troubleshooting-guide.md) for the distinction between Accelerator-management and Accelerator-managed resources.
 
@@ -138,8 +137,8 @@ The only language used in the project is TypeScript and exceptionally JavaScript
 When we want to enable functionality in a managed account we try to
 
 1. use native CloudFormation/CDK resource to enable the functionality;
-2. create a custom resource to enable the functionality;
-3. or lastly create a new step in the `Initial Setup` state machine to enable the functionality.
+2. create a custom resource to enable the functionality; or
+3. lastly create a new step in the `Initial Setup` state machine to enable the functionality.
 
 ### 2.1. Project Structure
 
@@ -150,22 +149,21 @@ The folder structure of the project is as follows:
 - `src/core/runtime` See [Initial Setup Stack](#initial-setup-stack) and [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
 - `src/deployments/runtime` See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
 - `src/deployments/cdk`: See [Phase Steps and Phase Stacks](#phase-steps-and-phase-stacks);
+- `src/lib/accelerator-cdk`: See [Libraries & Tools](#libraries--tools);
 - `src/lib/cdk-constructs`: See [Libraries & Tools](#libraries--tools);
+- `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
+- `src/lib/common-config`: See [Libraries & Tools](#libraries--tools);
 - `src/lib/common-outputs`: See [Libraries & Tools](#libraries--tools);
 - `src/lib/common-types`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/accelerator-cdk`: See [Libraries & Tools](#libraries--tools);
 - `src/lib/common`: See [Libraries & Tools](#libraries--tools);
-- `src/lib/common-config`: See [Libraries & Tools](#libraries--tools);
 - `src/lib/custom-resources/**/cdk`: See [Custom Resources](#custom-resources);
 - `src/lib/custom-resources/**/runtime`: See [Custom Resources](#custom-resources);
-- `src/lib/cdk-plugin-assume-role`: See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
 
 #### 2.1.1. Installer Stack
 
-.md
-Read [Operations Guide](../operations/operations-troubleshooting-guide.md#installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
+Read the [Operations Guide](../operations/operations-troubleshooting-guide.md#installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
-As stated in the Operations Guide, the `Installer` stack is responsible for installing the `Initial Setup` stack. The main resource in the `Installer` stack is the `PBMMAccel-Installer` CodePipeline. It uses the GitHub repository as source action and runs CDK in a CodeBuild step to deploy the `Initial Setup` stack.
+As stated in the Operations Guide, the `Installer` stack is responsible for installing the `Initial Setup` stack. It is an Accelerator-management resource. The main resource in the `Installer` stack is the `PBMMAccel-Installer` CodePipeline. The CodePipeline uses this GitHub repository as source action and runs CDK in a CodeBuild step to deploy the `Initial Setup` stack.
 
 ```typescript
 new codebuild.PipelineProject(stack, 'InstallerProject', {
@@ -182,7 +180,9 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
       build: {
         commands: [
           'cd src/core/cdk',
+          // Bootstrap the environment for use by CDK
           'pnpx cdk bootstrap --require-approval never',
+          // Deploy the Initial Setup stack
           'pnpx cdk deploy --require-approval never',
         ],
       },
@@ -191,24 +191,24 @@ new codebuild.PipelineProject(stack, 'InstallerProject', {
 });
 ```
 
-After deploying the `Initial Setup` stack, a Lambda function runs that starts the execution of the `Initial Setup` stack's main state machine.
+When the CodePipeline finishes deploying the `Initial Setup` stack, it starts a Lambda function that starts the execution of the `Initial Setup` stack's main state machine.
 
-The `Initial Setup` stack deployment gets various environment variables through the CodeBuild project. The most notable environment variables are:
+The `Initial Setup` stack deployment receives environment variables from the CodePipeline's CodeBuild step. The most notable environment variables are:
 
-- `ACCELERATOR_STATE_MACHINE_NAME`: The name the main state machine in the Initial Setup stack should get. By passing the name of the state machine in the `Installer` stack we can confidently start the main state machine;
+- `ACCELERATOR_STATE_MACHINE_NAME`: The `Initial Setup` will use this name for the main state machine. So it is the `Installer` stack that decides the name of the main state machine. This way we can confidently start the main state machine of the `Initial Setup` stack from the CodePipeline;
 - `ENABLE_PREBUILT_PROJECT`: See [Prebuilt Docker Image](#codebuild-and-prebuilt-docker-image).
 
 #### 2.1.2. Initial Setup Stack
 
 Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
-The `Initial Setup` stack is defined in the `src/core/cdk` folder.
+As stated in the Operations Guide, the `Initial Setup` stack consists of a state machine, named `PBMMAccel-MainStateMachine_sm`, which executes steps to create the Accelerator-managed stacks and resources in the managed accounts. It is an Accelerator-management resource.
 
-As stated in the Operations Guide, the `Initial Setup` stack consists of a state machine, named `PBMMAccel-MainStateMachine_sm`, that executes various steps to create the Accelerator-managed stacks and resources in the managed accounts.
+The `Initial Setup` stack is defined in the `src/core/cdk` folder.
 
 The `Initial Setup` stack is similar to the `Installer` stack, as in that it runs a CodeBuild project to deploy others stacks using CDK. In case of the `Initial Setup` stack
 
-- we use a AWS Step Functions State Machine to run the various steps instead of CodePipeline;
+- we use a AWS Step Functions State Machine to run steps instead of using a CodePipeline;
 - we deploy multiple stacks, called `Phase` stacks, in Accelerator-managed accounts. These `Phase` stacks contain Accelerator-managed resources.
 
 In order to install these `Phase` stacks in Accelerator-managed accounts, we need access to those accounts. We create a stack set in the Organization Management (root) account that has instances in all Accelerator-managed accounts. This stack set contains what we call the `PipelineRole`.
@@ -217,9 +217,9 @@ The code for the steps in the state machine is in `src/core/runtime`. All the st
 
 ##### 2.1.2.1. CodeBuild and Prebuilt Docker Image
 
-The CodeBuild project that deploys the different phases is constructed using the `CdkDeployProject` or `PrebuiltCdkDeployProject` based on the value of the environment variable `ENABLE_PREBUILT_PROJECT`.
+The CodeBuild project that deploys the different `Phase` stacks is constructed using the `CdkDeployProject` or `PrebuiltCdkDeployProject` based on the value of the environment variable `ENABLE_PREBUILT_PROJECT`.
 
-The first, `CdkDeployProject` constructs a CodeBuild project that copies the whole projects as a ZIP file to S3 using [CDK S3 assets](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-s3-assets-readme.html). This ZIP file is then used as source for the CodeBuild project. When the CodeBuild project executes, it runs `pnpm recursive install` which in turn will run all `prepare` scripts in all `package.json` files in the project -- as described in section [CDK Code Dependency on Lambda Function Code](#cdk-code-dependency-on-lambda-function-code).
+The first, `CdkDeployProject` constructs a CodeBuild project that copies this whole Github repository as a ZIP file to S3 using [CDK S3 assets](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-s3-assets-readme.html). This ZIP file is then used as source for the CodeBuild project. When the CodeBuild project executes, it runs `pnpm recursive install` which in turn will run all `prepare` scripts in all `package.json` files in the project -- as described in section [CDK Code Dependency on Lambda Function Code](#334-cdk-code-dependency-on-lambda-function-code).
 
 After installing the dependencies, the CodeBuild project deploys the `Phase` stacks.
 
@@ -228,9 +228,9 @@ cd src/deployments/cdk
 sh codebuild-deploy.sh
 ```
 
-We have more than 20 project in the monorepo with a `prepare` script, so the `pnpm recursive install` step can take some time. Also, the CodeBuild project will run more than once per deployment.
+We have more than 50 workspace projects in the monorepo with a `prepare` script, so the `pnpm recursive install` step can take some time. Also, the CodeBuild project will run for each deployed `Phase` stack in each Accelerator-managed account.
 
-That is where the `PrebuiltCdkDeployProject` CodeBuild project comes in. The `PrebuiltCdkDeployProject` contains an Docker image that contains the whole project in the `/app` directory and has all the dependencies already built.
+This is where the `PrebuiltCdkDeployProject` CodeBuild project comes in. The `PrebuiltCdkDeployProject` contains a Docker image that contains the whole project in the `/app` directory and has all the dependencies already installed.
 
 ```Dockerfile
 FROM node:12-alpine3.11
@@ -248,18 +248,18 @@ When this CodeBuild project executes, it uses the Docker image as base -- the de
 
 ##### 2.1.2.2. Passing Data to Phase Steps and Phase Stacks
 
-Some steps in the state machine write data to AWS Secrets Manager or Amazon S3. This data is necessary to deploy the `Phase` stacks later on.
+Some steps in the state machine write data to Amazon DynamoDB. This data is necessary to deploy the `Phase` stacks later on. At one time this data was written to Secrets Manager and/or S3, these mechanisms were deemed ineffective due to object size limitations or consistency challenges and were all eventually migrated to DynamoDB.
 
-- `Load Accounts` step: This step finds the Accelerator-managed accounts in AWS Organizations and stores the account key -- the key of the account in `mandatory-account-configs` or `workload-account-configs` object in the Accelerator config -- and account ID and other useful information in the `accelerator/accounts` secret;
-- `Load Organizations` step: More or less the same as the `Load Accounts` step but for organizational units in AWS Organizations and stores the values in `accelerator/organizations`;
-- `Load Limits` step: This step requests limit increases for Accelerator-managed accounts and stores the current limits in the `accelerator/limits` secret.
-- `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores them in S3 in the Accelerator configuration bucket that is created in the `Phase 0` stack.
+- `Load Accounts` step: This step finds the Accelerator-managed accounts in AWS Organizations and stores the account key -- the key of the account in `mandatory-account-configs` or `workload-account-configs` object in the Accelerator config -- and account ID and other useful information in the `PBMMAccel-Parameters` table, `accounts/#` key and `accounts-items-count` key;
+- `Load Organizations` step: More or less the same as the `Load Accounts` step but for organizational units in AWS Organizations and stores the values in the `PBMMAccel-Parameters` table, `organizations` key;
+- `Load Limits` step: This step requests limit increases for Accelerator-managed accounts and stores the current limits in the the `PBMMAccel-Parameters` table, `limits` key.
+- `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores the outputs in the DynamoDB table `PBMMAccel-Outputs` and also leverages the DynamoDB table `PBMMAccel-Outputs-Utils`.
 
 Other data is passed through environment variables:
 
 - `ACCELERATOR_NAME`: The name of the Accelerator;
-- `ACCELERATOR_PREFIX`: The prefix of the Accelerator;
-- `ACCELERATOR_EXECUTION_ROLE_NAME`: The name of the execution role in the Accelerator-managed accounts. This is the `PipelineRole` we created with stack sets.
+- `ACCELERATOR_PREFIX`: The prefix for all named Accelerator-managed resources;
+- `ACCELERATOR_EXECUTION_ROLE_NAME`: The name of the execution role in the Accelerator-managed accounts. This is the `PipelineRole` we created using stack sets.
 
 #### 2.1.3. Phase Steps and Phase Stacks
 
@@ -267,13 +267,17 @@ Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initia
 
 The `Phase` stacks contain the Accelerator-managed resources. The reason the deployment of Accelerator-managed resources is split into different phases is because there cannot be cross account/region references between CloudFormation stacks. See [Cross-Account/Region References](#cross-accountregion-references).
 
-The file `cdk.ts` is meant as a replacement for the `cdk` CLI command. So to deploy a phase stack you would **not** run `pnpx cdk deploy` but `cdk.sh --phase 1`. This can be seen in `codebuild-deploy.sh`, the script that is run by the `Initial Setup` stack CodeBuild deploy project. See [CDK API](#cdk-api) for more information why we use the CDK API instead of using the CDK CLI.
+The `Phase` stacks are deployed by a CodeBuild project in the `Initial Setup` stack as stated in the previous paragraphs. The CodeBuild project executes the `codebuild-deploy.sh` script. See [`initial-setup.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/src/core/cdk/src/initial-setup.ts#L132).
 
-The `cdk.sh` command parses command line arguments and creates all the `cdk.App` for all accounts and regions for the given `--phase`. When you pass the `--region` or `--account-key` command, all the `cdk.App` for all accounts and regions will still be created, except that only the `cdk.App`s matching the parameters will be deployed. This behavior could be optimized in the future. See [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions) for more information why we're creating multiple `cdk.App`s.
+The [`codebuild-deploy.sh`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/src/deployments/cdk/codebuild-deploy.sh) script executes the `cdk.ts` file.
+
+The [`cdk.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/src/deployments/cdk/cdk.ts) file is meant as a replacement for the `cdk` CLI command. To deploy a phase stack you would **not** run `pnpx cdk deploy` but `cdk.sh --phase 1`. See [CDK API](#cdk-api) for more information why we use the CDK API instead of using the CDK CLI.
+
+The `cdk.ts` command parses command line arguments and creates all the `cdk.App` for all accounts and regions for the given `--phase`. When you pass the `--region` or `--account-key` command, all the `cdk.App` for all accounts and regions will still be created, except that only the `cdk.App`s matching the parameters will be deployed. This behavior could be optimized in the future. See [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions) for more information why we're creating multiple `cdk.App`s.
 
 ##### 2.1.3.1. Phases and Deployments
 
-The `cdk.ts` file calls the `deploy` method in the `apps/app.ts`. This `deploy` method loads the Accelerator configuration, accounts, organizations from AWS Secrets Managers; loads the stack outputs from S3; and loads required environment variables.
+The `cdk.ts` file calls the `deploy` method in the `apps/app.ts`. This `deploy` method loads the Accelerator configuration, accounts, organizations from DynamoDB; loads the stack outputs from Amazon DynamoDB; and loads required environment variables.
 
 ```typescript
 /**
@@ -295,11 +299,11 @@ export interface PhaseInput {
 }
 ```
 
-It is important to note that nothing is hard-coded. The CloudFormation templates are generated by CDK and the CDK constructs are created according to the configuration file. Changes to the configuration will make changes to the CDK construct tree and that will result in a different CloudFormation file that will be deployed.
+It is important to note that no configuration is hard-coded. The CloudFormation templates are generated by CDK and the CDK constructs are created according to the configuration file. Changes to the configuration will change the CDK construct tree and that will result in a different CloudFormation template that is deployed.
 
-The different phases are defined in `apps/phase-x.ts`. Historically we put all logic in the `phase-x.ts` files. After a while the `phase-x.ts` files started to get to big and we moved to separating the logic into separate deployments. Every logical component has a separate folder in the `deployments` folder. Every `deployment` consists of so-called steps. Separate steps are put in loaded in phases.
+The different phases are defined in `apps/phase-x.ts`. Historically we created all CDK constructs in the `phase-x.ts` files. After a while the `phase-x.ts` files started to get too big and we moved to separating the logic into separate deployments. Every logical component has a separate folder in the `deployments` folder. Every `deployment` consists of so-called steps. Separate steps are put in loaded in phases.
 
-For example, take the `deployments/defaults` deployment. The deployment consists of two steps, i.e. `step-1.ts` and `step-2.ts`. `deployments/defaults/step-1.ts` is deployed in `apps/phase-0.ts` and `deployments/defaults/step-2.ts` is called in `apps/phase-1.ts`. You can find more details about what happens in each phase in the [Operations Guide](../operations/operations-troubleshooting-guide.md).
+For example, take the `deployments/defaults` deployment. The deployment consists of two steps, i.e. `step-1.ts` and `step-2.ts`. `deployments/defaults/step-1.ts` is created in `apps/phase-0.ts` and `deployments/defaults/step-2.ts` is created in `apps/phase-1.ts`. You can find more details about what happens in each phase in the [Operations Guide](../operations/operations-troubleshooting-guide.md).
 
 `apps/phase-0.ts`
 
@@ -342,11 +346,11 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, outpu
 }
 ```
 
-##### 2.1.3.2. Passing Outputs Between Phases
+##### 2.1.3.2. Passing Outputs between Phases
 
 The CodeBuild step that is responsible for deploying a `Phase` stack runs in the Organization Management (root) account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
 
-After a `Phase-X` is deployed in all Accelerator-managed accounts, a step in the `Initial Setup` state machine collects all the `Phase-X` stack outputs in all Accelerator-managed accounts and regions and stores theses outputs in S3.
+After a `Phase-X` is deployed in all Accelerator-managed accounts, a step in the `Initial Setup` state machine collects all the `Phase-X` stack outputs in all Accelerator-managed accounts and regions and stores theses outputs in DynamoDB.
 
 Then the next `Phase-X+1` deploys using the outputs from the previous `Phase-X` stacks.
 
@@ -358,6 +362,8 @@ At the start of the project we created constructs that had tight coupling to the
 
 Later on in the project we started decoupling the Accelerator config from the construct properties. Good examples are in `src/lib/cdk-constructs/`.
 
+Decoupling the configuration from the constructs improves reusability and robustness of the codebase.
+
 ### 2.2. Libraries & Tools
 
 #### 2.2.1. CDK Assume Role Plugin
@@ -368,12 +374,12 @@ We wrote a CDK plugin that can assume a role into another account. In our case, 
 
 #### 2.2.2. CDK API
 
-We are using the internal CDK API to deploy the `Phase` stacks instead of the CDK CLI for various reasons:
+We use the internal CDK API to deploy the `Phase` stacks instead of the CDK CLI for the following reasons:
 
 - It allows us to deploy multiple stacks in parallel;
 - Disable stack termination before destroying a stack;
-- Deleting a stack after it initially failed to create;
-- Deploying multiple apps at the same time -- see [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions).
+- Delete a stack after it initially failed to create;
+- Deploy multiple apps at the same time -- see [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions).
 
 The helper class `CdkToolkit` in `toolkit.ts` wraps around the CDK API.
 
@@ -381,7 +387,7 @@ The risk of using the CDK API directly is that the CDK API can change at any tim
 
 #### 2.2.3. AWS SDK Wrappers
 
-You can find `aws-sdk` wrappers in the `src/lib/common/src/aws` folder. Most of the classes and functions just wrap around `aws-sdk` classes and wrappers and promisify some calls and add exponential backoff to retryable errors. Other classes, like `Organizations` have additional functionality such as listing all the organizational units in an organization in the function `listOrganizationalUnits`.
+You can find `aws-sdk` wrappers in the `src/lib/common/src/aws` folder. Most of the classes and functions just wrap around `aws-sdk` classes and implement promises and exponential backoff to retryable errors. Other classes, like `Organizations` have additional functionality such as listing all the organizational units in an organization in the function `listOrganizationalUnits`.
 
 Please use the `aws-sdk` wrappers throughout the project or write an additional wrapper when necessary.
 
@@ -418,11 +424,11 @@ Resources:
 
 `AcceleratorStack` is a class that extends `cdk.Stack` and adds the `Accelerator` tag to all resources in the stack. It also applies the aspect `AcceleratorNameTagger`.
 
-It is also used by the `accelerator-name-generator` functions to find the name of the `Accelerator`.
+It is also used by the `accelerator-name-generator.ts` functions to find the name of the `Accelerator`.
 
 ##### 2.2.4.3. Name Generator
 
-The `accelerator-name-generator.ts` file contains several methods that create names for resources that are optionally prefixed with the Accelerator name, and optionally suffixed with a hash based on the path of the resource, the account ID and region of the stack.
+The `accelerator-name-generator.ts` file contains methods that create names for resources that are optionally prefixed with the Accelerator name, and optionally suffixed with a hash based on the path of the resource, the account ID and region of the stack.
 
 The functions should be used to create pseudo-random names for IAM roles, KMS keys, key pairs and log groups.
 
@@ -458,15 +464,13 @@ export async function step1(props: CertificatesStep1Props) {
 
 ##### 2.2.4.5. `Vpc` and `ImportedVpc`
 
-`Vpc` is an interface in the `src/lib/cdk-constructs/src/vpc/vpc.ts` file that attempts to define an interface for a VPC. The goal of the interface is to be implemented by an actual `cdk.Construct` that implements the interface.
+`Vpc` is an interface in the `src/lib/cdk-constructs/src/vpc/vpc.ts` file that attempts to define an interface for a VPC. The goal of the interface is to be implemented by a `cdk.Construct` that implements the interface. This CDK issue provides more background [https://github.com/aws/aws-cdk/issues/5927].
 
 Another goal of the interface is to provide an interface on top of imported VPC outputs. This is what the `ImportedVpc` class implements. The class loads outputs from VPC in a previous phase and implements the `Vpc` interface on top of those outputs.
 
-> _Action Item:_ Use the `ImportedVpc` class more extensively throughout the code.
-
 ##### 2.2.4.6. `Limiter`
 
-So far we haven't talked about limits yet. There is a step in the `Initial Setup` state machine that requests limit increases according to the desired limits in the configuration file. The step saves the current limits to the `accelerator/limits` secret. The `apps/app.ts` file load the limits and passes them as an input to the phase deployment.
+So far we haven't talked about limits yet. There is a step in the `Initial Setup` state machine that requests limit increases according to the desired limits in the configuration file. The step saves the current limits to the `limits` key in the DynamoDB table `PBMMAccel-Parameters`. The `apps/app.ts` file loads the limits and passes them as an input to the phase deployment.
 
 The `Limiter` class helps keeps track of resource we create and prevents exceeding these limits.
 
@@ -507,7 +511,7 @@ new JsonOutputValue(stack, 'Output', {
 });
 ```
 
-Using the solution above, we'd not have type checking when reading or writing outputs. That's what the class `StructuredOutputValue` has a solution for. It uses the `io-ts` library to serialize and deserialize structured types. We use the library to deserialize the configuration too.
+Using the solution above, we'd not have type checking when reading or writing outputs. That's what the class `StructuredOutputValue` has a solution for. It uses the `io-ts` library to serialize and deserialize structured types.
 
 ```typescript
 export const FirewallInstanceOutput = t.interface(
@@ -545,13 +549,17 @@ new CfnFirewallInstanceOutput(stack, 'Output', {
 ```typescript
 export const FirewallInstanceOutputFinder = createStructuredOutputFinder(FirewallInstanceOutput, () => ({}));
 
+// Create an OutputFinder
 const firewallInstances = FirewallInstanceOutputFinder.findAll({
   outputs,
   accountKey,
 });
+
+// Example usage of the OutputFinder
+const firewallInstance = firewallInstances.find(i => i.name === target.name && i.az === target.az);
 ```
 
-Generally you would place the output type definition inside `src/lib/common-outputs` along with the output finder. Then in the deployment folder in `src/deployments/cdk/deployments` you would create an `output.ts` file where you would define the CDK output type with `createCfnStructuredOutput`. You would not define the CDK output type in `src/lib/common-outputs` since that project is also used by runtime code that does not know about CDK and CloudFormation.
+Generally you would place the output type definition inside `src/lib/common-outputs` along with the output finder. Then in the deployment folder in `src/deployments/cdk/deployments` you would create an `output.ts` file where you would define the CDK output type with `createCfnStructuredOutput`. You would not define the CDK output type in `src/lib/common-outputs` since that project is also used by runtime code that does not need to know about CDK and CloudFormation.
 
 ##### 2.2.5.1. Adding Tags to Shared Resources in Destination Account
 
@@ -579,7 +587,7 @@ Next, the state machine step `Add Tags to Shared Resources` looks for all those 
 
 There are different ways to create a custom resource using CDK. See the [Custom Resource](#custom-resource) section for more information.
 
-All custom resource have a `README.md` that demonstrates their usage.
+All custom resources have a `README.md` that demonstrates their usage.
 
 ##### 2.2.6.1. Externalizing `aws-sdk`
 
@@ -696,13 +704,13 @@ export default webpackConfigurationForPackage(pkg);
 
 #### 2.3.1. Stacks with Same Name in Different Regions
 
-The reason we're creating a `cdk.App` per account and per region and per phase is because stack names across environments might overlap, and at the time of writing, the CDK CLI does not handle stacks with the same name very well. For example, when there is a stack `Phase1` in `us-east-1` and another stack `Phase1` in `ca-central-1`, the stacks will both be synthesized by CDK to the `cdk.out/Phase1.template.json` file and one stack will overwrite another's output. Using multiple `cdk.App`s overcomes this issues as a different `outdir` can be set on each `cdk.App`. These `cdk.App`s are managed by the `AccountStacks` abstraction.
-
-#### 2.3.2. Account Warming
+The reason we're creating a `cdk.App` per account and per region and per phase is because stack names across environments might overlap, and at the time of writing, the CDK CLI does not handle stacks with the same name well. For example, when there is a stack `Phase1` in `us-east-1` and another stack `Phase1` in `ca-central-1`, the stacks will both be synthesized by CDK to the `cdk.out/Phase1.template.json` file and one stack will overwrite another's output. Using multiple `cdk.App`s overcomes this issues as a different `outdir` can be set on each `cdk.App`. These `cdk.App`s are managed by the `AccountStacks` abstraction.
 
 ### 2.4. Local Development
 
 #### 2.4.1. Installer Stack
+
+Use CDK to synthesize the CloudFormation template.
 
 ```sh
 cd src/installer/cdk
@@ -728,7 +736,7 @@ The script sets the required environment variables and makes sure all workspace 
 
 There is a script called `cdk.sh` in `src/deployments/cdk` that allows you to deploy a phase stack straight from the command-line without having to deploy the Initial Setup stack first.
 
-The script enables development mode which means that accounts, organizations, configuration, limits and outputs will be loaded from the local environment instead of loading the values from secrets manager or S3. The local files that need to be available in the `src/deployments/cdk` folder are the following.
+The script enables development mode which means that accounts, organizations, configuration, limits and outputs will be loaded from the local environment instead of loading the values from DynamoDB. The local files that need to be available in the `src/deployments/cdk` folder are the following.
 
 1. `accounts.json` based on `accelerator/accounts`
 
@@ -888,7 +896,7 @@ Before upgrading CDK we uncomment this test. We run the test to update all the s
 
 #### 3.1.1. Handle Unhandled Promises
 
-Entrypoint TypeScript files -- files that start execution instead of just defining methods and classes -- should have the following code snippet at the start of the file.
+Entry point TypeScript files -- files that start execution instead of just defining methods and classes -- should have the following code snippet at the start of the file.
 
 ```typescript
 process.on('unhandledRejection', (reason, _) => {
@@ -979,7 +987,7 @@ CDK makes heavy use of CloudFormation so all best practices that apply to CloudF
 
 #### 3.3.1. Logical IDs
 
-The logical ID of a CDK component is calculated based on its path in the construct tree. Be careful moving around constructs in the construct tree -- e.g. changing the parent of a construct or nesting a construct in another construct -- as this will change the logical ID of the construct. Then you might end up with the issues described in section [Changing Logical IDs](#changing-logical-ids) and section [Changing (Immutable) Properties](#changing-immutable-properties).
+The logical ID of a CDK component is calculated based on its path in the construct tree. Be careful moving around constructs in the construct tree -- e.g. changing the parent of a construct or nesting a construct in another construct -- as this will change the logical ID of the construct. Then you could end up with the issues described in section [Changing Logical IDs](#changing-logical-ids) and section [Changing (Immutable) Properties](#changing-immutable-properties).
 
 See [Logical ID Stability](https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_id_stability) for more information.
 
@@ -987,7 +995,7 @@ See [Logical ID Stability](https://docs.aws.amazon.com/cdk/latest/guide/identifi
 
 In some cases we use nested stacks to overcome [the limit of 200 CloudFormation resources per stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html).
 
-In the code snippet below you can see how we generate a dynamic amount of nested stack based on the amount of interface endpoints we construct. The `InterfaceEndpoint` construct contains several CloudFormation resources so we have to be careful to not exceed the limit of 200 CloudFormation resources per nested stack. That is why we limit the amount of interface endpoints to 30 per nested stack.
+In the code snippet below you can see how we generate a dynamic amount of nested stack based on the amount of interface endpoints we construct. The `InterfaceEndpoint` construct contains CloudFormation resources so we have to be careful to not exceed the limit of 200 CloudFormation resources per nested stack. That is why we limit the amount of interface endpoints to 30 per nested stack.
 
 ```typescript
 let endpointCount = 0;
@@ -1019,7 +1027,7 @@ You can read about the distinction between CDK code and runtime code in the intr
 
 CDK code can depend on runtime code. For example when we want to create a Lambda function using CDK, we need the runtime code to define the Lambda function. We use `npm scripts`, `npm` dependencies and the `NodeJS` `modules` API to define this dependency between CDK code and runtime code.
 
-First of all, we need to create a separate folder that will contain the workspace and runtime code for our Lambda function. Throughout the project we've called these workspaces `...-lambda` but it could also be named `...-runtime`. See `src/lib/custom-resources/cdk-acm-import-certificate/runtime/package.json`.
+First of all, we create a separate folder that contains the workspace and runtime code for our Lambda function. Throughout the project we've called these workspaces `...-lambda` but it could also be named `...-runtime`. See `src/lib/custom-resources/cdk-acm-import-certificate/runtime/package.json`.
 
 This workspace's `package.json` file needs a `prepare` script that compiles the runtime code. See [`npm-scripts`](https://docs.npmjs.com/misc/scripts).
 
@@ -1079,7 +1087,7 @@ class LambdaFun extends cdk.Construct {
 
 You now have a CDK Lambda function that uses the compiled Lambda function runtime code.
 
-> _Note_: The runtime code needs to be recompiled every time it changes since the `prepare` script only runs when the runtime workspace is installed.
+> _Note_: The runtime code needs to recompile every time it changes since the `prepare` script only runs when the runtime workspace is installed.
 
 #### 3.3.5. Custom Resource
 
@@ -1210,11 +1218,11 @@ See [CDK Code Dependency on Lambda Function Code](#cdk-code-dependency-on-lambda
 
 See [Custom Resource](#custom-resource) and [Custom Resources](#custom-resources) for a short introduction.
 
-1. Create a separate folder that will contain the CDK and Lambda function runtime code, e.g. `src/lib/custom-resources/my-custom-resource`;
-2. Create a folder `my-custom-resource` that will contain the CDK code;
+1. Create a separate folder that contains the CDK and Lambda function runtime code, e.g. `src/lib/custom-resources/my-custom-resource`;
+2. Create a folder `my-custom-resource` that contains the CDK code;
    1. Create a `package.json` file with a dependency to the `my-custom-resource/runtime` package;
    2. Create a `cdk` folder that contains the source of the CDK code;
-3. Create a folder `my-custom-resource/runtime` that will contain the runtime code;
+3. Create a folder `my-custom-resource/runtime` that contains the runtime code;
    1. Create a `runtime/package.json` file with a `"name"`, `"prepare"` script and a `"main"`;
    2. Create a `runtime/webpack.config.ts` file that compiles TypeScript code to a single JavaScript file;
    3. Create a `runtime/src` folder that contains the source of the Lambda function runtime code;
