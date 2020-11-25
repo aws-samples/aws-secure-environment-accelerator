@@ -49,6 +49,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Managed Active Directory sharing, including R53 DNS resolver rule creation/sharing
 - Automated TGW inter-region peering
 - Populate Parameter Store with all `user` objects to be used by customers' IaC
+- Deploy and share SSM documents
 
 ### Identity
 
@@ -63,11 +64,12 @@ Specifically the accelerator deploys and manages the following functionality, bo
 ### Cloud Security Services
 
 - Enables and configures the following AWS services, worldwide w/central designated admin account:
-  - Guardduty
+  - Guardduty w/S3 protection
   - Security Hub (Enables designated security standards, and disables individual controls)
   - Firewall Manager
   - CloudTrail w/Insights and S3 data plane logging
   - Config Recorders/Aggregator
+  - Config rules
   - Macie
   - IAM Access Analyzer
   - CloudWatch access from central designated admin account (and setting Log group retentions)
@@ -126,11 +128,11 @@ This summarizes the installation process, the full installation document can be 
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
   - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~15-20 mins)
-  - The Accelerator State Machine to finish execution (~2hrs)
+  - The Accelerator State Machine to finish execution (~1.5 hrs)
 - Perform required manual follow-up activities (configure AWS SSO, set firewall passwords, etc.)
 - When required:
   - Use AWS Organizations to create new fully managed and guardrailed AWS accounts
-  - Update the config file in CodeCommit and run the Accelerator State Machine (~30min) to:
+  - Update the config file in CodeCommit and run the Accelerator State Machine (~25 min) to:
     - deploy, configure and guardrail multiple accounts at the same time
     - change Accelerator configuration settings
 
@@ -160,7 +162,7 @@ This summarizes the installation process, the full installation document can be 
 
 ---
 
-Note: A ZIP file containing a PDF version of all documentation can be found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/actions?query=workflow%3A%22Generate+Documentation%22).
+Note: A ZIP file containing a PDF version of most documentation can be found [here](https://github.com/aws-samples/aws-secure-environment-accelerator/actions?query=workflow%3A%22Generate+Documentation%22).
 
 ---
 
