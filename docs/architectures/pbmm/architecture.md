@@ -8,7 +8,7 @@ It is anticipated we will offer multiple sample architectures with the AWS SEA s
 
 # 2. Table of Contents
 
-<!-- TOC depthFrom:2 -->
+<!-- TOC depthFrom:1 depthTo:4 -->
 
 - [1. AWS Secure Environment Architecture](#1-aws-secure-environment-architecture)
 - [2. Table of Contents](#2-table-of-contents)

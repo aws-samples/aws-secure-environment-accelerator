@@ -8,6 +8,8 @@ _Users are strongly encouraged to also read the Accelerator Operations/Troublesh
 
 These installation instructions assume the prescribed architecture is being deployed.
 
+<!-- TOC depthFrom:1 depthTo:4 -->
+
 - [1. Installation, Upgrades and Basic Operations](#1-installation-upgrades-and-basic-operations)
 - [2. Installation](#2-installation)
   - [2.1. Prerequisites](#21-prerequisites)
@@ -49,6 +51,8 @@ These installation instructions assume the prescribed architecture is being depl
   - [5.3. Design Constraints / Decisions](#53-design-constraints--decisions)
 - [6. AWS Internal - Accelerator Release Process](#6-aws-internal---accelerator-release-process)
   - [6.1. Creating a new Accelerator Code Release](#61-creating-a-new-accelerator-code-release)
+
+<!-- /TOC -->
 
 # 2. Installation
 

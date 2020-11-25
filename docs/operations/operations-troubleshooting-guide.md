@@ -2,7 +2,7 @@
 
 ## 1.1. Table of Contents
 
-<!-- TOC depthFrom:2 -->
+<!-- TOC depthFrom:1 depthTo:4 -->
 
 - [1. Operations & Troubleshooting Guide](#1-operations--troubleshooting-guide)
   - [1.1. Table of Contents](#11-table-of-contents)
