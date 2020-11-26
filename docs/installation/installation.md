@@ -456,6 +456,22 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
 - Upgrades to `v1.1.5 and above` from v1.1.4 and below:
   - requires providing the "overrideComparison": true flag to the State Machine, as we are changing file formats and cannot compare to previous config file versions. Use extra caution, as we are not blocking breaking changes to the configuration file when this parameter is provided. (As the State Machine self-executes without the above parameter, it will fail on first run. Rerun the State Machine providing the parameter)
   - High probability of a State Machine failure due to a 1hr step timeout limitation. No easy fix available. Simply rerun the State Machine. We are reversing something from the v1.1.4 release which is extremely time consuming.
+- Upgrades to `v1.2.3 and above` from v1.1.4 ALZ and below:
+  - Move log files out of ALZ logging buckets if you want to retain them (1 week in advance)
+  - Uninstall the ALZ (talk to your AWS team for guidance, scripts exist)(day before install)
+  - Update the config.json to reflect release v1.2.3 and reduce VPC endpoints to the 5 mandatory endpoints only
+  - Move accounts to proper OUs (ALZ removal moved them all to root OU)
+  - In Parameter Store
+    - document the current value of `/accelerator/version`
+    - delete `/accelerator/version`
+    - create a new `/accelerator/version` parameter in Parameter store, populating with `{ "Branch": "release/v1.1.4", "Repository": "aws-secure-environment-accelerator", "CommitId": "9999999999999999999999999999999999999999", "Owner": "aws-samples", "DeployTime": "Unknown", "AcceleratorVersion": "1.1.4" }`
+    - update the `/accelerator/version` parameter with the value documented above (i.e. v1.2.3)
+      - we only introduced /accelerator/version in release v1.1.5 and during the install we read the parameter history and load the initial installation version
+  - Follow instructions in section 4.1, the State Machine will run and fail with an inability to load the file `raw/config.json`
+  - Go into CodeCommit, Commits, the top commit should be `Updating Raw Config in SM`, Click `Copy ID`
+  - Update secret `accelerator/config/last-successful-commit` in Secrets Manager with the Commit ID from the previous step
+  - rerun the State Machine
+    - it may have been an unrelated issue, but should the state machine fail in Phase 1 with a FAILED to delete Phase 1 stack when attempting to disable security hub, go to the security account and in each region with stacks in delete failed state, manually delete the Phase 1 stack, selecting `retain resources`.
 
 ## 4.1. Summary of Upgrade Steps (all versions)
 
