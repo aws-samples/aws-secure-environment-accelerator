@@ -40,11 +40,11 @@ export async function removeAccount(input: RemoveAccountProps) {
       CONFIG_BRANCH_NAME: configBranch,
       ACCELERATOR_STATEMACHINE_ROLENAME: acceleratorPipelineRole.roleName,
       ACCELERATOR_DEFAULT_REGION: defaultRegion,
-      // TODO Remove hardcoded of accounts secret
-      ACCOUNTS_SECRET_ID: 'accelerator/accounts',
+      PARAMETERS_TABLE_NAME: process.env.DYNAMODB_PARAMETERS_TABLE_NAME!,
       CONFIG_ROOT_FILE_PATH: configRootFilePath,
     },
     timeout: cdk.Duration.minutes(15),
+    memorySize: 512,
   });
 
   removeAccountFunc.addPermission(`InvokePermission-RemoveAccount_rule`, {

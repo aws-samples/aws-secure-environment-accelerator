@@ -54,6 +54,7 @@ export async function changePolicy(input: PolicyChangeEventProps) {
       ORGANIZATIONS_ADMIN_ROLE: organizationAdminRole,
     },
     timeout: cdk.Duration.minutes(15),
+    memorySize: 512,
   });
 
   policyChangeFunc.addPermission(`InvokePermission-ChangePolicy_rule`, {
