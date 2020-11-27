@@ -1,9 +1,14 @@
 import { ScheduledEvent } from 'aws-lambda';
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { AcceleratorConfig, AcceleratorUpdateConfig } from '@aws-accelerator/common-config/src';
-import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
-import { getFormattedObject, getStringFromObject, equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
+import {
+  getFormattedObject,
+  getStringFromObject,
+  equalIgnoreCase,
+  loadAccounts,
+} from '@aws-accelerator/common/src/util/common';
 import { pretty } from '@aws-accelerator/common/src/util/prettier';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 
@@ -16,11 +21,11 @@ const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
 const configFilePath = process.env.CONFIG_FILE_PATH!;
 const configBranch = process.env.CONFIG_BRANCH_NAME!;
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
-const acceleratorAccountsSecretId = process.env.ACCOUNTS_SECRET_ID!;
+const acceleratorAccountsTable = process.env.PARAMETERS_TABLE_NAME!;
 const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
 
 const codecommit = new CodeCommit(undefined, defaultRegion);
-const secrets = new SecretsManager(undefined, defaultRegion);
+const dynamodb = new DynamoDB(undefined, defaultRegion);
 
 export const handler = async (input: RemoveAccountOrganization) => {
   console.log(`RemoveAccountFromOrganization, Remove account configuration from Accelerator config...`);
@@ -36,8 +41,7 @@ export const handler = async (input: RemoveAccountOrganization) => {
   console.log(`Reading account information from request`);
   const { accountId } = requestDetail.requestParameters;
 
-  const accoutsString = await secrets.getSecret(acceleratorAccountsSecretId);
-  const accounts = JSON.parse(accoutsString.SecretString!) as Account[];
+  const accounts = await loadAccounts(acceleratorAccountsTable, dynamodb);
   const account = accounts.find(acc => acc.id === accountId);
   if (!account) {
     console.error(`Account is not processed through Accelerator Statemachine "${accountId}"`);
