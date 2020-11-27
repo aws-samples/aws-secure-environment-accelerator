@@ -44,7 +44,7 @@ const AccountBucketOutputType = t.interface(
     bucketName: t.string,
     bucketArn: t.string,
     encryptionKeyArn: t.string,
-    region: t.string,
+    region: optional(t.string),
     encryptionKeyName: optional(t.string),
     encryptionKeyId: optional(t.string),
   },
@@ -141,7 +141,7 @@ export namespace AccountBucketOutput {
       const defaultBucket = RegionalBucket.fromBucketAttributes(accountStack, 'DefaultBucket', {
         bucketName: accountBucketOutput.bucketName,
         encryptionKey,
-        region: accountBucketOutput.region,
+        region: accountBucketOutput.region!,
       });
       accountBuckets[account.key] = defaultBucket;
     }
