@@ -236,7 +236,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
           if (accConfigObject.type === 'mandatory') {
             accountsInConfig['mandatory-account-configs'][accKey].ou = destinationOrg.Name;
             accountsInConfig['mandatory-account-configs'][accKey].email = account.Email;
-            accountsInConfig['mandatory-account-configs'][accKey]['accoount-name'] = account.Name;
+            accountsInConfig['mandatory-account-configs'][accKey]['account-name'] = account.Name;
             accountsInConfig['mandatory-account-configs'][accKey]['ou-path'] = destinationOrg.Path;
             if (accountsInConfig['mandatory-account-configs'][accKey].deleted) {
               accountsInConfig['mandatory-account-configs'][accKey].deleted = false;
@@ -244,7 +244,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
           } else {
             accountsInConfig['workload-account-configs'][accKey].ou = destinationOrg.Name;
             accountsInConfig['workload-account-configs'][accKey].email = account.Email;
-            accountsInConfig['workload-account-configs'][accKey]['accoount-name'] = account.Name;
+            accountsInConfig['workload-account-configs'][accKey]['account-name'] = account.Name;
             accountsInConfig['workload-account-configs'][accKey]['ou-path'] = destinationOrg.Path;
             if (accountsInConfig['workload-account-configs'][accKey].deleted) {
               accountsInConfig['workload-account-configs'][accKey].deleted = false;
