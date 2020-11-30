@@ -25,14 +25,16 @@ export interface CreateResolverRuleRuntimeProps extends Omit<CreateResolverRuleP
  */
 export class CreateResolverRule extends cdk.Construct {
   private readonly resource: cdk.CustomResource;
+  private role: iam.IRole;
 
   constructor(scope: cdk.Construct, id: string, props: CreateResolverRuleProps) {
     super(scope, id);
+    this.role = iam.Role.fromRoleArn(this, `${resourceType}Role`, props.roleArn);
 
     const runtimeProps: CreateResolverRuleRuntimeProps = props;
     this.resource = new cdk.CustomResource(this, 'Resource', {
       resourceType,
-      serviceToken: this.lambdaFunction(props.roleArn).functionArn,
+      serviceToken: this.lambdaFunction.functionArn,
       properties: {
         ...runtimeProps,
       },
@@ -43,7 +45,7 @@ export class CreateResolverRule extends cdk.Construct {
     return this.resource.getAttString('RuleId');
   }
 
-  private lambdaFunction(roleArn: string): lambda.Function {
+  private get lambdaFunction(): lambda.Function {
     const constructName = `${resourceType}Lambda`;
     const stack = cdk.Stack.of(this);
     const existing = stack.node.tryFindChild(constructName);
@@ -53,13 +55,12 @@ export class CreateResolverRule extends cdk.Construct {
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-create-resolver-rule-runtime');
     const lambdaDir = path.dirname(lambdaPath);
-    const role = iam.Role.fromRoleArn(stack, `${resourceType}Role`, roleArn);
 
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
-      role,
+      role: this.role,
       timeout: cdk.Duration.minutes(15),
     });
   }
