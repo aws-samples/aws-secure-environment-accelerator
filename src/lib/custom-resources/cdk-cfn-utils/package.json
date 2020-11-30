@@ -9,7 +9,7 @@
   "private": true, 
   "version": "0.0.1", 
   "dependencies": {
-    "aws-lambda": "1.75.0", 
+    "aws-lambda": "1.0.6", 
     "exponential-backoff": "3.0.0", 
     "aws-sdk": "2.787.0"
   }, 
