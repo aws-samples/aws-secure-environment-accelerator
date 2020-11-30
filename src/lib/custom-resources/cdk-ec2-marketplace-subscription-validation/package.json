@@ -1,9 +1,9 @@
 {
   "name": "@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation", 
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "^1.66.0", 
-    "@aws-cdk/core": "^1.66.0", 
-    "@aws-cdk/aws-lambda": "^1.66.0"
+    "@aws-cdk/aws-iam": "^1.75.0", 
+    "@aws-cdk/core": "^1.75.0", 
+    "@aws-cdk/aws-lambda": "^1.75.0"
   }, 
   "main": "cdk/index.ts",
   "jest": {
