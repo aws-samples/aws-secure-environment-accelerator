@@ -22,7 +22,7 @@ export class JsonOutputValue extends cdk.Construct {
 
     let value;
     if (typeof props.value === 'function') {
-      value = cdk.Lazy.stringValue({
+      value = cdk.Lazy.string({
         produce: () =>
           JSON.stringify({
             type: props.type,
