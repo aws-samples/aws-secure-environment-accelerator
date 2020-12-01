@@ -119,6 +119,19 @@ Resources:
               - kms:GenerateDataKey*
             Effect: Allow
             Principal:
+              AWS: "*"
+            Resource: "*"
+            Condition:
+                StringEquals:
+                  aws:PrincipalOrgID: !Ref OrganizationId
+          - Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey*
+            Effect: Allow
+            Principal:
               AWS:
                 Fn::Sub: ${FilePublishingRole.Arn}
             Resource: "*"

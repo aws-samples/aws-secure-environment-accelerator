@@ -57,7 +57,9 @@
                               {
                                   "Action": "s3:*",
                                   "Effect": "Allow",
-                                  "Resource": "arn:aws:s3:::pbmmaccel-cdktoolkit-stagingbucket-*"
+                                  "Resource": [
+                                      "arn:aws:s3:::cdk-hnb659fds-assets-*"
+                                  ]
                               }
                           ],
                           "Version": "2012-10-17"

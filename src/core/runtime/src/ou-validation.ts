@@ -116,9 +116,7 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   rootConfig = getFormattedObject(updateOrgResponse.rootConfig, format);
   // Update Config from 'updateRenamedAccouns' and 'updateRenamedOrganizations'
   const updatedAccounts = updateOrgResponse.updatedAccounts;
-  console.log("Converting to Set");
   const updateAccountFilenames = [...new Set(Object.entries(updatedAccounts).map(([_, accInfo]) => accInfo.filename))];
-  console.log("Conversion Done");
   const updateFiles: { filePath: string; fileContent: string }[] = [];
 
   updateAccountFilenames.map(async filename => {
