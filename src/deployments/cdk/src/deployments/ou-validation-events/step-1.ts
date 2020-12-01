@@ -152,6 +152,7 @@ async function moveAccount(input: MoveAccountProps) {
       CONFIG_ROOT_FILE_PATH: configRootFilePath,
     },
     timeout: cdk.Duration.minutes(15),
+    memorySize: 512,
   });
 
   moveAccountFunc.addPermission(`InvokePermission-MoveAccount_rule`, {

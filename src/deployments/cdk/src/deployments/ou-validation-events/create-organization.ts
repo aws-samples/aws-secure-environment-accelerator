@@ -28,6 +28,7 @@ export async function createOrganizationalUnit(input: CreateOrganizationalUnitEv
       ORGANIZATIONS_ADMIN_ROLE: organizationAdminRole,
     },
     timeout: cdk.Duration.minutes(15),
+    memorySize: 512,
   });
 
   orgChangeFunc.addPermission(`InvokePermission-CreateOrganization_rule`, {
