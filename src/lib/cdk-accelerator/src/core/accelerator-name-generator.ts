@@ -88,6 +88,7 @@ export interface CreateNameProps {
  * @param name
  */
 export function createName(props: CreateNameProps = {}): string {
+  // eslint-disable-next-line deprecation/deprecation
   return cdk.Lazy.stringValue({
     produce: (context: cdk.IResolveContext) => {
       const { scope } = context;
