@@ -287,6 +287,15 @@ async function main() {
     removalPolicy: cdk.RemovalPolicy.DESTROY,
   });
 
+  // TODO: Remove and use fields directly when CDK enhanced s3.Bucket.
+  (installerArtifactsBucket.node.defaultChild as s3.CfnBucket).addPropertyOverride('OwnershipControls', {
+    Rules: [
+      {
+        ObjectOwnership: 'BucketOwnerPreferred',
+      },
+    ],
+  });
+
   new codepipeline.Pipeline(stack, 'Pipeline', {
     role: installerPipelineRole,
     pipelineName: `${acceleratorPrefix}InstallerPipeline`,
