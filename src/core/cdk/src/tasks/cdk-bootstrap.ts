@@ -99,6 +99,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
           stackCapabilities: ['CAPABILITY_NAMED_IAM'],
           stackParameters: {
             'OrganizationId.$': '$.organizationId',
+            'Qualifier.$': '$.acceleratorPrefix',
           },
           stackTemplate: {
             s3BucketName,
@@ -170,6 +171,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
           stackParameters: {
             'BucketName.$': '$.bootstrapRegion.bucketName',
             'BucketDomainName.$': '$.bootstrapRegion.bucketDomain',
+            'Qualifier.$': '$.acceleratorPrefix',
           },
           stackTemplate: {
             s3BucketName,

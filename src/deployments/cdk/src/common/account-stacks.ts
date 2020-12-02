@@ -126,6 +126,10 @@ export class AccountStacks {
         terminationProtection,
         region: regionOrDefault,
         suffix,
+        synthesizer: new cdk.DefaultStackSynthesizer({
+          bucketPrefix: `${accountId}/`,
+          qualifier: this.props.context.acceleratorPrefix,
+        }),
       },
     });
     this.apps.push(app);
