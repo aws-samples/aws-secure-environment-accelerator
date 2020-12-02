@@ -87,10 +87,15 @@ export class RawConfig {
           });
         }
         delete configElement.__LOAD;
-        configElement = {
-          ...configElement,
-          ...getFormattedObject(tempConfig, this.props.format),
-        };
+        const tempConfigFormatted = getFormattedObject(tempConfig, this.props.format);
+        if (Array.isArray(tempConfigFormatted)) {
+          configElement = tempConfigFormatted;
+        } else {
+          configElement = {
+            ...configElement,
+            ...tempConfigFormatted,
+          };
+        }
       } else {
         for (const filename of configElement.__LOAD) {
           const tempConfig = await this.getFromFile(filename);
