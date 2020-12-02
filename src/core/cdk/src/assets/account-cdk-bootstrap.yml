@@ -137,7 +137,7 @@ Resources:
     Type: AWS::KMS::Alias
     Properties:
       AliasName:
-        Fn::Sub: alias/cdk-${Qualifier}-assets-key
+        Fn::Sub: alias/cdk-${Qualifier}assets-key
       TargetKeyId:
         Ref: FileAssetsBucketEncryptionKey
   StagingBucket:
@@ -147,7 +147,7 @@ Resources:
         Fn::If:
           - HasCustomFileAssetsBucketName
           - Fn::Sub: ${FileAssetsBucketName}
-          - Fn::Sub: cdk-${Qualifier}-assets-${AWS::AccountId}-${AWS::Region}
+          - Fn::Sub: cdk-${Qualifier}assets-${AWS::AccountId}-${AWS::Region}
       AccessControl: Private
       BucketEncryption:
         ServerSideEncryptionConfiguration:
@@ -195,7 +195,7 @@ Resources:
         Fn::If:
           - HasCustomContainerAssetsRepositoryName
           - Fn::Sub: ${ContainerAssetsRepositoryName}
-          - Fn::Sub: cdk-${Qualifier}-container-assets-${AWS::AccountId}-${AWS::Region}
+          - Fn::Sub: cdk-${Qualifier}container-assets-${AWS::AccountId}-${AWS::Region}
     Condition: PerformBootstrap
   FilePublishingRole:
     Type: AWS::IAM::Role
@@ -216,7 +216,7 @@ Resources:
                     Ref: TrustedAccounts
               - Ref: AWS::NoValue
       RoleName:
-        Fn::Sub: cdk-${Qualifier}-file-publishing-role-${AWS::AccountId}-${AWS::Region}
+        Fn::Sub: cdk-${Qualifier}file-publishing-role-${AWS::AccountId}-${AWS::Region}
   ImagePublishingRole:
     Type: AWS::IAM::Role
     Properties:
@@ -236,7 +236,7 @@ Resources:
                     Ref: TrustedAccounts
               - Ref: AWS::NoValue
       RoleName:
-        Fn::Sub: cdk-${Qualifier}-image-publishing-role-${AWS::AccountId}-${AWS::Region}
+        Fn::Sub: cdk-${Qualifier}image-publishing-role-${AWS::AccountId}-${AWS::Region}
   FilePublishingRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -269,7 +269,7 @@ Resources:
       Roles:
         - Ref: FilePublishingRole
       PolicyName:
-        Fn::Sub: cdk-${Qualifier}-file-publishing-role-default-policy-${AWS::AccountId}-${AWS::Region}
+        Fn::Sub: cdk-${Qualifier}file-publishing-role-default-policy-${AWS::AccountId}-${AWS::Region}
   ImagePublishingRoleDefaultPolicy:
     Type: AWS::IAM::Policy
     Properties:
@@ -294,7 +294,7 @@ Resources:
       Roles:
         - Ref: ImagePublishingRole
       PolicyName:
-        Fn::Sub: cdk-${Qualifier}-image-publishing-role-default-policy-${AWS::AccountId}-${AWS::Region}
+        Fn::Sub: cdk-${Qualifier}image-publishing-role-default-policy-${AWS::AccountId}-${AWS::Region}
   DeploymentActionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -350,7 +350,7 @@ Resources:
             Version: "2012-10-17"
           PolicyName: default
       RoleName:
-        Fn::Sub: cdk-${Qualifier}-deploy-role-${AWS::AccountId}-${AWS::Region}
+        Fn::Sub: cdk-${Qualifier}deploy-role-${AWS::AccountId}-${AWS::Region}
   CloudFormationExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -367,7 +367,7 @@ Resources:
           - Ref: CloudFormationExecutionPolicies
           - Ref: AWS::NoValue
       RoleName:
-        Fn::Sub: cdk-${Qualifier}-cfn-exec-role-${AWS::AccountId}-${AWS::Region}
+        Fn::Sub: cdk-${Qualifier}cfn-exec-role-${AWS::AccountId}-${AWS::Region}
   CdkBootstrapVersion:
     Type: AWS::SSM::Parameter
     Properties:
@@ -393,7 +393,7 @@ Outputs:
         - Fn::Sub: ${FileAssetsBucketKmsKeyId}
     Export:
       Name:
-        Fn::Sub: CdkBootstrap-${Qualifier}-FileAssetKeyArn
+        Fn::Sub: CdkBootstrap-${Qualifier}FileAssetKeyArn
   ImageRepositoryName:
     Description: The name of the ECR repository which hosts docker image assets
     Value:

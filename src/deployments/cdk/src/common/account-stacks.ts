@@ -113,7 +113,7 @@ export class AccountStacks {
     const stackName = this.createStackName(accountKey, regionOrDefault, suffix);
     const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault, suffix);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
-
+    const acceleratorPrefix = this.props.context.acceleratorPrefix;
     const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
     const app = new AccountApp(stackLogicalId, {
       outDir,
@@ -122,13 +122,13 @@ export class AccountStacks {
         accountKey,
         stackName,
         acceleratorName: this.props.context.acceleratorName,
-        acceleratorPrefix: this.props.context.acceleratorPrefix,
+        acceleratorPrefix,
         terminationProtection,
         region: regionOrDefault,
         suffix,
         synthesizer: new cdk.DefaultStackSynthesizer({
           bucketPrefix: `${accountId}/`,
-          qualifier: this.props.context.acceleratorPrefix,
+          qualifier: acceleratorPrefix.endsWith('-') ? acceleratorPrefix.slice(0, -1) : acceleratorPrefix,
         }),
       },
     });

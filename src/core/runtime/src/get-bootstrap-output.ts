@@ -1,5 +1,5 @@
 interface BootstrapDetailsInput {
-  // tslint:disable-next-line: no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stackOutputs: any;
   accounts: string[];
   operationsAccountId: string;

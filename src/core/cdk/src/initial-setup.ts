@@ -382,8 +382,9 @@ export namespace InitialSetup {
         }),
       });
 
+      // eslint-disable-next-line deprecation/deprecation
       const cdkBootstrapTask = new sfn.Task(this, 'Bootstram Environment', {
-        // tslint:disable-next-line: deprecation
+        // eslint-disable-next-line deprecation/deprecation
         task: new tasks.StartExecution(cdkBootstrapStateMachine, {
           integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
           input: {

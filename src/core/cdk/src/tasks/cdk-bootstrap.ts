@@ -90,8 +90,9 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       },
     );
 
+    // eslint-disable-next-line deprecation/deprecation
     const bootstrapOpsTask = new sfn.Task(this, 'Bootstrap Operations Acccount', {
-      // tslint:disable-next-line: deprecation
+      // eslint-disable-next-line deprecation/deprecation
       task: new tasks.StartExecution(bootstrapMasterStateMachine, {
         integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
         input: {
@@ -161,8 +162,9 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       }),
     });
 
+    // eslint-disable-next-line deprecation/deprecation
     const bootstrapTask = new sfn.Task(this, 'Bootstrap Acccount', {
-      // tslint:disable-next-line: deprecation
+      // eslint-disable-next-line deprecation/deprecation
       task: new tasks.StartExecution(bootstrapStateMachine, {
         integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
         input: {
