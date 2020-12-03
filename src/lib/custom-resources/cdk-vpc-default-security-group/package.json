@@ -1,15 +1,15 @@
 {
   "name": "@aws-accelerator/custom-resource-vpc-default-security-group",
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "^1.66.0", 
-    "@aws-cdk/core": "^1.66.0"
+    "@aws-cdk/aws-iam": "^1.75.0", 
+    "@aws-cdk/core": "^1.75.0"
   }, 
   "main": "cdk/index.ts",
   "private": true, 
   "version": "0.0.1", 
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.66.0", 
-    "@aws-cdk/core": "1.66.0"
+    "@aws-cdk/aws-iam": "1.75.0", 
+    "@aws-cdk/core": "1.75.0"
   }, 
   "devDependencies": {
     "eslint": "7.10.0",
