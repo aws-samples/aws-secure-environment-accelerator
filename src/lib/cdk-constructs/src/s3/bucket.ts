@@ -47,6 +47,15 @@ export class Bucket extends s3.Bucket {
 
     // Get the underlying resource
     this.resource = this.node.findChild('Resource') as s3.CfnBucket;
+
+    // TODO: Remove and use fields directly when CDK enhanced s3.Bucket.
+    this.resource.addPropertyOverride('OwnershipControls', {
+      Rules: [
+        {
+          ObjectOwnership: 'BucketOwnerPreferred',
+        },
+      ],
+    });
   }
 
   replicateFrom(principals: iam.IPrincipal[], organizationId: string, prefix: string) {
