@@ -126,8 +126,10 @@ export async function createRule(props: CreateRuleProps) {
                     accounts,
                     ssmDocInOu.account,
                   )}:document/${remediationActionName}`;
+                } else if (config['global-options']['default-ssm-documents'].includes(remediationAction)) {
+                  targetId = remediationAction;
                 } else {
-                  console.warn(`No Remediation is Created in account "${accountKey}" and region "${region}"`);
+                  console.warn(`No Remediation "${remediationAction}"is Created in account "${accountKey}" and region "${region}"`);
                   continue;
                 }
               }
@@ -184,16 +186,13 @@ export function getRemediationParameters(params: {
 }): RemediationParameters {
   const reutrnParams: RemediationParameters = {};
   const { outputs, remediationParams, roleName, config } = params;
-  if (!remediationParams.AutomationAssumeRole) {
-    reutrnParams.AutomationAssumeRole = {
-      StaticValue: {
-        Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${roleName}`],
-      },
-    };
-  }
+  reutrnParams.AutomationAssumeRole = {
+    StaticValue: {
+      Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${ remediationParams.AutomationAssumeRole || roleName}`],
+    },
+  };
 
   Object.keys(remediationParams).map(key => {
-    console.log(remediationParams[key], remediationParams[key].startsWith('${SEA::'));
     if (remediationParams[key] === 'RESOURCE_ID') {
       reutrnParams[key] = {
         ResourceValue: {
@@ -216,7 +215,7 @@ export function getRemediationParameters(params: {
             },
           };
         } else {
-          reutrnParams.AutomationAssumeRole = {
+          reutrnParams[key] = {
             StaticValue: {
               Values: [remediationParams[key]],
             },
