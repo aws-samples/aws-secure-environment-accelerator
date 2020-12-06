@@ -195,7 +195,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
    5. For a test deployment, the remainder of the values can be used as-is.
 
-3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms).
+3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 7 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms).
 4. When deploying to regions other than ca-central-1, you need to:
    1. Replace all occurences of ca-central-1 in the config file with your home region
    2. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10) Make sure you select the right version, v6.2.3 is recommended at this time.
