@@ -120,9 +120,11 @@ Before installing, you must first:
 
 1. Login to the Organization **Management or root AWS account** with `AdministratorAccess`.
 2. **_Set the region to `ca-central-1`._**
-3. Enable AWS Organizations
+3. Enable AWS Organizations in `All features` mode
+   - Navigate to AWS Organizations, click `Create Organization`, `Create Organization`
 4. Enable Service Control Policies
-5. In AWS Organizations, ["Verify"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/) the Organization Management (root) account email address (this is a technical process)
+   - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
+5. In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/) the Organization Management (root) account email address (this is a technical process)
 6. Ensure `alz-baseline=false` is set in the configuration file
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
