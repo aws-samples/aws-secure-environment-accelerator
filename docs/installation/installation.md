@@ -154,8 +154,8 @@ Before installing, you must first:
 4. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token` (case sensitive).
    - Via AWS console
      - Store a new secret, and select `Other type of secrets`, `Plaintext`
-     - Paste your secret with no formatting no leading or trailing spaces
-     - Select either the key you created above (`PBMMAccel-Source-Bucket-Key`),
+     - Paste your secret with no formatting no leading or trailing spaces (i.e. completely remove the example text)
+     - Select the key you created above (`PBMMAccel-Source-Bucket-Key`),
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
