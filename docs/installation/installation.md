@@ -120,9 +120,11 @@ Before installing, you must first:
 
 1. Login to the Organization **Management or root AWS account** with `AdministratorAccess`.
 2. **_Set the region to `ca-central-1`._**
-3. Enable AWS Organizations
+3. Enable AWS Organizations in `All features` mode
+   - Navigate to AWS Organizations, click `Create Organization`, `Create Organization`
 4. Enable Service Control Policies
-5. In AWS Organizations, ["Verify"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/) the Organization Management (root) account email address (this is a technical process)
+   - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
+5. In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/) the Organization Management (root) account email address (this is a technical process)
 6. Ensure `alz-baseline=false` is set in the configuration file
 7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
@@ -154,8 +156,8 @@ Before installing, you must first:
 4. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token` (case sensitive).
    - Via AWS console
      - Store a new secret, and select `Other type of secrets`, `Plaintext`
-     - Paste your secret with no formatting no leading or trailing spaces
-     - Select either the key you created above (`PBMMAccel-Source-Bucket-Key`),
+     - Paste your secret with no formatting no leading or trailing spaces (i.e. completely remove the example text)
+     - Select the key you created above (`PBMMAccel-Source-Bucket-Key`),
      - Set the secret name to `accelerator/github-token` (case sensitive)
      - Select `Disable rotation`
 
@@ -195,7 +197,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
    4. When updating the budget notification email addresses within the example, a single email address for all is sufficient;
    5. For a test deployment, the remainder of the values can be used as-is.
 
-3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 6 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager).
+3. A successful deployment requires VPC access to 6 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 7 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms).
 4. When deploying to regions other than ca-central-1, you need to:
    1. Replace all occurences of ca-central-1 in the config file with your home region
    2. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10) Make sure you select the right version, v6.2.3 is recommended at this time.
@@ -227,7 +229,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-2. Download the CloudFormation template `AcceleratorInstallerXXX.template.json` for the release you plan to install
+2. Download the CloudFormation (CFN) template `AcceleratorInstallerXXX.template.json` for the release you plan to install
 3. Use the provided CloudFormation template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
@@ -241,6 +243,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
 13. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
+    - if the pipeline fails connecting to GitHub, fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
 14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
 15. **While the pipeline is running, review the list of [Known Installation Issues]([https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/docs/installation/index.md#Known-Installation-Issues) near the bottom on this document**
 16. Once the pipeline completes (typically 15-20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions

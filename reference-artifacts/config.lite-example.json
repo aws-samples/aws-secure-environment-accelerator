@@ -418,7 +418,7 @@
             "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot a 4x, 8x, 9x, 10x, 12x, 16x, 18x, 24x, 32x-large EC2 instance (in any account, any region of your AWS Organization)."
           },
           {
-            "alarm-name": "AWS-ClouadTrail-Changed",
+            "alarm-name": "AWS-CloudTrail-Changed",
             "metric-name": "CloudTrailEventCount",
             "sns-alert-level": "High",
             "alarm-description": "Alarms when one or more API calls are made to create, update or delete a CloudTrail trail, or to start or stop logging to a trail (in any account, any region of your AWS Organization)."
