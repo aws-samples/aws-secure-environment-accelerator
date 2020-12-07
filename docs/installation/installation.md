@@ -229,7 +229,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 ## 2.5. Installation
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
-2. Download the CloudFormation template `AcceleratorInstallerXXX.template.json` for the release you plan to install
+2. Download the CloudFormation (CFN) template `AcceleratorInstallerXXX.template.json` for the release you plan to install
 3. Use the provided CloudFormation template to deploy a new stack in your AWS account
 4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
@@ -243,6 +243,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
 13. Once deployed, you should see a CodePipeline project named `PBMMAccel-InstallerPipeline` in your account. This pipeline connects to Github, pulls the code from the prescribed branch and deploys the Accelerator state machine.
+    - if the pipeline fails connecting to GitHub, fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
 14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
 15. **While the pipeline is running, review the list of [Known Installation Issues]([https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/docs/installation/index.md#Known-Installation-Issues) near the bottom on this document**
 16. Once the pipeline completes (typically 15-20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
