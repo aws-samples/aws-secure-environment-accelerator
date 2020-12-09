@@ -86,17 +86,6 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "zones": [
-      {
-        "account": "shared-network",
-        "resolver-vpc": "Endpoint",
-        "region": "ca-central-1",
-        "names": {
-          "public": ["cloud-hosted-publicdomain.example.ca"],
-          "private": ["cloud-hosted-privatedomain.example.ca"]
-        }
-      }
-    ],
     "vpc-flow-logs": {
       "filter": "ALL",
       "interval": 60,
