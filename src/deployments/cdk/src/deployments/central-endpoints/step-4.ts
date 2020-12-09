@@ -85,7 +85,6 @@ export async function step4(props: CentralEndpointsStep4Props) {
   });
 
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
-    let seperateGlobalHostedZonesAccount = true;
     if (!vpcConfig['use-central-endpoints'] || vpcConfig['central-endpoint']) {
       continue;
     }
@@ -139,10 +138,6 @@ export async function step4(props: CentralEndpointsStep4Props) {
       hostedZoneIds.push(...getHostedZoneIds(regionalCentralEndpoint, vpcConfig, outputs));
       if (globalPrivateHostedZoneIds[regionalCentralEndpoint.accountKey]) {
         hostedZoneIds.push(...globalPrivateHostedZoneIds[regionalCentralEndpoint.accountKey]);
-        delete globalPrivateHostedZoneIds[regionalCentralEndpoint.accountKey];
-        if (Object.keys(globalPrivateHostedZoneIds).length === 0) {
-          seperateGlobalHostedZonesAccount = false;
-        }
       }
       const hostedZoneAccountId = getAccountId(accounts, regionalCentralEndpoint.accountKey)!;
       new AssociateHostedZones(accountStack, constructName, {
@@ -158,6 +153,9 @@ export async function step4(props: CentralEndpointsStep4Props) {
     }
 
     for (const [hAccountKey, hostedZoneIds] of Object.entries(globalPrivateHostedZoneIds)) {
+      if (regionalCentralEndpoint && regionalCentralEndpoint.accountKey === hAccountKey) {
+        continue;
+      }
       const hostedZoneAccountId = getAccountId(accounts, hAccountKey)!;
       new AssociateHostedZones(
         accountStack,
