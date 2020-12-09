@@ -5,20 +5,17 @@ import { pascalCase } from 'pascal-case';
 import { getAccountId, Account } from '../utils/accounts';
 import { VpcProps, VpcStack, Vpc } from '../common/vpc';
 import { Limit } from '../utils/limits';
-import { NestedStack } from '@aws-cdk/aws-cloudformation';
 import {
-  InterfaceEndpointConfig,
   PeeringConnectionConfig,
   IamConfig,
   IamConfigType,
   IamPolicyConfigType,
   VpcConfig,
 } from '@aws-accelerator/common-config';
-import { InterfaceEndpoint } from '../common/interface-endpoints';
 import { IamAssets } from '../common/iam-assets';
 import { STS } from '@aws-accelerator/common/src/aws/sts';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
-import { createRoleName, createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/outputs';
 import * as budget from '../deployments/billing/budget';
 import * as certificates from '../deployments/certificates';
@@ -34,10 +31,6 @@ import { getIamUserPasswordSecretValue } from '../deployments/iam';
 import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-logging-s3';
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
-import { DNS_LOGGING_LOG_GROUP_REGION } from '@aws-accelerator/common/src/util/constants';
-import { LogGroup } from '@aws-accelerator/custom-resource-logs-log-group';
-import { LogResourcePolicy } from '@aws-accelerator/custom-resource-logs-resource-policy';
-import { IamRoleOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 import * as centralEndpoints from '../deployments/central-endpoints';
 import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
 
@@ -272,6 +265,15 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       vpcConfig,
       vpcId: vpc!.id,
     });
+
+    // Create DNS Query Logging Log Group
+    await centralEndpoints.createDnsQueryLogGroup({
+      acceleratorPrefix: context.acceleratorPrefix,
+      accountKey,
+      accountStacks,
+      outputs,
+      vpcConfig,
+    });
   }
 
   // Create the firewall
@@ -472,57 +474,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     outputs,
   });
-
-  /**
-   * Code to create LogGroups required for DNS Logging
-   */
-  const globalOptionsConfig = acceleratorConfig['global-options'];
-  const zoneConfig = globalOptionsConfig.zones.find(zc => zc.names);
-  const zonesAccountKey = zoneConfig?.account!;
-
-  const zonesStack = accountStacks.getOrCreateAccountStack(zonesAccountKey, DNS_LOGGING_LOG_GROUP_REGION);
-  const logGroupLambdaRoleOutput = IamRoleOutputFinder.tryFindOneByName({
-    outputs,
-    accountKey: zonesAccountKey,
-    roleKey: 'LogGroupRole',
-  });
-  if (logGroupLambdaRoleOutput) {
-    const logGroups =
-      zoneConfig?.names?.public.map(phz => {
-        const logGroupName = centralEndpoints.createR53LogGroupName({
-          acceleratorPrefix: context.acceleratorPrefix,
-          domain: phz,
-        });
-        return new LogGroup(zonesStack, `Route53HostedZoneLogGroup${pascalCase(phz)}`, {
-          logGroupName,
-          roleArn: logGroupLambdaRoleOutput.roleArn,
-        });
-      }) || [];
-
-    if (logGroups.length > 0) {
-      const wildcardLogGroupName = centralEndpoints.createR53LogGroupName({
-        acceleratorPrefix: context.acceleratorPrefix,
-        domain: '*',
-      });
-
-      // Allow r53 services to write to the log group
-      const logGroupPolicy = new LogResourcePolicy(zonesStack, 'R53LogGroupPolicy', {
-        policyName: createName({
-          name: 'query-logging-pol',
-        }),
-        policyStatements: [
-          new iam.PolicyStatement({
-            actions: ['logs:CreateLogStream', 'logs:PutLogEvents'],
-            principals: [new iam.ServicePrincipal('route53.amazonaws.com')],
-            resources: [`arn:aws:logs:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:log-group:${wildcardLogGroupName}`],
-          }),
-        ],
-      });
-      for (const logGroup of logGroups) {
-        logGroupPolicy.node.addDependency(logGroup);
-      }
-    }
-  }
 
   /**
    * DisAssociate HostedZone to VPC
