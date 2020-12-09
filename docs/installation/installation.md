@@ -153,7 +153,7 @@ Before installing, you must first:
 
 1. You require a GitHub access token to access the code repository
 2. Instructions on how to create a personal access token are located [here](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token).
-3. Select the scope `repo: Full control over private repositories`.
+3. Select the scope `public_repo` underneath the section `repo: Full control over private repositories`.
 4. Store the personal access token in Secrets Manager as plain text. Name the secret `accelerator/github-token` (case sensitive).
    - Via AWS console
      - Store a new secret, and select `Other type of secrets`, `Plaintext`
