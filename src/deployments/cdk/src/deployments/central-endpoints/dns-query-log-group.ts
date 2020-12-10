@@ -18,10 +18,11 @@ export interface CreateDnsQueryLogGroupProps {
   accountStacks: AccountStacks;
   outputs: StackOutput[];
   acceleratorPrefix: string;
+  createPolicy: boolean;
 }
 
 export async function createDnsQueryLogGroup(props: CreateDnsQueryLogGroupProps) {
-  const { acceleratorPrefix, accountKey, vpcConfig, accountStacks, outputs } = props;
+  const { acceleratorPrefix, accountKey, vpcConfig, accountStacks, outputs, createPolicy } = props;
   if (!vpcConfig.zones || !vpcConfig.zones.public) {
     return;
   }
@@ -47,7 +48,7 @@ export async function createDnsQueryLogGroup(props: CreateDnsQueryLogGroupProps)
         roleArn: logGroupLambdaRoleOutput.roleArn,
       });
     }) || [];
-  if (logGroups.length > 0) {
+  if (logGroups.length > 0 && createPolicy) {
     const wildcardLogGroupName = createR53LogGroupName({
       acceleratorPrefix,
       domain: '*',

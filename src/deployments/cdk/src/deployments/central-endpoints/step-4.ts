@@ -85,7 +85,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
   });
 
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
-    if (!vpcConfig['use-central-endpoints'] || vpcConfig['central-endpoint']) {
+    if (!vpcConfig['use-central-endpoints']) {
       continue;
     }
 
@@ -135,7 +135,9 @@ export async function step4(props: CentralEndpointsStep4Props) {
     const hostedZoneIds: string[] = [];
     if (regionalCentralEndpoint) {
       // Retriving Hosted Zone ids for interface endpoints to be shared
-      hostedZoneIds.push(...getHostedZoneIds(regionalCentralEndpoint, vpcConfig, outputs));
+      if (!vpcConfig['central-endpoint']) {
+        hostedZoneIds.push(...getHostedZoneIds(regionalCentralEndpoint, vpcConfig, outputs));
+      }
       if (globalPrivateHostedZoneIds[regionalCentralEndpoint.accountKey]) {
         hostedZoneIds.push(...globalPrivateHostedZoneIds[regionalCentralEndpoint.accountKey]);
       }

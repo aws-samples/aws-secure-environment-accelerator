@@ -190,8 +190,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   };
 
   const subscriptionCheckDone: string[] = [];
+  const dnsLogGroupsAccountAndRegion: { [accoutKey: string]: boolean } = {};
   // Create all the VPCs for accounts and organizational units
   for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.getVpcConfigs()) {
+    let createPolicy = false;
     if (!limiter.create(accountKey, Limit.VpcPerRegion, vpcConfig.region)) {
       console.log(
         `Skipping VPC "${vpcConfig.name}" deployment. Reached maximum VPCs per region for account "${accountKey}" and region "${vpcConfig.region}`,
@@ -267,13 +269,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     });
 
     // Create DNS Query Logging Log Group
-    await centralEndpoints.createDnsQueryLogGroup({
-      acceleratorPrefix: context.acceleratorPrefix,
-      accountKey,
-      accountStacks,
-      outputs,
-      vpcConfig,
-    });
+    if (vpcConfig.zones && vpcConfig.zones.public.length > 0) {
+      if (!dnsLogGroupsAccountAndRegion[accountKey]) {
+        createPolicy = true;
+        dnsLogGroupsAccountAndRegion[accountKey] = true;
+      }
+      await centralEndpoints.createDnsQueryLogGroup({
+        acceleratorPrefix: context.acceleratorPrefix,
+        accountKey,
+        accountStacks,
+        outputs,
+        vpcConfig,
+        createPolicy,
+      });
+    }    
   }
 
   // Create the firewall
