@@ -73,21 +73,29 @@ The logic of the script is the following:
 3. Before running this script you must manually delete AWS SSO.
 
 4. Execute the script `python3 aws-sea-cleanup.py`
-5. In Secrets Manager set the Secret `accelerator/config/last-successful-commit` to an empty string.
+5. Manual steps (in the Organization Management account):
+   - In Secrets Manager, set the Secret `accelerator/config/last-successful-commit` to an empty string;
+   - In DynamoDB, delete the 3 `PBMMAccel-*` tables;
+   - In Systems Manager Parameter Store, delete the `/accelerator/version` parameter;
+   - In CodeCommit, delete the repository `PBMMAccel-Config-Repo`.
 
 ## Considerations
 
-1. Not all resources are currently cleaned up. Here is a list of what is known:
+1. Additional known resources not currently cleaned up:
 
    a. Certificates in ACM
 
-   b. The initial bootstrap CloudFormation Stack
+   b. The initial CDK bootstrap CloudFormation Stack (`CDKToolkit`)
 
-   c. CDK S3 buckets
+   c. CDK S3 buckets (`cdktoolkit-stagingbucket-*`)
 
-   d. Secret Keys
+   d. Secrets Manager Secrets
 
    e. Does not recreate Default VPCs
+
+   f. KMS keys
+
+   g. ECR repository `aws-cdk/assets`
 
 2. If redeploying the accelerator in AWS Accounts after having ran this script. Note the following:
 
@@ -96,6 +104,8 @@ The logic of the script is the following:
    b. The Step Function will fail on first re-run when trying to compare configuration files if you forget to set the secret `accelerator/config/last-successful-commit` to an empty string.
 
    c. GuardDuty and/or Macie will likely fail during a Phase deployment. If that happens, access the Security account and invite all accounts as members in all regions. Some accounts may be listed as non-members.
+
+   d. If you accidentally delete a cdk bucket (`cdktoolkit-stagingbucket-*`) in any region, you MUST remove the corresponding CDK bootstrap stack (`CDKToolkit`) from the corresponding regions before deploying.
 
 ## Requirements
 
