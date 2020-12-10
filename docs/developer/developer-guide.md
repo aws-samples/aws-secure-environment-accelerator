@@ -1,99 +1,99 @@
-# Developer Guide
+# 1. Developer Guide
 
 This document is a reference document. Instead of reading through it in linear order, you can use it to look up specific issues as needed.
 
 It is important to read the [Operations Guide](../operations/operations-troubleshooting-guide.md) before reading this document. If you're interested in actively contributing to the project, you should also review the [Governance and Contributing Guide](../CONTRIBUTING.md).
 
-# Table of Contents
+# 2. Table of Contents
 
 <!-- TOC depthFrom:2 depthTo:4 -->
 
-- [Developer Guide](#developer-guide)
-- [Table of Contents](#table-of-contents)
-  - [1. Technology Stack](#1-technology-stack)
-    - [1.1. TypeScript and NodeJS](#11-typescript-and-nodejs)
-      - [1.1.1. pnpm](#111-pnpm)
-      - [1.1.2. prettier](#112-prettier)
-      - [1.1.3. eslint](#113-eslint)
-    - [1.2. CloudFormation](#12-cloudformation)
-    - [1.3. CDK](#13-cdk)
-  - [2. Development](#2-development)
-    - [2.1. Project Structure](#21-project-structure)
-      - [2.1.1. Installer Stack](#211-installer-stack)
-      - [2.1.2. Initial Setup Stack](#212-initial-setup-stack)
-        - [2.1.2.1. CodeBuild and Prebuilt Docker Image](#2121-codebuild-and-prebuilt-docker-image)
-        - [2.1.2.2. Passing Data to Phase Steps and Phase Stacks](#2122-passing-data-to-phase-steps-and-phase-stacks)
-      - [2.1.3. Phase Steps and Phase Stacks](#213-phase-steps-and-phase-stacks)
-      - [2.1.4. Store outputs to SSM Parameter Store](#214-store-outputs-to-ssm-parameter-store)
-        - [2.1.3.1. Phases and Deployments](#2131-phases-and-deployments)
-        - [2.1.3.2. Passing Outputs between Phases](#2132-passing-outputs-between-phases)
-        - [2.1.3.3. Decoupling Configuration from Constructs](#2133-decoupling-configuration-from-constructs)
-    - [2.2. Libraries & Tools](#22-libraries--tools)
-      - [2.2.1. CDK Assume Role Plugin](#221-cdk-assume-role-plugin)
-      - [2.2.2. CDK API](#222-cdk-api)
-      - [2.2.3. AWS SDK Wrappers](#223-aws-sdk-wrappers)
-      - [2.2.4. Configuration File Parsing](#224-configuration-file-parsing)
-        - [2.2.4.1. `AcceleratorNameTagger`](#2241-acceleratornametagger)
-        - [2.2.4.2. `AcceleratorStack`](#2242-acceleratorstack)
-        - [2.2.4.3. Name Generator](#2243-name-generator)
-        - [2.2.4.4. `AccountStacks`](#2244-accountstacks)
-        - [2.2.4.5. `Vpc` and `ImportedVpc`](#2245-vpc-and-importedvpc)
-        - [2.2.4.6. `Limiter`](#2246-limiter)
-      - [2.2.5. Creating Stack Outputs](#225-creating-stack-outputs)
-        - [2.2.5.1. Adding Tags to Shared Resources in Destination Account](#2251-adding-tags-to-shared-resources-in-destination-account)
-      - [2.2.6. Custom Resources](#226-custom-resources)
-        - [2.2.6.1. Externalizing `aws-sdk`](#2261-externalizing-aws-sdk)
-        - [2.2.6.2. cfn-response](#2262-cfn-response)
-        - [2.2.6.3. cfn-tags](#2263-cfn-tags)
-        - [2.2.6.4. webpack-base](#2264-webpack-base)
-    - [2.3. Workarounds](#23-workarounds)
-      - [2.3.1. Stacks with Same Name in Different Regions](#231-stacks-with-same-name-in-different-regions)
-    - [2.4. Local Development](#24-local-development)
-      - [2.4.1. Installer Stack](#241-installer-stack)
-      - [2.4.2. Initial Setup Stack](#242-initial-setup-stack)
-      - [2.4.3. Phase Stacks](#243-phase-stacks)
-    - [2.5. Testing](#25-testing)
-      - [2.5.1. Validating Immutable Property Changes and Logical ID Changes](#251-validating-immutable-property-changes-and-logical-id-changes)
-      - [2.5.2. Upgrade CDK](#252-upgrade-cdk)
-  - [3. Best Practices](#3-best-practices)
-    - [3.1. TypeScript and NodeJS](#31-typescript-and-nodejs)
-      - [3.1.1. Handle Unhandled Promises](#311-handle-unhandled-promises)
-    - [3.2. CloudFormation](#32-cloudformation)
-      - [3.2.1. Cross-Account/Region References](#321-cross-accountregion-references)
-      - [3.2.2. Resource Names and Logical IDs](#322-resource-names-and-logical-ids)
-      - [3.2.3. Changing Logical IDs](#323-changing-logical-ids)
-      - [3.2.4. Changing (Immutable) Properties](#324-changing-immutable-properties)
-    - [3.3. CDK](#33-cdk)
-      - [3.3.1. Logical IDs](#331-logical-ids)
-      - [3.3.2. Moving Resources between Nested Stacks](#332-moving-resources-between-nested-stacks)
-      - [3.3.3. L1 vs. L2 Constructs](#333-l1-vs-l2-constructs)
-      - [3.3.4. CDK Code Dependency on Lambda Function Code](#334-cdk-code-dependency-on-lambda-function-code)
-      - [3.3.5. Custom Resource](#335-custom-resource)
-      - [3.3.6. Escape Hatches](#336-escape-hatches)
-        - [3.3.6.1. AutoScaling Group Metadata](#3361-autoscaling-group-metadata)
-        - [3.3.6.2. Secret `SecretValue`](#3362-secret-secretvalue)
-  - [4. Contributing Guidelines](#4-contributing-guidelines)
-    - [4.1. How-to](#41-how-to)
-      - [4.1.1. Adding New Functionality?](#411-adding-new-functionality)
-      - [4.1.2. Create a CDK Lambda Function with Lambda Runtime Code](#412-create-a-cdk-lambda-function-with-lambda-runtime-code)
-      - [4.1.3. Create a Custom Resource](#413-create-a-custom-resource)
-      - [4.1.4. Run All Unit Tests](#414-run-all-unit-tests)
-      - [4.1.5. Accept Unit Test Snapshot Changes](#415-accept-unit-test-snapshot-changes)
-      - [4.1.6. Validate Code with Prettier](#416-validate-code-with-prettier)
-      - [4.1.7. Format Code with Prettier](#417-format-code-with-prettier)
-      - [4.1.8. Validate Code with `tslint`](#418-validate-code-with-tslint)
+- [1. Developer Guide](#1-developer-guide)
+- [2. Table of Contents](#2-table-of-contents)
+- [3. Technology Stack](#3-technology-stack)
+  - [3.1. TypeScript and NodeJS](#31-typescript-and-nodejs)
+    - [3.1.1. pnpm](#311-pnpm)
+    - [3.1.2. prettier](#312-prettier)
+    - [3.1.3. eslint](#313-eslint)
+  - [3.2. CloudFormation](#32-cloudformation)
+  - [3.3. CDK](#33-cdk)
+- [4. Development](#4-development)
+  - [4.1. Project Structure](#41-project-structure)
+  - [4.2. Installer Stack](#42-installer-stack)
+  - [4.3. Initial Setup Stack](#43-initial-setup-stack)
+    - [4.3.1. CodeBuild and Prebuilt Docker Image](#431-codebuild-and-prebuilt-docker-image)
+    - [4.3.2. Passing Data to Phase Steps and Phase Stacks](#432-passing-data-to-phase-steps-and-phase-stacks)
+  - [4.4. Phase Steps and Phase Stacks](#44-phase-steps-and-phase-stacks)
+  - [4.5. Store outputs to SSM Parameter Store](#45-store-outputs-to-ssm-parameter-store)
+    - [4.5.1. Phases and Deployments](#451-phases-and-deployments)
+    - [4.5.2. Passing Outputs between Phases](#452-passing-outputs-between-phases)
+    - [4.5.3. Decoupling Configuration from Constructs](#453-decoupling-configuration-from-constructs)
+  - [4.6. Libraries & Tools](#46-libraries--tools)
+    - [4.6.1. CDK Assume Role Plugin](#461-cdk-assume-role-plugin)
+    - [4.6.2. CDK API](#462-cdk-api)
+    - [4.6.3. AWS SDK Wrappers](#463-aws-sdk-wrappers)
+    - [4.6.4. Configuration File Parsing](#464-configuration-file-parsing)
+      - [4.6.4.1. `AcceleratorNameTagger`](#4641-acceleratornametagger)
+      - [4.6.4.2. `AcceleratorStack`](#4642-acceleratorstack)
+      - [4.6.4.3. Name Generator](#4643-name-generator)
+      - [4.6.4.4. `AccountStacks`](#4644-accountstacks)
+      - [4.6.4.5. `Vpc` and `ImportedVpc`](#4645-vpc-and-importedvpc)
+      - [4.6.4.6. `Limiter`](#4646-limiter)
+    - [4.6.5. Creating Stack Outputs](#465-creating-stack-outputs)
+      - [4.6.5.1. Adding Tags to Shared Resources in Destination Account](#4651-adding-tags-to-shared-resources-in-destination-account)
+    - [4.6.6. Custom Resources](#466-custom-resources)
+      - [4.6.6.1. Externalizing `aws-sdk`](#4661-externalizing-aws-sdk)
+      - [4.6.6.2. cfn-response](#4662-cfn-response)
+      - [4.6.6.3. cfn-tags](#4663-cfn-tags)
+      - [4.6.6.4. webpack-base](#4664-webpack-base)
+  - [4.7. Workarounds](#47-workarounds)
+    - [4.7.1. Stacks with Same Name in Different Regions](#471-stacks-with-same-name-in-different-regions)
+  - [4.8. Local Development](#48-local-development)
+    - [4.8.1. Installer Stack](#481-installer-stack)
+    - [4.8.2. Initial Setup Stack](#482-initial-setup-stack)
+    - [4.8.3. Phase Stacks](#483-phase-stacks)
+  - [4.9. Testing](#49-testing)
+    - [4.9.1. Validating Immutable Property Changes and Logical ID Changes](#491-validating-immutable-property-changes-and-logical-id-changes)
+    - [4.9.2. Upgrade CDK](#492-upgrade-cdk)
+- [5. Best Practices](#5-best-practices)
+  - [5.1. TypeScript and NodeJS](#51-typescript-and-nodejs)
+    - [5.1.1. Handle Unhandled Promises](#511-handle-unhandled-promises)
+  - [5.2. CloudFormation](#52-cloudformation)
+    - [5.2.1. Cross-Account/Region References](#521-cross-accountregion-references)
+    - [5.2.2. Resource Names and Logical IDs](#522-resource-names-and-logical-ids)
+    - [5.2.3. Changing Logical IDs](#523-changing-logical-ids)
+    - [5.2.4. Changing (Immutable) Properties](#524-changing-immutable-properties)
+  - [5.3. CDK](#53-cdk)
+    - [5.3.1. Logical IDs](#531-logical-ids)
+    - [5.3.2. Moving Resources between Nested Stacks](#532-moving-resources-between-nested-stacks)
+    - [5.3.3. L1 vs. L2 Constructs](#533-l1-vs-l2-constructs)
+    - [5.3.4. CDK Code Dependency on Lambda Function Code](#534-cdk-code-dependency-on-lambda-function-code)
+    - [5.3.5. Custom Resource](#535-custom-resource)
+    - [5.3.6. Escape Hatches](#536-escape-hatches)
+      - [5.3.6.1. AutoScaling Group Metadata](#5361-autoscaling-group-metadata)
+      - [5.3.6.2. Secret `SecretValue`](#5362-secret-secretvalue)
+- [6. Contributing Guidelines](#6-contributing-guidelines)
+  - [6.1. How-to](#61-how-to)
+  - [6.2. Adding New Functionality?](#62-adding-new-functionality)
+  - [6.3. Create a CDK Lambda Function with Lambda Runtime Code](#63-create-a-cdk-lambda-function-with-lambda-runtime-code)
+  - [6.4. Create a Custom Resource](#64-create-a-custom-resource)
+  - [6.5. Run All Unit Tests](#65-run-all-unit-tests)
+  - [6.6. Accept Unit Test Snapshot Changes](#66-accept-unit-test-snapshot-changes)
+  - [6.7. Validate Code with Prettier](#67-validate-code-with-prettier)
+  - [6.8. Format Code with Prettier](#68-format-code-with-prettier)
+  - [6.9. Validate Code with `tslint`](#69-validate-code-with-tslint)
 
 <!-- /TOC -->
 
-## 1. Technology Stack
+# 3. Technology Stack
 
 We use TypeScript, NodeJS, CDK and CloudFormation. You can find some more information in the sections below.
 
-### 1.1. TypeScript and NodeJS
+## 3.1. TypeScript and NodeJS
 
 In the following sections we describe the tools and libraries used along with TypeScript.
 
-#### 1.1.1. pnpm
+### 3.1.1. pnpm
 
 We use the `pnpm` package manager along with `pnpm workspaces` to manage all the packages in this monorepo.
 
@@ -105,25 +105,25 @@ The binary `pnpx` runs binaries that belong to `pnpm` packages in the workspace.
 
 https://pnpm.js.org/en/pnpx-cli
 
-#### 1.1.2. prettier
+### 3.1.2. prettier
 
 We use [`prettier`](https://prettier.io) to format code in this repository. A GitHub action makes sure that all the code in a pull requests adheres to the configured `prettier` rules. See [Github Actions](#github-actions).
 
-#### 1.1.3. eslint
+### 3.1.3. eslint
 
 We use [`eslint`](https://eslint.org/) as a static analysis tool that checks our TypeScript code. A GitHub action makes sure that all the code in a pull requests adheres to the configured `eslint` rules. See [Github Actions](#github-actions).
 
-### 1.2. CloudFormation
+## 3.2. CloudFormation
 
 CloudFormation deploys both the Accelerator stacks and resources and the deployed stacks and resources. See [Operations Guide: System Overview](../operations/operations-troubleshooting-guide.md) for the distinction between Accelerator resources and deployed resources.
 
-### 1.3. CDK
+## 3.3. CDK
 
 AWS CDK defines the cloud resources in a familiar programming language. While AWS CDK supports TypeScript, JavaScript, Python, Java, and C#/.Net, the contributions should be made in Typescript, as outlined in the [Accelerator Development First Principles](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/ae8282d4537320763736fa56e05b743ce1c02611/CONTRIBUTING.md#accelerator-development-first-principles).
 
 Developers can use programming languages to define reusable cloud components known as Constructs. You compose these together into Stacks and Apps. Learn more at https://docs.aws.amazon.com/cdk/latest/guide/home.html
 
-## 2. Development
+# 4. Development
 
 There are different types of projects in this monorepo.
 
@@ -141,7 +141,7 @@ When we want to enable functionality in a managed account we try to
 2. create a custom resource to enable the functionality; or
 3. lastly create a new step in the `Initial Setup` state machine to enable the functionality.
 
-### 2.1. Project Structure
+## 4.1. Project Structure
 
 The folder structure of the project is as follows:
 
@@ -160,7 +160,7 @@ The folder structure of the project is as follows:
 - `src/lib/custom-resources/**/cdk`: See [Custom Resources](#custom-resources);
 - `src/lib/custom-resources/**/runtime`: See [Custom Resources](#custom-resources);
 
-#### 2.1.1. Installer Stack
+## 4.2. Installer Stack
 
 Read the [Operations Guide](../operations/operations-troubleshooting-guide.md#installer-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
@@ -199,7 +199,7 @@ The `Initial Setup` stack deployment receives environment variables from the Cod
 - `ACCELERATOR_STATE_MACHINE_NAME`: The `Initial Setup` will use this name for the main state machine. So it is the `Installer` stack that decides the name of the main state machine. This way we can confidently start the main state machine of the `Initial Setup` stack from the CodePipeline;
 - `ENABLE_PREBUILT_PROJECT`: See [Prebuilt Docker Image](#codebuild-and-prebuilt-docker-image).
 
-#### 2.1.2. Initial Setup Stack
+## 4.3. Initial Setup Stack
 
 Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the section in the Operations Guide.
 
@@ -216,7 +216,7 @@ In order to install these `Phase` stacks in Accelerator-managed accounts, we nee
 
 The code for the steps in the state machine is in `src/core/runtime`. All the steps are in different files but are compiled into a single file. We used to compile all the steps separately but we would hit a limit in the amount of parameters in the generated CloudFormation template. Each step would have its own CDK asset that would introduce three new parameters. We quickly reached the limit of 60 parameters in a CloudFormation template and decided to compile the steps into a single file and use it across all different Lambda functions.
 
-##### 2.1.2.1. CodeBuild and Prebuilt Docker Image
+### 4.3.1. CodeBuild and Prebuilt Docker Image
 
 The CodeBuild project that deploys the different `Phase` stacks is constructed using the `CdkDeployProject` or `PrebuiltCdkDeployProject` based on the value of the environment variable `ENABLE_PREBUILT_PROJECT`.
 
@@ -247,7 +247,7 @@ RUN pnpm install --unsafe-perm
 
 When this CodeBuild project executes, it uses the Docker image as base -- the dependencies are already installed -- and runs the same commands as the `CdkDeployProject` to deploy the `Phase` stacks.
 
-##### 2.1.2.2. Passing Data to Phase Steps and Phase Stacks
+### 4.3.2. Passing Data to Phase Steps and Phase Stacks
 
 Some steps in the state machine write data to Amazon DynamoDB. This data is necessary to deploy the `Phase` stacks later on. At one time this data was written to Secrets Manager and/or S3, these mechanisms were deemed ineffective due to object size limitations or consistency challenges and were all eventually migrated to DynamoDB.
 
@@ -262,7 +262,7 @@ Other data is passed through environment variables:
 - `ACCELERATOR_PREFIX`: The prefix for all named Accelerator-managed resources;
 - `ACCELERATOR_EXECUTION_ROLE_NAME`: The name of the execution role in the Accelerator-managed accounts. This is the `PipelineRole` we created using stack sets.
 
-#### 2.1.3. Phase Steps and Phase Stacks
+## 4.4. Phase Steps and Phase Stacks
 
 Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initial-setup-stack) first before reading this section. This section is a technical addition to the _Deploy Phase X_ sections in the Operations Guide.
 
@@ -276,18 +276,22 @@ The [`cdk.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator
 
 The `cdk.ts` command parses command line arguments and creates all the `cdk.App` for all accounts and regions for the given `--phase`. When you pass the `--region` or `--account-key` command, all the `cdk.App` for all accounts and regions will still be created, except that only the `cdk.App`s matching the parameters will be deployed. This behavior could be optimized in the future. See [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions) for more information why we're creating multiple `cdk.App`s.
 
+## 4.5. Store outputs to SSM Parameter Store
 
-#### 2.1.4. Store outputs to SSM Parameter Store
+Customers need the CloudFormation outputs of resources that are created by the accelerator in order to deploy their own resources in AWS. eg. vpcId in shared-network account to create an ec2 instance, etc.
 
-Customers need outputs of resources that are created by accelerator for deploying their resources in AWS. eg. vpcId in shared-network account to create an ec2 instance etc..
+This step loads the stack outputs from our DynamoDB Table `PBMMAccel-Outputs` and stores as key value pairs in SSM Parameter Store in each account.
 
-This step loads stack outputs from DynamoDB Table `PBMMAccel-Outputs` and stores as key value pairs in SSM Parameter Store in each account.
+Example values are
 
-Example values are /PBMMAccel/network/vpc/1/name => Endpoint, /PBMMAccel/network/vpc/1/id => vpc-XXXXXXXXXX. 
+- /PBMMAccel/network/vpc/1/name => Endpoint
+- /PBMMAccel/network/vpc/1/id => vpc-XXXXXXXXXX
 
 `PBMMAccel-Outputs-Utils` DynamoDB Table is used extensively to maintain same index irrespective of configuration changes.
 
-##### 2.1.3.1. Phases and Deployments
+This allows customers to reliably build Infrastructure as Code (IaC) which depends on accelerator deployed objects like VPC's, security groups, subnets, ELB's, KMS keys, IAM users and policies. Rather than making the parameters dependent on object names, we used an indexing scheme, which we maintain and don't update as a customers configuration changes. We have attempted to keep the index values consistent across accounts (based on the config file), such that when code is propoted through the SDLC cycle from Dev to Test to Prod, the input parameters to the IaC scripts do not need to be updated, the App subnet, for example, will have the same index value in all accounts.
+
+### 4.5.1. Phases and Deployments
 
 The `cdk.ts` file calls the `deploy` method in the `apps/app.ts`. This `deploy` method loads the Accelerator configuration, accounts, organizations from DynamoDB; loads the stack outputs from Amazon DynamoDB; and loads required environment variables.
 
@@ -358,7 +362,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, outpu
 }
 ```
 
-##### 2.1.3.2. Passing Outputs between Phases
+### 4.5.2. Passing Outputs between Phases
 
 The CodeBuild step that is responsible for deploying a `Phase` stack runs in the Organization Management (root) account. We wrote a CDK plugin that allows the CDK deploy step to assume a role in the Accelerator-managed account and create the CloudFormation `Phase` stack in the managed account. See [CDK Assume Role Plugin](#cdk-assume-role-plugin).
 
@@ -368,7 +372,7 @@ Then the next `Phase-X+1` deploys using the outputs from the previous `Phase-X` 
 
 See [Creating Stack Outputs](#creating-stack-outputs) for helper constructs to create outputs.
 
-##### 2.1.3.3. Decoupling Configuration from Constructs
+### 4.5.3. Decoupling Configuration from Constructs
 
 At the start of the project we created constructs that had tight coupling to the Accelerator config structure. The properties to instantiate a construct would sometimes have a reference to an Accelerator-specific interface. An example of this is the `Vpc` construct in `src/deployments/cdk/common/vpc.ts`.
 
@@ -376,15 +380,15 @@ Later on in the project we started decoupling the Accelerator config from the co
 
 Decoupling the configuration from the constructs improves reusability and robustness of the codebase.
 
-### 2.2. Libraries & Tools
+## 4.6. Libraries & Tools
 
-#### 2.2.1. CDK Assume Role Plugin
+### 4.6.1. CDK Assume Role Plugin
 
 At the time of writing, CDK does not support cross-account deployments of stacks. It is possible however to write a CDK plugin and implement your own credential loader for cross-account deployment.
 
 We wrote a CDK plugin that can assume a role into another account. In our case, the Organization Management (root) account will assume the `PipelineRole` in an Accelerator-managed account to deploy stacks.
 
-#### 2.2.2. CDK API
+### 4.6.2. CDK API
 
 We use the internal CDK API to deploy the `Phase` stacks instead of the CDK CLI for the following reasons:
 
@@ -397,19 +401,19 @@ The helper class `CdkToolkit` in `toolkit.ts` wraps around the CDK API.
 
 The risk of using the CDK API directly is that the CDK API can change at any time. There is no stable API yet. When upgrading the CDK version, the `CdkToolkit` wrapper might need to be adapted.
 
-#### 2.2.3. AWS SDK Wrappers
+### 4.6.3. AWS SDK Wrappers
 
 You can find `aws-sdk` wrappers in the `src/lib/common/src/aws` folder. Most of the classes and functions just wrap around `aws-sdk` classes and implement promises and exponential backoff to retryable errors. Other classes, like `Organizations` have additional functionality such as listing all the organizational units in an organization in the function `listOrganizationalUnits`.
 
 Please use the `aws-sdk` wrappers throughout the project or write an additional wrapper when necessary.
 
-#### 2.2.4. Configuration File Parsing
+### 4.6.4. Configuration File Parsing
 
 The configuration file is defined and validated using the [`io-ts`](https://github.com/gcanti/io-ts) library. See `src/lib/common-config/src/index.ts`. In case any changes need to be made to the configuration file parsing, this is the place to be.
 
 We wrap a class around the `AcceleratorConfig` type that contains additional helper functions. You can add your own additional helper functions.
 
-##### 2.2.4.1. `AcceleratorNameTagger`
+#### 4.6.4.1. `AcceleratorNameTagger`
 
 `AcceleratorNameTagger` is a [CDK aspect](https://docs.aws.amazon.com/cdk/latest/guide/aspects.html) that sets the name tag on specific resources based on the construct ID of the resource.
 
@@ -432,19 +436,19 @@ Resources:
           Value: SharedNetwork_vpc
 ```
 
-##### 2.2.4.2. `AcceleratorStack`
+#### 4.6.4.2. `AcceleratorStack`
 
 `AcceleratorStack` is a class that extends `cdk.Stack` and adds the `Accelerator` tag to all resources in the stack. It also applies the aspect `AcceleratorNameTagger`.
 
 It is also used by the `accelerator-name-generator.ts` functions to find the name of the `Accelerator`.
 
-##### 2.2.4.3. Name Generator
+#### 4.6.4.3. Name Generator
 
 The `accelerator-name-generator.ts` file contains methods that create names for resources that are optionally prefixed with the Accelerator name, and optionally suffixed with a hash based on the path of the resource, the account ID and region of the stack.
 
 The functions should be used to create pseudo-random names for IAM roles, KMS keys, key pairs and log groups.
 
-##### 2.2.4.4. `AccountStacks`
+#### 4.6.4.4. `AccountStacks`
 
 `AccountStacks` is a class that manages the creation of an `AcceleratorStack` based on a given account key and region. If an account with the given account key cannot be found in the accounts object -- which is loaded by `apps/app.ts` then no stack will be created. This class is used extensively throughout the phases and deployment steps.
 
@@ -474,13 +478,13 @@ export async function step1(props: CertificatesStep1Props) {
 }
 ```
 
-##### 2.2.4.5. `Vpc` and `ImportedVpc`
+#### 4.6.4.5. `Vpc` and `ImportedVpc`
 
 `Vpc` is an interface in the `src/lib/cdk-constructs/src/vpc/vpc.ts` file that attempts to define an interface for a VPC. The goal of the interface is to be implemented by a `cdk.Construct` that implements the interface. This CDK issue provides more background [https://github.com/aws/aws-cdk/issues/5927].
 
 Another goal of the interface is to provide an interface on top of imported VPC outputs. This is what the `ImportedVpc` class implements. The class loads outputs from VPC in a previous phase and implements the `Vpc` interface on top of those outputs.
 
-##### 2.2.4.6. `Limiter`
+#### 4.6.4.6. `Limiter`
 
 So far we haven't talked about limits yet. There is a step in the `Initial Setup` state machine that requests limit increases according to the desired limits in the configuration file. The step saves the current limits to the `limits` key in the DynamoDB table `PBMMAccel-Parameters`. The `apps/app.ts` file loads the limits and passes them as an input to the phase deployment.
 
@@ -500,7 +504,7 @@ for (const { ouKey, accountKey, vpcConfig, deployments } of acceleratorConfig.ge
 
 > _Action Item:_ This functionality could be redesigned to scan all the constructs in a `cdk.App` and remove resource that are exceeding any limits.
 
-#### 2.2.5. Creating Stack Outputs
+### 4.6.5. Creating Stack Outputs
 
 Initially we would create stack outputs like this:
 
@@ -573,7 +577,7 @@ const firewallInstance = firewallInstances.find(i => i.name === target.name && i
 
 Generally you would place the output type definition inside `src/lib/common-outputs` along with the output finder. Then in the deployment folder in `src/deployments/cdk/deployments` you would create an `output.ts` file where you would define the CDK output type with `createCfnStructuredOutput`. You would not define the CDK output type in `src/lib/common-outputs` since that project is also used by runtime code that does not need to know about CDK and CloudFormation.
 
-##### 2.2.5.1. Adding Tags to Shared Resources in Destination Account
+#### 4.6.5.1. Adding Tags to Shared Resources in Destination Account
 
 There is another special type of output, `AddTagsToResourcesOutput`. It can be used to attach tags to resources that are shared into another account.
 
@@ -595,13 +599,13 @@ This will add the outputs to the stack in the account that is initiating the res
 
 Next, the state machine step `Add Tags to Shared Resources` looks for all those outputs. The step will assume the `PipelineRole` in the `targetAccountIds` and attach the given tags to the shared resource.
 
-#### 2.2.6. Custom Resources
+### 4.6.6. Custom Resources
 
 There are different ways to create a custom resource using CDK. See the [Custom Resource](#custom-resource) section for more information.
 
 All custom resources have a `README.md` that demonstrates their usage.
 
-##### 2.2.6.1. Externalizing `aws-sdk`
+#### 4.6.6.1. Externalizing `aws-sdk`
 
 Some custom resources set the `aws-sdk` as external dependency and some do not.
 
@@ -639,7 +643,7 @@ For example the method `AWS.GuardDuty.enableOrganizationAdminAccount` was only i
 
 `src/lib/custom-resources/cdk-kms-grant/runtime/package.json`
 
-##### 2.2.6.2. cfn-response
+#### 4.6.6.2. cfn-response
 
 This library helps you send a custom resource response to CloudFormation.
 
@@ -664,11 +668,11 @@ async function onEvent(event: CloudFormationCustomResourceEvent) {
 }
 ```
 
-##### 2.2.6.3. cfn-tags
+#### 4.6.6.3. cfn-tags
 
 This library helps you send attaching tags to resource created in a custom resource.
 
-##### 2.2.6.4. webpack-base
+#### 4.6.6.4. webpack-base
 
 This library defines the base Webpack template to compile custom resource runtime code.
 
@@ -712,15 +716,15 @@ import pkg from './package.json';
 export default webpackConfigurationForPackage(pkg);
 ```
 
-### 2.3. Workarounds
+## 4.7. Workarounds
 
-#### 2.3.1. Stacks with Same Name in Different Regions
+### 4.7.1. Stacks with Same Name in Different Regions
 
 The reason we're creating a `cdk.App` per account and per region and per phase is because stack names across environments might overlap, and at the time of writing, the CDK CLI does not handle stacks with the same name well. For example, when there is a stack `Phase1` in `us-east-1` and another stack `Phase1` in `ca-central-1`, the stacks will both be synthesized by CDK to the `cdk.out/Phase1.template.json` file and one stack will overwrite another's output. Using multiple `cdk.App`s overcomes this issues as a different `outdir` can be set on each `cdk.App`. These `cdk.App`s are managed by the `AccountStacks` abstraction.
 
-### 2.4. Local Development
+## 4.8. Local Development
 
-#### 2.4.1. Installer Stack
+### 4.8.1. Installer Stack
 
 Use CDK to synthesize the CloudFormation template.
 
@@ -738,13 +742,13 @@ cd accelerator/installer
 pnpx cdk deploy --parameters GithubBranch=master --parameters ConfigS3Bucket=pbmmaccel-myconfigbucket
 ```
 
-#### 2.4.2. Initial Setup Stack
+### 4.8.2. Initial Setup Stack
 
 There is a script called `cdk.sh` in `src/core/cdk` that allows you to deploy the Initial Setup stack.
 
 The script sets the required environment variables and makes sure all workspace projects are built before deploying the CDK stack.
 
-#### 2.4.3. Phase Stacks
+### 4.8.3. Phase Stacks
 
 There is a script called `cdk.sh` in `src/deployments/cdk` that allows you to deploy a phase stack straight from the command-line without having to deploy the Initial Setup stack first.
 
@@ -861,7 +865,7 @@ cd src/deployments/cdk
 ./cdk.sh synth --phase 1
 ```
 
-### 2.5. Testing
+## 4.9. Testing
 
 We use `jest` for unit testing. There are no integration tests but this could be set-up by configuring the `Installer` CodePipeline to have a webhook on the repository and deploying changes automatically.
 
@@ -873,7 +877,7 @@ pnpx recursive run test -- --pass-with-no-tests --silent
 
 See CDK's documentation on [Testing constructs](https://docs.aws.amazon.com/cdk/latest/guide/testing.html) for more information on how to tests CDK constructs.
 
-#### 2.5.1. Validating Immutable Property Changes and Logical ID Changes
+### 4.9.1. Validating Immutable Property Changes and Logical ID Changes
 
 The most important unit test in this project is one that validates that logical IDs and immutable properties do not change unexpectedly. To avoid the issues described in section [Resource Names and Logical IDs](#resource-names-and-logical-ids), [Changing Logical IDs](#changing-logical-ids) and [Changing (Immutable) Properties](#changing-immutable-properties).
 
@@ -887,7 +891,7 @@ pnpx run test -- -u
 
 See [Accept Unit Test Snapshot Changes](#accept-unit-test-snapshot-changes).
 
-#### 2.5.2. Upgrade CDK
+### 4.9.2. Upgrade CDK
 
 There's a test in the file `src/deployments/cdk/test/apps/unsupported-changes.spec.ts` that is currently commented out. The test takes a snapshot of the whole `Phase` stack and compares the snapshot to changes in the code.
 
@@ -904,11 +908,11 @@ Before upgrading CDK we uncomment this test. We run the test to update all the s
 
 > _Action Item:_ Automate this process.
 
-## 3. Best Practices
+# 5. Best Practices
 
-### 3.1. TypeScript and NodeJS
+## 5.1. TypeScript and NodeJS
 
-#### 3.1.1. Handle Unhandled Promises
+### 5.1.1. Handle Unhandled Promises
 
 Entry point TypeScript files -- files that start execution instead of just defining methods and classes -- should have the following code snippet at the start of the file.
 
@@ -921,9 +925,9 @@ process.on('unhandledRejection', (reason, _) => {
 
 This prevents unhandled promise rejection errors by NodeJS. Please read https://medium.com/dailyjs/how-to-prevent-your-node-js-process-from-crashing-5d40247b8ab2 for more information.
 
-### 3.2. CloudFormation
+## 5.2. CloudFormation
 
-#### 3.2.1. Cross-Account/Region References
+### 5.2.1. Cross-Account/Region References
 
 When managing multiple AWS accounts, the Accelerator may need permissions to modify resources in the managed accounts. For example, a transit gateway could be created in a shared network account and it need to be shared to the perimeter account to create a VPN connection.
 
@@ -938,7 +942,7 @@ In a multi-account environment this is not possible and we had to find a way to 
 
 See [Passing Outputs Between Phases](#passing-outputs-between-phases).
 
-#### 3.2.2. Resource Names and Logical IDs
+### 5.2.2. Resource Names and Logical IDs
 
 Some resources, like `AWS::S3::Bucket`, can have an explicit name. Setting an explicit name can introduce some possible issues.
 
@@ -958,13 +962,13 @@ The best way to prevent this issue from happening is to not explicitly set a nam
 
 Another issue could occur when changing the logical ID of the named resource. This is documented in the following section.
 
-#### 3.2.3. Changing Logical IDs
+### 5.2.3. Changing Logical IDs
 
 When changing the logical ID of a resource CloudFormation assumes the resource is a new resource since it has a logical ID it does not know yet. When updating a stack, CloudFormation will always prioritize resource creation before deletion.
 
 The following issue could occur when the resource has an explicit name. CloudFormation will try to create the resource anew and will fail since a resource with the given name already exists. Example of resources where this could happen are `AWS::S3::Bucket`, `AWS::SecretManager::Secret`.
 
-#### 3.2.4. Changing (Immutable) Properties
+### 5.2.4. Changing (Immutable) Properties
 
 Not only changing logical IDs could cause CloudFormation to replace resources. Changing immutable properties also cause replacement of resources. See [Update behaviors of stack resources](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement).
 
@@ -995,17 +999,17 @@ export class LaunchConfiguration extends autoscaling.CfnLaunchConfiguration {
 }
 ```
 
-### 3.3. CDK
+## 5.3. CDK
 
 CDK makes heavy use of CloudFormation so all best practices that apply to CloudFormation also apply to CDK.
 
-#### 3.3.1. Logical IDs
+### 5.3.1. Logical IDs
 
 The logical ID of a CDK component is calculated based on its path in the construct tree. Be careful moving around constructs in the construct tree -- e.g. changing the parent of a construct or nesting a construct in another construct -- as this will change the logical ID of the construct. Then you could end up with the issues described in section [Changing Logical IDs](#changing-logical-ids) and section [Changing (Immutable) Properties](#changing-immutable-properties).
 
 See [Logical ID Stability](https://docs.aws.amazon.com/cdk/latest/guide/identifiers.html#identifiers_logical_id_stability) for more information.
 
-#### 3.3.2. Moving Resources between Nested Stacks
+### 5.3.2. Moving Resources between Nested Stacks
 
 In some cases we use nested stacks to overcome [the limit of 200 CloudFormation resources per stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cloudformation-limits.html).
 
@@ -1029,13 +1033,13 @@ for (const endpoint of endpointConfig.endpoints) {
 
 We have to be careful here though. Suppose the configuration file contains 40 interface endpoints. The first 30 interface endpoints will be created in the first nested stack; the next 10 interface endpoints will be created in the second nested stack. Suppose now that we remove the first nested endpoint from the configuration file. This will cause the 31st interface endpoint to become the 30th interface endpoint in the list and it will cause the interface endpoint to be moved from the second nested stack to the first nested stack. This will cause the stack updates to fail since CloudFormation will first try to create the interface endpoint in the first nested stack before removing it from the second nested stack. We do currently not support changes to the interface endpoint configuration because of this behavior.
 
-#### 3.3.3. L1 vs. L2 Constructs
+### 5.3.3. L1 vs. L2 Constructs
 
 See [AWS Construct library](https://docs.aws.amazon.com/cdk/latest/guide/constructs.html#constructs_lib) for an explanation on L1 and L2 constructs.
 
 The L2 constructs for EC2 and VPC do not map well onto the Accelerator-managed resources. For this reason we mostly use L1 CDK constructs -- such as `ec2.CfnVPC`, `ec2.CfnSubnet` -- instead of using L2 CDK constructs -- such as `ec2.Vpc` and `ec2.Subnet`.
 
-#### 3.3.4. CDK Code Dependency on Lambda Function Code
+### 5.3.4. CDK Code Dependency on Lambda Function Code
 
 You can read about the distinction between CDK code and runtime code in the introduction of the [Development](#development) section.
 
@@ -1103,7 +1107,7 @@ You now have a CDK Lambda function that uses the compiled Lambda function runtim
 
 > _Note_: The runtime code needs to recompile every time it changes since the `prepare` script only runs when the runtime workspace is installed.
 
-#### 3.3.5. Custom Resource
+### 5.3.5. Custom Resource
 
 We create custom resources for functionality that is not supported natively by CloudFormation. We have two types of custom resources in this project:
 
@@ -1149,11 +1153,11 @@ class CustomResource extends cdk.Construct {
 }
 ```
 
-#### 3.3.6. Escape Hatches
+### 5.3.6. Escape Hatches
 
 Sometimes CDK does not support a property on a resource that CloudFormation does support. You can then override the property using the `addOverride` or `addPropertyOverride` methods on CDK CloudFormation resources. See [CDK escape hatches](https://docs.aws.amazon.com/cdk/latest/guide/cfn_layer.html).
 
-##### 3.3.6.1. AutoScaling Group Metadata
+#### 5.3.6.1. AutoScaling Group Metadata
 
 An example where we override metadata is when we create a launch configuration.S
 
@@ -1186,7 +1190,7 @@ launchConfig.addOverride('Metadata.AWS::CloudFormation::Init', {
 });
 ```
 
-##### 3.3.6.2. Secret `SecretValue`
+#### 5.3.6.2. Secret `SecretValue`
 
 Another example is when we want to use `secretsmanager.Secret` and set the secret value.
 
@@ -1198,11 +1202,11 @@ function setSecretValue(secret: secrets.Secret, value: string) {
 }
 ```
 
-## 4. Contributing Guidelines
+# 6. Contributing Guidelines
 
-### 4.1. How-to
+## 6.1. How-to
 
-#### 4.1.1. Adding New Functionality?
+## 6.2. Adding New Functionality?
 
 Before making a change or adding new functionality you have to verify what kind of functionality is being added.
 
@@ -1224,11 +1228,11 @@ Before making a change or adding new functionality you have to verify what kind 
     - Is the change runtime related?
       - Make the change in `src/deployments/runtime`
 
-#### 4.1.2. Create a CDK Lambda Function with Lambda Runtime Code
+## 6.3. Create a CDK Lambda Function with Lambda Runtime Code
 
 See [CDK Code Dependency on Lambda Function Code](#cdk-code-dependency-on-lambda-function-code) for a short introduction.
 
-#### 4.1.3. Create a Custom Resource
+## 6.4. Create a Custom Resource
 
 See [Custom Resource](#custom-resource) and [Custom Resources](#custom-resources) for a short introduction.
 
@@ -1245,7 +1249,7 @@ You can look at the `src/lib/custom-resources/cdk-acm-import-certificate` custom
 
 It is best practice to add tags to any resources that the custom resource creates using the `cfn-tags` library.
 
-#### 4.1.4. Run All Unit Tests
+## 6.5. Run All Unit Tests
 
 Run in the root of the project.
 
@@ -1253,7 +1257,7 @@ Run in the root of the project.
 pnpm recursive run test --no-bail --stream -- --silent
 ```
 
-#### 4.1.5. Accept Unit Test Snapshot Changes
+## 6.6. Accept Unit Test Snapshot Changes
 
 Run in `src/deployments/cdk`.
 
@@ -1261,7 +1265,7 @@ Run in `src/deployments/cdk`.
 pnpm run test -- -u
 ```
 
-#### 4.1.6. Validate Code with Prettier
+## 6.7. Validate Code with Prettier
 
 Run in the root of the project.
 
@@ -1269,7 +1273,7 @@ Run in the root of the project.
 pnpx prettier --check **/*.ts
 ```
 
-#### 4.1.7. Format Code with Prettier
+## 6.8. Format Code with Prettier
 
 Run in the root of the project.
 
@@ -1277,7 +1281,7 @@ Run in the root of the project.
 pnpx prettier --write **/*.ts
 ```
 
-#### 4.1.8. Validate Code with `tslint`
+## 6.9. Validate Code with `tslint`
 
 Run in the root of the project.
 
