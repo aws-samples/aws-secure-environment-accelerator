@@ -1,7 +1,6 @@
 ## AWS Config Rules Configuration generator script
 
-This script takes cloudformation yaml/json for confermence packs as input and generates config rules configuration with respect to accelerator.
-
+This script take an AWS Conformance pack template (cloudformation yaml/json) found [here](https://docs.aws.amazon.com/config/latest/developerguide/conformancepack-sample-templates.html) as input and generates a configuration file containing the corresponding config rules and parameters formatted for consumption by the AWS Secure Environment Accelerator. 
 
 ### Usage
 
