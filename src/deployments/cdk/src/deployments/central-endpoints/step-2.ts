@@ -46,8 +46,6 @@ export async function step2(props: CentralEndpointsStep2Props) {
   // Create resolvers for all VPC configs
   const vpcConfigs = config.getVpcConfigs();
   const madConfigs = config.getMadConfigs();
-  const zonesConfig = config['global-options'].zones;
-  const accountRulesCounter: { [accountKey: string]: number } = {};
 
   const allStaticResources: StaticResourcesOutput[] = StaticResourcesOutputFinder.findAll({
     outputs,
@@ -88,11 +86,9 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
     /**
      * Checking if current VPC is under Regional Central VPCs (global-options/zones),
-     *  If yes the only we will share Rules from this account to another accounts
+     *  If yes then only we will share Rules from this account to another accounts
      */
-    const isRuleShareNeeded = !!zonesConfig.find(
-      zc => zc.account === accountKey && zc.region === vpcConfig.region && zc['resolver-vpc'] === vpcConfig.name,
-    );
+    const isRuleShareNeeded = vpcConfig['central-endpoint'];
     const vpcSubnet = vpcConfig.subnets?.find(s => s.name === resolversConfig.subnet);
     if (!vpcSubnet) {
       console.error(
@@ -165,9 +161,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
     suffix = accountRegionMaxSuffix[accountKey][vpcConfig.region];
     stackSuffix = `${STACK_COMMON_SUFFIX}-${suffix}`;
-    const centralVpc = !!zonesConfig.find(
-      zc => zc.account === accountKey && zc['resolver-vpc'] === vpcConfig.name && zc.region === vpcConfig.region,
-    );
+    const centralVpc = vpcConfig['central-endpoint'];
     if (centralVpc) {
       stackSuffix = STACK_CENTRAL_VPC_COMMON_SUFFIX;
     } else {
