@@ -8,59 +8,80 @@ It is important to read the [Operations Guide](../operations/operations-troubles
 
 <!-- TOC depthFrom:2 depthTo:4 -->
 
-- [1. Technology Stack](#1-technology-stack)
-  - [1.1. TypeScript and NodeJS](#11-typescript-and-nodejs)
-    - [1.1.1. pnpm](#111-pnpm)
-    - [1.1.2. prettier](#112-prettier)
-    - [1.1.3. eslint](#113-eslint)
-  - [1.2. CloudFormation](#12-cloudformation)
-  - [1.3. CDK](#13-cdk)
-- [2. Development](#2-development)
-  - [2.1. Project Structure](#21-project-structure)
-    - [2.1.1. Installer Stack](#211-installer-stack)
-    - [2.1.2. Initial Setup Stack](#212-initial-setup-stack)
-    - [2.1.3. Phase Steps and Phase Stacks](#213-phase-steps-and-phase-stacks)
-  - [2.2. Libraries & Tools](#22-libraries--tools)
-    - [2.2.1. CDK Assume Role Plugin](#221-cdk-assume-role-plugin)
-    - [2.2.2. CDK API](#222-cdk-api)
-    - [2.2.3. AWS SDK Wrappers](#223-aws-sdk-wrappers)
-    - [2.2.4. Configuration File Parsing](#224-configuration-file-parsing)
-    - [2.2.5. Creating Stack Outputs](#225-creating-stack-outputs)
-    - [2.2.6. Custom Resources](#226-custom-resources)
-  - [2.3. Workarounds](#23-workarounds)
-    - [2.3.1. Stacks with Same Name in Different Regions](#231-stacks-with-same-name-in-different-regions)
-  - [2.4. Local Development](#24-local-development)
-    - [2.4.1. Installer Stack](#241-installer-stack)
-    - [2.4.2. Initial Setup Stack](#242-initial-setup-stack)
-    - [2.4.3. Phase Stacks](#243-phase-stacks)
-  - [2.5. Testing](#25-testing)
-    - [2.5.1. Validating Immutable Property Changes and Logical ID Changes](#251-validating-immutable-property-changes-and-logical-id-changes)
-    - [2.5.2. Upgrade CDK](#252-upgrade-cdk)
-- [3. Best Practices](#3-best-practices)
-  - [3.1. TypeScript and NodeJS](#31-typescript-and-nodejs)
-    - [3.1.1. Handle Unhandled Promises](#311-handle-unhandled-promises)
-  - [3.2. CloudFormation](#32-cloudformation)
-    - [3.2.1. Cross-Account/Region References](#321-cross-accountregion-references)
-    - [3.2.2. Resource Names and Logical IDs](#322-resource-names-and-logical-ids)
-    - [3.2.3. Changing Logical IDs](#323-changing-logical-ids)
-    - [3.2.4. Changing (Immutable) Properties](#324-changing-immutable-properties)
-  - [3.3. CDK](#33-cdk)
-    - [3.3.1. Logical IDs](#331-logical-ids)
-    - [3.3.2. Moving Resources between Nested Stacks](#332-moving-resources-between-nested-stacks)
-    - [3.3.3. L1 vs. L2 Constructs](#333-l1-vs-l2-constructs)
-    - [3.3.4. CDK Code Dependency on Lambda Function Code](#334-cdk-code-dependency-on-lambda-function-code)
-    - [3.3.5. Custom Resource](#335-custom-resource)
-    - [3.3.6. Escape Hatches](#336-escape-hatches)
-- [4. Contributing Guidelines](#4-contributing-guidelines)
-  - [4.1. How-to](#41-how-to)
-    - [4.1.1. Adding New Functionality?](#411-adding-new-functionality)
-    - [4.1.2. Create a CDK Lambda Function with Lambda Runtime Code](#412-create-a-cdk-lambda-function-with-lambda-runtime-code)
-    - [4.1.3. Create a Custom Resource](#413-create-a-custom-resource)
-    - [4.1.4. Run All Unit Tests](#414-run-all-unit-tests)
-    - [4.1.5. Accept Unit Test Snapshot Changes](#415-accept-unit-test-snapshot-changes)
-    - [4.1.6. Validate Code with Prettier](#416-validate-code-with-prettier)
-    - [4.1.7. Format Code with Prettier](#417-format-code-with-prettier)
-    - [4.1.8. Validate Code with `tslint`](#418-validate-code-with-tslint)
+- [Developer Guide](#developer-guide)
+- [Table of Contents](#table-of-contents)
+  - [1. Technology Stack](#1-technology-stack)
+    - [1.1. TypeScript and NodeJS](#11-typescript-and-nodejs)
+      - [1.1.1. pnpm](#111-pnpm)
+      - [1.1.2. prettier](#112-prettier)
+      - [1.1.3. eslint](#113-eslint)
+    - [1.2. CloudFormation](#12-cloudformation)
+    - [1.3. CDK](#13-cdk)
+  - [2. Development](#2-development)
+    - [2.1. Project Structure](#21-project-structure)
+      - [2.1.1. Installer Stack](#211-installer-stack)
+      - [2.1.2. Initial Setup Stack](#212-initial-setup-stack)
+        - [2.1.2.1. CodeBuild and Prebuilt Docker Image](#2121-codebuild-and-prebuilt-docker-image)
+        - [2.1.2.2. Passing Data to Phase Steps and Phase Stacks](#2122-passing-data-to-phase-steps-and-phase-stacks)
+      - [2.1.3. Phase Steps and Phase Stacks](#213-phase-steps-and-phase-stacks)
+      - [2.1.4. Store outputs to SSM Parameter Store](#214-store-outputs-to-ssm-parameter-store)
+        - [2.1.3.1. Phases and Deployments](#2131-phases-and-deployments)
+        - [2.1.3.2. Passing Outputs between Phases](#2132-passing-outputs-between-phases)
+        - [2.1.3.3. Decoupling Configuration from Constructs](#2133-decoupling-configuration-from-constructs)
+    - [2.2. Libraries & Tools](#22-libraries--tools)
+      - [2.2.1. CDK Assume Role Plugin](#221-cdk-assume-role-plugin)
+      - [2.2.2. CDK API](#222-cdk-api)
+      - [2.2.3. AWS SDK Wrappers](#223-aws-sdk-wrappers)
+      - [2.2.4. Configuration File Parsing](#224-configuration-file-parsing)
+        - [2.2.4.1. `AcceleratorNameTagger`](#2241-acceleratornametagger)
+        - [2.2.4.2. `AcceleratorStack`](#2242-acceleratorstack)
+        - [2.2.4.3. Name Generator](#2243-name-generator)
+        - [2.2.4.4. `AccountStacks`](#2244-accountstacks)
+        - [2.2.4.5. `Vpc` and `ImportedVpc`](#2245-vpc-and-importedvpc)
+        - [2.2.4.6. `Limiter`](#2246-limiter)
+      - [2.2.5. Creating Stack Outputs](#225-creating-stack-outputs)
+        - [2.2.5.1. Adding Tags to Shared Resources in Destination Account](#2251-adding-tags-to-shared-resources-in-destination-account)
+      - [2.2.6. Custom Resources](#226-custom-resources)
+        - [2.2.6.1. Externalizing `aws-sdk`](#2261-externalizing-aws-sdk)
+        - [2.2.6.2. cfn-response](#2262-cfn-response)
+        - [2.2.6.3. cfn-tags](#2263-cfn-tags)
+        - [2.2.6.4. webpack-base](#2264-webpack-base)
+    - [2.3. Workarounds](#23-workarounds)
+      - [2.3.1. Stacks with Same Name in Different Regions](#231-stacks-with-same-name-in-different-regions)
+    - [2.4. Local Development](#24-local-development)
+      - [2.4.1. Installer Stack](#241-installer-stack)
+      - [2.4.2. Initial Setup Stack](#242-initial-setup-stack)
+      - [2.4.3. Phase Stacks](#243-phase-stacks)
+    - [2.5. Testing](#25-testing)
+      - [2.5.1. Validating Immutable Property Changes and Logical ID Changes](#251-validating-immutable-property-changes-and-logical-id-changes)
+      - [2.5.2. Upgrade CDK](#252-upgrade-cdk)
+  - [3. Best Practices](#3-best-practices)
+    - [3.1. TypeScript and NodeJS](#31-typescript-and-nodejs)
+      - [3.1.1. Handle Unhandled Promises](#311-handle-unhandled-promises)
+    - [3.2. CloudFormation](#32-cloudformation)
+      - [3.2.1. Cross-Account/Region References](#321-cross-accountregion-references)
+      - [3.2.2. Resource Names and Logical IDs](#322-resource-names-and-logical-ids)
+      - [3.2.3. Changing Logical IDs](#323-changing-logical-ids)
+      - [3.2.4. Changing (Immutable) Properties](#324-changing-immutable-properties)
+    - [3.3. CDK](#33-cdk)
+      - [3.3.1. Logical IDs](#331-logical-ids)
+      - [3.3.2. Moving Resources between Nested Stacks](#332-moving-resources-between-nested-stacks)
+      - [3.3.3. L1 vs. L2 Constructs](#333-l1-vs-l2-constructs)
+      - [3.3.4. CDK Code Dependency on Lambda Function Code](#334-cdk-code-dependency-on-lambda-function-code)
+      - [3.3.5. Custom Resource](#335-custom-resource)
+      - [3.3.6. Escape Hatches](#336-escape-hatches)
+        - [3.3.6.1. AutoScaling Group Metadata](#3361-autoscaling-group-metadata)
+        - [3.3.6.2. Secret `SecretValue`](#3362-secret-secretvalue)
+  - [4. Contributing Guidelines](#4-contributing-guidelines)
+    - [4.1. How-to](#41-how-to)
+      - [4.1.1. Adding New Functionality?](#411-adding-new-functionality)
+      - [4.1.2. Create a CDK Lambda Function with Lambda Runtime Code](#412-create-a-cdk-lambda-function-with-lambda-runtime-code)
+      - [4.1.3. Create a Custom Resource](#413-create-a-custom-resource)
+      - [4.1.4. Run All Unit Tests](#414-run-all-unit-tests)
+      - [4.1.5. Accept Unit Test Snapshot Changes](#415-accept-unit-test-snapshot-changes)
+      - [4.1.6. Validate Code with Prettier](#416-validate-code-with-prettier)
+      - [4.1.7. Format Code with Prettier](#417-format-code-with-prettier)
+      - [4.1.8. Validate Code with `tslint`](#418-validate-code-with-tslint)
 
 <!-- /TOC -->
 
@@ -233,7 +254,7 @@ Some steps in the state machine write data to Amazon DynamoDB. This data is nece
 - `Load Accounts` step: This step finds the Accelerator-managed accounts in AWS Organizations and stores the account key -- the key of the account in `mandatory-account-configs` or `workload-account-configs` object in the Accelerator config -- and account ID and other useful information in the `PBMMAccel-Parameters` table, `accounts/#` key and `accounts-items-count` key;
 - `Load Organizations` step: More or less the same as the `Load Accounts` step but for organizational units in AWS Organizations and stores the values in the `PBMMAccel-Parameters` table, `organizations` key;
 - `Load Limits` step: This step requests limit increases for Accelerator-managed accounts and stores the current limits in the the `PBMMAccel-Parameters` table, `limits` key.
-- `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores the outputs in the DynamoDB table `PBMMAccel-Outputs` and also leverages the DynamoDB table `PBMMAccel-Outputs-Utils`.
+- `Store Phase X Output`: This step loads stack outputs from all existing `Phase` stacks and stores the outputs in the DynamoDB table `PBMMAccel-Outputs`.
 
 Other data is passed through environment variables:
 
@@ -254,6 +275,17 @@ The [`codebuild-deploy.sh`](https://github.com/aws-samples/aws-secure-environmen
 The [`cdk.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/src/deployments/cdk/cdk.ts) file is meant as a replacement for the `cdk` CLI command. To deploy a phase stack you would **not** run `pnpx cdk deploy` but `cdk.sh --phase 1`. See [CDK API](#cdk-api) for more information why we use the CDK API instead of using the CDK CLI.
 
 The `cdk.ts` command parses command line arguments and creates all the `cdk.App` for all accounts and regions for the given `--phase`. When you pass the `--region` or `--account-key` command, all the `cdk.App` for all accounts and regions will still be created, except that only the `cdk.App`s matching the parameters will be deployed. This behavior could be optimized in the future. See [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions) for more information why we're creating multiple `cdk.App`s.
+
+
+#### 2.1.4. Store outputs to SSM Parameter Store
+
+Customers need outputs of resources that are created by accelerator for deploying their resources in AWS. eg. vpcId in shared-network account to create an ec2 instance etc..
+
+This step loads stack outputs from DynamoDB Table `PBMMAccel-Outputs` and stores as key value pairs in SSM Parameter Store in each account.
+
+Example values are /PBMMAccel/network/vpc/1/name => Endpoint, /PBMMAccel/network/vpc/1/id => vpc-XXXXXXXXXX. 
+
+`PBMMAccel-Outputs-Utils` DynamoDB Table is used extensively to maintain same index irrespective of configuration changes.
 
 ##### 2.1.3.1. Phases and Deployments
 
@@ -769,14 +801,16 @@ The script enables development mode which means that accounts, organizations, co
     "limitKey": "Amazon VPC/VPCs per Region",
     "serviceCode": "vpc",
     "quotaCode": "L-F678F1CE",
-    "value": 15
+    "value": 15,
+    "region": "ca-central-1"
   },
   {
     "accountKey": "shared-network",
     "limitKey": "Amazon VPC/Interface VPC endpoints per VPC",
     "serviceCode": "vpc",
     "quotaCode": "L-29B6F2EB",
-    "value": 50
+    "value": 50,
+    "region": "ca-central-1"
   }
 ]
 ```
