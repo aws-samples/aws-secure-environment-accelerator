@@ -130,11 +130,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
 
   await awsConfig.createRule({
     acceleratorExecutionRoleName: context.acceleratorExecutionRoleName,
-    centralAccountId: '',
-    centralBucketName: centralBucket.bucketName,
     config: acceleratorConfig,
     accountStacks,
     accounts,
     outputs,
+    defaultRegion: context.defaultRegion,
   });
 }

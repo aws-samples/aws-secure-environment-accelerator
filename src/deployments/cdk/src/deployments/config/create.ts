@@ -5,32 +5,24 @@ import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerato
 import * as awsConfig from '@aws-cdk/aws-config';
 import { Account, getAccountId } from '../../utils/accounts';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
-import { LogBucketOutput } from '../defaults/outputs';
+import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';
 
 export interface CreateRuleProps {
   acceleratorExecutionRoleName: string;
-  centralBucketName: string;
-  centralAccountId: string;
   config: c.AcceleratorConfig;
   accountStacks: AccountStacks;
   accounts: Account[];
   outputs: StackOutput[];
+  defaultRegion: string;
 }
 
 export async function createRule(props: CreateRuleProps) {
-  const {
-    acceleratorExecutionRoleName,
-    config,
-    centralAccountId,
-    centralBucketName,
-    accountStacks,
-    accounts,
-    outputs,
-  } = props;
+  const { acceleratorExecutionRoleName, config, accountStacks, accounts, outputs, defaultRegion } = props;
   const awsConfigConf = config['global-options']['aws-config'];
   if (!awsConfigConf) {
     return;
   }
+
   const configRules = awsConfigConf['managed-rules'].rules;
   const configRuleDefaults = awsConfigConf['managed-rules'].defaults;
 
@@ -82,6 +74,8 @@ export async function createRule(props: CreateRuleProps) {
               ruleParams: awsConfigRule.parameters,
               config,
               outputs,
+              accountKey,
+              defaultRegion,
             });
             const configRule = new awsConfig.ManagedRule(accountStack, `ConfigRule-${ruleName}`, {
               identifier: ruleName,
@@ -129,7 +123,9 @@ export async function createRule(props: CreateRuleProps) {
                 } else if (config['global-options']['default-ssm-documents'].includes(remediationAction)) {
                   targetId = remediationAction;
                 } else {
-                  console.warn(`No Remediation "${remediationAction}"is Created in account "${accountKey}" and region "${region}"`);
+                  console.warn(
+                    `No Remediation "${remediationAction}"is Created in account "${accountKey}" and region "${region}"`,
+                  );
                   continue;
                 }
               }
@@ -149,6 +145,8 @@ export async function createRule(props: CreateRuleProps) {
               remediationParams: awsConfigRule['remediation-params'],
               roleName: acceleratorExecutionRoleName,
               config,
+              accountKey,
+              defaultRegion,
             });
 
             new awsConfig.CfnRemediationConfiguration(accountStack, `ConfigRuleRemediation-${ruleName}`, {
@@ -183,12 +181,14 @@ export function getRemediationParameters(params: {
   roleName: string;
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
+  accountKey: string;
+  defaultRegion: string;
 }): RemediationParameters {
   const reutrnParams: RemediationParameters = {};
-  const { outputs, remediationParams, roleName, config } = params;
+  const { outputs, remediationParams, roleName, config, accountKey, defaultRegion } = params;
   reutrnParams.AutomationAssumeRole = {
     StaticValue: {
-      Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${ remediationParams.AutomationAssumeRole || roleName}`],
+      Values: [`arn:aws:iam::${cdk.Aws.ACCOUNT_ID}:role/${remediationParams.AutomationAssumeRole || roleName}`],
     },
   };
 
@@ -211,7 +211,13 @@ export function getRemediationParameters(params: {
           const replaceKey = remediationParams[key].match('{SEA::(.*)}')?.[1]!;
           reutrnParams[key] = {
             StaticValue: {
-              Values: [getParameterValue(replaceKey, outputs, config)],
+              Values: [getParameterValue({
+                paramKey: replaceKey, 
+                outputs, 
+                config,
+                accountKey,
+                defaultRegion,
+              })],
             },
           };
         } else {
@@ -231,23 +237,46 @@ export function getConfigRuleParameters(params: {
   ruleParams: { [key: string]: string };
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
+  accountKey: string,
+  defaultRegion: string,
 }): { [key: string]: string } {
-  const { config, outputs, ruleParams } = params;
+  const { config, outputs, ruleParams, accountKey, defaultRegion } = params;
   Object.keys(ruleParams).map(key => {
     if (ruleParams[key].startsWith('${SEA::')) {
       const replaceKey = ruleParams[key].match('{SEA::(.*)}')?.[1]!;
-      ruleParams[key] = getParameterValue(replaceKey, outputs, config);
+      ruleParams[key] = getParameterValue({
+        paramKey: replaceKey, 
+        outputs, 
+        config,
+        accountKey,
+        defaultRegion,
+      });
     }
   });
   return ruleParams;
 }
 
-export function getParameterValue(input: string, outputs: StackOutput[], config: c.AcceleratorConfig): string {
-  if (input === 'LogArchiveAesBucket') {
+export function getParameterValue(props: {
+  paramKey: string,
+  outputs: StackOutput[],
+  config: c.AcceleratorConfig,
+  accountKey: string,
+  defaultRegion: string,
+}): string {
+  const { accountKey, config, outputs, paramKey, defaultRegion } = props;
+  if (paramKey === 'LogArchiveAesBucket') {
     return LogBucketOutput.getBucketDetails({
       config,
       outputs,
     }).name;
+  }
+  if (paramKey === 'S3BucketEncryptionKey') {
+    const accountBucket = AccountBucketOutputFinder.tryFindOne({
+      outputs,
+      accountKey,
+      region: defaultRegion,
+    });
+    return `arn:aws:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
   }
   return '';
 }
