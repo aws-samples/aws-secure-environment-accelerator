@@ -211,13 +211,15 @@ export function getRemediationParameters(params: {
           const replaceKey = remediationParams[key].match('{SEA::(.*)}')?.[1]!;
           reutrnParams[key] = {
             StaticValue: {
-              Values: [getParameterValue({
-                paramKey: replaceKey, 
-                outputs, 
-                config,
-                accountKey,
-                defaultRegion,
-              })],
+              Values: [
+                getParameterValue({
+                  paramKey: replaceKey,
+                  outputs,
+                  config,
+                  accountKey,
+                  defaultRegion,
+                }),
+              ],
             },
           };
         } else {
@@ -237,16 +239,16 @@ export function getConfigRuleParameters(params: {
   ruleParams: { [key: string]: string };
   outputs: StackOutput[];
   config: c.AcceleratorConfig;
-  accountKey: string,
-  defaultRegion: string,
+  accountKey: string;
+  defaultRegion: string;
 }): { [key: string]: string } {
   const { config, outputs, ruleParams, accountKey, defaultRegion } = params;
   Object.keys(ruleParams).map(key => {
     if (ruleParams[key].startsWith('${SEA::')) {
       const replaceKey = ruleParams[key].match('{SEA::(.*)}')?.[1]!;
       ruleParams[key] = getParameterValue({
-        paramKey: replaceKey, 
-        outputs, 
+        paramKey: replaceKey,
+        outputs,
         config,
         accountKey,
         defaultRegion,
@@ -257,11 +259,11 @@ export function getConfigRuleParameters(params: {
 }
 
 export function getParameterValue(props: {
-  paramKey: string,
-  outputs: StackOutput[],
-  config: c.AcceleratorConfig,
-  accountKey: string,
-  defaultRegion: string,
+  paramKey: string;
+  outputs: StackOutput[];
+  config: c.AcceleratorConfig;
+  accountKey: string;
+  defaultRegion: string;
 }): string {
   const { accountKey, config, outputs, paramKey, defaultRegion } = props;
   if (paramKey === 'LogArchiveAesBucket') {
