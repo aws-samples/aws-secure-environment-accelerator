@@ -25,13 +25,13 @@ export async function step1(props: CentralEndpointsStep1Props) {
 
   for (const { accountKey, vpcConfig } of config.getVpcConfigs()) {
     if (!vpcConfig.zones) {
-      return;
+      continue;
     }
 
     const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region);
     if (!accountStack) {
       console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while deploying Hosted Zones`);
-      return;
+      continue;
     }
 
     const publicHostedZones = vpcConfig.zones.public;
@@ -74,7 +74,7 @@ export async function step1(props: CentralEndpointsStep1Props) {
     });
     if (!resolverVpc) {
       console.warn(`Cannot find resolver VPC with name "${vpcConfig.name}"`);
-      return;
+      continue;
     }
 
     // Form VPC Properties for Private Hosted Zone
