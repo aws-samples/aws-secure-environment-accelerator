@@ -15,7 +15,7 @@
 
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md)
 
-### - [Accelerator Developer Guide](./developer/developer-guide.md) (Early Draft)
+### - [Accelerator Developer Guide](./developer/developer-guide.md)
 
 ### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md)
 

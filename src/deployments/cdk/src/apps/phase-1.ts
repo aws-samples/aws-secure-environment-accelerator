@@ -321,22 +321,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
       const iamConfig = accountConfig.iam;
       if (IamConfigType.is(iamConfig)) {
         const iamPolicies = iamConfig?.policies;
-        if (iamPolicies && iamPolicies?.length > 1) {
-          for (const iamPolicy of iamPolicies) {
-            if (IamPolicyConfigType.is(iamPolicy)) {
-              const iamPolicyName = iamPolicy['policy-name'];
-              const iamPolicyFileName = iamPolicy.policy;
-              const iamPolicyKey = `${iamPoliciesBucketPrefix}${iamPolicyFileName}`;
-              try {
-                const policyContent = await iamPolicyS3.getObjectBodyAsString({
-                  Bucket: iamPoliciesBucketName,
-                  Key: iamPolicyKey,
-                });
-                iamPoliciesDef[iamPolicyName] = policyContent;
-              } catch (e) {
-                console.warn(`Cannot load IAM policy s3://${iamPoliciesBucketName}/${iamPolicyKey}`);
-                throw e;
-              }
+        for (const iamPolicy of iamPolicies || []) {
+          if (IamPolicyConfigType.is(iamPolicy)) {
+            const iamPolicyName = iamPolicy['policy-name'];
+            const iamPolicyFileName = iamPolicy.policy;
+            const iamPolicyKey = `${iamPoliciesBucketPrefix}${iamPolicyFileName}`;
+            try {
+              const policyContent = await iamPolicyS3.getObjectBodyAsString({
+                Bucket: iamPoliciesBucketName,
+                Key: iamPolicyKey,
+              });
+              iamPoliciesDef[iamPolicyName] = policyContent;
+            } catch (e) {
+              console.warn(`Cannot load IAM policy s3://${iamPoliciesBucketName}/${iamPolicyKey}`);
+              throw e;
             }
           }
         }
