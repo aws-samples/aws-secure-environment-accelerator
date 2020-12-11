@@ -148,7 +148,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
-### - [Accelerator Developer Guide](./docs/developer/developer-guide.md) (Early Draft)
+### - [Accelerator Developer Guide](./docs/developer/developer-guide.md)
 
 ### - [Contributing & Governance Guide](./CONTRIBUTING.md)
 

@@ -191,6 +191,11 @@ export const SecurityGroupConfigType = t.interface({
   'outbound-rules': t.array(SecurityGroupRuleConfigType),
 });
 
+export const ZoneNamesConfigType = t.interface({
+  public: fromNullable(t.array(t.string), []),
+  private: fromNullable(t.array(t.string), []),
+});
+
 export const FLOW_LOGS_DESTINATION_TYPES = ['S3', 'CWL', 'BOTH', 'NONE'] as const;
 export const FlowLogsDestinationTypes = enumType<typeof FLOW_LOGS_DESTINATION_TYPES[number]>(
   FLOW_LOGS_DESTINATION_TYPES,
@@ -218,6 +223,8 @@ export const VpcConfigType = t.interface({
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
   'security-groups': optional(t.array(SecurityGroupConfigType)),
+  zones: optional(ZoneNamesConfigType),
+  'central-endpoint': fromNullable(t.boolean, false),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
@@ -607,11 +614,6 @@ export type OrganizationalUnitsConfig = t.TypeOf<typeof OrganizationalUnitsConfi
 export type RouteTableConfig = t.TypeOf<typeof RouteTableConfigType>;
 export type PcxRouteConfig = t.TypeOf<typeof PcxRouteConfigType>;
 
-export const ZoneNamesConfigType = t.interface({
-  public: t.array(t.string),
-  private: t.array(t.string),
-});
-
 export const GlobalOptionsZonesConfigType = t.interface({
   account: NonEmptyString,
   'resolver-vpc': NonEmptyString,
@@ -808,7 +810,6 @@ export const GlobalOptionsConfigType = t.interface({
   'default-s3-retention': t.number,
   'central-bucket': NonEmptyString,
   reports: ReportsConfigType,
-  zones: t.array(GlobalOptionsZonesConfigType),
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
   'central-security-services': CentralServicesConfigType,
   'central-operations-services': CentralServicesConfigType,

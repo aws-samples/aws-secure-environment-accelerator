@@ -219,7 +219,8 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
   }
 
-  // Deploy Security Hub Step-1
+  // Deploy Security Hub in Security Account
+  // Enables Security Hub, Standards and send invites to member accounts
   await securityHub.step1({
     accountStacks,
     accounts,

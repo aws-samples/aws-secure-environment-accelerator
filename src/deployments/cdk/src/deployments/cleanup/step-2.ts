@@ -31,11 +31,11 @@ export async function step2(props: Route53CleanupProps) {
     return;
   }
 
-  const centralVpcZoneConfig = config['global-options'].zones.find(zc => zc.names);
-  const centralZonesDomain: string[] = [];
-  if (centralVpcZoneConfig) {
-    centralZonesDomain.push(...(centralVpcZoneConfig.names?.private || []));
-  }
+  const allVpcConfigs = config.getVpcConfigs();
+  const centralVpcs = allVpcConfigs.filter(
+    vc => vc.vpcConfig['central-endpoint'] && vc.vpcConfig.zones && vc.vpcConfig.zones.private,
+  );
+  const centralDomains = centralVpcs.map(vc => vc.vpcConfig.zones?.private || []).flatMap(z => z);
   const madConfigs = config.getMadConfigs();
   const madDomains = madConfigs.map(m => m.mad['dns-domain']);
 
@@ -50,8 +50,8 @@ export async function step2(props: Route53CleanupProps) {
     const rulesDomain: string[] = vpcConfig['on-premise-rules']?.map(r => r.zone) || [];
     resolverRuleDomains.push(...rulesDomain, ...madDomains);
 
-    resolverRuleDomains.push(...centralZonesDomain);
-    privateHostedZones.push(...centralZonesDomain.map(z => `${z}.`));
+    resolverRuleDomains.push(...centralDomains);
+    privateHostedZones.push(...centralDomains.map(z => `${z}.`));
 
     const cleanupRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       outputs,

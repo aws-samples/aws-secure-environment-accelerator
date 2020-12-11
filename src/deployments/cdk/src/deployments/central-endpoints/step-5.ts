@@ -26,7 +26,6 @@ export interface CentralEndpointsStep5Props {
 export async function step5(props: CentralEndpointsStep5Props) {
   const { accountStacks, config, outputs, accounts, assumeRole, executionRole } = props;
   const allVpcConfigs = config.getVpcConfigs();
-  const zonesConfig = config['global-options'].zones;
   const masterAccountKey = config['global-options']['aws-org-master'].account;
 
   const regionalZoneOutputs: { [regino: string]: HostedZoneOutput[] } = {};
@@ -63,43 +62,31 @@ export async function step5(props: CentralEndpointsStep5Props) {
       continue;
     }
 
-    const regionalZoneConfig = zonesConfig.find(zc => zc.region === vpcConfig.region);
-    if (!regionalZoneConfig) {
-      // There is not reginoal Zone config in global options for this region, No need of seperate DisAssociation
-      continue;
-    }
-
-    if (!regionalZoneOutputs[regionalZoneConfig.region]) {
-      regionalZoneOutputs[regionalZoneConfig.region] = HostedZoneOutputFinder.findAllEndpointsByAccountRegionVpcAndType(
-        {
-          outputs,
-          accountKey: regionalZoneConfig.account,
-          region: regionalZoneConfig.region,
-          vpcName: regionalZoneConfig['resolver-vpc'],
-        },
-      );
-    }
-
-    const regionalZoneVpcConfig = allVpcConfigs.find(
-      vc =>
-        vc.accountKey === regionalZoneConfig.account &&
-        vc.vpcConfig.name === regionalZoneConfig['resolver-vpc'] &&
-        vc.vpcConfig.region === regionalZoneConfig.region,
+    const centralEndpointConfig = allVpcConfigs.find(
+      vc => vc.vpcConfig.region === vpcConfig.region && vc.vpcConfig['central-endpoint'],
     );
 
-    if (!regionalZoneVpcConfig) {
-      console.warn(
-        `Regional Zone VPC config not found ${regionalZoneConfig.account}:${regionalZoneConfig.region}:${regionalZoneConfig['resolver-vpc']}`,
-      );
+    if (!centralEndpointConfig) {
+      // There is no reginoal Zone config in global options for this region, No need of seperate DisAssociation
       continue;
     }
-    if (!c.InterfaceEndpointConfig.is(regionalZoneVpcConfig.vpcConfig['interface-endpoints'])) {
+
+    if (!regionalZoneOutputs[vpcConfig.region]) {
+      regionalZoneOutputs[vpcConfig.region] = HostedZoneOutputFinder.findAllEndpointsByAccountRegionVpcAndType({
+        outputs,
+        accountKey: centralEndpointConfig.accountKey,
+        region: vpcConfig.region,
+        vpcName: centralEndpointConfig.vpcConfig.name,
+      });
+    }
+
+    if (!c.InterfaceEndpointConfig.is(centralEndpointConfig.vpcConfig['interface-endpoints'])) {
       // No Regional Interface endpoints to VPC, Ignoring DisAssociation
       continue;
     }
 
     // Interface Endpoints created regional to VPC based on config (Current Execution)
-    const regionalInterfaceEndpoints = regionalZoneVpcConfig.vpcConfig['interface-endpoints'].endpoints;
+    const regionalInterfaceEndpoints = centralEndpointConfig.vpcConfig['interface-endpoints'].endpoints;
 
     const prevInterfaceEndpoints = HostedZoneOutputFinder.findAllEndpointsByAccountRegionVpcAndType({
       outputs,
@@ -116,10 +103,10 @@ export async function step5(props: CentralEndpointsStep5Props) {
       const regionalEndpointZoneIds: string[] = [];
       regionalDisAsscociateEndpoints.map(serviceName =>
         regionalEndpointZoneIds.push(
-          regionalZoneOutputs[regionalZoneConfig.region].find(ep => ep.serviceName === serviceName)?.hostedZoneId!,
+          regionalZoneOutputs[vpcConfig.region].find(ep => ep.serviceName === serviceName)?.hostedZoneId!,
         ),
       );
-      const hostedZoneAccountId = getAccountId(accounts, regionalZoneConfig.account)!;
+      const hostedZoneAccountId = getAccountId(accounts, centralEndpointConfig.accountKey)!;
       new DisAssociateHostedZones(accountStack, `DisAssociateRemoteEndpointZones-${vpcConfig.name}-${accountKey}`, {
         assumeRoleName: assumeRole,
         vpcAccountId,

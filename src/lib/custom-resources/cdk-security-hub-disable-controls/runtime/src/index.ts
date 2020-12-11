@@ -1,12 +1,17 @@
 import * as AWS from 'aws-sdk';
 AWS.config.logger = console;
-import { CloudFormationCustomResourceEvent } from 'aws-lambda';
+import { CloudFormationCustomResourceEvent, CloudFormationCustomResourceUpdateEvent } from 'aws-lambda';
 import { throttlingBackOff } from '@aws-accelerator/custom-resource-cfn-utils';
 import { errorHandler } from '@aws-accelerator/custom-resource-runtime-cfn-response';
 
 const hub = new AWS.SecurityHub();
 
 export const handler = errorHandler(onEvent);
+
+interface SecurityHubStandard {
+  name: string;
+  'controls-to-disable': string[] | undefined;
+}
 
 async function onEvent(event: CloudFormationCustomResourceEvent) {
   console.log(`Disable Security Hub Standards specific controls...`);
@@ -62,10 +67,77 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       );
     }
   }
+
+  return {
+    physicalResourceId: `SecurityHubEnableControls`,
+  };
 }
 
-async function onUpdate(event: CloudFormationCustomResourceEvent) {
-  return onCreate(event);
+async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
+  const standards = event.ResourceProperties.standards as SecurityHubStandard[];
+  const oldStandards = event.OldResourceProperties.standards as SecurityHubStandard[];
+  const standardNames = standards.map(st => st.name);
+
+  const standardsResponse = await throttlingBackOff(() => hub.describeStandards().promise());
+  const enabledStandardsResponse = await throttlingBackOff(() => hub.getEnabledStandards().promise());
+  // Getting standards and disabling specific Controls for each standard
+  for (const standard of standards) {
+    const standardArn = standardsResponse.Standards?.find(x => x.Name === standard.name)?.StandardsArn;
+    const standardSubscriptionArn = enabledStandardsResponse.StandardsSubscriptions?.find(
+      s => s.StandardsArn === standardArn,
+    )?.StandardsSubscriptionArn;
+
+    const standardControls = await throttlingBackOff(() =>
+      hub
+        .describeStandardsControls({
+          StandardsSubscriptionArn: standardSubscriptionArn!,
+          MaxResults: 100,
+        })
+        .promise(),
+    );
+    for (const disableControl of standard['controls-to-disable'] || []) {
+      const standardControl = standardControls.Controls?.find(x => x.ControlId === disableControl);
+      if (!standardControl) {
+        console.log(`Control "${disableControl}" not found for Standard "${standard.name}"`);
+        continue;
+      }
+
+      console.log(`Disabling Control "${disableControl}" for Standard "${standard.name}"`);
+      await throttlingBackOff(() =>
+        hub
+          .updateStandardsControl({
+            StandardsControlArn: standardControl.StandardsControlArn!,
+            ControlStatus: 'DISABLED',
+            DisabledReason: 'Control disabled by Accelerator',
+          })
+          .promise(),
+      );
+    }
+    const oldStandard = oldStandards.find(st => st.name === standard.name);
+    if (oldStandard) {
+      const enableControls = oldStandard['controls-to-disable']?.filter(
+        c => !standard['controls-to-disable']?.includes(c),
+      );
+      for (const enableControl of enableControls || []) {
+        const standardControl = standardControls.Controls?.find(x => x.ControlId === enableControl);
+        if (!standardControl) {
+          console.log(`Control "${enableControl}" not found for Standard "${standard.name}"`);
+          continue;
+        }
+        await throttlingBackOff(() =>
+          hub
+            .updateStandardsControl({
+              StandardsControlArn: standardControl.StandardsControlArn!,
+              ControlStatus: 'ENABLED',
+            })
+            .promise(),
+        );
+      }
+    }
+  }
+  return {
+    physicalResourceId: `SecurityHubEnableControls`,
+  };
 }
 
 async function onDelete(_: CloudFormationCustomResourceEvent) {
