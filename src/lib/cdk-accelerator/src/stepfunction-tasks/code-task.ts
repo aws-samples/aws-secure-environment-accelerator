@@ -44,8 +44,13 @@ export class CodeTask extends sfn.StateMachineFragment {
       ...props.functionProps,
     });
 
+    const funcAlias = new lambda.Alias(this, 'LambdaAlias', {
+      aliasName: 'live',
+      version: func.currentVersion,
+    });
+
     const task = new tasks.LambdaInvoke(this, id, {
-      lambdaFunction: func,
+      lambdaFunction: funcAlias,
       payload: sfn.TaskInput.fromObject(props.functionPayload!),
       payloadResponseOnly: true,
       ...props,
