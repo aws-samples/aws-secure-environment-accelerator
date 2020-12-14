@@ -302,7 +302,7 @@ export namespace InitialSetup {
       });
 
       const createOrganizationAccountTask = new tasks.StepFunctionsStartExecution(this, 'Create Organization Account', {
-        stateMachine: createLandingZoneAccountStateMachine,
+        stateMachine: createOrganizationAccountStateMachine,
         integrationPattern: sfn.IntegrationPattern.RUN_JOB,
         input: sfn.TaskInput.fromObject({
           'createAccountConfiguration.$': '$',
