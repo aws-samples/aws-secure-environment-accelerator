@@ -491,6 +491,11 @@
             "name": "SSM-ELB-Enable-Logging",
             "description": "Calls the AWS CLI to enable access logs on a specified ELB.",
             "template": "ssm-elb-enable-logging.yaml"
+          },
+          {
+            "name": "Put-S3-Encryption",
+            "description": "Enables S3 encryption using KMS",
+            "template": "s3-encryption.yaml"
           }
         ]
       }
@@ -514,6 +519,15 @@
             "remediation-params": {
               "LoadBalancerArn": "RESOURCE_ID",
               "LogDestination": "${SEA::LogArchiveAesBucket}"
+            }
+          },
+          {
+            "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "remediation-action": "Put-S3-Encryption",
+            "remediation": false,
+            "remediation-params": {
+              "BucketName": "RESOURCE_ID",
+              "KMSMasterKey": "${SEA::S3BucketEncryptionKey}"
             }
           }
         ]
@@ -1595,13 +1609,13 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -2055,13 +2069,13 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -2542,13 +2556,13 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -3029,13 +3043,13 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -3516,13 +3530,13 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["ca-central-1"]
         }
       ]

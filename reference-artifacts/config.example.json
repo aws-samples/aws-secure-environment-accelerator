@@ -524,6 +524,7 @@
           {
             "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
             "remediation-action": "Put-S3-Encryption",
+            "remediation": false,
             "remediation-params": {
               "BucketName": "RESOURCE_ID",
               "KMSMasterKey": "${SEA::S3BucketEncryptionKey}"
