@@ -14,8 +14,7 @@ export namespace CodeTask {
     Partial<Omit<lambda.FunctionProps, 'runtime'>> &
     Partial<Omit<lambda.FunctionProps, 'memorySize'>>;
 
-  // eslint-disable-next-line deprecation/deprecation
-  export interface Props extends Partial<Omit<sfn.TaskProps, 'task'>> {
+  export interface Props extends sfn.TaskStateBaseProps {
     /**
      * The payload that is used for the `InvokeFunction` task.
      */
@@ -31,8 +30,7 @@ export namespace CodeTask {
  * Class that represents a step function invoke function task.
  */
 export class CodeTask extends sfn.StateMachineFragment {
-  // eslint-disable-next-line deprecation/deprecation
-  public readonly startState: sfn.Task;
+  public readonly startState: tasks.LambdaInvoke;
   public readonly endStates: sfn.INextable[];
 
   constructor(scope: cdk.Construct, id: string, props: CodeTask.Props) {
@@ -46,27 +44,26 @@ export class CodeTask extends sfn.StateMachineFragment {
       ...props.functionProps,
     });
 
-    // eslint-disable-next-line deprecation/deprecation
-    const task = new sfn.Task(this, id, {
-      // eslint-disable-next-line deprecation/deprecation
-      task: new tasks.InvokeFunction(func, {
-        payload: props.functionPayload,
-      }),
+    const funcAlias = new lambda.Alias(this, 'LambdaAlias', {
+      aliasName: 'live',
+      version: func.currentVersion,
+    });
+
+    const task = new tasks.LambdaInvoke(this, id, {
+      lambdaFunction: funcAlias,
+      payload: sfn.TaskInput.fromObject(props.functionPayload!),
+      payloadResponseOnly: true,
       ...props,
     });
 
-    // Retriable exceptions, Using all defaults for interval: 1, maxAttempts: 3, backoffRate: 2
-    // eslint-disable-next-line deprecation/deprecation
     task.addRetry({
       errors: ['ServiceUnavailableException'],
     });
-
     this.startState = task;
     this.endStates = [task];
   }
 
   addCatch(handler: sfn.IChainable, props?: sfn.CatchProps): this {
-    // eslint-disable-next-line deprecation/deprecation
     this.startState.addCatch(handler, props);
     return this;
   }
