@@ -1743,7 +1743,7 @@
       }
     },
     "master": {
-      "account-name": "Organization Management",
+      "account-name": "primary",
       "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "",
