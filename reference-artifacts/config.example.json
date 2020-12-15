@@ -145,33 +145,33 @@
     },
     "scps": [
       {
-        "name": "ALZ-Core",
-        "description": "ALZ Core Preventive Guardrails",
+        "name": "ASEA-Core",
+        "description": "Core Preventive Guardrails",
         "policy": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json"
       },
       {
         "name": "Guardrails-Part-1",
-        "description": "PBMMAccel Guardrails Part 1",
+        "description": "ASEA Guardrails Part 1",
         "policy": "PBMMAccel-Guardrails-Part1.json"
       },
       {
         "name": "Guardrails-Part-2",
-        "description": "PBMMAccel Guardrails Part 2",
+        "description": "ASEA Guardrails Part 2",
         "policy": "PBMMAccel-Guardrails-Part2.json"
       },
       {
         "name": "Guardrails-PBMM-Only",
-        "description": "PBMMAccel Guardrails PBMM Environment Specific",
+        "description": "ASEA Guardrails PBMM Environment Specific",
         "policy": "PBMMAccel-Guardrails-PBMM-Only.json"
       },
       {
         "name": "Guardrails-Unclass-Only",
-        "description": "PBMMAccel Guardrails Unclassified Environment Specific",
+        "description": "ASEA Guardrails Unclassified Environment Specific",
         "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
       },
       {
         "name": "Quarantine-New-Object",
-        "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
+        "description": "ASEA Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
         "policy": "Quarantine-New-Object.json"
       }
     ],
@@ -1963,7 +1963,7 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
@@ -2113,7 +2113,7 @@
     "Central": {
       "type": "mandatory",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
@@ -2669,7 +2669,7 @@
     "Dev": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Dev Budget",
         "period": "Monthly",
@@ -3252,7 +3252,7 @@
     "Test": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
@@ -3835,7 +3835,7 @@
     "Prod": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Prod Budget",
         "period": "Monthly",
@@ -4418,7 +4418,7 @@
     "UnClass": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
       "default-budgets": {
         "name": "Default Unclass Budget",
         "period": "Monthly",
@@ -4968,7 +4968,7 @@
     "Sandbox": {
       "type": "workload",
       "share-mad-from": "",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
       "default-budgets": {
         "name": "Default Sandbox Budget",
         "period": "Monthly",
