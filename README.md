@@ -138,7 +138,7 @@ This summarizes the installation process, the full installation document can be 
 
 # **Documentation**
 
-### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
+### - [Installation and Upgrade Guide](./docs/installation/installation.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./docs/installation/customization-index.md) to sample config files and customization details
@@ -156,7 +156,7 @@ This summarizes the installation process, the full installation document can be 
 
 - AWS PBMM Architecture Sample [Diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
 
-### - [Frequently Asked Questions]((./docs/faq/faq.md) )
+### - [Frequently Asked Questions](./docs/faq/faq.md)
 
 ---
 

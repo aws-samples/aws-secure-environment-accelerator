@@ -23,9 +23,7 @@
 
 - AWS PBMM Architecture Sample [Diagrams](./architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
 
-### - Frequently Asked Questions
-
-- See section 3. of the Accelerator Installation, Upgrades and Basic Operations Guide
+### - Frequently Asked Questions(./docs/faq/faq.md)
 
 ---
 
