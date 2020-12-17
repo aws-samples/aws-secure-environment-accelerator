@@ -6,7 +6,7 @@
 
 - Unofficial [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects)
 
-### - [Installation, Upgrades and Basic Operations Guide](./installation/installation.md)
+### - [Installation and Upgrade and Guide](./installation/installation.md)
 
 - Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./installation/customization-index.md) to sample config files and customization details
