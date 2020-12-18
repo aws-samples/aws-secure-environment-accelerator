@@ -196,7 +196,7 @@ Also, update the config file so that your ALB's “cert-name” or “cert-arn�
 ```json
 "alb": [
   {
-    "cert-name": "PublicCert",
+    "cert-name": "PublicCert"
   }
 ]
 ```
@@ -206,7 +206,7 @@ or
 ```json
 "alb": [
   {
-    "cert-arn": "arn:aws:acm:ca-central-1:[account-id]:certificate/[identifier]",
+    "cert-arn": "arn:aws:acm:ca-central-1:[account-id]:certificate/[identifier]"
   }
 ]
 ```
