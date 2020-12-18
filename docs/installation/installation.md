@@ -234,7 +234,7 @@ If deploying to an internal AWS account, to successfully install the entire solu
     - if the CloudFormation fails to deploy with an `Internal Failure`, or, if the pipeline fails connecting to GitHub, then:
 	  - fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
 14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
-15. While the pipeline is running, review the list of [Known Installation Issues]([https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/docs/installation/index.md#Known-Installation-Issues) near the bottom on this document as well as the [FAQ](/docs/faq/faq.md).
+15. While the pipeline is running, review the list of [Known Installation Issues]((#251-known-installation-issues)) near the bottom on this document as well as the [FAQ](/docs/faq/faq.md).
 16. Once the pipeline completes (typically 15 - 20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions.
 17. The state machine takes approximately 1.5 hours to execute on an initial installation using the default PBMM configuration. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
