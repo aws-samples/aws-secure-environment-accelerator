@@ -11,7 +11,7 @@
         "aws-marketplace:DescribePrivateMarketplaceProducts",
         "aws-marketplace:DescribePrivateMarketplaceProfile",
         "aws-marketplace:DescribePrivateMarketplaceStatus",
-        "aws-marketplace:DisassociateProductsFromPrivateMarketplace",
+        "aws-marketplace:DisassociateProducts*",
         "aws-marketplace:ListPrivateMarketplaceProducts",
         "aws-marketplace:StartPrivateMarketplace",
         "aws-marketplace:StopPrivateMarketplace",
@@ -30,6 +30,7 @@
         "iam:ListMFADevices",
         "iam:ListVirtualMFADevices",
         "iam:ResyncMFADevice",
+		"aws-portal:*",
         "sts:GetSessionToken"
       ],
       "Resource": "*",
