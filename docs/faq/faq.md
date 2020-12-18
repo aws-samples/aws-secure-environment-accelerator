@@ -29,13 +29,13 @@
 
   - In both the ALZ and standalone versions of the Accelerator, you can simply add the following five lines to the configuration file `workload-account-configs` section and rerun the state machine. The majority of the account configuration will be picked up from the ou the AWS account has been assigned. You can also add additional account specific configuration, or override items like the default ou budget with an account specific budget. This mechanism is often used by customers that wish to programmatically create AWS accounts using the Accelerator and allows for adding many new accounts at one time.
 
-  ```json
-  "fun-acct": {
-    "account-name": "TheFunAccount",
-    "email": "myemail+pbmmT-funacct@example.com",
-    "src-filename": "config.json",
-    "ou": "Sandbox"
-  }
+```json
+"fun-acct": {
+  "account-name": "TheFunAccount",
+  "email": "myemail+pbmmT-funacct@example.com",
+  "src-filename": "config.json",
+  "ou": "Sandbox"
+}
   ```
 
   - STANDALONE VERSION ONLY: We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
