@@ -30,7 +30,7 @@
         "iam:ListMFADevices",
         "iam:ListVirtualMFADevices",
         "iam:ResyncMFADevice",
-		"aws-portal:*",
+        "aws-portal:*",
         "sts:GetSessionToken"
       ],
       "Resource": "*",
