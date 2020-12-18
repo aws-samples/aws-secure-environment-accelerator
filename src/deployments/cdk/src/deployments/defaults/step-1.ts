@@ -74,10 +74,12 @@ function blockS3PublicAccess(props: DefaultsStep1Props) {
  * Creates a bucket that contains copies of the files in the central bucket.
  */
 function createCentralBucketCopy(props: DefaultsStep1Props) {
-  const { accountStacks, accounts, config } = props;
+  const { accountStacks, config } = props;
 
   const masterAccountConfig = config['global-options']['aws-org-master'];
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
+
+  const organizations = new Organizations(masterAccountStack, 'Organizations');
 
   // Get the location of the original central bucket
   const centralBucketName = config['global-options']['central-bucket'];
@@ -111,15 +113,19 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   // The generated bucket name is based on the stack name + logical ID + random suffix
   overrideLogicalId(bucket, `config${masterAccountStack.region}`);
 
-  // TODO Narrow down permissions
-  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
+  const anyAccountPrincipal = [new iam.AnyPrincipal()];
 
   // Give all accounts access to use this key for decryption
   encryptionKey.addToResourcePolicy(
     new iam.PolicyStatement({
       actions: ['kms:Decrypt'],
-      principals: accountPrincipals,
+      principals: anyAccountPrincipal,
       resources: ['*'],
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.organizationId,
+        },
+      },
     }),
   );
 
@@ -128,7 +134,12 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
     new iam.PolicyStatement({
       actions: ['s3:Get*', 's3:List*'],
       resources: [bucket.bucketArn, bucket.arnForObjects('*')],
-      principals: accountPrincipals,
+      principals: anyAccountPrincipal,
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.organizationId,
+        },
+      },
     }),
   );
 
@@ -159,14 +170,14 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
  * Creates a bucket that contains copies of the files in the central bucket.
  */
 function createCentralLogBucket(props: DefaultsStep1Props) {
-  const { accountStacks, accounts, config } = props;
+  const { accountStacks, config } = props;
 
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
 
   const organizations = new Organizations(logAccountStack, 'Organizations');
 
-  const accountPrincipals = accounts.map(a => new iam.AccountPrincipal(a.id));
+  const anyAccountPrincipal = [new iam.AnyPrincipal()];
   const logKey = createDefaultS3Key({
     accountStack: logAccountStack,
   });
@@ -180,11 +191,11 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   });
 
   // Allow replication from all Accelerator accounts
-  logBucket.replicateFrom(accountPrincipals, organizations.organizationId, props.acceleratorPrefix);
+  logBucket.replicateFrom(anyAccountPrincipal, organizations.organizationId, props.acceleratorPrefix);
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: accountPrincipals,
+      principals: anyAccountPrincipal,
       actions: ['s3:GetEncryptionConfiguration', 's3:PutObject'],
       resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
       conditions: {
@@ -198,7 +209,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
   // Allow Kinesis access bucket
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
-      principals: accountPrincipals,
+      principals: anyAccountPrincipal,
       actions: [
         's3:AbortMultipartUpload',
         's3:GetBucketLocation',
@@ -263,7 +274,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     new iam.PolicyStatement({
       sid: 'Enable cross account encrypt access for S3 Cross Region Replication',
       actions: ['kms:Encrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
-      principals: accountPrincipals,
+      principals: anyAccountPrincipal,
       resources: ['*'],
       conditions: {
         StringEquals: {
