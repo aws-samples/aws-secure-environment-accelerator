@@ -181,6 +181,7 @@ While the initial deployment allows you to provide your own certificates (either
 
 To update the ALB cert, configure ACM for the required domain including adding the appropriate entries to DNS to authorize the automated provisioning of certificates. Update the config file by adding the certificate request in the format below:
 
+
 "certificates": [
   {
     "name": "PublicCert",
@@ -190,21 +191,30 @@ To update the ALB cert, configure ACM for the required domain including adding t
     "san": ["*.example1.com"]
   }
 ]
+}
+```
 Also, update the config file so that your ALB's “cert-name” or “cert-arn” uses the new certificate in the format below:
-
+```json
+{
 "alb": [
   {
     "cert-name": "PublicCert",
   }
 ]
+}
+```
 
 or
 
+```json
+{
 "alb": [
   {
     "cert-arn": "arn:aws:acm:ca-central-1:[account-id]:certificate/[identifier]",
   }
 ]
+}
+```
 
 ### 16. What level of Support will the ASEA have from AWS Support?
 
