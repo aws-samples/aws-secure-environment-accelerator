@@ -1,4 +1,4 @@
-# 1. Installation, Upgrades and Basic Operations
+# 1. Installation and Upgrade Guide
 
 **_Deploying the AWS Accelerator requires the assistance of your local AWS Account team. Attempts to deploy the Accelerator without the support of your AWS SA, TAM, Proserve, or AM will fail as new AWS accounts do not have appropriate limits established to facilitate installation._**
 
@@ -10,7 +10,7 @@ These installation instructions assume the prescribed architecture is being depl
 
 <!-- TOC depthFrom:1 depthTo:4 -->
 
-- [1. Installation, Upgrades and Basic Operations](#1-installation-upgrades-and-basic-operations)
+- [1. Installation and Upgrade Guide](#1-installation-and-upgrade-guide)
 - [2. Installation](#2-installation)
   - [2.1. Prerequisites](#21-prerequisites)
     - [2.1.1. General](#211-general)

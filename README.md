@@ -146,9 +146,9 @@ This summarizes the installation process, the full installation document can be 
 - AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
 - Unofficial [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects)
 
-### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
+### - [Operations and Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
 
-### - [Accelerator Developer Guide](./docs/developer/developer-guide.md)
+### - [Developer Guide](./docs/developer/developer-guide.md)
 
 ### - [Contributing & Governance Guide](./CONTRIBUTING.md)
 
