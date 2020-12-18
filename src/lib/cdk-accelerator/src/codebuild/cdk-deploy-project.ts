@@ -131,10 +131,9 @@ export class PrebuiltCdkDeployProject extends CdkDeployProjectBase {
     fs.writeFileSync(
       path.join(this.projectTmpDir, 'Dockerfile'),
       [
-        'FROM node:12-alpine3.11',
+        'FROM public.ecr.aws/bitnami/node:latest',
         // Install the package manager
         ...installPackageManagerCommands(props.packageManager).map(cmd => `RUN ${cmd}`),
-        `RUN mkdir ${appDir}`,
         `WORKDIR ${appDir}`,
         // Copy over the project root to the /app directory
         `ADD . ${appDir}/`,
