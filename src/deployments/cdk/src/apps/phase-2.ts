@@ -3,7 +3,7 @@ import * as cfn from '@aws-cdk/aws-cloudformation';
 import { getAccountId } from '../utils/accounts';
 import { JsonOutputValue } from '../common/json-output';
 import { getVpcConfig } from '../common/get-all-vpcs';
-import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
+import { VpcOutputFinder, SharedSecurityGroupIndexOutput } from '@aws-accelerator/common-outputs/src/vpc';
 import * as ec2 from '@aws-cdk/aws-ec2';
 import { PeeringConnectionConfig, VpcConfigType } from '@aws-accelerator/common-config/src';
 import { getVpcSharedAccountKeys } from '../common/vpc-subnet-sharing';
@@ -26,6 +26,7 @@ import * as centralServices from '../deployments/central-services';
 import * as guardDutyDeployment from '../deployments/guardduty';
 import * as snsDeployment from '../deployments/sns';
 import * as ssmDeployment from '../deployments/ssm';
+import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -170,11 +171,23 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         continue;
       }
 
-      const securityGroupStack = new cfn.NestedStack(
-        accountStack,
-        `SecurityGroups${vpcConfig.name}-Shared-${index + 1}`,
-      );
-      const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${index + 1}`, {
+      /***********************************************************
+       * Saving index in outputs to handle nasty bug occur while
+       * changing construct name when account is suspended
+       * *********************************************************/
+      const sgOutputs: SharedSecurityGroupIndexOutput[] = getStackJsonOutput(outputs, {
+        accountKey: sharedAccountKey,
+        outputType: 'SecurityGroupIndexOutput',
+        region: vpcConfig.region,
+      });
+
+      const vpcSgIndex = sgOutputs.find(sgO => sgO.vpcName === vpcConfig.name);
+      let sgIndex = index + 1;
+      if (vpcSgIndex) {
+        sgIndex = vpcSgIndex.index;
+      }
+      const securityGroupStack = new cfn.NestedStack(accountStack, `SecurityGroups${vpcConfig.name}-Shared-${sgIndex}`);
+      const securityGroups = new SecurityGroup(securityGroupStack, `SecurityGroups-SharedAccount-${sgIndex}`, {
         securityGroups: vpcConfig['security-groups']!,
         vpcName: vpcConfig.name,
         vpcId: vpcOutput.vpcId,
@@ -184,16 +197,10 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         installerVersion: context.installerVersion,
       });
 
-      const accountId = getAccountId(accounts, accountKey);
-      if (!accountId) {
-        console.warn(`Cannot find account with key ${accountKey}`);
-        continue;
-      }
-
       // Add Tags Output
       const securityGroupsResources = Object.values(securityGroups.securityGroupNameMapping);
 
-      new JsonOutputValue(securityGroupStack, `SecurityGroupOutput${vpcConfig.name}-${index}`, {
+      new JsonOutputValue(securityGroupStack, `SecurityGroupOutput  `, {
         type: 'SecurityGroupsOutput',
         value: {
           vpcId: vpcOutput.vpcId,
@@ -204,6 +211,20 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
           })),
         },
       });
+
+      new JsonOutputValue(securityGroupStack, `SecurityGroupIndexOutput`, {
+        type: 'SecurityGroupIndexOutput',
+        value: {
+          vpcName: vpcConfig.name,
+          index: sgIndex,
+        },
+      });
+
+      const accountId = getAccountId(accounts, accountKey);
+      if (!accountId) {
+        console.warn(`Cannot find account with key ${accountKey}`);
+        continue;
+      }
 
       new AddTagsToResourcesOutput(securityGroupStack, `OutputSharedResources${vpcConfig.name}-Shared-${index}`, {
         dependencies: securityGroupsResources,

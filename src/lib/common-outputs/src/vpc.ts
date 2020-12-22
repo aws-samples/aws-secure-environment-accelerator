@@ -14,6 +14,11 @@ export interface SecurityGroupsOutput {
   securityGroupIds: VpcSecurityGroupOutput[];
 }
 
+export interface SharedSecurityGroupIndexOutput {
+  vpcName: string;
+  index: number;
+}
+
 export const VpcSubnetOutput = t.interface({
   subnetId: t.string,
   subnetName: t.string,
