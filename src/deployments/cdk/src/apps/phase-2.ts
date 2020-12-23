@@ -171,7 +171,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
         continue;
       }
 
-      /***********************************************************
+      /* **********************************************************
        * Saving index in outputs to handle nasty bug occur while
        * changing construct name when account is suspended
        * *********************************************************/
