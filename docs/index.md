@@ -1,16 +1,14 @@
-# AWS Secure Environment Accelerator
-
-## **Documentation**
+# AWS Secure Environment Accelerator Documentation
 
 ### - [Solution Summary / Repo root](../README.md)
 
-- Unofficial Accelerator [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects) - Please upvote items
+- Unofficial Accelerator [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects) (GitHub projects) - _Please upvote desired features_
 
 ### - [Installation, Upgrades and Basic Operations Guide](./installation/installation.md)
 
-- Link to Accelerator [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-- [Link](./installation/customization-index.md) to sample config files and customization details
-- More [details](./installation/what-we-do-where.md) as to WHAT we do and WHERE we support it (regions, accounts, etc.)
+- Link to Accelerator [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) and change history
+- Sample Configuration files and customization [details](./installation/customization-index.md)
+- [Chart](./installation/what-we-do-where.md) containing details as to WHAT we do and WHERE we support it (regions, accounts, etc.)
 - AWS SEA Central Logging [Bucket Structures](./architectures/pbmm/log-file-locations.md)
 
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md)
@@ -25,7 +23,7 @@
 
 - AWS PBMM Architecture Sample [Diagrams](./architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
 
-### - Frequently Asked Questions
+### - Frequently Asked Questions and Basic Operating Information
 
 - See section 3. of the Accelerator Installation, Upgrades and Basic Operations Guide
 
