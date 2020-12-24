@@ -235,7 +235,7 @@ If deploying to an internal AWS employee account, to successfully install the so
       - fix the issue with your GitHub secret created in section 2.3.2, then delete the Installer CloudFormation stack you just deployed, and restart at step 3 of this section.
 14. For new stack deployments, when the stack deployment completes, the Accelerator state machine will automatically execute (in Code Pipeline). When upgrading you must manually `Release Change` to start the pipeline.
 15. **While the pipeline is running:**
-    - review the list of [Known Installation Issues](./installation.md#Known-Installation-Issues) in section 2.5.1 of this document
+    - review the list of [Known Installation Issues](#251-known-installation-issues) in section 2.5.1 below
     - review the Accelerator Basic Operation and Frequently Asked Questions (FAQ) [Document](../faq/faq.md)
 16. Once the pipeline completes (typically 20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
 17. The state machine takes approximately 1.5 hours to execute on an initial installation using the default PBMM configuration. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
