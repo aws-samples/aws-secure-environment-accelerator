@@ -8,14 +8,17 @@
 
 ### - [Installation, Upgrades and Basic Operations Guide](./installation/installation.md)
 
-- Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
+- Link to Accelerator [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
 - [Link](./installation/customization-index.md) to sample config files and customization details
 - More [details](./installation/what-we-do-where.md) as to WHAT we do and WHERE we support it (regions, accounts, etc.)
 - AWS SEA Central Logging [Bucket Structures](./architectures/pbmm/log-file-locations.md)
+- Unofficial Accelerator [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects) - Please upvote items
 
 ### - [Accelerator Operations/Troubleshooting Guide](./operations/operations-troubleshooting-guide.md)
 
 ### - [Accelerator Developer Guide](./developer/developer-guide.md)
+
+- Accelerator Release [Process](./developer/release-process.md) (AWS Internal)
 
 ### - [Accelerator Governance and Contributing Guide](../CONTRIBUTING.md)
 
