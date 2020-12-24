@@ -44,6 +44,7 @@ These installation instructions assume the prescribed architecture is being depl
     - [3.0.13. How do I suspend an AWS account?](#3013-how-do-i-suspend-an-aws-account)
     - [3.0.14. The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?](#3014-the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use)
     - [3.0.15. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?](#3015-how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac)
+    - [3.0.16. What happens if AWS stops enhancing the Accelerator?](#3016-what-happens-if-aws-stops-enhancing-the-accelerator)
 - [4. Upgrades](#4-upgrades)
   - [4.1. Considerations](#41-considerations)
   - [4.2. Summary of Upgrade Steps (all versions)](#42-summary-of-upgrade-steps-all-versions)
@@ -483,6 +484,11 @@ No. Customers can choose the IaC framework or tooling of their choice. The tooli
 Objects deployed by the Accelerator which customers may need to leverage in their own IaC have been populated in parameters in AWS parameter store for use by the IaC tooling of choice. The Accelerator ensures parameters are deployed consistently across accounts and OUs, such that a customers code does not need to be updated when it is moved between accounts or promoted from Dev to Test to Prod.  
 Objects of the following types and their associated values are stored in parameter store: vpc, subnet, security group, elb (alb/nlb w/DNS address), IAM policy, IAM role, KMS key, ACM cert, SNS topic, and the firewall replacement variables.  
 Additionally, setting "populate-all-elbs-in-param-store": true for an account will populates all Accelerator wide ELB information into paramaater store within that account. The sample PBMM configuration files set this value on the perimeter account, such that ELB information is available to configure centralized ingress capabilities.
+
+### 3.0.16. What happens if AWS stops enhancing the Accelerator?
+
+- The Accelerator is an open source project, should AWS stop enhancing the solution for any reason, the community has access to the full codebase, its roadmap and history. The community can enhance, update, fork and take ownership of the project, as appropriate.
+- The Accelerator is an AWS CDK based project and synthezises to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources, when required. The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no links or ties to code in other AWS accounts or even other stacks within the same AWS account. This was an important initial design decision. The Accelerator codebase can be completely uninstalled from the organization management (root) account, without any impact to the deployed functionality or guardrails. In this situation, guardrail updates and new account provisioning reverts to a manual process. Should a customer decide they no longer wish to utilize the solution, they can remove it without any impact to deployed resources and do things natively in AWS as they did before they deployed the Accelerator. By adopting the Accelerator, customers are not locking themselves or making a one-way door decision.
 
 # 4. Upgrades
 
