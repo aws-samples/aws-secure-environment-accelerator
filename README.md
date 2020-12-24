@@ -138,29 +138,27 @@ This summarizes the installation process, the full installation document can be 
 
 # **Documentation**
 
-### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
+### - Accelerator Installation and Upgrade [Guide](./docs/installation/installation.md)
 
 - Link to Accelerator [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) and change history
-- Sample Configuration files and customization [details](./docs/installation/customization-index.md)
+- Sample configuration files and customization [details](./docs/installation/customization-index.md)
 - [Chart](./docs/installation/what-we-do-where.md) containing details as to WHAT we do and WHERE we support it (regions, accounts, etc.)
-- AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
+- Accelerator central logging [bucket structures](./docs/architectures/pbmm/log-file-locations.md)
 - Unofficial Accelerator [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects) (GitHub projects) - _Please upvote desired features_
 
-### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
+### - Accelerator Operations/Troubleshooting [Guide](./docs/operations/operations-troubleshooting-guide.md)
 
-### - [Accelerator Developer Guide](./docs/developer/developer-guide.md)
+### - Accelerator Basic Operation and Frequently Asked Questions [(FAQ)](./docs/faq/faq.md)
 
-- Accelerator Release [Process](./docs/developer/release-process.md) (AWS Internal)
+### - Accelerator Developer [Guide](./docs/developer/developer-guide.md)
 
-### - [Contributing & Governance Guide](./CONTRIBUTING.md)
+- Accelerator release [process](./docs/developer/release-process.md) (AWS Internal)
 
-### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
+### - Contributing & Governance [Guide](./CONTRIBUTING.md)
 
-- AWS PBMM Architecture Sample [Diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
+### - Prescriptive PBMM Architecture Design [Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
-### - Frequently Asked Questions and Basic Operating Information
-
-- See section 3. of the Accelerator Installation, Upgrades and Basic Operations Guide
+- AWS PBMM architecture sample [diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
 
 ---
 
