@@ -17,6 +17,15 @@
   - [1.14. The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?](#114-the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use)
   - [1.15. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?](#115-how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac)
   - [1.16. What happens if AWS stops enhancing the Accelerator?](#116-what-happens-if-aws-stops-enhancing-the-accelerator)
+  - [1.17. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?](#117-is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into)
+  - [1.18. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?](#118-what-if-i-want-to-move-an-account-from-an-aws-organization-that-has-the-alz-deployed-into-an-aws-organization-running-the-accelerator)
+  - [1.19. What is the recommended approach to manage the ALB certificates deployed by the ASEA?](#119-what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-asea)
+  - [1.20. What level of Support will the ASEA have from AWS Support?](#120-what-level-of-support-will-the-asea-have-from-aws-support)
+  - [1.21. What does it take to support the Accelerator?](#121-what-does-it-take-to-support-the-accelerator)
+  - [1.22. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?](#122-why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch)
+  - [1.23. Can you deploy the solution without Fortinet Firewall Licenses?](#123-can-you-deploy-the-solution-without-fortinet-firewall-licenses)
+  - [1.24. Does the ALB perform SSL offloading?](#124-does-the-alb-perform-ssl-offloading)
+  - [1.25. I need a new VPC, where shall I define it?](#125-i-need-a-new-vpc-where-shall-i-define-it)
 
 ## 1.1. How do I add new AWS accounts to my AWS Organization?
 
@@ -191,6 +200,88 @@ Additionally, setting "populate-all-elbs-in-param-store": true for an account wi
 
 - The Accelerator is an open source project, should AWS stop enhancing the solution for any reason, the community has access to the full codebase, its roadmap and history. The community can enhance, update, fork and take ownership of the project, as appropriate.
 - The Accelerator is an AWS CDK based project and synthezises to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources, when required. The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no links or ties to code in other AWS accounts or even other stacks within the same AWS account. This was an important initial design decision. The Accelerator codebase can be completely uninstalled from the organization management (root) account, without any impact to the deployed functionality or guardrails. In this situation, guardrail updates and new account provisioning reverts to a manual process. Should a customer decide they no longer wish to utilize the solution, they can remove it without any impact to deployed resources and do things natively in AWS as they did before they deployed the Accelerator. By adopting the Accelerator, customers are not locking themselves or making a one-way door decision.
+
+## 1.17. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?
+
+Existing ALZ customers are required to uninstall their ALZ deployment before deploying the Accelerator. Please work with your AWS account team to find the best mechanism to uninstall the ALZ solution (procedures and scripts exist).
+
+## 1.18. What if I want to move an account from an AWS Organization that has the ALZ deployed into an AWS Organization running the Accelerator?
+
+Before removing the AWS account from the source organization, terminate the AWS Service Catalog product associated with the member account that you're interested in moving. Ensuring the product terminates successfully and that there aren't any remaining CloudFormation stacks in the account that were deployed by the ALZ. You can then remove the account from the existing Organization and invite it into the new organization. Accounts invited into the Organization do NOT get the `Deny All` SCP applied, as we do not want to break existing running workloads. Moving the newly invited account into its destination OU will trigger the state machine and result in the account being ingested into the Accelerator and having the guardrails applied per the target OU persona.
+
+## 1.19. What is the recommended approach to manage the ALB certificates deployed by the ASEA?
+
+Self-Signed certificates should NOT be used for production. The Accelerator installation process allows customers to provide their own certificates (either self-signed or generated by a CA), to enable quick and easy installation and allowing customers to test end-to-end traffic flows. After the initial installation, we recommend customers leverage AWS Certificate Manager (ACM) to easily provision, manage, and deploy public and private SSL/TLS certificates. ACM helps manage the challenges of maintaining certificates, including certificate rotation and renewal, so you don’t have to worry about expiring certificates.
+
+The most effective mechanism for leveraging ACM is adding CNAME authorization records to the relevant DNS domains (documented [here](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html)). The Accelerator then supports requesting newly generated ACM certificates, by adding a certificate request to the configuration file, rather than import, as follows:
+
+```json
+"certificates": [
+  {
+    "name": "PublicCert1",
+    "type": "request",
+    "domain": "*.example.com",
+    "validation": "DNS",
+    "san": ["*.example1.com"]
+  }
+]
+```
+
+You also need to update the config file so that your ALB's “cert-name” or “cert-arn” uses the new certificate in the format below:
+
+```json
+"alb": [
+  {
+    "cert-name": "PublicCert1"
+  }
+]
+```
+
+or
+
+```json
+"alb": [
+  {
+    "cert-arn": "arn:aws:acm:ca-central-1:[account-id]:certificate/[identifier]"
+  }
+]
+```
+
+## 1.20. What level of Support will the ASEA have from AWS Support?
+
+The majority of the solution leverages native AWS services which are fully supported by AWS Support. Additionally, the Accelerator is an AWS CDK based project and synthezises to native AWS CloudFormation. AWS sub-accounts simply contain native CloudFormation stacks and associated custom resources (when required). The Accelerator architecture is such that all CloudFormation stacks are native to each AWS account with no direct links or ties to code in other AWS accounts (no stacksets, no local CDK). This was an important project design decision, keeping deployed functionality in independant local CloudFormation stacks and decoupled from solution code, which allows AWS support to effectively troubleshoot and diagnose issues local to the sub-account.
+
+As the Accelerator also includes code, anything specifically related to the Accelerator codebase will be only supported on a "best effort" basis by AWS support, as AWS support does not support custom code. The first line of support for the codebase is typically your local AWS team (your SA, TAM, Proserve and/or AWS Partner). As an open source project, customers can file requests using GitHub Issues against the Accelerator repository or open a discussion in GitHub discussions. Most customer issues arise during installation and are related to configuration customization or during the upgrade process.
+
+## 1.21. What does it take to support the Accelerator?
+
+We advise customers to allocate a 1/2 day per quarter to upgrade to the latest Accelerator release.
+
+Customers have indicated that deploying the Accelerator reduces their ongoing operational burden over operating in native AWS, saving hours of effort every time a new account is provisioned by automating the deployment of the persona associated with new accounts (guardrails, networking and security). The Accelerator does NOT alleviate a customers requirement to learn to effectively operate in the cloud (like monitoring security tooling/carrying out Security Operation Center (SOC) duties). This effort exists regardless of the existence of the Accelerator.
+
+## 1.22. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?
+
+The rsyslog servers are included to accept logs for appliances and third party applications that do not natively support the CloudWwatch Agent from any account within a customers Organization. These logs are then immediatly forwarded to CloudWatch Logs within the account the rsyslog servers are deployed (Operations) and are also copied to the S3 immutable bucket in the log-archive account. Logs are only persisted on the rsyslog hosts for 24 hours. The rsyslog servers are required to centralize the 3rd party firewall logs (Fortinet Fortigate).
+
+## 1.23. Can you deploy the solution without Fortinet Firewall Licenses?
+
+Yes, if license files are not provided, the firewalls will come up configured and route traffic, but customers will have no mechanism to manage the firewalls/change the configuration until a valid license file is added. If invalid licence files are provided, the firewalls will fail to load the provided configuration, will not enable routing, will not bring up the VPN tunnels and will not be managable. Customers will need to either remove and redeploy the firewalls, or manually configure them. If performing a test deployment, please work with your local Fortinet account team to discuss any options for temporary evaluation licenses.
+
+## 1.24. Does the ALB perform SSL offloading?
+
+As configured - the perimeter ALB decrypts incoming traffic using its certificate and then re-encrypts it with the certificate for the back-end ALB. The front-end and back-end ALB's can use the same or different certs. If the Firewall needs to inspect the traffic, it also needs the backend certificate be manually installed.
+
+## 1.25. I need a new VPC, where shall I define it?
+
+You can define a VPC in one of three major sections of the Accelerator configuration file:
+
+- within an organization unit (this is the recommended and prefered method);
+- within an account in mandatory-account-configs;
+- within an account in workload-account-configs.
+
+We generally recommend most items be defined within organizational units, such that all workload accounts pickup their persona from the OU they are associated and minimize per account configuration. Both a local account based VPC (as deployed in the Sandbox OU accounts), or a central VPC (as deployed in the Dev.Test/Prod OU accounts) can be defined in an OU. It should be noted that local VPC's will each be deployed with the same CIDR ranges (at this time) and therfor should not be connected to a TGW.
+
+As mandatory accounts often have unique configuration requirements, VPC's like the Endpoint VPC, are configured within the mandatory account configuration. Customers can also define VPC's within each workload account configuration, but this requires editing the configuration file for each account configuration.
 
 ---
 
