@@ -1173,7 +1173,7 @@
             "history": 24,
             "max-age": 90,
             "min-age": 1,
-            "min-len": 12,
+            "min-len": 14,
             "complexity": true,
             "reversible": false,
             "failed-attempts": 6,
@@ -1789,7 +1789,7 @@
             }
           }
         ],
-        "firewall-manager": {
+        "xxfirewall-manager": {
           "name": "FirewallMgr",
           "image-id": "ami-06fa2a9e6f8fae9f2",
           "instance-sizes": "c5.large",
