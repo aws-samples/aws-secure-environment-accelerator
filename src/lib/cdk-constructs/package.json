@@ -60,7 +60,7 @@
     "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-r53-dns-endpoint-ips": "workspace:^0.0.1",
     "hash-sum": "^2.0.0",
-    "ip-num": "^1.2.2",
+    "ip-num": "1.2.2",
     "pascal-case": "^3.1.1",
     "tempy": "0.5.0"
   },
