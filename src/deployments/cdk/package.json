@@ -100,6 +100,7 @@
     "@aws-accelerator/custom-resource-disassociate-hosted-zones": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-ec2-modify-transit-gateway-vpc-attachment": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-s3-put-bucket-versioning": "workspace:^0.0.1",
+    "@aws-accelerator/custom-resource-s3-update-logarchive-policy": "workspace:^0.0.1",
     "@aws-cdk/aws-accessanalyzer": "1.85.0",
     "@aws-cdk/aws-autoscaling": "1.85.0",
     "@aws-cdk/aws-budgets": "1.85.0",
