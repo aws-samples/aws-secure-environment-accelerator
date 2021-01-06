@@ -917,6 +917,13 @@ export interface ResolvedMadConfig extends ResolvedConfigBase {
   mad: MadDeploymentConfig;
 }
 
+export interface ResolvedRsysLogConfig extends ResolvedConfigBase {
+  /**
+   * The rsyslog config to be deployed.
+   */
+  rsyslog: RsyslogConfig;
+}
+
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
   readonly 'global-options': GlobalOptionsConfig;
   readonly 'mandatory-account-configs': AccountsConfig;
@@ -1202,6 +1209,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
       result.push({
         accountKey: key,
         mad,
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Find all rsyslog configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getRsysLogConfigs(): ResolvedRsysLogConfig[] {
+    const result: ResolvedRsysLogConfig[] = [];
+    for (const [key, config] of this.getAccountConfigs()) {
+      const rsyslog = config.deployments?.rsyslog;
+      if (!rsyslog) {
+        continue;
+      }
+      result.push({
+        accountKey: key,
+        rsyslog,
       });
     }
     return result;
