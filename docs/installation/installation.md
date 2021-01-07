@@ -31,11 +31,12 @@ These installation instructions assume the prescribed architecture is being depl
 - [3. Upgrades](#3-upgrades)
   - [3.1. Considerations](#31-considerations)
   - [3.2. Summary of Upgrade Steps (all versions)](#32-summary-of-upgrade-steps-all-versions)
-- [4. Notes](#4-notes)
+- [4. Existing Organizations / Accounts](#4-existing-organizations--accounts)
   - [4.1. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations](#41-considerations-importing-existing-aws-accounts--deploying-into-existing-aws-organizations)
-    - [4.1.1. Process to import existing AWS accounts into an Accelerator managed Organization](#411-process-to-import-existing-aws-accounts-into-an-accelerator-managed-organization)
-    - [4.1.2. Deploying the Accelerator into an existing Organization](#412-deploying-the-accelerator-into-an-existing-organization)
-  - [4.2. Accelerator Design Constraints / Decisions](#42-accelerator-design-constraints--decisions)
+  - [4.2. Process to import existing AWS accounts into an Accelerator managed Organization](#42-process-to-import-existing-aws-accounts-into-an-accelerator-managed-organization)
+  - [4.3. Deploying the Accelerator into an existing Organization](#43-deploying-the-accelerator-into-an-existing-organization)
+- [5. Notes](#5-notes)
+  - [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
 
 <!-- /TOC -->
 
@@ -50,7 +51,7 @@ These installation instructions assume the prescribed architecture is being depl
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid configuration file, updated to reflect your deployment (see below)
 - Determine your primary or Accelerator 'control' or 'home' region. These instructions have been written assuming `ca-central-1`, but any supported region can be substituted.
-- The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in section 5.2 below
+- The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
 - Existing ALZ customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
 ## 2.2. Production Deployment Planning
@@ -318,7 +319,7 @@ If deploying to an internal AWS employee account, to successfully install the so
     - create a new `/accelerator/version` parameter in Parameter store, populating with `{ "Branch": "release/v1.1.4", "Repository": "aws-secure-environment-accelerator", "CommitId": "9999999999999999999999999999999999999999", "Owner": "aws-samples", "DeployTime": "Unknown", "AcceleratorVersion": "1.1.4" }`
     - update the `/accelerator/version` parameter with the value documented above (i.e. v1.2.3, if it existed)
       - we only introduced /accelerator/version in release v1.1.5 and during the install we read the parameter history and load the initial installation version
-  - Follow instructions in section 4.1, the State Machine will run and fail with an inability to load the file `raw/config.json`
+  - Follow instructions in section 3.2, the State Machine will run and fail with an inability to load the file `raw/config.json`
   - Go into CodeCommit, Commits, the top commit should be `Updating Raw Config in SM`, Click `Copy ID`
   - Update secret `accelerator/config/last-successful-commit` in Secrets Manager with the Commit ID from the previous step
   - rerun the State Machine
@@ -340,7 +341,7 @@ If deploying to an internal AWS employee account, to successfully install the so
    - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.3`)
      - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
-# 4. Notes
+# 4. Existing Organizations / Accounts
 
 ## 4.1. Considerations: Importing existing AWS Accounts / Deploying Into Existing AWS Organizations
 
@@ -357,7 +358,7 @@ If deploying to an internal AWS employee account, to successfully install the so
   - We've tried to ensure all customer deployments are smooth. Given the breadth and depth of the AWS service offerings and the flexibility in the available deployment options, there may be scenarios that cause deployments into existing Organizations to initially fail. In these situations, simply rectify the conflict and re-run the state machine.
   - If the Firewall Manager administrative account is already set for your organization, it needs to be unset before starting a deployment.
 
-### 4.1.1. Process to import existing AWS accounts into an Accelerator managed Organization
+## 4.2. Process to import existing AWS accounts into an Accelerator managed Organization
 
 - Newly invited AWS accounts in an Organization will land in the root ou
 - Unlike newly created AWS accounts which immediately have a Deny-All SCP applied, imported accounts are not locked down as we do not want to break existing workloads (these account are already running without Accelerator guardrails)
@@ -375,7 +376,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 - The state machine is both highly parallel and highly resilient, stopping the state machine should not have any negative impact. Importing 1 or 10 accounts generally takes about the same amount of time for the Accelerator to process, so it may be worth stopping the current execution and rerunning to capture all changes in a single execution.
 - We have added a 2 min delay before triggering the state machine, allowing customers to make multiple changes within a short timeframe and have them all captured automatically in the same state machine execution.
 
-### 4.1.2. Deploying the Accelerator into an existing Organization
+## 4.3. Deploying the Accelerator into an existing Organization
 
 - As stated above, if the ALZ was previously deployed into the Organization, please work with your AWS account team to find the best mechanism to uninstall the ALZ solution
 - Ensure all existing sub-accounts have the `AWSCloudFormationStackSetExecutionRole` installed and set to trust the Organization Management (root) AWS Organization account
@@ -392,7 +393,9 @@ If deploying to an internal AWS employee account, to successfully install the so
     - If doing a mass import, we suggest you take a quick look and if the solution is not immediately obvious, move the account which caused the failure back to ignored-ous and continue importing the remainder of your accounts. Once you have the majority imported, you can circle back and import outstanding problem accounts with the ability to focus on each individual issue
     - The challenge could be as simple as someone has instances running in a default VPC, which may require some cleanup effort before we can import (coming soon, you will be able to exclude single account/region combinations from default VPC deletion to gain the benefits of the rest of the guardrails while you migrate workloads out of the default VPC)
 
-## 4.2. Accelerator Design Constraints / Decisions
+# 5. Notes
+
+## 5.1. Accelerator Design Constraints / Decisions
 
 - The Organization Management (root) account does NOT have any preventative controls to protect the integrity of the Accelerator codebase, deployed objects or guardrails. Do not delete, modify, or change anything in the Organization Management (root) account unless you are certain as to what you are doing. More specifically, do NOT delete, or change _any_ buckets in the Organization Management (root) account.
 - While generally protected, do not delete/update/change s3 buckets with CDK, CFN, or PBMMAccel- in _any_ sub-accounts.- ALB automated deployments only supports Forward and not redirect rules.

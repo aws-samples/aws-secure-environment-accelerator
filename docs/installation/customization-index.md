@@ -1,6 +1,6 @@
-# 1. AWS Secure Environment Accelerator
+# 1. Accelerator Configuration File Customization and Sample Configs
 
-- [1. AWS Secure Environment Accelerator](#1-aws-secure-environment-accelerator)
+- [1. Accelerator Configuration File Customization and Sample Configs](#1-accelerator-configuration-file-customization-and-sample-configs)
   - [1.1. **Sample Accelerator Configuration Files**](#11-sample-accelerator-configuration-files)
   - [1.2. **Deployment Customizations**](#12-deployment-customizations)
   - [1.3. Other Configuration File Hints and Tips](#13-other-configuration-file-hints-and-tips)
@@ -59,7 +59,7 @@
   - in versions 1.2.0 through 1.2.2 there is a issue adding local endpoints when a central endpoint already exists for the vpc
 - If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
 - Initial MAD deployments are only supported in 2 AZ subnets (as of v1.2.3). Deploy the Accelerator with only 2 MAD subnets and add additional AZ's on subsequent state machine executions. A fix is planned.
-- In v1.2.3 and below (fixes planned for v1.2.4):
+- In v1.2.3 and below (fixed in v1.2.4):
   - if the same IAM policy file is used in more than one spot in the config, we require one account to reference the policy twice or you will get a `Unexpected token u in JSON at position 0,` error in Phase 1
   - the `zones\resolver-vpc` is a mandatory parameter, you must deploy a small dummy vpc w/no subnets, routes, etc. in the account of your choosing for this validation to succeed
   - security hub deploys security standards and disables controls, no automated mechanism exists to disable security standard or re-enable individual controls
