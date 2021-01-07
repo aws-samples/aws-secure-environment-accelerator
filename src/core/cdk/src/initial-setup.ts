@@ -155,6 +155,7 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
+          'inputConfig.$': '$',
         },
         resultPath: '$.configuration',
       });
@@ -185,6 +186,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           outputTableName: outputsTable.tableName,
+          'storeAllOutputs.$': '$.configuration.storeAllOutputs',
         },
         resultPath: '$.configuration.baselineOutput',
       });

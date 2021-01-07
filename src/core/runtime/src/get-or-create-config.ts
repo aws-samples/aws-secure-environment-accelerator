@@ -8,6 +8,9 @@ interface GetOrCreateConfigInput {
   s3Bucket: string;
   branchName: string;
   acceleratorVersion?: string;
+  // Taking entire input to replace any default paramaters in SM Input
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  inputConfig?: any;
 }
 
 const codecommit = new CodeCommit();
@@ -17,7 +20,8 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   console.log(`Get or Create Config from S3 file...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { repositoryName, s3Bucket, branchName, acceleratorVersion } = input;
+  const { repositoryName, s3Bucket, branchName, acceleratorVersion, inputConfig } = input;
+  const storeAllOutputs: boolean = !!inputConfig.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
     console.log(`Creating repository "${repositoryName}" for Config file`);
@@ -58,6 +62,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
           {
             ...s3LoadResponse,
             acceleratorVersion,
+            storeAllOutputs,
           },
           null,
           2,
@@ -66,6 +71,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       return {
         ...s3LoadResponse,
         acceleratorVersion,
+        storeAllOutputs,
       };
     }
     const currentCommit = await codecommit.getBranch(repositoryName, branchName);
@@ -107,6 +113,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
           configCommitId: configCommitId || currentCommit.branch?.commitId,
           acceleratorVersion,
           configRootFilePath: filePath,
+          storeAllOutputs,
         },
         null,
         2,
@@ -119,6 +126,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       configCommitId: configCommitId || currentCommit.branch?.commitId,
       acceleratorVersion,
       configRootFilePath: filePath,
+      storeAllOutputs,
     };
   } catch (e) {
     if (e.code !== 'FileDoesNotExistException' && e.code !== 'CommitDoesNotExistException') {
@@ -135,6 +143,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         {
           ...s3LoadResponse,
           acceleratorVersion,
+          storeAllOutputs,
         },
         null,
         2,
@@ -144,6 +153,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     return {
       ...s3LoadResponse,
       acceleratorVersion,
+      storeAllOutputs,
     };
   }
 };
