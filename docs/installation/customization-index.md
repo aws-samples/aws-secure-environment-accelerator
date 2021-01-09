@@ -22,7 +22,7 @@ Descriptions:
      - removes the Unclass ou and VPC
    - The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
 3. Ultra-Light sample configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
-   - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible. This config has:
+   - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This config has:
      - no `shared-network` or `perimeter` accounts
      - no networking (VPC, TGW, SG, NACL, endpoints) or route53 (zones, resolvers) objects
      - no Managed AD, AD Connector, rsyslog cluster, RDGW host, or 3rd party firewalls
