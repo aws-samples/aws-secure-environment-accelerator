@@ -24,7 +24,7 @@ Descriptions:
 3. Ultra-Light sample configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
    - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible for an extremely simple config. This config has:
      - no `shared-network` or `perimeter` accounts
-     - no networking (VPC, TGW, SG, NACL, endpoints) or route53 (zones, resolvers) objects
+     - no networking (VPC, TGW, ELB, SG, NACL, endpoints) or route53 (zones, resolvers) objects
      - no Managed AD, AD Connector, rsyslog cluster, RDGW host, or 3rd party firewalls
      - only enables/deploys AWS security services in 2 regions (ca-central-1, us-east-1) (Not recommended)
      - only deploys 2 AWS config rules w/SSM remediation
