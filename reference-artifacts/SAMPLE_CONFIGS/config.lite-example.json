@@ -1,6 +1,5 @@
 {
   "global-options": {
-    "alz-minimum-version": "v2.3.1",
     "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 90,

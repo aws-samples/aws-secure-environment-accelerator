@@ -49,16 +49,16 @@ These installation instructions assume the prescribed architecture is being depl
 - Management or root AWS Organization account (the AWS Accelerator cannot be deployed in an AWS sub-account)
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
-- Valid configuration file, updated to reflect your deployment (see below)
+- Valid configuration file, updated to reflect your requirements (see below)
 - Determine your primary or Accelerator 'control' or 'home' region. These instructions have been written assuming `ca-central-1`, but any supported region can be substituted.
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
-- Existing ALZ customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
+- Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
 ## 2.2. Production Deployment Planning
 
 ### 2.2.1. General
 
-**For any deployment of the Accelerator which is intended to be used for real workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for workloads, you can almost certainly leave the default config values.**
+**For any deployment of the Accelerator which is intended to be used for real workloads, you must evaluate all these decisions carefully. Failure to understand these choices could cause challenges down the road. If this is a "test" or "internal" deployment of the Accelerator which will not be used for workloads, you can leave the default config values.**
 
 ### 2.2.2. OU Structure Planning
 
@@ -68,7 +68,7 @@ Plan your OU structure carefully. By default, we suggest: `Core, Central, Sandbo
 
 ### 2.2.3. Network Configuration Planning
 
-You will need the following network constructs:
+If deploying the prescriptive architecture, you will need the following network constructs:
 
 1. Six (6) RFC1918 Class B address blocks (CIDR's) which do not conflict with your on-premise networks
 
@@ -85,7 +85,7 @@ You will need the following network constructs:
 
 ### 2.2.4. DNS, Domain Name, TLS Certificate Planning
 
-You must decide on:
+If deploying the prescriptive architecture, you must decide on:
 
 1. A unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
 2. DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
@@ -95,8 +95,12 @@ You must decide on:
 
 ### 2.2.5. License and Email Address Planning
 
-1. 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future)
-1. We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
+1. 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future) (if firewalls are to be deployed)
+2. We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
+3. You additionally require email addresses for the following additionaly purposes (these can be existing monitored mailboxes and do not need to be unique): 
+  - Accelerator execution (state machine) notification events (1 address)
+  - High, Medium and Low security alerts (3 addresses if you wish to segregate alerts)
+  - Budget notifications 
 
 ## 2.3. Accelerator Pre-Install Steps
 
@@ -112,28 +116,27 @@ Before installing, you must first:
    - In Organizations, select `Policies`, `Service control policies`, `Enable service control policies`
 5. Verify the Organization Management (root) account email address
    - In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/)
-6. Ensure `alz-baseline=false` is set in the configuration file
-7. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
+6. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
 
-- AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
+  - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
   (`PBMMAccel-Source-Bucket-Key`), Next
-- Select a key administrator (Admin Role or Group for the Organization Management account), Next
-- Select key users (Admin Role or Group for the Organization Management account), Next
-- Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
-  - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
-- Click Finish
+  - Select a key administrator (Admin Role or Group for the Organization Management account), Next
+  - Select key users (Admin Role or Group for the Organization Management account), Next
+  - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
+    - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
+  - Click Finish
 
 8. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
 
-- With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
+  - With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
 
 9.  Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
 10. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
 
-- This information is copied to every new sub-account on creation.
-- Subsequent changes to this information require manually updating it in **\*each** sub-account.
-- Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
-- Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
+  - This information is copied to every new sub-account on creation.
+  - Subsequent changes to this information require manually updating it in **\*each** sub-account.
+  - Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
+  - Please ESPECIALLY make sure the email addresses and Phone numbers are valid and regularly monitored. If we need to reach you due to suspicious account activity, billing issues, or other urgent problems with your account - this is the information that is used. It is CRITICAL it is kept accurate and up to date at all times.
 
 ### 2.3.2. Create GitHub Personal Access Token and Store in Secrets Manager
 
@@ -150,7 +153,7 @@ Before installing, you must first:
 
 ### 2.3.3. AWS Internal (Employee) Accounts Only
 
-If deploying to an internal AWS employee account, to successfully install the solution with the 3rd party firewall, you need to enable Private Marketplace (PMP) before starting:
+If deploying to an internal AWS employee account, to successfully install the solution with the 3rd party firewalls, you need to enable Private Marketplace (PMP) before starting:
 
 1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click Create Marketplace
@@ -171,7 +174,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 
 ## 2.4. Basic Accelerator Configuration
 
-1. You can use the [`config.example.json`](../../reference-artifacts/config.example.json) or [`config.lite-example.json`](../../reference-artifacts/config.lite-example.json) files as base
+1. You can use the [`config.example.json`](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) or [`config.lite-example.json`](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) files as base
    - IMPORTANT: Use the version from the Github code branch you are deploying from as some parameters change over time. The master branch is NOT the current release.
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
    - These configuration files can be used, as-is, with only minor modification to successfully deploy the standard architecture

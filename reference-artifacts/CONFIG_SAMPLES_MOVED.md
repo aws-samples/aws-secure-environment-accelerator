@@ -1,0 +1,1 @@
+Please note, the sample configs have moved to the [SAMPLE_CONFIGS](../../reference-artifacts/SAMPLE_CONFIGS/) sub-folder.
