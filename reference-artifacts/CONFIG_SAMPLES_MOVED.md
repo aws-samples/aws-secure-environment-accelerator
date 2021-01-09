@@ -1,1 +1,2 @@
-Please note, the sample configs have moved to the [SAMPLE_CONFIGS](../../reference-artifacts/SAMPLE_CONFIGS/) sub-folder.
+The sample config files have moved to the [SAMPLE_CONFIGS](./SAMPLE_CONFIGS/) sub-folder.
+

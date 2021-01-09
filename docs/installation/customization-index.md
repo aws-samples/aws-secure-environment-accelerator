@@ -7,9 +7,14 @@
 
 ## 1.1. **Sample Accelerator Configuration Files**
 
-- Full PBMM configuration [file](../../reference-artifacts/config.example.json)
+- Sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder
+- Unsure where to start, use the [config.lite-example.json](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) file
+
+Descriptions:
+
+- Full PBMM configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
   - The full PBMM configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the solution.
-- Light weight PBMM configuration [file](../../reference-artifacts/config.lite-example.json) **(Recommended for most new PBMM customers)**
+- Light weight PBMM configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) (`config.lite-example.json`) **(Recommended for most new PBMM customers)**
   - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
     - only deploys the 6 required centralized Interface Endpoints (removes 56). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
     - removes the perimeter VPC Interface Endpoints
