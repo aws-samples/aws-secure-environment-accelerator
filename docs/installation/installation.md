@@ -175,17 +175,13 @@ If deploying to an internal AWS employee account, to successfully install the so
 ## 2.4. Basic Accelerator Configuration
 
 1. Select a sample config file as a baseline starting point
-   - sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder
-   - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md)
-   - unsure where to start, use the [`config.lite-example.json`](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) file
-   - These configuration files can be used, as-is, with only minor modification to successfully deploy the sample architectures
-   - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters
-   
+   - sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder;
+   - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md);
+   - unsure where to start, use the [`config.lite-example.json`](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) file;
+   - These configuration files can be used, as-is, with only minor modification to successfully deploy the sample architectures;
+   - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters;
    - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The master branch is NOT the current release and often will not work with the GA release.**
-   
-   
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
-
    - For existing accounts, they _must_ match identically to both the account names and email addresses defined in AWS Organizations;
    - For new accounts, they must reflect the new account name/email you want created;
    - All new AWS accounts require a unique email address which has never before been used to create an AWS account;
@@ -193,7 +189,6 @@ If deploying to an internal AWS employee account, to successfully install the so
    - Update the IP addresses in the SSOAuthUnapprovedIPMetric filter with your on-premise IP ranges;
    - For a test deployment, the remainder of the values can be used as-is;
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
-
 3. A successful deployment of the presecriptive architecture requires VPC access to 7 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 7 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms).
 4. When deploying to regions other than ca-central-1, you need to:
    1. Replace all occurences of ca-central-1 in the config file with your home region
