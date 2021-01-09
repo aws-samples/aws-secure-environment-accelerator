@@ -12,15 +12,23 @@
 
 Descriptions:
 
-- Full PBMM configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
-  - The full PBMM configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the solution.
-- Light weight PBMM configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) (`config.lite-example.json`) **(Recommended for most new PBMM customers)**
-  - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
-    - only deploys the 6 required centralized Interface Endpoints (removes 56). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
-    - removes the perimeter VPC Interface Endpoints
-    - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04)
-    - removes the Unclass ou and VPC
-  - The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
+1. Full PBMM configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.example.json) (`config.example.json`)
+   - The full PBMM configuration file was based on feedback from customers moving into AWS at scale and at a rapid pace. Customers of this nature have indicated that they do not want to have to upsize their perimeter firewalls or add Interface endpoints as their developers start to use new AWS services. These are the two most expensive components of the deployed architecture solution.
+2. Light weight PBMM configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) (`config.lite-example.json`) **(Recommended for most new PBMM customers)**
+   - To reduce solution costs and allow customers to grow into more advanced AWS capabilities, we created this lighter weight configuration that does not sacrifice functionality, but could limit performance. This config file:
+     - only deploys the 6 required centralized Interface Endpoints (removes 56). All services remain accessible using the AWS public endpoints, but require traversing the perimeter firewalls
+     - removes the perimeter VPC Interface Endpoints
+     - reduces the Fortigate instance sizes from c5n.2xl to c5n.xl (VM08 to VM04)
+     - removes the Unclass ou and VPC
+   - The Accelerator allows customers to easily add or change this functionality in future, as and when required without any impact
+3. Ultra-Light sample configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json) (`config.ultralite-example.json`)
+   - This configuration file was created to represent an extremely minimalistic Accelerator deployment, simply to demonstrate the art of the possible. This config has:
+     - no `shared-network` or `perimeter` accounts
+     - no networking (VPC, TGW, SG, NACL, endpoints) or route53 (zones, resolvers) objects
+     - no Managed AD, AD Connector, rsyslog cluster, RDGW host, or 3rd party firewalls
+     - only enables/deploys AWS security services in 2 regions (ca-central-1, us-east-1) (Not recommended)
+     - only deploys 2 AWS config rules w/SSM remediation
+     - renamed log-archive (Logs), security (Audit) and operations (Ops) account names
 
 ## 1.2. **Deployment Customizations**
 
