@@ -26,7 +26,7 @@
     "eslint-plugin-prefer-arrow": "1.2.2",
     "eslint-plugin-react": "7.21.3",
     "eslint-plugin-unicorn": "22.0.0", 
-    "@types/xml2js": "^0.4.5", 
+    "@types/xml2js": "0.4.5", 
     "eslint": "7.10.0",
     "@typescript-eslint/eslint-plugin": "4.4.0",
     "@typescript-eslint/parser": "4.4.0", 

@@ -14,7 +14,7 @@
   "devDependencies": {
     "@aws-cdk/assert": "1.75.0",
     "@aws-cdk/aws-elasticloadbalancingv2": "1.75.0",
-    "@types/hash-sum": "^1.0.0",
+    "@types/hash-sum": "1.0.0",
     "@types/jest": "25.2.1",
     "@types/node": "12.12.6",
     "babel-jest": "25.2.0",
@@ -59,9 +59,9 @@
     "@aws-accelerator/custom-resource-security-hub-enable": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-r53-dns-endpoint-ips": "workspace:^0.0.1",
-    "hash-sum": "^2.0.0",
+    "hash-sum": "2.0.0",
     "ip-num": "1.2.2",
-    "pascal-case": "^3.1.1",
+    "pascal-case": "3.1.1",
     "tempy": "0.5.0"
   },
   "jest": {
