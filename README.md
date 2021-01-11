@@ -148,7 +148,7 @@ This summarizes the installation process, the full installation document can be 
 
 ### - Accelerator Operations/Troubleshooting [Guide](./docs/operations/operations-troubleshooting-guide.md)
 
-### - Accelerator Basic Operation and Frequently Asked Questions [(FAQ)](./docs/faq/faq.md)
+### - Accelerator Basic Operation and Frequently Asked Questions ([FAQ](./docs/faq/faq.md))
 
 ### - Accelerator Developer [Guide](./docs/developer/developer-guide.md)
 
