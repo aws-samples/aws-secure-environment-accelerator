@@ -29,6 +29,18 @@ Descriptions:
      - only enables/deploys AWS security services in 2 regions (ca-central-1, us-east-1) (Not recommended)
      - only deploys 2 AWS config rules w/SSM remediation
      - renamed log-archive (Logs), security (Audit) and operations (Ops) account names
+4. Multi-Region sample configuration [file](../../reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json) (`config.multi-region-example.json`)
+   - This configuration file was created to represent a more advanced multi-region version of the Full PBMM configuration file from bullet 1 above. This config:
+     - adds a TGW in us-east-1, peered to the TGW in ca-central-1
+     - adds TGW static routes, including several dummy sample static routes
+     - adds a central Endpoint VPC in us-east-1 with us-east-1 endpoints configured
+     - adds a shared VPC for all UnClass OU accounts in us-east-1, connected to the us-east-1 TGW (accessible through ca-central-1)
+       - creates additional zones and resolver rules
+     - Sends us-east-1 CloudWatch Logs to the central S3 log-archive bucket in ca-central-1
+     - Deploys SSM documents to us-east-1 and remediates configured rules in UnClass OU
+     - adds a local account specific VPC, in us-east-1, in the account MyUnClass and connects it to the us-east-1 TGW (i.e. shares TGW)
+       - local account VPC set to use central endpoints, associates appropriate centralized hosted zones to VPC (also creates 5 local endpoints)
+     - adds a VGW for DirectConnect to the perimeter VPC
 
 ## 1.2. **Deployment Customizations**
 
