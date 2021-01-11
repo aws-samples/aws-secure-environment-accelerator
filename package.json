@@ -1,6 +1,6 @@
 {
   "devDependencies": {
-    "@types/jest": "^25.2.1",
+    "@types/jest": "25.2.3",
     "@types/node": "12.12.6",
     "husky": "4.2.3",
     "prettier": "2.0.2",

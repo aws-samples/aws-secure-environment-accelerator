@@ -12,9 +12,9 @@
     "webpack-shell-plugin-next": "1.1.9"
   },
   "peerDependencies": {
-    "ts-loader": "^7.0.5",
-    "typescript": "^3.8.3",
-    "webpack": "^4.42.1",
-    "webpack-cli": "^3.3.11"
+    "ts-loader": "7.0.5",
+    "typescript": "3.8.3",
+    "webpack": "4.42.1",
+    "webpack-cli": "3.3.11"
   }
 }

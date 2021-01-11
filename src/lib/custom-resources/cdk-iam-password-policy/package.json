@@ -1,8 +1,8 @@
 {
   "name": "@aws-accelerator/custom-resource-iam-password-policy",
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "^1.75.0", 
-    "@aws-cdk/core": "^1.75.0"
+    "@aws-cdk/aws-iam": "1.75.0", 
+    "@aws-cdk/core": "1.75.0"
   }, 
   "main": "cdk/index.ts",
   "private": true, 

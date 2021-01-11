@@ -30,9 +30,9 @@
     "@aws-cdk/core": "1.75.0"
   },
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "^1.75.0",
-    "@aws-cdk/aws-kms": "^1.75.0",
-    "@aws-cdk/aws-lambda": "^1.75.0",
-    "@aws-cdk/core": "^1.75.0"
+    "@aws-cdk/aws-iam": "1.75.0",
+    "@aws-cdk/aws-kms": "1.75.0",
+    "@aws-cdk/aws-lambda": "1.75.0",
+    "@aws-cdk/core": "1.75.0"
   }
 }
