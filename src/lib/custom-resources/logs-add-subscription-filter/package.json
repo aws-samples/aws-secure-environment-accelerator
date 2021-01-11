@@ -9,7 +9,7 @@
     "@types/jest": "25.1.4",
     "@types/node": "12.12.6",
     "jest": "25.2.4",
-    "prettier": "1.19.1",
+    "prettier": "2.0.2",
     "ts-jest": "25.3.0",
     "ts-node": "6.2.0",
     "eslint": "7.10.0",
