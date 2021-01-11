@@ -1,0 +1,20 @@
+{
+  "name": "@aws-accelerator/custom-resource-s3-put-bucket-versioning",
+  "peerDependencies": {
+    "@aws-cdk/aws-iam": "1.75.0", 
+    "@aws-cdk/core": "1.75.0", 
+    "@aws-cdk/custom-resources": "1.75.0"
+  }, 
+  "main": "cdk/index.ts",
+  "private": true, 
+  "version": "0.0.1", 
+  "dependencies": {
+    "@aws-cdk/aws-iam": "1.75.0", 
+    "@aws-cdk/core": "1.75.0", 
+    "@aws-cdk/custom-resources": "1.75.0"
+  }, 
+  "devDependencies": {
+    "@types/node": "12.12.6", 
+    "typescript": "3.8.3"
+  }
+}

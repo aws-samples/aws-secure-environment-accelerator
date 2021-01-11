@@ -93,7 +93,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
 
   const bucket = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
     encryptionKey,
-    versioned: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     removalPolicy: cdk.RemovalPolicy.RETAIN,
   });
@@ -177,6 +176,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     accountStack: logAccountStack,
     encryptionKey: logKey.encryptionKey,
     logRetention: defaultLogRetention!,
+    versioned: true,
   });
 
   // Allow replication from all Accelerator accounts

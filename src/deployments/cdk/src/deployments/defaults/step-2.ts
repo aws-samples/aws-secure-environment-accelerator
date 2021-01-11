@@ -57,6 +57,7 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       accountStack,
       encryptionKey: key.encryptionKey,
       logRetention,
+      versioned: true,
     });
 
     // Provide permissions to write VPC flow logs to the bucket
@@ -82,12 +83,6 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       }),
     );
 
-    bucket.replicateTo({
-      destinationBucket: centralLogBucket,
-      destinationAccountId: logAccountId,
-      // Only replicate files under ACCOUNT_ID/
-      prefix: `${cdk.Aws.ACCOUNT_ID}/`,
-    });
     buckets[accountKey] = bucket;
 
     new CfnAccountBucketOutput(accountStack, 'DefaultBucketOutput', {

@@ -1,4 +1,3 @@
-import * as ssm from '@aws-cdk/aws-ssm';
 import { getAccountId } from '../utils/accounts';
 import { VpcOutputFinder } from '@aws-accelerator/common-outputs/src/vpc';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
@@ -15,6 +14,7 @@ import { ArtifactOutputFinder } from '../deployments/artifacts/outputs';
 import { ImageIdOutputFinder } from '@aws-accelerator/common-outputs/src/ami-output';
 import * as cloudWatchDeployment from '../deployments/cloud-watch';
 import * as ssmDeployment from '../deployments/ssm';
+import * as defaults from '../deployments/defaults';
 
 /**
  * This is the main entry point to deploy phase 5
@@ -29,6 +29,21 @@ import * as ssmDeployment from '../deployments/ssm';
  */
 
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, outputs }: PhaseInput) {
+  // Find the account buckets in the outputs
+  const accountBuckets = defaults.AccountBucketOutput.getAccountBuckets({
+    accounts,
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
+  // Find the central bucket in the outputs
+  const centralBucket = defaults.CentralBucketOutput.getBucket({
+    accountStacks,
+    config: acceleratorConfig,
+    outputs,
+  });
+
   const accountNames = acceleratorConfig
     .getMandatoryAccountConfigs()
     .map(([_, accountConfig]) => accountConfig['account-name']);
@@ -204,5 +219,13 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     config: acceleratorConfig,
     outputs,
+  });
+
+  await defaults.step3({
+    accountBuckets,
+    accountStacks,
+    accounts,
+    config: acceleratorConfig,
+    centralBucket,
   });
 }
