@@ -867,7 +867,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-network@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
       "src-filename": "config.json",
@@ -887,22 +887,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -1096,7 +1096,7 @@
     },
     "operations": {
       "account-name": "Operations",
-      "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-operations@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "account-warming-required": true,
       "limits": {},
@@ -1185,17 +1185,17 @@
           "ad-users": [
             {
               "user": "adconnector-usr",
-              "email": "myemail+pbmmT-adc-usr@example.com",
+              "email": "myemail+aseaT-adc-usr@example.com",
               "groups": ["ADConnector-grp"]
             },
             {
               "user": "User1",
-              "email": "myemail+pbmmT-User1@example.com",
+              "email": "myemail+aseaT-User1@example.com",
               "groups": ["aws-Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
             },
             {
               "user": "User2",
-              "email": "myemail+pbmmT-User2@example.com",
+              "email": "myemail+aseaT-User2@example.com",
               "groups": ["*-View"]
             }
           ],
@@ -1277,7 +1277,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "myemail+pbmmT-perimeter@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "account-warming-required": true,
       "src-filename": "config.json",
@@ -1305,22 +1305,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -1806,7 +1806,7 @@
     },
     "master": {
       "account-name": "primary",
-      "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "",
       "src-filename": "config.json",
@@ -1826,22 +1826,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -1935,26 +1935,26 @@
     "log-archive": {
       "account-name": "log-archive",
       "ou": "core",
-      "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-log@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
-      "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-sec@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     }
   },
   "workload-account-configs": {
     "fun-acct": {
       "account-name": "TheFunAccount",
-      "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-funacct@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json",
       "ou": "Sandbox"
     },
     "mydevacct1": {
       "account-name": "MyDev1",
-      "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-dev1@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json",
       "ou": "Dev"
     }
@@ -1979,22 +1979,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -2129,22 +2129,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -2685,22 +2685,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -3268,22 +3268,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -3851,22 +3851,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -4434,22 +4434,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -4984,22 +4984,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },

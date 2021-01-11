@@ -515,13 +515,13 @@
   "mandatory-account-configs": {
     "operations": {
       "account-name": "Ops",
-      "email": "myemail+ASEA-ops@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-ops@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "src-filename": "config.json"
     },
     "master": {
       "account-name": "Org-Root",
-      "email": "myemail+ASEA-root@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-root@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "src-filename": "config.json",
       "budget": {
@@ -540,17 +540,17 @@
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -574,13 +574,13 @@
     "log-archive": {
       "account-name": "Logs",
       "ou": "core",
-      "email": "myemail+ASEA-logs@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-logs@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     },
     "security": {
       "account-name": "Audit",
       "ou": "core",
-      "email": "myemail+ASEA-audit@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-audit@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     }
   },
@@ -605,17 +605,17 @@
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -653,17 +653,17 @@
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+ASEA-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
