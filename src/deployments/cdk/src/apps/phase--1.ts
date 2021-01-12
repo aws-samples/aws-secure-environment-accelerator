@@ -117,5 +117,5 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
   await globalRoles.createS3PutReplicationRole({
     accountStacks,
     accounts,
-  })
+  });
 }
