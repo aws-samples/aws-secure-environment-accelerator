@@ -1,10 +1,12 @@
 import * as cdk from '@aws-cdk/core';
-import * as kms from '@aws-cdk/aws-kms';
 import * as iam from '@aws-cdk/aws-iam';
 import * as s3 from '@aws-cdk/aws-s3';
+import { ReplicationRules, EncryptionConfiguration } from 'aws-sdk/clients/s3';
+import { S3PutBucketReplication } from '@aws-accelerator/custom-resource-s3-put-bucket-replication';
 
 export interface BucketReplicationProps {
   bucket: s3.IBucket;
+  s3PutReplicationRole: string;
   replicationRoleName?: string;
   destinationBucket?: s3.IBucket;
   destinationAccountId?: string;
@@ -19,15 +21,17 @@ export class BucketReplication extends cdk.Construct {
   private readonly resource: s3.CfnBucket;
 
   private readonly replicationRoleName: string | undefined;
-  private readonly replicationRules: s3.CfnBucket.ReplicationRuleProperty[] = [];
+  private readonly replicationRules: ReplicationRules = [];
   private readonly destinationS3Resources: string[] = [];
   private readonly destinationKmsResources: string[] = [];
+  private readonly s3PutReplicationRole: string;
   private bucket: s3.IBucket;
 
   constructor(scope: cdk.Construct, id: string, props: BucketReplicationProps) {
     super(scope, id);
     this.replicationRoleName = props.replicationRoleName;
     this.bucket = props.bucket;
+    this.s3PutReplicationRole = props.s3PutReplicationRole;
     // Get the underlying resource
     this.resource = (props.bucket as unknown) as s3.CfnBucket;
   }
@@ -88,33 +92,33 @@ export class BucketReplication extends cdk.Construct {
     this.destinationS3Resources.push(destinationBucket.bucketArn);
     this.destinationS3Resources.push(`${destinationBucket.bucketArn}/*`);
 
-    let encryptionConfiguration;
+    let encryptionConfiguration: EncryptionConfiguration;
     if (destinationBucket.encryptionKey) {
       // The permissions to encrypt using these keys will be added in the onPrepare method
       this.destinationKmsResources.push(destinationBucket.encryptionKey.keyArn);
 
       encryptionConfiguration = {
-        replicaKmsKeyId: destinationBucket.encryptionKey.keyArn,
+        ReplicaKmsKeyID: destinationBucket.encryptionKey.keyArn,
       };
     }
 
     // This is the replication configuration that will be used for the S3 bucket
     this.replicationRules.push({
-      id: `s3-replication-rule-${id}`,
-      status: 'Enabled',
-      prefix: prefix ?? '',
-      sourceSelectionCriteria: {
-        sseKmsEncryptedObjects: {
-          status: 'Enabled',
+      ID: `s3-replication-rule-${id}`,
+      Status: 'Enabled',
+      Prefix: prefix ?? '',
+      SourceSelectionCriteria: {
+        SseKmsEncryptedObjects: {
+          Status: 'Enabled',
         },
       },
-      destination: {
-        bucket: destinationBucket.bucketArn,
-        account: destinationAccountId,
-        encryptionConfiguration,
-        storageClass: 'STANDARD',
-        accessControlTranslation: {
-          owner: 'Destination',
+      Destination: {
+        Bucket: destinationBucket.bucketArn,
+        Account: destinationAccountId,
+        EncryptionConfiguration: encryptionConfiguration!,
+        StorageClass: 'STANDARD',
+        AccessControlTranslation: {
+          Owner: 'Destination',
         },
       },
     });
@@ -182,9 +186,11 @@ export class BucketReplication extends cdk.Construct {
       );
     }
 
-    this.resource.replicationConfiguration = {
-      role: replicationRole.roleArn,
+    new S3PutBucketReplication(this, `PutS3BucketReplication`, {
+      bucketName: this.bucket.bucketName,
+      replicationRole: replicationRole.roleArn,
+      roleArn: this.s3PutReplicationRole,
       rules: this.replicationRules,
-    };
+    });
   }
 }

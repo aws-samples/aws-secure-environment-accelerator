@@ -17,3 +17,4 @@ export * from './cleanup-role';
 export * from './central-endpoints-deployment-roles';
 export * from './ssm-throughput-roles';
 export * from './ec2';
+export * from './s3-put-replication-role';

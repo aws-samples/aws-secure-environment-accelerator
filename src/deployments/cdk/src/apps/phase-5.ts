@@ -227,5 +227,6 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     config: acceleratorConfig,
     centralBucket,
+    outputs,
   });
 }
