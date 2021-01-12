@@ -13,7 +13,7 @@
 
 ### - Accelerator Operations/Troubleshooting [Guide](./operations/operations-troubleshooting-guide.md)
 
-### - Accelerator Basic Operation and Frequently Asked Questions [(FAQ)](./faq/faq.md)
+### - Accelerator Basic Operation and Frequently Asked Questions ([FAQ](./faq/faq.md))
 
 ### - Accelerator Developer [Guide](./developer/developer-guide.md)
 
