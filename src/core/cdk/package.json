@@ -9,7 +9,7 @@
     "lint": "eslint --ext .ts 'src/**/*.ts'"
   },
   "devDependencies": {
-    "@types/jest": "25.1.4",
+    "@types/jest": "25.2.3",
     "@types/node": "12.12.6",
     "aws-cdk": "1.75.0",
     "babel-jest": "25.2.0",

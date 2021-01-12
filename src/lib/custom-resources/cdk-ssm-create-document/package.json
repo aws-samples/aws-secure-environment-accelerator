@@ -28,7 +28,7 @@
     "eslint-plugin-unicorn": "22.0.0",
     "@types/aws-lambda": "8.10.46", 
     "eslint-config-prettier": "6.12.0",
-    "@types/cfn-response": "1.0.3", 
+    "@types/cfn-response": "1.0.4", 
     "@types/node": "12.12.6", 
     "@aws-accelerator/custom-resource-ssm-create-document-runtime": "workspace:^0.0.1"
   }
