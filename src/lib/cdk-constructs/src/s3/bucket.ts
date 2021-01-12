@@ -29,6 +29,7 @@ export class Bucket extends s3.Bucket {
       versioned: props.versioned,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: props.removalPolicy ?? cdk.RemovalPolicy.RETAIN,
+      // LifeCycle Configuration is also updated while enabling Bucket Version in phase-5
       lifecycleRules: [
         {
           enabled: true,

@@ -1,6 +1,6 @@
-# S3 Put Public Access Block
+# S3 Put Bucket Versioning
 
-This is a custom resource that enables or disables public access for an entire account.
+This is a custom resource that enables bucket versioning.
 
 ## Usage
 

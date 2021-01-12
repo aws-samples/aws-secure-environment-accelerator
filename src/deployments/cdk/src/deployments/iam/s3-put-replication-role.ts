@@ -26,11 +26,13 @@ async function createRole(stack: AccountStack) {
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
       actions: [
-        'logs:CreateLogGroup',
-        'logs:CreateLogStream',
-        'logs:PutLogEvents',
         'iam:PassRole',
+        'logs:CreateLogStream',
+        'logs:CreateLogGroup',
+        'logs:PutLogEvents',
+        's3:PutLifecycleConfiguration',
         's3:PutReplicationConfiguration',
+        's3:PutBucketVersioning',
       ],
       resources: ['*'],
     }),

@@ -2,8 +2,7 @@
   "name": "@aws-accelerator/custom-resource-s3-put-bucket-versioning",
   "peerDependencies": {
     "@aws-cdk/aws-iam": "1.75.0", 
-    "@aws-cdk/core": "1.75.0", 
-    "@aws-cdk/custom-resources": "1.75.0"
+    "@aws-cdk/core": "1.75.0"
   }, 
   "main": "cdk/index.ts",
   "private": true, 
@@ -11,10 +10,26 @@
   "dependencies": {
     "@aws-cdk/aws-iam": "1.75.0", 
     "@aws-cdk/core": "1.75.0", 
-    "@aws-cdk/custom-resources": "1.75.0"
+    "@aws-cdk/aws-lambda": "1.75.0"
   }, 
   "devDependencies": {
+    "eslint": "7.10.0",
+    "@typescript-eslint/eslint-plugin": "4.4.0",
+    "@typescript-eslint/parser": "4.4.0", 
+    "eslint-config-standard": "14.1.1",
+    "eslint-plugin-standard": "4.0.1",
+    "eslint-plugin-deprecation": "1.1.0",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-jsdoc": "30.6.4",
+    "eslint-plugin-prefer-arrow": "1.2.2",
+    "eslint-plugin-react": "7.21.3",
+    "eslint-plugin-unicorn": "22.0.0", 
+    "@types/aws-lambda": "8.10.46", 
+    "eslint-config-prettier": "6.12.0", 
+    "@types/cfn-response": "1.0.4", 
     "@types/node": "12.12.6", 
-    "typescript": "3.8.3"
+    "@aws-accelerator/custom-resource-s3-put-bucket-versioning-runtime": "workspace:^0.0.1"
   }
 }
