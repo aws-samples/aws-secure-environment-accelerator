@@ -6,10 +6,10 @@
   "devDependencies": {
     "@aws-accelerator/custom-resource-logs-add-subscription-filter-runtime": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-logs-add-subscription-filter-cloudwatch-event-runtime": "workspace:^0.0.1",
-    "@types/jest": "25.1.4",
+    "@types/jest": "25.2.3",
     "@types/node": "12.12.6",
     "jest": "25.2.4",
-    "prettier": "1.19.1",
+    "prettier": "2.2.0",
     "ts-jest": "25.3.0",
     "ts-node": "6.2.0",
     "eslint": "7.10.0",
