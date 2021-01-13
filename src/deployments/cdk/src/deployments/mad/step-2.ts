@@ -62,7 +62,16 @@ function createActiveDirectory(props: MadStep2Props) {
     }
 
     const vpcId = vpcOutput.vpcId;
-    const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === madConfig.subnet).map(s => s.subnetId);
+    let subnetIds: string[];
+    if (madConfig.azs.length > 0) {
+      const madAzs = madConfig.azs.slice(0, 2);
+      subnetIds = vpcOutput.subnets.filter(s => madAzs.includes(s.az)).map(s => s.subnetId);
+    } else {
+      subnetIds = vpcOutput.subnets
+        .filter(s => s.subnetName === madConfig.subnet)
+        .map(s => s.subnetId)
+        .slice(0, 2);
+    }
 
     const madPasswordSecretArn = getMadConfigRootPasswordSecretArn({
       acceleratorPrefix,

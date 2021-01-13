@@ -338,6 +338,7 @@ export const MadConfigType = t.interface({
   'vpc-name': t.string,
   region: t.string,
   subnet: t.string,
+  azs: fromNullable(t.array(t.string), []),
   size: t.string,
   'dns-domain': t.string,
   'netbios-domain': t.string,
