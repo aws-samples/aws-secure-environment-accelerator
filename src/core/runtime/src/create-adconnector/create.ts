@@ -116,7 +116,9 @@ export const handler = async (input: AdConnectorInput) => {
     let subnetIds: string[];
     if (adcConfig.azs.length > 0) {
       const adcAzs = adcConfig.azs.slice(0, 2);
-      subnetIds = vpcOutput.subnets.filter(s => adcAzs.includes(s.az)).map(s => s.subnetId);
+      subnetIds = vpcOutput.subnets
+        .filter(s => s.subnetName === adcConfig.subnet && adcAzs.includes(s.az))
+        .map(s => s.subnetId);
     } else {
       subnetIds = vpcOutput.subnets
         .filter(s => s.subnetName === adcConfig.subnet)

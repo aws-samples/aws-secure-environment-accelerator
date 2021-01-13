@@ -65,7 +65,9 @@ function createActiveDirectory(props: MadStep2Props) {
     let subnetIds: string[];
     if (madConfig.azs.length > 0) {
       const madAzs = madConfig.azs.slice(0, 2);
-      subnetIds = vpcOutput.subnets.filter(s => madAzs.includes(s.az)).map(s => s.subnetId);
+      subnetIds = vpcOutput.subnets
+        .filter(s => s.subnetName === madConfig.subnet && madAzs.includes(s.az))
+        .map(s => s.subnetId);
     } else {
       subnetIds = vpcOutput.subnets
         .filter(s => s.subnetName === madConfig.subnet)
