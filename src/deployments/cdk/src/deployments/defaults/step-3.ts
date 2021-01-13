@@ -35,8 +35,8 @@ export async function step3(props: DefaultsStep3Props) {
       continue;
     }
 
-    const accountConfig = config.getAccountByKey(accountStack.accountKey);
-    const logRetention = accountConfig['s3-retention'] ?? defaultLogRetention;
+    const accountConfig = config.getAccountByKey(accountKey);
+    const logRetention = accountConfig?.['s3-retention'] ?? defaultLogRetention;
 
     const s3PutReplicationRole = IamRoleOutputFinder.tryFindOneByName({
       outputs,
