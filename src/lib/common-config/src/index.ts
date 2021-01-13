@@ -449,6 +449,7 @@ export const AdcConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   subnet: t.string,
+  azs: fromNullable(t.array(t.string), []),
   size: t.string,
   restrict_srcips: t.array(cidr),
   'connect-account-key': t.string,
