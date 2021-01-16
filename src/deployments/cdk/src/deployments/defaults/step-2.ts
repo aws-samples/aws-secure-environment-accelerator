@@ -82,12 +82,6 @@ function createDefaultS3Buckets(props: DefaultsStep2Props) {
       }),
     );
 
-    bucket.replicateTo({
-      destinationBucket: centralLogBucket,
-      destinationAccountId: logAccountId,
-      // Only replicate files under ACCOUNT_ID/
-      prefix: `${cdk.Aws.ACCOUNT_ID}/`,
-    });
     buckets[accountKey] = bucket;
 
     new CfnAccountBucketOutput(accountStack, 'DefaultBucketOutput', {
