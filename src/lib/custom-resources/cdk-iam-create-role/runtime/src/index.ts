@@ -32,6 +32,12 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         })
         .promise(),
     );
+    await throttlingBackOff(() => 
+      iam.updateAssumeRolePolicy({
+        RoleName: event.ResourceProperties.roleName,
+        PolicyDocument: buildPolicyDocument(event.ResourceProperties.accountIds),
+      }).promise(),
+    );
   } catch (error) {
     if (error.code === 'NoSuchEntity') {
       console.log(error.message);
