@@ -97,10 +97,10 @@ If deploying the prescriptive architecture, you must decide on:
 
 1. 2 Fortinet FortiGate firewall licenses (Evaluation licenses adequate) (can be added in future) (if firewalls are to be deployed)
 2. We also recommend at least 20 unique email ALIASES associated with a single mailbox, never used before to open AWS accounts, such that you do not need to request new email aliases every time you need to create a new AWS account.
-3. You additionally require email addresses for the following additionaly purposes (these can be existing monitored mailboxes and do not need to be unique): 
+3. You additionally require email addresses for the following additionaly purposes (these can be existing monitored mailboxes and do not need to be unique):
    - Accelerator execution (state machine) notification events (1 address)
    - High, Medium and Low security alerts (3 addresses if you wish to segregate alerts)
-   - Budget notifications 
+   - Budget notifications
 
 ## 2.3. Accelerator Pre-Install Steps
 
@@ -117,22 +117,16 @@ Before installing, you must first:
 5. Verify the Organization Management (root) account email address
    - In AWS Organizations, Settings, ["Send Verification Request"](https://aws.amazon.com/blogs/security/aws-organizations-now-requires-email-address-verification/)
 6. Create a new KMS key to encrypt your source configuration bucket (you can use an existing key)
-
-   - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name
-  (`PBMMAccel-Source-Bucket-Key`), Next
+   - AWS Key Management Service, Customer Managed Keys, Create Key, Symmetric, and then provide a key name (`PBMMAccel-Source-Bucket-Key`), Next
    - Select a key administrator (Admin Role or Group for the Organization Management account), Next
    - Select key users (Admin Role or Group for the Organization Management account), Next
    - Validate an entry exists to "Enable IAM User Permissions" (critical step if using an existing key)
-    - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
+     - `"arn:aws:iam::123456789012:root"`, where `123456789012` is your **_Organization Management_** account id.
    - Click Finish
-
-8. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
-
+7. Enable `"Cost Explorer"` (My Account, Cost Explorer, Enable Cost Explorer)
    - With recent platform changes, Cost Explorer _may_ now be auto-enabled (unable to confirm)
-
-9.  Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
-10. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
-
+8. Enable `"Receive Billing Alerts"` (My Account, Billing Preferences, Receive Billing Alerts)
+9. It is **_extremely important_** that **_all_** the account contact details be validated in the Organization Management (root) account before deploying any new sub-accounts.
    - This information is copied to every new sub-account on creation.
    - Subsequent changes to this information require manually updating it in **\*each** sub-account.
    - Go to `My Account` and verify/update the information lists under both the `Contact Information` section and the `Alternate Contacts` section.
@@ -206,17 +200,16 @@ If deploying to an internal AWS employee account, to successfully install the so
 6. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
 7. Place the firewall configuration and license files in the folder and path defined in the config file, if defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
-   - Sample available here: `./reference-artifacts/Third-Party/firewall-example.txt`
+   - Sample available [here](../../reference-artifacts/Third-Party/firewall-example.txt): `./reference-artifacts/Third-Party/firewall-example.txt`
    - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
 8. Place any defined certificate files in the folder and path defined in the config file
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
-   - Sample available here: `./reference-artifacts/Certs-Sample/*`
+   - Sample available [here](../../reference-artifacts/Certs-Sample/): `./reference-artifacts/Certs-Sample/*`
    - Ideally you would generate real certificates using your existing certificate authority
    - Should you wish, instructions are provided to aid in generating your own self-signed certificates (Self signed certificates are NOT secure and simply for demo purposes)
    - Use the examples to demonstrate Accelerator TLS functionality only
 9. Detach **_ALL_** SCPs (except `FullAWSAccess` which remains in place) from all OU's and accounts before proceeding
-
-- Installation **will fail** if this step is skipped
+   - Installation **will fail** if this step is skipped
 
 ## 2.5. Installation
 
@@ -257,21 +250,23 @@ If deploying to an internal AWS employee account, to successfully install the so
 21. If deploying the prescriptive architecture, once the main state machine (`PBMMAccel-MainStateMachine_sm`) completes successfully, confirm the status of your perimeter firewall deployment.
     - While you can watch the state machine in Step Functions, you will also be notified via email when the State Machine completes (or fails). Successful state machine executions include a list of all accounts which were successfully processed by the Accelerator.
 22. If your perimeter firewalls were defined but not deployed on first run, you will need to rerun the state machine. This happens when:
-    1. you were unable to activate the firewall AMI's before stage 2 (step 19)
+    1. you were unable to activate the firewall AMI's before stage 2 (step 20)
     2. we were not able to fully activate your account before we were ready to deploy your firewalls. This case can be identified by a running EC2 micro instance in the account, or by looking for the following log entry 'Minimum 15 minutes of account warming required for account'.
     3. In these cases, simply select the `PBMMAccel-MainStateMachine_sm` in Step Functions and select `Start Execution`
 
 ### 2.5.1. Known Installation Issues
 
 Current Issues:
-- All releases - Occassionally during new installs the state machine is failing due to a `File not found` error in the `VerifyFiles` step.  Simply rerun the state machine.  This will be resolved in v1.2.5.
-- All releases - Occassionally during new installs the perimeter firewall fails to load the provided prescriptive firewall configuration. Edit your config file changing `"firewalls":` to `"xxfirewalls":`, and rerun the state machine to remove the firewall deployment, then change your config file back to `"firewalls":` and again rerun your state machine to redeploy the firewalls.  This will be resolved in v1.2.5.
-- All releases - During Guardduty deployment, occassionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. As the credentials timed out, we cannot properly cleanup the failed stack. You need to manually find the failed stack in the specific account/region, delete it, and then rerun the state machine. We have been unable to resolve this issue.
 
-Old Issues:
+- Releases prior to v1.2.5 - Occassionally during new installs the state machine is failing due to a `File not found` error in the `VerifyFiles` step. Simply rerun the state machine. This is resolved in v1.2.5.
+- Releases prior to v1.2.5 - Occassionally during new installs the perimeter firewall fails to load the provided prescriptive firewall configuration. Edit your config file changing `"firewalls":` to `"xxfirewalls":`, and rerun the state machine to remove the firewall deployment, then change your config file back to `"firewalls":` and again rerun your state machine to redeploy the firewalls. This is resolved in v1.2.5.
+
+Issues in Older Releases:
+
+- Releases prior to v1.2.4 will fail to deploy due to a change in an unpinned 3rd party dependency. This is resolved in v1.2.4 (all dependencies were pinned in v1.2.5).
+- Releases prior to v1.2.4 - During Guardduty deployment, occassionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. As the credentials timed out, we cannot properly cleanup the failed stack. You need to manually find the failed stack in the specific account/region, delete it, and then rerun the state machine. It appears the API has been fixed.
 - Releases prior to v1.2.3 using a YAML config file - we are seeing the OUValidation Lambda randomly timeout. Simply rerun the state machine. This is resolved in v1.2.3.
 - Accelerator v1.2.1b may experience a state machine failure when running `Create Config Recorders` due to an `Insufficient Delivery Policy Exception`. Simply rerun the State Machine. This is resolved in v1.2.2.
-- Standalone Accelerator versions prior to v1.1.8 required manual creation of the core ou and moving the Organization Management AWS account into it before running the State Machine. If this step is missed, once the SM fails, simply move the Organization Management account into the auto-created core ou and rerun the state machine. This is resolved in v1.1.8.
 - Releases prior to v1.2.2 where the home region is not ca-central-1, alb deployments will fail, you need to either: a) remove all alb's from the deployment; or b) after the state machine fails, update the central logging bucket (in the log-archive account) policy with your regions [`elb-account-id`](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html). (i.e. replace `985666609251` with the value for your region)
 
 ## 2.6. Post-Installation
