@@ -78,6 +78,24 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     return;
   }
   try {
+    const policies = await throttlingBackOff(() =>
+      iam
+        .listAttachedRolePolicies({
+          RoleName: event.ResourceProperties.roleName,
+        })
+        .promise(),
+    );
+    for (const policy of policies.AttachedPolicies || []) {
+      await throttlingBackOff(() =>
+        iam
+          .detachRolePolicy({
+            PolicyArn: policy.PolicyArn!,
+            RoleName: event.ResourceProperties.roleName,
+          })
+          .promise(),
+      );
+    }
+
     await throttlingBackOff(() =>
       iam
         .deleteRole({

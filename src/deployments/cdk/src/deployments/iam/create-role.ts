@@ -39,6 +39,8 @@ export async function createRole(stack: AccountStack) {
         'iam:TagRole',
         'iam:DeleteRole',
         'iam:UpdateAssumeRolePolicy',
+        'iam:ListAttachedRolePolicies',
+        'iam:DetachRolePolicy',
       ],
       resources: ['*'],
     }),
