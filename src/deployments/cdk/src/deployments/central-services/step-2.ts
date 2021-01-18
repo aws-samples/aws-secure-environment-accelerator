@@ -89,6 +89,9 @@ export async function step2(props: CentralServicesStep2Props) {
       .map(a => {
         return getAccountId(accounts, a)!;
       });
+    if (monitoringAccountIds.length === 0) {
+      return;
+    }
     await centralLoggingShareDataSettings({
       scope: accountStack,
       monitoringAccountIds,
