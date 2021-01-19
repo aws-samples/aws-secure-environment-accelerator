@@ -9,6 +9,7 @@ export namespace CreateStackTask {
     role: iam.IRole;
     lambdaCode: lambda.Code;
     waitSeconds?: number;
+    suffix?: string;
   }
 }
 
@@ -19,7 +20,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateStackTask.Props) {
     super(scope, id);
 
-    const { role, lambdaCode, waitSeconds = 10 } = props;
+    const { role, lambdaCode, suffix, waitSeconds = 10 } = props;
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -36,7 +37,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       }),
     );
 
-    const deployTask = new CodeTask(scope, `Deploy`, {
+    const deployTask = new CodeTask(scope, `Deploy${suffix || ''}`, {
       resultPath: 'DISCARD',
       functionProps: {
         role,
@@ -47,7 +48,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
 
     const verifyTaskResultPath = '$.verify';
     const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
-    const verifyTask = new CodeTask(scope, 'Verify', {
+    const verifyTask = new CodeTask(scope, `Verify${suffix || ''}`, {
       resultPath: verifyTaskResultPath,
       functionProps: {
         role,
@@ -56,19 +57,19 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       },
     });
 
-    const waitTask = new sfn.Wait(scope, 'Wait', {
+    const waitTask = new sfn.Wait(scope, `Wait${suffix || ''}`, {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const pass = new sfn.Pass(this, 'Succeeded');
+    const pass = new sfn.Pass(this, `Succeeded${suffix || ''}`);
 
-    const fail = new sfn.Fail(this, 'Failed');
+    const fail = new sfn.Fail(this, `Failed${suffix || ''}`);
 
     const chain = sfn.Chain.start(deployTask)
       .next(waitTask)
       .next(verifyTask)
       .next(
-        new sfn.Choice(scope, 'Choice')
+        new sfn.Choice(scope, `Choice${suffix || ''}`)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
           .otherwise(fail)

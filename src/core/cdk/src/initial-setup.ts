@@ -206,6 +206,7 @@ export namespace InitialSetup {
           'phases.$': '$.configuration.baselineOutput.phases',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
+          'organizationAdmiRole.$': '$.configuration.baselineOutput.organizationAdmiRole',
         },
         resultPath: '$.configuration',
       });
@@ -225,6 +226,7 @@ export namespace InitialSetup {
           'phases.$': '$.configuration.baselineOutput.phases',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
+          'organizationAdmiRole.$': '$.configuration.baselineOutput.organizationAdmiRole',
         },
         resultPath: '$.configuration',
       });
@@ -350,6 +352,7 @@ export namespace InitialSetup {
           'regions.$': '$.configuration.regions',
           'accounts.$': '$.configuration.accounts',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
+          'organizationAdmiRole.$': '$.configuration.organizationAdmiRole',
         },
         resultPath: '$',
       });
@@ -389,18 +392,15 @@ export namespace InitialSetup {
         },
       );
 
-      const installRoleTemplate = new s3assets.Asset(this, 'ExecutionRoleTemplate', {
-        path: path.join(__dirname, 'assets', 'execution-role.template.json'),
-      });
-
-      // Make sure the Lambda can read the template
-      installRoleTemplate.bucket.grantRead(pipelineRole);
+      const accountsPath = path.join(__dirname, 'assets', 'execution-role.template.json');
+      const executionRoleContent = fs.readFileSync(accountsPath);
 
       const installRolesStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}InstallRoles_sm`, {
         stateMachineName: `${props.acceleratorPrefix}InstallRoles_sm`,
-        definition: new CreateStackSetTask(this, 'Install', {
+        definition: new CreateStackTask(this, 'Install', {
           lambdaCode,
           role: pipelineRole,
+          suffix: 'ExecutionRole',
         }),
       });
 
@@ -416,15 +416,24 @@ export namespace InitialSetup {
             // TODO Only add root role for development environments
             AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
           },
-          stackTemplate: {
-            s3BucketName: installRoleTemplate.s3BucketName,
-            s3ObjectKey: installRoleTemplate.s3ObjectKey,
-          },
-          'instanceAccounts.$': '$.accounts',
-          instanceRegions: [stack.region],
+          stackTemplate: executionRoleContent.toString(),
+          'accountId.$': '$.accountId',
+          'assumedRoleName.$': '$.organizationAdmiRole',
         }),
         resultPath: 'DISCARD',
       });
+
+      const installExecRolesInAccounts = new sfn.Map(this, `Install Execution Roles Map`, {
+        itemsPath: '$.accounts',
+        resultPath: 'DISCARD',
+        maxConcurrency: 1,
+        parameters: {
+          'accountId.$': '$$.Map.Item.Value',
+          'organizationAdmiRole.$': '$.organizationAdmiRole',
+        },
+      });
+
+      installExecRolesInAccounts.iterator(installRolesTask);
 
       const deleteVpcSfn = new sfn.StateMachine(this, 'Delete Default Vpcs Sfn', {
         stateMachineName: `${props.acceleratorPrefix}DeleteDefaultVpcs_sfn`,
@@ -853,7 +862,7 @@ export namespace InitialSetup {
 
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
-        .next(installRolesTask)
+        .next(installExecRolesInAccounts)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
         .next(enableTrustedAccessForServicesTask)
