@@ -1362,6 +1362,7 @@
           "vpc-name": "Central",
           "region": "ca-central-1",
           "subnet": "GCWide",
+		  "azs": ["a", "b"],
           "size": "Enterprise",
           "dns-domain": "example.local",
           "netbios-domain": "example",
@@ -2114,6 +2115,11 @@
                   "az": "b",
                   "route-table": "ForSSO_Shared",
                   "cidr": "10.249.1.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "ForSSO_Shared",
+                  "cidr": "10.249.1.64/27"
                 }
               ]
             }
@@ -2143,6 +2149,7 @@
           "deploy": true,
           "vpc-name": "ForSSO",
           "subnet": "ForSSO",
+		  "azs": ["a", "b"],
           "size": "Small",
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
@@ -2671,7 +2678,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2694,7 +2701,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2717,7 +2724,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2740,7 +2747,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -2807,7 +2814,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2830,7 +2837,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_GCWide",
                   "cidr2": "100.96.253.0/25",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -3254,7 +3261,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3277,7 +3284,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3300,7 +3307,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3323,7 +3330,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -3398,7 +3405,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -3837,7 +3844,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3860,7 +3867,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3883,7 +3890,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3906,7 +3913,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -3981,7 +3988,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -4420,7 +4427,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -4443,7 +4450,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -4466,7 +4473,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -4489,7 +4496,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -4564,7 +4571,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -4970,7 +4977,7 @@
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
                   "cidr": "10.5.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -4993,7 +5000,7 @@
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
                   "cidr": "10.5.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -5016,7 +5023,7 @@
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
                   "cidr": "10.5.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -5039,7 +5046,7 @@
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
                   "cidr": "10.5.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -5114,7 +5121,7 @@
                   "az": "d",
                   "route-table": "UnClassVPC_Common",
                   "cidr": "10.5.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -5796,7 +5803,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_IGW",
                   "cidr": "10.6.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -5819,7 +5826,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": "10.6.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -5842,7 +5849,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": "10.6.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -5919,7 +5926,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": "10.6.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }

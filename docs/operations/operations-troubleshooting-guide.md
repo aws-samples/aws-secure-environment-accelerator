@@ -708,21 +708,31 @@ Providing any one or more of the following flags will only overide the specified
 
 ```
  {
-   'ov-global-options': true,
-   'ov-del-accts': true,
-   'ov-ren-accts': true,
-   'ov-acct-email': true,
-   'ov-acct-ou': true,
-   'ov-acct-vpc': true,
-   'ov-acct-subnet': true,
-   'ov-tgw': true,
-   'ov-mad': true,
-   'ov-ou-vpc': true,
-   'ov-ou-subnet': true,
-   'ov-share-to-ou': true,
-   'ov-share-to-accounts': true,
-   'ov-nacl': true
+   "configOverrides": {
+     'ov-global-options': true,
+     'ov-del-accts': true,
+     'ov-ren-accts': true,
+     'ov-acct-email': true,
+     'ov-acct-ou': true,
+     'ov-acct-vpc': true,
+     'ov-acct-subnet': true,
+     'ov-tgw': true,
+     'ov-mad': true,
+     'ov-ou-vpc': true,
+     'ov-ou-subnet': true,
+     'ov-share-to-ou': true,
+     'ov-share-to-accounts': true,
+     'ov-nacl': true
+	}
  }
+```
+
+Providing this value allows for the forced rebuilding of the DynamoDB Outputs table:
+
+```
+{
+  "storeAllOutputs": true
+}
 ```
 
 ## 5.2. Switch To a Managed Account
