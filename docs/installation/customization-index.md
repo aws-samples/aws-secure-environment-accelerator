@@ -41,6 +41,7 @@ Descriptions:
      - adds a local account specific VPC, in us-east-1, in the account MyUnClass and connects it to the us-east-1 TGW (i.e. shares TGW)
        - local account VPC set to use central endpoints, associates appropriate centralized hosted zones to VPC (also creates 5 local endpoints)
      - adds a VGW for DirectConnect to the perimeter VPC
+     - adds the 3rd AZ in ca-central-1 (MAD & ADC in AZ a & b)
 
 ## 1.2. **Deployment Customizations**
 
