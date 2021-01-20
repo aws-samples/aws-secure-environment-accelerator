@@ -1,6 +1,5 @@
 {
   "global-options": {
-    "alz-minimum-version": "v2.3.1",
     "alz-baseline": false,
     "ct-baseline": false,
     "default-s3-retention": 90,
@@ -72,7 +71,11 @@
         "Low": ["notify+low@example.com"]
       }
     },
-    "additional-cwl-regions": {},
+    "additional-cwl-regions": {
+      "us-east-1": {
+        "kinesis-stream-shard-count": 1
+      }
+    },
     "reports": {
       "cost-and-usage-report": {
         "additional-schema-elements": ["RESOURCES"],
@@ -86,17 +89,6 @@
         "report-versioning": "OVERWRITE_REPORT"
       }
     },
-    "zones": [
-      {
-        "account": "shared-network",
-        "resolver-vpc": "Endpoint",
-        "region": "ca-central-1",
-        "names": {
-          "public": ["cloud-hosted-publicdomain.example.ca"],
-          "private": ["cloud-hosted-privatedomain.example.ca"]
-        }
-      }
-    ],
     "vpc-flow-logs": {
       "filter": "ALL",
       "interval": 60,
@@ -156,33 +148,33 @@
     },
     "scps": [
       {
-        "name": "ALZ-Core",
-        "description": "ALZ Core Preventive Guardrails",
+        "name": "ASEA-Core",
+        "description": "Core Preventive Guardrails",
         "policy": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json"
       },
       {
         "name": "Guardrails-Part-1",
-        "description": "PBMMAccel Guardrails Part 1",
+        "description": "ASEA Guardrails Part 1",
         "policy": "PBMMAccel-Guardrails-Part1.json"
       },
       {
         "name": "Guardrails-Part-2",
-        "description": "PBMMAccel Guardrails Part 2",
+        "description": "ASEA Guardrails Part 2",
         "policy": "PBMMAccel-Guardrails-Part2.json"
       },
       {
         "name": "Guardrails-PBMM-Only",
-        "description": "PBMMAccel Guardrails PBMM Environment Specific",
+        "description": "ASEA Guardrails PBMM Environment Specific",
         "policy": "PBMMAccel-Guardrails-PBMM-Only.json"
       },
       {
         "name": "Guardrails-Unclass-Only",
-        "description": "PBMMAccel Guardrails Unclassified Environment Specific",
+        "description": "ASEA Guardrails Unclassified Environment Specific",
         "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
       },
       {
         "name": "Quarantine-New-Object",
-        "description": "PBMM Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
+        "description": "ASEA Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
         "policy": "Quarantine-New-Object.json"
       }
     ],
@@ -418,7 +410,7 @@
             "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot a 4x, 8x, 9x, 10x, 12x, 16x, 18x, 24x, 32x-large EC2 instance (in any account, any region of your AWS Organization)."
           },
           {
-            "alarm-name": "AWS-ClouadTrail-Changed",
+            "alarm-name": "AWS-CloudTrail-Changed",
             "metric-name": "CloudTrailEventCount",
             "sns-alert-level": "High",
             "alarm-description": "Alarms when one or more API calls are made to create, update or delete a CloudTrail trail, or to start or stop logging to a trail (in any account, any region of your AWS Organization)."
@@ -496,12 +488,17 @@
     "ssm-automation": [
       {
         "accounts": ["operations"],
-        "regions": ["ca-central-1"],
+        "regions": ["ca-central-1","us-east-1"],
         "documents": [
           {
             "name": "SSM-ELB-Enable-Logging",
             "description": "Calls the AWS CLI to enable access logs on a specified ELB.",
             "template": "ssm-elb-enable-logging.yaml"
+          },
+          {
+            "name": "Put-S3-Encryption",
+            "description": "Enables S3 encryption using KMS",
+            "template": "s3-encryption.yaml"
           }
         ]
       }
@@ -526,6 +523,346 @@
               "LoadBalancerArn": "RESOURCE_ID",
               "LogDestination": "${SEA::LogArchiveAesBucket}"
             }
+          },
+          {
+            "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "remediation-action": "Put-S3-Encryption",
+            "remediation": true,
+            "remediation-params": {
+              "BucketName": "RESOURCE_ID",
+              "KMSMasterKey": "${SEA::S3BucketEncryptionKey}"
+            }
+          },
+          {
+            "name": "ACCESS_KEYS_ROTATED",
+            "parameters": {
+              "maxAccessKeyAge": "90"
+            }
+          },
+          {
+            "name": "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "parameters": {
+              "daysToExpiration": "90"
+            }
+          },
+          {
+            "name": "ALB_HTTP_DROP_INVALID_HEADER_ENABLED"
+          },
+          {
+            "name": "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK"
+          },
+          {
+            "name": "ALB_WAF_ENABLED"
+          },
+          {
+            "name": "API_GW_CACHE_ENABLED_AND_ENCRYPTED"
+          },
+          {
+            "name": "API_GW_EXECUTION_LOGGING_ENABLED"
+          },
+          {
+            "name": "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED"
+          },
+          {
+            "name": "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED"
+          },
+          {
+            "name": "CLOUD_TRAIL_ENABLED"
+          },
+          {
+            "name": "CLOUD_TRAIL_ENCRYPTION_ENABLED"
+          },
+          {
+            "name": "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED"
+          },
+          {
+            "name": "CLOUDTRAIL_S3_DATAEVENTS_ENABLED"
+          },
+          {
+            "name": "CLOUDTRAIL_SECURITY_TRAIL_ENABLED"
+          },
+          {
+            "name": "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "parameters": {
+              "alarmActionRequired": "TRUE",
+              "insufficientDataActionRequired": "TRUE",
+              "okActionRequired": "FALSE"
+            }
+          },
+          {
+            "name": "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK"
+          },
+          {
+            "name": "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK"
+          },
+          {
+            "name": "CW_LOGGROUP_RETENTION_PERIOD_CHECK"
+          },
+          {
+            "name": "DB_INSTANCE_BACKUP_ENABLED"
+          },
+          {
+            "name": "DMS_REPLICATION_NOT_PUBLIC"
+          },
+          {
+            "name": "DYNAMODB_AUTOSCALING_ENABLED"
+          },
+          {
+            "name": "DYNAMODB_IN_BACKUP_PLAN"
+          },
+          {
+            "name": "DYNAMODB_PITR_ENABLED"
+          },
+          {
+            "name": "DYNAMODB_TABLE_ENCRYPTED_KMS"
+          },
+          {
+            "name": "EBS_IN_BACKUP_PLAN"
+          },
+          {
+            "name": "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK"
+          },
+          {
+            "name": "EC2_EBS_ENCRYPTION_BY_DEFAULT"
+          },
+          {
+            "name": "EC2_IMDSV2_CHECK"
+          },
+          {
+            "name": "EC2_INSTANCE_DETAILED_MONITORING_ENABLED"
+          },
+          {
+            "name": "EC2_INSTANCE_MANAGED_BY_SSM"
+          },
+          {
+            "name": "EC2_INSTANCE_NO_PUBLIC_IP"
+          },
+          {
+            "name": "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK"
+          },
+          {
+            "name": "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK"
+          },
+          {
+            "name": "EC2_STOPPED_INSTANCE"
+          },
+          {
+            "name": "EC2_VOLUME_INUSE_CHECK",
+            "parameters": {
+              "deleteOnTermination": "TRUE"
+            }
+          },
+          {
+            "name": "EFS_ENCRYPTED_CHECK"
+          },
+          {
+            "name": "EFS_IN_BACKUP_PLAN"
+          },
+          {
+            "name": "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK"
+          },
+          {
+            "name": "ELASTICSEARCH_ENCRYPTED_AT_REST"
+          },
+          {
+            "name": "ELASTICSEARCH_IN_VPC_ONLY"
+          },
+          {
+            "name": "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK"
+          },
+          {
+            "name": "ELB_ACM_CERTIFICATE_REQUIRED"
+          },
+          {
+            "name": "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED"
+          },
+          {
+            "name": "ELB_DELETION_PROTECTION_ENABLED"
+          },
+          {
+            "name": "ELB_TLS_HTTPS_LISTENERS_ONLY"
+          },
+          {
+            "name": "EMR_KERBEROS_ENABLED"
+          },
+          {
+            "name": "EMR_MASTER_NO_PUBLIC_IP"
+          },
+          {
+            "name": "ENCRYPTED_VOLUMES"
+          },
+          {
+            "name": "GUARDDUTY_ENABLED_CENTRALIZED"
+          },
+          {
+            "name": "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "parameters": {
+              "daysHighSev": "1",
+              "daysLowSev": "30",
+              "daysMediumSev": "7"
+            }
+          },
+          {
+            "name": "IAM_GROUP_HAS_USERS_CHECK"
+          },
+          {
+            "name": "IAM_PASSWORD_POLICY",
+            "parameters": {
+              "MaxPasswordAge": "90",
+              "MinimumPasswordLength": "14",
+              "PasswordReusePrevention": "24",
+              "RequireLowercaseCharacters": "TRUE",
+              "RequireNumbers": "TRUE",
+              "RequireSymbols": "TRUE",
+              "RequireUppercaseCharacters": "TRUE"
+            }
+          },
+          {
+            "name": "IAM_ROOT_ACCESS_KEY_CHECK"
+          },
+          {
+            "name": "IAM_USER_GROUP_MEMBERSHIP_CHECK"
+          },
+          {
+            "name": "IAM_USER_MFA_ENABLED"
+          },
+          {
+            "name": "IAM_USER_NO_POLICIES_CHECK"
+          },
+          {
+            "name": "IAM_USER_UNUSED_CREDENTIALS_CHECK",
+            "parameters": {
+              "maxCredentialUsageAge": "90"
+            }
+          },
+          {
+            "name": "INCOMING_SSH_DISABLED"
+          },
+          {
+            "name": "INSTANCES_IN_VPC"
+          },
+          {
+            "name": "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY"
+          },
+          {
+            "name": "KMS_CMK_NOT_SCHEDULED_FOR_DELETION"
+          },
+          {
+            "name": "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED"
+          },
+          {
+            "name": "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS"
+          },
+          {
+            "name": "MULTI_REGION_CLOUD_TRAIL_ENABLED"
+          },
+          {
+            "name": "RDS_ENHANCED_MONITORING_ENABLED"
+          },
+          {
+            "name": "RDS_IN_BACKUP_PLAN"
+          },
+          {
+            "name": "RDS_INSTANCE_DELETION_PROTECTION_ENABLED"
+          },
+          {
+            "name": "RDS_INSTANCE_PUBLIC_ACCESS_CHECK"
+          },
+          {
+            "name": "RDS_LOGGING_ENABLED"
+          },
+          {
+            "name": "RDS_MULTI_AZ_SUPPORT"
+          },
+          {
+            "name": "RDS_SNAPSHOT_ENCRYPTED"
+          },
+          {
+            "name": "RDS_SNAPSHOTS_PUBLIC_PROHIBITED"
+          },
+          {
+            "name": "RDS_STORAGE_ENCRYPTED"
+          },
+          {
+            "name": "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "parameters": {
+              "clusterDbEncrypted": "TRUE",
+              "loggingEnabled": "TRUE"
+            }
+          },
+          {
+            "name": "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK"
+          },
+          {
+            "name": "REDSHIFT_REQUIRE_TLS_SSL"
+          },
+          {
+            "name": "RESTRICTED_INCOMING_TRAFFIC",
+            "parameters": {
+              "blockedPort1": "20",
+              "blockedPort2": "21",
+              "blockedPort3": "3389",
+              "blockedPort4": "3306",
+              "blockedPort5": "4333"
+            }
+          },
+          {
+            "name": "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED"
+          },
+          {
+            "name": "ROOT_ACCOUNT_MFA_ENABLED"
+          },
+          {
+            "name": "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
+            "parameters": {
+              "BlockPublicAcls": "True",
+              "BlockPublicPolicy": "True",
+              "IgnorePublicAcls": "True",
+              "RestrictPublicBuckets": "True"
+            }
+          },
+          {
+            "name": "S3_BUCKET_POLICY_GRANTEE_CHECK"
+          },
+          {
+            "name": "S3_BUCKET_PUBLIC_READ_PROHIBITED"
+          },
+          {
+            "name": "S3_BUCKET_PUBLIC_WRITE_PROHIBITED"
+          },
+          {
+            "name": "S3_BUCKET_SSL_REQUESTS_ONLY"
+          },
+          {
+            "name": "S3_BUCKET_VERSIONING_ENABLED"
+          },
+          {
+            "name": "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED"
+          },
+          {
+            "name": "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED"
+          },
+          {
+            "name": "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS"
+          },
+          {
+            "name": "SECURITYHUB_ENABLED"
+          },
+          {
+            "name": "VPC_DEFAULT_SECURITY_GROUP_CLOSED"
+          },
+          {
+            "name": "VPC_FLOW_LOGS_ENABLED"
+          },
+          {
+            "name": "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "parameters": {
+              "authorizedTcpPorts": "443",
+              "authorizedUdpPorts": "1020-1025"
+            }
+          },
+          {
+            "name": "WAFV2_LOGGING_ENABLED"
           }
         ]
       }
@@ -534,7 +871,7 @@
   "mandatory-account-configs": {
     "shared-network": {
       "account-name": "SharedNetwork",
-      "email": "myemail+pbmmT-network@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-network@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "operations",
       "src-filename": "config.json",
@@ -554,22 +891,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -658,7 +995,67 @@
           },
           "interface-endpoints": {
             "subnet": "Endpoint",
-            "endpoints": ["ec2", "ec2messages", "ssm", "ssmmessages", "secretsmanager", "cloudformation", "kms"]
+            "endpoints": [
+              "ec2",
+              "ec2messages",
+              "ssm",
+              "ssmmessages",
+              "secretsmanager",
+              "cloudformation",
+              "access-analyzer",
+              "application-autoscaling",
+              "appmesh-envoy-management",
+              "athena",
+              "autoscaling",
+              "autoscaling-plans",
+              "clouddirectory",
+              "cloudtrail",
+              "codebuild",
+              "codecommit",
+              "codepipeline",
+              "config",
+              "datasync",
+              "ecr.dkr",
+              "ecs",
+              "ecs-agent",
+              "ecs-telemetry",
+              "elasticfilesystem",
+              "elasticloadbalancing",
+              "elasticmapreduce",
+              "events",
+              "execute-api",
+              "git-codecommit",
+              "glue",
+              "kinesis-streams",
+              "kms",
+              "logs",
+              "monitoring",
+              "sagemaker.api",
+              "sagemaker.runtime",
+              "servicecatalog",
+              "sms",
+              "sns",
+              "sqs",
+              "storagegateway",
+              "sts",
+              "transfer",
+              "workspaces",
+              "awsconnector",
+              "ecr.api",
+              "kinesis-firehose",
+              "states",
+              "acm-pca",
+              "cassandra",
+              "ebs",
+              "elasticbeanstalk",
+              "elasticbeanstalk-health",
+              "email-smtp",
+              "license-manager",
+              "macie2",
+              "notebook",
+              "synthetics",
+              "transfer.server"
+            ]
           },
           "resolvers": {
             "subnet": "Endpoint",
@@ -674,7 +1071,148 @@
               "zone": "on-premise-privatedomain2.example.ca",
               "outbound-ips": ["10.254.254.1", "10.254.253.1"]
             }
-          ]
+          ],
+          "zones": {
+            "public": ["cloud-hosted-publicdomain.example.ca"],
+            "private": ["cloud-hosted-privatedomain.example.ca"]
+          },
+          "central-endpoint": true
+        },
+        {
+          "deploy": "local",
+          "name": "Endpoint-East",
+          "cidr": "10.107.0.0/22",
+          "region": "us-east-1",
+          "use-central-endpoints": false,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "Endpoint",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "EndpointVPC_Common",
+                  "cidr": "10.107.0.0/24"
+                },
+                {
+                  "az": "b",
+                  "route-table": "EndpointVPC_Common",
+                  "cidr": "10.107.1.0/24"
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": [],
+          "route-tables": [
+            {
+              "name": "EndpointVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "East",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["core"],
+            "tgw-rt-propagate": ["core", "segregated", "shared", "standalone"],
+            "blackhole-route": false,
+            "attach-subnets": ["Endpoint"],
+            "options": ["DNS-support"]
+          },
+          "interface-endpoints": {
+            "subnet": "Endpoint",
+            "endpoints": [
+              "ec2",
+              "ec2messages",
+              "ssm",
+              "ssmmessages",
+              "secretsmanager",
+              "cloudformation",
+              "access-analyzer",
+              "application-autoscaling",
+              "appmesh-envoy-management",
+              "athena",
+              "autoscaling",
+              "autoscaling-plans",
+              "clouddirectory",
+              "cloudtrail",
+              "codebuild",
+              "codecommit",
+              "codepipeline",
+              "config",
+              "datasync",
+              "ecr.dkr",
+              "ecs",
+              "ecs-agent",
+              "ecs-telemetry",
+              "elasticfilesystem",
+              "elasticloadbalancing",
+              "elasticmapreduce",
+              "events",
+              "execute-api",
+              "git-codecommit",
+              "glue",
+              "kinesis-streams",
+              "kms",
+              "logs",
+              "monitoring",
+              "sagemaker.api",
+              "sagemaker.runtime",
+              "servicecatalog",
+              "sms",
+              "sns",
+              "sqs",
+              "storagegateway",
+              "sts",
+              "transfer",
+              "workspaces",
+              "awsconnector",
+              "ecr.api",
+              "kinesis-firehose",
+              "states",
+              "acm-pca",
+              "cassandra",
+              "ebs",
+              "elasticbeanstalk",
+              "elasticbeanstalk-health",
+              "email-smtp",
+              "license-manager",
+              "macie2",
+              "notebook",
+              "synthetics",
+              "transfer.server"
+            ]
+          },
+          "resolvers": {
+            "subnet": "Endpoint",
+            "outbound": true,
+            "inbound": true
+          },
+          "on-premise-rules": [
+            {
+              "zone": "on-premise-privatedomain1.example.ca",
+              "outbound-ips": ["10.254.254.1", "10.254.253.1"]
+            },
+            {
+              "zone": "on-premise-privatedomain2.example.ca",
+              "outbound-ips": ["10.254.254.1", "10.254.253.1"]
+            }
+          ],
+          "zones": {
+            "public": ["cloud-hosted-publicUSdomain.example.ca"],
+            "private": ["cloud-hosted-privateUSdomain.example.ca"]
+          },
+          "central-endpoint": true
         }
       ],
       "deployments": {
@@ -691,14 +1229,82 @@
               "Auto-accept-sharing-attachments": true
             },
             "route-tables": ["core", "segregated", "shared", "standalone"],
-            "tgw-routes": []
+            "tgw-routes": [
+              {
+                "name": "{TGW_ALL}",
+                "routes": [
+                  {
+                    "destination": "10.100.0.0/16",
+                    "target-tgw": "East"
+                  }
+                ]
+              },
+              {
+                "name": "segregated",
+                "routes": [
+                  {
+                    "destination": "111.111.111.111/32",
+                    "blackhole-route": true
+                  }
+                ]
+              },
+              {
+                "name": "shared",
+                "routes": [
+                  {
+                    "destination": "122.122.122.122/32",
+                    "target-vpc": "Test"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "name": "East",
+            "asn": 64526,
+            "region": "us-east-1",
+            "features": {
+              "DNS-support": true,
+              "VPN-ECMP-support": true,
+              "Default-route-table-association": false,
+              "Default-route-table-propagation": false,
+              "Auto-accept-sharing-attachments": true
+            },
+            "route-tables": ["core", "segregated", "shared", "standalone"],
+            "tgw-attach": {
+              "associate-to-tgw": "Main",
+              "account": "shared-network",
+              "region": "ca-central-1",
+              "tgw-rt-associate-local": ["core"],
+              "tgw-rt-associate-remote": ["core"]
+            },
+            "tgw-routes": [
+              {
+                "name": "{TGW_ALL}",
+                "routes": [
+                  {
+                    "destination": "0.0.0.0/0",
+                    "target-tgw": "Main"
+                  }
+                ]
+              },
+              {
+                "name": "segregated",
+                "routes": [
+                  {
+                    "destination": "1.1.1.0/24",
+                    "target-tgw": "Main"
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
     },
     "operations": {
       "account-name": "Operations",
-      "email": "myemail+pbmmT-operations@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-operations@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "account-warming-required": true,
       "limits": {},
@@ -756,6 +1362,7 @@
           "vpc-name": "Central",
           "region": "ca-central-1",
           "subnet": "GCWide",
+		  "azs": ["a", "b"],
           "size": "Enterprise",
           "dns-domain": "example.local",
           "netbios-domain": "example",
@@ -774,7 +1381,7 @@
             "history": 24,
             "max-age": 90,
             "min-age": 1,
-            "min-len": 12,
+            "min-len": 14,
             "complexity": true,
             "reversible": false,
             "failed-attempts": 6,
@@ -787,17 +1394,17 @@
           "ad-users": [
             {
               "user": "adconnector-usr",
-              "email": "myemail+pbmmT-adc-usr@example.com",
+              "email": "myemail+aseaT-adc-usr@example.com",
               "groups": ["ADConnector-grp"]
             },
             {
               "user": "User1",
-              "email": "myemail+pbmmT-User1@example.com",
+              "email": "myemail+aseaT-User1@example.com",
               "groups": ["aws-Provisioning", "*-View", "*-Admin", "*-PowerUser", "AWS Delegated Administrators"]
             },
             {
               "user": "User2",
-              "email": "myemail+pbmmT-User2@example.com",
+              "email": "myemail+aseaT-User2@example.com",
               "groups": ["*-View"]
             }
           ],
@@ -879,7 +1486,7 @@
     },
     "perimeter": {
       "account-name": "Perimeter",
-      "email": "myemail+pbmmT-perimeter@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-perimeter@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "account-warming-required": true,
       "src-filename": "config.json",
@@ -907,22 +1514,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -1099,7 +1706,9 @@
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
           "igw": true,
-          "vgw": false,
+          "vgw": {
+            "asn": 65522
+          },
           "pcx": false,
           "natgw": false,
           "subnets": [
@@ -1197,6 +1806,10 @@
               "name": "FWMgmt_azA",
               "routes": [
                 {
+                  "destination": "10.0.0.0/8",
+                  "target": "VGW"
+                },
+                {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
                   "name": "Firewall",
@@ -1212,6 +1825,10 @@
             {
               "name": "FWMgmt_azB",
               "routes": [
+                {
+                  "destination": "10.0.0.0/8",
+                  "target": "VGW"
+                },
                 {
                   "destination": "0.0.0.0/0",
                   "target": "firewall",
@@ -1330,7 +1947,10 @@
             }
           ],
           "tgw-attach": false,
-          "interface-endpoints": false
+          "interface-endpoints": {
+            "subnet": "Proxy",
+            "endpoints": ["ssm", "ssmmessages", "ec2messages"]
+          }
         }
       ],
       "deployments": {
@@ -1338,7 +1958,7 @@
           {
             "name": "Firewall",
             "image-id": "ami-047aac44951feb9fb",
-            "instance-sizes": "c5n.xlarge",
+            "instance-sizes": "c5n.2xlarge",
             "region": "ca-central-1",
             "security-group": "Firewalls",
             "fw-instance-role": "Firewall-Role",
@@ -1387,7 +2007,7 @@
             }
           }
         ],
-        "xxfirewall-manager": {
+        "firewall-manager": {
           "name": "FirewallMgr",
           "image-id": "ami-06fa2a9e6f8fae9f2",
           "instance-sizes": "c5.large",
@@ -1405,7 +2025,7 @@
     },
     "master": {
       "account-name": "primary",
-      "email": "myemail+pbmmT-master@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-master@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "",
       "src-filename": "config.json",
@@ -1425,22 +2045,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -1495,6 +2115,11 @@
                   "az": "b",
                   "route-table": "ForSSO_Shared",
                   "cidr": "10.249.1.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "ForSSO_Shared",
+                  "cidr": "10.249.1.64/27"
                 }
               ]
             }
@@ -1524,6 +2149,7 @@
           "deploy": true,
           "vpc-name": "ForSSO",
           "subnet": "ForSSO",
+		  "azs": ["a", "b"],
           "size": "Small",
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
@@ -1534,34 +2160,300 @@
     "log-archive": {
       "account-name": "log-archive",
       "ou": "core",
-      "email": "myemail+pbmmT-log@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-log@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     },
     "security": {
       "account-name": "security",
       "ou": "core",
-      "email": "myemail+pbmmT-sec@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-sec@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json"
     }
   },
   "workload-account-configs": {
-    "fun-acct": {
-      "account-name": "TheFunAccount",
-      "email": "myemail+pbmmT-funacct@example.com---------------------REPLACE----------------------",
+    "my-unclass": {
+      "account-name": "MyUnClass",
+      "email": "myemail+aseaT-myunclass@example.com---------------------REPLACE----------------------",
       "src-filename": "config.json",
-      "ou": "Sandbox"
-    },
-    "mydevacct1": {
-      "account-name": "MyDev1",
-      "email": "myemail+pbmmT-dev1@example.com---------------------REPLACE----------------------",
-      "src-filename": "config.json",
-      "ou": "Dev"
+      "ou": "UnClass",
+      "vpc": [
+        {
+          "deploy": "local",
+          "name": "Acct-vpc-East",
+          "cidr": "10.191.0.0/16",
+          "region": "us-east-1",
+          "use-central-endpoints": true,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.88.32/27"
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.128.0/20"
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.96.0/19"
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "Acct-vpc-East_Common",
+                  "cidr": "10.191.144.0/20"
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "Acct-vpc-East",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "Acct-vpc-East",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "Acct-vpc-East_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "East",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["segregated"],
+            "tgw-rt-propagate": ["core", "shared"],
+            "blackhole-route": true,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          },
+          "interface-endpoints": {
+            "subnet": "App",
+            "endpoints": ["ec2", "ec2messages", "ssm", "ssmmessages", "kms"]
+          }
+        }
+      ]
     }
   },
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
@@ -1578,22 +2470,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -1601,13 +2493,109 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": [
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACCESS_KEYS_ROTATED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
+            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
+            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
+            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
+            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DMS_REPLICATION_NOT_PUBLIC",
+            "DYNAMODB_AUTOSCALING_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_PITR_ENABLED",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
+            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
+            "EC2_IMDSV2_CHECK",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_INSTANCE_MANAGED_BY_SSM",
+            "EC2_INSTANCE_NO_PUBLIC_IP",
+            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_STOPPED_INSTANCE",
+            "EC2_VOLUME_INUSE_CHECK",
+            "EFS_ENCRYPTED_CHECK",
+            "EFS_IN_BACKUP_PLAN",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELASTICSEARCH_ENCRYPTED_AT_REST",
+            "ELASTICSEARCH_IN_VPC_ONLY",
+            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "ELB_DELETION_PROTECTION_ENABLED",
+            "ELB_TLS_HTTPS_LISTENERS_ONLY",
+            "EMR_KERBEROS_ENABLED",
+            "EMR_MASTER_NO_PUBLIC_IP",
+            "ENCRYPTED_VOLUMES",
+            "GUARDDUTY_ENABLED_CENTRALIZED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_ROOT_ACCESS_KEY_CHECK",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "IAM_USER_MFA_ENABLED",
+            "IAM_USER_NO_POLICIES_CHECK",
+            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
+            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
+            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
+            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
+            "RDS_ENHANCED_MONITORING_ENABLED",
+            "RDS_IN_BACKUP_PLAN",
+            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
+            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
+            "RDS_LOGGING_ENABLED",
+            "RDS_MULTI_AZ_SUPPORT",
+            "RDS_SNAPSHOT_ENCRYPTED",
+            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
+            "RDS_STORAGE_ENCRYPTED",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
+            "REDSHIFT_REQUIRE_TLS_SSL",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
+            "ROOT_ACCOUNT_MFA_ENABLED",
+            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
+            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
+            "S3_BUCKET_SSL_REQUESTS_ONLY",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
+            "SECURITYHUB_ENABLED",
+            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
+            "VPC_FLOW_LOGS_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -1615,7 +2603,7 @@
     "Central": {
       "type": "mandatory",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
@@ -1632,22 +2620,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -1690,7 +2678,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -1713,7 +2701,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -1736,7 +2724,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -1759,7 +2747,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -1826,7 +2814,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_Common",
                   "cidr": "10.1.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -1849,7 +2837,7 @@
                   "az": "d",
                   "route-table": "CentralVPC_GCWide",
                   "cidr2": "100.96.253.0/25",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -2061,13 +3049,109 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": [
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACCESS_KEYS_ROTATED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
+            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
+            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
+            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
+            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DMS_REPLICATION_NOT_PUBLIC",
+            "DYNAMODB_AUTOSCALING_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_PITR_ENABLED",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
+            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
+            "EC2_IMDSV2_CHECK",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_INSTANCE_MANAGED_BY_SSM",
+            "EC2_INSTANCE_NO_PUBLIC_IP",
+            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_STOPPED_INSTANCE",
+            "EC2_VOLUME_INUSE_CHECK",
+            "EFS_ENCRYPTED_CHECK",
+            "EFS_IN_BACKUP_PLAN",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELASTICSEARCH_ENCRYPTED_AT_REST",
+            "ELASTICSEARCH_IN_VPC_ONLY",
+            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "ELB_DELETION_PROTECTION_ENABLED",
+            "ELB_TLS_HTTPS_LISTENERS_ONLY",
+            "EMR_KERBEROS_ENABLED",
+            "EMR_MASTER_NO_PUBLIC_IP",
+            "ENCRYPTED_VOLUMES",
+            "GUARDDUTY_ENABLED_CENTRALIZED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_ROOT_ACCESS_KEY_CHECK",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "IAM_USER_MFA_ENABLED",
+            "IAM_USER_NO_POLICIES_CHECK",
+            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
+            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
+            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
+            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
+            "RDS_ENHANCED_MONITORING_ENABLED",
+            "RDS_IN_BACKUP_PLAN",
+            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
+            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
+            "RDS_LOGGING_ENABLED",
+            "RDS_MULTI_AZ_SUPPORT",
+            "RDS_SNAPSHOT_ENCRYPTED",
+            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
+            "RDS_STORAGE_ENCRYPTED",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
+            "REDSHIFT_REQUIRE_TLS_SSL",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
+            "ROOT_ACCOUNT_MFA_ENABLED",
+            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
+            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
+            "S3_BUCKET_SSL_REQUESTS_ONLY",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
+            "SECURITYHUB_ENABLED",
+            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
+            "VPC_FLOW_LOGS_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -2075,7 +3159,7 @@
     "Dev": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Dev Budget",
         "period": "Monthly",
@@ -2092,22 +3176,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -2177,7 +3261,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2200,7 +3284,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2223,7 +3307,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2246,7 +3330,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -2321,7 +3405,7 @@
                   "az": "d",
                   "route-table": "DevVPC_Common",
                   "cidr": "10.2.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -2548,13 +3632,109 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": [
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACCESS_KEYS_ROTATED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
+            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
+            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
+            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
+            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DMS_REPLICATION_NOT_PUBLIC",
+            "DYNAMODB_AUTOSCALING_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_PITR_ENABLED",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
+            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
+            "EC2_IMDSV2_CHECK",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_INSTANCE_MANAGED_BY_SSM",
+            "EC2_INSTANCE_NO_PUBLIC_IP",
+            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_STOPPED_INSTANCE",
+            "EC2_VOLUME_INUSE_CHECK",
+            "EFS_ENCRYPTED_CHECK",
+            "EFS_IN_BACKUP_PLAN",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELASTICSEARCH_ENCRYPTED_AT_REST",
+            "ELASTICSEARCH_IN_VPC_ONLY",
+            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "ELB_DELETION_PROTECTION_ENABLED",
+            "ELB_TLS_HTTPS_LISTENERS_ONLY",
+            "EMR_KERBEROS_ENABLED",
+            "EMR_MASTER_NO_PUBLIC_IP",
+            "ENCRYPTED_VOLUMES",
+            "GUARDDUTY_ENABLED_CENTRALIZED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_ROOT_ACCESS_KEY_CHECK",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "IAM_USER_MFA_ENABLED",
+            "IAM_USER_NO_POLICIES_CHECK",
+            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
+            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
+            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
+            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
+            "RDS_ENHANCED_MONITORING_ENABLED",
+            "RDS_IN_BACKUP_PLAN",
+            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
+            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
+            "RDS_LOGGING_ENABLED",
+            "RDS_MULTI_AZ_SUPPORT",
+            "RDS_SNAPSHOT_ENCRYPTED",
+            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
+            "RDS_STORAGE_ENCRYPTED",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
+            "REDSHIFT_REQUIRE_TLS_SSL",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
+            "ROOT_ACCOUNT_MFA_ENABLED",
+            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
+            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
+            "S3_BUCKET_SSL_REQUESTS_ONLY",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
+            "SECURITYHUB_ENABLED",
+            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
+            "VPC_FLOW_LOGS_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -2562,7 +3742,7 @@
     "Test": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
@@ -2579,22 +3759,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -2664,7 +3844,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2687,7 +3867,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2710,7 +3890,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -2733,7 +3913,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -2808,7 +3988,7 @@
                   "az": "d",
                   "route-table": "TestVPC_Common",
                   "cidr": "10.3.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -3035,13 +4215,109 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": [
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACCESS_KEYS_ROTATED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
+            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
+            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
+            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
+            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DMS_REPLICATION_NOT_PUBLIC",
+            "DYNAMODB_AUTOSCALING_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_PITR_ENABLED",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
+            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
+            "EC2_IMDSV2_CHECK",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_INSTANCE_MANAGED_BY_SSM",
+            "EC2_INSTANCE_NO_PUBLIC_IP",
+            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_STOPPED_INSTANCE",
+            "EC2_VOLUME_INUSE_CHECK",
+            "EFS_ENCRYPTED_CHECK",
+            "EFS_IN_BACKUP_PLAN",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELASTICSEARCH_ENCRYPTED_AT_REST",
+            "ELASTICSEARCH_IN_VPC_ONLY",
+            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "ELB_DELETION_PROTECTION_ENABLED",
+            "ELB_TLS_HTTPS_LISTENERS_ONLY",
+            "EMR_KERBEROS_ENABLED",
+            "EMR_MASTER_NO_PUBLIC_IP",
+            "ENCRYPTED_VOLUMES",
+            "GUARDDUTY_ENABLED_CENTRALIZED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_ROOT_ACCESS_KEY_CHECK",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "IAM_USER_MFA_ENABLED",
+            "IAM_USER_NO_POLICIES_CHECK",
+            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
+            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
+            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
+            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
+            "RDS_ENHANCED_MONITORING_ENABLED",
+            "RDS_IN_BACKUP_PLAN",
+            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
+            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
+            "RDS_LOGGING_ENABLED",
+            "RDS_MULTI_AZ_SUPPORT",
+            "RDS_SNAPSHOT_ENCRYPTED",
+            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
+            "RDS_STORAGE_ENCRYPTED",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
+            "REDSHIFT_REQUIRE_TLS_SSL",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
+            "ROOT_ACCOUNT_MFA_ENABLED",
+            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
+            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
+            "S3_BUCKET_SSL_REQUESTS_ONLY",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
+            "SECURITYHUB_ENABLED",
+            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
+            "VPC_FLOW_LOGS_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
           "remediate-regions": ["ca-central-1"]
         }
       ]
@@ -3049,7 +4325,7 @@
     "Prod": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
       "default-budgets": {
         "name": "Default Prod Budget",
         "period": "Monthly",
@@ -3066,22 +4342,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -3151,7 +4427,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.88.64/27",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3174,7 +4450,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3197,7 +4473,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3220,7 +4496,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -3295,7 +4571,7 @@
                   "az": "d",
                   "route-table": "ProdVPC_Common",
                   "cidr": "10.4.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }
@@ -3522,21 +4798,938 @@
         {
           "account": "operations",
           "regions": ["ca-central-1"],
-          "documents": ["SSM-ELB-Enable-Logging"]
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": ["ELB_LOGGING_ENABLED"],
+          "rules": [
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACCESS_KEYS_ROTATED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
+            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
+            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
+            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
+            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DMS_REPLICATION_NOT_PUBLIC",
+            "DYNAMODB_AUTOSCALING_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_PITR_ENABLED",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
+            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
+            "EC2_IMDSV2_CHECK",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_INSTANCE_MANAGED_BY_SSM",
+            "EC2_INSTANCE_NO_PUBLIC_IP",
+            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_STOPPED_INSTANCE",
+            "EC2_VOLUME_INUSE_CHECK",
+            "EFS_ENCRYPTED_CHECK",
+            "EFS_IN_BACKUP_PLAN",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELASTICSEARCH_ENCRYPTED_AT_REST",
+            "ELASTICSEARCH_IN_VPC_ONLY",
+            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "ELB_DELETION_PROTECTION_ENABLED",
+            "ELB_TLS_HTTPS_LISTENERS_ONLY",
+            "EMR_KERBEROS_ENABLED",
+            "EMR_MASTER_NO_PUBLIC_IP",
+            "ENCRYPTED_VOLUMES",
+            "GUARDDUTY_ENABLED_CENTRALIZED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_ROOT_ACCESS_KEY_CHECK",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "IAM_USER_MFA_ENABLED",
+            "IAM_USER_NO_POLICIES_CHECK",
+            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
+            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
+            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
+            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
+            "RDS_ENHANCED_MONITORING_ENABLED",
+            "RDS_IN_BACKUP_PLAN",
+            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
+            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
+            "RDS_LOGGING_ENABLED",
+            "RDS_MULTI_AZ_SUPPORT",
+            "RDS_SNAPSHOT_ENCRYPTED",
+            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
+            "RDS_STORAGE_ENCRYPTED",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
+            "REDSHIFT_REQUIRE_TLS_SSL",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
+            "ROOT_ACCOUNT_MFA_ENABLED",
+            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
+            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
+            "S3_BUCKET_SSL_REQUESTS_ONLY",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
+            "SECURITYHUB_ENABLED",
+            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
+            "VPC_FLOW_LOGS_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
           "remediate-regions": ["ca-central-1"]
+        }
+      ]
+    },
+    "UnClass": {
+      "type": "workload",
+      "share-mad-from": "operations",
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
+      "default-budgets": {
+        "name": "Default Unclass Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 50,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "vpc": [
+        {
+          "deploy": "shared-network",
+          "name": "UnClass",
+          "cidr": "10.5.0.0/16",
+          "region": "ca-central-1",
+          "use-central-endpoints": true,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.32/27"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.88.64/27",
+                  "disabled": false
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.128.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.192.0/20",
+                  "disabled": false
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.96.0/19"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.160.0/19",
+                  "disabled": false
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.144.0/20"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.208.0/20",
+                  "disabled": false
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "UnClass",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "UnClass",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Mgmt",
+              "share-to-ou-accounts": false,
+              "share-to-specific-accounts": [],
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.64.0/21"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.72.0/21"
+                },
+                {
+                  "az": "d",
+                  "route-table": "UnClassVPC_Common",
+                  "cidr": "10.5.80.0/21",
+                  "disabled": false
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "UnClassVPC_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Mgmt",
+              "inbound-rules": [
+                {
+                  "description": "Mgmt RDP/SSH Traffic Inbound",
+                  "type": ["RDP", "SSH"],
+                  "source": ["10.0.0.0/8", "100.96.252.0/23", "100.96.250.0/23"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Mgmt Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Mgmt"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "Main",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["segregated"],
+            "tgw-rt-propagate": ["core", "shared"],
+            "blackhole-route": true,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          },
+          "interface-endpoints": false
+        },
+		{
+          "deploy": "shared-network",
+          "name": "UnClass-East",
+          "cidr": "10.105.0.0/16",
+          "region": "us-east-1",
+          "use-central-endpoints": true,
+          "flow-logs": "BOTH",
+          "dns-resolver-logging": true,
+          "igw": false,
+          "vgw": false,
+          "pcx": false,
+          "natgw": false,
+          "subnets": [
+            {
+              "name": "TGW",
+              "share-to-ou-accounts": false,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.88.0/27"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.88.32/27"
+                }
+              ]
+            },
+            {
+              "name": "Web",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.32.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.128.0/20"
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.0.0/19"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.96.0/19"
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "share-to-ou-accounts": true,
+              "definitions": [
+                {
+                  "az": "a",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.48.0/20"
+                },
+                {
+                  "az": "b",
+                  "route-table": "UnClass-East_Common",
+                  "cidr": "10.105.144.0/20"
+                }
+              ],
+              "nacls": [
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": true,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "UnClass-East",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": true,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                },
+                {
+                  "rule": 100,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "deny",
+                  "egress": false,
+                  "cidr-blocks": [
+                    {
+                      "vpc": "UnClass-East",
+                      "subnet": ["Web"]
+                    },
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Data"]
+                    }
+                  ]
+                },
+                {
+                  "rule": 32000,
+                  "protocol": -1,
+                  "ports": -1,
+                  "rule-action": "allow",
+                  "egress": false,
+                  "cidr-blocks": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "gateway-endpoints": ["s3", "dynamodb"],
+          "route-tables": [
+            {
+              "name": "UnClass-East_Common",
+              "routes": [
+                {
+                  "destination": "0.0.0.0/0",
+                  "target": "TGW"
+                },
+                {
+                  "destination": "s3",
+                  "target": "s3"
+                },
+                {
+                  "destination": "DynamoDB",
+                  "target": "DynamoDB"
+                }
+              ]
+            }
+          ],
+          "security-groups": [
+            {
+              "name": "Web",
+              "inbound-rules": [
+                {
+                  "description": "World Web Traffic Inbound",
+                  "type": ["HTTP", "HTTPS"],
+                  "source": ["0.0.0.0/0"]
+                },
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "App",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local Web Tier Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Web"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            },
+            {
+              "name": "Data",
+              "inbound-rules": [
+                {
+                  "description": "Central VPC Traffic Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "vpc": "Central",
+                      "subnet": ["Web", "App", "Mgmt", "GCWide"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Local App DB Traffic Inbound",
+                  "type": ["MSSQL", "MYSQL/AURORA", "REDSHIFT", "POSTGRESQL", "ORACLE-RDS"],
+                  "source": [
+                    {
+                      "security-group": ["App"]
+                    }
+                  ]
+                },
+                {
+                  "description": "Allow East/West Communication Inbound",
+                  "type": ["ALL"],
+                  "source": [
+                    {
+                      "security-group": ["Data"]
+                    }
+                  ]
+                }
+              ],
+              "outbound-rules": [
+                {
+                  "description": "All Outbound",
+                  "type": ["ALL"],
+                  "source": ["0.0.0.0/0"]
+                }
+              ]
+            }
+          ],
+          "tgw-attach": {
+            "associate-to-tgw": "East",
+            "account": "shared-network",
+            "associate-type": "ATTACH",
+            "tgw-rt-associate": ["segregated"],
+            "tgw-rt-propagate": ["core", "shared"],
+            "blackhole-route": true,
+            "attach-subnets": ["TGW"],
+            "options": ["DNS-support"]
+          },
+          "interface-endpoints": false
+        }
+      ],
+      "iam": {
+        "users": [],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ],
+        "roles": [
+          {
+            "role": "EC2-Default-SSM-AD-Role",
+            "type": "ec2",
+            "ssm-log-archive-access": true,
+            "policies": [
+              "AmazonSSMManagedInstanceCore",
+              "AmazonSSMDirectoryServiceAccess",
+              "CloudWatchAgentServerPolicy"
+            ],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1","us-east-1"],
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": [
+            "ELB_LOGGING_ENABLED",
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "ACCESS_KEYS_ROTATED",
+            "ACM_CERTIFICATE_EXPIRATION_CHECK",
+            "ALB_HTTP_DROP_INVALID_HEADER_ENABLED",
+            "ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK",
+            "ALB_WAF_ENABLED",
+            "API_GW_CACHE_ENABLED_AND_ENCRYPTED",
+            "API_GW_EXECUTION_LOGGING_ENABLED",
+            "AUTOSCALING_GROUP_ELB_HEALTHCHECK_REQUIRED",
+            "CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED",
+            "CLOUD_TRAIL_ENABLED",
+            "CLOUD_TRAIL_ENCRYPTION_ENABLED",
+            "CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED",
+            "CLOUDTRAIL_S3_DATAEVENTS_ENABLED",
+            "CLOUDTRAIL_SECURITY_TRAIL_ENABLED",
+            "CLOUDWATCH_ALARM_ACTION_CHECK",
+            "CODEBUILD_PROJECT_ENVVAR_AWSCRED_CHECK",
+            "CODEBUILD_PROJECT_SOURCE_REPO_URL_CHECK",
+            "CW_LOGGROUP_RETENTION_PERIOD_CHECK",
+            "DB_INSTANCE_BACKUP_ENABLED",
+            "DMS_REPLICATION_NOT_PUBLIC",
+            "DYNAMODB_AUTOSCALING_ENABLED",
+            "DYNAMODB_IN_BACKUP_PLAN",
+            "DYNAMODB_PITR_ENABLED",
+            "DYNAMODB_TABLE_ENCRYPTED_KMS",
+            "EBS_IN_BACKUP_PLAN",
+            "EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK",
+            "EC2_EBS_ENCRYPTION_BY_DEFAULT",
+            "EC2_IMDSV2_CHECK",
+            "EC2_INSTANCE_DETAILED_MONITORING_ENABLED",
+            "EC2_INSTANCE_MANAGED_BY_SSM",
+            "EC2_INSTANCE_NO_PUBLIC_IP",
+            "EC2_MANAGEDINSTANCE_ASSOCIATION_COMPLIANCE_STATUS_CHECK",
+            "EC2_MANAGEDINSTANCE_PATCH_COMPLIANCE_STATUS_CHECK",
+            "EC2_STOPPED_INSTANCE",
+            "EC2_VOLUME_INUSE_CHECK",
+            "EFS_ENCRYPTED_CHECK",
+            "EFS_IN_BACKUP_PLAN",
+            "ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK",
+            "ELASTICSEARCH_ENCRYPTED_AT_REST",
+            "ELASTICSEARCH_IN_VPC_ONLY",
+            "ELASTICSEARCH_NODE_TO_NODE_ENCRYPTION_CHECK",
+            "ELB_ACM_CERTIFICATE_REQUIRED",
+            "ELB_CROSS_ZONE_LOAD_BALANCING_ENABLED",
+            "ELB_DELETION_PROTECTION_ENABLED",
+            "ELB_TLS_HTTPS_LISTENERS_ONLY",
+            "EMR_KERBEROS_ENABLED",
+            "EMR_MASTER_NO_PUBLIC_IP",
+            "ENCRYPTED_VOLUMES",
+            "GUARDDUTY_ENABLED_CENTRALIZED",
+            "GUARDDUTY_NON_ARCHIVED_FINDINGS",
+            "IAM_GROUP_HAS_USERS_CHECK",
+            "IAM_PASSWORD_POLICY",
+            "IAM_ROOT_ACCESS_KEY_CHECK",
+            "IAM_USER_GROUP_MEMBERSHIP_CHECK",
+            "IAM_USER_MFA_ENABLED",
+            "IAM_USER_NO_POLICIES_CHECK",
+            "IAM_USER_UNUSED_CREDENTIALS_CHECK",
+            "INCOMING_SSH_DISABLED",
+            "INSTANCES_IN_VPC",
+            "INTERNET_GATEWAY_AUTHORIZED_VPC_ONLY",
+            "KMS_CMK_NOT_SCHEDULED_FOR_DELETION",
+            "LAMBDA_FUNCTION_PUBLIC_ACCESS_PROHIBITED",
+            "MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS",
+            "MULTI_REGION_CLOUD_TRAIL_ENABLED",
+            "RDS_ENHANCED_MONITORING_ENABLED",
+            "RDS_IN_BACKUP_PLAN",
+            "RDS_INSTANCE_DELETION_PROTECTION_ENABLED",
+            "RDS_INSTANCE_PUBLIC_ACCESS_CHECK",
+            "RDS_LOGGING_ENABLED",
+            "RDS_MULTI_AZ_SUPPORT",
+            "RDS_SNAPSHOT_ENCRYPTED",
+            "RDS_SNAPSHOTS_PUBLIC_PROHIBITED",
+            "RDS_STORAGE_ENCRYPTED",
+            "REDSHIFT_CLUSTER_CONFIGURATION_CHECK",
+            "REDSHIFT_CLUSTER_PUBLIC_ACCESS_CHECK",
+            "REDSHIFT_REQUIRE_TLS_SSL",
+            "RESTRICTED_INCOMING_TRAFFIC",
+            "ROOT_ACCOUNT_HARDWARE_MFA_ENABLED",
+            "ROOT_ACCOUNT_MFA_ENABLED",
+            "S3_ACCOUNT_LEVEL_PUBLIC_ACCESS_BLOCKS",
+            "S3_BUCKET_POLICY_GRANTEE_CHECK",
+            "S3_BUCKET_PUBLIC_READ_PROHIBITED",
+            "S3_BUCKET_PUBLIC_WRITE_PROHIBITED",
+            "S3_BUCKET_SSL_REQUESTS_ONLY",
+            "S3_BUCKET_VERSIONING_ENABLED",
+            "SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED",
+            "SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS",
+            "SECURITYHUB_ENABLED",
+            "VPC_DEFAULT_SECURITY_GROUP_CLOSED",
+            "VPC_FLOW_LOGS_ENABLED",
+            "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
+            "WAFV2_LOGGING_ENABLED"
+          ],
+          "remediate-regions": ["ca-central-1","us-east-1"]
         }
       ]
     },
     "Sandbox": {
       "type": "workload",
       "share-mad-from": "",
-      "scps": ["ALZ-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
+      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
       "default-budgets": {
         "name": "Default Sandbox Budget",
         "period": "Monthly",
@@ -3553,22 +5746,22 @@
           {
             "type": "Actual",
             "threshold-percent": 50,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 75,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 90,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           },
           {
             "type": "Actual",
             "threshold-percent": 100,
-            "emails": ["myemail+pbmmT-budg@example.com"]
+            "emails": ["myemail+aseaT-budg@example.com"]
           }
         ]
       },
@@ -3610,7 +5803,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_IGW",
                   "cidr": "10.6.192.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3633,7 +5826,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": "10.6.160.0/19",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             },
@@ -3656,7 +5849,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": "10.6.208.0/20",
-                  "disabled": true
+                  "disabled": false
                 }
               ],
               "nacls": [
@@ -3733,7 +5926,7 @@
                   "az": "d",
                   "route-table": "SandboxVPC_Common",
                   "cidr": "10.6.80.0/21",
-                  "disabled": true
+                  "disabled": false
                 }
               ]
             }

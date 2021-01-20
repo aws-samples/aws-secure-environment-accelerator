@@ -1,9 +1,9 @@
 {
   "name": "@aws-accelerator/custom-resource-r53-dns-endpoint-ips",
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "^1.75.0", 
-    "@aws-cdk/core": "^1.75.0", 
-    "@aws-cdk/custom-resources": "^1.75.0"
+    "@aws-cdk/aws-iam": "1.75.0", 
+    "@aws-cdk/core": "1.75.0", 
+    "@aws-cdk/custom-resources": "1.75.0"
   },
   "main": "cdk/index.ts",
   "private": true, 
@@ -29,7 +29,7 @@
     "eslint-plugin-unicorn": "22.0.0", 
     "@types/aws-lambda": "8.10.46", 
     "eslint-config-prettier": "6.12.0", 
-    "@types/cfn-response": "1.0.3", 
+    "@types/cfn-response": "1.0.4", 
     "@types/node": "12.12.6"
   }
 }

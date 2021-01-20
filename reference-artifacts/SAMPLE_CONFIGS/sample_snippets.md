@@ -35,7 +35,7 @@
 - Valid options for vpc flow logs setting on each VPC
 
 ```
-"flow-logs": "S3"  ---> S3, CWL, BOTH
+"flow-logs": "S3"  ---> S3, CWL, BOTH, NONE
 ```
 
 ---
@@ -44,6 +44,15 @@
 
 ```
       "macie-frequency": "SIX_HOURS" ---> FIFTEEN_MINUTES, ONE_HOUR, SIX_HOURS
+```
+
+---
+
+- Control MAD/ADC AZ's:
+  - if not specified and more than 2 az's exist, selects the first two defined az's in the subnet
+
+```
+      "azs": ["a", "d"]
 ```
 
 ---
@@ -634,6 +643,7 @@
 ---
 
 - Creating a VPC Virtual Gateway
+
 ```
           "vgw": {
             "asn": 65522
@@ -669,12 +679,14 @@
             }
           ]
 
-		  
-		  
+
+
 ```
+
 ---
 
 - Disable a Config rule on a per account basis - add this to either workload or mandatory accounts sections
+
 ```
       "aws-config": [
         {
@@ -687,14 +699,15 @@
 ---
 
 - Future description
+
 ```
 {future sample}
 ```
 
-
 ---
 
 - Future description
+
 ```
 {future sample}
 ```

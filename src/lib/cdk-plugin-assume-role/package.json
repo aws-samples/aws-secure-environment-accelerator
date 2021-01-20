@@ -23,6 +23,6 @@
     "aws-cdk": "1.75.0",
     "aws-sdk": "2.787.0",
     "colors": "1.4.0",
-    "exponential-backoff": "^3.0.0"
+    "exponential-backoff": "3.1.0"
   }
 }

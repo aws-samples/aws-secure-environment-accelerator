@@ -191,6 +191,11 @@ export const SecurityGroupConfigType = t.interface({
   'outbound-rules': t.array(SecurityGroupRuleConfigType),
 });
 
+export const ZoneNamesConfigType = t.interface({
+  public: fromNullable(t.array(t.string), []),
+  private: fromNullable(t.array(t.string), []),
+});
+
 export const FLOW_LOGS_DESTINATION_TYPES = ['S3', 'CWL', 'BOTH', 'NONE'] as const;
 export const FlowLogsDestinationTypes = enumType<typeof FLOW_LOGS_DESTINATION_TYPES[number]>(
   FLOW_LOGS_DESTINATION_TYPES,
@@ -218,6 +223,8 @@ export const VpcConfigType = t.interface({
   resolvers: optional(ResolversConfigType),
   'on-premise-rules': optional(t.array(OnPremZoneConfigType)),
   'security-groups': optional(t.array(SecurityGroupConfigType)),
+  zones: optional(ZoneNamesConfigType),
+  'central-endpoint': fromNullable(t.boolean, false),
 });
 
 export type VpcConfig = t.TypeOf<typeof VpcConfigType>;
@@ -331,6 +338,7 @@ export const MadConfigType = t.interface({
   'vpc-name': t.string,
   region: t.string,
   subnet: t.string,
+  azs: fromNullable(t.array(t.string), []),
   size: t.string,
   'dns-domain': t.string,
   'netbios-domain': t.string,
@@ -441,6 +449,7 @@ export const AdcConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   subnet: t.string,
+  azs: fromNullable(t.array(t.string), []),
   size: t.string,
   restrict_srcips: t.array(cidr),
   'connect-account-key': t.string,
@@ -606,11 +615,6 @@ export type OrganizationalUnitsConfig = t.TypeOf<typeof OrganizationalUnitsConfi
 
 export type RouteTableConfig = t.TypeOf<typeof RouteTableConfigType>;
 export type PcxRouteConfig = t.TypeOf<typeof PcxRouteConfigType>;
-
-export const ZoneNamesConfigType = t.interface({
-  public: t.array(t.string),
-  private: t.array(t.string),
-});
 
 export const GlobalOptionsZonesConfigType = t.interface({
   account: NonEmptyString,
@@ -808,7 +812,6 @@ export const GlobalOptionsConfigType = t.interface({
   'default-s3-retention': t.number,
   'central-bucket': NonEmptyString,
   reports: ReportsConfigType,
-  zones: t.array(GlobalOptionsZonesConfigType),
   'security-hub-frameworks': SecurityHubFrameworksConfigType,
   'central-security-services': CentralServicesConfigType,
   'central-operations-services': CentralServicesConfigType,
@@ -914,6 +917,13 @@ export interface ResolvedMadConfig extends ResolvedConfigBase {
    * The mad config to be deployed.
    */
   mad: MadDeploymentConfig;
+}
+
+export interface ResolvedRsysLogConfig extends ResolvedConfigBase {
+  /**
+   * The rsyslog config to be deployed.
+   */
+  rsyslog: RsyslogConfig;
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
@@ -1201,6 +1211,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
       result.push({
         accountKey: key,
         mad,
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Find all rsyslog configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getRsysLogConfigs(): ResolvedRsysLogConfig[] {
+    const result: ResolvedRsysLogConfig[] = [];
+    for (const [key, config] of this.getAccountConfigs()) {
+      const rsyslog = config.deployments?.rsyslog;
+      if (!rsyslog) {
+        continue;
+      }
+      result.push({
+        accountKey: key,
+        rsyslog,
       });
     }
     return result;

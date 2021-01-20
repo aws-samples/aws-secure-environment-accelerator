@@ -19,7 +19,7 @@
   }, 
   "devDependencies": {
     "ts-loader": "7.0.5", 
-    "@types/xml2js": "^0.4.5", 
+    "@types/xml2js": "0.4.5", 
     "typescript": "3.8.3", 
     "@types/aws-lambda": "8.10.46", 
     "webpack": "4.42.1", 

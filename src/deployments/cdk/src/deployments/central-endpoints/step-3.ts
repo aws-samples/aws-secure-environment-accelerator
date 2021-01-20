@@ -50,23 +50,17 @@ export async function step3(props: CentralEndpointsStep3Props) {
   } = {};
 
   for (const { accountKey, vpcConfig } of allVpcConfigs) {
-    const centralPhzConfig = config['global-options'].zones.find(zc => zc.region === vpcConfig.region);
-    if (!vpcConfig['use-central-endpoints']) {
+    if (!vpcConfig['use-central-endpoints'] || vpcConfig['central-endpoint']) {
       continue;
     }
 
-    // If Current VPC exists in global-options/zones then no need to share it with any Rules
-    if (
-      accountKey === centralPhzConfig?.account &&
-      vpcConfig.region === centralPhzConfig.region &&
-      vpcConfig.name === centralPhzConfig['resolver-vpc']
-    ) {
-      console.log(
-        `Current VPC Config ${accountKey}: ${vpcConfig.region}:${vpcConfig.name} is central VPC for Hosted Zones`,
-      );
+    const centralPhzConfig = allVpcConfigs.find(
+      vc => vc.vpcConfig.region === vpcConfig.region && vc.vpcConfig['central-endpoint'],
+    );
+    if (!centralPhzConfig) {
+      console.log(`No Central VPC is defined in Region ::  "${vpcConfig.region}"`);
       continue;
     }
-
     // Retrieving current VPCId
     const vpcOutput = VpcOutputFinder.tryFindOneByAccountAndRegionAndName({
       outputs,
@@ -79,31 +73,26 @@ export async function step3(props: CentralEndpointsStep3Props) {
       continue;
     }
 
-    const zoneConfig = config['global-options'].zones.find(z => z.region === vpcConfig.region);
-    if (!zoneConfig) {
-      console.error(`No Central VPC is defined in Region :: ${vpcConfig.region}`);
-      continue;
-    }
+    const regionCentralVpcConfig = allVpcConfigs.find(
+      vc => vc.vpcConfig.region === vpcConfig.region && vc.vpcConfig['central-endpoint'],
+    );
 
-    const localCentralVpcConfig = config
-      .getVpcConfigs()
-      .find(vc => vc.accountKey === zoneConfig.account && vc.vpcConfig.name === zoneConfig['resolver-vpc']);
-    if (!localCentralVpcConfig) {
-      console.error(
-        `Central VPC Config is not found in Configuration under "global-options/zones": "${zoneConfig.account}: ${zoneConfig['resolver-vpc']}"`,
-      );
+    if (!regionCentralVpcConfig) {
+      console.error(`No VPC found with central-endpoint: true in region "${vpcConfig.region}"`);
       continue;
     }
 
     const resolversOutputs: ResolversOutput[] = getStackJsonOutput(outputs, {
-      accountKey: zoneConfig.account,
+      accountKey: centralPhzConfig.accountKey,
       outputType: 'GlobalOptionsOutput',
     });
     const resolverRegionoutputs = resolversOutputs.find(
-      resOut => resOut.region === vpcConfig.region && resOut.vpcName === centralPhzConfig?.['resolver-vpc'],
+      resOut => resOut.region === vpcConfig.region && resOut.vpcName === centralPhzConfig.vpcConfig.name,
     );
     if (!resolverRegionoutputs) {
-      console.error(`Resolver rules are not Deployed in Central VPC Region ${zoneConfig.account}::${vpcConfig.region}`);
+      console.error(
+        `Resolver rules are not Deployed in Central VPC Region ${centralPhzConfig.accountKey}::${vpcConfig.region}`,
+      );
       continue;
     }
 

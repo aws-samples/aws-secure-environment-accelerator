@@ -157,6 +157,7 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
+          'inputConfig.$': '$',
         },
         resultPath: '$.configuration',
       });
@@ -187,6 +188,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           outputTableName: outputsTable.tableName,
+          'storeAllOutputs.$': '$.configuration.storeAllOutputs',
         },
         resultPath: '$.configuration.baselineOutput',
       });
@@ -259,16 +261,13 @@ export namespace InitialSetup {
         },
       );
 
-      // eslint-disable-next-line deprecation/deprecation
-      const createLandingZoneAccountTask = new sfn.Task(this, 'Create Landing Zone Account', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(createLandingZoneAccountStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            avmProductName,
-            avmPortfolioName,
-            'account.$': '$',
-          },
+      const createLandingZoneAccountTask = new tasks.StepFunctionsStartExecution(this, 'Create Landing Zone Account', {
+        stateMachine: createLandingZoneAccountStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          avmProductName,
+          avmPortfolioName,
+          'account.$': '$',
         }),
       });
 
@@ -306,14 +305,11 @@ export namespace InitialSetup {
         },
       });
 
-      // eslint-disable-next-line deprecation/deprecation
-      const createOrganizationAccountTask = new sfn.Task(this, 'Create Organization Account', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(createOrganizationAccountStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            'createAccountConfiguration.$': '$',
-          },
+      const createOrganizationAccountTask = new tasks.StepFunctionsStartExecution(this, 'Create Organization Account', {
+        stateMachine: createOrganizationAccountStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'createAccountConfiguration.$': '$',
         }),
       });
 
@@ -416,22 +412,23 @@ export namespace InitialSetup {
         },
       );
 
-      // eslint-disable-next-line deprecation/deprecation
-      const installCfnRoleMasterTask = new sfn.Task(this, 'Install CloudFormation Role in Master', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(installCfnRoleMasterStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
+      const installCfnRoleMasterTask = new tasks.StepFunctionsStartExecution(
+        this,
+        'Install CloudFormation Role in Master',
+        {
+          stateMachine: installCfnRoleMasterStateMachine,
+          integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+          input: sfn.TaskInput.fromObject({
             stackName: `${props.acceleratorPrefix}CloudFormationStackSetExecutionRole`,
             stackCapabilities: ['CAPABILITY_NAMED_IAM'],
             stackTemplate: {
               s3BucketName: installCfnRoleMasterTemplate.s3BucketName,
               s3ObjectKey: installCfnRoleMasterTemplate.s3ObjectKey,
             },
-          },
-        }),
-        resultPath: 'DISCARD',
-      });
+          }),
+          resultPath: 'DISCARD',
+        },
+      );
 
       const installRoleTemplate = new s3assets.Asset(this, 'ExecutionRoleTemplate', {
         path: path.join(__dirname, 'assets', 'execution-role.template.json'),
@@ -448,27 +445,24 @@ export namespace InitialSetup {
         }),
       });
 
-      // eslint-disable-next-line deprecation/deprecation
-      const installRolesTask = new sfn.Task(this, 'Install Execution Roles', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(installRolesStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            stackName: `${props.acceleratorPrefix}PipelineRole`,
-            stackCapabilities: ['CAPABILITY_NAMED_IAM'],
-            stackParameters: {
-              RoleName: props.stateMachineExecutionRole,
-              MaxSessionDuration: `${buildTimeout.toSeconds()}`,
-              // TODO Only add root role for development environments
-              AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
-            },
-            stackTemplate: {
-              s3BucketName: installRoleTemplate.s3BucketName,
-              s3ObjectKey: installRoleTemplate.s3ObjectKey,
-            },
-            'instanceAccounts.$': '$.accounts',
-            instanceRegions: [stack.region],
+      const installRolesTask = new tasks.StepFunctionsStartExecution(this, 'Install Execution Roles', {
+        stateMachine: installRolesStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          stackName: `${props.acceleratorPrefix}PipelineRole`,
+          stackCapabilities: ['CAPABILITY_NAMED_IAM'],
+          stackParameters: {
+            RoleName: props.stateMachineExecutionRole,
+            MaxSessionDuration: `${buildTimeout.toSeconds()}`,
+            // TODO Only add root role for development environments
+            AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
           },
+          stackTemplate: {
+            s3BucketName: installRoleTemplate.s3BucketName,
+            s3ObjectKey: installRoleTemplate.s3ObjectKey,
+          },
+          'instanceAccounts.$': '$.accounts',
+          instanceRegions: [stack.region],
         }),
         resultPath: 'DISCARD',
       });
@@ -484,19 +478,16 @@ export namespace InitialSetup {
         }),
       });
 
-      // eslint-disable-next-line deprecation/deprecation
-      const deleteVpcTask = new sfn.Task(this, 'Delete Default Vpcs', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(deleteVpcSfn, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            'accounts.$': '$.accounts',
-            configRepositoryName: props.configRepositoryName,
-            'configFilePath.$': '$.configFilePath',
-            'configCommitId.$': '$.configCommitId',
-            'baseline.$': '$.baseline',
-            acceleratorPrefix: props.acceleratorPrefix,
-          },
+      const deleteVpcTask = new tasks.StepFunctionsStartExecution(this, 'Delete Default Vpcs', {
+        stateMachine: deleteVpcSfn,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          'baseline.$': '$.baseline',
+          acceleratorPrefix: props.acceleratorPrefix,
         }),
         resultPath: 'DISCARD',
       });
@@ -567,23 +558,20 @@ export namespace InitialSetup {
         },
       );
 
-      // eslint-disable-next-line deprecation/deprecation
-      const storeAllOutputsToSsmTask = new sfn.Task(this, 'Store Outputs to SSM', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(storeOutputsToSsmStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            'accounts.$': '$.accounts',
-            'regions.$': '$.regions',
-            acceleratorPrefix: props.acceleratorPrefix,
-            assumeRoleName: props.stateMachineExecutionRole,
-            outputsTableName: outputsTable.tableName,
-            configRepositoryName: props.configRepositoryName,
-            'configFilePath.$': '$.configFilePath',
-            'configCommitId.$': '$.configCommitId',
-            outputUtilsTableName: outputUtilsTable.tableName,
-            accountsTableName: parametersTable.tableName,
-          },
+      const storeAllOutputsToSsmTask = new tasks.StepFunctionsStartExecution(this, 'Store Outputs to SSM', {
+        stateMachine: storeOutputsToSsmStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          'regions.$': '$.regions',
+          acceleratorPrefix: props.acceleratorPrefix,
+          assumeRoleName: props.stateMachineExecutionRole,
+          outputsTableName: outputsTable.tableName,
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          outputUtilsTableName: outputUtilsTable.tableName,
+          accountsTableName: parametersTable.tableName,
         }),
         resultPath: 'DISCARD',
       });
@@ -641,15 +629,13 @@ export namespace InitialSetup {
           STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
           BOOTSTRAP_STACK_NAME: bootStrapStackName,
         };
-        // eslint-disable-next-line deprecation/deprecation
-        const deployTask = new sfn.Task(this, `Deploy Phase ${phase}`, {
-          // eslint-disable-next-line deprecation/deprecation
-          task: new tasks.StartExecution(codeBuildStateMachine, {
-            integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-            input: {
-              codeBuildProjectName: project.projectName,
-              environment,
-            },
+
+        const deployTask = new tasks.StepFunctionsStartExecution(this, `Deploy Phase ${phase}`, {
+          stateMachine: codeBuildStateMachine,
+          integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+          input: sfn.TaskInput.fromObject({
+            codeBuildProjectName: project.projectName,
+            environment,
           }),
           resultPath: 'DISCARD',
         });
@@ -665,22 +651,19 @@ export namespace InitialSetup {
       });
 
       const createStoreOutputTask = (phase: number) => {
-        // eslint-disable-next-line deprecation/deprecation
-        const storeOutputsTask = new sfn.Task(this, `Store Phase ${phase} Outputs`, {
-          // eslint-disable-next-line deprecation/deprecation
-          task: new tasks.StartExecution(storeOutputsStateMachine, {
-            integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-            input: {
-              'accounts.$': '$.accounts',
-              'regions.$': '$.regions',
-              acceleratorPrefix: props.acceleratorPrefix,
-              assumeRoleName: props.stateMachineExecutionRole,
-              outputsTable: outputsTable.tableName,
-              phaseNumber: phase,
-              configRepositoryName: props.configRepositoryName,
-              'configFilePath.$': '$.configFilePath',
-              'configCommitId.$': '$.configCommitId',
-            },
+        const storeOutputsTask = new tasks.StepFunctionsStartExecution(this, `Store Phase ${phase} Outputs`, {
+          stateMachine: storeOutputsStateMachine,
+          integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+          input: sfn.TaskInput.fromObject({
+            'accounts.$': '$.accounts',
+            'regions.$': '$.regions',
+            acceleratorPrefix: props.acceleratorPrefix,
+            assumeRoleName: props.stateMachineExecutionRole,
+            outputsTable: outputsTable.tableName,
+            phaseNumber: phase,
+            configRepositoryName: props.configRepositoryName,
+            'configFilePath.$': '$.configFilePath',
+            'configCommitId.$': '$.configCommitId',
           }),
           resultPath: 'DISCARD',
         });
@@ -704,22 +687,19 @@ export namespace InitialSetup {
         },
       });
 
-      // eslint-disable-next-line deprecation/deprecation
-      const storeAllOutputsTask = new sfn.Task(this, `Store All Phase Outputs`, {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(storeOutputsStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            'accounts.$': '$.accounts',
-            'regions.$': '$.regions',
-            acceleratorPrefix: props.acceleratorPrefix,
-            assumeRoleName: props.stateMachineExecutionRole,
-            outputsTable: outputsTable.tableName,
-            configRepositoryName: props.configRepositoryName,
-            'phaseNumber.$': '$.phaseNumber',
-            'configFilePath.$': '$.configFilePath',
-            'configCommitId.$': '$.configCommitId',
-          },
+      const storeAllOutputsTask = new tasks.StepFunctionsStartExecution(this, `Store All Phase Outputs`, {
+        stateMachine: storeOutputsStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          'regions.$': '$.regions',
+          acceleratorPrefix: props.acceleratorPrefix,
+          assumeRoleName: props.stateMachineExecutionRole,
+          outputsTable: outputsTable.tableName,
+          configRepositoryName: props.configRepositoryName,
+          'phaseNumber.$': '$.phaseNumber',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         }),
         resultPath: 'DISCARD',
       });
@@ -754,20 +734,17 @@ export namespace InitialSetup {
         }),
       });
 
-      // eslint-disable-next-line deprecation/deprecation
-      const createConfigRecordersTask = new sfn.Task(this, 'Create Config Recorders', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(createConfigRecorderSfn, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            'accounts.$': '$.accounts',
-            configRepositoryName: props.configRepositoryName,
-            'configFilePath.$': '$.configFilePath',
-            'configCommitId.$': '$.configCommitId',
-            'baseline.$': '$.baseline',
-            outputTableName: outputsTable.tableName,
-            acceleratorPrefix: props.acceleratorPrefix,
-          },
+      const createConfigRecordersTask = new tasks.StepFunctionsStartExecution(this, 'Create Config Recorders', {
+        stateMachine: createConfigRecorderSfn,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          'baseline.$': '$.baseline',
+          outputTableName: outputsTable.tableName,
+          acceleratorPrefix: props.acceleratorPrefix,
         }),
         resultPath: 'DISCARD',
       });
@@ -849,20 +826,17 @@ export namespace InitialSetup {
         }),
       });
 
-      // eslint-disable-next-line deprecation/deprecation
-      const createAdConnectorTask = new sfn.Task(this, 'Create AD Connector', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(createAdConnectorStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            acceleratorPrefix: props.acceleratorPrefix,
-            parametersTableName: parametersTable.tableName,
-            assumeRoleName: props.stateMachineExecutionRole,
-            'configRepositoryName.$': '$.configRepositoryName',
-            'configFilePath.$': '$.configFilePath',
-            'configCommitId.$': '$.configCommitId',
-            outputTableName: outputsTable.tableName,
-          },
+      const createAdConnectorTask = new tasks.StepFunctionsStartExecution(this, 'Create AD Connector', {
+        stateMachine: createAdConnectorStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          acceleratorPrefix: props.acceleratorPrefix,
+          parametersTableName: parametersTable.tableName,
+          assumeRoleName: props.stateMachineExecutionRole,
+          'configRepositoryName.$': '$.configRepositoryName',
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+          outputTableName: outputsTable.tableName,
         }),
         resultPath: 'DISCARD',
       });
@@ -886,7 +860,6 @@ export namespace InitialSetup {
         .otherwise(storeAllOutputsToSsmTask);
 
       const commonStep1 = addScpTask.startState
-        // eslint-disable-next-line deprecation/deprecation
         .next(deployPhase1Task)
         .next(storePhase1Output)
         .next(accountDefaultSettingsTask)
@@ -904,13 +877,11 @@ export namespace InitialSetup {
         .next(baseLineCleanupChoice);
 
       const enableConfigChoice = new sfn.Choice(this, 'Create Config Recorders?')
-        // eslint-disable-next-line deprecation/deprecation
         .when(sfn.Condition.stringEquals('$.baseline', 'ORGANIZATIONS'), createConfigRecordersTask.next(commonStep1))
         .otherwise(commonStep1)
         .afterwards();
 
       const commonStep2 = deployPhaseRolesTask
-        // eslint-disable-next-line deprecation/deprecation
         .next(storePreviousOutput)
         .next(deployPhase0Task)
         .next(storePhase0Output)
@@ -923,7 +894,6 @@ export namespace InitialSetup {
         .afterwards();
 
       const commonDefinition = loadOrganizationsTask.startState
-        // eslint-disable-next-line deprecation/deprecation
         .next(loadAccountsTask)
         .next(cdkBootstrapTask)
         .next(installRolesTask)
@@ -934,7 +904,6 @@ export namespace InitialSetup {
 
       // Landing Zone Config Setup
       const alzConfigDefinition = loadLandingZoneConfigurationTask.startState
-        // eslint-disable-next-line deprecation/deprecation
         .next(addRoleToServiceCatalog)
         .next(createLandingZoneAccountsTask)
         .next(commonDefinition);
@@ -947,12 +916,10 @@ export namespace InitialSetup {
         .otherwise(createOrganizationAccountsTask)
         .afterwards();
 
-      // eslint-disable-next-line deprecation/deprecation
       installCfnRoleMasterTask.next(createOrganizationAccountsTask).next(commonDefinition);
 
       // // Organizations Config Setup
       const orgConfigDefinition = validateOuConfiguration.startState
-        // eslint-disable-next-line deprecation/deprecation
         .next(loadOrgConfigurationTask)
         .next(cloudFormationMasterRoleChoice);
 

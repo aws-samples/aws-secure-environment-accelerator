@@ -1,16 +1,14 @@
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ["Merge Release Branch"]
+    workflows: ['Merge Release Branch']
     types:
       - completed
 
 name: Generate Documentation
 
 jobs:
-
   render:
-
     name: Render
     runs-on: ubuntu-latest
     steps:
@@ -32,7 +30,6 @@ jobs:
           echo ::set-output name=prefix::$(echo "${PREFIX}")
           echo ::set-output name=suffix::$(echo "${SUFFIX}")
           echo ::set-output name=dir::$(echo "${PREFIX}-${SUFFIX}")
-
 
       - name: PDF output 0
         uses: docker://pandoc/latex:2.10
@@ -68,7 +65,7 @@ jobs:
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=${{ steps.setup.outputs.dir }}/2a-${{ steps.setup.outputs.prefix }}-Config-File-Options-ToC.pdf
+            --output=${{ steps.setup.outputs.dir }}/2a-${{ steps.setup.outputs.prefix }}-Config-File-Customization.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -81,11 +78,11 @@ jobs:
 
       - name: Copy file output 2b
         run: |
-          cp reference-artifacts/config.example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.example.json
+          cp reference-artifacts/SAMPLE_CONFIGS/config.example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.example.json
 
       - name: Copy file output 2b1
         run: |
-          cp reference-artifacts/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
+          cp reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
 
       - name: PDF output 2c
         uses: docker://pandoc/latex:2.10
@@ -115,7 +112,7 @@ jobs:
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
-            ./reference-artifacts/config-sample-snippets/sample_snippets.md
+            ./reference-artifacts/SAMPLE_CONFIGS/sample_snippets.md
 
       - name: Copy file output 2e
         run: |
@@ -134,7 +131,7 @@ jobs:
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
-            ./reference-artifacts/config-sample-snippets/firewall_file_available_variables.md
+            ./reference-artifacts/SAMPLE_CONFIGS/firewall_file_available_variables.md
 
       - name: PDF output 2g
         uses: docker://pandoc/latex:2.10
@@ -151,6 +148,36 @@ jobs:
             --pdf-engine=xelatex
             docs/architectures/pbmm/log-file-locations.md
 
+      - name: PDF output 2h
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2h-${{ steps.setup.outputs.prefix }}-What-Where.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/what-we-do-where.md
+
+      - name: PDF output 2i
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/2i-${{ steps.setup.outputs.prefix }}-Public-Workload-Fortigate.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/installation/guides/public-facing-workload-via-fortigate.md
+
       - name: PDF output 3
         uses: docker://pandoc/latex:2.10
         with:
@@ -166,13 +193,26 @@ jobs:
             --pdf-engine=xelatex
             docs/operations/operations-troubleshooting-guide.md
 
-
-
       - name: PDF output 4
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=${{ steps.setup.outputs.dir }}/4-${{ steps.setup.outputs.prefix }}-Developer-Guide.pdf
+            --output=${{ steps.setup.outputs.dir }}/4-${{ steps.setup.outputs.prefix }}-Ops-FAQ.pdf
+            --from=gfm
+            --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
+            -V linkcolor:blue
+            -V geometry:paperwidth=8.5in
+            -V geometry:paperheight=11in
+            -V geometry:margin=.8in
+            -V documentclass=report
+            --pdf-engine=xelatex
+            docs/faq/faq.md
+
+      - name: PDF output 5
+        uses: docker://pandoc/latex:2.10
+        with:
+          args: >
+            --output=${{ steps.setup.outputs.dir }}/5-${{ steps.setup.outputs.prefix }}-Developer-Guide.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -183,11 +223,11 @@ jobs:
             --pdf-engine=xelatex
             docs/developer/developer-guide.md
 
-      - name: PDF output 5
+      - name: PDF output 6
         uses: docker://pandoc/latex:2.10
         with:
           args: >
-            --output=${{ steps.setup.outputs.dir }}/5-${{ steps.setup.outputs.prefix }}-PBMM-Architecture.pdf
+            --output=${{ steps.setup.outputs.dir }}/6-${{ steps.setup.outputs.prefix }}-PBMM-Architecture.pdf
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
@@ -197,11 +237,10 @@ jobs:
             -V documentclass=report
             --pdf-engine=xelatex
             docs/architectures/pbmm/architecture.md
-            
-      - name: Copy file output 5b
-        run: |
-          cp docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/5b-${{ steps.setup.outputs.prefix }}-PBMM_Accel_Account_Network_VPC.pdf
 
+      - name: Copy file output 6b
+        run: |
+          cp docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/6b-${{ steps.setup.outputs.prefix }}-PBMM_Accel_Account_Network_VPC.pdf
 
       - uses: actions/upload-artifact@master
         with:

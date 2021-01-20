@@ -41,6 +41,7 @@ export function getStackOutput(outputs: StackOutput[], accountKey: string, outpu
 export interface StackJsonOutputFilter {
   accountKey?: string;
   outputType?: string;
+  region?: string;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,6 +49,9 @@ export function getStackJsonOutput(outputs: StackOutput[], filter: StackJsonOutp
   return outputs
     .map(output => {
       if (filter.accountKey && output.accountKey !== filter.accountKey) {
+        return null;
+      }
+      if (filter.region && output.region !== filter.region) {
         return null;
       }
       try {

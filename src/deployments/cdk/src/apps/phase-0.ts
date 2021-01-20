@@ -40,7 +40,6 @@ import * as cleanup from '../deployments/cleanup';
  * - create firewalls (step 1);
  * - create budgets (step 1);
  * - create transit gateways (step 1);
- * - create Route53 DNS logging log group;
  * - enable Macie (step 1);
  * - enable GuardDuty;
  * - enable Access Analyzer;

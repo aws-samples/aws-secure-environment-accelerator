@@ -17,6 +17,7 @@ import * as globalRoles from '../deployments/iam';
  *   - Creating required roles for createLogsMetricFilter custom resource
  *   - Creating required roles for SnsSubscriberLambda custom resource
  *   - Creating required role for SsmIncreaseThroughput custom resource
+ *   - Creating required role for S3PutBucketReplication custom resource
  */
 export async function deploy({ acceleratorConfig, accountStacks, accounts }: PhaseInput) {
   // creates roles for macie custom resources
@@ -108,6 +109,12 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts }: Pha
 
   // Creates required role for SsmIncreaseThroughput custom resource
   await globalRoles.createEc2OperationsRoles({
+    accountStacks,
+    accounts,
+  });
+
+  // Creates required role for S3PutBucketReplication custom resource
+  await globalRoles.createS3PutReplicationRole({
     accountStacks,
     accounts,
   });

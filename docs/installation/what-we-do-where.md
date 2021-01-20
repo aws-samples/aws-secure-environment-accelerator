@@ -1,3 +1,5 @@
+# AWS Secure Environment Accelerator Deployment Capabilities
+
 | TASK                                                                                                   | Accelerator - What happens, WHERE, under what condition, on each state machine execution                                                                                                                                      |
 | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **_ Creates AWS Account _**                                                                            |                                                                                                                                                                                                                               |
@@ -38,7 +40,7 @@
 | - Creates IAM Policies, Roles, Users, and Groups                                                       | once per account, global scope                                                                                                                                                                                                |
 | **_ Cloud Security Services _**                                                                        |                                                                                                                                                                                                                               |
 | - Enables and configs the following AWS services, worldwide w/central specified admin account:         | (each service can have specified regions disabled)                                                                                                                                                                            |
-| - Guardduty (roadmap to add new S3 capabilities)                                                       | enabled all regions, all accounts, admin account per region                                                                                                                                                                   |
+| - Guardduty w/S3 protection                                                                            | enabled all regions, all accounts, admin account per region                                                                                                                                                                   |
 | - Security Hub (Enables specified security standards, and disables specified individual controls)      | enabled all regions, all accounts, admin account per region                                                                                                                                                                   |
 | - Firewall Manager                                                                                     | enabled once per account (global scope), single admin account                                                                                                                                                                 |
 | - CloudTrail w/Insights and S3 data plane logging                                                      | enabled all regions (using Organization trail, stored in Organization Management account)                                                                                                                                     |
@@ -64,13 +66,21 @@
 | - CloudTrail Logs including S3 Data Plane Logs (also sent to CWL)                                      | directly back to log-archive, specified primary region                                                                                                                                                                        |
 | - All CloudWatch Logs (includes rsyslog logs) (and setting Log group retentions)                       | State machine region, plus configured regions                                                                                                                                                                                 |
 | - Config History and Snapshots                                                                         | directly back to log-archive account specified primary region                                                                                                                                                                 |
-| - Route 53 Public Zone Logs, DNS Query Logging                                                         | to CloudWatch Logs in us-east-1 (which are sent to S3)                                                                                                                                                                        |
+| - Route 53 Public Zone Logs, DNS Resolver Query Logs                                                   | to CloudWatch Logs in us-east-1 (which are sent to S3)                                                                                                                                                                        |
 | - GuardDuty Findings                                                                                   | directly back to log-archive, specified primary region                                                                                                                                                                        |
 | - Macie Discovery results                                                                              | directly back to security, specified primary region, replicated to log-archive                                                                                                                                                |
 | - ALB Logs                                                                                             | State Machine region only (same as ALB deployment)                                                                                                                                                                            |
 | - SSM Session Logs                                                                                     | All regions currently send back to central region, log-archive account                                                                                                                                                        |
 
 ---
+
+## ToDo: Add to above table (supported today)
+
+- Populate Parameter Store with user objects, plus ELB's in perimeter store
+- Deploy and share SSM documents
+- Deploy Config rules
+- Setup SNS Alerting topics
+- Deploy CloudWatch Log Metrics and Alarms
 
 ## Region support
 
