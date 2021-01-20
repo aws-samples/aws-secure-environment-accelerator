@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import * as fs from 'fs';
+import * as cfn_inc from '@aws-cdk/cloudformation-include';
 
 export namespace CfnJsonInclude {
   export interface Props {
@@ -11,12 +11,8 @@ export class CfnJsonInclude extends cdk.Construct {
   constructor(scope: cdk.Construct, id: string, props: CfnJsonInclude.Props) {
     super(scope, id);
 
-    // TODO We might want to add some additional checks
-    const content = fs.readFileSync(props.path).toString();
-    const template = JSON.parse(content);
-
-    new cdk.CfnInclude(this, 'include', {
-      template,
+    new cfn_inc.CfnInclude(this, 'include', {
+      templateFile: props.path,
     });
   }
 }
