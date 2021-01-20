@@ -453,6 +453,7 @@ export namespace InitialSetup {
             MaxSessionDuration: `${buildTimeout.toSeconds()}`,
             // TODO Only add root role for development environments
             AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
+            AcceleratorPrefix: props.acceleratorPrefix,
           },
           stackTemplate: {
             s3BucketName: installRoleTemplate.s3BucketName,
