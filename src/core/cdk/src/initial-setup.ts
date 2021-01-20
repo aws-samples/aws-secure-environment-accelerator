@@ -378,19 +378,16 @@ export namespace InitialSetup {
         }),
       });
 
-      // eslint-disable-next-line deprecation/deprecation
-      const cdkBootstrapTask = new sfn.Task(this, 'Bootstram Environment', {
-        // eslint-disable-next-line deprecation/deprecation
-        task: new tasks.StartExecution(cdkBootstrapStateMachine, {
-          integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-          input: {
-            'accounts.$': '$.accounts',
-            'regions.$': '$.regions',
-            accountsTableName: parametersTable.tableName,
-            configRepositoryName: props.configRepositoryName,
-            'configFilePath.$': '$.configFilePath',
-            'configCommitId.$': '$.configCommitId',
-          },
+      const cdkBootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstram Environment', {
+        stateMachine: cdkBootstrapStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          'regions.$': '$.regions',
+          accountsTableName: parametersTable.tableName,
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
         }),
         resultPath: 'DISCARD',
       });
@@ -895,8 +892,8 @@ export namespace InitialSetup {
 
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
-        .next(cdkBootstrapTask)
         .next(installRolesTask)
+        .next(cdkBootstrapTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
         .next(enableTrustedAccessForServicesTask)

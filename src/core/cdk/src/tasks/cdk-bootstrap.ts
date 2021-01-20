@@ -90,26 +90,23 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       },
     );
 
-    // eslint-disable-next-line deprecation/deprecation
-    const bootstrapOpsTask = new sfn.Task(this, 'Bootstrap Operations Acccount', {
-      // eslint-disable-next-line deprecation/deprecation
-      task: new tasks.StartExecution(bootstrapMasterStateMachine, {
-        integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-        input: {
-          stackName: bootStrapStackName,
-          stackCapabilities: ['CAPABILITY_NAMED_IAM'],
-          stackParameters: {
-            'OrganizationId.$': '$.organizationId',
-            'Qualifier.$': '$.acceleratorPrefix',
-          },
-          stackTemplate: {
-            s3BucketName,
-            s3ObjectKey: operationsBootstrapObjectKey,
-          },
-          'accountId.$': '$.accountId',
-          assumeRoleName,
-          'region.$': '$.region',
+    const bootstrapOpsTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Operations Acccount', {
+      stateMachine: bootstrapMasterStateMachine,
+      integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+      input: sfn.TaskInput.fromObject({
+        stackName: bootStrapStackName,
+        stackCapabilities: ['CAPABILITY_NAMED_IAM'],
+        stackParameters: {
+          'OrganizationId.$': '$.organizationId',
+          'Qualifier.$': '$.acceleratorPrefix',
         },
+        stackTemplate: {
+          s3BucketName,
+          s3ObjectKey: operationsBootstrapObjectKey,
+        },
+        'accountId.$': '$.accountId',
+        assumeRoleName,
+        'region.$': '$.region',
       }),
       resultPath: '$.opsBootstrapOutput',
     });
@@ -162,29 +159,26 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       }),
     });
 
-    // eslint-disable-next-line deprecation/deprecation
-    const bootstrapTask = new sfn.Task(this, 'Bootstrap Acccount', {
-      // eslint-disable-next-line deprecation/deprecation
-      task: new tasks.StartExecution(bootstrapStateMachine, {
-        integrationPattern: sfn.ServiceIntegrationPattern.SYNC,
-        input: {
-          stackName: bootStrapStackName,
-          stackCapabilities: ['CAPABILITY_NAMED_IAM'],
-          stackParameters: {
-            'BucketName.$': '$.bootstrapRegion.bucketName',
-            'BucketDomainName.$': '$.bootstrapRegion.bucketDomain',
-            'Qualifier.$': '$.acceleratorPrefix',
-          },
-          stackTemplate: {
-            s3BucketName,
-            s3ObjectKey: accountBootstrapObjectKey,
-          },
-          'accountId.$': '$.accountId',
-          assumeRoleName,
-          'region.$': '$.bootstrapRegion.region',
-          ignoreAccountId: cdk.Aws.ACCOUNT_ID,
-          ignoreRegion: cdk.Aws.REGION,
+    const bootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Acccount', {
+      stateMachine: bootstrapStateMachine,
+      integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+      input: sfn.TaskInput.fromObject({
+        stackName: bootStrapStackName,
+        stackCapabilities: ['CAPABILITY_NAMED_IAM'],
+        stackParameters: {
+          'BucketName.$': '$.bootstrapRegion.bucketName',
+          'BucketDomainName.$': '$.bootstrapRegion.bucketDomain',
+          'Qualifier.$': '$.acceleratorPrefix',
         },
+        stackTemplate: {
+          s3BucketName,
+          s3ObjectKey: accountBootstrapObjectKey,
+        },
+        'accountId.$': '$.accountId',
+        assumeRoleName,
+        'region.$': '$.bootstrapRegion.region',
+        ignoreAccountId: cdk.Aws.ACCOUNT_ID,
+        ignoreRegion: cdk.Aws.REGION,
       }),
       resultPath: 'DISCARD',
     });
