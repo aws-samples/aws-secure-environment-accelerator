@@ -426,7 +426,7 @@ export namespace InitialSetup {
       const installExecRolesInAccounts = new sfn.Map(this, `Install Execution Roles Map`, {
         itemsPath: '$.accounts',
         resultPath: 'DISCARD',
-        maxConcurrency: 1,
+        maxConcurrency: 40,
         parameters: {
           'accountId.$': '$$.Map.Item.Value',
           'organizationAdmiRole.$': '$.organizationAdmiRole',
