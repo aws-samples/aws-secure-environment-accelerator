@@ -72,7 +72,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         'accountId.$': '$.operationsAccount.id',
         'organizationId.$': '$.operationsAccount.ou',
         'region.$': '$$.Map.Item.Value',
-        acceleratorPrefix,
+        acceleratorPrefix: acceleratorPrefix.endsWith('-')? acceleratorPrefix.slice(0, -1).toLowerCase(): acceleratorPrefix.toLowerCase(),
         assumeRoleName,
       },
     });
@@ -126,69 +126,10 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       },
     });
 
-    const createBootstrapInAccount = new sfn.Map(this, `Bootstrap Account Map`, {
-      itemsPath: `$.bootstrap.accounts`,
-      resultPath: 'DISCARD',
-      maxConcurrency: 10,
-      parameters: {
-        'accountId.$': '$$.Map.Item.Value',
-        'bootstrapRegions.$': '$.bootstrap.outputs',
-        acceleratorPrefix,
-        assumeRoleName,
-      },
-    });
-
-    const createBootstrapInRegion = new sfn.Map(this, `Bootstrap Account Region Map`, {
-      itemsPath: `$.bootstrapRegions`,
-      resultPath: 'DISCARD',
-      maxConcurrency: 16,
-      parameters: {
-        'accountId.$': '$.accountId',
-        'bootstrapRegion.$': '$$.Map.Item.Value',
-        acceleratorPrefix,
-        assumeRoleName,
-      },
-    });
-
-    const bootstrapStateMachine = new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccount_sm`, {
-      stateMachineName: `${props.acceleratorPrefix}BootstrapAccount_sm`,
-      definition: new CreateStackTask(this, 'Bootstrap Acccount Task', {
-        lambdaCode,
-        role,
-        suffix: 'Account Stack',
-      }),
-    });
-
-    const bootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Acccount', {
-      stateMachine: bootstrapStateMachine,
-      integrationPattern: sfn.IntegrationPattern.RUN_JOB,
-      input: sfn.TaskInput.fromObject({
-        stackName: bootStrapStackName,
-        stackCapabilities: ['CAPABILITY_NAMED_IAM'],
-        stackParameters: {
-          'BucketName.$': '$.bootstrapRegion.bucketName',
-          'BucketDomainName.$': '$.bootstrapRegion.bucketDomain',
-          'Qualifier.$': '$.acceleratorPrefix',
-        },
-        stackTemplate: {
-          s3BucketName,
-          s3ObjectKey: accountBootstrapObjectKey,
-        },
-        'accountId.$': '$.accountId',
-        assumeRoleName,
-        'region.$': '$.bootstrapRegion.region',
-        ignoreAccountId: cdk.Aws.ACCOUNT_ID,
-        ignoreRegion: cdk.Aws.REGION,
-      }),
-      resultPath: 'DISCARD',
-    });
-    createBootstrapInAccount.iterator(createBootstrapInRegion);
-    createBootstrapInRegion.iterator(bootstrapTask);
-
     const chain = sfn.Chain.start(getAccountInfoTask)
       .next(createRootBootstrapInRegion)
-      .next(getBootstrapOutput)
-      .next(createBootstrapInAccount);
+      .next(getBootstrapOutput);
+      // .next(createBootstrapInAccount);
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;
