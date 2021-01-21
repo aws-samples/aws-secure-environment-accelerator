@@ -88,7 +88,7 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   // Get all the parameter history versions from SSM parameter store
   const parameterHistoryList = await ssm.getParameterHistory('/accelerator/version');
   // Finding the first entry of the parameter version
-  const installerVersion = parameterHistoryList.find(p => p.Version === 1);
+  const installerVersion = parameterHistoryList.slice(0, -1)?.[0];
   const installerVersionValue = JSON.parse(installerVersion!.Value!);
   return !installerVersionValue.AcceleratorVersion ? '<1.2.2' : installerVersionValue.AcceleratorVersion;
 };
