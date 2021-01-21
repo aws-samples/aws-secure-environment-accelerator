@@ -35,9 +35,8 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       assumeRoleName,
       operationsBootstrapObjectKey,
       s3BucketName,
-      accountBootstrapObjectKey,
       bootStrapStackName,
-      waitSeconds = 10,
+      accountBootstrapObjectKey,
     } = props;
 
     role.addToPrincipalPolicy(
@@ -66,7 +65,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
 
     const createRootBootstrapInRegion = new sfn.Map(this, `Bootstrap Operations Account`, {
       itemsPath: `$.regions`,
-      resultPath: '$.bootstrap',
+      resultPath: 'DISCARD',
       maxConcurrency: 20,
       parameters: {
         'accountId.$': '$.operationsAccount.id',
@@ -110,14 +109,13 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         assumeRoleName,
         'region.$': '$.region',
       }),
-      resultPath: '$.opsBootstrapOutput',
+      resultPath: 'DISCARD',
     });
     createRootBootstrapInRegion.iterator(bootstrapOpsTask);
 
     const getBootstrapOutput = new CodeTask(scope, `Get Bootstrap output`, {
-      resultPath: '$.bootstrap',
+      resultPath: '$.accounts',
       functionPayload: {
-        'stackOutputs.$': '$.bootstrap',
         'accounts.$': '$.accounts',
         'operationsAccountId.$': '$.operationsAccount.id',
       },
@@ -128,8 +126,75 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       },
     });
 
-    const chain = sfn.Chain.start(getAccountInfoTask).next(createRootBootstrapInRegion).next(getBootstrapOutput);
-    // .next(createBootstrapInAccount);
+    const createBootstrapInAccount = new sfn.Map(this, `Bootstrap Account Map`, {
+      itemsPath: `$.bootstrap.accounts`,
+      resultPath: 'DISCARD',
+      maxConcurrency: 10,
+      parameters: {
+        'accountId.$': '$$.Map.Item.Value',
+        'bootstrapRegions.$': '$.regions',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+      },
+    });
+
+    const createBootstrapInRegion = new sfn.Map(this, `Bootstrap Account Region Map`, {
+      itemsPath: `$.bootstrapRegions`,
+      resultPath: 'DISCARD',
+      maxConcurrency: 16,
+      parameters: {
+        'accountId.$': '$.accountId',
+        'bootstrapRegion.$': '$$.Map.Item.Value',
+        'acceleratorPrefix.$': '$.acceleratorPrefix',
+      },
+    });
+
+    const bootstrapStateMachine = new sfn.StateMachine(this, `${acceleratorPrefix}BootstrapAccount_sm`, {
+      stateMachineName: `${props.acceleratorPrefix}BootstrapAccount_sm`,
+      definition: new CreateStackTask(this, 'Bootstrap Acccount Task', {
+        lambdaCode,
+        role,
+        suffix: 'Account Bootstrap Stack',
+      }),
+    });
+
+    const bootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Acccount', {
+      stateMachine: bootstrapStateMachine,
+      integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+      input: sfn.TaskInput.fromObject({
+        stackName: bootStrapStackName,
+        stackParameters: {
+          'Qualifier.$': '$.acceleratorPrefix',
+        },
+        stackTemplate: {
+          s3BucketName,
+          s3ObjectKey: accountBootstrapObjectKey,
+        },
+        'accountId.$': '$.accountId',
+        'region.$': '$.bootstrapRegion.region',
+        ignoreAccountId: cdk.Aws.ACCOUNT_ID,
+        ignoreRegion: cdk.Aws.REGION,
+      }),
+      resultPath: 'DISCARD',
+    });
+
+    const pass = new sfn.Pass(this, `No Bootstrap required`);
+    const baseLineCleanupChoice = new sfn.Choice(this, 'Master Account Default Region?')
+      .when(
+        sfn.Condition.and(
+          sfn.Condition.stringEquals('$.accountId', cdk.Aws.ACCOUNT_ID),
+          sfn.Condition.stringEquals('$.region', cdk.Aws.REGION),
+        ),
+        pass,
+      )
+      .otherwise(bootstrapTask);
+
+    createBootstrapInAccount.iterator(createBootstrapInRegion);
+    createBootstrapInRegion.iterator(baseLineCleanupChoice);
+
+    const chain = sfn.Chain.start(getAccountInfoTask)
+      .next(createRootBootstrapInRegion)
+      .next(getBootstrapOutput)
+      .next(createBootstrapInAccount);
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;

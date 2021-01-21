@@ -126,9 +126,23 @@ export class AccountStacks {
         terminationProtection,
         region: regionOrDefault,
         suffix,
+        // Passing DefaultStackSynthesizer object to pass "Central-Operations" account S3 bucket,
+        // Can be removed once we get support for bucketPrefix and Qualifier from bootstrap stack
         synthesizer: new cdk.DefaultStackSynthesizer({
           bucketPrefix: `${accountId}/`,
-          qualifier: acceleratorPrefix.endsWith('-') ? acceleratorPrefix.slice(0, -1) : acceleratorPrefix,
+          qualifier: acceleratorPrefix.endsWith('-')
+            ? acceleratorPrefix.slice(0, -1).toLowerCase()
+            : acceleratorPrefix.toLowerCase(),
+          cloudFormationExecutionRole: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          deployRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          fileAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          imageAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          fileAssetsBucketName: `cdk-${
+            acceleratorPrefix.endsWith('-')
+              ? acceleratorPrefix.slice(0, -1).toLowerCase()
+              : acceleratorPrefix.toLowerCase()
+          }-assets-385884971927-${regionOrDefault}`,
+          generateBootstrapVersionRule: false,
         }),
       },
     });
