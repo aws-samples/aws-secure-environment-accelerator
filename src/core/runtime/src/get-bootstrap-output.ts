@@ -23,7 +23,7 @@ export const handler = async (input: BootstrapDetailsInput) => {
   const outputs: BootstrapOutput[] = [];
   const { accounts, operationsAccountId, stackOutputs } = input;
   for (const stackOutput of stackOutputs) {
-    const inputDetails = JSON.parse(stackOutput.opsBootstrapOutput.Output);
+    const inputDetails = stackOutput.opsBootstrapOutput.Output;
     const stackOutputsObj: StackOutput[] = inputDetails.verify.outputs;
     outputs.push({
       region: inputDetails.region,

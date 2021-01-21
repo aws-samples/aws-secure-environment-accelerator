@@ -72,7 +72,9 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         'accountId.$': '$.operationsAccount.id',
         'organizationId.$': '$.operationsAccount.ou',
         'region.$': '$$.Map.Item.Value',
-        acceleratorPrefix: acceleratorPrefix.endsWith('-')? acceleratorPrefix.slice(0, -1).toLowerCase(): acceleratorPrefix.toLowerCase(),
+        acceleratorPrefix: acceleratorPrefix.endsWith('-')
+          ? acceleratorPrefix.slice(0, -1).toLowerCase()
+          : acceleratorPrefix.toLowerCase(),
         assumeRoleName,
       },
     });
@@ -126,10 +128,8 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       },
     });
 
-    const chain = sfn.Chain.start(getAccountInfoTask)
-      .next(createRootBootstrapInRegion)
-      .next(getBootstrapOutput);
-      // .next(createBootstrapInAccount);
+    const chain = sfn.Chain.start(getAccountInfoTask).next(createRootBootstrapInRegion).next(getBootstrapOutput);
+    // .next(createBootstrapInAccount);
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;
