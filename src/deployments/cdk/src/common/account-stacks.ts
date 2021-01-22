@@ -115,9 +115,18 @@ export class AccountStacks {
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
     const acceleratorPrefix = this.props.context.acceleratorPrefix;
     const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
-    const app = new AccountApp(stackLogicalId, {
-      outDir,
-      stackProps: {
+    let stackProps: AccountStackProps = {
+      accountId,
+      accountKey,
+      stackName,
+      acceleratorName: this.props.context.acceleratorName,
+      acceleratorPrefix,
+      terminationProtection,
+      region: regionOrDefault,
+      suffix,
+    };
+    if (regionOrDefault === this.props.context.defaultRegion && accountId === cdk.Aws.ACCOUNT_ID) {
+      stackProps = {
         accountId,
         accountKey,
         stackName,
@@ -144,7 +153,11 @@ export class AccountStacks {
           }-assets-385884971927-${regionOrDefault}`,
           generateBootstrapVersionRule: false,
         }),
-      },
+      };
+    }
+    const app = new AccountApp(stackLogicalId, {
+      outDir,
+      stackProps,
     });
     this.apps.push(app);
     return app.stack;

@@ -113,6 +113,19 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     });
     createRootBootstrapInRegion.iterator(bootstrapOpsTask);
 
+    const getBootstrapOutput = new CodeTask(scope, `Get Bootstrap output`, {
+      resultPath: '$.accounts',
+      functionPayload: {
+        'accounts.$': '$.accounts',
+        'operationsAccountId.$': '$.operationsAccount.id',
+      },
+      functionProps: {
+        role,
+        code: lambdaCode,
+        handler: 'index.getBootstrapOutput',
+      },
+    });
+
     const createBootstrapInAccount = new sfn.Map(this, `Bootstrap Account Map`, {
       itemsPath: `$.accounts`,
       resultPath: 'DISCARD',
@@ -162,7 +175,8 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         },
         'accountId.$': '$.accountId',
         'region.$': '$.region',
-        'ignoreAccountId.$': '$.operationsAccountId',
+        ignoreAccountId: cdk.Aws.ACCOUNT_ID,
+        ignoreRegion: cdk.Aws.REGION,
         assumeRoleName,
       }),
       resultPath: 'DISCARD',
@@ -171,7 +185,10 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     createBootstrapInAccount.iterator(createBootstrapInRegion);
     createBootstrapInRegion.iterator(bootstrapTask);
 
-    const chain = sfn.Chain.start(getAccountInfoTask).next(createRootBootstrapInRegion).next(createBootstrapInAccount);
+    const chain = sfn.Chain.start(getAccountInfoTask)
+      .next(createRootBootstrapInRegion)
+      .next(getBootstrapOutput)
+      .next(createBootstrapInAccount);
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;
