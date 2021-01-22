@@ -106,7 +106,9 @@ export class AccountStacks {
     }
 
     const accountId = getAccountId(this.props.accounts, accountKey);
-    if (!accountId) {
+    const operationsAccountId = getAccountId(this.props.accounts, this.props.context.centralOperationsAccount!);
+    const masterAccountId = getAccountId(this.props.accounts, this.props.context.masterAccount!);
+    if (!accountId || !operationsAccountId || !masterAccountId) {
       return undefined;
     }
 
@@ -115,17 +117,20 @@ export class AccountStacks {
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
     const acceleratorPrefix = this.props.context.acceleratorPrefix;
     const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
-    let stackProps: AccountStackProps = {
-      accountId,
-      accountKey,
-      stackName,
-      acceleratorName: this.props.context.acceleratorName,
-      acceleratorPrefix,
-      terminationProtection,
-      region: regionOrDefault,
-      suffix,
-    };
-    if (regionOrDefault === this.props.context.defaultRegion && accountId === cdk.Aws.ACCOUNT_ID) {
+    let stackProps: AccountStackProps;
+    if (regionOrDefault === this.props.context.defaultRegion && accountId === masterAccountId) {
+      stackProps = {
+        accountId,
+        accountKey,
+        stackName,
+        acceleratorName: this.props.context.acceleratorName,
+        acceleratorPrefix,
+        terminationProtection,
+        region: regionOrDefault,
+        suffix,
+      };
+    }
+    else {
       stackProps = {
         accountId,
         accountKey,
@@ -150,11 +155,12 @@ export class AccountStacks {
             acceleratorPrefix.endsWith('-')
               ? acceleratorPrefix.slice(0, -1).toLowerCase()
               : acceleratorPrefix.toLowerCase()
-          }-assets-385884971927-${regionOrDefault}`,
+          }-assets-${operationsAccountId}-${regionOrDefault}`,
           generateBootstrapVersionRule: false,
         }),
       };
     }
+
     const app = new AccountApp(stackLogicalId, {
       outDir,
       stackProps,
