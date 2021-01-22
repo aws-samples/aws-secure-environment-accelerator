@@ -19,7 +19,5 @@ export const handler = async (input: BootstrapDetailsInput) => {
     accounts.splice(opsIndex, 1);
   }
   console.log(JSON.stringify(outputs, null, 2));
-  return {
-    accounts,
-  };
+  return accounts;
 };

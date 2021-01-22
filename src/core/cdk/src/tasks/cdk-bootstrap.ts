@@ -132,18 +132,18 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
       maxConcurrency: 10,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
-        'bootstrapRegions.$': '$.regions',
+        'regions.$': '$.regions',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
       },
     });
 
     const createBootstrapInRegion = new sfn.Map(this, `Bootstrap Account Region Map`, {
-      itemsPath: `$.bootstrapRegions`,
+      itemsPath: `$.regions`,
       resultPath: 'DISCARD',
       maxConcurrency: 16,
       parameters: {
         'accountId.$': '$.accountId',
-        'bootstrapRegion.$': '$$.Map.Item.Value',
+        'region.$': '$$.Map.Item.Value',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
       },
     });
@@ -170,7 +170,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
           s3ObjectKey: accountBootstrapObjectKey,
         },
         'accountId.$': '$.accountId',
-        'region.$': '$.bootstrapRegion.region',
+        'region.$': '$.region',
         ignoreAccountId: cdk.Aws.ACCOUNT_ID,
         ignoreRegion: cdk.Aws.REGION,
       }),
