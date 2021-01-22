@@ -113,27 +113,16 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     });
     createRootBootstrapInRegion.iterator(bootstrapOpsTask);
 
-    const getBootstrapOutput = new CodeTask(scope, `Get Bootstrap output`, {
-      resultPath: '$.accounts',
-      functionPayload: {
-        'accounts.$': '$.accounts',
-        'operationsAccountId.$': '$.operationsAccount.id',
-      },
-      functionProps: {
-        role,
-        code: lambdaCode,
-        handler: 'index.getBootstrapOutput',
-      },
-    });
-
     const createBootstrapInAccount = new sfn.Map(this, `Bootstrap Account Map`, {
-      itemsPath: `$.bootstrap.accounts`,
+      itemsPath: `$.accounts`,
       resultPath: 'DISCARD',
       maxConcurrency: 10,
       parameters: {
         'accountId.$': '$$.Map.Item.Value',
         'regions.$': '$.regions',
-        'acceleratorPrefix.$': '$.acceleratorPrefix',
+        acceleratorPrefix: acceleratorPrefix.endsWith('-')
+          ? acceleratorPrefix.slice(0, -1).toLowerCase()
+          : acceleratorPrefix.toLowerCase(),
       },
     });
 
@@ -171,29 +160,17 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         },
         'accountId.$': '$.accountId',
         'region.$': '$.region',
-        ignoreAccountId: cdk.Aws.ACCOUNT_ID,
-        ignoreRegion: cdk.Aws.REGION,
+        'ignoreAccountId.$': '$.operationsAccount.id',
+        assumeRoleName
       }),
       resultPath: 'DISCARD',
     });
 
-    const pass = new sfn.Pass(this, `No Bootstrap required`);
-    const baseLineCleanupChoice = new sfn.Choice(this, 'Master Account Default Region?')
-      .when(
-        sfn.Condition.and(
-          sfn.Condition.stringEquals('$.accountId', cdk.Aws.ACCOUNT_ID),
-          sfn.Condition.stringEquals('$.region', cdk.Aws.REGION),
-        ),
-        pass,
-      )
-      .otherwise(bootstrapTask);
-
     createBootstrapInAccount.iterator(createBootstrapInRegion);
-    createBootstrapInRegion.iterator(baseLineCleanupChoice);
+    createBootstrapInRegion.iterator(bootstrapTask);
 
     const chain = sfn.Chain.start(getAccountInfoTask)
       .next(createRootBootstrapInRegion)
-      .next(getBootstrapOutput)
       .next(createBootstrapInAccount);
 
     this.startState = chain.startState;
