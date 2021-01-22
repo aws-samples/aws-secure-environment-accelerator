@@ -123,6 +123,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         acceleratorPrefix: acceleratorPrefix.endsWith('-')
           ? acceleratorPrefix.slice(0, -1).toLowerCase()
           : acceleratorPrefix.toLowerCase(),
+        'operationsAccountId.$': '$.operationsAccount.id',
       },
     });
 
@@ -134,6 +135,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         'accountId.$': '$.accountId',
         'region.$': '$$.Map.Item.Value',
         'acceleratorPrefix.$': '$.acceleratorPrefix',
+        'operationsAccountId.$': '$.operationsAccountId',
       },
     });
 
@@ -160,8 +162,8 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         },
         'accountId.$': '$.accountId',
         'region.$': '$.region',
-        'ignoreAccountId.$': '$.operationsAccount.id',
-        assumeRoleName
+        'ignoreAccountId.$': '$.operationsAccountId',
+        assumeRoleName,
       }),
       resultPath: 'DISCARD',
     });
@@ -169,9 +171,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
     createBootstrapInAccount.iterator(createBootstrapInRegion);
     createBootstrapInRegion.iterator(bootstrapTask);
 
-    const chain = sfn.Chain.start(getAccountInfoTask)
-      .next(createRootBootstrapInRegion)
-      .next(createBootstrapInAccount);
+    const chain = sfn.Chain.start(getAccountInfoTask).next(createRootBootstrapInRegion).next(createBootstrapInAccount);
 
     this.startState = chain.startState;
     this.endStates = chain.endStates;
