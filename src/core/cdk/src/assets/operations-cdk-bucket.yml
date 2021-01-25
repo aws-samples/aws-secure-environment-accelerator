@@ -209,6 +209,8 @@ Resources:
             Condition:
               StringEquals:
                 aws:PrincipalOrgID: !Ref OrganizationId
+              ArnLike:
+                aws:PrincipalARN: 'arn:aws:iam::*:role/PBMMAccel-*'
             Principal: "*"
   ContainerAssetsRepository:
     Type: AWS::ECR::Repository
