@@ -76,7 +76,7 @@
                                                     {
                                                         "Ref": "AcceleratorPrefix"
                                                     },
-                                                    "assets-*"
+                                                    "-assets-*"
                                                 ]
                                             ]
                                         }
