@@ -30,6 +30,36 @@ exports.handler = async function (event, context) {
       Overwrite: true,
     }).promise();
     console.log(`Updated Application Version : ${param}`);
+    try {
+      await ssm.getParameter({
+        Name: '/accelerator/installed-version'
+      }).promise();
+    } catch (e) {
+      if (e.code === 'ParameterNotFound') {
+        let installedVersion = '<1.2.2';
+        const parameterHistoryList = await ssm.getParameterHistory({
+          Name: '/accelerator/version',
+          MaxResults: 50,
+        }).promise();
+        const installerVersion = parameterHistoryList.Parameters.find(p => p.Version === 1);
+        if (installerVersion && installerVersion.Value) {
+          const installerVersionValue = JSON.parse(installerVersion.Value);
+          if (installerVersionValue.AcceleratorVersion) {
+            installedVersion = installerVersionValue.AcceleratorVersion;
+          }
+        }
+        console.log("Inserting Installed version param ", installedVersion);
+        await ssm.putParameter({
+          Name: '/accelerator/installed-version',
+          Value: installedVersion,
+          Type: 'String',
+          Overwrite: false,
+          Description: 'Accelerator installed version',
+        }).promise();
+      }
+      throw new Error(e);
+    }
+
     return codepipeline
       .putJobSuccessResult({
         jobId,
