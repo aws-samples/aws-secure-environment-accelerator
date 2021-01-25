@@ -129,8 +129,7 @@ export class AccountStacks {
         region: regionOrDefault,
         suffix,
       };
-    }
-    else {
+    } else {
       stackProps = {
         accountId,
         accountKey,
