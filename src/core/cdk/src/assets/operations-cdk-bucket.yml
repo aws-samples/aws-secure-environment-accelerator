@@ -128,6 +128,8 @@ Resources:
             Condition:
                 StringEquals:
                   aws:PrincipalOrgID: !Ref OrganizationId
+                ArnLike:
+                  aws:PrincipalARN: 'arn:aws:iam::*:role/PBMMAccel-*',
           - Action:
               - kms:Decrypt
               - kms:DescribeKey
