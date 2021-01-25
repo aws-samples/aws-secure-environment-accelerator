@@ -20,6 +20,7 @@ export interface GetBaseelineOutput {
   baseline: string;
   storeAllOutputs: boolean;
   phases: number[];
+  organizationAdmiRole: string;
 }
 
 const dynamoDB = new DynamoDB();
@@ -68,5 +69,6 @@ export const handler = async (input: GetBaseLineInput): Promise<GetBaseelineOutp
     baseline,
     storeAllOutputs: runStoreAllOutputs,
     phases: [-1, 0, 1, 2, 3],
+    organizationAdmiRole: globalOptionsConfig['organization-admin-role'] || 'AWSCloudFormationStackSetExecutionRole',
   };
 };

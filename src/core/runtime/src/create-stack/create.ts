@@ -8,7 +8,7 @@ interface CreateStackInput {
   stackParameters: { [key: string]: string };
   stackTemplate: StackTemplateLocation;
   accountId?: string;
-  assumeRoleName?: string;
+  assumedRoleName?: string;
   region?: string;
   ignoreAccountId?: string;
   ignoreRegion?: string;
@@ -25,7 +25,7 @@ export const handler = async (input: CreateStackInput) => {
     stackParameters,
     stackTemplate,
     accountId,
-    assumeRoleName,
+    assumedRoleName,
     region,
     ignoreAccountId,
     ignoreRegion,
@@ -41,10 +41,11 @@ export const handler = async (input: CreateStackInput) => {
 
   // Load the template body from the given location
   const templateBody = await getTemplateBody(stackTemplate);
+
   let cfn: CloudFormation;
-  if (accountId) {
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName!);
-    cfn = new CloudFormation(credentials, region);
+  if (accountId && assumedRoleName) {
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumedRoleName);
+    cfn = new CloudFormation(credentials);
   } else {
     cfn = new CloudFormation();
   }

@@ -7,20 +7,21 @@ const FAILED_STATUSES = ['CREATE_FAILED', 'ROLLBACK_COMPLETE', 'ROLLBACK_FAILED'
 interface CheckStepInput {
   stackName?: string;
   accountId?: string;
-  assumeRoleName?: string;
   region?: string;
+  assumedRoleName?: string;
 }
 const sts = new STS();
 export const handler = async (input: Partial<CheckStepInput>) => {
   console.log(`Verifying stack with parameters ${JSON.stringify(input, null, 2)}`);
 
-  const { stackName, accountId, assumeRoleName, region } = input;
+  const { stackName, accountId, assumedRoleName, region } = input;
 
   // Deploy the stack using the assumed role in the current region
   let cfn: CloudFormation;
-  if (accountId) {
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName!);
-    cfn = new CloudFormation(credentials, region);
+  if (accountId && assumedRoleName) {
+    const sts = new STS();
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumedRoleName);
+    cfn = new CloudFormation(credentials);
   } else {
     cfn = new CloudFormation();
   }

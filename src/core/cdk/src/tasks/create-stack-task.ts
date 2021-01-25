@@ -50,7 +50,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
 
     const verifyTaskResultPath = '$.verify';
     const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
-    const verifyTask = new CodeTask(scope, `Verify${suffix}`, {
+    const verifyTask = new CodeTask(scope, `Verify${suffix || ''}`, {
       resultPath: verifyTaskResultPath,
       functionPayload,
       functionProps: {
@@ -60,19 +60,19 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       },
     });
 
-    const waitTask = new sfn.Wait(scope, `Wait${suffix}`, {
+    const waitTask = new sfn.Wait(scope, `Wait${suffix || ''}`, {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(waitSeconds)),
     });
 
-    const pass = new sfn.Pass(this, `Succeeded${suffix}`);
+    const pass = new sfn.Pass(this, `Succeeded${suffix || ''}`);
 
-    const fail = new sfn.Fail(this, `Failed${suffix}`);
+    const fail = new sfn.Fail(this, `Failed${suffix || ''}`);
 
     const chain = sfn.Chain.start(deployTask)
       .next(waitTask)
       .next(verifyTask)
       .next(
-        new sfn.Choice(scope, `Choice${suffix}`)
+        new sfn.Choice(scope, `Choice${suffix || ''}`)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCESS'), pass)
           .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'IN_PROGRESS'), waitTask)
           .otherwise(fail)
