@@ -8,19 +8,18 @@ interface CheckStepInput {
   stackName?: string;
   accountId?: string;
   region?: string;
-  assumedRoleName?: string;
+  assumeRoleName?: string;
 }
 const sts = new STS();
 export const handler = async (input: Partial<CheckStepInput>) => {
   console.log(`Verifying stack with parameters ${JSON.stringify(input, null, 2)}`);
 
-  const { stackName, accountId, assumedRoleName, region } = input;
+  const { stackName, accountId, assumeRoleName, region } = input;
 
   // Deploy the stack using the assumed role in the current region
   let cfn: CloudFormation;
-  if (accountId && assumedRoleName) {
-    const sts = new STS();
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumedRoleName);
+  if (accountId && assumeRoleName) {
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
     cfn = new CloudFormation(credentials);
   } else {
     cfn = new CloudFormation();
