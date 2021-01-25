@@ -45,7 +45,7 @@ export const handler = async (input: CreateStackInput) => {
   let cfn: CloudFormation;
   if (accountId && assumedRoleName) {
     const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumedRoleName);
-    cfn = new CloudFormation(credentials);
+    cfn = new CloudFormation(credentials, region);
   } else {
     cfn = new CloudFormation();
   }
