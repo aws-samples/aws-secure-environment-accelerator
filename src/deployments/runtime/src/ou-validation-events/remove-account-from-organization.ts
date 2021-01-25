@@ -36,9 +36,9 @@ export const handler = async (input: RemoveAccountOrganization) => {
   const invokedBy = getInvoker(input);
   if (invokedBy && invokedBy === acceleratorRoleName) {
     console.log(`Remove Account Performed by Accelerator, No operation required`);
-      return {
-        status: 'NO_OPERATION_REQUIRED',
-      };
+    return {
+      status: 'NO_OPERATION_REQUIRED',
+    };
   }
 
   console.log(`Reading account information from request`);

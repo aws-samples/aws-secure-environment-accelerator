@@ -13,9 +13,8 @@ export const handler = async (input: InvocationCheckInput) => {
   const invokedBy = getInvoker(input.scheduledEvent);
   if (invokedBy && invokedBy === acceleratorRoleName) {
     console.log(`Create Account Performed by Accelerator, No operation required`);
-      return true;
+    return true;
   }
-
 
   return false;
 };

@@ -46,9 +46,9 @@ export const handler = async (input: PolicyChangeEvent) => {
   const invokedBy = getInvoker(input);
   if (invokedBy && invokedBy === acceleratorRoleName) {
     console.log(`Policy Changes Performed by Accelerator, No operation required`);
-      return {
-        status: 'NO_OPERATION_REQUIRED',
-      };
+    return {
+      status: 'NO_OPERATION_REQUIRED',
+    };
   }
   const config = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,

@@ -19,7 +19,7 @@ export const handler = async (input: OrganizationChangeEvent) => {
   console.log(`Create Organizational Unit Event triggered ...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
-  
+
   const invokedBy = getInvoker(input);
   if (invokedBy && invokedBy === acceleratorRoleName) {
     console.log(`Move Account Performed by Accelerator, No operation required`);
