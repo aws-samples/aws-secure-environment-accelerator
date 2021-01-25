@@ -6,6 +6,7 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { ScheduledEvent } from 'aws-lambda';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
+import { getInvoker } from './utils';
 
 interface PolicyChangeEvent extends ScheduledEvent {
   version?: string;
@@ -42,12 +43,12 @@ export const handler = async (input: PolicyChangeEvent) => {
   console.log(`ChangePolicy Event triggered invocation...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
-  const invokedBy = requestDetail.userIdentity.sessionContext.sessionIssuer.userName;
-  if (invokedBy === acceleratorRoleName) {
-    console.log(`Move Account Performed by Accelerator, No operation required`);
-    return {
-      status: 'NO_OPERATION_REQUIRED',
-    };
+  const invokedBy = getInvoker(input);
+  if (invokedBy && invokedBy === acceleratorRoleName) {
+    console.log(`Policy Changes Performed by Accelerator, No operation required`);
+      return {
+        status: 'NO_OPERATION_REQUIRED',
+      };
   }
   const config = await loadAcceleratorConfig({
     repositoryName: configRepositoryName,
