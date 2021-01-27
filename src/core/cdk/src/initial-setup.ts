@@ -381,7 +381,7 @@ export namespace InitialSetup {
         }),
       });
 
-      const cdkBootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstram Environment', {
+      const cdkBootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Environment', {
         stateMachine: cdkBootstrapStateMachine,
         integrationPattern: sfn.IntegrationPattern.RUN_JOB,
         input: sfn.TaskInput.fromObject({
