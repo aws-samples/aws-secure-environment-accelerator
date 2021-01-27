@@ -35,7 +35,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   } = input;
   const runningStatus = await validateExecution(stateMachineArn, executionArn);
   if (runningStatus === 'DUPLICATE_EXECUTION') {
-    return runningStatus;
+    throw new Error("Another execution of Accelerator is already running");
   }
   const storeAllOutputs: boolean = !!inputConfig.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
