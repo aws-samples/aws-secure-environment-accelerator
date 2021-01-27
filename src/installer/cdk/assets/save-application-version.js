@@ -32,11 +32,11 @@ exports.handler = async function (event, context) {
     console.log(`Updated Application Version : ${param}`);
     try {
       await ssm.getParameter({
-        Name: '/accelerator/installed-version'
+        Name: '/accelerator/first-version'
       }).promise();
     } catch (e) {
       if (e.code === 'ParameterNotFound') {
-        let installedVersion = '<1.2.2';
+        let firstInstlVersion;
         const parameterHistoryList = await ssm.getParameterHistory({
           Name: '/accelerator/version',
           MaxResults: 50,
@@ -45,13 +45,18 @@ exports.handler = async function (event, context) {
         if (installerVersion && installerVersion.Value) {
           const installerVersionValue = JSON.parse(installerVersion.Value);
           if (installerVersionValue.AcceleratorVersion) {
-            installedVersion = installerVersionValue.AcceleratorVersion;
+            firstInstlVersion = installerVersionValue.AcceleratorVersion;
+          } else {
+            firstInstlVersion = '<1.2.2';
           }
         }
-        console.log("Inserting Installed version param ", installedVersion);
+        if (!firstInstlVersion) {
+          throw new Error('First Installed Version not found in SSM Parameter Store "/accelerator/version"')
+        }
+        console.log("Inserting Installed version param ", firstInstlVersion);
         await ssm.putParameter({
-          Name: '/accelerator/installed-version',
-          Value: installedVersion,
+          Name: '/accelerator/first-version',
+          Value: firstInstlVersion,
           Type: 'String',
           Overwrite: false,
           Description: 'Accelerator installed version',

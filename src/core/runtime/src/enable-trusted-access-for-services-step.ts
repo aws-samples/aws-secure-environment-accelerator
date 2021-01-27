@@ -86,6 +86,9 @@ export const handler = async (input: EnableTrustedAccessForServicesInput) => {
   console.log('Security account registered as delegated administrator for Guard Duty in the organization.');
 
   // Get all the parameter history versions from SSM parameter store
-  const installedVersionParam = await ssm.getParameter('/accelerator/installed-version');
-  return installedVersionParam.Parameter?.Value || '<1.2.2';
+  const firstInstalVersionParam = await ssm.getParameter('/accelerator/first-version');
+  if (!firstInstalVersionParam.Parameter || !firstInstalVersionParam.Parameter.Value) {
+    throw new Error('Missing value in "/accelerator/first-version"');
+  }
+  return firstInstalVersionParam.Parameter?.Value;
 };
