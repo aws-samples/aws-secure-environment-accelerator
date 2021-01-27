@@ -157,7 +157,7 @@ export namespace InitialSetup {
           acceleratorVersion: props.acceleratorVersion!,
           'inputConfig.$': '$',
           'executionArn.$': '$$.Execution.Id',
-          'stateMachineArn.$': '$$.StateMachine.Id'
+          'stateMachineArn.$': '$$.StateMachine.Id',
         },
         resultPath: '$.configuration',
       });
