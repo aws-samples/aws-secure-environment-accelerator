@@ -24,7 +24,15 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   console.log(`Get or Create Config from S3 file...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { repositoryName, s3Bucket, branchName, acceleratorVersion, inputConfig, executionArn, stateMachineArn } = input;
+  const {
+    repositoryName,
+    s3Bucket,
+    branchName,
+    acceleratorVersion,
+    inputConfig,
+    executionArn,
+    stateMachineArn,
+  } = input;
   const runningStatus = await validateExecution(stateMachineArn, executionArn);
   if (runningStatus === 'DUPLICATE_EXECUTION') {
     return runningStatus;
@@ -269,7 +277,6 @@ async function isFileExist(props: {
   }
 }
 
-
 async function validateExecution(stateMachineArn: string, executionArn: string) {
   const runningExecutions = await stepfunctions.listExecutions({
     stateMachineArn,
@@ -280,7 +287,7 @@ async function validateExecution(stateMachineArn: string, executionArn: string) 
     await stepfunctions.stopExecution({
       executionArn: executionArn,
     });
-    return "DUPLICATE_EXECUTION";
+    return 'DUPLICATE_EXECUTION';
   }
-  return "SUCCESS";
+  return 'SUCCESS';
 }
