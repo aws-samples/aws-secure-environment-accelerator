@@ -37,11 +37,16 @@ exports.handler = async function (event, context) {
     } catch (e) {
       if (e.code === 'ParameterNotFound') {
         let firstInstlVersion;
-        const parameterHistoryList = await ssm.getParameterHistory({
-          Name: '/accelerator/version',
-          MaxResults: 50,
-        }).promise();
-        const installerVersion = parameterHistoryList.Parameters.find(p => p.Version === 1);
+        const parameterVersions = [];
+        let token;
+        do {
+          const response = await ssm.getParameterHistory({ Name: '/accelerator/version', NextToken: token, MaxResults: 50 }).promise();
+          token = response.NextToken;
+          if (response.Parameters) {
+            parameterVersions.push(...response.Parameters);
+          }
+        } while (token);
+        const installerVersion = parameterVersions.find(p => p.Version === 1);
         if (installerVersion && installerVersion.Value) {
           const installerVersionValue = JSON.parse(installerVersion.Value);
           if (installerVersionValue.AcceleratorVersion) {
@@ -59,10 +64,11 @@ exports.handler = async function (event, context) {
           Value: firstInstlVersion,
           Type: 'String',
           Overwrite: false,
-          Description: 'Accelerator installed version',
+          Description: 'Accelerator first installed version',
         }).promise();
+      } else {
+        throw new Error(e);
       }
-      throw new Error(e);
     }
 
     return codepipeline
