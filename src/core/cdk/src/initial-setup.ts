@@ -156,6 +156,8 @@ export namespace InitialSetup {
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
           'inputConfig.$': '$',
+          'executionArn.$': `States.Format('arn:aws:states:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:execution:${props.stateMachineName}:{}', $$.Execution.Id)`,
+          stateMachineArn: `arn:aws:states:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:stateMachine:${props.stateMachineName}`,
         },
         resultPath: '$.configuration',
       });
