@@ -45,7 +45,7 @@ export class StepFunctions {
   }
 
   /**
-   * Run Statemachine
+   * Stop Statemachine execution
    */
   async stopExecution(input: StopExecutionInput) {
     await throttlingBackOff(() => this.client.stopExecution(input).promise());
