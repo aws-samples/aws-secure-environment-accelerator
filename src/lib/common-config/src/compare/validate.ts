@@ -204,6 +204,8 @@ export async function validateAccountOu(differences: Diff<LHS, RHS>[], errors: s
  * @param errors
  */
 export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
+  // the below function checks vpc deletion from Account Config
+  errors.push(...validateConfig.deletedConfigEntry(differences, 'vpc'));
   // the below function checks vpc deploy of the account
   const accountVpcDeploy = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_DEPLOY, 5);
   if (accountVpcDeploy) {
@@ -376,6 +378,8 @@ export async function validateVgw(differences: Diff<LHS, RHS>[], errors: string[
  * @param errors
  */
 export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
+  // the below function checks vpc deletion from Organizational Unit
+  errors.push(...validateConfig.deletedConfigEntry(differences, 'vpc'));
   // the below function checks vpc deploy of the account
   const ouVpcDeploy = validateConfig.matchEditedConfigDependency(differences, OU_VPC_DEPLOY, 5);
   if (ouVpcDeploy) {

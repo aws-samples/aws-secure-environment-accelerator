@@ -145,3 +145,17 @@ export function matchConfigDependencyArray(diffs: Diff[], pathValues: string[], 
   }
   return errors;
 }
+
+export function deletedConfigEntry(diffs: Diff[], pathValue: string): string[] {
+  const errors: string[] = [];
+  for (const deletedDiff of diffs.filter(isDiffDeleted)) {
+    if (!deletedDiff.path) {
+      continue;
+    }
+    const changedValue = deletedDiff.path?.[deletedDiff.path?.length - 1];
+    if (changedValue === pathValue) {
+      errors.push(`ConfigCheck: blocked deleting  "${changedValue}" from config path "${deletedDiff.path?.join('/')}"`);
+    }
+  }
+  return errors;
+}
