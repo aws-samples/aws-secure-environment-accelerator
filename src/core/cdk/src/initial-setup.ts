@@ -387,6 +387,9 @@ export namespace InitialSetup {
               s3BucketName: installCfnRoleMasterTemplate.s3BucketName,
               s3ObjectKey: installCfnRoleMasterTemplate.s3ObjectKey,
             },
+            stackParameters: {
+              'RoleName.$': '$.organizationAdmiRole',
+            },
           }),
           resultPath: 'DISCARD',
         },
