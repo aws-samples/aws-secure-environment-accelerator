@@ -285,7 +285,7 @@ async function validateExecution(stateMachineArn: string, executionArn: string) 
 
   if (runningExecutions.filter(re => re.executionArn !== executionArn).length > 0) {
     await stepfunctions.stopExecution({
-      executionArn: executionArn,
+      executionArn,
     });
     return 'DUPLICATE_EXECUTION';
   }
