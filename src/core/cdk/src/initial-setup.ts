@@ -464,7 +464,7 @@ export namespace InitialSetup {
           },
           stackTemplate: executionRoleContent.toString(),
           'accountId.$': '$.accountId',
-          'assumedRoleName.$': '$.organizationAdmiRole',
+          'assumeRoleName.$': '$.organizationAdmiRole',
         }),
         resultPath: 'DISCARD',
       });
