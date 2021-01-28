@@ -78,8 +78,6 @@
       "Effect": "Deny",
       "Action": ["cloudformation:*"],
       "Resource": [
-        "arn:aws:cloudformation:*:*:stack/StackSet-AWS-Landing-Zone-*",
-        "arn:aws:cloudformation:*:*:stack/StackSet-PBMMAccel-*",
         "arn:aws:cloudformation:*:*:stack/PBMMAccel-*"
       ],
       "Condition": {
@@ -204,7 +202,6 @@
         "lambda:UpdateFunctionConfiguration"
       ],
       "Resource": [
-        "arn:aws:lambda:*:*:function:StackSet-AWS-Landing-Zone-*",
         "arn:aws:lambda:*:*:function:PBMMAccel-*"
       ],
       "Condition": {

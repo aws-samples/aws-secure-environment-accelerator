@@ -194,7 +194,6 @@
                 "config:PutConfigurationAggregator"
             ],
             "Resource": [
-                "arn:aws:config:*:*:config-rule/StackSet-AWS-Landing*",
                 "arn:aws:config:*:*:config-rule/PBMMAccel-*"
             ],
             "Effect": "Deny",
