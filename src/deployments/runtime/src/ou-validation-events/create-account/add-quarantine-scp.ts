@@ -28,5 +28,17 @@ async function addQuarantineScp(acceleratorPrefix: string, organizationAdminRole
   const policyId = await scps.createOrUpdateQuarantineScp();
 
   console.log(`Attaching SCP "QNO SCP" to account "${accountId}"`);
-  await organizations.attachPolicy(policyId, accountId);
+  try {
+    await organizations.attachPolicy(policyId, accountId);
+  } catch (e) {
+    console.warn(`Exception while attachPolicy`);
+    if (e.errorType === 'DuplicatePolicyAttachmentException') {
+      return;
+    }
+    const errorMessage = `${e}`;
+    if (errorMessage.includes('DuplicatePolicyAttachmentException')) {
+      return;
+    }
+    throw new Error(e);
+  }
 }

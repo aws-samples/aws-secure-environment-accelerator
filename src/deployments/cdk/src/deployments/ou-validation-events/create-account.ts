@@ -4,7 +4,6 @@ import * as lambda from '@aws-cdk/aws-lambda';
 import * as iam from '@aws-cdk/aws-iam';
 import * as events from '@aws-cdk/aws-events';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
-import { Context } from '../../utils/context';
 import * as sfn from '@aws-cdk/aws-stepfunctions';
 import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-tasks';
 
@@ -65,6 +64,19 @@ export async function createAccount(input: CreateAccountProps) {
 
   waitTask.next(verifyCreateAccountTask);
 
+  const invocationCheckTask = new CodeTask(scope, 'Validate Invocation', {
+    resultPath: '$.acceleratorInvocation',
+    functionProps: {
+      role: acceleratorPipelineRole,
+      code: lambdaCode,
+      handler: 'index.ouValidationEvents.createAccount.invocationCheck',
+    },
+    functionPayload: {
+      'scheduledEvent.$': '$',
+      acceleratorRoleName: acceleratorPipelineRole.roleName,
+    },
+  });
+
   verifyCreateAccountTask.next(
     new sfn.Choice(scope, 'Account Creation Done?')
       .when(sfn.Condition.stringEquals(verifyTaskStatusPath, 'SUCCEEDED'), pass)
@@ -74,20 +86,14 @@ export async function createAccount(input: CreateAccountProps) {
   );
 
   const invokeCheckTask = new sfn.Choice(scope, 'Non Accelerator Invocation?')
-    .when(
-      sfn.Condition.stringEquals(
-        '$.detail.userIdentity.sessionContext.sessionIssuer.userName',
-        acceleratorPipelineRole.roleName,
-      ),
-      accleratorInvocation,
-    )
+    .when(sfn.Condition.booleanEquals('$.acceleratorInvocation', true), accleratorInvocation)
     .otherwise(verifyCreateAccountTask);
 
   const createStateMachine = new sfn.StateMachine(scope, 'StateMachine', {
     stateMachineName: createName({
       name: 'CreateAccountEventTrigger_sm',
     }),
-    definition: sfn.Chain.start(invokeCheckTask),
+    definition: sfn.Chain.start(invocationCheckTask.next(invokeCheckTask)),
   });
 
   const createAccountEventPattern = {
