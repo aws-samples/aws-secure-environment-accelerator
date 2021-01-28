@@ -66,8 +66,9 @@ export class ServiceControlPolicy {
     scpBucketName: string;
     scpBucketPrefix: string;
     policyConfigs: ScpConfig[];
+    organizationAdminRole: string;
   }): Promise<PolicySummary[]> {
-    const { acceleratorPrefix, scpBucketName, scpBucketPrefix, policyConfigs } = props;
+    const { acceleratorPrefix, scpBucketName, scpBucketPrefix, policyConfigs, organizationAdminRole } = props;
 
     // Find all policies in the organization
     const existingPolicies = await this.listScps();
@@ -91,6 +92,11 @@ export class ServiceControlPolicy {
         throw e;
       }
 
+      // eslint-disable-next-line no-template-curly-in-string
+      if (policyContent.includes('${ORG_ADMIN_ROLE}')) {
+        // eslint-disable-next-line no-template-curly-in-string
+        policyContent = policyContent.replace('${ORG_ADMIN_ROLE}', organizationAdminRole);
+      }
       // Minify the SCP content
       policyContent = JSON.stringify(JSON.parse(policyContent));
 
