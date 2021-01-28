@@ -156,6 +156,8 @@ export namespace InitialSetup {
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
           'inputConfig.$': '$',
+          'executionArn.$': '$$.Execution.Id',
+          'stateMachineArn.$': '$$.StateMachine.Id',
         },
         resultPath: '$.configuration',
       });
@@ -386,6 +388,9 @@ export namespace InitialSetup {
             stackTemplate: {
               s3BucketName: installCfnRoleMasterTemplate.s3BucketName,
               s3ObjectKey: installCfnRoleMasterTemplate.s3ObjectKey,
+            },
+            stackParameters: {
+              'RoleName.$': '$.configuration.organizationAdmiRole',
             },
           }),
           resultPath: 'DISCARD',
