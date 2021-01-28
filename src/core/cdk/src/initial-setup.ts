@@ -156,6 +156,8 @@ export namespace InitialSetup {
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
           'inputConfig.$': '$',
+          'executionArn.$': '$$.Execution.Id',
+          'stateMachineArn.$': '$$.StateMachine.Id',
         },
         resultPath: '$.configuration',
       });
