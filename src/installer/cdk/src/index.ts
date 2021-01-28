@@ -247,7 +247,7 @@ async function main() {
 
   stateMachineExecutionRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['ssm:PutParameter'],
+      actions: ['ssm:PutParameter', 'ssm:GetParameter', 'ssm:GetParameterHistory'],
       resources: ['*'],
     }),
   );
