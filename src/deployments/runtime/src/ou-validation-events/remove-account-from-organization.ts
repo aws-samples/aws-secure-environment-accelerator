@@ -11,6 +11,7 @@ import {
 } from '@aws-accelerator/common/src/util/common';
 import { pretty } from '@aws-accelerator/common/src/util/prettier';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
+import { getInvoker } from './utils';
 
 interface RemoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -31,13 +32,15 @@ export const handler = async (input: RemoveAccountOrganization) => {
   console.log(`RemoveAccountFromOrganization, Remove account configuration from Accelerator config...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
-  const invokedBy = requestDetail.userIdentity.sessionContext.sessionIssuer.userName;
-  if (invokedBy === acceleratorRoleName) {
-    console.log(`Move Account Performed by Accelerator, No operation required`);
+
+  const invokedBy = getInvoker(input);
+  if (invokedBy && invokedBy === acceleratorRoleName) {
+    console.log(`Remove Account Performed by Accelerator, No operation required`);
     return {
       status: 'NO_OPERATION_REQUIRED',
     };
   }
+
   console.log(`Reading account information from request`);
   const { accountId } = requestDetail.requestParameters;
 

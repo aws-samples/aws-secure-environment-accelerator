@@ -16,6 +16,7 @@ import {
 import { AcceleratorUpdateConfig } from '@aws-accelerator/common-config';
 import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { PutFileEntry } from 'aws-sdk/clients/codecommit';
+import { getInvoker } from './utils';
 
 interface MoveAccountOrganization extends ScheduledEvent {
   version?: string;
@@ -46,8 +47,8 @@ export const handler = async (input: MoveAccountOrganization) => {
   console.log(`Account moved to Organization, adding account config to configuration...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
-  const invokedBy = requestDetail.userIdentity.sessionContext.sessionIssuer.userName;
-  if (invokedBy === acceleratorRoleName) {
+  const invokedBy = getInvoker(input);
+  if (invokedBy && invokedBy === acceleratorRoleName) {
     console.log(`Move Account Performed by Accelerator, No operation required`);
     return {
       status: 'NO_OPERATION_REQUIRED',
