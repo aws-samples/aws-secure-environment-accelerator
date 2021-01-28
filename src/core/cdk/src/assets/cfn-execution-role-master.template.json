@@ -1,4 +1,9 @@
 {
+  "Parameters": {
+    "RoleName": {
+      "Type": "String"
+    }
+  },
     "Resources": {
       "AWSCloudFormationStackSetExecutionRole46A74E25": {
         "Type": "AWS::IAM::Role",
@@ -44,65 +49,12 @@
               ]
             }
           ],
-          "RoleName": "AWSCloudFormationStackSetExecutionRole"
+          "RoleName": {
+            "Ref": "RoleName"
+          }
         },
         "Metadata": {
           "aws:cdk:path": "TestNewStack/AWSCloudFormationStackSetExecutionRole/Resource"
-        }
-      },
-      "AWSCloudFormationStackSetAdministrationRole84528B57": {
-        "Type": "AWS::IAM::Role",
-        "Properties": {
-          "AssumeRolePolicyDocument": {
-            "Statement": [
-              {
-                "Action": "sts:AssumeRole",
-                "Effect": "Allow",
-                "Principal": {
-                  "Service": "cloudformation.amazonaws.com"
-                }
-              }
-            ],
-            "Version": "2012-10-17"
-          },
-          "RoleName": "AWSCloudFormationStackSetAdministrationRole"
-        },
-        "Metadata": {
-          "aws:cdk:path": "TestNewStack/AWSCloudFormationStackSetAdministrationRole/Resource"
-        }
-      },
-      "AWSCloudFormationStackSetExecutionRolePolicyDBA04E55": {
-        "Type": "AWS::IAM::Policy",
-        "Properties": {
-          "PolicyDocument": {
-            "Statement": [
-              {
-                "Action": "sts:AssumeRole",
-                "Effect": "Allow",
-                "Resource": {
-                  "Fn::Join": [
-                    "",
-                    [
-                      "arn:*:iam::*:role/",
-                      {
-                        "Ref": "AWSCloudFormationStackSetExecutionRole46A74E25"
-                      }
-                    ]
-                  ]
-                }
-              }
-            ],
-            "Version": "2012-10-17"
-          },
-          "PolicyName": "AWSCloudFormationStackSetExecutionRolePolicyDBA04E55",
-          "Roles": [
-            {
-              "Ref": "AWSCloudFormationStackSetAdministrationRole84528B57"
-            }
-          ]
-        },
-        "Metadata": {
-          "aws:cdk:path": "TestNewStack/AWSCloudFormationStackSetExecutionRolePolicy/Resource"
         }
       }
     }
