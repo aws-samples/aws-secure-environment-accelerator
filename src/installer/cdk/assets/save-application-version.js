@@ -30,6 +30,47 @@ exports.handler = async function (event, context) {
       Overwrite: true,
     }).promise();
     console.log(`Updated Application Version : ${param}`);
+    try {
+      await ssm.getParameter({
+        Name: '/accelerator/first-version'
+      }).promise();
+    } catch (e) {
+      if (e.code === 'ParameterNotFound') {
+        let firstInstlVersion;
+        const parameterVersions = [];
+        let token;
+        do {
+          const response = await ssm.getParameterHistory({ Name: '/accelerator/version', NextToken: token, MaxResults: 50 }).promise();
+          token = response.NextToken;
+          if (response.Parameters) {
+            parameterVersions.push(...response.Parameters);
+          }
+        } while (token);
+        const installerVersion = parameterVersions.find(p => p.Version === 1);
+        if (installerVersion && installerVersion.Value) {
+          const installerVersionValue = JSON.parse(installerVersion.Value);
+          if (installerVersionValue.AcceleratorVersion) {
+            firstInstlVersion = installerVersionValue.AcceleratorVersion;
+          } else {
+            firstInstlVersion = '<1.2.2';
+          }
+        }
+        if (!firstInstlVersion) {
+          throw new Error('First Installed Version not found in SSM Parameter Store "/accelerator/version"')
+        }
+        console.log("Inserting Installed version param ", firstInstlVersion);
+        await ssm.putParameter({
+          Name: '/accelerator/first-version',
+          Value: firstInstlVersion,
+          Type: 'String',
+          Overwrite: false,
+          Description: 'Accelerator first installed version',
+        }).promise();
+      } else {
+        throw new Error(e);
+      }
+    }
+
     return codepipeline
       .putJobSuccessResult({
         jobId,
