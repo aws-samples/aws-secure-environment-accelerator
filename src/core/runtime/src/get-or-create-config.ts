@@ -3,6 +3,7 @@ import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import { RawConfig } from '@aws-accelerator/common/src/util/common';
 import { JSON_FORMAT, RAW_CONFIG_FILE, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { StepFunctions } from '@aws-accelerator/common/src/aws/stepfunctions';
+import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
 
 interface GetOrCreateConfigInput {
   repositoryName: string;
@@ -10,6 +11,7 @@ interface GetOrCreateConfigInput {
   branchName: string;
   executionArn: string;
   stateMachineArn: string;
+  acceleratorPrefix: string;
   acceleratorVersion?: string;
   // Taking entire input to replace any default paramaters in SM Input
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,6 +21,7 @@ interface GetOrCreateConfigInput {
 const codecommit = new CodeCommit();
 const s3 = new S3();
 const stepfunctions = new StepFunctions();
+const cfn = new CloudFormation();
 
 export const handler = async (input: GetOrCreateConfigInput) => {
   console.log(`Get or Create Config from S3 file...`);
@@ -32,11 +35,9 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     inputConfig,
     executionArn,
     stateMachineArn,
+    acceleratorPrefix,
   } = input;
-  const runningStatus = await validateExecution(stateMachineArn, executionArn);
-  if (runningStatus === 'DUPLICATE_EXECUTION') {
-    throw new Error('Another execution of Accelerator is already running');
-  }
+  await beforeStart(acceleratorPrefix, stateMachineArn, executionArn);
   const storeAllOutputs: boolean = !!inputConfig.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
@@ -290,4 +291,17 @@ async function validateExecution(stateMachineArn: string, executionArn: string) 
     return 'DUPLICATE_EXECUTION';
   }
   return 'SUCCESS';
+}
+
+async function beforeStart(acceleratorPrefix: string, stateMachineArn: string, executionArn: string) {
+  const installRolesStack = await cfn.describeStackSet(`${acceleratorPrefix}PipelineRole`);
+  if (installRolesStack) {
+    throw new Error(
+      'This upgrade requires the manual removal of the "PBMMAccel-PipelineRole" Stackset from this account - see upgrade instructions',
+    );
+  }
+  const runningStatus = await validateExecution(stateMachineArn, executionArn);
+  if (runningStatus === 'DUPLICATE_EXECUTION') {
+    throw new Error('Another execution of Accelerator is already running');
+  }
 }
