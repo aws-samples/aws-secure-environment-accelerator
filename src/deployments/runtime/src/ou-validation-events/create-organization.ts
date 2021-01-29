@@ -1,6 +1,7 @@
 import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
 import { Organizations } from '@aws-accelerator/common/src/aws/organizations';
 import { ScheduledEvent } from 'aws-lambda';
+import { getInvoker } from './utils';
 
 interface OrganizationChangeEvent extends ScheduledEvent {
   version?: string;
@@ -18,13 +19,15 @@ export const handler = async (input: OrganizationChangeEvent) => {
   console.log(`Create Organizational Unit Event triggered ...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
-  const invokedBy = requestDetail.userIdentity.sessionContext.sessionIssuer.userName;
-  if (invokedBy === acceleratorRoleName) {
+
+  const invokedBy = getInvoker(input);
+  if (invokedBy && invokedBy === acceleratorRoleName) {
     console.log(`Move Account Performed by Accelerator, No operation required`);
     return {
       status: 'NO_OPERATION_REQUIRED',
     };
   }
+
   const parentId = requestDetail.requestParameters.parentId;
   const responseParameters = requestDetail.responseElements?.organizationalUnit;
   if (!responseParameters) {

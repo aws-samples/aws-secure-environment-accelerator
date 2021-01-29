@@ -2,11 +2,14 @@ import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
 import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import { RawConfig } from '@aws-accelerator/common/src/util/common';
 import { JSON_FORMAT, RAW_CONFIG_FILE, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
+import { StepFunctions } from '@aws-accelerator/common/src/aws/stepfunctions';
 
 interface GetOrCreateConfigInput {
   repositoryName: string;
   s3Bucket: string;
   branchName: string;
+  executionArn: string;
+  stateMachineArn: string;
   acceleratorVersion?: string;
   // Taking entire input to replace any default paramaters in SM Input
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,12 +18,25 @@ interface GetOrCreateConfigInput {
 
 const codecommit = new CodeCommit();
 const s3 = new S3();
+const stepfunctions = new StepFunctions();
 
 export const handler = async (input: GetOrCreateConfigInput) => {
   console.log(`Get or Create Config from S3 file...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { repositoryName, s3Bucket, branchName, acceleratorVersion, inputConfig } = input;
+  const {
+    repositoryName,
+    s3Bucket,
+    branchName,
+    acceleratorVersion,
+    inputConfig,
+    executionArn,
+    stateMachineArn,
+  } = input;
+  const runningStatus = await validateExecution(stateMachineArn, executionArn);
+  if (runningStatus === 'DUPLICATE_EXECUTION') {
+    throw new Error('Another execution of Accelerator is already running');
+  }
   const storeAllOutputs: boolean = !!inputConfig.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
@@ -259,4 +275,19 @@ async function isFileExist(props: {
     }
     throw new Error(error);
   }
+}
+
+async function validateExecution(stateMachineArn: string, executionArn: string) {
+  const runningExecutions = await stepfunctions.listExecutions({
+    stateMachineArn,
+    statusFilter: 'RUNNING',
+  });
+
+  if (runningExecutions.filter(re => re.executionArn !== executionArn).length > 0) {
+    await stepfunctions.stopExecution({
+      executionArn,
+    });
+    return 'DUPLICATE_EXECUTION';
+  }
+  return 'SUCCESS';
 }

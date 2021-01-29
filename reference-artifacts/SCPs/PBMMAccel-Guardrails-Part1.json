@@ -17,7 +17,6 @@
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -45,7 +44,7 @@
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -70,7 +69,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -81,14 +79,12 @@
       "Effect": "Deny",
       "Action": ["cloudformation:*"],
       "Resource": [
-        "arn:aws:cloudformation:*:*:stack/StackSet-AWS-Landing-Zone-*",
-        "arn:aws:cloudformation:*:*:stack/StackSet-PBMMAccel-*",
         "arn:aws:cloudformation:*:*:stack/PBMMAccel-*"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -114,7 +110,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -126,13 +121,12 @@
       "Action": ["iam:*"],
       "Resource": [
         "arn:aws:iam::*:role/PBMMAccel-*",
-        "arn:aws:iam::*:role/PBMMOps-*",
-        "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole"
+        "arn:aws:iam::*:role/PBMMOps-*"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+            "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -157,7 +151,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -183,7 +176,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -212,13 +204,11 @@
         "lambda:UpdateFunctionConfiguration"
       ],
       "Resource": [
-        "arn:aws:lambda:*:*:function:StackSet-AWS-Landing-Zone-*",
         "arn:aws:lambda:*:*:function:PBMMAccel-*"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -251,7 +241,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*",
             "arn:aws:iam::*:root"
           ]

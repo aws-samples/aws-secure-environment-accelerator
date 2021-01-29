@@ -61,6 +61,7 @@ export const handler = async (input: AddScpInput) => {
     scpBucketName,
     scpBucketPrefix,
     policyConfigs,
+    organizationAdminRole,
   });
   const acceleratorPolicyNames = acceleratorPolicies.map(p => p.Name!);
 
