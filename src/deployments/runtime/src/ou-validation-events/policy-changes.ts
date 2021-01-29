@@ -100,6 +100,7 @@ export const handler = async (input: PolicyChangeEvent) => {
       scpBucketName,
       scpBucketPrefix,
       policyConfigs,
+      organizationAdminRole,
     });
     const acceleratorPolicyNames = acceleratorPolicies.map(p => p.Name!);
 
