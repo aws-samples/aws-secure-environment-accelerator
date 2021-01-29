@@ -306,7 +306,6 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
-          'organizationAdmiRole.$': '$.configuration.organizationAdmiRole',
         },
       });
 
