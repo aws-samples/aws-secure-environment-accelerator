@@ -93,6 +93,7 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       functionPayload: {
         'account.$': '$.moveOutput',
         'acceleratorPrefix.$': '$.createAccountConfiguration.acceleratorPrefix',
+        'organizationAdmiRole.$': '$.createAccountConfiguration.organizationAdmiRole',
       },
     });
     attachQuarantineScpTask.next(pass);
