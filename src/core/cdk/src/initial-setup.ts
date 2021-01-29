@@ -209,7 +209,7 @@ export namespace InitialSetup {
           'phases.$': '$.configuration.baselineOutput.phases',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
-          'organizationAdmiRole.$': '$.configuration.baselineOutput.organizationAdmiRole',
+          'organizationAdminRole.$': '$.configuration.baselineOutput.organizationAdminRole',
         },
         resultPath: '$.configuration',
       });
@@ -229,7 +229,7 @@ export namespace InitialSetup {
           'phases.$': '$.configuration.baselineOutput.phases',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
-          'organizationAdmiRole.$': '$.configuration.baselineOutput.organizationAdmiRole',
+          'organizationAdminRole.$': '$.configuration.baselineOutput.organizationAdminRole',
         },
         resultPath: '$.configuration',
       });
@@ -305,6 +305,7 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
+          'organizationAdminRole.$': '$.configuration.organizationAdminRole',
         },
       });
 
@@ -355,7 +356,7 @@ export namespace InitialSetup {
           'regions.$': '$.configuration.regions',
           'accounts.$': '$.configuration.accounts',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
-          'organizationAdmiRole.$': '$.configuration.organizationAdmiRole',
+          'organizationAdminRole.$': '$.configuration.organizationAdminRole',
         },
         resultPath: '$',
       });
@@ -391,7 +392,7 @@ export namespace InitialSetup {
               s3ObjectKey: installCfnRoleMasterTemplate.s3ObjectKey,
             },
             stackParameters: {
-              'RoleName.$': '$.configuration.organizationAdmiRole',
+              'RoleName.$': '$.configuration.organizationAdminRole',
             },
           }),
           resultPath: 'DISCARD',
@@ -424,7 +425,7 @@ export namespace InitialSetup {
           },
           stackTemplate: executionRoleContent.toString(),
           'accountId.$': '$.accountId',
-          'assumedRoleName.$': '$.organizationAdmiRole',
+          'assumedRoleName.$': '$.organizationAdminRole',
         }),
         resultPath: 'DISCARD',
       });
@@ -435,7 +436,7 @@ export namespace InitialSetup {
         maxConcurrency: 40,
         parameters: {
           'accountId.$': '$$.Map.Item.Value',
-          'organizationAdmiRole.$': '$.organizationAdmiRole',
+          'organizationAdminRole.$': '$.organizationAdminRole',
         },
       });
 
