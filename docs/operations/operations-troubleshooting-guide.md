@@ -266,7 +266,7 @@ This step fails when
 
 _Executed only when using AWS Organizations baseline_
 
-This step starts the `PBMMAccel-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role `AWSCloudFormationStackSetAdministrationRole` in the root account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
+This step starts the `PBMMAccel-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`) in the root account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
 
 ### 3.2.10. Create Organization Account
 
@@ -741,7 +741,9 @@ To switch from the root account to a managed account you can click on your accou
 
 ![Switch Role Menu](img/switch-role-menu.png)
 
-In the page that appears next you need to fill out the account ID of the managed account you want to switch to. Next, you need to enter the role name `AWSCloudFormationStackSetExecutionRole`. And lastly, you need to enter a relevant name so you can later switch roles by using this name.
+In the page that appears next you need to fill out the account ID of the managed account you want to switch to. Next, you need to enter the role name defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`). And lastly, you need to enter a relevant name so you can later switch roles by using this name.
+
+**TBD: This role may be locked down starting in v1.2.5 - Update process once direction finalized**
 
 **_Caution:_** This mechanism is ONLY to be used for troubleshooting Accelerator problems. This role is outside the Accelerator governance process and bypasses **all** the preventative guardrails that protect the Accelerator contructs and prevent users from performing activities in violation of the security guardrails. This role should NOT be used outside this context, all users should be authenticating and logging into the environment through AWS SSO.
 

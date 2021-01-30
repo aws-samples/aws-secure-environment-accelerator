@@ -54,7 +54,7 @@
 
   - We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
 
-    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, **_the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`_**, otherwise we cannot bootstrap the account.
+    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, **_prior to v1.2.5, the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`_**, otherwise we cannot bootstrap the account.
     - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
     - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP
 
@@ -127,7 +127,7 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
 
 - Prior to v1.2.4, suspending accounts were blocked via SCP:
   - a defect exists in prior releases which could cause SM failures after an account was suspended
-  - required modifications to both the Part1 and Part2 SCPs
+  - this required modifications to both the Part1 and Part2 SCPs
 - To suspend an account in v1.2.4 and above, follow this process:
   - the AWS account must remain in the source OU
   - login to account to be suspended as the account root user
@@ -136,6 +136,9 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
     - have a deleted=true value added to the config file
     - be moved to the suspended OU (OU value and path stays the same in the config file)
     - deleted=true causes OU validation to be skipped on this account on subsequent SM executions
+  - If the AWS account was listed in the mandatory-accounts section of the config file the SM will fail (expected)
+    - after the above tasks have been completed, remove all references to the suspended mandatory account from the config file
+    - rerun the state machine, specifying: `{ "overrideComparison": true } `
   - Deleted accounts will continue to appear under the `Suspended` OU
 
 ### 1.1.9. I need a new VPC, where shall I define it?

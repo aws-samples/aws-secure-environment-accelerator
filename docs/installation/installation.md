@@ -149,6 +149,8 @@ Before installing, you must first:
 
 If deploying to an internal AWS employee account, to successfully install the solution with the 3rd party firewalls, you need to enable Private Marketplace (PMP) before starting:
 
+**NOTE: As of Late January 2021 the process has changed - you must now also create an Account Group associated with your Organization management account number and associate this group with your default experience. Will update click-by-click instructions at a future time.**
+
 1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click Create Marketplace
 3. Go to Profile sub-tab, click the `Not Live` slider to make it `Live`
@@ -169,12 +171,12 @@ If deploying to an internal AWS employee account, to successfully install the so
 ## 2.4. Basic Accelerator Configuration
 
 1. Select a sample config file as a baseline starting point
+   - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The master branch is NOT the current release and often will not work with the GA release.**
    - sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder;
    - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md);
    - unsure where to start, use the [`config.lite-example.json`](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) file;
    - These configuration files can be used, as-is, with only minor modification to successfully deploy the sample architectures;
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters;
-   - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The master branch is NOT the current release and often will not work with the GA release.**
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
    - For existing accounts, they _must_ match identically to both the account names and email addresses defined in AWS Organizations;
    - For new accounts, they must reflect the new account name/email you want created;
@@ -382,8 +384,9 @@ Issues in Older Releases:
 ## 4.3. Deploying the Accelerator into an existing Organization
 
 - As stated above, if the ALZ was previously deployed into the Organization, please work with your AWS account team to find the best mechanism to uninstall the ALZ solution
-- Ensure all existing sub-accounts have the `AWSCloudFormationStackSetExecutionRole` installed and set to trust the Organization Management (root) AWS Organization account
-  - we have provided a CloudFormation stack which can be executed in each sub-account to simplify this process
+- Ensure all existing sub-accounts have the role name defined in `organization-admin-role` installed and set to trust the Organization Management (root) AWS Organization account
+  - prior to v1.2.5, this role must be named: `AWSCloudFormationStackSetExecutionRole`
+  - if using the default role (`AWSCloudFormationStackSetExecutionRole`) we have provided a CloudFormation stack which can be executed in each sub-account to simplify this process
 - As stated above, we recommend starting with new AWS accounts for the mandatory functions (shared-network, perimeter, security, log-archive accounts).
 - To better ensure a clean initial deployment, we also recommend the installation be completed while ignoring most of your existing AWS sub-accounts, importing them post installation:
   - create a new OU (i.e. `Imported-Accounts`), placing most of the existing accounts into this OU temporarily, and adding this OU name to the `global-options\ignored-ous` config parameter;
