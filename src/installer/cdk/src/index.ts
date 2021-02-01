@@ -204,19 +204,19 @@ async function main() {
         },
         NOTIFICATION_EMAIL: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: notificationEmail,
+          value: notificationEmail.valueAsString,
         },
         SOURCE_REPO: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubRepository,
+          value: githubRepository.valueAsString,
         },
         SOURCE_BRANCH: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubBranch,
+          value: githubBranch.valueAsString,
         },
         SOURCE_OWNER: {
           type: codebuild.BuildEnvironmentVariableType.PLAINTEXT,
-          value: githubOwner,
+          value: githubOwner.valueAsString,
         },
       },
     },
