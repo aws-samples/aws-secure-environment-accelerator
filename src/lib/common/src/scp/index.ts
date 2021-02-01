@@ -92,11 +92,8 @@ export class ServiceControlPolicy {
         throw e;
       }
 
-      // eslint-disable-next-line no-template-curly-in-string
-      if (policyContent.includes('${ORG_ADMIN_ROLE}')) {
-        // eslint-disable-next-line no-template-curly-in-string
-        policyContent = policyContent.replace('${ORG_ADMIN_ROLE}', organizationAdminRole);
-      }
+      policyContent = policyContent.replace(/\${ORG_ADMIN_ROLE}/g, organizationAdminRole);
+
       // Minify the SCP content
       policyContent = JSON.stringify(JSON.parse(policyContent));
 

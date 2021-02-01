@@ -6,12 +6,13 @@
     - [1.1.2. Can I use AWS Organizations for all tasks I currently use AWS Organizations for? (Standalone Version Only)](#112-can-i-use-aws-organizations-for-all-tasks-i-currently-use-aws-organizations-for-standalone-version-only)
     - [1.1.3. How do I make changes to items I defined in the Accelerator configuration file during installation?](#113-how-do-i-make-changes-to-items-i-defined-in-the-accelerator-configuration-file-during-installation)
     - [1.1.4. Can I update the config file while the State Machine is running? When will those changes be applied?](#114-can-i-update-the-config-file-while-the-state-machine-is-running-when-will-those-changes-be-applied)
-    - [1.1.5. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#115-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
-    - [1.1.6. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?](#116-how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies)
-    - [1.1.7. I deployed AWS Managed Active Directory (MAD) as part of my depoloyment, how do I manage Active Directory domain users, groups, and domain policies after deployment?](#117-i-deployed-aws-managed-active-directory-mad-as-part-of-my-depoloyment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment)
-    - [1.1.8. How do I suspend an AWS account?](#118-how-do-i-suspend-an-aws-account)
-    - [1.1.9. I need a new VPC, where shall I define it?](#119-i-need-a-new-vpc-where-shall-i-define-it)
-    - [1.1.10. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#1110-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
+    - [1.1.5. What if I really mess up the configuration file?](#115-what-if-i-really-mess-up-the-configuration-file)
+    - [1.1.6. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?](#116-what-if-my-state-machine-fails-why-previous-solutions-had-complex-recovery-processes-whats-involved)
+    - [1.1.7. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?](#117-how-do-i-update-some-of-the-supplied-sample-configuration-items-found-in-reference-artifact-like-scps-and-iam-policies)
+    - [1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my depoloyment, how do I manage Active Directory domain users, groups, and domain policies after deployment?](#118-i-deployed-aws-managed-active-directory-mad-as-part-of-my-depoloyment-how-do-i-manage-active-directory-domain-users-groups-and-domain-policies-after-deployment)
+    - [1.1.9. How do I suspend an AWS account?](#119-how-do-i-suspend-an-aws-account)
+    - [1.1.10. I need a new VPC, where shall I define it?](#1110-i-need-a-new-vpc-where-shall-i-define-it)
+    - [1.1.11. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?](#1111-how-do-i-modify-and-extend-the-accelerator-or-execute-my-own-code-after-the-accelerator-provisions-a-new-aws-account-or-the-state-machine-executes)
   - [1.2. Existing Accounts/Organizations](#12-existing-accountsorganizations)
     - [1.2.1. How do I import an existing AWS account into my Accelerator managed AWS Organization (or what if I created a new AWS account with a different Organization trust role)?](#121-how-do-i-import-an-existing-aws-account-into-my-accelerator-managed-aws-organization-or-what-if-i-created-a-new-aws-account-with-a-different-organization-trust-role)
     - [1.2.2. Is it possible to deploy the Accelerator on top of an AWS Organization that I have already installed the AWS Landing Zone (ALZ) solution into?](#122-is-it-possible-to-deploy-the-accelerator-on-top-of-an-aws-organization-that-i-have-already-installed-the-aws-landing-zone-alz-solution-into)
@@ -54,7 +55,7 @@
 
   - We've heard consistent feedback that our customers wish to use native AWS services and do not want to do things differently once security controls, guardrails, or accelerators are applied to their environment. In this regard, simply create your new AWS account in AWS Organizations as you did before\*\*.
 
-    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, **_the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`_**, otherwise we cannot bootstrap the account.
+    - \*\* **IMPORTANT:** When creating the new AWS account using AWS Organizations, you need to specify the role name provided in the Accelerator configuration file `global-options\organization-admin-role`, **_prior to v1.2.5, the ONLY supported value is `AWSCloudFormationStackSetExecutionRole`_**, otherwise we cannot bootstrap the account.
     - On account creation we will apply a quarantine SCP which prevents the account from being used by anyone until the Accelerator has applied the appropriate guardrails
     - Moving the account into the appropriate OU triggers the state machine and the application of the guardrails to the account, once complete, we will remove the quarantine SCP
 
@@ -95,7 +96,11 @@ It should be noted that we have added code to the Accelerator to block customers
 
 Yes. The state machine captures a consistent input state of the requested configuration when it starts. The running Accelerator instance does not see or consider any configuration changes that occur after it has started. All configuration changes occurring after the state machine is running will only be leveraged on the _next_ state machine execution.
 
-### 1.1.5. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
+### 1.1.5. What if I really mess up the configuration file?
+
+The Accelerator is designed with checks to compare your current configuration file with the version of the config file from the previous successful execution of the state machine. If we believe you are making major or breaking changes to the config file, we will purposefully fail the state machine. See [1.4. Config file and Deployment Protections](../installation/customization-index.md#14-config-file-and-deployment-protections) for more details.
+
+### 1.1.6. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
 
 If your main state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
 
@@ -107,7 +112,7 @@ We've spent a lot of time over the course of the Accelerator development process
 
 Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
 
-### 1.1.6. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
+### 1.1.7. How do I update some of the supplied sample configuration items found in reference-artifact, like SCPs and IAM policies?
 
 To override items like SCP's or IAM policies, customers simply need to provide the identically named file in there input bucket. As long as the file exists in the correct folder in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version. Customer SCP's need to be placed into a folder named `scp` and iam policies in a folder named `iam-policy` (case sensitive).
 
@@ -117,17 +122,17 @@ Customers can also define additional SCPs (or modify existing SCPs) using the na
 
 NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be excercised if the provided SCPs are modified. We will be improving documenation as to which SCPs deliver security functionality versus those protecting the Accelerator itself in a future release.
 
-### 1.1.7. I deployed AWS Managed Active Directory (MAD) as part of my depoloyment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
+### 1.1.8. I deployed AWS Managed Active Directory (MAD) as part of my depoloyment, how do I manage Active Directory domain users, groups, and domain policies after deployment?
 
 Customers have clearly indicated they do NOT want to use the Accelerator to manage their Active Directory domain or change the way they manage Active Directory on an ongoing basis. Customer have also indicated, they need help getting up and running quickly. For these reasons, the Accelerator only sets the domain password policy, and creates AD users and groups on the initial installation of MAD. After the initial installation, customers must manage Windows users and groups using their traditional tools. A bastion Windows host is deployed as a mechanism to support these capabilities. Passwords for all newly created MAD users have been stored, encrypted, in AWS Secrets Manager in the Management (root) Organization AWS account.
 
 The Accelerator will not create/update/delete new AD users or groups, nor will it update the domain password policy after the initial installation of Managed Active Directory. It is your responsibility to rotate these passwords on a regular basis per your organizations password policy. (NOTE: After updating the admin password it needs to be stored back in secrets manager).
 
-### 1.1.8. How do I suspend an AWS account?
+### 1.1.9. How do I suspend an AWS account?
 
 - Prior to v1.2.4, suspending accounts were blocked via SCP:
   - a defect exists in prior releases which could cause SM failures after an account was suspended
-  - required modifications to both the Part1 and Part2 SCPs
+  - this required modifications to both the Part1 and Part2 SCPs
 - To suspend an account in v1.2.4 and above, follow this process:
   - the AWS account must remain in the source OU
   - login to account to be suspended as the account root user
@@ -136,9 +141,12 @@ The Accelerator will not create/update/delete new AD users or groups, nor will i
     - have a deleted=true value added to the config file
     - be moved to the suspended OU (OU value and path stays the same in the config file)
     - deleted=true causes OU validation to be skipped on this account on subsequent SM executions
+  - If the AWS account was listed in the mandatory-accounts section of the config file the SM will fail (expected)
+    - after the above tasks have been completed, remove all references to the suspended mandatory account from the config file
+    - rerun the state machine, specifying: `{ "overrideComparison": true } `
   - Deleted accounts will continue to appear under the `Suspended` OU
 
-### 1.1.9. I need a new VPC, where shall I define it?
+### 1.1.10. I need a new VPC, where shall I define it?
 
 You can define a VPC in one of three major sections of the Accelerator configuration file:
 
@@ -150,7 +158,7 @@ We generally recommend most items be defined within organizational units, such t
 
 As mandatory accounts often have unique configuration requirements, VPC's like the Endpoint VPC, are configured within the mandatory account configuration. Customers can also define VPC's within each workload account configuration, but this requires editing the configuration file for each account configuration.
 
-### 1.1.10. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
+### 1.1.11. How do I modify and extend the Accelerator or execute my own code after the Accelerator provisions a new AWS account or the state machine executes?
 
 Flexibility:
 

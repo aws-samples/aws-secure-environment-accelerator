@@ -12,7 +12,6 @@ Bug reports which fail to provide the required information will be closed withou
 **Required Basic Info**
 - Accelerator Version:  (eg. v1.1.6)
 - Install Type: (Clean or Upgrade)
-- Install Branch: (ALZ or Standalone)
 - Upgrade from version: (N/A or v1.x.y)
 - Which State did the Main State Machine Fail in: (e.g. Phase 0)
 

@@ -508,7 +508,7 @@ The _AWS Secure Environment Architecture_ makes extensive use of AWS authorizati
 
 ## 6.1. Relationship to the Organization Management (root) AWS Account
 
-AWS accounts, as a default position, are entirely self-contained with respect to IAM principals - their Users, Roles, Groups are independent and scoped only to themselves. Accounts created by AWS Organizations deploy a default role with a trust policy back to the Organization Management (root). By default, this role is named the `OrganizationAccountAccessRole`; by contrast, the _AWS Secure Environment Architecture_ recommends that this role be replaced by `AWSCloudFormationStackSetExecutionRole`:
+AWS accounts, as a default position, are entirely self-contained with respect to IAM principals - their Users, Roles, Groups are independent and scoped only to themselves. Accounts created by AWS Organizations deploy a default role with a trust policy back to the Organization Management (root). By default, this role is named the `OrganizationAccountAccessRole`; by contrast, the _AWS Secure Environment Architecture_ allows customers to customize this role by defining it in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`).
 
 ```jsonc
 {
@@ -532,11 +532,13 @@ AWS accounts, as a default position, are entirely self-contained with respect to
 }
 ```
 
-As discussed, the AWS Organization resides in the Organization Management (root) account. This account is not used for workloads and is primarily a gateway to the entire cloud footprint for a high-trust principal. This is realized via the `AWSCloudFormationStackSetExecutionRole` role. It is therefore crucial that the Organization Management (root) account root credentials be handled with extreme diligence, and with a U2F hardware key enabled as a second-factor (and stored in a secure location such as a safe).
+As discussed, the AWS Organization resides in the Organization Management (root) account. This account is not used for workloads and is primarily a gateway to the entire cloud footprint for a high-trust principal. This is realized via the role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`). It is therefore crucial that the Organization Management (root) account root credentials be handled with extreme diligence, and with a U2F hardware key enabled as a second-factor (and stored in a secure location such as a safe).
 
 ## 6.2. Break Glass Accounts
 
-Given the Organizational-wide trust relationship in the `AWSCloudFormationStackSetExecutionRole` and its broad exclusion from SCPs (discussed below), the assumption of this role grants 'super admin' status, and is thus an extremely high privilege operation. The ability to assume this role should be considered a 'break glass' capability - to be used only in extraordinary circumstances. Access to this role can be granted by IAM Users or IAM Roles in the Organization Management (root) account (via SSO) - as with the Organization Management (root) account credentials, these should be handled with extreme diligence, and with a U2F hardware key enabled as a second-factor (and stored in a secure location such as a safe).
+Given the Organizational-wide trust relationship to the role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`) and its broad exclusion from SCPs (discussed below), the assumption of this role grants 'super admin' status, and is thus an extremely high privilege operation. The ability to assume this role should be considered a 'break glass' capability - to be used only in extraordinary circumstances. Access to this role can be granted by IAM Users or IAM Roles in the Organization Management (root) account (via SSO) - as with the Organization Management (root) account credentials, these should be handled with extreme diligence, and with a U2F hardware key enabled as a second-factor (and stored in a secure location such as a safe).
+
+**TBD: This role may be locked down starting in v1.2.5 - Update details once direction finalized**
 
 ## 6.3. Control Plane Access via AWS SSO
 

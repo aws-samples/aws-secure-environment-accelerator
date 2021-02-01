@@ -4,6 +4,7 @@
   - [1.1. **Sample Accelerator Configuration Files**](#11-sample-accelerator-configuration-files)
   - [1.2. **Deployment Customizations**](#12-deployment-customizations)
   - [1.3. Other Configuration File Hints and Tips](#13-other-configuration-file-hints-and-tips)
+  - [1.4. Config file and Deployment Protections](#14-config-file-and-deployment-protections)
 
 ## 1.1. **Sample Accelerator Configuration Files**
 
@@ -79,7 +80,7 @@ Descriptions:
 - v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. In future we will be providing a version of the config file with comments describing the purpose of each configuration item
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
 - We only support the subset of yaml that converts to JSON (we do not support anchors)
-- We do NOT support changing the `organization-admin-role`, this value must be set to `AWSCloudFormationStackSetExecutionRole` at this time.
+- Prior to v1.2.5, we did NOT support changing the `organization-admin-role` and this value had to be set to `AWSCloudFormationStackSetExecutionRole`.
 - Adding more than approximately 50 _new_ VPC Interface Endpoints across _all_ regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.
 - If `use-central-endpoints` is changed from true to false, you cannot add a local vpc endpoint on the same state machine execution (add the endpoint on a prior or subsequent execution)
   - in versions 1.2.0 through 1.2.2 there is a issue adding local endpoints when a central endpoint already exists for the vpc
@@ -89,6 +90,20 @@ Descriptions:
   - if the same IAM policy file is used in more than one spot in the config, we require one account to reference the policy twice or you will get a `Unexpected token u in JSON at position 0,` error in Phase 1
   - the `zones\resolver-vpc` is a mandatory parameter, you must deploy a small dummy vpc w/no subnets, routes, etc. in the account of your choosing for this validation to succeed
   - security hub deploys security standards and disables controls, no automated mechanism exists to disable security standard or re-enable individual controls
+
+## 1.4. Config file and Deployment Protections
+
+- The config file is moved to AWS CodeCommit after the first execution of the state machine to provide strong configuration history, versioning and change control
+- After each successful state machine execution, we record the commit id of the config file used for that execution in secrets manager
+- On **_every_** state machine execution, before making any changes, the Accelerator compares the latest version of the config file stored in CodeCommit with the version of the config file from the last successful state machine execution
+- If the config file includes any changes we consider to be significant or breaking, we immediatly fail the state machine
+  - if a customer somehow accidentally uploads a different customers config file into their Accelerator CodeCommit repository, the state machine will fail
+  - if a customer makes what we consider to be a major change to the config file, the state machine will fail
+  - if a customer makes a change that we believe has a high likelihood to cause a deployment failure, the state machine will fail
+- If a customer believes they understand the full implications of the changes they are making (and has made any required manual changes to allow successful execution), we have provided protection overide flags. These overides should be used with extremely caution:
+  - To provide maximum protection we have provided scoped overide flags. Customers can provide a flag or flags to only bypass specific type(s) of config file validations or blocks. If using an overide flag, we recommend customers use these scoped flags in most situations.
+  - If a customer is purposefully making extensive changes across the config file and wants to simply overide all checks with a single overide flag, we also have this option, but discourage it use.
+  - The various overide flags and their format can be found in [here](./sm_inputs.md).
 
 ---
 
