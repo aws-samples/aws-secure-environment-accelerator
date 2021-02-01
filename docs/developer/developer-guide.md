@@ -617,7 +617,7 @@ Example of setting `aws-sdk` as external dependency.
 {
   "externals": ["aws-lambda", "aws-sdk"],
   "dependencies": {
-    "aws-lambda": "1.0.5",
+    "aws-lambda": "1.0.6",
     "aws-sdk": "2.631.0"
   }
 }
@@ -631,7 +631,7 @@ Example of setting `aws-sdk` as embedded dependency.
 {
   "externals": ["aws-lambda"],
   "dependencies": {
-    "aws-lambda": "1.0.5",
+    "aws-lambda": "1.0.6",
     "aws-sdk": "2.711.0"
   }
 }
@@ -701,7 +701,7 @@ This library defines the base Webpack template to compile custom resource runtim
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1",
-    "aws-lambda": "1.0.5",
+    "aws-lambda": "1.0.6",
     "aws-sdk": "2.668.0"
   }
 }
