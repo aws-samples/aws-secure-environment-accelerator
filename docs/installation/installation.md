@@ -149,6 +149,8 @@ Before installing, you must first:
 
 If deploying to an internal AWS employee account, to successfully install the solution with the 3rd party firewalls, you need to enable Private Marketplace (PMP) before starting:
 
+**NOTE: As of Late January 2021 the process has changed - you must now also create an Account Group associated with your Organization management account number and associate this group with your default experience. Will update click-by-click instructions at a future time.**
+
 1. In the Organization Management account go here: https://aws.amazon.com/marketplace/privatemarketplace/create
 2. Click Create Marketplace
 3. Go to Profile sub-tab, click the `Not Live` slider to make it `Live`
@@ -169,12 +171,12 @@ If deploying to an internal AWS employee account, to successfully install the so
 ## 2.4. Basic Accelerator Configuration
 
 1. Select a sample config file as a baseline starting point
+   - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The master branch is NOT the current release and often will not work with the GA release.**
    - sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder;
    - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md);
    - unsure where to start, use the [`config.lite-example.json`](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) file;
    - These configuration files can be used, as-is, with only minor modification to successfully deploy the sample architectures;
    - On upgrades, compare your deployed configuration file with the latest branch configuration file for any new or changed parameters;
-   - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The master branch is NOT the current release and often will not work with the GA release.**
 2. At minimum, you MUST update the AWS account names and email addresses in the sample file:
    - For existing accounts, they _must_ match identically to both the account names and email addresses defined in AWS Organizations;
    - For new accounts, they must reflect the new account name/email you want created;
@@ -234,7 +236,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 15. **While the pipeline is running:**
     - review the list of [Known Installation Issues](#251-known-installation-issues) in section 2.5.1 below
     - review the Accelerator Basic Operation and Frequently Asked Questions (FAQ) [Document](../faq/faq.md)
-16. Once the pipeline completes (typically 20 minutes), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
+16. Once the pipeline completes (20-25 mins), the main state machine, named `PBMMAccel-MainStateMachine_sm`, will start in Step Functions
 17. The state machine takes approximately 1.5 hours to execute on an initial installation using the default PBMM configuration. Timing for subsequent executions depends entirely on what resources are changed in the configuration file, but can take as little as 20 minutes.
 18. The configuration file will be automatically moved into Code Commit (and deleted from S3). From this point forward, you must update your configuration file in CodeCommit.
 19. You will receive an email from the State Machine SNS topic and the 3 SNS alerting topics. Please confirm all four (4) email subscriptions to enable receipt of state machine status and security alert messages. Until completed, you will not receive any email messages (must be completed within 7-days).
@@ -308,38 +310,32 @@ Issues in Older Releases:
 ## 3.1. Considerations
 
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
+- Upgrades to `v1.2.5 and above` from `v1.2.4 and below` requires the manual removal of the `PBMMAccel-PipelineRole` StackSet before beginning your upgrade (we have eliminated all use of StackSets in this release)
+  - In the root AWS account, go to: CloudFormation, StackSets
+  - Find: `PBMMAccel-PipelineRole`, and Select the: `Stack Instances` tab
+  - Document all the account numbers, comma separated i.e. 123456789012, 234567890123, 345678901234
+  - Select: Actions, Delete Stacks from StackSets
+  - Paste the above account numbers (comma separated) in the Account numbers box
+  - Select the Accelerator installation/home region from the Specify Regions Box (should be the only region in the dropdown)
+  - Change: Concurrency to: 8, Next, Submit
+  - Wait for operation to complete (refresh the browser several times)
+  - Select Actions, Delete StackSet, click Delete StackSet
+  - Wait for the operation to complete
 - Upgrades to `v1.2.1 and above` from `v1.2.0 and below` - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
-- Upgrades to `v1.2.0 and above` from `v1.1.9 and below` require setting `account-warming-required` to `false`, (Perimeter and Ops accounts) or the rsyslog and firewalls will be removed and then re-installed on the subsequent state machine execution
-- Upgrades from `v1.1.7 and below` require the one-time removal of incorrectly created and associated resolver rules for private DNS domains. While we created a manual [script](../reference-artifacts/Custom-Scripts/resolver-rule-cleanup.sh) to remove the incorrect associations, it is quicker to manually delete the incorrect associations using the console (`shared-network` account, Route 53, Resolvers).
-- Upgrades to `v1.2.3 and above` from `v1.1.4 ALZ and below`:
-  - Move log files out of ALZ logging buckets if you want to retain them (1 week in advance)
-  - Uninstall the ALZ (talk to your AWS team for guidance, scripts exist)(day before install)
-  - Update the config.json to reflect release v1.2.3 and reduce VPC endpoints to the 5 mandatory endpoints only
-  - Move accounts to proper OUs (if ALZ removal moved them all to root OU)
-  - In Parameter Store
-    - document the current value of `/accelerator/version` (if it exists)
-    - delete `/accelerator/version` (if it exists)
-    - create a new `/accelerator/version` parameter in Parameter store, populating with `{ "Branch": "release/v1.1.4", "Repository": "aws-secure-environment-accelerator", "CommitId": "9999999999999999999999999999999999999999", "Owner": "aws-samples", "DeployTime": "Unknown", "AcceleratorVersion": "1.1.4" }`
-    - update the `/accelerator/version` parameter with the value documented above (i.e. v1.2.3, if it existed)
-      - we only introduced /accelerator/version in release v1.1.5 and during the install we read the parameter history and load the initial installation version
-  - Follow instructions in section 3.2, the State Machine will run and fail with an inability to load the file `raw/config.json`
-  - Go into CodeCommit, Commits, the top commit should be `Updating Raw Config in SM`, Click `Copy ID`
-  - Update secret `accelerator/config/last-successful-commit` in Secrets Manager with the Commit ID from the previous step
-  - rerun the State Machine
-    - if the state machine fails in Phase 1 with a FAILED to delete Phase 1 stack when attempting to disable security hub, go to the security account and in each region with stacks in delete failed state, manually delete the Phase 1 stack, selecting `retain resources` (not required in SM region).
 
 ## 3.2. Summary of Upgrade Steps (all versions)
 
 1. Ensure a valid Github token is stored in secrets manager
-2. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
-3. If you are replacing your GitHub Token:
+2. Review the upgrade considerations in section 3.1.
+3. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
+4. If you are replacing your GitHub Token:
 
    - Take note of the s3 bucket name from the stack parameters
    - Delete the Installer CFN stack (`PBMMAccel-what-you-provided`)
    - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
    - The pipeline will automatically run and trigger the upgraded state machine
 
-4. If you are using a pre-existing GitHub token:
+5. If you are using a pre-existing GitHub token:
 
    - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.3`)
      - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
@@ -382,8 +378,9 @@ Issues in Older Releases:
 ## 4.3. Deploying the Accelerator into an existing Organization
 
 - As stated above, if the ALZ was previously deployed into the Organization, please work with your AWS account team to find the best mechanism to uninstall the ALZ solution
-- Ensure all existing sub-accounts have the `AWSCloudFormationStackSetExecutionRole` installed and set to trust the Organization Management (root) AWS Organization account
-  - we have provided a CloudFormation stack which can be executed in each sub-account to simplify this process
+- Ensure all existing sub-accounts have the role name defined in `organization-admin-role` installed and set to trust the Organization Management (root) AWS Organization account
+  - prior to v1.2.5, this role must be named: `AWSCloudFormationStackSetExecutionRole`
+  - if using the default role (`AWSCloudFormationStackSetExecutionRole`) we have provided a CloudFormation stack which can be executed in each sub-account to simplify this process
 - As stated above, we recommend starting with new AWS accounts for the mandatory functions (shared-network, perimeter, security, log-archive accounts).
 - To better ensure a clean initial deployment, we also recommend the installation be completed while ignoring most of your existing AWS sub-accounts, importing them post installation:
   - create a new OU (i.e. `Imported-Accounts`), placing most of the existing accounts into this OU temporarily, and adding this OU name to the `global-options\ignored-ous` config parameter;
