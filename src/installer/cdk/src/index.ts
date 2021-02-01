@@ -124,7 +124,7 @@ async function main() {
     new iam.PolicyStatement({
       actions: ['s3:*'],
       // resources: [`arn:aws:s3:::${acceleratorPrefix.toLowerCase()}cdktoolkit-stagingbucket-*`],
-      resources: [`arn:aws:s3:::cdk-${acceleratorPrefix}assets-*`],
+      resources: [`arn:aws:s3:::cdk-${acceleratorPrefix.toLowerCase()}assets-*`],
     }),
   );
 
