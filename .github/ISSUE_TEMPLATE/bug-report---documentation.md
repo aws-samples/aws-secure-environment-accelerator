@@ -12,7 +12,6 @@ Bug reports which fail to provide the required information will be closed withou
 **Required Basic Info**
 - Accelerator Version:  (eg. v1.1.6)
 - Install Type: (Clean or Upgrade)
-- Install Branch: (ALZ or Standalone)
 - Document filename: (eg. /docs/installation/index.md)
 
 **Describe the bug**

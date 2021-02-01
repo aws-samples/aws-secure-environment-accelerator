@@ -3,7 +3,6 @@ export { handler as addScpStep } from './add-scp-step';
 export { handler as addRoleToServiceCatalogStep } from './add-role-to-service-catalog-step';
 export { handler as addTagsToSharedResourcesStep } from './add-tags-to-shared-resources-step';
 export { handler as enableTrustedAccessForServicesStep } from './enable-trusted-access-for-services-step';
-export { handler as getDnsEndpointIps } from './get-dns-endpoint-ips';
 export { handler as loadAccountsStep } from './load-accounts-step';
 // export { handler as loadConfigurationStep } from './load-configuration-step';
 export { handler as loadLandingZoneConfigurationStep } from './configuration/load-landing-zone-config';
