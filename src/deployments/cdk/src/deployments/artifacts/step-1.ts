@@ -5,6 +5,8 @@ import { AcceleratorConfig } from '@aws-accelerator/common-config/src';
 import { AccountStacks, AccountStack } from '../../common/account-stacks';
 import { JsonOutputValue } from '../../common/json-output';
 import { ArtifactName, CfnArtifactOutput } from './outputs';
+import { createRoleName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
+import { S3CopyFiles } from '@aws-accelerator/custom-resource-s3-copy-files';
 
 export interface ArtifactsStep1Props {
   accountStacks: AccountStacks;
@@ -18,8 +20,14 @@ export async function step1(props: ArtifactsStep1Props) {
   const masterAccountKey = config.getMandatoryAccountKey('master');
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountKey);
 
+  // Get the location of the original central bucket
+  const centralConfigBucketName = config['global-options']['central-bucket'];
+  const centralConfigBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
+    bucketName: centralConfigBucketName,
+  });
+
   // upload SCP Artifacts
-  uploadArtifacts({
+  const scpUpload = uploadArtifacts({
     accountStack: masterAccountStack,
     artifactName: 'SCP',
     artifactFolderName: 'SCPs',
@@ -29,7 +37,7 @@ export async function step1(props: ArtifactsStep1Props) {
   });
 
   // upload IAM-Policies Artifacts
-  uploadArtifacts({
+  const iamUpload = uploadArtifacts({
     accountStack: masterAccountStack,
     artifactName: 'IamPolicy',
     artifactFolderName: 'iam-policies',
@@ -39,7 +47,7 @@ export async function step1(props: ArtifactsStep1Props) {
   });
 
   // upload RDGW Artifacts
-  uploadArtifacts({
+  const rdgwUpload = uploadArtifacts({
     accountStack: masterAccountStack,
     artifactName: 'Rdgw',
     artifactFolderName: 'scripts',
@@ -49,7 +57,7 @@ export async function step1(props: ArtifactsStep1Props) {
   });
 
   // upload Rsyslog Artifacts
-  uploadArtifacts({
+  const rsyslogUpload = uploadArtifacts({
     accountStack: masterAccountStack,
     artifactName: 'Rsyslog',
     artifactFolderName: 'rsyslog',
@@ -59,7 +67,7 @@ export async function step1(props: ArtifactsStep1Props) {
   });
 
   // upload SSM-Document Artifacts
-  uploadArtifacts({
+  const ssmUpload = uploadArtifacts({
     accountStack: masterAccountStack,
     artifactName: 'SsmDocument',
     artifactFolderName: 'ssm-documents',
@@ -68,6 +76,21 @@ export async function step1(props: ArtifactsStep1Props) {
     destinationKeyPrefix: 'ssm-documents',
     keepExistingFiles: true,
   });
+
+  // Copy files from source to destination
+  const copyFiles = new S3CopyFiles(masterAccountStack, 'CopyFiles', {
+    roleName: createRoleName('S3CopyFiles'),
+    sourceBucket: centralConfigBucket,
+    destinationBucket: centralBucket,
+    deleteSourceObjects: false,
+    deleteSourceBucket: false,
+    forceUpdate: true,
+  });
+  copyFiles.node.addDependency(ssmUpload);
+  copyFiles.node.addDependency(rsyslogUpload);
+  copyFiles.node.addDependency(rdgwUpload);
+  copyFiles.node.addDependency(iamUpload);
+  copyFiles.node.addDependency(scpUpload);
 }
 
 function uploadArtifacts(props: {
@@ -78,7 +101,7 @@ function uploadArtifacts(props: {
   centralBucket: s3.IBucket;
   destinationKeyPrefix?: string;
   keepExistingFiles?: boolean;
-}) {
+}): s3deployment.BucketDeployment {
   const {
     accountStack,
     artifactName,
@@ -105,12 +128,16 @@ function uploadArtifacts(props: {
   // TODO Leave existing files in the folder
   // TODO Do not override existing files
   // See https://github.com/aws/aws-cdk/issues/953
-  new s3deployment.BucketDeployment(accountStack, `${artifactName}ArtifactsDeployment${accountKey}`, {
-    sources: [s3deployment.Source.asset(artifactsFolderPath)],
-    destinationBucket: centralBucket,
-    destinationKeyPrefix,
-    prune: !keepExistingFiles,
-  });
+  const s3Deployment = new s3deployment.BucketDeployment(
+    accountStack,
+    `${artifactName}ArtifactsDeployment${accountKey}`,
+    {
+      sources: [s3deployment.Source.asset(artifactsFolderPath)],
+      destinationBucket: centralBucket,
+      destinationKeyPrefix,
+      prune: !keepExistingFiles,
+    },
+  );
 
   // outputs to store reference artifacts s3 bucket information
   new JsonOutputValue(accountStack, `${artifactName}ArtifactsOutput${accountKey}`, {
@@ -130,4 +157,5 @@ function uploadArtifacts(props: {
     bucketName: centralBucket.bucketName,
     keyPrefix: artifactKeyPrefix,
   });
+  return s3Deployment;
 }
