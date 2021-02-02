@@ -2,13 +2,12 @@ import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager'
 import { compareAcceleratorConfig } from '@aws-accelerator/common-config/src/compare/main';
 import { getCommitIdSecretName } from '@aws-accelerator/common-outputs/src/commitid-secret';
 
-export interface StepInput {
+export interface StepInput extends ConfigurationInput {
   inputConfig: CompareConfigurationInput;
   region: string;
 }
 
 export interface CompareConfigurationInput {
-  configuration: ConfigurationInput;
   configOverrides: { [key: string]: boolean } | undefined;
   overrideComparison: boolean | undefined;
 }
@@ -26,7 +25,7 @@ export interface CompareConfigurationsOutput {
   configCommitId: string;
 }
 
-export const handler = async (input: StepInput): Promise<CompareConfigurationsOutput> => {
+export const handler = async (input: StepInput) => {
   console.log(`Loading compare configurations...`);
   console.log(JSON.stringify(input, null, 2));
 
@@ -47,8 +46,7 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
     'ov-nacl': false,
   };
 
-  const { inputConfig, region } = input;
-  const { configFilePath, configRepositoryName, configCommitId, baseline } = inputConfig.configuration;
+  const { inputConfig, region, baseline, configCommitId, configFilePath, configRepositoryName } = input;
   const commitSecretId = getCommitIdSecretName();
 
   const secrets = new SecretsManager();
@@ -64,11 +62,7 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
     console.log(
       'either previous git repo commitId not found or commitIds are same, so skipping validation of config file updates',
     );
-    return {
-      configRepositoryName,
-      configFilePath,
-      configCommitId,
-    };
+    return;
   }
   let configOverrides = inputConfig.configOverrides;
   if (baseline === 'ORGANIZATIONS') {
@@ -105,5 +99,5 @@ export const handler = async (input: StepInput): Promise<CompareConfigurationsOu
     throw new Error(`There were errors while comparing the configuration changes:\n${errors.join('\n')}`);
   }
 
-  return inputConfig.configuration;
+  return;
 };
