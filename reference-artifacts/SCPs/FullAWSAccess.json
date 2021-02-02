@@ -5,11 +5,6 @@
       "Effect": "Allow",
       "Action": "*",
       "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": "*",
-      "Resource": "TestNewRepo"
     }
   ]
 }
