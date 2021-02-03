@@ -359,6 +359,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     config: acceleratorConfig,
     limiter,
     outputs,
+    accounts,
   });
 
   await ssmDeployment.createDocument({

@@ -33,6 +33,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     configRepositoryName,
     configCommitId,
     configFilePath,
+    accounts,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -48,7 +49,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const organizationAccounts = await organizations.listAccounts();
   const activeAccounts = organizationAccounts.filter(account => account.Status === 'ACTIVE');
 
-  const accounts = [];
+  const returnAccounts = [];
 
   const chunk = (totalAccounts: Account[], size: number) =>
     Array.from({ length: Math.ceil(totalAccounts.length / size) }, (v, i) =>
@@ -85,7 +86,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       continue;
     }
 
-    accounts.push({
+    returnAccounts.push({
       key: accountKey,
       id: organizationAccount.Id!,
       arn: organizationAccount.Arn!,
@@ -94,6 +95,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       ou: accountConfig.ou,
       ouPath: accountConfig['ou-path'],
       isMandatory: mandatoryAccountKeys.includes(accountKey),
+      isNew: !!accounts.find(acc => acc.accountId === organizationAccount.Id),
     });
   }
 
@@ -106,7 +108,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   }
 
   // Splitting the accounts array to chunks of size 100
-  const accountsChunk = chunk(accounts, 100);
+  const accountsChunk = chunk(returnAccounts, 100);
   // Store the accounts configuration in the dynamodb
   for (const [index, accountChunk] of Object.entries(accountsChunk)) {
     await dynamoDB.updateItem(
@@ -118,7 +120,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     getUpdateItemInput(parametersTableName, accountsItemsCountId, JSON.stringify(accountsChunk.length)),
   );
 
-  const accountIds: string[] = accounts.map(acc => acc.id);
+  const accountIds: string[] = returnAccounts.map(acc => acc.id);
   return {
     ...input,
     // Return based on execution scope.

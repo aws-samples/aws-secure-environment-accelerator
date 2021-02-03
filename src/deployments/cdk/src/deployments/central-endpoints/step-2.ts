@@ -57,12 +57,26 @@ export async function step2(props: CentralEndpointsStep2Props) {
 
   // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
   for (const sr of allStaticResources) {
-    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, `${STACK_COMMON_SUFFIX}-${sr.suffix}`);
+    const localAccount = accounts.find(acc => acc.key === sr.accountKey);
+    accountStacks.tryGetOrCreateAccountStack(
+      sr.accountKey,
+      sr.region,
+      `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
+      localAccount?.isMandatory,
+      localAccount?.isNew,
+    );
   }
 
   // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
   for (const sr of centralVpcStaticResources) {
-    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, STACK_CENTRAL_VPC_COMMON_SUFFIX);
+    const localAccount = accounts.find(acc => acc.key === sr.accountKey);
+    accountStacks.tryGetOrCreateAccountStack(
+      sr.accountKey,
+      sr.region,
+      STACK_CENTRAL_VPC_COMMON_SUFFIX,
+      localAccount?.isMandatory,
+      localAccount?.isNew,
+    );
   }
 
   const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[] } = {};
@@ -184,8 +198,14 @@ export async function step2(props: CentralEndpointsStep2Props) {
         stackSuffix = `${STACK_COMMON_SUFFIX}-${suffix}`;
       }
     }
-
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
+    const localAccount = accounts.find(acc => acc.key === accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(
+      accountKey,
+      vpcConfig.region,
+      stackSuffix,
+      localAccount?.isMandatory,
+      localAccount?.isNew,
+    );
     if (!accountStack) {
       console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while deploying Resolver Endpoints`);
       continue;
@@ -361,10 +381,13 @@ export async function step2(props: CentralEndpointsStep2Props) {
     }
   }
   for (const sr of allStaticResources) {
+    const srLocalAccount = accounts.find(acc => acc.key === sr.accountKey);
     const accountStack = accountStacks.tryGetOrCreateAccountStack(
       sr.accountKey,
       sr.region,
       `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
+      srLocalAccount?.isMandatory,
+      srLocalAccount?.isNew,
     );
     if (!accountStack) {
       throw new Error(

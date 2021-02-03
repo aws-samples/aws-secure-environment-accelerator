@@ -12,6 +12,7 @@ export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   region: string;
   suffix?: string;
   isMandatory?: boolean;
+  isNew?: boolean;
 }
 
 /**
@@ -22,6 +23,7 @@ export class AccountStack extends AcceleratorStack {
   readonly accountKey: string;
   readonly suffix?: string;
   readonly isMandatory?: boolean;
+  readonly isNew?: boolean;
 
   constructor(readonly app: cdk.Stage, id: string, props: AccountStackProps) {
     super(app, id, {
@@ -36,6 +38,7 @@ export class AccountStack extends AcceleratorStack {
     this.accountKey = props.accountKey;
     this.suffix = props.suffix;
     this.isMandatory = props.isMandatory;
+    this.isNew = props.isNew;
   }
 }
 
@@ -99,7 +102,13 @@ export class AccountStacks {
   /**
    * Get the existing stack for the given account or create a new stack if no such stack exists yet.
    */
-  tryGetOrCreateAccountStack(accountKey: string, region?: string, suffix?: string, isMandatory?: boolean): AccountStack | undefined {
+  tryGetOrCreateAccountStack(
+    accountKey: string,
+    region?: string,
+    suffix?: string,
+    isMandatory?: boolean,
+    isNew?: boolean,
+  ): AccountStack | undefined {
     const regionOrDefault = region ?? this.props.context.defaultRegion;
     const existingApp = !suffix
       ? this.apps.find(s => s.accountKey === accountKey && s.stack.region === regionOrDefault)
@@ -130,6 +139,7 @@ export class AccountStacks {
         region: regionOrDefault,
         suffix,
         isMandatory,
+        isNew,
       },
     });
     this.apps.push(app);

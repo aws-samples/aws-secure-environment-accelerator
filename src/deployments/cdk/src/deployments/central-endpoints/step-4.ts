@@ -68,7 +68,14 @@ export async function step4(props: CentralEndpointsStep4Props) {
 
   // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
   for (const sr of staticResources) {
-    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, `${STACK_COMMON_SUFFIX}-${sr.suffix}`);
+    const srLocalAccount = accounts.find(acc => acc.key === sr.accountKey);
+    accountStacks.tryGetOrCreateAccountStack(
+      sr.accountKey,
+      sr.region,
+      `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
+      srLocalAccount?.isMandatory,
+      srLocalAccount?.isNew,
+    );
   }
 
   const existingRegionResources: { [region: string]: string[] } = {};
@@ -121,7 +128,12 @@ export async function step4(props: CentralEndpointsStep4Props) {
       }
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(masterAccountKey, vpcConfig.region, stackSuffix);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(
+      masterAccountKey,
+      vpcConfig.region,
+      stackSuffix,
+      true,
+    );
     if (!accountStack) {
       console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
       continue;
@@ -211,10 +223,13 @@ export async function step4(props: CentralEndpointsStep4Props) {
   }
 
   for (const sr of staticResources) {
+    const srLocalAccount = accounts.find(acc => acc.key === sr.accountKey);
     const accountStack = accountStacks.tryGetOrCreateAccountStack(
       sr.accountKey,
       sr.region,
       `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
+      srLocalAccount?.isMandatory,
+      srLocalAccount?.isNew,
     );
     if (!accountStack) {
       throw new Error(
