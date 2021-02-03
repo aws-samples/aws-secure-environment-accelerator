@@ -11,6 +11,7 @@ export interface Account {
   email: string;
   type?: LandingZoneAccountType;
   ouPath?: string;
+  isMandatory?: boolean;
 }
 
 export function getAccountId(accounts: Account[], accountKey: string): string | undefined {

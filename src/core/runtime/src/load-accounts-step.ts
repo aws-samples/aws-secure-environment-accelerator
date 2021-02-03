@@ -93,6 +93,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       email: organizationAccount.Email!,
       ou: accountConfig.ou,
       ouPath: accountConfig['ou-path'],
+      isMandatory: mandatoryAccountKeys.includes(accountKey),
     });
   }
 
@@ -120,6 +121,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const accountIds: string[] = accounts.map(acc => acc.id);
   return {
     ...input,
+    // Return based on execution scope.
     accounts: accountIds,
   };
 };
