@@ -125,9 +125,6 @@ function uploadArtifacts(props: {
     artifactFolderName,
   );
 
-  // TODO Leave existing files in the folder
-  // TODO Do not override existing files
-  // See https://github.com/aws/aws-cdk/issues/953
   const s3Deployment = new s3deployment.BucketDeployment(
     accountStack,
     `${artifactName}ArtifactsDeployment${accountKey}`,
