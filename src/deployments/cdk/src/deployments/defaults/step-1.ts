@@ -79,12 +79,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   const masterAccountConfig = config['global-options']['aws-org-master'];
   const masterAccountStack = accountStacks.getOrCreateAccountStack(masterAccountConfig.account);
 
-  // Get the location of the original central bucket
-  const centralBucketName = config['global-options']['central-bucket'];
-  const centralBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
-    bucketName: centralBucketName,
-  });
-
   const keyAlias = createEncryptionKeyName('Config-Key');
   const encryptionKey = new kms.Key(masterAccountStack, 'CentralBucketKey', {
     alias: `alias/${keyAlias}`,
@@ -130,17 +124,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
       principals: accountPrincipals,
     }),
   );
-
-  // Copy files from source to destination
-  const copyFiles = new S3CopyFiles(masterAccountStack, 'CopyFiles', {
-    roleName: createRoleName('S3CopyFiles'),
-    sourceBucket: centralBucket,
-    destinationBucket: bucket,
-    deleteSourceObjects: false,
-    deleteSourceBucket: false,
-    forceUpdate: true,
-  });
-  copyFiles.node.addDependency(bucket);
 
   new CfnCentralBucketOutput(masterAccountStack, 'CentralBucketOutput', {
     bucketArn: bucket.bucketArn,

@@ -132,55 +132,32 @@ async function copyObject(props: {
   const { sourceBucketName, destinationBucketName, deleteSourceObjects, sourceObject } = props;
   const sourceKey = sourceObject.Key!;
 
-  let destinationLastModified;
+  let object: AWS.S3.GetObjectOutput;
   try {
-    const headObject = await throttlingBackOff(() =>
+    object = await throttlingBackOff(() =>
       s3
-        .headObject({
-          Bucket: destinationBucketName,
+        .getObject({
+          Bucket: sourceBucketName,
           Key: sourceKey,
         })
         .promise(),
     );
-    destinationLastModified = headObject.LastModified;
   } catch (e) {
-    console.debug(`Unable to head S3 object s3://${destinationBucketName}/${sourceKey}: ${e}`);
+    throw new Error(`Unable to get S3 object s3://${sourceBucketName}/${sourceKey}: ${e}`);
   }
 
-  if (
-    !destinationLastModified ||
-    !sourceObject.LastModified ||
-    compareDate(destinationLastModified, sourceObject.LastModified) < 0
-  ) {
-    let object: AWS.S3.GetObjectOutput;
-    try {
-      object = await throttlingBackOff(() =>
-        s3
-          .getObject({
-            Bucket: sourceBucketName,
-            Key: sourceKey,
-          })
-          .promise(),
-      );
-    } catch (e) {
-      throw new Error(`Unable to get S3 object s3://${sourceBucketName}/${sourceKey}: ${e}`);
-    }
-
-    try {
-      await throttlingBackOff(() =>
-        s3
-          .putObject({
-            Bucket: destinationBucketName,
-            Key: sourceKey,
-            Body: object.Body,
-          })
-          .promise(),
-      );
-    } catch (e) {
-      throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${sourceKey}: ${e}`);
-    }
-  } else {
-    console.debug(`Skipping copy of s3://${sourceBucketName}/${sourceKey}`);
+  try {
+    await throttlingBackOff(() =>
+      s3
+        .putObject({
+          Bucket: destinationBucketName,
+          Key: sourceKey,
+          Body: object.Body,
+        })
+        .promise(),
+    );
+  } catch (e) {
+    throw new Error(`Unable to put S3 object s3://${destinationBucketName}/${sourceKey}: ${e}`);
   }
 
   if (deleteSourceObjects) {
