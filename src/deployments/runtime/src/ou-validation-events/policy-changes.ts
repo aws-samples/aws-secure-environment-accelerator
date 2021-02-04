@@ -90,22 +90,22 @@ export const handler = async (input: PolicyChangeEvent) => {
         const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
         const destinationRootOrg = destinationOrg.Name!;
         if (ignoredOus.includes(destinationRootOrg)) {
-          console.log(`DatachPolicy is on IgnoredOu from ROOT, So no need to reAttach`);
+          console.log(`DetachPolicy is on ignored-ou from ROOT, no need to reattach`);
           return 'IGNORE';
         }
       } else {
         const accountObject = accounts.find(acc => acc.accountId === targetId);
         if (ignoredOus.includes(accountObject?.organizationalUnit!)) {
-          console.log(`DatachPolicy is on Account in IgnoredOu from ROOT, So no need to reAttach`);
+          console.log(`DetachPolicy is on account in ignored-ous from ROOT, no need to reattach`);
           return 'IGNORE';
         }
       }
     }
     // ReAttach target to policy
-    console.log(`ReAttaching target "${targetId}" to policy "${policyId}"`);
+    console.log(`Reattaching target "${targetId}" to policy "${policyId}"`);
     await organizations.attachPolicy(policyId, targetId);
   } else if (eventName === 'UpdatePolicy' || eventName === 'DeletePolicy') {
-    console.log(`${eventName}, Changing back to original config from config`);
+    console.log(`${eventName}, changing back to original config from config`);
 
     // Find policy config
     const globalOptionsConfig = config['global-options'];
