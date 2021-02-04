@@ -200,14 +200,12 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
   let keyPolicy = await getKmsKeyPolicy(props.logBucketKmsKeyArn);
 
   if (Object.keys(bucketPolicy).length > 0) {
-    const updatedStatements = removeExistingReadOnlyStatement(bucketPolicy.Statement);
-    bucketPolicy.Statement = updatedStatements;
+    bucketPolicy = removeExistingReadOnlyStatement(bucketPolicy);
     const response = await putBucketPolicy(props.logBucketName, JSON.stringify(bucketPolicy));
   }
 
   if (Object.keys(keyPolicy).length > 0) {
-    const updatedStatements = removeExistingReadOnlyStatement(keyPolicy.Statement);
-    keyPolicy.Statement = updatedStatements;
+    keyPolicy = removeExistingReadOnlyStatement(keyPolicy);
     const response = await putKmsKeyPolicy(props.logBucketKmsKeyArn, JSON.stringify(keyPolicy));
   }
   return {};
