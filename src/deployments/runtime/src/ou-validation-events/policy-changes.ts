@@ -59,6 +59,7 @@ export const handler = async (input: PolicyChangeEvent) => {
 
   const organizationAdminRole = config['global-options']['organization-admin-role']!;
   const configScps = config['global-options'].scps;
+  const ignoredOus: string[] = config['global-options']['ignored-ous'] || [];
   const scpNames = configScps.map(scp =>
     ServiceControlPolicy.policyNameToAcceleratorPolicyName({
       acceleratorPrefix,
@@ -71,24 +72,40 @@ export const handler = async (input: PolicyChangeEvent) => {
     console.warn(`Missing policyId, Ignoring`);
     return 'INVALID_REQUEST';
   }
-  if (!(await isAcceleratorScp(policyId, scpNames))) {
+  const eventName = requestDetail.eventName;
+  if (eventName !== 'DeletePolicy' && !(await isAcceleratorScp(policyId, scpNames))) {
     console.log(`SCP ${policyId} is not managed by Accelerator`);
     return 'SUCCESS';
   }
-  const eventName = requestDetail.eventName;
+  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
+  const { organizationalUnits, accounts } = await loadAccountsAndOrganizationsFromConfig(config);
   if (eventName === 'DetachPolicy') {
     const { targetId } = requestDetail.requestParameters;
     if (!targetId) {
       console.warn(`Missing required parameters, Ignoring`);
       return 'INVALID_REQUEST';
     }
+    if (ignoredOus.length > 0) {
+      if (targetId.startsWith('ou-')) {
+        const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
+        const destinationRootOrg = destinationOrg.Name!;
+        if (ignoredOus.includes(destinationRootOrg)) {
+          console.log(`DatachPolicy is on IgnoredOu from ROOT, So no need to reAttach`);
+          return 'IGNORE';
+        }
+      } else {
+        const accountObject = accounts.find(acc => acc.accountId === targetId);
+        if (ignoredOus.includes(accountObject?.organizationalUnit!)) {
+          console.log(`DatachPolicy is on Account in IgnoredOu from ROOT, So no need to reAttach`);
+          return 'IGNORE';
+        }
+      }
+    }
     // ReAttach target to policy
     console.log(`ReAttaching target "${targetId}" to policy "${policyId}"`);
     await organizations.attachPolicy(policyId, targetId);
   } else if (eventName === 'UpdatePolicy' || eventName === 'DeletePolicy') {
     console.log(`${eventName}, Changing back to original config from config`);
-    const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
-    const { organizationalUnits, accounts } = await loadAccountsAndOrganizationsFromConfig(config);
 
     // Find policy config
     const globalOptionsConfig = config['global-options'];
