@@ -922,7 +922,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -1326,7 +1326,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -1337,7 +1337,7 @@
           {
             "role": "PBMMAccel-RDGW-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -1349,7 +1349,7 @@
           {
             "role": "PBMMAccel-Rsyslog-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": ["AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "AmazonS3ReadOnlyAccess"],
             "boundary-policy": "Default-Boundary-Policy"
           }
@@ -1679,7 +1679,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -3035,7 +3035,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -3618,7 +3618,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -4201,7 +4201,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -4784,7 +4784,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -5605,7 +5605,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -6091,7 +6091,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",

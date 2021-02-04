@@ -73,6 +73,13 @@
 
 ---
 
+- Add a policy to a role in the account to enable RO access to the Log Archive bucket
+
+```
+   "ssm-log-archive-read-only-access": true
+```
+
+---
 - CloudWatch Metric Filters and Alarms
 
 ```
