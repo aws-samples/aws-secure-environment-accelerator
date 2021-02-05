@@ -361,7 +361,7 @@ export namespace InitialSetup {
           'accounts.$': '$.configuration.accounts',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
           'organizationAdminRole.$': '$.configuration.organizationAdminRole',
-          'smInput.$': '$.configuration.smInput,'
+          'smInput.$': '$.configuration.smInput',
         },
         resultPath: '$',
       });

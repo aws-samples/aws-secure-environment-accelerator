@@ -6,7 +6,6 @@ import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 
-
 export interface SMInput {
   scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
   mode?: 'APPLY';
@@ -46,8 +45,8 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     accounts,
     smInput,
   } = input;
-  
-  const {loadAccounts, loadOus, mode, scope } = smInput;
+
+  const { loadAccounts, loadOus, mode, scope } = smInput;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
