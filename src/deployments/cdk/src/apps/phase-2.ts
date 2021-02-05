@@ -27,6 +27,7 @@ import * as guardDutyDeployment from '../deployments/guardduty';
 import * as snsDeployment from '../deployments/sns';
 import * as ssmDeployment from '../deployments/ssm';
 import { getStackJsonOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { logArchiveReadOnlyAccess } from '../deployments/s3/log-archive-read-access';
 
 /**
  * This is the main entry point to deploy phase 2
@@ -343,6 +344,14 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     accounts,
     logBucket,
     outputs,
+  });
+
+  await logArchiveReadOnlyAccess({
+    accountStacks,
+    accounts,
+    logBucket,
+    config: acceleratorConfig,
+    acceleratorPrefix: context.acceleratorPrefix,
   });
 
   await tgwDeployment.acceptPeeringAttachment({

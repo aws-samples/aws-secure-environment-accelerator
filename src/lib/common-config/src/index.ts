@@ -242,6 +242,8 @@ export const IamPolicyConfigType = t.interface({
   policy: NonEmptyString,
 });
 
+// ssm-log-archive-access will be deprecated in a future release.
+// ssm-log-archive-write-access should be used instead
 export const IamRoleConfigType = t.interface({
   role: NonEmptyString,
   type: NonEmptyString,
@@ -251,6 +253,8 @@ export const IamRoleConfigType = t.interface({
   'source-account-role': optional(t.string),
   'trust-policy': optional(t.string),
   'ssm-log-archive-access': optional(t.boolean),
+  'ssm-log-archive-write-access': optional(t.boolean),
+  'ssm-log-archive-read-only-access': optional(t.boolean),
 });
 
 export const IamConfigType = t.interface({
