@@ -12,11 +12,17 @@ export interface LoadAccountsInput extends LoadConfigurationInput {
   itemId: string;
   accounts: ConfigurationAccount[];
   regions: string[];
+  scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  mode?: 'APPLY';
+  loadOus?: string[];
+  loadAccounts?: string[];
 }
 
 export interface LoadAccountsOutput {
   accounts: string[];
   regions: string[];
+  scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  mode: 'APPLY';
 }
 
 const dynamoDB = new DynamoDB();
@@ -34,6 +40,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     configCommitId,
     configFilePath,
     accounts,
+    mode,
+    scope,
+    loadAccounts,
+    loadOus,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -85,6 +95,24 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       console.warn(`Account ${accountKey} is suspended`);
       continue;
     }
+    let accountScope: boolean = true;
+    if (scope === 'NEW-ACCOUNTS') {
+      accountScope =
+        mandatoryAccountKeys.includes(accountKey) || !!accounts.find(acc => acc.accountId === organizationAccount.Id);
+    } else if (scope === 'ACCOUNT') {
+      accountScope =
+        mandatoryAccountKeys.includes(accountKey) ||
+        (!!loadAccounts &&
+          !!organizationAccount.Id &&
+          loadAccounts.length > 0 &&
+          loadAccounts.includes(organizationAccount.Id));
+    } else if (scope === 'OU') {
+      accountScope =
+        mandatoryAccountKeys.includes(accountKey) ||
+        (!!loadOus && loadOus.length > 0 && loadOus.includes(accountConfig.ou));
+    } else if (['FULL', 'GLOBAL-OPTIONS'].includes(scope!)) {
+      accountScope = true;
+    }
 
     returnAccounts.push({
       key: accountKey,
@@ -96,6 +124,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       ouPath: accountConfig['ou-path'],
       isMandatory: mandatoryAccountKeys.includes(accountKey),
       isNew: !!accounts.find(acc => acc.accountId === organizationAccount.Id),
+      inScope: accountScope,
     });
   }
 
@@ -120,10 +149,22 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     getUpdateItemInput(parametersTableName, accountsItemsCountId, JSON.stringify(accountsChunk.length)),
   );
 
-  const accountIds: string[] = returnAccounts.map(acc => acc.id);
+  const accountIds: string[] = [];
+  if (scope === 'FULL') {
+    console.log('Scope is "FULL", Deploying in all accounts');
+    accountIds.push(...returnAccounts.map(acc => acc.id));
+  } else if (scope === 'NEW-ACCOUNTS') {
+    console.log('Scope is "NEW-ACCOUNTS", Deploying in mandatory and new accounts');
+    accountIds.push(
+      ...returnAccounts.filter(acc => acc.isMandatory).map(a => a.id),
+      ...returnAccounts.filter(acc => acc.isNew).map(a => a.id),
+    );
+  }
   return {
     ...input,
     // Return based on execution scope.
     accounts: accountIds,
+    scope: scope || 'NEW-ACCOUNTS',
+    mode: mode || 'APPLY',
   };
 };

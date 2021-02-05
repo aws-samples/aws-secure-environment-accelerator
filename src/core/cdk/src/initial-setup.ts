@@ -155,7 +155,7 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
-          'inputConfig.$': '$',
+          'input.$': '$',
           'executionArn.$': '$$.Execution.Id',
           'stateMachineArn.$': '$$.StateMachine.Id',
           acceleratorPrefix: props.acceleratorPrefix,
@@ -170,7 +170,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'inputConfig.$': '$',
+          'inputConfig.$': '$.input',
           region: cdk.Aws.REGION,
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',
@@ -606,6 +606,8 @@ export namespace InitialSetup {
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,
           STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
+          'SCOPE.$': '$.scope',
+          'MODE.$': '$.mode',
         };
 
         const deployTask = new tasks.StepFunctionsStartExecution(this, `Deploy Phase ${phase}`, {

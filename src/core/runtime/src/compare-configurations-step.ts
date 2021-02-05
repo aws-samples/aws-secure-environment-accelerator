@@ -3,13 +3,17 @@ import { compareAcceleratorConfig } from '@aws-accelerator/common-config/src/com
 import { getCommitIdSecretName } from '@aws-accelerator/common-outputs/src/commitid-secret';
 
 export interface StepInput extends ConfigurationInput {
-  inputConfig: CompareConfigurationInput;
+  inputConfig: AcceleratorInput;
   region: string;
 }
 
-export interface CompareConfigurationInput {
-  configOverrides: { [key: string]: boolean } | undefined;
-  overrideComparison: boolean | undefined;
+export interface AcceleratorInput {
+  configOverrides?: { [key: string]: boolean };
+  overrideComparison?: boolean;
+  scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  mode?: 'APPLY';
+  loadAccounts?: string[];
+  loadOous?: string[];
 }
 
 export interface ConfigurationInput {

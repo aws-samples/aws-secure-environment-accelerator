@@ -51,8 +51,7 @@ export async function step3(props: VpcStep3Props) {
       sr.accountKey,
       sr.region,
       `${STACK_SUFFIX}-${sr.suffix}`,
-      srLocalAccount?.isMandatory,
-      srLocalAccount?.isNew,
+      srLocalAccount?.inScope,
     );
   }
 
@@ -158,8 +157,7 @@ export async function step3(props: VpcStep3Props) {
         accountKey,
         vpcConfig.region,
         stackSuffix,
-        loocalAccount?.isMandatory,
-        loocalAccount?.isNew,
+        loocalAccount?.inScope,
       );
       if (!accountStack) {
         console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
@@ -226,8 +224,7 @@ export async function step3(props: VpcStep3Props) {
       sr.accountKey,
       sr.region,
       `${STACK_SUFFIX}-${sr.suffix}`,
-      srLocalAccount?.isMandatory,
-      srLocalAccount?.isNew,
+      srLocalAccount?.inScope,
     );
     if (!accountStack) {
       throw new Error(

@@ -73,8 +73,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
       sr.accountKey,
       sr.region,
       `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
-      srLocalAccount?.isMandatory,
-      srLocalAccount?.isNew,
+      srLocalAccount?.inScope,
     );
   }
 
@@ -228,8 +227,7 @@ export async function step4(props: CentralEndpointsStep4Props) {
       sr.accountKey,
       sr.region,
       `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
-      srLocalAccount?.isMandatory,
-      srLocalAccount?.isNew,
+      srLocalAccount?.inScope,
     );
     if (!accountStack) {
       throw new Error(

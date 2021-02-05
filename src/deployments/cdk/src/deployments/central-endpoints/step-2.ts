@@ -62,8 +62,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
       sr.accountKey,
       sr.region,
       `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
-      localAccount?.isMandatory,
-      localAccount?.isNew,
+      localAccount?.inScope,
     );
   }
 
@@ -74,8 +73,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
       sr.accountKey,
       sr.region,
       STACK_CENTRAL_VPC_COMMON_SUFFIX,
-      localAccount?.isMandatory,
-      localAccount?.isNew,
+      localAccount?.inScope,
     );
   }
 
@@ -203,8 +201,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
       accountKey,
       vpcConfig.region,
       stackSuffix,
-      localAccount?.isMandatory,
-      localAccount?.isNew,
+      localAccount?.inScope,
     );
     if (!accountStack) {
       console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while deploying Resolver Endpoints`);
@@ -386,8 +383,7 @@ export async function step2(props: CentralEndpointsStep2Props) {
       sr.accountKey,
       sr.region,
       `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
-      srLocalAccount?.isMandatory,
-      srLocalAccount?.isNew,
+      srLocalAccount?.inScope,
     );
     if (!accountStack) {
       throw new Error(

@@ -11,8 +11,7 @@ export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountKey: string;
   region: string;
   suffix?: string;
-  isMandatory?: boolean;
-  isNew?: boolean;
+  inScope?: boolean;
 }
 
 /**
@@ -22,8 +21,7 @@ export class AccountStack extends AcceleratorStack {
   readonly accountId: string;
   readonly accountKey: string;
   readonly suffix?: string;
-  readonly isMandatory?: boolean;
-  readonly isNew?: boolean;
+  readonly inScope?: boolean;
 
   constructor(readonly app: cdk.Stage, id: string, props: AccountStackProps) {
     super(app, id, {
@@ -37,8 +35,7 @@ export class AccountStack extends AcceleratorStack {
     this.accountId = props.accountId;
     this.accountKey = props.accountKey;
     this.suffix = props.suffix;
-    this.isMandatory = props.isMandatory;
-    this.isNew = props.isNew;
+    this.inScope = props.inScope;
   }
 }
 
@@ -106,8 +103,7 @@ export class AccountStacks {
     accountKey: string,
     region?: string,
     suffix?: string,
-    isMandatory?: boolean,
-    isNew?: boolean,
+    inScope?: boolean,
   ): AccountStack | undefined {
     const regionOrDefault = region ?? this.props.context.defaultRegion;
     const existingApp = !suffix
@@ -138,8 +134,7 @@ export class AccountStacks {
         terminationProtection,
         region: regionOrDefault,
         suffix,
-        isMandatory,
-        isNew,
+        inScope,
       },
     });
     this.apps.push(app);
