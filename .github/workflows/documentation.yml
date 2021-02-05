@@ -84,6 +84,14 @@ jobs:
         run: |
           cp reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.lite-example.json
 
+      - name: Copy file output 2b2
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.multi-region-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.multi-region-example.json
+
+      - name: Copy file output 2b3
+        run: |
+          cp reference-artifacts/SAMPLE_CONFIGS/config.ultralite-example.json ${{ steps.setup.outputs.dir }}/2b-${{ steps.setup.outputs.prefix }}-config.ultralite-example.json
+
       - name: PDF output 2c
         uses: docker://pandoc/latex:2.10
         with:
@@ -141,8 +149,8 @@ jobs:
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
-            -V geometry:paperwidth=8.5in
-            -V geometry:paperheight=11in
+            -V geometry:paperwidth=11in
+            -V geometry:paperheight=8.5in
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
@@ -156,8 +164,8 @@ jobs:
             --from=gfm
             --resource-path=.:docs/architectures/pbmm:docs/installation:docs/operations
             -V linkcolor:blue
-            -V geometry:paperwidth=8.5in
-            -V geometry:paperheight=11in
+            -V geometry:paperwidth=11in
+            -V geometry:paperheight=8.5in
             -V geometry:margin=.8in
             -V documentclass=report
             --pdf-engine=xelatex
