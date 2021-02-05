@@ -155,7 +155,7 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
-          'input.$': '$',
+          'smInput.$': '$',
           'executionArn.$': '$$.Execution.Id',
           'stateMachineArn.$': '$$.StateMachine.Id',
           acceleratorPrefix: props.acceleratorPrefix,
@@ -170,7 +170,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'inputConfig.$': '$.input',
+          'inputConfig.$': '$.smInput',
           region: cdk.Aws.REGION,
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',

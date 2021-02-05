@@ -15,7 +15,7 @@ interface GetOrCreateConfigInput {
   acceleratorVersion?: string;
   // Taking entire input to replace any default paramaters in SM Input
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  inputConfig?: any;
+  smInput?: any;
 }
 
 const codecommit = new CodeCommit();
@@ -32,13 +32,13 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     s3Bucket,
     branchName,
     acceleratorVersion,
-    inputConfig,
+    smInput,
     executionArn,
     stateMachineArn,
     acceleratorPrefix,
   } = input;
   await beforeStart(acceleratorPrefix, stateMachineArn, executionArn);
-  const storeAllOutputs: boolean = !!inputConfig.storeAllOutputs;
+  const storeAllOutputs: boolean = !!smInput.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
     console.log(`Creating repository "${repositoryName}" for Config file`);
