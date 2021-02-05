@@ -38,7 +38,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     acceleratorPrefix,
   } = input;
   await beforeStart(acceleratorPrefix, stateMachineArn, executionArn);
-  const storeAllOutputs: boolean = !!smInput.storeAllOutputs;
+  const storeAllOutputs: boolean = !!smInput && !!smInput.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
     console.log(`Creating repository "${repositoryName}" for Config file`);
@@ -89,6 +89,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         ...s3LoadResponse,
         acceleratorVersion,
         storeAllOutputs,
+        smInput: smInput || {},
       };
     }
     const currentCommit = await codecommit.getBranch(repositoryName, branchName);
@@ -144,6 +145,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       acceleratorVersion,
       configRootFilePath: filePath,
       storeAllOutputs,
+      smInput: smInput || {},
     };
   } catch (e) {
     if (e.code !== 'FileDoesNotExistException' && e.code !== 'CommitDoesNotExistException') {
@@ -171,6 +173,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       ...s3LoadResponse,
       acceleratorVersion,
       storeAllOutputs,
+      smInput: smInput || {},
     };
   }
 };
