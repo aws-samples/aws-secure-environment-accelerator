@@ -151,17 +151,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     getUpdateItemInput(parametersTableName, accountsItemsCountId, JSON.stringify(accountsChunk.length)),
   );
 
-  const accountIds: string[] = [];
-  if (scope === 'FULL') {
-    console.log('Scope is "FULL", Deploying in all accounts');
-    accountIds.push(...returnAccounts.map(acc => acc.id));
-  } else if (!scope || scope === 'NEW-ACCOUNTS') {
-    console.log('Scope is "NEW-ACCOUNTS", Deploying in mandatory and new accounts');
-    accountIds.push(
-      ...returnAccounts.filter(acc => acc.isMandatory).map(a => a.id),
-      ...returnAccounts.filter(acc => acc.isNew).map(a => a.id),
-    );
-  }
+  const accountIds: string[] = returnAccounts.filter(acc => acc.inScope).map(a => a.id);
   return {
     ...input,
     // Return based on execution scope.
