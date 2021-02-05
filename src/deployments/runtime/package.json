@@ -54,7 +54,7 @@
     "@aws-accelerator/common-outputs": "workspace:^0.0.1",
     "@aws-accelerator/common-config": "workspace:^0.0.1",
     "adm-zip": "0.4.14",
-    "aws-lambda": "1.0.5",
+    "aws-lambda": "1.0.6",
     "aws-sdk": "2.787.0",
     "cfn-response": "1.0.1",
     "generate-password": "1.5.1",

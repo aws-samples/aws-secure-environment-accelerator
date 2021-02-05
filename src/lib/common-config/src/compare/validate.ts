@@ -13,11 +13,12 @@ const GLOBAL_OPTIONS_CLS_REGION = ['global-options', 'central-log-services', 're
 /**
  * config path(s) for mandatory accounts vpc(s)
  */
+const ACCOUNT_VPC = ['mandatory-account-configs', 'vpc'];
 const ACCOUNT_VPC_NAME = ['mandatory-account-configs', 'vpc', 'name'];
 const ACCOUNT_VPC_REGION = ['mandatory-account-configs', 'vpc', 'region'];
 const ACCOUNT_VPC_DEPLOY = ['mandatory-account-configs', 'vpc', 'deploy'];
-const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr', 'ipv4', 'value'];
-const ACCOUNT_VPC_CIDR2 = ['mandatory-account-configs', 'vpc', 'cidr2', 'ipv4', 'value'];
+const ACCOUNT_VPC_CIDR = ['mandatory-account-configs', 'vpc', 'cidr'];
+const ACCOUNT_VPC_CIDR2 = ['mandatory-account-configs', 'vpc', 'cidr2'];
 
 /**
  * config path(s) for mandatory accounts vpc subnets
@@ -25,8 +26,8 @@ const ACCOUNT_VPC_CIDR2 = ['mandatory-account-configs', 'vpc', 'cidr2', 'ipv4', 
 const ACCOUNT_SUBNETS = ['mandatory-account-configs', 'vpc', 'subnets'];
 const ACCOUNT_SUBNET_NAME = ['mandatory-account-configs', 'vpc', 'subnets', 'name'];
 const ACCOUNT_SUBNET_AZ = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'az'];
-const ACCOUNT_SUBNET_CIDR = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr', 'ipv4', 'value'];
-const ACCOUNT_SUBNET_CIDR2 = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr2', 'ipv4', 'value'];
+const ACCOUNT_SUBNET_CIDR = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr'];
+const ACCOUNT_SUBNET_CIDR2 = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'cidr2'];
 const ACCOUNT_SUBNET_DISABLED = ['mandatory-account-configs', 'vpc', 'subnets', 'definitions', 'disabled'];
 
 /**
@@ -57,11 +58,12 @@ const VGW_ASN = ['mandatory-account-configs', 'vpc', 'vgw', 'asn'];
 /**
  * config path(s) for organizational units - vpc
  */
+const OU_VPC = ['organizational-units', 'vpc'];
 const OU_VPC_NAME = ['organizational-units', 'vpc', 'name'];
 const OU_VPC_REGION = ['organizational-units', 'vpc', 'region'];
 const OU_VPC_DEPLOY = ['organizational-units', 'vpc', 'deploy'];
-const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr', 'ipv4', 'value'];
-const OU_VPC_CIDR2 = ['organizational-units', 'vpc', 'cidr2', 'ipv4', 'value'];
+const OU_VPC_CIDR = ['organizational-units', 'vpc', 'cidr'];
+const OU_VPC_CIDR2 = ['organizational-units', 'vpc', 'cidr2'];
 
 /**
  * config path(s) for organizational units vpc subnets
@@ -69,8 +71,8 @@ const OU_VPC_CIDR2 = ['organizational-units', 'vpc', 'cidr2', 'ipv4', 'value'];
 const OU_SUBNETS = ['organizational-units', 'vpc', 'subnets'];
 const OU_SUBNET_NAME = ['organizational-units', 'vpc', 'subnets', 'name'];
 const OU_SUBNET_AZ = ['organizational-units', 'vpc', 'subnets', 'definitions', 'az'];
-const OU_SUBNET_CIDR = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr', 'ipv4', 'value'];
-const OU_SUBNET_CIDR2 = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr2', 'ipv4', 'value'];
+const OU_SUBNET_CIDR = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr'];
+const OU_SUBNET_CIDR2 = ['organizational-units', 'vpc', 'subnets', 'definitions', 'cidr2'];
 const OU_SUBNET_DISABLED = ['organizational-units', 'vpc', 'subnets', 'definitions', 'disabled'];
 
 /**
@@ -204,6 +206,8 @@ export async function validateAccountOu(differences: Diff<LHS, RHS>[], errors: s
  * @param errors
  */
 export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
+  // the below function checks vpc deletion from Account Config
+  errors.push(...validateConfig.deletedConfigEntry(differences, ACCOUNT_VPC, 'vpc'));
   // the below function checks vpc deploy of the account
   const accountVpcDeploy = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_DEPLOY, 5);
   if (accountVpcDeploy) {
@@ -217,13 +221,13 @@ export async function validateAccountVpc(differences: Diff<LHS, RHS>[], errors: 
   }
 
   // the below function checks vpc cidr of the account
-  const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 8);
+  const accountVpcCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR, 5);
   if (accountVpcCidr) {
     errors.push(...accountVpcCidr);
   }
 
   // the below function checks vpc cidr2 of the account
-  const accountVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR2, 8);
+  const accountVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_VPC_CIDR2, 5);
   if (accountVpcCidr2) {
     errors.push(...accountVpcCidr2);
   }
@@ -259,13 +263,13 @@ export async function validateAccountSubnets(differences: Diff<LHS, RHS>[], erro
   }
 
   // the below function checks subnet cidr of the account
-  const accountSubnetCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 12);
+  const accountSubnetCidr = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR, 9);
   if (accountSubnetCidr) {
     errors.push(...accountSubnetCidr);
   }
 
   // the below function checks subnet cidr of the account
-  const accountSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR2, 12);
+  const accountSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, ACCOUNT_SUBNET_CIDR2, 9);
   if (accountSubnetCidr2) {
     errors.push(...accountSubnetCidr2);
   }
@@ -376,6 +380,8 @@ export async function validateVgw(differences: Diff<LHS, RHS>[], errors: string[
  * @param errors
  */
 export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: string[]): Promise<void> {
+  // the below function checks vpc deletion from Organizational Unit
+  errors.push(...validateConfig.deletedConfigEntry(differences, OU_VPC, 'vpc'));
   // the below function checks vpc deploy of the account
   const ouVpcDeploy = validateConfig.matchEditedConfigDependency(differences, OU_VPC_DEPLOY, 5);
   if (ouVpcDeploy) {
@@ -389,13 +395,13 @@ export async function validateOuVpc(differences: Diff<LHS, RHS>[], errors: strin
   }
 
   // the below function checks vpc cidr of the account
-  const ouVpcCidr = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 8);
+  const ouVpcCidr = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR, 5);
   if (ouVpcCidr) {
     errors.push(...ouVpcCidr);
   }
 
   // the below function checks vpc cidr2 of the account
-  const ouVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR2, 8);
+  const ouVpcCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_VPC_CIDR2, 5);
   if (ouVpcCidr2) {
     errors.push(...ouVpcCidr2);
   }
@@ -431,13 +437,13 @@ export async function validateOuSubnets(differences: Diff<LHS, RHS>[], errors: s
   }
 
   // the below function checks subnet cidr of the account
-  const ouSubnetCidr = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 12);
+  const ouSubnetCidr = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR, 9);
   if (ouSubnetCidr) {
     errors.push(...ouSubnetCidr);
   }
 
   // the below function checks subnet cidr of the account
-  const ouSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR2, 12);
+  const ouSubnetCidr2 = validateConfig.matchEditedConfigDependency(differences, OU_SUBNET_CIDR2, 9);
   if (ouSubnetCidr2) {
     errors.push(...ouSubnetCidr2);
   }

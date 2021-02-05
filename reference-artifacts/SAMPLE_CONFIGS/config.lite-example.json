@@ -281,7 +281,7 @@
           "accounts": ["master"],
           "regions": ["ca-central-1"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
-          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\")}",
+          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\") && ($.userIdentity.type != \"AssumedRole\")}",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "ConsoleSignInWithoutMfaCount",
           "metric-value": "1"
@@ -341,9 +341,19 @@
           "accounts": ["master"],
           "regions": ["ca-central-1"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
-          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && (($.sourceIPAddress != 10.10.10.*) || ($.sourceIPAddress != 10.10.*) || ($.sourceIPAddress != 10.*))}",
+          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != 10.10.10.*) }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "SSOAuthUnapprovedIPCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IAMAuthUnapprovedIPMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != 10.10.10.*) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IAMAuthUnapprovedIPCount",
           "metric-value": "1"
         },
         {
@@ -471,6 +481,12 @@
             "metric-name": "SSOAuthUnapprovedIPCount",
             "sns-alert-level": "High",
             "alarm-description": "Alarms when someone authenticates using AWS SSO from an unauthorized IP address range."
+          },
+          {
+            "alarm-name": "AWS-IAM-Authentication-From-Unapproved-IP",
+            "metric-name": "IAMAuthUnapprovedIPCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when someone authenticates using AWS IAM from an unauthorized IP address range."
           },
           {
             "alarm-name": "AWS-Unencrypted-Filesystem-Created",
@@ -918,7 +934,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -1058,7 +1074,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -1069,7 +1085,7 @@
           {
             "role": "PBMMAccel-RDGW-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -1081,7 +1097,7 @@
           {
             "role": "PBMMAccel-Rsyslog-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": ["AmazonSSMManagedInstanceCore", "CloudWatchAgentServerPolicy", "AmazonS3ReadOnlyAccess"],
             "boundary-policy": "Default-Boundary-Policy"
           }
@@ -1410,7 +1426,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -2481,7 +2497,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -3064,7 +3080,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -3647,7 +3663,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -4230,7 +4246,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",
@@ -4716,7 +4732,7 @@
           {
             "role": "EC2-Default-SSM-AD-Role",
             "type": "ec2",
-            "ssm-log-archive-access": true,
+            "ssm-log-archive-write-access": true,
             "policies": [
               "AmazonSSMManagedInstanceCore",
               "AmazonSSMDirectoryServiceAccess",

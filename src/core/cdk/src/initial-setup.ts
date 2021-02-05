@@ -174,6 +174,10 @@ export namespace InitialSetup {
         functionPayload: {
           'inputConfig.$': '$',
           region: cdk.Aws.REGION,
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configuration.configFilePath',
+          'configCommitId.$': '$.configuration.configCommitId',
+          'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'baseline.$': '$.configuration.baselineOutput.baseline',
         },
         resultPath: 'DISCARD',

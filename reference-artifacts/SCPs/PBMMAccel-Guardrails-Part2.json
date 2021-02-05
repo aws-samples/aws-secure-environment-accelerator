@@ -103,7 +103,7 @@
     },
     {
       "Effect": "Deny",
-      "Action": ["kms:DeleteAlias", "kms:UpdateAlias", "kms:DisableKey", "kms:ImportKeyMaterial", "kms:PutKeyPolicy"],
+      "Action": ["kms:DeleteAlias", "kms:UpdateAlias", "kms:DisableKey", "kms:ImportKeyMaterial", "kms:PutKeyPolicy", "kms:ScheduleKeyDeletion"],
       "Resource": "arn:aws:kms:::alias/PBMMAccel*",
       "Condition": {
         "ArnNotLike": {

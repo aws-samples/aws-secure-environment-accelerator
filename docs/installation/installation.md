@@ -217,7 +217,8 @@ If deploying to an internal AWS employee account, to successfully install the so
 
 1. You can find the latest release in the repository [here](https://github.com/aws-samples/aws-secure-environment-accelerator/releases).
 2. Download the CloudFormation (CFN) template `AcceleratorInstallerXXX.template.json` for the release you plan to install
-3. Use the provided CloudFormation template to deploy a new stack in your AWS account
+3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
+   - As previously stated we do not support installation in sub-accounts
 4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
 6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
@@ -310,6 +311,12 @@ Issues in Older Releases:
 ## 3.1. Considerations
 
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
+- If you have customized any of the additional Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.):
+  - customers must manually merge Accelerator provided updates with your deployed customizations;
+  - failure to do so could result in either a) broken Accelerator functionality, or b) dropped customer guardrail enhancements;
+  - prior to v1.2.5, if customers don't take action, the utilized configurations will revert to the latest Accelerator provided defaults. Update the last modified date on each custom config file in your input bucket and rerun the state machine post-upgrade to re-apply customizations;
+  - post v1.2.5, if customers don't take action, we will continue to utilize a customers customized configurations regardless of each files timestamp;
+  - in both cases it is important customers assess the new defaults and integrate them into their custom configuration or it could break Accelerator functionality.
 - Upgrades to `v1.2.5 and above` from `v1.2.4 and below` requires the manual removal of the `PBMMAccel-PipelineRole` StackSet before beginning your upgrade (we have eliminated all use of StackSets in this release)
   - In the root AWS account, go to: CloudFormation, StackSets
   - Find: `PBMMAccel-PipelineRole`, and Select the: `Stack Instances` tab
@@ -328,15 +335,13 @@ Issues in Older Releases:
 1. Ensure a valid Github token is stored in secrets manager
 2. Review the upgrade considerations in section 3.1.
 3. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
-4. If you are replacing your GitHub Token:
-
+4. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations (before upgrade in v1.2.5+, after upgrade in prior releases)
+5. If you are replacing your GitHub Token:
    - Take note of the s3 bucket name from the stack parameters
    - Delete the Installer CFN stack (`PBMMAccel-what-you-provided`)
    - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
    - The pipeline will automatically run and trigger the upgraded state machine
-
-5. If you are using a pre-existing GitHub token:
-
+6. If you are using a pre-existing GitHub token:
    - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.3`)
      - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 

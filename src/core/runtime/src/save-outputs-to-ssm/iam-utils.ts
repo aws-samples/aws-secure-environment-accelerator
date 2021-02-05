@@ -249,15 +249,17 @@ export async function saveIamPolicy(
       }
     }
 
-    const ssmPolicyLength = iamConfig.roles?.filter(r => r['ssm-log-archive-access']).length;
+    const ssmPolicyLength = iamConfig.roles?.filter(
+      r => r['ssm-log-archive-write-access'] || r['ssm-log-archive-access'],
+    ).length;
     if (ssmPolicyLength && ssmPolicyLength !== 0) {
       const ssmPolicyOutput = IamPolicyOutputFinder.findOneByName({
         outputs,
         accountKey,
-        policyKey: 'IamSsmAccessPolicy',
+        policyKey: 'IamSsmWriteAccessPolicy',
       });
       if (!ssmPolicyOutput) {
-        console.warn(`Didn't find IAM SSM Log Archive Access Policy in output`);
+        console.warn(`Didn't find IAM SSM Log Archive Write Access Policy in output`);
         continue;
       }
       let currentIndex: number;
