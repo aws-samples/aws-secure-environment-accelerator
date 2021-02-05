@@ -170,7 +170,7 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'inputConfig.$': '$.smInput',
+          'inputConfig.$': '$.configuration.smInput',
           region: cdk.Aws.REGION,
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',
@@ -361,6 +361,7 @@ export namespace InitialSetup {
           'accounts.$': '$.configuration.accounts',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
           'organizationAdminRole.$': '$.configuration.organizationAdminRole',
+          'smInput.$': '$.configuration.smInput,'
         },
         resultPath: '$',
       });

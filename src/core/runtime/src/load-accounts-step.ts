@@ -6,16 +6,20 @@ import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 
+
+export interface SMInput {
+  scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  mode?: 'APPLY';
+  loadOus?: string[];
+  loadAccounts?: string[];
+}
 export interface LoadAccountsInput extends LoadConfigurationInput {
   accountsItemsCountId: string;
   parametersTableName: string;
   itemId: string;
   accounts: ConfigurationAccount[];
   regions: string[];
-  scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
-  mode?: 'APPLY';
-  loadOus?: string[];
-  loadAccounts?: string[];
+  smInput: SMInput;
 }
 
 export interface LoadAccountsOutput {
@@ -40,11 +44,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     configCommitId,
     configFilePath,
     accounts,
-    mode,
-    scope,
-    loadAccounts,
-    loadOus,
+    smInput,
   } = input;
+  
+  const {loadAccounts, loadOus, mode, scope } = smInput;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -96,7 +99,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       continue;
     }
     let accountScope: boolean = true;
-    if (scope === 'NEW-ACCOUNTS') {
+    if (!scope || scope === 'NEW-ACCOUNTS') {
       accountScope =
         mandatoryAccountKeys.includes(accountKey) || !!accounts.find(acc => acc.accountId === organizationAccount.Id);
     } else if (scope === 'ACCOUNT') {
@@ -110,7 +113,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       accountScope =
         mandatoryAccountKeys.includes(accountKey) ||
         (!!loadOus && loadOus.length > 0 && loadOus.includes(accountConfig.ou));
-    } else if (['FULL', 'GLOBAL-OPTIONS'].includes(scope!)) {
+    } else if (['FULL', 'GLOBAL-OPTIONS'].includes(scope)) {
       accountScope = true;
     }
 
@@ -153,7 +156,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   if (scope === 'FULL') {
     console.log('Scope is "FULL", Deploying in all accounts');
     accountIds.push(...returnAccounts.map(acc => acc.id));
-  } else if (scope === 'NEW-ACCOUNTS') {
+  } else if (!scope || scope === 'NEW-ACCOUNTS') {
     console.log('Scope is "NEW-ACCOUNTS", Deploying in mandatory and new accounts');
     accountIds.push(
       ...returnAccounts.filter(acc => acc.isMandatory).map(a => a.id),
