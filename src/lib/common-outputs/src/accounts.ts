@@ -11,6 +11,8 @@ export interface Account {
   email: string;
   type?: LandingZoneAccountType;
   ouPath?: string;
+  isMandatory?: boolean;
+  isNew?: boolean;
   inScope?: boolean;
 }
 
