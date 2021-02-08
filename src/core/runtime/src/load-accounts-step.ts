@@ -9,8 +9,8 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 export interface SMInput {
   scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
   mode?: 'APPLY';
-  loadOus?: string[];
-  loadAccounts?: string[];
+  targetOus?: string[];
+  targetAccounts?: string[];
 }
 export interface LoadAccountsInput extends LoadConfigurationInput {
   accountsItemsCountId: string;
@@ -46,7 +46,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     smInput,
   } = input;
 
-  const { loadAccounts, loadOus, mode, scope } = smInput;
+  const { targetAccounts, targetOus, mode, scope } = smInput;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -97,21 +97,40 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       console.warn(`Account ${accountKey} is suspended`);
       continue;
     }
+
+    // Set inScope in account object based on "scope", "targetAccounts" and "targetOus"
     let accountScope: boolean = true;
     if (!scope || scope === 'NEW-ACCOUNTS') {
       accountScope =
         mandatoryAccountKeys.includes(accountKey) || !!accounts.find(acc => acc.accountId === organizationAccount.Id);
     } else if (scope === 'ACCOUNT') {
-      accountScope =
-        mandatoryAccountKeys.includes(accountKey) ||
-        (!!loadAccounts &&
-          !!organizationAccount.Id &&
-          loadAccounts.length > 0 &&
-          loadAccounts.includes(organizationAccount.Id));
+      if (targetAccounts && targetAccounts.length > 0) {
+        accountScope =
+          // LOAD Mandatory Accounts irrespective of targetAccounts
+          mandatoryAccountKeys.includes(accountKey) ||
+          // LOAD NEW accounts if scope="ACCOUNT", "NEW" in targetAccounts
+          (targetAccounts.includes('NEW') && !!accounts.find(acc => acc.accountId === organizationAccount.Id)) ||
+          // LOAD ALL accounts if scope="ACCOUNT", "ALL" in targetAccounts
+          targetAccounts.includes('ALL') ||
+          // LOAD accounts which are in targetAccounts if scope="ACCOUNT", account in targetAccounts
+          (!!organizationAccount.Id && targetAccounts.includes(organizationAccount.Id));
+      } else {
+        // Load Only mandatory accounts if scope="ACCOUNT", targetAccounts is null
+        accountScope = mandatoryAccountKeys.includes(accountKey);
+      }
     } else if (scope === 'OU') {
-      accountScope =
-        mandatoryAccountKeys.includes(accountKey) ||
-        (!!loadOus && loadOus.length > 0 && loadOus.includes(accountConfig.ou));
+      if (targetOus && targetOus.length > 0) {
+        accountScope =
+          // LOAD Mandatory Accounts irrespective of targetOus
+          mandatoryAccountKeys.includes(accountKey) ||
+          // LOAD ALL accounts if scope="OU", "ALL" in targetOus
+          targetOus.includes('ALL') ||
+          // LOAD accounts which are under OU in targetOus if scope="OU", ou in targetOus
+          (!!targetOus && targetOus.length > 0 && targetOus.includes(accountConfig.ou));
+      } else {
+        // Load Only mandatory accounts if scope="OU", targetOus is null
+        accountScope = mandatoryAccountKeys.includes(accountKey);
+      }
     } else if (['FULL', 'GLOBAL-OPTIONS'].includes(scope)) {
       accountScope = true;
     }

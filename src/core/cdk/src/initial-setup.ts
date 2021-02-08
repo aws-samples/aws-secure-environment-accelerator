@@ -177,6 +177,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'baseline.$': '$.configuration.baselineOutput.baseline',
+          parametersTableName: parametersTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -234,6 +235,7 @@ export namespace InitialSetup {
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
           'organizationAdminRole.$': '$.configuration.baselineOutput.organizationAdminRole',
+          'smInput.$': '$.configuration.smInput',
         },
         resultPath: '$.configuration',
       });

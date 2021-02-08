@@ -1,10 +1,13 @@
 import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { compareAcceleratorConfig } from '@aws-accelerator/common-config/src/compare/main';
 import { getCommitIdSecretName } from '@aws-accelerator/common-outputs/src/commitid-secret';
+import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
+import { loadAccounts } from './utils/load-accounts';
 
 export interface StepInput extends ConfigurationInput {
   inputConfig: AcceleratorInput;
   region: string;
+  parametersTableName: string;
 }
 
 export interface AcceleratorInput {
@@ -12,8 +15,8 @@ export interface AcceleratorInput {
   overrideComparison?: boolean;
   scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
   mode?: 'APPLY';
-  loadAccounts?: string[];
-  loadOous?: string[];
+  targetAccounts?: string[];
+  targetOus?: string[];
 }
 
 export interface ConfigurationInput {
@@ -28,6 +31,8 @@ export interface CompareConfigurationsOutput {
   configRepositoryName: string;
   configCommitId: string;
 }
+
+const dynamodb = new DynamoDB();
 
 export const handler = async (input: StepInput) => {
   console.log(`Loading compare configurations...`);
@@ -50,7 +55,15 @@ export const handler = async (input: StepInput) => {
     'ov-nacl': false,
   };
 
-  const { inputConfig, region, baseline, configCommitId, configFilePath, configRepositoryName } = input;
+  const {
+    inputConfig,
+    region,
+    baseline,
+    configCommitId,
+    configFilePath,
+    configRepositoryName,
+    parametersTableName,
+  } = input;
   const commitSecretId = getCommitIdSecretName();
 
   const secrets = new SecretsManager();
@@ -88,6 +101,21 @@ export const handler = async (input: StepInput) => {
     }
   }
   console.log('passing override configuration to validate changes', overrideConfig);
+  const { scope, targetAccounts, targetOus } = inputConfig;
+
+  const accounts = await loadAccounts(parametersTableName, dynamodb);
+  const targetAccountKeys: string[] = [];
+  if (targetAccounts) {
+    targetAccounts.map(targetAccount => {
+      if (targetAccount === 'ALL') {
+        targetAccountKeys.push('ALL');
+      } else if (targetAccount === 'NEW') {
+        targetAccountKeys.push('NEW');
+      } else {
+        targetAccountKeys.push(accounts.find(acc => acc.id === targetAccount)?.key!);
+      }
+    });
+  }
 
   errors = await compareAcceleratorConfig({
     repositoryName: configRepositoryName,
@@ -96,12 +124,14 @@ export const handler = async (input: StepInput) => {
     previousCommitId,
     region,
     overrideConfig,
+    scope: scope!,
+    targetAccounts: targetAccountKeys,
+    targetOus: targetOus,
   });
 
   // Throw all errors at once
   if (errors.length > 0) {
     throw new Error(`There were errors while comparing the configuration changes:\n${errors.join('\n')}`);
   }
-
   return;
 };
