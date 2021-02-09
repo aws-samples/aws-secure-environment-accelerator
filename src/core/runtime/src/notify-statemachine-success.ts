@@ -19,7 +19,7 @@ export const handler = async (input: NotifySuccessInput): Promise<string> => {
   console.log('State Machine Execution Success...');
   console.log(JSON.stringify(input, null, 2));
   const { acceleratorVersion, parametersTableName } = input;
-  const accounts = await loadAccounts(parametersTableName, dynamodb);
+  const accounts = (await loadAccounts(parametersTableName, dynamodb)).filter(acc => acc.inScope);
   const responseAccounts = accounts.map(acc => ({
     key: acc.key,
     id: acc.id,

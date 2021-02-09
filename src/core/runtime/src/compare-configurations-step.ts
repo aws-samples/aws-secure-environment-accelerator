@@ -124,7 +124,7 @@ export const handler = async (input: StepInput) => {
     previousCommitId,
     region,
     overrideConfig,
-    scope: scope!,
+    scope: scope || 'NEW-ACCOUNTS',
     targetAccounts: targetAccountKeys,
     targetOus: targetOus,
   });
