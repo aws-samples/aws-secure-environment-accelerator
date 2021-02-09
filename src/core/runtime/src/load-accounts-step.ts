@@ -5,6 +5,7 @@ import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { loadAccounts } from './utils/load-accounts';
 
 export interface SMInput {
   scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
@@ -60,6 +61,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
   const organizationAccounts = await organizations.listAccounts();
   const activeAccounts = organizationAccounts.filter(account => account.Status === 'ACTIVE');
+  const existingAccounts = await loadAccounts(parametersTableName, dynamoDB);
 
   const returnAccounts = [];
 
@@ -102,14 +104,17 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     let accountScope: boolean = true;
     if (!scope || scope === 'NEW-ACCOUNTS') {
       accountScope =
-        mandatoryAccountKeys.includes(accountKey) || !!accounts.find(acc => acc.accountId === organizationAccount.Id);
+        mandatoryAccountKeys.includes(accountKey) ||
+        !!accounts.find(acc => acc.accountId === organizationAccount.Id) ||
+        !existingAccounts.find(acc => acc.id === organizationAccount.Id);
     } else if (scope === 'ACCOUNT') {
       if (targetAccounts && targetAccounts.length > 0) {
         accountScope =
           // LOAD Mandatory Accounts irrespective of targetAccounts
           mandatoryAccountKeys.includes(accountKey) ||
           // LOAD NEW accounts if scope="ACCOUNT", "NEW" in targetAccounts
-          (targetAccounts.includes('NEW') && !!accounts.find(acc => acc.accountId === organizationAccount.Id)) ||
+          (targetAccounts.includes('NEW') && (!!accounts.find(acc => acc.accountId === organizationAccount.Id) ||
+          !existingAccounts.find(acc => acc.id === organizationAccount.Id))) ||
           // LOAD ALL accounts if scope="ACCOUNT", "ALL" in targetAccounts
           targetAccounts.includes('ALL') ||
           // LOAD accounts which are in targetAccounts if scope="ACCOUNT", account in targetAccounts
@@ -146,6 +151,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       isMandatory: mandatoryAccountKeys.includes(accountKey),
       isNew: !!accounts.find(acc => acc.accountId === organizationAccount.Id),
       inScope: accountScope,
+      isDeployed: !!existingAccounts.find(acc => acc.id === organizationAccount.Id),
     });
   }
 

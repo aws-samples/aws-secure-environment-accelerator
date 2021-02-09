@@ -14,6 +14,7 @@ export interface Account {
   isMandatory?: boolean;
   isNew?: boolean;
   inScope?: boolean;
+  isDeployed?: boolean;
 }
 
 export function getAccountId(accounts: Account[], accountKey: string): string | undefined {
