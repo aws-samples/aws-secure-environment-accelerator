@@ -113,8 +113,9 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
           // LOAD Mandatory Accounts irrespective of targetAccounts
           mandatoryAccountKeys.includes(accountKey) ||
           // LOAD NEW accounts if scope="ACCOUNT", "NEW" in targetAccounts
-          (targetAccounts.includes('NEW') && (!!accounts.find(acc => acc.accountId === organizationAccount.Id) ||
-          !existingAccounts.find(acc => acc.id === organizationAccount.Id))) ||
+          (targetAccounts.includes('NEW') &&
+            (!!accounts.find(acc => acc.accountId === organizationAccount.Id) ||
+              !existingAccounts.find(acc => acc.id === organizationAccount.Id))) ||
           // LOAD ALL accounts if scope="ACCOUNT", "ALL" in targetAccounts
           targetAccounts.includes('ALL') ||
           // LOAD accounts which are in targetAccounts if scope="ACCOUNT", account in targetAccounts
