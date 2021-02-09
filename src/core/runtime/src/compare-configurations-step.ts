@@ -126,7 +126,7 @@ export const handler = async (input: StepInput) => {
     overrideConfig,
     scope: scope || 'NEW-ACCOUNTS',
     targetAccounts: targetAccountKeys,
-    targetOus: targetOus,
+    targetOus,
   });
 
   // Throw all errors at once
