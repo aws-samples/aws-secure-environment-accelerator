@@ -317,7 +317,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
     const iamPoliciesBucketPrefix = iamPolicyArtifactOutput[0].keyPrefix + '/';
 
-    for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
+    for (const [accountKey, accountConfig] of [...mandatoryAccountConfig, ...orgUnits]) {
       const iamConfig = accountConfig.iam;
       if (IamConfigType.is(iamConfig)) {
         const iamPolicies = iamConfig?.policies;
