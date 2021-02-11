@@ -170,6 +170,9 @@ export async function step3(props: CentralEndpointsStep3Props) {
       ...(resolverRegionoutputs.rules?.madRules || []),
       ...(resolverRegionoutputs.rules?.onPremRules || []),
     ];
+    if (ruleIds.length === 0) {
+      continue;
+    }
     new AssociateResolverRules(accountStack, constructName, {
       resolverRuleIds: ruleIds,
       roleArn: roleOutput.roleArn,
