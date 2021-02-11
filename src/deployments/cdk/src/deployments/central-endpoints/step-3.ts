@@ -166,7 +166,10 @@ export async function step3(props: CentralEndpointsStep3Props) {
       continue;
     }
 
-    const ruleIds = [...resolverRegionoutputs.rules?.madRules!, ...resolverRegionoutputs.rules?.onPremRules!];
+    const ruleIds = [
+      ...(resolverRegionoutputs.rules?.madRules || []),
+      ...(resolverRegionoutputs.rules?.onPremRules || []),
+    ];
     new AssociateResolverRules(accountStack, constructName, {
       resolverRuleIds: ruleIds,
       roleArn: roleOutput.roleArn,
