@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "DenyNetworkPBMMONLY",
+      "Sid": "DenyNetworkSensitive",
       "Effect": "Deny",
       "Action": [
         "ec2:AcceptVpcPeeringConnection",
@@ -86,7 +86,7 @@
       }
     },
     {
-      "Sid": "DenyAllOutsideCanadaPBMMONLY",
+      "Sid": "DenyAllOutsideCanadaSensitive",
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
