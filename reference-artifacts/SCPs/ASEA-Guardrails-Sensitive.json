@@ -51,8 +51,6 @@
         "iam:UpdateGroup",
         "iam:DeleteRolePermissionsBoundary",
         "iam:AddUserToGroup",
-        "iam:UpdateAccountPasswordPolicy",
-        "iam:DeleteAccountPasswordPolicy",
         "iam:TagUser",
         "networkmanager:Create*",
         "networkmanager:Update*",

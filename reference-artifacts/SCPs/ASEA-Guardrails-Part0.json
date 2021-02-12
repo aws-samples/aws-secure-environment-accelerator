@@ -14,7 +14,6 @@
         "sns:Unsubscribe"
       ],
       "Resource":[
-        "arn:aws:sns:*:*:AWS-Landing-Zone*",
         "arn:aws:sns:*:*:PBMMAccel-*"
       ],
       "Effect":"Deny",
@@ -35,7 +34,6 @@
         "cloudtrail:UpdateTrail"
       ],
       "Resource":[
-        "arn:aws:cloudtrail:*:*:trail/*AWS-Landing-Zone-*",
         "arn:aws:cloudtrail:*:*:trail/PBMMAccel-*"
       ],
       "Effect":"Deny",
@@ -57,39 +55,10 @@
         "sns:SetTopicAttributes"
       ],
       "Resource":[
-        "arn:aws:sns:*:*:AWS-Landing-Zone-*",
         "arn:aws:sns:*:*:PBMMAccel-*"
       ],
       "Effect":"Deny",
       "Sid":"GRSNSTOPICPOLICY"
-    },
-    {
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      },
-      "Action":[
-        "lambda:AddPermission",
-        "lambda:CreateEventSourceMapping",
-        "lambda:CreateFunction",
-        "lambda:DeleteEventSourceMapping",
-        "lambda:DeleteFunction",
-        "lambda:DeleteFunctionConcurrency",
-        "lambda:PutFunctionConcurrency",
-        "lambda:RemovePermission",
-        "lambda:UpdateEventSourceMapping",
-        "lambda:UpdateFunctionCode",
-        "lambda:UpdateFunctionConfiguration"
-      ],
-      "Resource":[
-        "arn:aws:lambda:*:*:function:AWS-Landing-Zone-*",
-        "arn:aws:lambda:*:*:function:LandingZone*"
-      ],
-      "Effect":"Deny",
-      "Sid":"GRLAMBDAFUNCTIONPOLICY"
     },
     {
       "Condition":{
@@ -123,34 +92,6 @@
         }
       },
       "Action":[
-        "iam:AttachRolePolicy",
-        "iam:CreateRole",
-        "iam:DeleteRole",
-        "iam:DeleteRolePermissionsBoundary",
-        "iam:DeleteRolePolicy",
-        "iam:DetachRolePolicy",
-        "iam:PutRolePermissionsBoundary",
-        "iam:PutRolePolicy",
-        "iam:UpdateAssumeRolePolicy",
-        "iam:UpdateRole",
-        "iam:UpdateRoleDescription"
-      ],
-      "Resource":[
-        "arn:aws:iam::*:role/AWS-Landing-Zone-*",
-        "arn:aws:iam::*:role/*AWSLandingZone*"
-      ],
-      "Effect":"Deny",
-      "Sid":"GRIAMROLEPOLICY"
-    },
-    {
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      },
-      "Action":[
         "events:PutRule",
         "events:PutTargets",
         "events:RemoveTargets",
@@ -158,7 +99,6 @@
         "events:DeleteRule"
       ],
       "Resource":[
-        "arn:aws:events:*:*:rule/AWS-Landing-Zone-*",
         "arn:aws:events:*:*:rule/PBMMAccel-*"
       ],
       "Effect":"Deny",
@@ -191,74 +131,6 @@
         }
       },
       "Action":[
-        "s3:PutEncryptionConfiguration"
-      ],
-      "Resource":[
-        "arn:aws:s3:::aws-landing*"
-      ],
-      "Effect":"Deny",
-      "Sid":"GRAUDITBUCKETENCRYPTIONENABLED"
-    },
-    {
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      },
-      "Action":[
-        "s3:PutBucketPolicy"
-      ],
-      "Resource":[
-        "arn:aws:s3:::aws-landing*"
-      ],
-      "Effect":"Deny",
-      "Sid":"GRAUDITBUCKETPOLICYCHANGESPROHIBITED"
-    },
-    {
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      },
-      "Action":[
-        "s3:PutLifecycleConfiguration"
-      ],
-      "Resource":[
-        "arn:aws:s3:::aws-landing*"
-      ],
-      "Effect":"Deny",
-      "Sid":"GRAUDITBUCKETRETENTIONPOLICY"
-    },
-    {
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      },
-      "Action":[
-        "s3:PutBucketLogging"
-      ],
-      "Resource":[
-        "arn:aws:s3:::aws-landing*"
-      ],
-      "Effect":"Deny",
-      "Sid":"GRAUDITBUCKETLOGGINGENABLED"
-    },
-    {
-      "Condition":{
-        "ArnNotLike":{
-          "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
-          ]
-        }
-      },
-      "Action":[
         "config:PutConfigRule",
         "config:DeleteConfigRule",
         "config:DeleteEvaluationResults",
@@ -270,6 +142,23 @@
       ],
       "Effect":"Deny",
       "Sid":"GRCONFIGRULEPOLICY"
+    },
+    {
+      "Sid": "DenyPass",
+      "Effect": "Deny",
+      "Action": [
+        "iam:DeleteAccountPasswordPolicy",
+        "iam:UpdateAccountPasswordPolicy"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/PBMMOps-*"
+          ]
+        }
+      }
     }
   ]
 }
