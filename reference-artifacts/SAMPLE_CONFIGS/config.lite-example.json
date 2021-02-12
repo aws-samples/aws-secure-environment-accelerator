@@ -4746,7 +4746,23 @@
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["Put-S3-Encryption"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": [
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
+          ],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     }
   }
 }
