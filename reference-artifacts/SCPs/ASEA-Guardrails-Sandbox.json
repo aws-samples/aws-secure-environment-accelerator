@@ -5,8 +5,6 @@
       "Sid": "DenyUnclass",
       "Effect": "Deny",
       "Action": [
-        "kms:ScheduleKeyDeletion",
-        "kms:Delete*",
         "iam:DeleteAccountPasswordPolicy",
         "iam:UpdateAccountPasswordPolicy"
       ],
