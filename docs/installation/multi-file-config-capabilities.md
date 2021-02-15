@@ -27,11 +27,12 @@
 - The loadAcceleratorConfig functionality should no longer assume config.json as the config filename in the config repo and/or S3, instead it should look for config.yaml and config.json
 - Check for the existence of config.yaml and config.json (initially in S3, but also in CodeCommit on future executions)
 - If both files exist, fail with an error message
-- Infer the file type from the extension, and parse accordingly
+- **Infer the file type from the extension, and parse accordingly**
 - Any other failure should also be an error, fail with an error message
 - The accelerator will continue to use JSON formatting internally, if a yaml file is supplied, we are simply converting it to JSON for use by the Accelerator
-- All examples throughout this document use config.yaml as the example, but also apply to JSON
+- All examples throughout this document use config.json as the example, but also apply to YAML
 - Both JSON and YAML input files will be equally supported
+- Only one file format is supported across all config files, either JSON or YAML, customers can NOT mix YAML and JSON file formats
 
 ### Steps For File Split:
 
@@ -40,7 +41,7 @@
 ```
   {
     "core": {
-       "__LOAD": "ous/core.yaml"
+       "__LOAD": "ous/core.json"
     }
   }
 ```
@@ -48,7 +49,7 @@
 Note that while we will provide sensible examples, there is no prescriptive requirement for file organization within a customer's configuration, customers can use the feature to break-out sections as is most effective for their deployment. Breaking out large repeatable sections like security groups is a good example and could be included off the main file, an account file, or off an ou file:
 
 ```
-"security-groups": [ "__LOAD": "global/security-groups.yaml" ]
+"security-groups": [ "__LOAD": "global/security-groups.json" ]
 ```
 
 Examples:
@@ -64,25 +65,25 @@ Examples:
 
 ```
 .
-├── config.yaml
+├── config.json
 ├── ous
-│ ├── core.yaml
-│ ├── dev.yaml
-│ └── test.yaml ---> could be one per ou, could only be for some ou's as determined by customer
+│ ├── core.json
+│ ├── dev.json
+│ └── test.json ---> could be one per ou, could only be for some ou's as determined by customer
 ├── accounts
-│ ├── workload-accounts-group1.yaml
-│ ├── workload-accounts-group2.yaml
-│ ├── my-workload-accounts.yaml
-│ └── more-accounts.yaml ---->we will encourage each file being as close to 2000 lines as possible (not one per account, not all in one file)
+│ ├── workload-accounts-group1.json
+│ ├── workload-accounts-group2.json
+│ ├── my-workload-accounts.json
+│ └── more-accounts.json ---->we will encourage each file being as close to 2000 lines as possible (not one per account, not all in one file)
 └── global
-├── global-options.yaml
-├── security-groups.yaml
+├── global-options.json
+├── security-groups.json
 
 etc
 ```
 
-- Max depth of 2 means config.yaml can load ou/dev.yaml, which can load global/security-groups.yaml.
-- security-groups.yaml CANNOT load another sub-file (unless security-groups.yaml was only directly loaded from config.yaml).
+- Max depth of 2 means config.json can load ou/dev.json, which can load global/security-groups.json.
+- security-groups.json CANNOT load another sub-file (unless security-groups.json was only directly loaded from config.json).
 
 ### Dealing with Accelerator Automatic Config File Updates:
 
@@ -91,7 +92,7 @@ When customers create AWS accounts directly through AWS Organizations, the Accel
 1. Add the following new parameters to the global-options section of the config file
 
 ```
-    "workloadaccounts-param-filename": "accounts/more-accounts2.yaml",
+    "workloadaccounts-param-filename": "accounts/more-accounts2.json",
     "workloadaccounts-prefix" : "accounts/more-accounts",
     "workloadaccounts-suffix" : 3,
 ```
@@ -106,7 +107,7 @@ When customers create AWS accounts directly through AWS Organizations, the Accel
 2. Add the following new parameter to each mandatory and workload account config
 
 ```
-      "src-filename": "accounts/my-workload-accounts.yaml",
+      "src-filename": "accounts/my-workload-accounts.json",
 ```
 
 Accelerator Internal Operations:
@@ -115,7 +116,7 @@ Accelerator Internal Operations:
 - When creating new accounts (inserting into config file):
   - if the update is not going to make the file larger than 2000 lines, insert the new account into the config file `"workloadaccounts-param-filename"`
   - if the insert will push the file over 2000 lines:
-    - create the next unused filename for the given prefix in Code Commit (`{"workloadaccounts-prefix"}{"workloadaccounts-suffix"}.{customer file format}`), i.e. `"accounts/more-accounts3.yaml"`
+    - create the next unused filename for the given prefix in Code Commit (`{"workloadaccounts-prefix"}{"workloadaccounts-suffix"}.{customer file format}`), i.e. `"accounts/more-accounts3.json"`
     - insert the new account into the new file in it's entirety
     - update `"workloadaccounts-param-filename"` to: `{"workloadaccounts-prefix"}{"workloadaccounts-suffix"}.{customer file format}`
     - add a new load stmt to the workload-accounts section of the config file with the name `{"workloadaccounts-prefix"}{"workloadaccounts-suffix"}.{customer file format}`
@@ -128,40 +129,40 @@ The entire main config file could be reduced to this:
 
 ```
 {"global-options": {
-   "workloadaccounts-param-filename": "accounts/more-accounts2.yaml",
+   "workloadaccounts-param-filename": "accounts/more-accounts2.json",
    "workloadaccounts-prefix" : "accounts/more-accounts",
    "workloadaccounts-suffix" : 3,
-   "__LOAD": "global/global-options.yaml"
+   "__LOAD": "global/global-options.json"
 },
 "mandatory-account-configs": {
-   "__LOAD": "accounts/mandatory-accounts.yaml"
+   "__LOAD": "accounts/mandatory-accounts.json"
 },
 "workload-account-configs": {
-   "__LOAD": ["accounts/workload-accounts1.yaml",
-     "accounts/my-other-accounts.yaml",
-     "accounts/workload-accounts2.yaml"]
+   "__LOAD": ["accounts/workload-accounts1.json",
+     "accounts/my-other-accounts.json",
+     "accounts/workload-accounts2.json"]
 },
 "organizational-units": {
   "core": {
-    "__LOAD": "ous/core.yaml"
+    "__LOAD": "ous/core.json"
   },
   "Central": {
-    "__LOAD": "ous/central.yaml"
+    "__LOAD": "ous/central.json"
   },
   "Dev": {
-    "__LOAD": "ous/dev.yaml"
+    "__LOAD": "ous/dev.json"
   },
   "Test": {
-    "__LOAD": "ous/test.yaml"
+    "__LOAD": "ous/test.json"
   },
   "Prod": {
-    "__LOAD": "ous/prod.yaml"
+    "__LOAD": "ous/prod.json"
   },
   "UnClass": {
-    "__LOAD": "ous/unclass.yaml"
+    "__LOAD": "ous/unclass.json"
   },
   "Sandbox": {
-    "__LOAD": "ous/sandbox.yaml"
+    "__LOAD": "ous/sandbox.json"
   }
 }}
 ```
