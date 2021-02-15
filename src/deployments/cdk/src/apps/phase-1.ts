@@ -74,6 +74,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   const workLoadAccountConfig = acceleratorConfig.getWorkloadAccountConfigs();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
+  const iamConfigs = acceleratorConfig.getIamConfigs();
   const masterAccountId = getAccountId(accounts, masterAccountKey);
   if (!masterAccountId) {
     throw new Error(`Cannot find mandatory primary account ${masterAccountKey}`);
@@ -318,8 +319,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
     const iamPoliciesBucketPrefix = iamPolicyArtifactOutput[0].keyPrefix + '/';
 
-    for (const [_, accountConfig] of [...mandatoryAccountConfig, ...orgUnits, ...workLoadAccountConfig]) {
-      const iamConfig = accountConfig.iam;
+    for (const { iam: iamConfig } of iamConfigs) {
       if (IamConfigType.is(iamConfig)) {
         const iamPolicies = iamConfig?.policies;
         for (const iamPolicy of iamPolicies || []) {
@@ -368,7 +368,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
 
     if (iamPoliciesDefinition) {
-      const iamAssets = new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
+      new IamAssets(accountStack, `IAM Assets-${pascalCase(accountKey)}`, {
         accountKey,
         iamConfig,
         iamPoliciesDefinition,
@@ -379,29 +379,34 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     }
   };
 
-  const getNonMandatoryAccountsPerOu = (ouName: string, mandatoryAccKeys: string[]): Account[] => {
-    const accountsPerOu: Account[] = [];
-    for (const account of accounts) {
-      if (account.ou === ouName && !mandatoryAccKeys.includes(account.key)) {
-        accountsPerOu.push(account);
+  const accountIamConfigs: { [accountKey: string]: IamConfig } = {};
+  for (const { accountKey, iam: iamConfig } of iamConfigs) {
+    if (accountIamConfigs[accountKey]) {
+      if (accountIamConfigs[accountKey].policies) {
+        accountIamConfigs[accountKey].policies?.push(...(iamConfig.policies || []));
+      } else {
+        accountIamConfigs[accountKey].policies = iamConfig.policies;
       }
-    }
-    return accountsPerOu;
-  };
 
-  const mandatoryAccountKeys: string[] = [];
-  // creating assets for default account settings
-  for (const [accountKey, accountConfig] of mandatoryAccountConfig) {
-    mandatoryAccountKeys.push(accountKey);
-    await createIamAssets(accountKey, accountConfig.iam);
+      if (accountIamConfigs[accountKey].roles) {
+        accountIamConfigs[accountKey].roles?.push(...(iamConfig.roles || []));
+      } else {
+        accountIamConfigs[accountKey].roles = iamConfig.roles;
+      }
+
+      if (accountIamConfigs[accountKey].users) {
+        accountIamConfigs[accountKey].users?.push(...(iamConfig.users || []));
+      } else {
+        accountIamConfigs[accountKey].users = iamConfig.users;
+      }
+    } else {
+      accountIamConfigs[accountKey] = iamConfig;
+    }
   }
 
-  // creating assets for org unit accounts
-  for (const [orgName, orgConfig] of orgUnits) {
-    const orgAccounts = getNonMandatoryAccountsPerOu(orgName, mandatoryAccountKeys);
-    for (const orgAccount of orgAccounts) {
-      await createIamAssets(orgAccount.key, orgConfig.iam);
-    }
+  // creating assets for default account settings
+  for (const [accountKey, iamConfig] of Object.entries(accountIamConfigs)) {
+    await createIamAssets(accountKey, iamConfig);
   }
 
   // Budget creation step 2
