@@ -71,6 +71,7 @@ export interface IamPolicyArtifactsOutput {
 export async function deploy({ acceleratorConfig, accountStacks, accounts, context, limiter, outputs }: PhaseInput) {
   const mandatoryAccountConfig = acceleratorConfig.getMandatoryAccountConfigs();
   const orgUnits = acceleratorConfig.getOrganizationalUnits();
+  const workLoadAccountConfig = acceleratorConfig.getWorkloadAccountConfigs();
   const masterAccountKey = acceleratorConfig.getMandatoryAccountKey('master');
   const logAccountKey = acceleratorConfig.getMandatoryAccountKey('central-log');
   const masterAccountId = getAccountId(accounts, masterAccountKey);
@@ -317,7 +318,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
     const iamPoliciesBucketName = iamPolicyArtifactOutput[0].bucketName;
     const iamPoliciesBucketPrefix = iamPolicyArtifactOutput[0].keyPrefix + '/';
 
-    for (const [accountKey, accountConfig] of [...mandatoryAccountConfig, ...orgUnits]) {
+    for (const [_, accountConfig] of [...mandatoryAccountConfig, ...orgUnits, ...workLoadAccountConfig]) {
       const iamConfig = accountConfig.iam;
       if (IamConfigType.is(iamConfig)) {
         const iamPolicies = iamConfig?.policies;
