@@ -327,6 +327,7 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
 
   - this mechanism allows a customer to generate new public certificates directly in ACM
   - both `DNS` and `EMAIL` validation mechanisms are supported (DNS recommended)
+  - this requires a **_Public_** DNS zone be properly configured to validate you are legally entitled to issue certificates for the domain
   - this will also create a certificate in ACM and a secret in secrets manager named `accelerator/certificates/My-Cert` in the specified AWS account(s), which points to the newly imported certificates ARN
   - this mechanism should NOT be used on new installs, skip certificate and ALB deployment during initial deployment (removing them from the config file) and simply add on a subsequent state machine execution
   - Process:
@@ -336,7 +337,7 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
     - during deployment, go to the AWS account in question, open ACM and the newly requested certificate. Document the authorization CNAME record required to validate certificate generation
     - add the CNAME record to the zone in bullet 1 (in Route53 or 3rd party DNS provider) (documented [here](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html))
     - after a few minutes the certificate will validate and switch to `Issued` status
-    - Accelerator phase 1 will finish (assuming the phase didn't time-out)
+    - Accelerator phase 1 will finish (as long as the certificate is validated before the Phase 1 credentials time-out after 60-minutes)
     - the ALB will deploy in a later phase with the specified certificate
 
 - **Method 3** - Manually generate a certificate in ACM
