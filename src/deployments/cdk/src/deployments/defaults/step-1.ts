@@ -81,12 +81,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
 
   const organizations = new Organizations(masterAccountStack, 'Organizations');
 
-  // Get the location of the original central bucket
-  const centralBucketName = config['global-options']['central-bucket'];
-  const centralBucket = s3.Bucket.fromBucketAttributes(masterAccountStack, 'CentralBucket', {
-    bucketName: centralBucketName,
-  });
-
   const keyAlias = createEncryptionKeyName('Config-Key');
   const encryptionKey = new kms.Key(masterAccountStack, 'CentralBucketKey', {
     alias: `alias/${keyAlias}`,
