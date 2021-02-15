@@ -1,0 +1,707 @@
+{
+  "global-options": {
+    "alz-baseline": false,
+    "ct-baseline": false,
+    "default-s3-retention": 90,
+    "central-bucket": "AWSDOC-EXAMPLE-BUCKET",
+    "organization-admin-role": "AWSCloudFormationStackSetExecutionRole",
+    "default-cwl-retention": 731,
+    "workloadaccounts-suffix": 1,
+    "workloadaccounts-prefix": "config",
+    "workloadaccounts-param-filename": "config.json",
+    "ignored-ous": [],
+    "additional-global-output-regions": [],
+    "supported-regions": ["ca-central-1", "us-east-1"],
+    "keep-default-vpc-regions": [],
+    "aws-org-master": {
+      "account": "master",
+      "region": "ca-central-1"
+    },
+    "central-security-services": {
+      "account": "security",
+      "region": "ca-central-1",
+      "security-hub-excl-regions": [],
+      "guardduty": true,
+      "guardduty-excl-regions": [],
+      "guardduty-s3": true,
+      "guardduty-s3-excl-regions": [],
+      "cwl": true,
+      "cwl-access-level": "full",
+      "access-analyzer": true,
+      "config-excl-regions": [],
+      "config-aggr-excl-regions": [],
+      "macie": true,
+      "macie-excl-regions": [],
+      "macie-frequency": "FIFTEEN_MINUTES"
+    },
+    "central-operations-services": {
+      "account": "operations",
+      "region": "ca-central-1",
+      "cwl": true
+    },
+    "central-log-services": {
+      "account": "log-archive",
+      "region": "ca-central-1",
+      "s3-retention": 730,
+      "cwl-glbl-exclusions": [],
+      "cwl-exclusions": [],
+      "ssm-to-s3": true,
+      "ssm-to-cwl": true,
+      "sns-excl-regions": [],
+      "sns-subscription-emails": {
+        "High": ["notify+high@example.com"],
+        "Medium": ["notify+medium@example.com"],
+        "Low": ["notify+low@example.com"]
+      }
+    },
+    "additional-cwl-regions": {},
+    "reports": {
+      "cost-and-usage-report": {
+        "additional-schema-elements": ["RESOURCES"],
+        "compression": "Parquet",
+        "format": "Parquet",
+        "report-name": "Cost-and-Usage-Report",
+        "s3-prefix": "cur",
+        "time-unit": "HOURLY",
+        "additional-artifacts": ["ATHENA"],
+        "refresh-closed-reports": true,
+        "report-versioning": "OVERWRITE_REPORT"
+      }
+    },
+    "vpc-flow-logs": {
+      "filter": "ALL",
+      "interval": 600,
+      "default-format": false,
+      "custom-fields": [
+        "version",
+        "account-id",
+        "interface-id",
+        "srcaddr",
+        "dstaddr",
+        "srcport",
+        "dstport",
+        "protocol",
+        "packets",
+        "bytes",
+        "start",
+        "end",
+        "action",
+        "log-status",
+        "vpc-id",
+        "subnet-id",
+        "instance-id",
+        "tcp-flags",
+        "type",
+        "pkt-srcaddr",
+        "pkt-dstaddr",
+        "region",
+        "az-id"
+      ]
+    },
+    "security-hub-frameworks": {
+      "standards": [
+        {
+          "name": "AWS Foundational Security Best Practices v1.0.0",
+          "controls-to-disable": ["IAM.1"]
+        },
+        {
+          "name": "CIS AWS Foundations Benchmark v1.2.0",
+          "controls-to-disable": ["CIS.1.20", "CIS.1.22", "CIS.2.8"]
+        }
+      ]
+    },
+    "iam-password-policies": {
+      "allow-users-to-change-password": true,
+      "hard-expiry": false,
+      "require-uppercase-characters": true,
+      "require-lowercase-characters": true,
+      "require-symbols": true,
+      "require-numbers": true,
+      "minimum-password-length": 14,
+      "password-reuse-prevention": 24,
+      "max-password-age": 90
+    },
+    "scps": [
+      {
+        "name": "Guardrails-Part-0",
+        "description": "ASEA Guardrails Part 0",
+        "policy": "ASEA-Guardrails-Part0.json"
+      },
+      {
+        "name": "Guardrails-Part-1",
+        "description": "ASEA Guardrails Part 1",
+        "policy": "ASEA-Guardrails-Part1.json"
+      },
+      {
+        "name": "Guardrails-Part-2",
+        "description": "ASEA Guardrails Part 2",
+        "policy": "ASEA-Guardrails-Part2.json"
+      },
+      {
+        "name": "Guardrails-Sensitive",
+        "description": "ASEA Guardrails Sensitive Environment Specific",
+        "policy": "ASEA-Guardrails-Sensitive.json"
+      },
+      {
+        "name": "Guardrails-Unclass",
+        "description": "ASEA Guardrails Unclassified Environment Specific",
+        "policy": "ASEA-Guardrails-Unclass.json"
+      },
+      {
+        "name": "Guardrails-Sandbox",
+        "description": "ASEA Guardrails Sandbox Environment Specific",
+        "policy": "ASEA-Guardrails-Sandbox.json"
+      },
+      {
+        "name": "Quarantine-New-Object",
+        "description": "ASEA Quarantine policy - Apply to ACCOUNTS that need to be quarantined",
+        "policy": "Quarantine-New-Object.json"
+      }
+    ],
+    "cloudwatch": {
+      "metrics": [
+        {
+          "filter-name": "SecurityGroupChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "SecurityGroupEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "NetworkAclChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry) || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "NetworkAclEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "GatewayChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "GatewayEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "VpcChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "VpcEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "Ec2InstanceChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "EC2InstanceEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "Ec2LargeInstanceChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ (($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances)) && (($.requestParameters.instanceType= *.32xlarge) || ($.requestParameters.instanceType= *.24xlarge) || ($.requestParameters.instanceType= *.18xlarge) || ($.requestParameters.instanceType= *.16xlarge) || ($.requestParameters.instanceType= *.12xlarge) || ($.requestParameters.instanceType= *.10xlarge) || ($.requestParameters.instanceType= *.9xlarge) || ($.requestParameters.instanceType= *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge)) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "EC2LargeInstanceEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "CloudTrailChangeMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail)|| ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName= StopLogging) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "CloudTrailEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "ConsoleSignInFailureMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failedauthentication\") }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "ConsoleSignInFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "AuthorizationFailureMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "AuthorizationFailureCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IamPolicyChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IAMPolicyEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "ConsoleSignInWithoutMfaMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\") && ($.userIdentity.type != \"AssumedRole\")}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "ConsoleSignInWithoutMfaCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "RootLoginMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "RootLoginEventCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "DisableOrDeleteCMKMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventSource=kms.amazonaws.com) && (($.eventName=DisableKey) || ($.eventName=ScheduleKeyDeletion))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "DisableOrDeleteCMKCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "AWSConfigChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventSource=config.amazonaws.com) && (($.eventName=StopConfigurationRecorder) || ($.eventName=DeleteDeliveryChannel) || ($.eventName=PutDeliveryChannel) || ($.eventName=PutConfigurationRecorder))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "AWSConfigChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "RouteTableChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventName=CreateRoute) || ($.eventName=CreateRouteTable) || ($.eventName=ReplaceRoute) || ($.eventName=ReplaceRouteTableAssociation) || ($.eventName=DeleteRouteTable) || ($.eventName=DeleteRoute) || ($.eventName=DisassociateRouteTable)}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "RouteTableChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "S3BucketPolicyChangesMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{($.eventSource=s3.amazonaws.com) && (($.eventName=PutBucketAcl) || ($.eventName=PutBucketPolicy) || ($.eventName=PutBucketCors) || ($.eventName=PutBucketLifecycle) || ($.eventName=PutBucketReplication) || ($.eventName=DeleteBucketPolicy) || ($.eventName=DeleteBucketCors) || ($.eventName=DeleteBucketLifecycle) || ($.eventName=DeleteBucketReplication))}",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "S3BucketPolicyChangesCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "SSOAuthUnapprovedIPMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != 10.10.10.*) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "SSOAuthUnapprovedIPCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "IAMAuthUnapprovedIPMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != 10.10.10.*) }",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "IAMAuthUnapprovedIPCount",
+          "metric-value": "1"
+        },
+        {
+          "filter-name": "UnencryptedFilesystemCreatedMetric",
+          "accounts": ["master"],
+          "regions": ["ca-central-1"],
+          "loggroup-name": "/PBMMAccel/CloudTrail",
+          "filter-pattern": "{ ($.eventName = CreateFileSystem) && ($.responseElements.encrypted IS FALSE) } ",
+          "metric-namespace": "CloudTrailMetrics",
+          "metric-name": "UnencryptedFilesystemCreatedCount",
+          "metric-value": "1"
+        }
+      ],
+      "alarms": {
+        "default-accounts": ["master"],
+        "default-regions": ["ca-central-1"],
+        "default-namespace": "CloudTrailMetrics",
+        "default-statistic": "Sum",
+        "default-period": 300,
+        "default-threshold-type": "Static",
+        "default-comparison-operator": "GreaterThanOrEqualToThreshold",
+        "default-threshold": 1,
+        "default-evaluation-periods": 1,
+        "default-treat-missing-data": "notBreaching",
+        "definitions": [
+          {
+            "alarm-name": "AWS-Security-Group-Changed",
+            "metric-name": "SecurityGroupEventCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Security Group (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Network-ACL-Changed",
+            "metric-name": "NetworkAclEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Network ACL (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Gateway-Changed",
+            "metric-name": "GatewayEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Customer or Internet Gateway (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-VPC-Changed",
+            "metric-name": "VpcEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a VPC, VPC peering connection or VPC connection to classic (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-EC2-Instances-Changed",
+            "metric-name": "EC2InstanceEventCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot any EC2 instance (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-EC2-Large-Instance-Changed",
+            "metric-name": "EC2LargeInstanceEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, terminate, start, stop or reboot a 4x, 8x, 9x, 10x, 12x, 16x, 18x, 24x, 32x-large EC2 instance (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-CloudTrail-Changed",
+            "metric-name": "CloudTrailEventCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a CloudTrail trail, or to start or stop logging to a trail (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Console-SignIn-Failure",
+            "metric-name": "ConsoleSignInFailureCount",
+            "sns-alert-level": "High",
+            "threshold": 3,
+            "alarm-description": "Alarms when one or more unauthenticated API calls are made to sign into the console (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Authorization-Failure",
+            "metric-name": "AuthorizationFailureCount",
+            "sns-alert-level": "Low",
+            "alarm-description": "Alarms when one or more unauthorized API calls are made (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-IAM-Policy-Changed",
+            "metric-name": "IAMPolicyEventCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to change an IAM policy (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Console-SignIn-Without-MFA",
+            "metric-name": "ConsoleSignInWithoutMfaCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when MFA is NOT used to sign into the console with IAM (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Root-Login",
+            "metric-name": "RootLoginEventCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when the root user successfully logs in one or more times (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Disable-Or-Delete-KMS-CMK",
+            "metric-name": "DisableOrDeleteCMKCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more Key Management Service Customer Managed Keys are disabled or scheduled for deletion (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Config-Changed",
+            "metric-name": "AWSConfigChangesCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more modifications are made to AWS Config Settings (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-Route-Table-Changed",
+            "metric-name": "RouteTableChangesCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete a Route table (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-S3-Bucket-Policy-Changed",
+            "metric-name": "S3BucketPolicyChangesCount",
+            "sns-alert-level": "Medium",
+            "alarm-description": "Alarms when one or more API calls are made to create, update or delete an S3 Bucket policy (in any account, any region of your AWS Organization)."
+          },
+          {
+            "alarm-name": "AWS-SSO-Authentication-From-Unapproved-IP",
+            "metric-name": "SSOAuthUnapprovedIPCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when someone authenticates using AWS SSO from an unauthorized IP address range."
+          },
+          {
+            "alarm-name": "AWS-IAM-Authentication-From-Unapproved-IP",
+            "metric-name": "IAMAuthUnapprovedIPCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when someone authenticates using AWS IAM from an unauthorized IP address range."
+          },
+          {
+            "alarm-name": "AWS-Unencrypted-Filesystem-Created",
+            "metric-name": "UnencryptedFilesystemCreatedCount",
+            "sns-alert-level": "High",
+            "alarm-description": "Alarms when one or more API calls are made to create an Unencrypted filesystem (i.e. EFS) (in any account, any region of your AWS Organization)."
+          }
+        ]
+      }
+    },
+    "ssm-automation": [
+      {
+        "accounts": ["operations"],
+        "regions": ["ca-central-1"],
+        "documents": [
+          {
+            "name": "SSM-ELB-Enable-Logging",
+            "description": "Calls the AWS CLI to enable access logs on a specified ELB.",
+            "template": "ssm-elb-enable-logging.yaml"
+          },
+          {
+            "name": "Put-S3-Encryption",
+            "description": "Enables S3 encryption using KMS",
+            "template": "s3-encryption.yaml"
+          }
+        ]
+      }
+    ],
+    "aws-config": {
+      "managed-rules": {
+        "defaults": {
+          "remediation": false,
+          "remediation-attempts": 5,
+          "remediation-retry-seconds": 60,
+          "remediation-concurrency": 10
+        },
+        "rules": [
+          {
+            "name": "ELB_LOGGING_ENABLED",
+            "remediation-action": "SSM-ELB-Enable-Logging",
+            "remediation": true,
+            "parameters": {
+              "s3BucketNames": "${SEA::LogArchiveAesBucket}"
+            },
+            "remediation-params": {
+              "LoadBalancerArn": "RESOURCE_ID",
+              "LogDestination": "${SEA::LogArchiveAesBucket}"
+            }
+          },
+          {
+            "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+            "remediation-action": "Put-S3-Encryption",
+            "remediation": true,
+            "remediation-params": {
+              "BucketName": "RESOURCE_ID",
+              "KMSMasterKey": "${SEA::S3BucketEncryptionKey}"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "mandatory-account-configs": {
+    "operations": {
+      "account-name": "Ops",
+      "email": "myemail+aseaT-ops@example.com---------------------REPLACE----------------------",
+      "ou": "core",
+      "src-filename": "config.json"
+    },
+    "master": {
+      "account-name": "Org-Root",
+      "email": "myemail+aseaT-root@example.com---------------------REPLACE----------------------",
+      "ou": "core",
+      "src-filename": "config.json",
+      "budget": {
+        "name": "Organization Budget",
+        "period": "Monthly",
+        "amount": 10000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "iam": {
+        "users": [
+          {
+            "user-ids": ["bgUser1", "bgUser2"],
+            "group": "BreakGlassAdmins",
+            "policies": ["AdministratorAccess"],
+            "boundary-policy": "Default-Boundary-Policy"
+          }
+        ],
+        "policies": [
+          {
+            "policy-name": "Default-Boundary-Policy",
+            "policy": "boundary-policy.txt"
+          }
+        ]
+      }
+    },
+    "log-archive": {
+      "account-name": "Logs",
+      "ou": "core",
+      "email": "myemail+aseaT-logs@example.com---------------------REPLACE----------------------",
+      "src-filename": "config.json"
+    },
+    "security": {
+      "account-name": "Audit",
+      "ou": "core",
+      "email": "myemail+aseaT-audit@example.com---------------------REPLACE----------------------",
+      "src-filename": "config.json"
+    }
+  },
+  "workload-account-configs": {},
+  "organizational-units": {
+    "core": {
+      "type": "ignore",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Core Budget",
+        "period": "Monthly",
+        "amount": 1000,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
+    },
+    "workloads": {
+      "type": "workload",
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
+      "default-budgets": {
+        "name": "Default Workload Budget",
+        "period": "Monthly",
+        "amount": 500,
+        "include": [
+          "Upfront-reservation-fees",
+          "Recurring-reservation-charges",
+          "Other-subscription-costs",
+          "Taxes",
+          "Support-charges",
+          "Discounts"
+        ],
+        "alerts": [
+          {
+            "type": "Actual",
+            "threshold-percent": 75,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 90,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          },
+          {
+            "type": "Actual",
+            "threshold-percent": 100,
+            "emails": ["myemail+aseaT-budg@example.com"]
+          }
+        ]
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
+      }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": ["ELB_LOGGING_ENABLED", "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
+    }
+  }
+}

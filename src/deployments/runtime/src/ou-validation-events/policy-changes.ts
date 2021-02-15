@@ -6,6 +6,7 @@ import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
 import { ScheduledEvent } from 'aws-lambda';
 import { AcceleratorConfig } from '@aws-accelerator/common-config';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
+import { getInvoker } from './utils';
 
 interface PolicyChangeEvent extends ScheduledEvent {
   version?: string;
@@ -42,9 +43,9 @@ export const handler = async (input: PolicyChangeEvent) => {
   console.log(`ChangePolicy Event triggered invocation...`);
   console.log(JSON.stringify(input, null, 2));
   const requestDetail = input.detail;
-  const invokedBy = requestDetail.userIdentity.sessionContext.sessionIssuer.userName;
-  if (invokedBy === acceleratorRoleName) {
-    console.log(`Move Account Performed by Accelerator, No operation required`);
+  const invokedBy = getInvoker(input);
+  if (invokedBy && invokedBy === acceleratorRoleName) {
+    console.log(`Policy Changes Performed by Accelerator, No operation required`);
     return {
       status: 'NO_OPERATION_REQUIRED',
     };
@@ -58,6 +59,7 @@ export const handler = async (input: PolicyChangeEvent) => {
 
   const organizationAdminRole = config['global-options']['organization-admin-role']!;
   const configScps = config['global-options'].scps;
+  const ignoredOus: string[] = config['global-options']['ignored-ous'] || [];
   const scpNames = configScps.map(scp =>
     ServiceControlPolicy.policyNameToAcceleratorPolicyName({
       acceleratorPrefix,
@@ -70,24 +72,40 @@ export const handler = async (input: PolicyChangeEvent) => {
     console.warn(`Missing policyId, Ignoring`);
     return 'INVALID_REQUEST';
   }
-  if (!(await isAcceleratorScp(policyId, scpNames))) {
+  const eventName = requestDetail.eventName;
+  if (eventName !== 'DeletePolicy' && !(await isAcceleratorScp(policyId, scpNames))) {
     console.log(`SCP ${policyId} is not managed by Accelerator`);
     return 'SUCCESS';
   }
-  const eventName = requestDetail.eventName;
+  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
+  const { organizationalUnits, accounts } = await loadAccountsAndOrganizationsFromConfig(config);
   if (eventName === 'DetachPolicy') {
     const { targetId } = requestDetail.requestParameters;
     if (!targetId) {
       console.warn(`Missing required parameters, Ignoring`);
       return 'INVALID_REQUEST';
     }
+    if (ignoredOus.length > 0) {
+      if (targetId.startsWith('ou-')) {
+        const destinationOrg = await organizations.getOrganizationalUnitWithPath(targetId);
+        const destinationRootOrg = destinationOrg.Name!;
+        if (ignoredOus.includes(destinationRootOrg)) {
+          console.log(`DetachPolicy is on ignored-ou from ROOT, no need to reattach`);
+          return 'IGNORE';
+        }
+      } else {
+        const accountObject = accounts.find(acc => acc.accountId === targetId);
+        if (ignoredOus.includes(accountObject?.organizationalUnit!)) {
+          console.log(`DetachPolicy is on account in ignored-ous from ROOT, no need to reattach`);
+          return 'IGNORE';
+        }
+      }
+    }
     // ReAttach target to policy
-    console.log(`ReAttaching target "${targetId}" to policy "${policyId}"`);
+    console.log(`Reattaching target "${targetId}" to policy "${policyId}"`);
     await organizations.attachPolicy(policyId, targetId);
   } else if (eventName === 'UpdatePolicy' || eventName === 'DeletePolicy') {
-    console.log(`${eventName}, Changing back to original config from config`);
-    const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
-    const { organizationalUnits, accounts } = await loadAccountsAndOrganizationsFromConfig(config);
+    console.log(`${eventName}, changing back to original config from config`);
 
     // Find policy config
     const globalOptionsConfig = config['global-options'];
@@ -99,6 +117,7 @@ export const handler = async (input: PolicyChangeEvent) => {
       scpBucketName,
       scpBucketPrefix,
       policyConfigs,
+      organizationAdminRole,
     });
     const acceleratorPolicyNames = acceleratorPolicies.map(p => p.Name!);
 

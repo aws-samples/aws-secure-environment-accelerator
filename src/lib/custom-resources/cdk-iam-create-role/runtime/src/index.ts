@@ -32,6 +32,14 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
         })
         .promise(),
     );
+    await throttlingBackOff(() =>
+      iam
+        .updateAssumeRolePolicy({
+          RoleName: event.ResourceProperties.roleName,
+          PolicyDocument: buildPolicyDocument(event.ResourceProperties.accountIds),
+        })
+        .promise(),
+    );
   } catch (error) {
     if (error.code === 'NoSuchEntity') {
       console.log(error.message);
@@ -70,6 +78,24 @@ async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
     return;
   }
   try {
+    const policies = await throttlingBackOff(() =>
+      iam
+        .listAttachedRolePolicies({
+          RoleName: event.ResourceProperties.roleName,
+        })
+        .promise(),
+    );
+    for (const policy of policies.AttachedPolicies || []) {
+      await throttlingBackOff(() =>
+        iam
+          .detachRolePolicy({
+            PolicyArn: policy.PolicyArn!,
+            RoleName: event.ResourceProperties.roleName,
+          })
+          .promise(),
+      );
+    }
+
     await throttlingBackOff(() =>
       iam
         .deleteRole({

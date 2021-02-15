@@ -266,7 +266,7 @@ This step fails when
 
 _Executed only when using AWS Organizations baseline_
 
-This step starts the `PBMMAccel-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role `AWSCloudFormationStackSetAdministrationRole` in the root account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
+This step starts the `PBMMAccel-InstallCfnRoleMaster_sm` state machine. This state machine is responsible for creating the IAM role defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`) in the root account. You can read more about why this role is created [here](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs.html).
 
 ### 3.2.10. Create Organization Account
 
@@ -540,6 +540,18 @@ Issues could occur in different parts of the Accelerator. We'll guide you throug
 
 Viewing the step function `Graph inspector` (depicted above in 2.2), the majority of the main state machine has a large colored box around which is the functionality to catch state machine failures `Main Try Catch block to Notify users`. This large outer box will be blue while the state machine is still executing, it will be green upon a successful state machine execution and will turn orange/yellow on a state machine failure.
 
+What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
+
+If your main state machine fails, review the error(s), resolve the problem and simply re-run the state machine. We've put a huge focus on ensuring the solution is idempotent and to ensure recovery is a smooth and easy process.
+
+Ensuring the integrity of deployed guardrails is critical in operating and maintaining an environment hosting protected data. Based on customer feedback and security best practices, we purposely fail the state machine if we cannot successfully deploy guardrails.
+
+Additionally, with millions of active customers each supporting different and diverse use cases and with the rapid rate of evolution of the AWS platform, sometimes we will encounter unexpected circumstances and the state machine might fail.
+
+We've spent a lot of time over the course of the Accelerator development process ensuring the solution can roll forward, roll backward, be stopped, restarted, and rerun without issues. A huge focus was placed on dealing with and writing custom code to manage and deal with non-idempotent resources (like S3 buckets, log groups, KMS keys, etc.). We've spent a lot of time ensuring that any failed artifacts are automatically cleaned up and don't cause subsequent executions to fail. We've put a strong focus on ensuring you do not need to go into your various AWS sub-accounts and manually remove or cleanup resources or deployment failures. We've also tried to provide usable error messages that are easy to understand and troubleshoot. As new scenario's are brought to our attention, we continue to adjust the codebase to better handle these situations.
+
+Will your state machine fail at some point in time, likely. Will you be able to easily recover and move forward without extensive time and effort, YES!
+
 As the state machine executes, each step will turn from white (not started), to blue (executing), to green (Success), or grey/red (failure). To diagnose the problem select the grey/red step that failed. If you miss the step and select the outer box, you will have selected the `Main Try Catch block to Notify users`. You need to carefully select the failed step.
 
 ![State Machine Failure](img/sm-failure.png)
@@ -696,21 +708,31 @@ Providing any one or more of the following flags will only overide the specified
 
 ```
  {
-   'ov-global-options': true,
-   'ov-del-accts': true,
-   'ov-ren-accts': true,
-   'ov-acct-email': true,
-   'ov-acct-ou': true,
-   'ov-acct-vpc': true,
-   'ov-acct-subnet': true,
-   'ov-tgw': true,
-   'ov-mad': true,
-   'ov-ou-vpc': true,
-   'ov-ou-subnet': true,
-   'ov-share-to-ou': true,
-   'ov-share-to-accounts': true,
-   'ov-nacl': true
+   "configOverrides": {
+     'ov-global-options': true,
+     'ov-del-accts': true,
+     'ov-ren-accts': true,
+     'ov-acct-email': true,
+     'ov-acct-ou': true,
+     'ov-acct-vpc': true,
+     'ov-acct-subnet': true,
+     'ov-tgw': true,
+     'ov-mad': true,
+     'ov-ou-vpc': true,
+     'ov-ou-subnet': true,
+     'ov-share-to-ou': true,
+     'ov-share-to-accounts': true,
+     'ov-nacl': true
+	}
  }
+```
+
+Providing this value allows for the forced rebuilding of the DynamoDB Outputs table:
+
+```
+{
+  "storeAllOutputs": true
+}
 ```
 
 ## 5.2. Switch To a Managed Account
@@ -719,7 +741,9 @@ To switch from the root account to a managed account you can click on your accou
 
 ![Switch Role Menu](img/switch-role-menu.png)
 
-In the page that appears next you need to fill out the account ID of the managed account you want to switch to. Next, you need to enter the role name `AWSCloudFormationStackSetExecutionRole`. And lastly, you need to enter a relevant name so you can later switch roles by using this name.
+In the page that appears next you need to fill out the account ID of the managed account you want to switch to. Next, you need to enter the role name defined in `organization-admin-role` (default: `AWSCloudFormationStackSetAdministrationRole`). And lastly, you need to enter a relevant name so you can later switch roles by using this name.
+
+**TBD: This role may be locked down starting in v1.2.5 - Update process once direction finalized**
 
 **_Caution:_** This mechanism is ONLY to be used for troubleshooting Accelerator problems. This role is outside the Accelerator governance process and bypasses **all** the preventative guardrails that protect the Accelerator contructs and prevent users from performing activities in violation of the security guardrails. This role should NOT be used outside this context, all users should be authenticating and logging into the environment through AWS SSO.
 

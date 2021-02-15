@@ -113,7 +113,18 @@ export const handler = async (input: AdConnectorInput) => {
     }
 
     // Find subnets based on ADC Config subnet name
-    const subnetIds = vpcOutput.subnets.filter(s => s.subnetName === adcConfig.subnet).map(s => s.subnetId);
+    let subnetIds: string[];
+    if (adcConfig.azs.length > 0) {
+      const adcAzs = adcConfig.azs.slice(0, 2);
+      subnetIds = vpcOutput.subnets
+        .filter(s => s.subnetName === adcConfig.subnet && adcAzs.includes(s.az))
+        .map(s => s.subnetId);
+    } else {
+      subnetIds = vpcOutput.subnets
+        .filter(s => s.subnetName === adcConfig.subnet)
+        .map(s => s.subnetId)
+        .slice(0, 2);
+    }
 
     const accountId = getAccountId(accounts, accountKey);
     if (!accountId) {

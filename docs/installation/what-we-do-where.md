@@ -1,3 +1,5 @@
+# AWS Secure Environment Accelerator Deployment Capabilities
+
 | TASK                                                                                                   | Accelerator - What happens, WHERE, under what condition, on each state machine execution                                                                                                                                      |
 | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **_ Creates AWS Account _**                                                                            |                                                                                                                                                                                                                               |
@@ -38,7 +40,7 @@
 | - Creates IAM Policies, Roles, Users, and Groups                                                       | once per account, global scope                                                                                                                                                                                                |
 | **_ Cloud Security Services _**                                                                        |                                                                                                                                                                                                                               |
 | - Enables and configs the following AWS services, worldwide w/central specified admin account:         | (each service can have specified regions disabled)                                                                                                                                                                            |
-| - Guardduty (roadmap to add new S3 capabilities)                                                       | enabled all regions, all accounts, admin account per region                                                                                                                                                                   |
+| - Guardduty w/S3 protection                                                                            | enabled all regions, all accounts, admin account per region                                                                                                                                                                   |
 | - Security Hub (Enables specified security standards, and disables specified individual controls)      | enabled all regions, all accounts, admin account per region                                                                                                                                                                   |
 | - Firewall Manager                                                                                     | enabled once per account (global scope), single admin account                                                                                                                                                                 |
 | - CloudTrail w/Insights and S3 data plane logging                                                      | enabled all regions (using Organization trail, stored in Organization Management account)                                                                                                                                     |
@@ -64,7 +66,7 @@
 | - CloudTrail Logs including S3 Data Plane Logs (also sent to CWL)                                      | directly back to log-archive, specified primary region                                                                                                                                                                        |
 | - All CloudWatch Logs (includes rsyslog logs) (and setting Log group retentions)                       | State machine region, plus configured regions                                                                                                                                                                                 |
 | - Config History and Snapshots                                                                         | directly back to log-archive account specified primary region                                                                                                                                                                 |
-| - Route 53 Public Zone Logs, DNS Query Logging                                                         | to CloudWatch Logs in us-east-1 (which are sent to S3)                                                                                                                                                                        |
+| - Route 53 Public Zone Logs, DNS Resolver Query Logs                                                   | to CloudWatch Logs in us-east-1 (which are sent to S3)                                                                                                                                                                        |
 | - GuardDuty Findings                                                                                   | directly back to log-archive, specified primary region                                                                                                                                                                        |
 | - Macie Discovery results                                                                              | directly back to security, specified primary region, replicated to log-archive                                                                                                                                                |
 | - ALB Logs                                                                                             | State Machine region only (same as ALB deployment)                                                                                                                                                                            |
@@ -72,14 +74,19 @@
 
 ---
 
+## ToDo: Add to above table (supported today)
+
+- Populate Parameter Store with user objects, plus ELB's in perimeter store
+- Deploy and share SSM documents
+- Deploy Config rules
+- Setup SNS Alerting topics
+- Deploy CloudWatch Log Metrics and Alarms
+
 ## Region support
 
-- We have tested installing the Accelerator in multiple different primary regions, but have not done a formal region support assessment
-- As most features can be toggled on/off (per region), we expect most regions should be supportable as a primary (or installation) region, and when not, it should be supported as a managed (or secondary) region
-- The Accelerator cannot be _installed_ directly in the following regions due to a lack of Stack Set support: Africa (Cape Town), Asia Pacific (Osaka), China (Beijing), China (Ningxia), Europe (Milan), Middle East (Bahrain)
-- We also expect to have issues _installing_ into regions which do not have Firewall Manager support, as we did not include the capability to disabled setting the admin account
-- These regions are likely supported as managed but non-primary regions, the initial install simply must be in a fully supported region
-- If sufficient demand exists, we may investigate resolving these blockers (Stack sets are only used for one trivial item today)
+- Lack of availability of CodeBuild, CodeCommit, or AWS Organizations in the Accelerator primary or installation region will prevent installation directly in that region. Customers can select a different installation region and the Accelerator can remotely deploy configurations and guardrails to that unsupported installation region.
+- Prior to v1.2.5, we utilized a single StackSet, which blocked several additional installation regions. The Accelerator no longer leverages any StackSets, unblocking installing directly in several additional regions.
+- As most features can be toggled on/off (per region), we expect most regions should be supportable as a primary (or installation) region, and when not, it should be supported as a managed (or secondary) region.
 
 ---
 

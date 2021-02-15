@@ -105,14 +105,11 @@ export async function saveElbOutputs(props: SaveOutputsInput) {
   if (!accountConfig['populate-all-elbs-in-param-store']) {
     return;
   }
-  const additionalNlbAccountKeys = Array.from(
-    new Set([
-      ...config
-        .getVpcConfigs()
-        .filter(c => c.deployments?.rsyslog && c.accountKey !== account.key)
-        .map(al => al.accountKey),
-    ]),
-  );
+
+  const additionalNlbAccountKeys = config
+    .getRsysLogConfigs()
+    .filter(lb => lb.accountKey !== account.key)
+    .map(al => al.accountKey);
   const additionalAlbAccountKeys = config
     .getAlbConfigs()
     .filter(lb => lb.accountKey !== account.key)

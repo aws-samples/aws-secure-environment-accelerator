@@ -32,7 +32,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 ### Creates Networking
 
-- Transit Gateways and TGW route tables (incl. inter-region peering)
+- Transit Gateways and TGW route tables (incl. inter-region TGW peering)
 - Centralized and/or Local (bespoke) VPC's
 - Subnets, Route tables, NACLs, Security groups, NATGWs, IGWs, VGWs, CGWs
 - VPC Endpoints (Gateway and Interface, Centralized or Local)
@@ -49,7 +49,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
 - Managed Active Directory sharing, including R53 DNS resolver rule creation/sharing
 - Automated TGW inter-region peering
 - Populate Parameter Store with all `user` objects to be used by customers' IaC
-- Deploy and share SSM documents
+- Deploy and share SSM documents (2 provided out-of-box, ELB & S3 remediation)
 
 ### Identity
 
@@ -69,7 +69,7 @@ Specifically the accelerator deploys and manages the following functionality, bo
   - Firewall Manager
   - CloudTrail w/Insights and S3 data plane logging
   - Config Recorders/Aggregator
-  - Config rules
+  - Config rules (95 out-of-box NIST 800-53 rules, customizable per OU)
   - Macie
   - IAM Access Analyzer
   - CloudWatch access from central designated admin account (and setting Log group retentions)
@@ -107,9 +107,9 @@ Specifically the accelerator deploys and manages the following functionality, bo
 
 ## Relationship with AWS Landing Zone Solution (ALZ)
 
-The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ.
+The ALZ is an AWS Solution designed to deploy a multi-account AWS architecture for customers based on best practices and lessons learned from some of AWS' largest customers. The AWS Accelerator draws on design patterns from the Landing Zone, and re-uses several concepts and nomenclature, but it is not directly derived from it, nor does it leverage any code from the ALZ. The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`.
 
-The initial versions of the AWS Accelerator presupposed the existence of an AWS Landing Zone Solution in the AWS Organization; this requirement has since been removed as of release `v1.1.0`. The Accelerator is now a completely standalone solution.
+The Accelerator is now a completely standalone solution.
 
 ## Relationship with AWS Control Tower
 
@@ -127,7 +127,7 @@ This summarizes the installation process, the full installation document can be 
 - Download and execute the latest installer CloudFormation template in your root accounts preferred 'primary' region
 - Wait for:
   - CloudFormation to deploy and start the Code Pipeline (~5 mins)
-  - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~15-20 mins)
+  - Code Pipeline to download the Accelerator codebase and install the Accelerator State Machine (~20 mins)
   - The Accelerator State Machine to finish execution (~1.5 hrs)
 - Perform required manual follow-up activities (configure AWS SSO, set firewall passwords, etc.)
 - When required:
@@ -138,27 +138,27 @@ This summarizes the installation process, the full installation document can be 
 
 # **Documentation**
 
-### - [Installation, Upgrades and Basic Operations Guide](./docs/installation/installation.md)
+### - Accelerator Installation and Upgrade [Guide](./docs/installation/installation.md)
 
-- Link to [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-- [Link](./docs/installation/customization-index.md) to sample config files and customization details
-- More [details](./docs/installation/what-we-do-where.md) as to WHAT we do and WHERE we support it (regions, accounts, etc.)
-- AWS SEA Central Logging [Bucket Structures](./docs/architectures/pbmm/log-file-locations.md)
-- Unofficial [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects)
+- Link to Accelerator [releases](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) and change history
+- Sample configuration files and customization [details](./docs/installation/customization-index.md)
+- [Chart](./docs/installation/what-we-do-where.md) containing details as to WHAT we do and WHERE we support it (regions, accounts, etc.)
+- Accelerator central logging [bucket structures](./docs/architectures/pbmm/log-file-locations.md)
+- Unofficial Accelerator [Roadmap](https://github.com/aws-samples/aws-secure-environment-accelerator/projects) (GitHub projects) - _Please upvote desired features_
 
-### - [Accelerator Operations/Troubleshooting Guide](./docs/operations/operations-troubleshooting-guide.md)
+### - Accelerator Operations/Troubleshooting [Guide](./docs/operations/operations-troubleshooting-guide.md)
 
-### - [Accelerator Developer Guide](./docs/developer/developer-guide.md)
+### - Accelerator Basic Operation and Frequently Asked Questions ([FAQ](./docs/faq/faq.md))
 
-### - [Contributing & Governance Guide](./CONTRIBUTING.md)
+### - Accelerator Developer [Guide](./docs/developer/developer-guide.md)
 
-### - [Prescriptive PBMM Architecture Design Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
+- Accelerator release [process](./docs/developer/release-process.md) (AWS Internal)
 
-- AWS PBMM Architecture Sample [Diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
+### - Contributing & Governance [Guide](./CONTRIBUTING.md)
 
-### - Frequently Asked Questions
+### - Prescriptive PBMM Architecture Design [Document](./docs/architectures/pbmm/architecture.md) (Early Draft)
 
-- See section 3. of the Accelerator Installation, Upgrades and Basic Operations Guide
+- AWS PBMM architecture sample [diagrams](./docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.md)
 
 ---
 

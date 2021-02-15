@@ -31,6 +31,13 @@
               "Principal": {
                 "Service": "ssm.amazonaws.com"
               }
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "cloudformation.amazonaws.com"
+              }
             }
           ],
           "Version": "2012-10-17"

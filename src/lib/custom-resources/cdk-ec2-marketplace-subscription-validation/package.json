@@ -1,9 +1,9 @@
 {
   "name": "@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation", 
   "peerDependencies": {
-    "@aws-cdk/aws-iam": "^1.75.0", 
-    "@aws-cdk/core": "^1.75.0", 
-    "@aws-cdk/aws-lambda": "^1.75.0"
+    "@aws-cdk/aws-iam": "1.85.0", 
+    "@aws-cdk/core": "1.85.0", 
+    "@aws-cdk/aws-lambda": "1.85.0"
   }, 
   "main": "cdk/index.ts",
   "jest": {
@@ -13,9 +13,9 @@
   "private": true, 
   "version": "0.0.1", 
   "dependencies": {
-    "@aws-cdk/aws-iam": "1.75.0", 
-    "@aws-cdk/core": "1.75.0", 
-    "@aws-cdk/aws-lambda": "1.75.0"
+    "@aws-cdk/aws-iam": "1.85.0", 
+    "@aws-cdk/core": "1.85.0", 
+    "@aws-cdk/aws-lambda": "1.85.0"
   }, 
   "devDependencies": {
     "@aws-accelerator/custom-resource-ec2-marketplace-subscription-validation-runtime": "workspace:^0.0.1", 
@@ -35,10 +35,10 @@
     "eslint-plugin-unicorn": "22.0.0", 
     "eslint-config-prettier": "6.12.0",
     "typescript": "3.8.3", 
-    "prettier": "1.19.1", 
+    "prettier": "2.2.0", 
     "jest": "25.2.4", 
     "@types/node": "12.12.6", 
-    "@types/jest": "25.1.4", 
+    "@types/jest": "25.2.3", 
     "ts-jest": "25.3.0"
   }
 }

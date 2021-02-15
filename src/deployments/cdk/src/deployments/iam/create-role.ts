@@ -32,7 +32,16 @@ export async function createRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
-      actions: ['iam:GetRole', 'iam:CreateRole', 'iam:AttachRolePolicy', 'iam:TagRole', 'iam:DeleteRole'],
+      actions: [
+        'iam:GetRole',
+        'iam:CreateRole',
+        'iam:AttachRolePolicy',
+        'iam:TagRole',
+        'iam:DeleteRole',
+        'iam:UpdateAssumeRolePolicy',
+        'iam:ListAttachedRolePolicies',
+        'iam:DetachRolePolicy',
+      ],
       resources: ['*'],
     }),
   );

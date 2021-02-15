@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "DenyNetworkPBMMONLY",
+      "Sid": "DenyNetworkSensitive",
       "Effect": "Deny",
       "Action": [
         "ec2:AcceptVpcPeeringConnection",
@@ -36,6 +36,8 @@
         "ec2:DetachInternetGateway",
         "ec2:DetachVpnGateway",
         "ec2:DisassociateRouteTable",
+        "ec2:AllocateAddress",
+        "ec2:AssociateAddress",
         "globalaccelerator:Create*",
         "globalaccelerator:Update*",
         "kms:ScheduleKeyDeletion",
@@ -49,8 +51,6 @@
         "iam:UpdateGroup",
         "iam:DeleteRolePermissionsBoundary",
         "iam:AddUserToGroup",
-        "iam:UpdateAccountPasswordPolicy",
-        "iam:DeleteAccountPasswordPolicy",
         "iam:TagUser",
         "networkmanager:Create*",
         "networkmanager:Update*",
@@ -63,8 +63,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalArn": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
-            "arn:aws:iam::*:role/StackSet-AWS-Landing-Zone*",
             "arn:aws:iam::*:role/PBMMAccel-*",
             "arn:aws:iam::*:role/PBMMOps-*"
           ]
@@ -82,14 +80,13 @@
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
       }
     },
     {
-      "Sid": "DenyAllOutsideCanadaPBMMONLY",
+      "Sid": "DenyAllOutsideCanadaSensitive",
       "Effect": "Deny",
       "NotAction": [
         "a4b:*",
@@ -140,7 +137,6 @@
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }

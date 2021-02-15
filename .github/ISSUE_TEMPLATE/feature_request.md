@@ -10,9 +10,6 @@ assignees: Brian969
 **Required Basic Info**
 To properly assess the enhancement request, we require information on the version of the Accelerator you based this request upon:
 - Accelerator Version:  (eg. v1.1.6)
-- Install Type: (Clean or Upgrade)
-- Install Branch: (ALZ or Standalone)
-- Upgrade from version: (N/A or v1.x.y)
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]

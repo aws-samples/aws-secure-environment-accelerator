@@ -1,4 +1,4 @@
-# 1. Developer Guide
+# 1. Accelerator Developer Guide
 
 This document is a reference document. Instead of reading through it in linear order, you can use it to look up specific issues as needed.
 
@@ -8,7 +8,7 @@ It is important to read the [Operations Guide](../operations/operations-troubles
 
 <!-- TOC depthFrom:2 depthTo:4 -->
 
-- [1. Developer Guide](#1-developer-guide)
+- [1. Accelerator Developer Guide](#1-accelerator-developer-guide)
 - [2. Table of Contents](#2-table-of-contents)
 - [3. Technology Stack](#3-technology-stack)
   - [3.1. TypeScript and NodeJS](#31-typescript-and-nodejs)
@@ -617,7 +617,7 @@ Example of setting `aws-sdk` as external dependency.
 {
   "externals": ["aws-lambda", "aws-sdk"],
   "dependencies": {
-    "aws-lambda": "1.0.5",
+    "aws-lambda": "1.0.6",
     "aws-sdk": "2.631.0"
   }
 }
@@ -631,7 +631,7 @@ Example of setting `aws-sdk` as embedded dependency.
 {
   "externals": ["aws-lambda"],
   "dependencies": {
-    "aws-lambda": "1.0.5",
+    "aws-lambda": "1.0.6",
     "aws-sdk": "2.711.0"
   }
 }
@@ -701,7 +701,7 @@ This library defines the base Webpack template to compile custom resource runtim
   },
   "dependencies": {
     "@aws-accelerator/custom-resource-runtime-cfn-response": "workspace:^0.0.1",
-    "aws-lambda": "1.0.5",
+    "aws-lambda": "1.0.6",
     "aws-sdk": "2.668.0"
   }
 }

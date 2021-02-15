@@ -95,7 +95,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
 
   const bucket = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
     encryptionKey,
-    versioned: true,
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     removalPolicy: cdk.RemovalPolicy.RETAIN,
   });
@@ -143,17 +142,6 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
     }),
   );
 
-  // Copy files from source to destination
-  const copyFiles = new S3CopyFiles(masterAccountStack, 'CopyFiles', {
-    roleName: createRoleName('S3CopyFiles'),
-    sourceBucket: centralBucket,
-    destinationBucket: bucket,
-    deleteSourceObjects: false,
-    deleteSourceBucket: false,
-    forceUpdate: true,
-  });
-  copyFiles.node.addDependency(bucket);
-
   new CfnCentralBucketOutput(masterAccountStack, 'CentralBucketOutput', {
     bucketArn: bucket.bucketArn,
     bucketName: bucket.bucketName,
@@ -188,6 +176,7 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
     accountStack: logAccountStack,
     encryptionKey: logKey.encryptionKey,
     logRetention: defaultLogRetention!,
+    versioned: true,
   });
 
   // Allow replication from all Accelerator accounts

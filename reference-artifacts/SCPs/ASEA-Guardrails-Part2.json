@@ -11,7 +11,7 @@
         "aws-marketplace:DescribePrivateMarketplaceProducts",
         "aws-marketplace:DescribePrivateMarketplaceProfile",
         "aws-marketplace:DescribePrivateMarketplaceStatus",
-        "aws-marketplace:DisassociateProductsFromPrivateMarketplace",
+        "aws-marketplace:DisassociateProducts*",
         "aws-marketplace:ListPrivateMarketplaceProducts",
         "aws-marketplace:StartPrivateMarketplace",
         "aws-marketplace:StopPrivateMarketplace",
@@ -30,6 +30,7 @@
         "iam:ListMFADevices",
         "iam:ListVirtualMFADevices",
         "iam:ResyncMFADevice",
+        "aws-portal:*",
         "sts:GetSessionToken"
       ],
       "Resource": "*",
@@ -102,12 +103,11 @@
     },
     {
       "Effect": "Deny",
-      "Action": ["kms:DeleteAlias", "kms:UpdateAlias", "kms:DisableKey", "kms:ImportKeyMaterial", "kms:PutKeyPolicy"],
+      "Action": ["kms:DeleteAlias", "kms:UpdateAlias", "kms:DisableKey", "kms:ImportKeyMaterial", "kms:PutKeyPolicy", "kms:ScheduleKeyDeletion"],
       "Resource": "arn:aws:kms:::alias/PBMMAccel*",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -121,7 +121,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -135,7 +134,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -179,7 +177,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }
@@ -240,7 +237,6 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
             "arn:aws:iam::*:role/PBMMAccel-*"
           ]
         }

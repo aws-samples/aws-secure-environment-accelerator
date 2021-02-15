@@ -242,6 +242,8 @@ export const IamPolicyConfigType = t.interface({
   policy: NonEmptyString,
 });
 
+// ssm-log-archive-access will be deprecated in a future release.
+// ssm-log-archive-write-access should be used instead
 export const IamRoleConfigType = t.interface({
   role: NonEmptyString,
   type: NonEmptyString,
@@ -251,6 +253,8 @@ export const IamRoleConfigType = t.interface({
   'source-account-role': optional(t.string),
   'trust-policy': optional(t.string),
   'ssm-log-archive-access': optional(t.boolean),
+  'ssm-log-archive-write-access': optional(t.boolean),
+  'ssm-log-archive-read-only-access': optional(t.boolean),
 });
 
 export const IamConfigType = t.interface({
@@ -338,6 +342,7 @@ export const MadConfigType = t.interface({
   'vpc-name': t.string,
   region: t.string,
   subnet: t.string,
+  azs: fromNullable(t.array(t.string), []),
   size: t.string,
   'dns-domain': t.string,
   'netbios-domain': t.string,
@@ -448,6 +453,7 @@ export const AdcConfigType = t.interface({
   deploy: t.boolean,
   'vpc-name': t.string,
   subnet: t.string,
+  azs: fromNullable(t.array(t.string), []),
   size: t.string,
   restrict_srcips: t.array(cidr),
   'connect-account-key': t.string,
@@ -917,6 +923,13 @@ export interface ResolvedMadConfig extends ResolvedConfigBase {
   mad: MadDeploymentConfig;
 }
 
+export interface ResolvedRsysLogConfig extends ResolvedConfigBase {
+  /**
+   * The rsyslog config to be deployed.
+   */
+  rsyslog: RsyslogConfig;
+}
+
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
   readonly 'global-options': GlobalOptionsConfig;
   readonly 'mandatory-account-configs': AccountsConfig;
@@ -1202,6 +1215,24 @@ export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType>
       result.push({
         accountKey: key,
         mad,
+      });
+    }
+    return result;
+  }
+
+  /**
+   * Find all rsyslog configurations in mandatory accounts, workload accounts and organizational units.
+   */
+  getRsysLogConfigs(): ResolvedRsysLogConfig[] {
+    const result: ResolvedRsysLogConfig[] = [];
+    for (const [key, config] of this.getAccountConfigs()) {
+      const rsyslog = config.deployments?.rsyslog;
+      if (!rsyslog) {
+        continue;
+      }
+      result.push({
+        accountKey: key,
+        rsyslog,
       });
     }
     return result;
