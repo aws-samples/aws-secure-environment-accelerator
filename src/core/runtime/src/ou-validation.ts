@@ -457,8 +457,6 @@ const updateSuspendedAccounts = (props: {
       updateMandatoryAccounts[accountConfig[0]]['account-name'] = awsAccount.Name!;
       updateMandatoryAccounts[accountConfig[0]].email = awsAccount.Email!;
       updateMandatoryAccounts[accountConfig[0]].deleted = true;
-      updateMandatoryAccounts[accountConfig[0]].ou = SUSPENDED_OU_NAME;
-      updateMandatoryAccounts[accountConfig[0]]['ou-path'] = SUSPENDED_OU_NAME;
       // Storing account changes for updating actual configuration
       updatedAccounts[accountConfig[0]] = {
         email: awsAccount.Email,
@@ -472,8 +470,6 @@ const updateSuspendedAccounts = (props: {
       updateWorkLoadAccounts[accountConfig[0]]['account-name'] = awsAccount.Name!;
       updateWorkLoadAccounts[accountConfig[0]].email = awsAccount.Email!;
       updateWorkLoadAccounts[accountConfig[0]].deleted = true;
-      updateWorkLoadAccounts[accountConfig[0]].ou = SUSPENDED_OU_NAME;
-      updateWorkLoadAccounts[accountConfig[0]]['ou-path'] = SUSPENDED_OU_NAME;
       // Storing account changes for updating actual configuration
       updatedAccounts[accountConfig[0]] = {
         email: awsAccount.Email,
