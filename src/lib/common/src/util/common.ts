@@ -149,12 +149,15 @@ export function equalIgnoreCase(value1: string, value2: string): boolean {
 export async function loadAccounts(tableName: string, client: DynamoDB): Promise<Account[]> {
   let index = 0;
   const accounts: Account[] = [];
+  if (!client) {
+    client = new DynamoDB();
+  }
   while (true) {
     const itemsInput = {
       TableName: tableName,
       Key: { id: { S: `accounts/${index}` } },
     };
-    const item = await new DynamoDB().getItem(itemsInput);
+    const item = await client.getItem(itemsInput);
     if (index === 0 && !item.Item) {
       throw new Error(`Cannot find parameter with ID "accounts"`);
     }
