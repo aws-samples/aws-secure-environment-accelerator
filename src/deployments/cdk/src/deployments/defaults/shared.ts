@@ -18,6 +18,7 @@ export function createDefaultS3Key(props: { accountStack: AccountStack }): KmsDe
   const encryptionKey = new kms.Key(accountStack, 'DefaultKey', {
     alias: `alias/${keyAlias}`,
     description: `Default bucket encryption key`,
+    enableKeyRotation: true,
   });
   encryptionKey.addToResourcePolicy(
     new iam.PolicyStatement({

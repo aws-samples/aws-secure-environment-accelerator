@@ -423,7 +423,6 @@ Issues in Older Releases:
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
-- At this time we have not automated the rotation of KMS Customer Managed Keys. This is a roadmap item for a future release.
 
 ---
 
