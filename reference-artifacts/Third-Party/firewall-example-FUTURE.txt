@@ -167,8 +167,8 @@ edit FG-traffic
       set peertype any
       set proposal aes256-sha256
       set dhgrp 2
-      set remote-gw ${PublicVpnTunnel2OutsideAddress1}
-      set psksecret ${PublicPreSharedSecret2-1}
+      set remote-gw ${PublicVpnTunnelOutsideAddress2}
+      set psksecret ${PublicPreSharedSecret2}
       set dpd-retryinterval 10
     next
   end
@@ -199,8 +199,8 @@ edit FG-traffic
       set mtu 1427
     next
     edit "tgw-vpn2"
-      set ip ${PublicCgwTunnel2InsideAddress1} 255.255.255.255
-      set remote-ip ${PublicVpnTunnel2InsideAddress1} 255.255.255.255
+      set ip ${PublicCgwTunnelInsideAddress2} 255.255.255.255
+      set remote-ip ${PublicVpnTunnelInsideAddress2} 255.255.255.255
 	  set explicit-web-proxy enable
       set allowaccess ping
       set type tunnel 
@@ -758,7 +758,7 @@ edit FG-traffic
         set route-map-out "rmap-outbound"
         set link-down-failover enable
       next
-      edit ${PublicVpnTunnel2InsideAddress1}
+      edit ${PublicVpnTunnelInsideAddress2}
         set capability-default-originate enable
         set remote-as ${PublicVpnBgpAsn1}
         set route-map-out "rmap-outbound"
