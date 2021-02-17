@@ -83,6 +83,7 @@ function createCentralBucketCopy(props: DefaultsStep1Props) {
   const encryptionKey = new kms.Key(masterAccountStack, 'CentralBucketKey', {
     alias: `alias/${keyAlias}`,
     description: 'Key used to encrypt/decrypt the copy of central S3 bucket',
+    enableKeyRotation: true,
   });
 
   const bucket = new s3.Bucket(masterAccountStack, 'CentralBucketCopy', {
@@ -380,6 +381,7 @@ function createDefaultEbsEncryptionKey(props: DefaultsStep1Props): AccountRegion
       const key = new kms.Key(accountStack, 'EbsDefaultEncryptionKey', {
         alias: `alias/${keyAlias}`,
         description: 'Key used to encrypt/decrypt EBS by default',
+        enableKeyRotation: true,
       });
 
       key.addToResourcePolicy(
