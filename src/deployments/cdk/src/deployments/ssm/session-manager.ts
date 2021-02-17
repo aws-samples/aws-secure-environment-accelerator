@@ -71,6 +71,8 @@ export async function step1(props: SSMStep1Props) {
       const ssmKey = new Key(accountStack, 'SSM-Key', {
         alias: `alias/${keyAlias}`,
         trustAccountIdentities: true,
+        description: 'Key used to encrypt/decrypt SSM',
+        enableKeyRotation: true,
       });
       ssmKey.grantEncryptDecrypt(new AccountPrincipal(cdk.Aws.ACCOUNT_ID));
       ssmKey.grantEncryptDecrypt(new ServicePrincipal('logs.amazonaws.com'));
