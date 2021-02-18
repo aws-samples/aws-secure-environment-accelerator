@@ -93,6 +93,8 @@ export class CreateOrganizationAccountTask extends sfn.StateMachineFragment {
       functionPayload: {
         'account.$': '$.moveOutput',
         'acceleratorPrefix.$': '$.createAccountConfiguration.acceleratorPrefix',
+        'acceleratorName.$': '$.createAccountConfiguration.acceleratorName',
+        region: cdk.Aws.REGION,
         'organizationAdminRole.$': '$.createAccountConfiguration.organizationAdminRole',
       },
     });

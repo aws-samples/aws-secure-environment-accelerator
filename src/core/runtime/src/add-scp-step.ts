@@ -1,6 +1,7 @@
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
 import { LoadConfigurationInput } from './load-configuration-step';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { additionalReplacements, replaceDefaults } from '@aws-accelerator/common/src/util/common';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { ArtifactOutputFinder } from '@aws-accelerator/common-outputs/src/artifacts';
 import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
@@ -11,6 +12,8 @@ import { loadOrganizations } from './utils/load-organizations';
 
 interface AddScpInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
+  acceleratorName: string;
+  region: string;
   outputTableName: string;
   parametersTableName: string;
 }
@@ -28,6 +31,8 @@ export const handler = async (input: AddScpInput) => {
     configCommitId,
     outputTableName,
     parametersTableName,
+    acceleratorName,
+    region,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -37,7 +42,13 @@ export const handler = async (input: AddScpInput) => {
     commitId: configCommitId,
   });
   const organizationAdminRole = config['global-options']['organization-admin-role']!;
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole);
+  const scps = new ServiceControlPolicy({
+    acceleratorPrefix,
+    acceleratorName,
+    region,
+    replacements: config.replacements,
+    organizationAdminRole,
+  });
 
   const outputs = await loadOutputs(outputTableName, dynamodb);
   const accounts = await loadAccounts(parametersTableName, dynamodb);

@@ -5,6 +5,8 @@ import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
 interface AddQuarantineScpInput {
   accountId: string;
   acceleratorPrefix: string;
+  acceleratorName: string;
+  region: string;
   organizationAdminRole: string;
 }
 
@@ -14,17 +16,29 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
   console.log(`Adding quarantine SCP to account...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { accountId, acceleratorPrefix, organizationAdminRole } = input;
+  const { accountId, acceleratorPrefix, organizationAdminRole, acceleratorName, region } = input;
 
-  await addQuarantineScp(acceleratorPrefix, organizationAdminRole, accountId);
+  await addQuarantineScp(acceleratorPrefix, acceleratorName, region, organizationAdminRole, accountId);
   return {
     status: 'SUCCESS',
     provisionToken: `Account "${accountId}" successfully attached to Quarantine SCP`,
   };
 };
 
-async function addQuarantineScp(acceleratorPrefix: string, organizationAdminRole: string, accountId: string) {
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
+async function addQuarantineScp(
+  acceleratorPrefix: string,
+  acceleratorName: string,
+  region: string,
+  organizationAdminRole: string,
+  accountId: string,
+) {
+  const scps = new ServiceControlPolicy({
+    client: organizations,
+    acceleratorPrefix,
+    acceleratorName,
+    region,
+    organizationAdminRole,
+  });
   const policyId = await scps.createOrUpdateQuarantineScp();
 
   console.log(`Attaching SCP "QNO SCP" to account "${accountId}"`);

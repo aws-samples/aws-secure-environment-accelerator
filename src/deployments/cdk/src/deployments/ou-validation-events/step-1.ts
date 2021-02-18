@@ -25,6 +25,7 @@ export interface OuValidationStep1Props {
 export interface MoveAccountProps {
   scope: AccountStack;
   acceleratorPrefix: string;
+  acceleratorName: string;
   configBranch: string;
   configFilePath: string;
   configRepositoryName: string;
@@ -49,6 +50,7 @@ export async function step1(props: OuValidationStep1Props) {
     defaultRegion,
     acceleratorStateMachineName,
     configRootFilePath,
+    acceleratorName,
   } = context;
   const lambdaPath = require.resolve('@aws-accelerator/deployments-runtime');
   const lambdaDir = path.dirname(lambdaPath);
@@ -83,6 +85,7 @@ export async function step1(props: OuValidationStep1Props) {
     lambdaCode,
     acceleratorStateMachineName,
     configRootFilePath,
+    acceleratorName,
   });
 
   // Creates resource needed for handling create account directly from console
@@ -99,6 +102,7 @@ export async function step1(props: OuValidationStep1Props) {
     scpBucketName,
     scpBucketPrefix,
     organizationAdminRole,
+    acceleratorName,
   });
 
   // Handles RemoveAccountFromOrganization and removes WorkLoadAccount Configuration from configuration file
@@ -135,6 +139,8 @@ async function moveAccount(input: MoveAccountProps) {
     lambdaCode,
     acceleratorStateMachineName,
     configRootFilePath,
+    acceleratorName,
+    acceleratorPrefix,
   } = input;
   const acceleratorStateMachineArn = `arn:aws:states:${defaultRegion}:${scope.accountId}:stateMachine:${acceleratorStateMachineName}`;
   const moveAccountFunc = new lambda.Function(scope, 'moveAccountToOrganization', {
@@ -147,9 +153,11 @@ async function moveAccount(input: MoveAccountProps) {
       CONFIG_FILE_PATH: configFilePath,
       CONFIG_BRANCH_NAME: configBranch,
       ACCELERATOR_STATEMACHINE_ROLENAME: acceleratorPipelineRole.roleName,
-      ACCELERATOR_DEFAULT_REGION: defaultRegion,
       ACCELERATOR_STATE_MACHINE_ARN: acceleratorStateMachineArn,
       CONFIG_ROOT_FILE_PATH: configRootFilePath,
+      ACCELERATOR_NAME: acceleratorName,
+      ACCELERATOR_PREFIX: acceleratorPrefix,
+      ACCELERATOR_DEFAULT_REGION: defaultRegion,
     },
     timeout: cdk.Duration.minutes(15),
     memorySize: 512,

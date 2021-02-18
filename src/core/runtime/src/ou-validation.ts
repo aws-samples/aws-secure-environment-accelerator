@@ -16,6 +16,8 @@ const SUSPENDED_OU_NAME = 'Suspended';
 
 export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
+  acceleratorName: string;
+  region: string;
   parametersTableName: string;
   organizationsItemId: string;
   accountsItemId: string;
@@ -49,6 +51,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     accountsItemId,
     configBranch,
     configRootFilePath,
+    acceleratorName,
+    region,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -66,7 +70,14 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const previousAccounts = await loadAccounts(parametersTableName, accountsItemId);
   const previousOrganizationalUnits = await loadOrganizations(parametersTableName, organizationsItemId);
   const organizationAdminRole = config['global-options']['organization-admin-role'];
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
+  const scps = new ServiceControlPolicy({
+    client: organizations,
+    acceleratorPrefix,
+    acceleratorName,
+    region,
+    replacements: config.replacements,
+    organizationAdminRole,
+  });
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();

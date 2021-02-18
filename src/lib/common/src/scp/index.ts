@@ -1,9 +1,10 @@
 import { Organizations } from '../aws/organizations';
 import { S3 } from '../aws/s3';
-import { ScpConfig, OrganizationalUnitConfig } from '@aws-accelerator/common-config';
+import { ScpConfig, OrganizationalUnitConfig, ReplacementsConfig } from '@aws-accelerator/common-config';
 import { stringType } from 'aws-sdk/clients/iam';
 import { PolicySummary } from 'aws-sdk/clients/organizations';
 import { OrganizationalUnit } from '@aws-accelerator/common-outputs/src/organizations';
+import { additionalReplacements, replaceDefaults } from './../util/common';
 
 export const FULL_AWS_ACCESS_POLICY_NAME = 'FullAWSAccess';
 
@@ -11,13 +12,26 @@ export class ServiceControlPolicy {
   private readonly org: Organizations;
   private readonly s3: S3;
   private readonly acceleratorPrefix: string;
+  private readonly acceleratorName: string;
+  private readonly region: string;
   private readonly organizationAdminRole: string;
+  private readonly replacements?: ReplacementsConfig;
 
-  constructor(acceleratorPrefix: stringType, organizationAdminRole: string, client?: Organizations) {
-    this.org = client || new Organizations();
+  constructor(props: {
+    acceleratorPrefix: stringType;
+    acceleratorName: string;
+    region: string;
+    organizationAdminRole: string;
+    replacements?: ReplacementsConfig;
+    client?: Organizations;
+  }) {
+    this.org = props.client || new Organizations();
     this.s3 = new S3();
-    this.acceleratorPrefix = acceleratorPrefix;
-    this.organizationAdminRole = organizationAdminRole;
+    this.acceleratorPrefix = props.acceleratorPrefix;
+    this.acceleratorName = props.acceleratorName;
+    this.region = props.region;
+    this.replacements = props.replacements;
+    this.organizationAdminRole = props.organizationAdminRole;
   }
 
   async createOrUpdateQuarantineScp(targetIds?: string[]): Promise<string> {
@@ -92,10 +106,17 @@ export class ServiceControlPolicy {
         throw e;
       }
 
-      policyContent = policyContent.replace(/\${ORG_ADMIN_ROLE}/g, organizationAdminRole);
+      // policyContent = policyContent.replace(/\${ORG_ADMIN_ROLE}/g, organizationAdminRole);
 
       // Minify the SCP content
       policyContent = JSON.stringify(JSON.parse(policyContent));
+      policyContent = replaceDefaults({
+        acceleratorName: this.acceleratorName,
+        acceleratorPrefix,
+        additionalReplacements: additionalReplacements(this.replacements!),
+        config: policyContent,
+        region: this.region,
+      });
 
       // Prefix the Accelerator prefix if necessary
       const acceleratorPolicyName = ServiceControlPolicy.policyNameToAcceleratorPolicyName({

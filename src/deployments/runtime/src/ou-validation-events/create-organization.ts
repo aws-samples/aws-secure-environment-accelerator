@@ -8,6 +8,8 @@ interface OrganizationChangeEvent extends ScheduledEvent {
 }
 
 const acceleratorPrefix = process.env.ACCELERATOR_PREFIX!;
+const acceleratorName = process.env.ACCELERATOR_NAME!;
+const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
 const ignoredOrganizationalUnitsString = process.env.IGNORED_OUS! || '';
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
 const organizationAdminRole = process.env.ORGANIZATIONS_ADMIN_ROLE!;
@@ -51,7 +53,13 @@ export const handler = async (input: OrganizationChangeEvent) => {
 };
 
 async function addQuarantineScp(targetId: string) {
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
+  const scps = new ServiceControlPolicy({
+    client: organizations,
+    acceleratorPrefix,
+    acceleratorName,
+    region: defaultRegion,
+    organizationAdminRole,
+  });
   const policyId = await scps.createOrUpdateQuarantineScp();
 
   console.log(`Attaching SCP "QNO SCP" to Organization "${targetId}"`);
