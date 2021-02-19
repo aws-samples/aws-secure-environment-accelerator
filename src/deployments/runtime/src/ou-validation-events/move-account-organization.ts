@@ -225,7 +225,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     try {
       if (accConfigObject.filename === configRootFilePath) {
         // If Accounts in Single Configuration File handling seperatly since we need to go to specific key
-        const accountsInConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
+        const accountsInConfig = getFormattedObject(rootConfig, format);
         if (newAccount) {
           // New Account will go under WorkLoad Account
           accountsInConfig['workload-account-configs'][accKey] = {
