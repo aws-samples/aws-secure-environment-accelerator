@@ -51,7 +51,7 @@
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }

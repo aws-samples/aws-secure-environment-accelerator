@@ -26,10 +26,12 @@ async function main() {
   });
 
   const acceleratorPrefixParam = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
+    default: 'PBMM',
     description: 'Accelerator prefix used for deployment.',
   });
 
   const acceleratorNameParam = new cdk.CfnParameter(stack, 'AcceleratorName', {
+    default: 'PBMMAccel-',
     description: 'Accelerator Name used for deployment.',
   });
 

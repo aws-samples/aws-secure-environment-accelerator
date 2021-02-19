@@ -63,7 +63,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalArn": [
-            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
             "arn:aws:iam::*:role/PBMMOps-*"
           ]
         }
@@ -119,7 +119,7 @@
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }

@@ -5,7 +5,7 @@
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       },
@@ -14,7 +14,7 @@
         "sns:Unsubscribe"
       ],
       "Resource":[
-        "arn:aws:sns:*:*:PBMMAccel-*"
+        "arn:aws:sns:*:*:${ACCELERATOR_PREFIX}*"
       ],
       "Effect":"Deny",
       "Sid":"GRSNSSUBSCRIPTIONPOLICY"
@@ -23,7 +23,7 @@
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       },
@@ -34,7 +34,7 @@
         "cloudtrail:UpdateTrail"
       ],
       "Resource":[
-        "arn:aws:cloudtrail:*:*:trail/PBMMAccel-*"
+        "arn:aws:cloudtrail:*:*:trail/${ACCELERATOR_PREFIX}*"
       ],
       "Effect":"Deny",
       "Sid":"GRCLOUDTRAILENABLED"
@@ -43,7 +43,7 @@
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       },
@@ -55,7 +55,7 @@
         "sns:SetTopicAttributes"
       ],
       "Resource":[
-        "arn:aws:sns:*:*:PBMMAccel-*"
+        "arn:aws:sns:*:*:${ACCELERATOR_PREFIX}*"
       ],
       "Effect":"Deny",
       "Sid":"GRSNSTOPICPOLICY"
@@ -64,7 +64,7 @@
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       },
@@ -87,7 +87,7 @@
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       },
@@ -99,7 +99,7 @@
         "events:DeleteRule"
       ],
       "Resource":[
-        "arn:aws:events:*:*:rule/PBMMAccel-*"
+        "arn:aws:events:*:*:rule/${ACCELERATOR_PREFIX}*"
       ],
       "Effect":"Deny",
       "Sid":"GRCLOUDWATCHEVENTPOLICY"
@@ -108,7 +108,7 @@
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       },
@@ -126,7 +126,7 @@
       "Condition":{
         "ArnNotLike":{
           "aws:PrincipalARN":[
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       },
@@ -138,7 +138,7 @@
         "config:PutConfigurationAggregator"
       ],
       "Resource":[
-        "arn:aws:config:*:*:config-rule/PBMMAccel-*"
+        "arn:aws:config:*:*:config-rule/${ACCELERATOR_PREFIX}*"
       ],
       "Effect":"Deny",
       "Sid":"GRCONFIGRULEPOLICY"
@@ -154,7 +154,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalArn": [
-            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
             "arn:aws:iam::*:role/PBMMOps-*"
           ]
         }

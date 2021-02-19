@@ -108,7 +108,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -117,11 +117,11 @@
       "Sid": "RDGW",
       "Effect": "Deny",
       "Action": ["iam:*"],
-      "Resource": "arn:aws:iam::*:role/PBMMAccel-RDGW-Role",
+      "Resource": "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}RDGW-Role",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -134,7 +134,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -149,10 +149,10 @@
         "iam:SetDefaultPolicyVersion",
         "iam:CreatePolicyVersion"
       ],
-      "Resource": "arn:aws:iam::*:policy/PBMMAccel-*",
+      "Resource": "arn:aws:iam::*:policy/${ACCELERATOR_PREFIX}*",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/PBMMAccel-*"]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
@@ -177,7 +177,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -237,7 +237,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
