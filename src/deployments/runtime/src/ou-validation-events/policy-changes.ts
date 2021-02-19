@@ -121,11 +121,9 @@ export const handler = async (input: PolicyChangeEvent) => {
 
     // Keep track of Accelerator policy names so we later can detach all non-Accelerator policies
     const acceleratorPolicies = await scps.createPoliciesFromConfiguration({
-      acceleratorPrefix,
       scpBucketName,
       scpBucketPrefix,
       policyConfigs,
-      organizationAdminRole,
     });
     const acceleratorPolicyNames = acceleratorPolicies.map(p => p.Name!);
 

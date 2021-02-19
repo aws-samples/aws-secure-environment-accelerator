@@ -76,13 +76,11 @@ export class ServiceControlPolicy {
    * @return Accelerator policies that were created based on the given policy config.
    */
   async createPoliciesFromConfiguration(props: {
-    acceleratorPrefix: string;
     scpBucketName: string;
     scpBucketPrefix: string;
     policyConfigs: ScpConfig[];
-    organizationAdminRole: string;
   }): Promise<PolicySummary[]> {
-    const { acceleratorPrefix, scpBucketName, scpBucketPrefix, policyConfigs, organizationAdminRole } = props;
+    const { scpBucketName, scpBucketPrefix, policyConfigs } = props;
 
     // Find all policies in the organization
     const existingPolicies = await this.listScps();
@@ -112,15 +110,16 @@ export class ServiceControlPolicy {
       policyContent = JSON.stringify(JSON.parse(policyContent));
       policyContent = replaceDefaults({
         acceleratorName: this.acceleratorName,
-        acceleratorPrefix,
+        acceleratorPrefix: this.acceleratorPrefix,
         additionalReplacements: additionalReplacements(this.replacements!),
         config: policyContent,
         region: this.region,
+        orgAdminRole: this.organizationAdminRole,
       });
 
       // Prefix the Accelerator prefix if necessary
       const acceleratorPolicyName = ServiceControlPolicy.policyNameToAcceleratorPolicyName({
-        acceleratorPrefix,
+        acceleratorPrefix: this.acceleratorPrefix,
         policyName: policyConfig.name,
       });
 

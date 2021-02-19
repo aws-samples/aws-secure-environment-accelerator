@@ -527,6 +527,7 @@ export namespace InitialSetup {
           'configCommitId.$': '$.configCommitId',
           parametersTableName: parametersTable.tableName,
           outputTableName: outputsTable.tableName,
+          'organizationAdminRole.$': '$.configuration.organizationAdminRole',
         },
         resultPath: 'DISCARD',
       });
