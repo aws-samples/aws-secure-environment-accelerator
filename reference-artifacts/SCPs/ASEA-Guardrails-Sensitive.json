@@ -64,7 +64,7 @@
         "ArnNotLike": {
           "aws:PrincipalArn": [
             "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
-            "arn:aws:iam::*:role/PBMMOps-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"
           ]
         }
       }

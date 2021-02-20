@@ -13,7 +13,7 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "ec2:ResourceTag/Accel-P": "PBMM"
+          "ec2:ResourceTag/Accel-P": "${ACCELERATOR_NAME}"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
@@ -40,7 +40,7 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "iam:ResourceTag/Accelerator": "PBMM"
+          "iam:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
@@ -121,7 +121,7 @@
       "Action": ["iam:*"],
       "Resource": [
         "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
-        "arn:aws:iam::*:role/PBMMOps-*"
+        "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"
       ],
       "Condition": {
         "ArnNotLike": {
@@ -143,9 +143,9 @@
         "ssm:CreateDocument"
       ],
       "Resource": [
-        "arn:aws:ssm:*:*:parameter/PBMMAccel*",
+        "arn:aws:ssm:*:*:parameter/${ACCELERATOR_PREFIX_ND}*",
         "arn:aws:ssm:*:*:parameter/cloudformation*",
-        "arn:aws:ssm:*:*:document/PBMMAccel*",
+        "arn:aws:ssm:*:*:document/${ACCELERATOR_PREFIX_ND}*",
         "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell"
       ],
       "Condition": {
