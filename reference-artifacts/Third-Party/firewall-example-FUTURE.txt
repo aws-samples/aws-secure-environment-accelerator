@@ -743,7 +743,7 @@ edit FG-traffic
         set set-aspath "${PublicCgwBgpAsn1} ${PublicCgwBgpAsn1} ${PublicCgwBgpAsn1}"
         set set-local-preference 100
       next
-	  edit 4
+      edit 4
         set dst 10.0.0.0 255.0.0.0
         set distance 5
         set device "tgw-vpn1"
@@ -752,7 +752,7 @@ edit FG-traffic
         set dst 10.0.0.0 255.0.0.0
         set device "tgw-vpn2"
       next
-	  edit 6
+      edit 6
         set dst 100.96.252.0 255.255.254.0
         set distance 5
         set device "tgw-vpn1"
