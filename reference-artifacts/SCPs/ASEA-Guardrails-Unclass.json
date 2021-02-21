@@ -115,7 +115,7 @@
       "Resource": "*",
       "Condition": {
         "StringNotEquals": {
-          "aws:RequestedRegion": ["ca-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+          "aws:RequestedRegion": ["${HOME_REGION}", "${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
