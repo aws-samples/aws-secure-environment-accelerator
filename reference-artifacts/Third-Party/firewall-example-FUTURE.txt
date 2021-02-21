@@ -743,6 +743,24 @@ edit FG-traffic
         set set-aspath "${PublicCgwBgpAsn1} ${PublicCgwBgpAsn1} ${PublicCgwBgpAsn1}"
         set set-local-preference 100
       next
+	  edit 4
+        set dst 10.0.0.0 255.0.0.0
+        set distance 5
+        set device "tgw-vpn1"
+      next
+      edit 5
+        set dst 10.0.0.0 255.0.0.0
+        set device "tgw-vpn2"
+      next
+	  edit 6
+        set dst 100.96.252.0 255.255.254.0
+        set distance 5
+        set device "tgw-vpn1"
+      next
+      edit 7
+        set dst 100.96.252.0 255.255.254.0
+        set device "tgw-vpn2"
+      next
     end
     next
   end
@@ -761,7 +779,7 @@ edit FG-traffic
       edit ${PublicVpnTunnelInsideAddress2}
         set capability-default-originate enable
         set remote-as ${PublicVpnBgpAsn1}
-        set route-map-out "rmap-outbound"
+        set route-map-out "rmap-outbound-prepend"
         set link-down-failover enable
       next
     end
