@@ -65,7 +65,7 @@
         "s3:PutObjectRetention",
         "s3:PutObjectTagging"
       ],
-      "Resource": ["arn:aws:s3:::pbmmaccel-*", "arn:aws:s3:::cdktoolkit-*", "arn:aws:s3:::cf-templates-*"],
+      "Resource": ["arn:aws:s3:::${ACCELERATOR_PREFIX_LND}-*", "arn:aws:s3:::cdktoolkit-*", "arn:aws:s3:::cf-templates-*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
