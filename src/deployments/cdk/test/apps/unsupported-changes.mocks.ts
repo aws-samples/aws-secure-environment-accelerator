@@ -118,7 +118,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     '..',
     '..',
     '..',
-    'reference-artifacts',
+    'test',
     'config.example.json',
   );
 

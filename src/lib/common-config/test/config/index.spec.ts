@@ -3,7 +3,7 @@ import * as path from 'path';
 import { AcceleratorConfig } from '../../';
 import { LandingZoneStack } from '../../../common/src/landing-zone';
 
-const configFilePath = path.join(__dirname, '..', '..', '..', '..', '..', 'reference-artifacts', 'config.ALZ.json');
+const configFilePath = path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'config.ALZ.json');
 
 const landingZoneFilePath = path.join(
   __dirname,

@@ -14,7 +14,7 @@ const configFilePath = path.join(
   '..',
   '..',
   '..',
-  'reference-artifacts',
+  'test',
   'config.example.json',
 );
 const content = fs.readFileSync(configFilePath);
