@@ -13,11 +13,11 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "ec2:ResourceTag/Accel-P": "PBMM"
+          "ec2:ResourceTag/Accel-P": "${ACCELERATOR_NAME}"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -40,12 +40,12 @@
       "Resource": "*",
       "Condition": {
         "StringEquals": {
-          "iam:ResourceTag/Accelerator": "PBMM"
+          "iam:ResourceTag/Accelerator": "${ACCELERATOR_NAME}"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
             "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -65,11 +65,11 @@
         "s3:PutObjectRetention",
         "s3:PutObjectTagging"
       ],
-      "Resource": ["arn:aws:s3:::pbmmaccel-*", "arn:aws:s3:::cdktoolkit-*", "arn:aws:s3:::cf-templates-*"],
+      "Resource": ["arn:aws:s3:::${ACCELERATOR_PREFIX_LND}-*", "arn:aws:s3:::cdktoolkit-*", "arn:aws:s3:::cf-templates-*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -79,13 +79,13 @@
       "Effect": "Deny",
       "Action": ["cloudformation:*"],
       "Resource": [
-        "arn:aws:cloudformation:*:*:stack/PBMMAccel-*"
+        "arn:aws:cloudformation:*:*:stack/${ACCELERATOR_PREFIX}*"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
             "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -103,14 +103,14 @@
       ],
       "Resource": [
         "arn:aws:cloudwatch:*:*:alarm:CloudTrail*",
-        "arn:aws:cloudwatch:*:*:alarm:PBMMAccel-*",
+        "arn:aws:cloudwatch:*:*:alarm:${ACCELERATOR_PREFIX}*",
         "arn:aws:cloudwatch:*:*:alarm:IAMPolicyChanges",
         "arn:aws:cloudwatch:*:*:alarm:RootLogin"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -120,14 +120,14 @@
       "Effect": "Deny",
       "Action": ["iam:*"],
       "Resource": [
-        "arn:aws:iam::*:role/PBMMAccel-*",
-        "arn:aws:iam::*:role/PBMMOps-*"
+        "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
+        "arn:aws:iam::*:role/${ACCELERATOR_NAME}Ops-*"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
             "arn:aws:iam::*:role/${ORG_ADMIN_ROLE}",
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -143,15 +143,15 @@
         "ssm:CreateDocument"
       ],
       "Resource": [
-        "arn:aws:ssm:*:*:parameter/PBMMAccel*",
+        "arn:aws:ssm:*:*:parameter/${ACCELERATOR_PREFIX_ND}*",
         "arn:aws:ssm:*:*:parameter/cloudformation*",
-        "arn:aws:ssm:*:*:document/PBMMAccel*",
+        "arn:aws:ssm:*:*:document/${ACCELERATOR_PREFIX_ND}*",
         "arn:aws:ssm:*:*:document/SSM-SessionManagerRunShell"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -176,7 +176,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -204,12 +204,12 @@
         "lambda:UpdateFunctionConfiguration"
       ],
       "Resource": [
-        "arn:aws:lambda:*:*:function:PBMMAccel-*"
+        "arn:aws:lambda:*:*:function:${ACCELERATOR_PREFIX}*"
       ],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -241,7 +241,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*",
             "arn:aws:iam::*:root"
           ]
         }

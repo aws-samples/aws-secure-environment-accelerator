@@ -91,7 +91,7 @@
               "master"
             ],
             "regions": [
-              "ca-central-1"
+              "${HOME_REGION}"
             ],
             "loggroup-name": "/PBMMAccel/CloudTrail",
             "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
@@ -105,7 +105,7 @@
             "master"
           ],
           "default-regions": [
-            "ca-central-1"
+            "${HOME_REGION}"
           ],
           "default-namespace": "CloudTrailMetrics",
           "default-statistic": "Sum",
@@ -132,7 +132,7 @@
 
 ```
     "additional-cwl-regions": {
-      "us-east-1": {
+      "${GBL_REGION}": {
         "kinesis-stream-shard-count": 1
       }
     }
@@ -556,7 +556,7 @@
           {
             "name": "Main",
             "asn": 65521,
-            "region": "ca-central-1",
+            "region": "${HOME_REGION}",
             "features": {
               "DNS-support": true,
               "VPN-ECMP-support": true,
@@ -607,7 +607,7 @@
           {
             "name": "East",
             "asn": 64526,
-            "region": "us-east-1",
+            "region": "${GBL_REGION}",
             "features": {
               "DNS-support": true,
               "VPN-ECMP-support": true,
@@ -619,7 +619,7 @@
             "tgw-attach": {
               "associate-to-tgw": "Main",
               "account": "shared-network",
-              "region": "ca-central-1",
+              "region": "${HOME_REGION}",
               "tgw-rt-associate-local": ["core"],
               "tgw-rt-associate-remote": ["core"]
             },
@@ -697,7 +697,7 @@
 ```
       "aws-config": [
         {
-          "regions": ["ca-central-1", "us-east-1"],
+          "regions": ["${HOME_REGION}", "${GBL_REGION}"],
           "excl-rules": ["ELB_LOGGING_ENABLED"]
         }
       ]

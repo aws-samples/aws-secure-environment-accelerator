@@ -21,6 +21,7 @@ import {
 import { checkAccountWarming } from '../../account-warming/outputs';
 import { createIamInstanceProfileName } from '../../../common/iam-assets';
 import { RegionalBucket } from '../../defaults';
+import { string as StringType } from 'io-ts';
 
 export interface FirewallStep3Props {
   accountBuckets: { [accountKey: string]: RegionalBucket };
@@ -41,6 +42,8 @@ export interface FirewallStep3Props {
 export async function step3(props: FirewallStep3Props) {
   const { accountBuckets, accountStacks, centralBucket, config, outputs, vpcs } = props;
   const vpcConfigs = config.getVpcConfigs();
+  const replacementsConfig = config.replacements;
+  const replacements = additionalReplacements(replacementsConfig);
 
   for (const [accountKey, accountConfig] of config.getAccountConfigs()) {
     const firewallConfigs = accountConfig.deployments?.firewalls;
@@ -116,6 +119,7 @@ export async function step3(props: FirewallStep3Props) {
         firewallVpnConnections,
         vpc,
         vpcConfig,
+        replacements,
       });
     }
   }
@@ -132,8 +136,18 @@ async function createFirewallCluster(props: {
   firewallVpnConnections: FirewallVpnConnection[];
   vpc: Vpc;
   vpcConfig: c.VpcConfig;
+  replacements?: { [key: string]: string };
 }) {
-  const { accountStack, accountBucket, centralBucket, firewallConfig, firewallVpnConnections, vpc, vpcConfig } = props;
+  const {
+    accountStack,
+    accountBucket,
+    centralBucket,
+    firewallConfig,
+    firewallVpnConnections,
+    vpc,
+    vpcConfig,
+    replacements,
+  } = props;
 
   const {
     name: firewallName,
@@ -230,6 +244,7 @@ async function createFirewallCluster(props: {
       securityGroup,
       eipAllocationId: vpnConnection.eipAllocationId,
       vpnTunnelOptions: vpnConnection.vpnTunnelOptions,
+      additionalReplacements: replacements,
     });
 
     const routeTables = vpcConfig['route-tables'] || [];
@@ -273,4 +288,22 @@ async function createFirewallCluster(props: {
     });
   }
   return cluster;
+}
+
+export function additionalReplacements(configReplacements: c.ReplacementsConfig): { [key: string]: string } {
+  const replacements: { [key: string]: string } = {};
+  for (const [key, value] of Object.entries(configReplacements)) {
+    if (!c.ReplacementConfigValueType.is(value)) {
+      if (StringType.is(value)) {
+        replacements['${' + key.toUpperCase() + '}'] = value;
+      }
+    } else {
+      for (const [needle, replacement] of Object.entries(value)) {
+        if (StringType.is(replacement)) {
+          replacements['${' + key.toUpperCase() + '_' + needle.toUpperCase() + '}'] = replacement;
+        }
+      }
+    }
+  }
+  return replacements;
 }

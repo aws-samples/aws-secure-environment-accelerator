@@ -38,6 +38,8 @@ const configFilePath = process.env.CONFIG_FILE_PATH!;
 const configRootFilePath = process.env.CONFIG_ROOT_FILE_PATH!;
 const configBranch = process.env.CONFIG_BRANCH_NAME!;
 const acceleratorRoleName = process.env.ACCELERATOR_STATEMACHINE_ROLENAME!;
+const acceleratorName = process.env.ACCELERATOR_NAME!;
+const acceleratorPrefix = process.env.ACCELERATOR_PREFIX!;
 
 const organizations = new Organizations();
 const codecommit = new CodeCommit(undefined, defaultRegion);
@@ -223,7 +225,7 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     try {
       if (accConfigObject.filename === configRootFilePath) {
         // If Accounts in Single Configuration File handling seperatly since we need to go to specific key
-        const accountsInConfig = getFormattedObject(rawConfigResponse.fileContent.toString(), format);
+        const accountsInConfig = rootConfig;
         if (newAccount) {
           // New Account will go under WorkLoad Account
           accountsInConfig['workload-account-configs'][accKey] = {
@@ -378,6 +380,8 @@ async function updateConfig(props: { account: org.Account; destinationOrg: Organ
     repositoryName: configRepositoryName,
     source: 'codecommit',
     region: defaultRegion,
+    acceleratorName,
+    acceleratorPrefix,
   });
   const config = await rawConfigObject.prepare();
 

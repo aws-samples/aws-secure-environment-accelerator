@@ -104,11 +104,11 @@
     {
       "Effect": "Deny",
       "Action": ["kms:DeleteAlias", "kms:UpdateAlias", "kms:DisableKey", "kms:ImportKeyMaterial", "kms:PutKeyPolicy", "kms:ScheduleKeyDeletion"],
-      "Resource": "arn:aws:kms:::alias/PBMMAccel*",
+      "Resource": "arn:aws:kms:::alias/${ACCELERATOR_PREFIX_ND}*",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -117,11 +117,11 @@
       "Sid": "RDGW",
       "Effect": "Deny",
       "Action": ["iam:*"],
-      "Resource": "arn:aws:iam::*:role/PBMMAccel-RDGW-Role",
+      "Resource": "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}RDGW-Role",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -130,11 +130,11 @@
       "Sid": "Log2",
       "Effect": "Deny",
       "Action": ["logs:AssociateKmsKey", "logs:DisassociateKmsKey", "logs:PutDestination", "logs:PutDestinationPolicy"],
-      "Resource": "arn:aws:logs:::log-group:*PBMMAccel*",
+      "Resource": "arn:aws:logs:::log-group:*${ACCELERATOR_PREFIX_ND}*",
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -149,10 +149,10 @@
         "iam:SetDefaultPolicyVersion",
         "iam:CreatePolicyVersion"
       ],
-      "Resource": "arn:aws:iam::*:policy/PBMMAccel-*",
+      "Resource": "arn:aws:iam::*:policy/${ACCELERATOR_PREFIX}*",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": ["arn:aws:iam::*:role/PBMMAccel-*"]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
@@ -173,11 +173,11 @@
         "firehose:Stop*",
         "firehose:Update*"
       ],
-      "Resource": ["arn:aws:firehose:*:*:deliverystream/PBMMAccel*", "arn:aws:kinesis:*:*:stream/PBMMAccel*"],
+      "Resource": ["arn:aws:firehose:*:*:deliverystream/${ACCELERATOR_PREFIX_ND}*", "arn:aws:kinesis:*:*:stream/${ACCELERATOR_PREFIX_ND}*"],
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
@@ -237,7 +237,7 @@
       "Condition": {
         "ArnNotLike": {
           "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/PBMMAccel-*"
+            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
           ]
         }
       }
