@@ -10,6 +10,17 @@
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
     "ignored-ous": [],
+    "replacements": {
+      "addl_regions": {
+        "a": ["${HOME_REGION}"],
+        "b": ["${HOME_REGION}, ${GBL_REGION}"],
+        "c": ["${HOME_REGION}, ${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
+      },
+      "cloud-cidr1": "10.0.0.0",
+      "cloud-mask1": "255.0.0.0",
+      "cloud-cidr2": "100.96.252.0",
+      "cloud-mask2": "255.255.254.0"
+    },
     "additional-global-output-regions": [],
     "supported-regions": [
       "ap-northeast-1",
@@ -5370,9 +5381,7 @@
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": [
-            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
-          ],
+          "rules": ["S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["${HOME_REGION}"]
         }
       ]
