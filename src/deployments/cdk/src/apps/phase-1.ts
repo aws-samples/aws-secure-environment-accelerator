@@ -20,7 +20,7 @@ import { CentralBucketOutput, LogBucketOutput } from '../deployments/defaults/ou
 import * as budget from '../deployments/billing/budget';
 import * as certificates from '../deployments/certificates';
 import * as defaults from '../deployments/defaults';
-import * as firewall from '../deployments/firewall/cluster';
+import * as firewallCluster from '../deployments/firewall/cluster';
 import * as firewallSubscription from '../deployments/firewall/subscription';
 import * as reports from '../deployments/reports';
 import * as ssm from '../deployments/ssm/session-manager';
@@ -288,7 +288,7 @@ export async function deploy({ acceleratorConfig, accountStacks, accounts, conte
   }
 
   // Create the firewall
-  await firewall.step2({
+  await firewallCluster.step2({
     accountStacks,
     config: acceleratorConfig,
     outputs,

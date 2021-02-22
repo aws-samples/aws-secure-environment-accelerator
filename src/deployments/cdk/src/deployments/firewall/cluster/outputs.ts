@@ -50,6 +50,13 @@ export const FirewallVpnTunnelOptions = t.interface({
   vpnTunnelOutsideAddress1: t.string,
   vpnBgpAsn1: t.string,
   preSharedSecret1: t.string,
+  cgwTunnelInsideAddress2: t.string,
+  cgwTunnelOutsideAddress2: t.string,
+  cgwBgpAsn2: t.string,
+  vpnTunnelInsideAddress2: t.string,
+  vpnTunnelOutsideAddress2: t.string,
+  vpnBgpAsn2: t.string,
+  preSharedSecret2: t.string,
 });
 
 export type FirewallVpnTunnelOptions = t.TypeOf<typeof FirewallVpnTunnelOptions>;

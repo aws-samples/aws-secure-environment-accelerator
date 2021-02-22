@@ -30,6 +30,7 @@ Notes:
 | Variable                           | Value                                        |
 | ---------------------------------- | -------------------------------------------- |
 | \${Hostname}                       | Firewall_azA                                 |
+| **VPC Info**                       | -                                            |
 | \${VpcMask}                        | 255.255.252.0                                |
 | \${VpcCidr}                        | 10.7.4.0/22                                  |
 | \${VpcNetworkIp}                   | 10.7.4.0                                     |
@@ -38,11 +39,13 @@ Notes:
 | \${VpcCidr2}                       | 100.96.250.0/23                              |
 | \${VpcNetworkIp2}                  | 100.96.250.0                                 |
 | \${VpcRouterIp2}                   | 100.96.250.1                                 |
+| **Subnet 1 Info**                  | -                                            |
 | \${PublicIp1}                      | FirewallInstance0Eni-PrimaryPrivateIpAddress |
 | \${PublicNetworkIp}                | 100.96.250.0                                 |
 | \${PublicRouterIp}                 | 100.96.250.1                                 |
 | \${PublicCidr}                     | 100.96.250.0/25                              |
 | \${PublicMask}                     | 255.255.255.128                              |
+| **Tunnel1**                        | -                                            |
 | \${PublicCgwTunnelOutsideAddress1} | 35.182.44.198                                |
 | \${PublicCgwTunnelInsideAddress1}  | 169.254.251.78                               |
 | \${PublicCgwBgpAsn1}               | "65523"                                      |
@@ -50,16 +53,27 @@ Notes:
 | \${PublicVpnTunnelInsideAddress1}  | 169.254.251.77                               |
 | \${PublicVpnBgpAsn1}               | "65521"                                      |
 | \${PublicPreSharedSecret1}         | the-secret                                   |
+| **Tunnel2**                        | -                                            |
+| \${PublicCgwTunnelOutsideAddress2} | 3.97.104.182                                 |
+| \${PublicCgwTunnelInsideAddress2}  | 169.254.76.153                               |
+| \${PublicCgwBgpAsn2}               | "65523"                                      |
+| \${PublicVpnTunnelOutsideAddress2} | 52.60.103.19                                 |
+| \${PublicVpnTunnelInsideAddress2}  | 169.254.76.154                               |
+| \${PublicVpnBgpAsn2}               | "65521"                                      |
+| \${PublicPreSharedSecret2}         | the-secret                                   |
+| **Subnet 2 Info**                  | -                                            |
 | \${OnPremiseIp1}                   | FirewallInstance0Eni-PrimaryPrivateIpAddress |
 | \${OnPremiseNetworkIp}             | 100.96.251.0                                 |
 | \${OnPremiseRouterIp}              | 100.96.251.1                                 |
 | \${OnPremiseCidr}                  | 100.96.251.0/27                              |
 | \${OnPremiseMask}                  | 255.255.255.224                              |
+| **Subnet 3 Info**                  | -                                            |
 | \${FWMgmtIp1}                      | FirewallInstance0Eni-PrimaryPrivateIpAddress |
 | \${FWMgmtNetworkIp}                | 100.96.251.32                                |
 | \${FWMgmtRouterIp}                 | 100.96.251.33                                |
 | \${FWMgmtCidr}                     | 100.96.251.32/27                             |
 | \${FWMgmtMask}                     | 255.255.255.224                              |
+| **Subnet 4 Info**                  | -                                            |
 | \${ProxyIp1}                       | FirewallInstance0Eni-PrimaryPrivateIpAddress |
 | \${ProxyNetworkIp}                 | 100.96.251.64                                |
 | \${ProxyRouterIp}                  | 100.96.251.65                                |
