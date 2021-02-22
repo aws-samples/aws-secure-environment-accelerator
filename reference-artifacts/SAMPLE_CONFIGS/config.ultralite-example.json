@@ -10,6 +10,13 @@
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
     "ignored-ous": [],
+    "replacements": {
+      "addl_regions": {
+        "a": ["${HOME_REGION}"],
+        "b": ["${HOME_REGION}, ${GBL_REGION}"],
+        "c": ["${HOME_REGION}, ${GBL_REGION}"]
+      }
+    },
     "additional-global-output-regions": [],
     "supported-regions": ["${HOME_REGION}", "${GBL_REGION}"],
     "keep-default-vpc-regions": [],
@@ -693,7 +700,7 @@
           "account": "operations",
           "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
-      }
+        }
       ],
       "aws-config": [
         {

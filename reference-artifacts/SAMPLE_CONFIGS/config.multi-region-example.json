@@ -10,6 +10,17 @@
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
     "ignored-ous": [],
+    "replacements": {
+      "addl_regions": {
+        "a": ["${HOME_REGION}"],
+        "b": ["${HOME_REGION}, ${GBL_REGION}"],
+        "c": ["${HOME_REGION}, ${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
+      },
+      "cloud-cidr1": "10.0.0.0",
+      "cloud-mask1": "255.0.0.0",
+      "cloud-cidr2": "100.96.252.0",
+      "cloud-mask2": "255.255.254.0"
+    },
     "additional-global-output-regions": [],
     "supported-regions": [
       "ap-northeast-1",
@@ -509,7 +520,7 @@
     "ssm-automation": [
       {
         "accounts": ["operations"],
-        "regions": ["${HOME_REGION}","${GBL_REGION}"],
+        "regions": ["${HOME_REGION}", "${GBL_REGION}"],
         "documents": [
           {
             "name": "SSM-ELB-Enable-Logging",
@@ -1383,7 +1394,7 @@
           "vpc-name": "Central",
           "region": "${HOME_REGION}",
           "subnet": "GCWide",
-		  "azs": ["a", "b"],
+          "azs": ["a", "b"],
           "size": "Enterprise",
           "dns-domain": "example.local",
           "netbios-domain": "example",
@@ -2170,7 +2181,7 @@
           "deploy": true,
           "vpc-name": "ForSSO",
           "subnet": "ForSSO",
-		  "azs": ["a", "b"],
+          "azs": ["a", "b"],
           "size": "Small",
           "restrict_srcips": ["10.249.1.0/24", "100.96.252.0/23"],
           "connect-account-key": "operations",
@@ -5342,7 +5353,7 @@
           },
           "interface-endpoints": false
         },
-		{
+        {
           "deploy": "shared-network",
           "name": "UnClass-East",
           "cidr": "10.105.0.0/16",
@@ -5639,7 +5650,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["${HOME_REGION}","${GBL_REGION}"],
+          "regions": ["${HOME_REGION}", "${GBL_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -5743,7 +5754,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["${HOME_REGION}","${GBL_REGION}"]
+          "remediate-regions": ["${HOME_REGION}", "${GBL_REGION}"]
         }
       ]
     },
@@ -6132,9 +6143,7 @@
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": [
-            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
-          ],
+          "rules": ["S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
           "remediate-regions": ["${HOME_REGION}"]
         }
       ]
