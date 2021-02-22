@@ -858,7 +858,7 @@ export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
 export type ReplacementsConfig = t.TypeOf<typeof ReplacementsConfigType>;
 
 export const AcceleratorConfigType = t.interface({
-  replacements: ReplacementsConfigType,
+  replacements: optional(ReplacementsConfigType),
   'global-options': GlobalOptionsConfigType,
   'mandatory-account-configs': AccountsConfigType,
   'workload-account-configs': AccountsConfigType,
