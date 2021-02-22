@@ -47,7 +47,7 @@
       "Resource": "*",
       "Condition": {
         "StringNotEquals": {
-          "aws:RequestedRegion": "${ADDL_REGION_C}"
+          "aws:RequestedRegion": "${ADDL_REGIONS_C}"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [

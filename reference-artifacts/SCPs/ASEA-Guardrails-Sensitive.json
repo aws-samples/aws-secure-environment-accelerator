@@ -76,7 +76,7 @@
       "Resource": "*",
       "Condition": {
         "StringNotEquals": {
-          "aws:RequestedRegion": "${ADDL_REGION_B}"
+          "aws:RequestedRegion": "${ADDL_REGIONS_B}"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
@@ -133,7 +133,7 @@
       "Resource": "*",
       "Condition": {
         "StringNotEquals": {
-          "aws:RequestedRegion": "${ADDL_REGION_A}"
+          "aws:RequestedRegion": "${ADDL_REGIONS_A}"
         },
         "ArnNotLike": {
           "aws:PrincipalARN": [
