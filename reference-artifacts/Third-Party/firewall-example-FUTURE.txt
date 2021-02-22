@@ -743,6 +743,10 @@ edit FG-traffic
         set set-aspath "${PublicCgwBgpAsn1} ${PublicCgwBgpAsn1} ${PublicCgwBgpAsn1}"
         set set-local-preference 100
       next
+    end
+    next
+  end
+  config router static
       edit 4
         set dst ${CLOUD-CIDR1} ${CLOUD-MASK1}
         set distance 5
@@ -761,8 +765,6 @@ edit FG-traffic
         set dst ${CLOUD-CIDR2} ${CLOUD-MASK2}
         set device "tgw-vpn2"
       next
-    end
-    next
   end
   config router bgp
     set as ${PublicCgwBgpAsn1}
