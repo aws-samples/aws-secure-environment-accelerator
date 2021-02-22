@@ -1,4 +1,11 @@
 {
+  "replacements": {
+    "addl_regions": {
+      "a": ["${HOME_REGION}"],
+      "b": ["${HOME_REGION}, ${GBL_REGION}"],
+      "c": ["${HOME_REGION}, ${GBL_REGION}"]
+    }
+  },
   "global-options": {
     "alz-baseline": false,
     "ct-baseline": false,
@@ -10,13 +17,6 @@
     "workloadaccounts-prefix": "config",
     "workloadaccounts-param-filename": "config.json",
     "ignored-ous": [],
-    "replacements": {
-      "addl_regions": {
-        "a": ["${HOME_REGION}"],
-        "b": ["${HOME_REGION}, ${GBL_REGION}"],
-        "c": ["${HOME_REGION}, ${GBL_REGION}"]
-      }
-    },
     "additional-global-output-regions": [],
     "supported-regions": ["${HOME_REGION}", "${GBL_REGION}"],
     "keep-default-vpc-regions": [],
