@@ -6,17 +6,7 @@ import { compareConfiguration, getAccountNames } from '../../../src/compare/conf
 import { AcceleratorConfig } from '../../..';
 
 // Working directory is `common-lambda` so the config file is one directory up
-const configFilePath = path.join(
-  __dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  '..',
-  '..',
-  'test',
-  'config.example.json',
-);
+const configFilePath = path.join(__dirname, '..', '..', '..', '..', '..', '..', 'test', 'config.example.json');
 const content = fs.readFileSync(configFilePath);
 
 // Keep context for all the tests
