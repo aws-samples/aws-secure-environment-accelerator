@@ -7,7 +7,7 @@ import { RAW_CONFIG_FILE, JSON_FORMAT } from './constants';
 import { DynamoDB } from '../aws/dynamodb';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
 import { ReplacementConfigValueType, ReplacementsConfig } from '@aws-accelerator/common-config';
-import { string } from 'io-ts';
+import { string as StringType } from 'io-ts';
 
 const GLOBAL_REGION = 'us-east-1';
 export function getFormattedObject(input: string, format: FormatType) {
@@ -189,17 +189,17 @@ export function additionalReplacements(configReplacements: ReplacementsConfig): 
   const replacements: { [key: string]: string | string[] } = {};
   for (const [key, value] of Object.entries(configReplacements)) {
     if (!ReplacementConfigValueType.is(value)) {
-      if (string.is(value)) {
+      if (StringType.is(value)) {
         replacements['\\${' + key.toUpperCase() + '}'] = value;
       } else {
-        replacements['"?\\${' + key.toUpperCase() + '}"?'] = value as string[];
+        replacements['"?\\${' + key.toUpperCase() + '}"?'] = value;
       }
     } else {
       for (const [needle, replacement] of Object.entries(value)) {
-        if (string.is(replacement)) {
+        if (StringType.is(replacement)) {
           replacements['\\${' + key.toUpperCase() + '_' + needle.toUpperCase() + '}'] = replacement;
         } else {
-          replacements['"?\\${' + key.toUpperCase() + '_' + needle.toUpperCase() + '}"?'] = replacement as string[];
+          replacements['"?\\${' + key.toUpperCase() + '_' + needle.toUpperCase() + '}"?'] = replacement;
         }
       }
     }
@@ -219,8 +219,10 @@ export function replaceDefaults(props: {
   let { config } = props;
   const accelPrefixNd = acceleratorPrefix.endsWith('-') ? acceleratorPrefix.slice(0, -1) : acceleratorPrefix;
   for (const [key, value] of Object.entries(additionalReplacements)) {
-    config = config.replace(new RegExp(key, 'g'), string.is(value) ? value : JSON.stringify(value));
+    config = config.replace(new RegExp(key, 'g'), StringType.is(value) ? value : JSON.stringify(value));
   }
+
+  /* eslint-disable no-template-curly-in-string */
   const replacements = {
     '\\${HOME_REGION}': region,
     '\\${GBL_REGION}': GLOBAL_REGION,
@@ -230,6 +232,8 @@ export function replaceDefaults(props: {
     '\\${ACCELERATOR_PREFIX_LND}': accelPrefixNd.toLowerCase(),
     '\\${ORG_ADMIN_ROLE}': orgAdminRole!,
   };
+  /* eslint-enable */
+
   Object.entries(replacements).map(([key, value]) => {
     config = config.replace(new RegExp(key, 'g'), value);
   });
