@@ -22,6 +22,8 @@ exports.handler = async function (event, context) {
       Owner:userParameters.owner,
       DeployTime: currentTime.toString(),
       AcceleratorVersion: userParameters.acceleratorVersion,
+      AcceleratorName: userParameters.acceleratorName,
+      AcceleratorPrefix: userParameters.acceleratorPrefix,
     }
     const param = await ssm.putParameter({
       Name: '/accelerator/version', 
