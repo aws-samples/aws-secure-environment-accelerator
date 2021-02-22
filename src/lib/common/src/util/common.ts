@@ -76,7 +76,7 @@ export class RawConfig {
           acceleratorName: this.props.acceleratorName,
           acceleratorPrefix: this.props.acceleratorPrefix,
           region: this.props.region,
-          additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements),
+          additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements || {}),
         }),
         JSON_FORMAT,
       ),
