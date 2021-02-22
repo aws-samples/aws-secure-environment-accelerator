@@ -111,16 +111,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
   ];
 
-  const configFilePath = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    '..',
-    '..',
-    'reference-artifacts',
-    'config.example.json',
-  );
+  const configFilePath = path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'config.example.json');
 
   const content = fs.readFileSync(configFilePath);
   const config = AcceleratorConfig.fromString(content.toString());

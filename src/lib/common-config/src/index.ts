@@ -811,9 +811,9 @@ export const AwsConfig = t.interface({
 });
 
 export const ReplacementConfigValueType = t.record(t.string, t.union([t.string, t.array(t.string)]));
-export const ReplacementsConfigType = t.record(
-  t.string,
-  t.union([t.string, t.array(t.string), ReplacementConfigValueType]),
+export const ReplacementsConfigType = fromNullable(
+  t.record(t.string, t.union([t.string, t.array(t.string), ReplacementConfigValueType])),
+  {},
 );
 
 export const GlobalOptionsConfigType = t.interface({
