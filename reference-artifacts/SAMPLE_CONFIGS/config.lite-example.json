@@ -144,29 +144,34 @@
     },
     "scps": [
       {
-        "name": "ASEA-Core",
-        "description": "Core Preventive Guardrails",
-        "policy": "aws-landing-zone-core-mandatory-preventive-guardrails-Accel.json"
+        "name": "Guardrails-Part-0",
+        "description": "ASEA Guardrails Part 0",
+        "policy": "ASEA-Guardrails-Part0.json"
       },
       {
         "name": "Guardrails-Part-1",
         "description": "ASEA Guardrails Part 1",
-        "policy": "PBMMAccel-Guardrails-Part1.json"
+        "policy": "ASEA-Guardrails-Part1.json"
       },
       {
         "name": "Guardrails-Part-2",
         "description": "ASEA Guardrails Part 2",
-        "policy": "PBMMAccel-Guardrails-Part2.json"
+        "policy": "ASEA-Guardrails-Part2.json"
       },
       {
-        "name": "Guardrails-PBMM-Only",
-        "description": "ASEA Guardrails PBMM Environment Specific",
-        "policy": "PBMMAccel-Guardrails-PBMM-Only.json"
+        "name": "Guardrails-Sensitive",
+        "description": "ASEA Guardrails Sensitive Environment Specific",
+        "policy": "ASEA-Guardrails-Sensitive.json"
       },
       {
-        "name": "Guardrails-Unclass-Only",
+        "name": "Guardrails-Unclass",
         "description": "ASEA Guardrails Unclassified Environment Specific",
-        "policy": "PBMMAccel-Guardrails-Unclass-Only.json"
+        "policy": "ASEA-Guardrails-Unclass.json"
+      },
+      {
+        "name": "Guardrails-Sandbox",
+        "description": "ASEA Guardrails Sandbox Environment Specific",
+        "policy": "ASEA-Guardrails-Sandbox.json"
       },
       {
         "name": "Quarantine-New-Object",
@@ -1067,7 +1072,7 @@
           },
           {
             "policy-name": "PBMMAccel-RDGW-Custom-Policy",
-            "policy": "pbmmaccel-rdgw-custom-policies.txt"
+            "policy": "rdgw-custom-policy.txt"
           }
         ],
         "roles": [
@@ -1915,7 +1920,7 @@
   "organizational-units": {
     "core": {
       "type": "ignore",
-      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Core Budget",
         "period": "Monthly",
@@ -2065,7 +2070,7 @@
     "Central": {
       "type": "mandatory",
       "share-mad-from": "operations",
-      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Central Budget",
         "period": "Monthly",
@@ -2621,7 +2626,7 @@
     "Dev": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Dev Budget",
         "period": "Monthly",
@@ -3204,7 +3209,7 @@
     "Test": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Test Budget",
         "period": "Monthly",
@@ -3787,7 +3792,7 @@
     "Prod": {
       "type": "workload",
       "share-mad-from": "operations",
-      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-PBMM-Only"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sensitive"],
       "default-budgets": {
         "name": "Default Prod Budget",
         "period": "Monthly",
@@ -4370,7 +4375,7 @@
     "Sandbox": {
       "type": "workload",
       "share-mad-from": "",
-      "scps": ["ASEA-Core", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Unclass-Only"],
+      "scps": ["Guardrails-Part-0", "Guardrails-Part-1", "Guardrails-Part-2", "Guardrails-Sandbox"],
       "default-budgets": {
         "name": "Default Sandbox Budget",
         "period": "Monthly",
@@ -4741,7 +4746,23 @@
             "boundary-policy": "Default-Boundary-Policy"
           }
         ]
-      }
+      },
+      "ssm-automation": [
+        {
+          "account": "operations",
+          "regions": ["ca-central-1"],
+          "documents": ["Put-S3-Encryption"]
+        }
+      ],
+      "aws-config": [
+        {
+          "excl-regions": [],
+          "rules": [
+            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
+          ],
+          "remediate-regions": ["ca-central-1"]
+        }
+      ]
     }
   }
 }

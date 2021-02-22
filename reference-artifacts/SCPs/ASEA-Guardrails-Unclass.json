@@ -1,0 +1,128 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyNetworkUnclass",
+      "Effect": "Deny",
+      "Action": [
+        "ec2:AcceptVpcPeeringConnection",
+        "ec2:AttachEgressOnlyInternetGateway",
+        "ec2:AttachInternetGateway",
+        "ec2:CreateEgressOnlyInternetGateway",
+        "ec2:CreateInternetGateway",
+        "ec2:CreateNatGateway",
+        "ec2:CreateTransitGateway",
+        "ec2:CreateTransitGatewayRoute",
+        "ec2:CreateTransitGatewayRouteTable",
+        "ec2:CreateTransitGatewayVpcAttachment",
+        "ec2:CreateVpc",
+        "ec2:CreateVpcEndpoint",
+        "ec2:CreateVpcPeeringConnection",
+        "ec2:DeleteNatGateway",
+        "ec2:DeleteTransitGatewayRoute",
+        "ec2:DeleteTransitGatewayRouteTable",
+        "ec2:DeleteTransitGatewayVpcAttachment",
+        "ec2:DeleteVpc",
+        "ec2:DeleteVpcEndpoints",
+        "ec2:DeleteVpcPeeringConnection",
+        "ec2:DeleteCustomerGateway",
+        "ec2:DeleteDhcpOptions",
+        "ec2:DeleteInternetGateway",
+        "ec2:DeleteRouteTable",
+        "ec2:DeleteSubnet",
+        "ec2:DeleteVpnConnection",
+        "ec2:DeleteVpnGateway",
+        "ec2:DeleteRoute",
+        "ec2:DetachInternetGateway",
+        "ec2:DetachVpnGateway",
+        "ec2:DisassociateRouteTable",
+        "ec2:AllocateAddress",
+        "ec2:AssociateAddress",
+        "globalaccelerator:Create*",
+        "globalaccelerator:Update*",
+        "kms:ScheduleKeyDeletion",
+        "kms:Delete*",
+        "iam:CreateGroup",
+        "iam:CreateUser",
+        "iam:CreateAccessKey",
+        "iam:DeleteUser",
+        "iam:UpdateUser",
+        "iam:DeleteGroup",
+        "iam:UpdateGroup",
+        "iam:DeleteRolePermissionsBoundary",
+        "iam:AddUserToGroup",
+        "iam:TagUser",
+        "networkmanager:Create*",
+        "networkmanager:Update*",
+        "networkmanager:Associate*",
+        "networkmanager:Disassociate*",
+        "networkmanager:Register*",
+        "networkmanager:Deregister*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "ArnNotLike": {
+          "aws:PrincipalArn": [
+            "arn:aws:iam::*:role/PBMMAccel-*",
+            "arn:aws:iam::*:role/PBMMOps-*"
+          ]
+        }
+      }
+    },
+    {
+      "Sid": "DenyRegionsUnclass",
+      "Effect": "Deny",
+      "NotAction": [
+        "a4b:*",
+        "aws-marketplace-management:*",
+        "aws-marketplace:*",
+        "aws-portal:*",
+        "awsbillingconsole:*",
+        "budgets:*",
+        "ce:*",
+        "chime:*",
+        "cloudfront:*",
+        "config:*",
+        "cur:*",
+        "directconnect:*",
+        "ec2:DescribeRegions",
+        "ec2:DescribeTransitGateways",
+        "ec2:DescribeVpnGateways",
+        "fms:*",
+        "globalaccelerator:*",
+        "health:*",
+        "iam:*",
+        "importexport:*",
+        "mobileanalytics:*",
+        "networkmanager:*",
+        "organizations:*",
+        "pricing:*",
+        "route53:*",
+        "route53domains:*",
+        "s3:GetAccountPublic*",
+        "s3:ListAllMyBuckets",
+        "s3:ListBuckets",
+        "s3:PutAccountPublic*",
+        "shield:*",
+        "sts:*",
+        "support:*",
+        "trustedadvisor:*",
+        "waf-regional:*",
+        "waf:*",
+        "wafv2:*",
+        "wellarchitected:*"
+      ],
+      "Resource": "*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:RequestedRegion": ["ca-central-1", "us-east-1", "us-east-2", "us-west-1", "us-west-2"]
+        },
+        "ArnNotLike": {
+          "aws:PrincipalARN": [
+            "arn:aws:iam::*:role/PBMMAccel-*"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -12,6 +12,8 @@ import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/const
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput } from './utils/dynamodb-requests';
 
+const SUSPENDED_OU_NAME = 'Suspended';
+
 export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
   parametersTableName: string;
@@ -221,10 +223,9 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       rootAccountIds = rootAccountIds.filter(acc => acc !== rootMasterAccount?.Id!);
     }
   }
-  const suspendedOuName = 'Suspended';
-  let suspendedOu = awsOusWithPath.find(o => o.Path === suspendedOuName);
+  let suspendedOu = awsOusWithPath.find(o => o.Path === SUSPENDED_OU_NAME);
   if (!suspendedOu) {
-    suspendedOu = await createSuspendedOu(suspendedOuName, rootId);
+    suspendedOu = await createSuspendedOu(SUSPENDED_OU_NAME, rootId);
     awsOusWithPath.push(suspendedOu);
   }
 

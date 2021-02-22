@@ -29,6 +29,7 @@ export class IamAssets extends cdk.Construct {
     const customerManagedPolicies: { [policyName: string]: iam.ManagedPolicy } = {};
     // method to create IAM Policy
     const createIamPolicy = (policyName: string, policy: string): void => {
+      console.log(`Creating Policy "${policyName}" in account "${accountKey}"`);
       const iamPolicyDef = iamPoliciesDefinition[policyName];
       const iamPolicyJson = JSON.parse(iamPolicyDef);
       const statementArray = iamPolicyJson.Statement;

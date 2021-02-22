@@ -2,25 +2,6 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "DenyUnclass",
-      "Effect": "Deny",
-      "Action": [
-        "kms:ScheduleKeyDeletion",
-        "kms:Delete*",
-        "iam:DeleteAccountPasswordPolicy",
-        "iam:UpdateAccountPasswordPolicy"
-      ],
-      "Resource": "*",
-      "Condition": {
-        "ArnNotLike": {
-          "aws:PrincipalArn": [
-            "arn:aws:iam::*:role/PBMMAccel-*",
-            "arn:aws:iam::*:role/PBMMOps-*"
-          ]
-        }
-      }
-    },
-    {
       "Sid": "DenyAllOutsideCanadaUS",
       "Effect": "Deny",
       "NotAction": [

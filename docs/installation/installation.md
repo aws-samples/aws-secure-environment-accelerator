@@ -328,22 +328,30 @@ Issues in Older Releases:
   - Wait for operation to complete (refresh the browser several times)
   - Select Actions, Delete StackSet, click Delete StackSet
   - Wait for the operation to complete
-- Upgrades to `v1.2.1 and above` from `v1.2.0 and below` - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues.
+- Upgrades to `v1.2.1 and above` from `v1.2.0 and below` - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues. Simply rerun the state machine.
 
 ## 3.2. Summary of Upgrade Steps (all versions)
 
-1. Ensure a valid Github token is stored in secrets manager
-2. Review the upgrade considerations in section 3.1.
-3. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
-4. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations (before upgrade in v1.2.5+, after upgrade in prior releases)
-5. If you are replacing your GitHub Token:
-   - Take note of the s3 bucket name from the stack parameters
-   - Delete the Installer CFN stack (`PBMMAccel-what-you-provided`)
-   - Redeploy the Installer CFN stack using the latest template (provide bucket name and notification email address)
+1. Login to your Organization Management (root) AWS account with administrative priviliges
+2. Ensure a valid Github token is stored in secrets manager [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager)
+3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](#31-considerations)
+4. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
+5. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations (before beginning your upgrade in v1.2.5+, after completing your upgrade in prior releases)
+6. Download the latest installer template (`AcceleratorInstallerXYZ.template.json`) from the `Assets` section of the latest [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
+7. Do **_NOT_** accidentally select the `PBMMAccel-InitialSetup` CloudFormation stack below
+8. If you are replacing your GitHub Token:
+   - Take note of the `ConfigS3Bucket` and `NotificationEmail` values from the Parameters tab of your deployed Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
+   - Delete the Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
+   - Redeploy the Installer CloudFormation stack using the template downloaded in step 5, providing the `ConfigS3Bucket` and `NotificationEmail` values you just documented
    - The pipeline will automatically run and trigger the upgraded state machine
-6. If you are using a pre-existing GitHub token:
-   - Update the Installer CFN stack using the latest template, providing the `GithubBranch` associated with the release (eg. `release/v1.2.3`)
-     - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
+9. If you are using a pre-existing GitHub token:
+   - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.2.5`)
+     - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
+     - Select Update, select Replace current template, Select Upload a template file
+     - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
+     - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
+     - Click Next, Next, I acknowledge, Update
+   - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 # 4. Existing Organizations / Accounts
 
@@ -415,7 +423,6 @@ Issues in Older Releases:
 - VPC Endpoints have no Name tags applied as CloudFormation does not currently support tagging VPC Endpoints.
 - If the Organization Management (root) account coincidentally already has an ADC with the same domain name, we do not create/deploy a new ADC. You must manually create a new ADC (it won't cause issues).
 - Firewall updates are to be performed using the firewall OS based update capabilities. To update the AMI using the Accelerator, you must first remove the firewalls and then redeploy them (as the EIP's will block a parallel deployment), or deploy a second parallel FW cluster and de-provision the first cluster when ready.
-- At this time we have not automated the rotation of KMS Customer Managed Keys. This is a roadmap item for a future release.
 
 ---
 

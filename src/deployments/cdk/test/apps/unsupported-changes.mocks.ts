@@ -111,16 +111,7 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     },
   ];
 
-  const configFilePath = path.join(
-    __dirname,
-    '..',
-    '..',
-    '..',
-    '..',
-    '..',
-    'reference-artifacts',
-    'config.example.json',
-  );
+  const configFilePath = path.join(__dirname, '..', '..', '..', '..', '..', 'test', 'config.example.json');
 
   const content = fs.readFileSync(configFilePath);
   const config = AcceleratorConfig.fromString(content.toString());
@@ -734,6 +725,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
               vpnTunnelOutsideAddress1: '35.182.31.119',
               vpnBgpAsn1: '64512',
               preSharedSecret1: 'yTHR4PMEE7GQJr8dnC4JsIgX9eXMpPUt',
+              cgwTunnelInsideAddress2: '169.254.11.2',
+              cgwTunnelOutsideAddress2: '3.97.102.213',
+              cgwBgpAsn2: '65523',
+              vpnTunnelInsideAddress2: '169.254.11.1',
+              vpnTunnelOutsideAddress2: '52.60.189.14',
+              vpnBgpAsn2: '65521',
+              preSharedSecret2: '2ywd00tL_lEQ4fX9aoGBd41oUkjx6v6y',
             },
           },
           {
@@ -783,6 +781,13 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
               vpnTunnelOutsideAddress1: '35.182.50.24',
               vpnBgpAsn1: '64512',
               preSharedSecret1: 'T8euLki9G2ERUw0Z2qiFJkG_KFyh5ivW',
+              cgwTunnelInsideAddress2: '169.254.150.38',
+              cgwTunnelOutsideAddress2: '52.60.163.124',
+              cgwBgpAsn2: '65523',
+              vpnTunnelInsideAddress2: '169.254.150.37',
+              vpnTunnelOutsideAddress2: '52.60.81.195',
+              vpnBgpAsn2: '65521',
+              preSharedSecret2: '.yPhfn75glcBbwNo4ZuMJ8T973F88gLC',
             },
           },
           {
