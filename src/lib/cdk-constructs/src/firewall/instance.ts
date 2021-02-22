@@ -125,8 +125,9 @@ export class FirewallInstance extends cdk.Construct {
     subnet: Subnet;
     eipAllocationId?: string;
     vpnTunnelOptions?: FirewallVpnTunnelOptions;
+    additionalReplacements?: { [key: string]: string };
   }): ec2.CfnNetworkInterface {
-    const { name, securityGroup, subnet, eipAllocationId, vpnTunnelOptions } = props;
+    const { name, securityGroup, subnet, eipAllocationId, vpnTunnelOptions, additionalReplacements } = props;
     const index = this.networkInterfacesProps.length;
 
     // Create network interface
@@ -180,6 +181,11 @@ export class FirewallInstance extends cdk.Construct {
       this.template.addReplacement(`\${${name}VpnTunnelOutsideAddress2}`, vpnTunnelOptions?.vpnTunnelOutsideAddress2);
       this.template.addReplacement(`\${${name}VpnTunnelInsideAddress2}`, vpnTunnelOptions?.vpnTunnelInsideAddress2);
       this.template.addReplacement(`\${${name}PreSharedSecret2}`, vpnTunnelOptions?.preSharedSecret2);
+    }
+    if (additionalReplacements) {
+      for (const [key, value] of Object.entries(additionalReplacements)) {
+        this.template.addReplacement(key, value);
+      }
     }
 
     return networkInterface;
