@@ -17,7 +17,7 @@ interface GetOrCreateConfigInput {
   acceleratorVersion?: string;
   // Taking entire input to replace any default paramaters in SM Input
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  inputConfig?: any;
+  smInput?: any;
 }
 
 const codecommit = new CodeCommit();
@@ -34,7 +34,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     s3Bucket,
     branchName,
     acceleratorVersion,
-    inputConfig,
+    smInput,
     executionArn,
     stateMachineArn,
     acceleratorPrefix,
@@ -42,7 +42,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     acceleratorName,
   } = input;
   await beforeStart(acceleratorPrefix, stateMachineArn, executionArn);
-  const storeAllOutputs: boolean = inputConfig ? !!inputConfig.storeAllOutputs : false;
+  const storeAllOutputs: boolean = !!smInput && !!smInput.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
     console.log(`Creating repository "${repositoryName}" for Config file`);
@@ -96,6 +96,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         ...s3LoadResponse,
         acceleratorVersion,
         storeAllOutputs,
+        smInput: smInput || {},
       };
     }
     const currentCommit = await codecommit.getBranch(repositoryName, branchName);
@@ -154,6 +155,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       acceleratorVersion,
       configRootFilePath: filePath,
       storeAllOutputs,
+      smInput: smInput || {},
     };
   } catch (e) {
     if (e.code !== 'FileDoesNotExistException' && e.code !== 'CommitDoesNotExistException') {
@@ -184,6 +186,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       ...s3LoadResponse,
       acceleratorVersion,
       storeAllOutputs,
+      smInput: smInput || {},
     };
   }
 };

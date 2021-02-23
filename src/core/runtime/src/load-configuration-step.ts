@@ -10,6 +10,8 @@ export interface LoadConfigurationInput {
   configRootFilePath?: string;
   storeAllOutputs?: boolean;
   phases?: number[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  smInput?: any;
 }
 
 export interface LoadConfigurationOutput {
