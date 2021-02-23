@@ -28,11 +28,13 @@ async function main() {
   const acceleratorPrefixParam = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
     default: 'PBMMAccel-',
     description: 'Accelerator prefix used for deployment.',
+    allowedPattern: '[a-zA-Z][a-zA-Z0-9_-]*',
   });
 
   const acceleratorNameParam = new cdk.CfnParameter(stack, 'AcceleratorName', {
     default: 'PBMM',
     description: 'Accelerator Name used for deployment.',
+    allowedPattern: '[a-zA-Z][a-zA-Z0-9_-]*',
   });
 
   const acceleratorName = acceleratorNameParam.valueAsString;
