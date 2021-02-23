@@ -11,6 +11,7 @@ import { CodeTask } from '@aws-accelerator/cdk-accelerator/src/stepfunction-task
 export interface PolicyChangeEventProps {
   scope: AccountStack;
   acceleratorPrefix: string;
+  acceleratorName: string;
   configBranch: string;
   configFilePath: string;
   configRepositoryName: string;
@@ -35,6 +36,7 @@ export async function changePolicy(input: PolicyChangeEventProps) {
     scpBucketName,
     scpBucketPrefix,
     organizationAdminRole,
+    acceleratorName,
   } = input;
 
   const policyChangeFunc = new lambda.Function(scope, 'policyChanges', {
@@ -52,6 +54,7 @@ export async function changePolicy(input: PolicyChangeEventProps) {
       ACCELERATOR_SCP_BUCKET_PREFIX: scpBucketPrefix,
       ACCELERATOR_SCP_BUCKET_NAME: scpBucketName,
       ORGANIZATIONS_ADMIN_ROLE: organizationAdminRole,
+      ACCELERATOR_NAME: acceleratorName,
     },
     timeout: cdk.Duration.minutes(15),
     memorySize: 512,

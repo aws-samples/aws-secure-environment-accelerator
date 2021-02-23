@@ -1,4 +1,15 @@
 {
+  "replacements": {
+    "addl_regions": {
+      "a": ["${HOME_REGION}"],
+      "b": ["${HOME_REGION}, ${GBL_REGION}"],
+      "c": ["${HOME_REGION}, ${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
+    },
+    "cloud-cidr1": "10.0.0.0",
+    "cloud-mask1": "255.0.0.0",
+    "cloud-cidr2": "100.96.252.0",
+    "cloud-mask2": "255.255.254.0"
+  },
   "global-options": {
     "alz-baseline": false,
     "ct-baseline": false,
@@ -32,11 +43,11 @@
     "keep-default-vpc-regions": [],
     "aws-org-master": {
       "account": "master",
-      "region": "ca-central-1"
+      "region": "${HOME_REGION}"
     },
     "central-security-services": {
       "account": "security",
-      "region": "ca-central-1",
+      "region": "${HOME_REGION}",
       "security-hub-excl-regions": [],
       "guardduty": true,
       "guardduty-excl-regions": [],
@@ -52,13 +63,13 @@
     },
     "central-operations-services": {
       "account": "operations",
-      "region": "ca-central-1",
+      "region": "${HOME_REGION}",
       "cwl": true,
       "cwl-access-level": "full"
     },
     "central-log-services": {
       "account": "log-archive",
-      "region": "ca-central-1",
+      "region": "${HOME_REGION}",
       "s3-retention": 730,
       "cwl-glbl-exclusions": [],
       "cwl-exclusions": [],
@@ -184,7 +195,7 @@
         {
           "filter-name": "SecurityGroupChangeMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
           "metric-namespace": "CloudTrailMetrics",
@@ -194,7 +205,7 @@
         {
           "filter-name": "NetworkAclChangeMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry) || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)}",
           "metric-namespace": "CloudTrailMetrics",
@@ -204,7 +215,7 @@
         {
           "filter-name": "GatewayChangeMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway)}",
           "metric-namespace": "CloudTrailMetrics",
@@ -214,7 +225,7 @@
         {
           "filter-name": "VpcChangeMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }",
           "metric-namespace": "CloudTrailMetrics",
@@ -224,7 +235,7 @@
         {
           "filter-name": "Ec2InstanceChangeMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances) }",
           "metric-namespace": "CloudTrailMetrics",
@@ -234,7 +245,7 @@
         {
           "filter-name": "Ec2LargeInstanceChangeMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ (($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances)) && (($.requestParameters.instanceType= *.32xlarge) || ($.requestParameters.instanceType= *.24xlarge) || ($.requestParameters.instanceType= *.18xlarge) || ($.requestParameters.instanceType= *.16xlarge) || ($.requestParameters.instanceType= *.12xlarge) || ($.requestParameters.instanceType= *.10xlarge) || ($.requestParameters.instanceType= *.9xlarge) || ($.requestParameters.instanceType= *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge)) }",
           "metric-namespace": "CloudTrailMetrics",
@@ -244,7 +255,7 @@
         {
           "filter-name": "CloudTrailChangeMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail)|| ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName= StopLogging) }",
           "metric-namespace": "CloudTrailMetrics",
@@ -254,7 +265,7 @@
         {
           "filter-name": "ConsoleSignInFailureMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failedauthentication\") }",
           "metric-namespace": "CloudTrailMetrics",
@@ -264,9 +275,9 @@
         {
           "filter-name": "AuthorizationFailureMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
-          "filter-pattern": "{ ($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") }",
+          "filter-pattern": "{ (($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") && ($.userIdentity.principalId != \"*AWSConfig-BucketConfigCheck\")) }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "AuthorizationFailureCount",
           "metric-value": "1"
@@ -274,7 +285,7 @@
         {
           "filter-name": "IamPolicyChangesMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}",
           "metric-namespace": "CloudTrailMetrics",
@@ -284,7 +295,7 @@
         {
           "filter-name": "ConsoleSignInWithoutMfaMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\") && ($.userIdentity.type != \"AssumedRole\")}",
           "metric-namespace": "CloudTrailMetrics",
@@ -294,7 +305,7 @@
         {
           "filter-name": "RootLoginMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }",
           "metric-namespace": "CloudTrailMetrics",
@@ -304,7 +315,7 @@
         {
           "filter-name": "DisableOrDeleteCMKMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{($.eventSource=kms.amazonaws.com) && (($.eventName=DisableKey) || ($.eventName=ScheduleKeyDeletion))}",
           "metric-namespace": "CloudTrailMetrics",
@@ -314,7 +325,7 @@
         {
           "filter-name": "AWSConfigChangesMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{($.eventSource=config.amazonaws.com) && (($.eventName=StopConfigurationRecorder) || ($.eventName=DeleteDeliveryChannel) || ($.eventName=PutDeliveryChannel) || ($.eventName=PutConfigurationRecorder))}",
           "metric-namespace": "CloudTrailMetrics",
@@ -324,7 +335,7 @@
         {
           "filter-name": "RouteTableChangesMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{($.eventName=CreateRoute) || ($.eventName=CreateRouteTable) || ($.eventName=ReplaceRoute) || ($.eventName=ReplaceRouteTableAssociation) || ($.eventName=DeleteRouteTable) || ($.eventName=DeleteRoute) || ($.eventName=DisassociateRouteTable)}",
           "metric-namespace": "CloudTrailMetrics",
@@ -334,7 +345,7 @@
         {
           "filter-name": "S3BucketPolicyChangesMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{($.eventSource=s3.amazonaws.com) && (($.eventName=PutBucketAcl) || ($.eventName=PutBucketPolicy) || ($.eventName=PutBucketCors) || ($.eventName=PutBucketLifecycle) || ($.eventName=PutBucketReplication) || ($.eventName=DeleteBucketPolicy) || ($.eventName=DeleteBucketCors) || ($.eventName=DeleteBucketLifecycle) || ($.eventName=DeleteBucketReplication))}",
           "metric-namespace": "CloudTrailMetrics",
@@ -344,7 +355,7 @@
         {
           "filter-name": "SSOAuthUnapprovedIPMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != 10.10.10.*) }",
           "metric-namespace": "CloudTrailMetrics",
@@ -354,7 +365,7 @@
         {
           "filter-name": "IAMAuthUnapprovedIPMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != 10.10.10.*) }",
           "metric-namespace": "CloudTrailMetrics",
@@ -364,7 +375,7 @@
         {
           "filter-name": "UnencryptedFilesystemCreatedMetric",
           "accounts": ["master"],
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateFileSystem) && ($.responseElements.encrypted IS FALSE) } ",
           "metric-namespace": "CloudTrailMetrics",
@@ -374,7 +385,7 @@
       ],
       "alarms": {
         "default-accounts": ["master"],
-        "default-regions": ["ca-central-1"],
+        "default-regions": ["${HOME_REGION}"],
         "default-namespace": "CloudTrailMetrics",
         "default-statistic": "Sum",
         "default-period": 300,
@@ -505,7 +516,7 @@
     "ssm-automation": [
       {
         "accounts": ["operations"],
-        "regions": ["ca-central-1"],
+        "regions": ["${HOME_REGION}"],
         "documents": [
           {
             "name": "SSM-ELB-Enable-Logging",
@@ -963,7 +974,7 @@
           "deploy": "local",
           "name": "Endpoint",
           "cidr": "10.7.0.0/22",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -1101,7 +1112,7 @@
           {
             "name": "Main",
             "asn": 65521,
-            "region": "ca-central-1",
+            "region": "${HOME_REGION}",
             "features": {
               "DNS-support": true,
               "VPN-ECMP-support": true,
@@ -1173,7 +1184,7 @@
           "dir-id": 1001,
           "deploy": true,
           "vpc-name": "Central",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "subnet": "GCWide",
           "size": "Enterprise",
           "dns-domain": "example.local",
@@ -1243,7 +1254,7 @@
         "rsyslog": {
           "deploy": true,
           "vpc-name": "Central",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "log-group-name": "rsyslog/var/log/messages",
           "security-groups": [
             {
@@ -1513,7 +1524,7 @@
           "name": "Perimeter",
           "cidr": "10.7.4.0/22",
           "cidr2": "100.96.250.0/23",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -1761,7 +1772,7 @@
             "name": "Firewall",
             "image-id": "ami-047aac44951feb9fb",
             "instance-sizes": "c5n.2xlarge",
-            "region": "ca-central-1",
+            "region": "${HOME_REGION}",
             "security-group": "Firewalls",
             "fw-instance-role": "Firewall-Role",
             "vpc": "Perimeter",
@@ -1814,7 +1825,7 @@
           "image-id": "ami-06fa2a9e6f8fae9f2",
           "instance-sizes": "c5.large",
           "version": "6.2.3",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "vpc": "Perimeter",
           "security-group": "FirewallMgr",
           "subnet": {
@@ -1896,7 +1907,7 @@
           "deploy": "local",
           "name": "ForSSO",
           "cidr": "10.249.1.0/24",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -2022,7 +2033,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -2126,7 +2137,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["ca-central-1"]
+          "remediate-regions": ["${HOME_REGION}"]
         }
       ]
     },
@@ -2175,7 +2186,7 @@
           "name": "Central",
           "cidr": "10.1.0.0/16",
           "cidr2": "100.96.252.0/23",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -2578,7 +2589,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -2682,7 +2693,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["ca-central-1"]
+          "remediate-regions": ["${HOME_REGION}"]
         }
       ]
     },
@@ -2763,7 +2774,7 @@
           "deploy": "shared-network",
           "name": "Dev",
           "cidr": "10.2.0.0/16",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -3161,7 +3172,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -3265,7 +3276,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["ca-central-1"]
+          "remediate-regions": ["${HOME_REGION}"]
         }
       ]
     },
@@ -3346,7 +3357,7 @@
           "deploy": "shared-network",
           "name": "Test",
           "cidr": "10.3.0.0/16",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -3744,7 +3755,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -3848,7 +3859,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["ca-central-1"]
+          "remediate-regions": ["${HOME_REGION}"]
         }
       ]
     },
@@ -3929,7 +3940,7 @@
           "deploy": "shared-network",
           "name": "Prod",
           "cidr": "10.4.0.0/16",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -4327,7 +4338,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -4431,7 +4442,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["ca-central-1"]
+          "remediate-regions": ["${HOME_REGION}"]
         }
       ]
     },
@@ -4479,7 +4490,7 @@
           "deploy": "shared-network",
           "name": "UnClass",
           "cidr": "10.5.0.0/16",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -4877,7 +4888,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -4981,7 +4992,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["ca-central-1"]
+          "remediate-regions": ["${HOME_REGION}"]
         }
       ]
     },
@@ -5029,7 +5040,7 @@
           "deploy": "local",
           "name": "Sandbox",
           "cidr": "10.6.0.0/16",
-          "region": "ca-central-1",
+          "region": "${HOME_REGION}",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -5363,17 +5374,15 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["ca-central-1"],
+          "regions": ["${HOME_REGION}"],
           "documents": ["Put-S3-Encryption"]
         }
       ],
       "aws-config": [
         {
           "excl-regions": [],
-          "rules": [
-            "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
-          ],
-          "remediate-regions": ["ca-central-1"]
+          "rules": ["S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"],
+          "remediate-regions": ["${HOME_REGION}"]
         }
       ]
     }

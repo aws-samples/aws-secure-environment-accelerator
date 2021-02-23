@@ -156,9 +156,11 @@ export namespace InitialSetup {
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
           'smInput.$': '$',
+          acceleratorPrefix: props.acceleratorPrefix,
+          acceleratorName: props.acceleratorName,
+          region: cdk.Aws.REGION,
           'executionArn.$': '$$.Execution.Id',
           'stateMachineArn.$': '$$.StateMachine.Id',
-          acceleratorPrefix: props.acceleratorPrefix,
         },
         resultPath: '$.configuration',
       });
@@ -311,6 +313,8 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
+          acceleratorName: props.acceleratorName,
+          region: cdk.Aws.REGION,
           'organizationAdminRole.$': '$.configuration.organizationAdminRole',
         },
       });
@@ -519,11 +523,14 @@ export namespace InitialSetup {
         },
         functionPayload: {
           acceleratorPrefix: props.acceleratorPrefix,
+          acceleratorName: props.acceleratorName,
+          region: cdk.Aws.REGION,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
           parametersTableName: parametersTable.tableName,
           outputTableName: outputsTable.tableName,
+          'organizationAdminRole.$': '$.organizationAdminRole',
         },
         resultPath: 'DISCARD',
       });

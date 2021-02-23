@@ -12,6 +12,8 @@ interface GetOrCreateConfigInput {
   executionArn: string;
   stateMachineArn: string;
   acceleratorPrefix: string;
+  acceleratorName: string;
+  region: string;
   acceleratorVersion?: string;
   // Taking entire input to replace any default paramaters in SM Input
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,6 +38,8 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     executionArn,
     stateMachineArn,
     acceleratorPrefix,
+    region,
+    acceleratorName,
   } = input;
   await beforeStart(acceleratorPrefix, stateMachineArn, executionArn);
   const storeAllOutputs: boolean = !!smInput && !!smInput.storeAllOutputs;
@@ -73,6 +77,9 @@ export const handler = async (input: GetOrCreateConfigInput) => {
         branchName,
         repositoryName,
         s3Bucket,
+        region,
+        acceleratorName,
+        acceleratorPrefix,
       });
       console.log(
         JSON.stringify(
@@ -102,6 +109,9 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       repositoryName,
       source: 'codecommit',
       s3Bucket,
+      region,
+      acceleratorName,
+      acceleratorPrefix,
     });
 
     const rawConfig = await rawConfigObject.prepare();
@@ -155,6 +165,9 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       branchName,
       repositoryName,
       s3Bucket,
+      region,
+      acceleratorName,
+      acceleratorPrefix,
     });
 
     console.log(
@@ -178,8 +191,15 @@ export const handler = async (input: GetOrCreateConfigInput) => {
   }
 };
 
-async function loadConfigFromS3(props: { branchName: string; repositoryName: string; s3Bucket: string }) {
-  const { branchName, repositoryName, s3Bucket } = props;
+async function loadConfigFromS3(props: {
+  branchName: string;
+  repositoryName: string;
+  s3Bucket: string;
+  region: string;
+  acceleratorName: string;
+  acceleratorPrefix: string;
+}) {
+  const { branchName, repositoryName, s3Bucket, region, acceleratorName, acceleratorPrefix } = props;
   let s3FileName: string;
   const yamlFileStatus = await isFileExist({
     source: 's3',
@@ -218,6 +238,9 @@ async function loadConfigFromS3(props: { branchName: string; repositoryName: str
     repositoryName,
     source: 's3',
     s3Bucket,
+    region,
+    acceleratorName,
+    acceleratorPrefix,
   });
 
   const rawConfig = await rawConfigObject.prepare();
