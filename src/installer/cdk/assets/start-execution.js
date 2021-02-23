@@ -17,9 +17,14 @@ exports.handler = async function (event, context) {
       throw new Error(`"stateMachineArn" is missing from user parameters`);
     }
 
+    const smInput = {
+      scope: 'FULL',
+    }
+
     await sfn
       .startExecution({
         stateMachineArn: userParameters.stateMachineArn,
+        input: JSON.stringify(smInput),
       })
       .promise();
 
