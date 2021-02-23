@@ -330,8 +330,8 @@ Issues in Older Releases:
   - Select Actions, Delete StackSet, click Delete StackSet
   - Wait for the operation to complete
 - Upgrades to `v1.2.4 and above` from `v1.2.3 and below` - Ensure you apply the config file changes described in the release notes
-  - failure to set `"central-endpoint": true` directly on the endpoint VPC (instead of global-options), will result in the removal of your VPC endpoints
-  - failure to move your zone definitions to the endpoint VPC will result in the removal of you Public and Private hosted zones
+  - failure to set `"central-endpoint": true` directly on the endpoint VPC (instead of in global-options), will result in the removal of your VPC endpoints
+  - failure to move your zone definitions to the endpoint VPC, will result in the removal of you Public and Private hosted zones
 - Upgrades to `v1.2.1 and above` from `v1.2.0 and below` - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues. Simply rerun the state machine.
 
 ## 3.2. Summary of Upgrade Steps (all versions)
