@@ -261,11 +261,12 @@ If deploying to an internal AWS employee account, to successfully install the so
 
 Current Issues:
 
-- Releases prior to v1.2.5 - Occassionally during new installs the state machine is failing due to a `File not found` error in the `VerifyFiles` step. Simply rerun the state machine. This is resolved in v1.2.5.
-- Releases prior to v1.2.5 - Occassionally during new installs the perimeter firewall fails to load the provided prescriptive firewall configuration. Edit your config file changing `"firewalls":` to `"xxfirewalls":`, and rerun the state machine to remove the firewall deployment, then change your config file back to `"firewalls":` and again rerun your state machine to redeploy the firewalls. This is resolved in v1.2.5.
+- Occassionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. Simply rerun the state machine.
 
 Issues in Older Releases:
 
+- Releases prior to v1.2.5 - Occassionally during new installs the state machine is failing due to a `File not found` error in the `VerifyFiles` step. Simply rerun the state machine. This is resolved in v1.2.5.
+- Releases prior to v1.2.5 - Occassionally during new installs the perimeter firewall fails to load the provided prescriptive firewall configuration. Edit your config file changing `"firewalls":` to `"xxfirewalls":`, and rerun the state machine to remove the firewall deployment, then change your config file back to `"firewalls":` and again rerun your state machine to redeploy the firewalls. This is resolved in v1.2.5.
 - Releases prior to v1.2.4 will fail to deploy due to a change in an unpinned 3rd party dependency. This is resolved in v1.2.4 (all dependencies were pinned in v1.2.5).
 - Releases prior to v1.2.4 - During Guardduty deployment, occassionally CloudFormation fails to return a completion signal. After the credentials eventually fail (1 hr), the state machine fails. As the credentials timed out, we cannot properly cleanup the failed stack. You need to manually find the failed stack in the specific account/region, delete it, and then rerun the state machine. It appears the API has been fixed.
 - Releases prior to v1.2.3 using a YAML config file - we are seeing the OUValidation Lambda randomly timeout. Simply rerun the state machine. This is resolved in v1.2.3.
@@ -328,6 +329,9 @@ Issues in Older Releases:
   - Wait for operation to complete (refresh the browser several times)
   - Select Actions, Delete StackSet, click Delete StackSet
   - Wait for the operation to complete
+- Upgrades to `v1.2.4 and above` from `v1.2.3 and below` - Ensure you apply the config file changes described in the release notes
+  - failure to set `"central-endpoint": true` directly on the endpoint VPC (instead of in global-options), will result in the removal of your VPC endpoints
+  - failure to move your zone definitions to the endpoint VPC, will result in the removal of you Public and Private hosted zones
 - Upgrades to `v1.2.1 and above` from `v1.2.0 and below` - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues. Simply rerun the state machine.
 
 ## 3.2. Summary of Upgrade Steps (all versions)

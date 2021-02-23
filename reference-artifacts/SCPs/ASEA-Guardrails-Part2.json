@@ -103,13 +103,18 @@
     },
     {
       "Effect": "Deny",
-      "Action": ["kms:DeleteAlias", "kms:UpdateAlias", "kms:DisableKey", "kms:ImportKeyMaterial", "kms:PutKeyPolicy", "kms:ScheduleKeyDeletion"],
+      "Action": [
+        "kms:DeleteAlias",
+        "kms:UpdateAlias",
+        "kms:DisableKey",
+        "kms:ImportKeyMaterial",
+        "kms:PutKeyPolicy",
+        "kms:ScheduleKeyDeletion"
+      ],
       "Resource": "arn:aws:kms:::alias/${ACCELERATOR_PREFIX_ND}*",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
-          ]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
@@ -120,9 +125,7 @@
       "Resource": "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}RDGW-Role",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
-          ]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
@@ -133,9 +136,7 @@
       "Resource": "arn:aws:logs:::log-group:*${ACCELERATOR_PREFIX_ND}*",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
-          ]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
@@ -173,12 +174,13 @@
         "firehose:Stop*",
         "firehose:Update*"
       ],
-      "Resource": ["arn:aws:firehose:*:*:deliverystream/${ACCELERATOR_PREFIX_ND}*", "arn:aws:kinesis:*:*:stream/${ACCELERATOR_PREFIX_ND}*"],
+      "Resource": [
+        "arn:aws:firehose:*:*:deliverystream/${ACCELERATOR_PREFIX_ND}*",
+        "arn:aws:kinesis:*:*:stream/${ACCELERATOR_PREFIX_ND}*"
+      ],
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
-          ]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     },
@@ -236,9 +238,7 @@
       "Resource": "*",
       "Condition": {
         "ArnNotLike": {
-          "aws:PrincipalARN": [
-            "arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"
-          ]
+          "aws:PrincipalARN": ["arn:aws:iam::*:role/${ACCELERATOR_PREFIX}*"]
         }
       }
     }

@@ -281,7 +281,7 @@
           "accounts": ["master"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/PBMMAccel/CloudTrail",
-          "filter-pattern": "{ ($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") }",
+          "filter-pattern": "{ (($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") && ($.userIdentity.principalId != \"*AWSConfig-BucketConfigCheck\")) }",
           "metric-namespace": "CloudTrailMetrics",
           "metric-name": "AuthorizationFailureCount",
           "metric-value": "1"
