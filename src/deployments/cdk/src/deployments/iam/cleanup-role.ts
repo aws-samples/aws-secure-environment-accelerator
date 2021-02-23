@@ -61,6 +61,25 @@ export async function createResourceCleanupRole(stack: AccountStack) {
 
   role.addToPrincipalPolicy(
     new iam.PolicyStatement({
+      actions: [
+        'cloudFormation:DescribeStacks',
+        'cloudFormation:DeleteStack',
+        's3:HeadBucket',
+        's3:PutBucketVersioning',
+        's3:DeleteObjects',
+        's3:ListBucketVersions',
+        's3:DeleteBucket',
+        's3:ListBucket',
+        's3:DeleteObject',
+        's3:DeleteObjectVersion',
+        's3:PutLifecycleConfiguration',
+      ],
+      resources: ['*'],
+    }),
+  );
+
+  role.addToPrincipalPolicy(
+    new iam.PolicyStatement({
       actions: ['logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
       resources: ['*'],
     }),

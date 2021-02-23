@@ -1,77 +1,108 @@
 {
-  "Parameters": {
-    "RoleName": {
-      "Type": "String"
-    },
-    "MaxSessionDuration": {
-      "Type": "Number"
-    },
-    "AssumedByRoleArn": {
-      "Type": "CommaDelimitedList"
-    }
-  },
-  "Resources": {
-    "Role1ABCC5F0": {
-      "Type": "AWS::IAM::Role",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "AWS": {
-                  "Ref": "AssumedByRoleArn"
-                }
-              }
-            },
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "ssm.amazonaws.com"
-              }
-            },
-            {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "cloudformation.amazonaws.com"
-              }
-            }
-          ],
-          "Version": "2012-10-17"
-        },
-        "ManagedPolicyArns": [
-          {
-            "Fn::Join": [
-              "",
-              [
-                "arn:",
-                {
-                  "Ref": "AWS::Partition"
-                },
-                ":iam::aws:policy/AdministratorAccess"
-              ]
-            ]
-          }
-        ],
+    "Parameters": {
         "RoleName": {
-          "Ref": "RoleName"
+            "Type": "String"
         },
         "MaxSessionDuration": {
-          "Ref": "MaxSessionDuration"
+            "Type": "Number"
         },
-        "Tags": [
-          {
-            "Key": "Accelerator",
-            "Value": "PBMM"
-          }
-        ]
-      },
-      "Metadata": {
-        "aws:cdk:path": "AssumeRole/Role/Resource"
-      }
+        "AssumedByRoleArn": {
+            "Type": "CommaDelimitedList"
+        },
+        "AcceleratorPrefix": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "Role1ABCC5F0": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": {
+                                    "Ref": "AssumedByRoleArn"
+                                }
+                            }
+                        },
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ssm.amazonaws.com"
+                            }
+                        },
+                        {
+                            "Action": "sts:AssumeRole",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "cloudformation.amazonaws.com"
+                            }
+                        }
+                    ],
+                    "Version": "2012-10-17"
+                },
+                "ManagedPolicyArns": [
+                    {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:",
+                                {
+                                    "Ref": "AWS::Partition"
+                                },
+                                ":iam::aws:policy/AdministratorAccess"
+                            ]
+                        ]
+                    }
+                ],
+                "Policies": [
+                    {
+                        "PolicyName": "CDKAssetsPolicy",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Action": "s3:*",
+                                    "Effect": "Allow",
+                                    "Resource": [
+                                        {
+                                            "Fn::Join": [
+                                                "",
+                                                [
+                                                    "arn:aws:s3:::cdk-",
+                                                    {
+                                                        "Ref": "AcceleratorPrefix"
+                                                    },
+                                                    "-assets-*"
+                                                ]
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ],
+                            "Version": "2012-10-17"
+                        }
+                    }
+                ],
+                "RoleName": {
+                    "Ref": "RoleName"
+                },
+                "MaxSessionDuration": {
+                    "Ref": "MaxSessionDuration"
+                },
+                "Tags": [
+                    {
+                        "Key": "Accelerator",
+                        "Value": "PBMM"
+                    }
+                ]
+            },
+            "Metadata": {
+                "aws:cdk:path": "AssumeRole/Role/Resource"
+            }
+        }
     }
-  }
 }

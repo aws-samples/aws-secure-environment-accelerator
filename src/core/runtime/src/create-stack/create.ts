@@ -8,15 +8,34 @@ interface CreateStackInput {
   stackParameters: { [key: string]: string };
   stackTemplate: StackTemplateLocation;
   accountId?: string;
-  assumedRoleName?: string;
+  assumeRoleName?: string;
+  region?: string;
+  ignoreAccountId?: string;
+  ignoreRegion?: string;
 }
 
+const sts = new STS();
 export const handler = async (input: CreateStackInput) => {
   console.log(`Creating stack...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { stackName, stackCapabilities, stackParameters, stackTemplate, accountId, assumedRoleName } = input;
+  const {
+    stackName,
+    stackCapabilities,
+    stackParameters,
+    stackTemplate,
+    accountId,
+    assumeRoleName,
+    region,
+    ignoreAccountId,
+    ignoreRegion,
+  } = input;
 
+  if (ignoreAccountId && ignoreAccountId === accountId && !ignoreRegion) {
+    return;
+  } else if (ignoreAccountId && ignoreRegion && ignoreAccountId === accountId && ignoreRegion === region) {
+    return;
+  }
   console.debug(`Creating stack template`);
   console.debug(stackTemplate);
 
@@ -24,10 +43,9 @@ export const handler = async (input: CreateStackInput) => {
   const templateBody = await getTemplateBody(stackTemplate);
 
   let cfn: CloudFormation;
-  if (accountId && assumedRoleName) {
-    const sts = new STS();
-    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumedRoleName);
-    cfn = new CloudFormation(credentials);
+  if (accountId && assumeRoleName) {
+    const credentials = await sts.getCredentialsForAccountAndRole(accountId, assumeRoleName);
+    cfn = new CloudFormation(credentials, region);
   } else {
     cfn = new CloudFormation();
   }

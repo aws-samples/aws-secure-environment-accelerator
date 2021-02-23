@@ -50,6 +50,8 @@ export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
       throw new Error(`Cannot find account ${includeAccountKey}`);
     }
   }
+  context.centralOperationsAccount = acceleratorConfig.getMandatoryAccountKey('central-operations');
+  context.masterAccount = acceleratorConfig.getMandatoryAccountKey('master');
 
   const accountStacks = new AccountStacks({
     phase: phase.name,

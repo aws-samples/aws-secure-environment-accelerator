@@ -11,6 +11,7 @@ export interface ResourceCleanupProps {
   bucketName?: string;
   rulesDomainNames?: string[];
   phzDomainNames?: string[];
+  cdkStackName?: string;
 }
 
 /**
@@ -28,6 +29,7 @@ export class ResourceCleanup extends cdk.Construct {
       bucketName: props.bucketName,
       rulesDomainNames: props.rulesDomainNames,
       phzDomainNames: props.phzDomainNames,
+      cdkStackName: props.cdkStackName,
     };
 
     const runtimeProps: ResourceCleanupProps = props;

@@ -114,28 +114,65 @@ export class AccountStacks {
     }
 
     const accountId = getAccountId(this.props.accounts, accountKey);
-    if (!accountId) {
+    const operationsAccountId = getAccountId(this.props.accounts, this.props.context.centralOperationsAccount!);
+    const masterAccountId = getAccountId(this.props.accounts, this.props.context.masterAccount!);
+    if (!accountId || !operationsAccountId || !masterAccountId) {
       return undefined;
     }
 
     const stackName = this.createStackName(accountKey, regionOrDefault, suffix);
     const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault, suffix);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
-
+    const acceleratorPrefix = this.props.context.acceleratorPrefix;
     const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
-    const app = new AccountApp(stackLogicalId, {
-      outDir,
-      stackProps: {
+    let stackProps: AccountStackProps;
+    if (regionOrDefault === this.props.context.defaultRegion && accountId === masterAccountId) {
+      stackProps = {
         accountId,
         accountKey,
         stackName,
         acceleratorName: this.props.context.acceleratorName,
-        acceleratorPrefix: this.props.context.acceleratorPrefix,
+        acceleratorPrefix,
         terminationProtection,
         region: regionOrDefault,
         suffix,
         inScope,
-      },
+      };
+    } else {
+      stackProps = {
+        accountId,
+        accountKey,
+        stackName,
+        acceleratorName: this.props.context.acceleratorName,
+        acceleratorPrefix,
+        terminationProtection,
+        region: regionOrDefault,
+        suffix,
+        inScope,
+        // Passing DefaultStackSynthesizer object to pass "Central-Operations" account S3 bucket,
+        // Can be removed once we get support for bucketPrefix and Qualifier from bootstrap stack
+        synthesizer: new cdk.DefaultStackSynthesizer({
+          bucketPrefix: `${accountId}/`,
+          qualifier: acceleratorPrefix.endsWith('-')
+            ? acceleratorPrefix.slice(0, -1).toLowerCase()
+            : acceleratorPrefix.toLowerCase(),
+          cloudFormationExecutionRole: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          deployRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          fileAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          imageAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          fileAssetsBucketName: `cdk-${
+            acceleratorPrefix.endsWith('-')
+              ? acceleratorPrefix.slice(0, -1).toLowerCase()
+              : acceleratorPrefix.toLowerCase()
+          }-assets-${operationsAccountId}-${regionOrDefault}`,
+          generateBootstrapVersionRule: false,
+        }),
+      };
+    }
+
+    const app = new AccountApp(stackLogicalId, {
+      outDir,
+      stackProps,
     });
     this.apps.push(app);
     return app.stack;

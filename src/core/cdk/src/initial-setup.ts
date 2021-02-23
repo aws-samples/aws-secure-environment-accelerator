@@ -22,6 +22,7 @@ import * as fs from 'fs';
 import * as sns from '@aws-cdk/aws-sns';
 import { StoreOutputsTask } from './tasks/store-outputs-task';
 import { StoreOutputsToSSMTask } from './tasks/store-outputs-to-ssm-task';
+import { CDKBootstrapTask } from './tasks/cdk-bootstrap';
 
 export namespace InitialSetup {
   export interface CommonProps {
@@ -63,6 +64,7 @@ export namespace InitialSetup {
       super(scope, id);
 
       const { enablePrebuiltProject } = props;
+      const bootStrapStackName = `${props.acceleratorPrefix}CDKToolkit`;
 
       const lambdaPath = require.resolve('@aws-accelerator/accelerator-runtime');
       const lambdaDir = path.dirname(lambdaPath);
@@ -372,6 +374,42 @@ export namespace InitialSetup {
         resultPath: '$',
       });
 
+      const bootstrapOperationsTemplate = new s3assets.Asset(this, 'CloudFormationOperationsBootstrapTemplate', {
+        path: path.join(__dirname, 'assets', 'operations-cdk-bucket.yml'),
+      });
+
+      const bootstrapAccountTemplate = new s3assets.Asset(this, 'CloudFormationBootstrapTemplate', {
+        path: path.join(__dirname, 'assets', 'account-cdk-bootstrap.yml'),
+      });
+
+      const cdkBootstrapStateMachine = new sfn.StateMachine(this, `${props.acceleratorPrefix}CDKBootstrap_sm`, {
+        stateMachineName: `${props.acceleratorPrefix}CDKBootstrap_sm`,
+        definition: new CDKBootstrapTask(this, 'CDKBootstrap', {
+          lambdaCode,
+          role: pipelineRole,
+          acceleratorPrefix: props.acceleratorPrefix,
+          operationsBootstrapObjectKey: bootstrapOperationsTemplate.s3ObjectKey,
+          s3BucketName: bootstrapOperationsTemplate.s3BucketName,
+          assumeRoleName: props.stateMachineExecutionRole,
+          accountBootstrapObjectKey: bootstrapAccountTemplate.s3ObjectKey,
+          bootStrapStackName,
+        }),
+      });
+
+      const cdkBootstrapTask = new tasks.StepFunctionsStartExecution(this, 'Bootstrap Environment', {
+        stateMachine: cdkBootstrapStateMachine,
+        integrationPattern: sfn.IntegrationPattern.RUN_JOB,
+        input: sfn.TaskInput.fromObject({
+          'accounts.$': '$.accounts',
+          'regions.$': '$.regions',
+          accountsTableName: parametersTable.tableName,
+          configRepositoryName: props.configRepositoryName,
+          'configFilePath.$': '$.configFilePath',
+          'configCommitId.$': '$.configCommitId',
+        }),
+        resultPath: 'DISCARD',
+      });
+
       const installCfnRoleMasterTemplate = new s3assets.Asset(this, 'CloudFormationExecutionRoleTemplate', {
         path: path.join(__dirname, 'assets', 'cfn-execution-role-master.template.json'),
       });
@@ -433,10 +471,13 @@ export namespace InitialSetup {
             MaxSessionDuration: `${buildTimeout.toSeconds()}`,
             // TODO Only add root role for development environments
             AssumedByRoleArn: `arn:aws:iam::${stack.account}:root,${pipelineRole.roleArn}`,
+            AcceleratorPrefix: props.acceleratorPrefix.endsWith('-')
+              ? props.acceleratorPrefix.slice(0, -1).toLowerCase()
+              : props.acceleratorPrefix.toLowerCase(),
           },
           stackTemplate: executionRoleContent.toString(),
           'accountId.$': '$.accountId',
-          'assumedRoleName.$': '$.organizationAdminRole',
+          'assumeRoleName.$': '$.organizationAdminRole',
         }),
         resultPath: 'DISCARD',
       });
@@ -616,6 +657,7 @@ export namespace InitialSetup {
           ACCELERATOR_STATE_MACHINE_NAME: props.stateMachineName,
           CONFIG_BRANCH_NAME: props.configBranchName,
           STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
+          BOOTSTRAP_STACK_NAME: bootStrapStackName,
           'SCOPE.$': '$.scope',
           'MODE.$': '$.mode',
         };
@@ -886,6 +928,7 @@ export namespace InitialSetup {
       const commonDefinition = loadOrganizationsTask.startState
         .next(loadAccountsTask)
         .next(installExecRolesInAccounts)
+        .next(cdkBootstrapTask)
         .next(deleteVpcTask)
         .next(loadLimitsTask)
         .next(enableTrustedAccessForServicesTask)
