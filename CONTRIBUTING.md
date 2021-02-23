@@ -65,7 +65,7 @@ Review the unofficial roadmap or look at the existing issues for a great way to 
 
 This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct).
 For more information see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq) or contact
-opensource-codeofconduct@amazon.com with any additional questions or comments.
+opensource-codeofconduct@amazon.com with any additional questions or comments. Link to [CODE_OF_CONDUCT](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/CODE_OF_CONDUCT.md) file.
 
 ## Security issue notifications
 

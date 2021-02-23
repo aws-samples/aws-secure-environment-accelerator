@@ -31,7 +31,7 @@
   - [1.6. Deployed Functionality](#16-deployed-functionality)
     - [1.6.1. I wish to be in compliance with the 12 TBS Guardrails, what don't you cover with the provided sample architecture?](#161-i-wish-to-be-in-compliance-with-the-12-tbs-guardrails-what-dont-you-cover-with-the-provided-sample-architecture)
     - [1.6.2. Does the ALB perform SSL offloading?](#162-does-the-alb-perform-ssl-offloading)
-    - [1.6.3. What is the recommended approach to manage the ALB certificates deployed by the ASEA?](#163-what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-asea)
+    - [1.6.3. What is the recommended approach to manage the ALB certificates deployed by the Accelerator?](#163-what-is-the-recommended-approach-to-manage-the-alb-certificates-deployed-by-the-accelerator)
     - [1.6.4. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?](#164-why-do-we-have-rsyslog-servers-i-thought-everything-was-sent-to-cloudwatch)
     - [1.6.5. Can you deploy the solution without Fortinet Firewall Licenses?](#165-can-you-deploy-the-solution-without-fortinet-firewall-licenses)
     - [1.6.6. I installed additional software on my Accelerator deployed RDGW / rsyslog host, where did it go?](#166-i-installed-additional-software-on-my-accelerator-deployed-rdgw--rsyslog-host-where-did-it-go)
@@ -116,9 +116,11 @@ Will your state machine fail at some point in time, likely. Will you be able to 
 
 To override items like SCP's or IAM policies, customers simply need to provide the identically named file in there input bucket. As long as the file exists in the correct folder in the customers input bucket, the Accelerator will use the customers supplied version of the configuration item, rather than the Accelerator version. Customer SCP's need to be placed into a folder named `scp` and iam policies in a folder named `iam-policy` (case sensitive).
 
-The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Accelerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place new or updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of or in addition to Accelerator supplied versions. If a customer wishes to revert to the sample configuration, simply removing the specific files from their S3 bucket and rerunning the accelerator will revert to the repo version of the removed files. Customer only need to provide the specific files they wish to override, not all files.
+The Accelerator was designed to allow customers complete customization capabilities without any requirement to update code or fork the GitHub repo. Additionally, rather than forcing customers to provide a multitude of config files for a standard or prescriptive installation, we provide and auto-deploy with Accelerator versions of most required configuration items from the reference-artifacts folder of the repo. If a customer provides the required configuration file in their Accelerator S3 input bucket, we will use the customer supplied version of the configuration file rather than the Accelerator version. At any time, either before initial installation, or in future, a customer can place new or updated SCPs, policies, or other supported file types into their input bucket and we will use those instead of or in addition to Accelerator supplied versions. Customer only need to provide the specific files they wish to override, not all files.
 
 Customers can also define additional SCPs (or modify existing SCPs) using the name, description and filename of their choosing, and deploy them by referencing them on the appropriate organizational unit in the config file.
+
+Prior to v1.2.5, if we updated the default files, we overwrote customers customizations during upgrade. Simply updating the timestamp _after_ upgrade on the customized versions and then rerunning the state machine re-instates customer customizations. In v1.2.5 we always use the customer customized version from the S3 bucket. It's important customers assess newly provided defaults during an upgrade process to ensure they are incorporating all the latest fixes and improvements. If a customer wants to revert to Accelerator provided default files, they will need to manually copy it from the repo into their input bucket.
 
 NOTE: Most of the provided SCPs are designed to protect the Accelerator deployed resources from modification and ensure the integrity of the Accelerator. Extreme caution must be excercised if the provided SCPs are modified. We will be improving documenation as to which SCPs deliver security functionality versus those protecting the Accelerator itself in a future release.
 
@@ -285,43 +287,82 @@ Finally, while we started with a goal of delivering on the 12 guardrails, we bel
 
 As configured - the perimeter ALB decrypts incoming traffic using its certificate and then re-encrypts it with the certificate for the back-end ALB. The front-end and back-end ALB's can use the same or different certs. If the Firewall needs to inspect the traffic, it also needs the backend certificate be manually installed.
 
-### 1.6.3. What is the recommended approach to manage the ALB certificates deployed by the ASEA?
+### 1.6.3. What is the recommended approach to manage the ALB certificates deployed by the Accelerator?
 
-Self-Signed certificates should NOT be used for production. The Accelerator installation process allows customers to provide their own certificates (either self-signed or generated by a CA), to enable quick and easy installation and allowing customers to test end-to-end traffic flows. After the initial installation, we recommend customers leverage AWS Certificate Manager (ACM) to easily provision, manage, and deploy public and private SSL/TLS certificates. ACM helps manage the challenges of maintaining certificates, including certificate rotation and renewal, so you don’t have to worry about expiring certificates.
+The Accelerator installation process allows customers to provide their own certificates (either self-signed or generated by a CA), to enable quick and easy installation and allowing customers to test end-to-end traffic flows. After the initial installation, we recommend customers leverage AWS Certificate Manager (ACM) to easily provision, manage, and deploy public and private SSL/TLS certificates. ACM helps manage the challenges of maintaining certificates, including certificate rotation and renewal, so you don’t have to worry about expiring certificates.
 
-The most effective mechanism for leveraging ACM is adding CNAME authorization records to the relevant DNS domains (documented [here](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html)). The Accelerator then supports requesting newly generated ACM certificates, by adding a certificate request to the configuration file, rather than import, as follows:
+The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB's:
 
-```json
-"certificates": [
-  {
-    "name": "PublicCert1",
-    "type": "request",
-    "domain": "*.example.com",
-    "validation": "DNS",
-    "san": ["*.example1.com"]
-  }
-]
-```
+- **Method 1** - IMPORT a certificate into AWS Certificate Manager from a 3rd party product
 
-You also need to update the config file so that your ALB's “cert-name” or “cert-arn” uses the new certificate in the format below:
+  ```json
+    "certificates": [
+        {
+          "name": "My-Cert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
+        }
+      ]
+  ```
+
+  - this mechanism allows a customer to generate certificates using their existing tools and processes and import 3rd party certificates into AWS Certificate Manager for use in AWS
+  - Self-Signed certificates should NOT be used for production (samples were provided simply to demonstrate functionality)
+  - both a `.key` and a `.crt` file must be supplied in the customers S3 input bucket
+  - this will create a certificate in ACM and a secret in secrets manager named `accelerator/certificates/My-Cert` in the specified AWS account(s), which points to the newly imported certificates ARN
+
+- **Method 2** - REQUEST AWS Certificate Manager generate a certificate
+
+  ```json
+  "certificates": [
+    {
+      "name": "My-Cert",
+      "type": "request",
+      "domain": "*.example.com",
+      "validation": "DNS",
+      "san": ["www.example.com"]
+    }
+  ]
+  ```
+
+  - this mechanism allows a customer to generate new public certificates directly in ACM
+  - both `DNS` and `EMAIL` validation mechanisms are supported (DNS recommended)
+  - this requires a **_Public_** DNS zone be properly configured to validate you are legally entitled to issue certificates for the domain
+  - this will also create a certificate in ACM and a secret in secrets manager named `accelerator/certificates/My-Cert` in the specified AWS account(s), which points to the newly imported certificates ARN
+  - this mechanism should NOT be used on new installs, skip certificate and ALB deployment during initial deployment (removing them from the config file) and simply add on a subsequent state machine execution
+  - Process:
+    - you need a public DNS domain properly registered and configured to publicly resolve the domain(s) you will be generating certificates for (i.e. example.com)
+      - domains can be purchased and configured in Amazon Route53 or through any 3rd party registrar and DNS service provider
+    - in Accelerator phase 1, the cert is generated, but the stack does NOT complete deploying (i.e. it waits) until certificate validation is complete
+    - during deployment, go to the AWS account in question, open ACM and the newly requested certificate. Document the authorization CNAME record required to validate certificate generation
+    - add the CNAME record to the zone in bullet 1 (in Route53 or 3rd party DNS provider) (documented [here](https://docs.aws.amazon.com/acm/latest/userguide/gs-acm-validate-dns.html))
+    - after a few minutes the certificate will validate and switch to `Issued` status
+    - Accelerator phase 1 will finish (as long as the certificate is validated before the Phase 1 credentials time-out after 60-minutes)
+    - the ALB will deploy in a later phase with the specified certificate
+
+- **Method 3** - Manually generate a certificate in ACM
+
+  - this mechanism allows a customer to manually generate certificates directly in the ACM interface for use by the Accelerator
+  - this mechanism should NOT be used on new installs, skip certificate and ALB deployment during initial deployment (removing them from the config file) and simply add on a subsequent state machine execution
+  - Process:
+    - go to the AWS account for which you plan to deploy an ALB and open ACM
+    - generate a certificate, documenting the certificates ARN
+    - open Secrets manager and generate a new secret of the format `accelerator/certificates/My-Cert` (of type `Plaintext` under `Other type of secrets`), where `My-Cert` is the unique name you will use to reference this certificate
+
+- In all three mechanisms a secret will exist in Secrets Manager named `accelerator/certificates/My-Cert` which contains the ARN of the certificate to be used.
+- In the Accelerator config file, find the definition of the ALB for that AWS account and specify `My-Cert` for the ALB `cert-name`
 
 ```json
 "alb": [
   {
-    "cert-name": "PublicCert1"
+    "cert-name": "My-Cert"
   }
 ]
 ```
 
-or
+- The state machine will fail if you specify a certificate in any ALB which is not defined in Secrets Manager in the local account.
 
-```json
-"alb": [
-  {
-    "cert-arn": "arn:aws:acm:ca-central-1:[account-id]:certificate/[identifier]"
-  }
-]
-```
+We suggest the most effective mechanism for leveraging ACM is by adding CNAME authorization records to the relevant DNS domains using Method 2, but may not appropriate right for all customers.
 
 ### 1.6.4. Why do we have rsyslog servers? I thought everything was sent to CloudWatch?
 

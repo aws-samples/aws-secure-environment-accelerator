@@ -39,7 +39,6 @@ export async function step1(props: FirewallStep1Props) {
         continue;
       }
 
-      // TODO We could create a nested stack here
       await createFirewallEips({
         scope: accountStack,
         vpcConfig,

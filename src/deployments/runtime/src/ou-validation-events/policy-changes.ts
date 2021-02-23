@@ -30,6 +30,7 @@ export interface ConfigurationAccount {
 
 const defaultRegion = process.env.ACCELERATOR_DEFAULT_REGION!;
 const acceleratorPrefix = process.env.ACCELERATOR_PREFIX!;
+const acceleratorName = process.env.ACCELERATOR_NAME!;
 const configRepositoryName = process.env.CONFIG_REPOSITORY_NAME!;
 const configFilePath = process.env.CONFIG_FILE_PATH!;
 const configBranch = process.env.CONFIG_BRANCH_NAME!;
@@ -77,7 +78,14 @@ export const handler = async (input: PolicyChangeEvent) => {
     console.log(`SCP ${policyId} is not managed by Accelerator`);
     return 'SUCCESS';
   }
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
+  const scps = new ServiceControlPolicy({
+    client: organizations,
+    acceleratorPrefix,
+    acceleratorName,
+    region: defaultRegion,
+    replacements: config.replacements,
+    organizationAdminRole,
+  });
   const { organizationalUnits, accounts } = await loadAccountsAndOrganizationsFromConfig(config);
   if (eventName === 'DetachPolicy') {
     const { targetId } = requestDetail.requestParameters;
@@ -113,11 +121,9 @@ export const handler = async (input: PolicyChangeEvent) => {
 
     // Keep track of Accelerator policy names so we later can detach all non-Accelerator policies
     const acceleratorPolicies = await scps.createPoliciesFromConfiguration({
-      acceleratorPrefix,
       scpBucketName,
       scpBucketPrefix,
       policyConfigs,
-      organizationAdminRole,
     });
     const acceleratorPolicyNames = acceleratorPolicies.map(p => p.Name!);
 

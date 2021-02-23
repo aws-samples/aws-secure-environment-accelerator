@@ -12,8 +12,12 @@ import { JSON_FORMAT, YAML_FORMAT } from '@aws-accelerator/common/src/util/const
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput } from './utils/dynamodb-requests';
 
+const SUSPENDED_OU_NAME = 'Suspended';
+
 export interface ValdationInput extends LoadConfigurationInput {
   acceleratorPrefix: string;
+  acceleratorName: string;
+  region: string;
   parametersTableName: string;
   organizationsItemId: string;
   accountsItemId: string;
@@ -47,6 +51,8 @@ export const handler = async (input: ValdationInput): Promise<string> => {
     accountsItemId,
     configBranch,
     configRootFilePath,
+    acceleratorName,
+    region,
   } = input;
 
   // Retrieve Configuration from Code Commit with specific commitId
@@ -64,7 +70,14 @@ export const handler = async (input: ValdationInput): Promise<string> => {
   const previousAccounts = await loadAccounts(parametersTableName, accountsItemId);
   const previousOrganizationalUnits = await loadOrganizations(parametersTableName, organizationsItemId);
   const organizationAdminRole = config['global-options']['organization-admin-role'];
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole, organizations);
+  const scps = new ServiceControlPolicy({
+    client: organizations,
+    acceleratorPrefix,
+    acceleratorName,
+    region,
+    replacements: config.replacements,
+    organizationAdminRole,
+  });
 
   // Find OUs and accounts in AWS account
   const awsOus = await organizations.listOrganizationalUnits();
@@ -221,10 +234,9 @@ export const handler = async (input: ValdationInput): Promise<string> => {
       rootAccountIds = rootAccountIds.filter(acc => acc !== rootMasterAccount?.Id!);
     }
   }
-  const suspendedOuName = 'Suspended';
-  let suspendedOu = awsOusWithPath.find(o => o.Path === suspendedOuName);
+  let suspendedOu = awsOusWithPath.find(o => o.Path === SUSPENDED_OU_NAME);
   if (!suspendedOu) {
-    suspendedOu = await createSuspendedOu(suspendedOuName, rootId);
+    suspendedOu = await createSuspendedOu(SUSPENDED_OU_NAME, rootId);
     awsOusWithPath.push(suspendedOu);
   }
 

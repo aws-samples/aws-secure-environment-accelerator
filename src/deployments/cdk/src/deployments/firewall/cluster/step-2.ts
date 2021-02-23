@@ -148,6 +148,13 @@ async function createCustomerGateways(props: {
         vpnTunnelOutsideAddress1: options.getAttString('VpnOutsideIpAddress1'),
         vpnBgpAsn1: options.getAttString('VpnBgpAsn1'),
         preSharedSecret1: options.getAttString('PreSharedKey1'),
+        cgwTunnelInsideAddress2: options.getAttString('CgwInsideIpAddress2'),
+        cgwTunnelOutsideAddress2: options.getAttString('CgwOutsideIpAddress2'),
+        cgwBgpAsn2: options.getAttString('CgwBgpAsn2'),
+        vpnTunnelInsideAddress2: options.getAttString('VpnInsideIpAddress2'),
+        vpnTunnelOutsideAddress2: options.getAttString('VpnOutsideIpAddress2'),
+        vpnBgpAsn2: options.getAttString('VpnBgpAsn2'),
+        preSharedSecret2: options.getAttString('PreSharedKey2'),
       };
 
       // Creating VPN connection route table association and propagation

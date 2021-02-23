@@ -64,7 +64,7 @@ export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
   // This makes sure CDK removes stacks that would otherwise not get deleted
   for (const account of accounts) {
     for (const supportedRegion of acceleratorConfig['global-options']['supported-regions']) {
-      accountStacks.tryGetOrCreateAccountStack(account.key, supportedRegion);
+      accountStacks.tryGetOrCreateAccountStack(account.key, supportedRegion, '', account.inScope);
     }
   }
 
@@ -85,6 +85,10 @@ export async function deploy(props: AppProps): Promise<cdk.Stage[]> {
     }
     if (includeRegion && includeRegion !== app.region) {
       console.log(`Skipping app deployment for account ${app.accountKey} and region ${app.region}`);
+      return false;
+    }
+    if (!app.stack.inScope) {
+      console.log(`Skipping app deployment for Non Mandatory account ${app.accountKey} and region ${app.region}`);
       return false;
     }
     return true;

@@ -5,6 +5,8 @@ import { ServiceControlPolicy } from '@aws-accelerator/common/src/scp';
 interface AddQuarantineScpInput {
   account: ConfigurationAccount;
   acceleratorPrefix: string;
+  acceleratorName: string;
+  region: string;
   organizationAdminRole: string;
 }
 
@@ -12,7 +14,7 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
   console.log(`Adding quarantine SCP to account...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { acceleratorPrefix, account, organizationAdminRole } = input;
+  const { acceleratorPrefix, account, organizationAdminRole, acceleratorName, region } = input;
 
   if (!account.accountId) {
     return {
@@ -21,7 +23,12 @@ export const handler = async (input: AddQuarantineScpInput): Promise<CreateAccou
     };
   }
 
-  const scps = new ServiceControlPolicy(acceleratorPrefix, organizationAdminRole);
+  const scps = new ServiceControlPolicy({
+    acceleratorPrefix,
+    acceleratorName,
+    region,
+    organizationAdminRole,
+  });
   await scps.createOrUpdateQuarantineScp([account.accountId]);
 
   return {

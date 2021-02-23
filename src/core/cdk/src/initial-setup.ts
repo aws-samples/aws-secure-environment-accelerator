@@ -157,10 +157,12 @@ export namespace InitialSetup {
           s3Bucket: props.configS3Bucket,
           branchName: props.configBranchName,
           acceleratorVersion: props.acceleratorVersion!,
-          'inputConfig.$': '$',
+          'smInput.$': '$',
+          acceleratorPrefix: props.acceleratorPrefix,
+          acceleratorName: props.acceleratorName,
+          region: cdk.Aws.REGION,
           'executionArn.$': '$$.Execution.Id',
           'stateMachineArn.$': '$$.StateMachine.Id',
-          acceleratorPrefix: props.acceleratorPrefix,
         },
         resultPath: '$.configuration',
       });
@@ -172,13 +174,14 @@ export namespace InitialSetup {
           role: pipelineRole,
         },
         functionPayload: {
-          'inputConfig.$': '$',
+          'inputConfig.$': '$.configuration.smInput',
           region: cdk.Aws.REGION,
           configRepositoryName: props.configRepositoryName,
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'baseline.$': '$.configuration.baselineOutput.baseline',
+          parametersTableName: parametersTable.tableName,
         },
         resultPath: 'DISCARD',
       });
@@ -236,6 +239,7 @@ export namespace InitialSetup {
           'acceleratorVersion.$': '$.configuration.acceleratorVersion',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
           'organizationAdminRole.$': '$.configuration.baselineOutput.organizationAdminRole',
+          'smInput.$': '$.configuration.smInput',
         },
         resultPath: '$.configuration',
       });
@@ -311,6 +315,8 @@ export namespace InitialSetup {
           'configFilePath.$': '$.configuration.configFilePath',
           'configCommitId.$': '$.configuration.configCommitId',
           acceleratorPrefix: props.acceleratorPrefix,
+          acceleratorName: props.acceleratorName,
+          region: cdk.Aws.REGION,
           'organizationAdminRole.$': '$.configuration.organizationAdminRole',
         },
       });
@@ -363,6 +369,7 @@ export namespace InitialSetup {
           'accounts.$': '$.configuration.accounts',
           'configRootFilePath.$': '$.configuration.configRootFilePath',
           'organizationAdminRole.$': '$.configuration.organizationAdminRole',
+          'smInput.$': '$.configuration.smInput',
         },
         resultPath: '$',
       });
@@ -557,11 +564,14 @@ export namespace InitialSetup {
         },
         functionPayload: {
           acceleratorPrefix: props.acceleratorPrefix,
+          acceleratorName: props.acceleratorName,
+          region: cdk.Aws.REGION,
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
           parametersTableName: parametersTable.tableName,
           outputTableName: outputsTable.tableName,
+          'organizationAdminRole.$': '$.organizationAdminRole',
         },
         resultPath: 'DISCARD',
       });
@@ -648,6 +658,8 @@ export namespace InitialSetup {
           CONFIG_BRANCH_NAME: props.configBranchName,
           STACK_OUTPUT_TABLE_NAME: outputsTable.tableName,
           BOOTSTRAP_STACK_NAME: bootStrapStackName,
+          'SCOPE.$': '$.scope',
+          'MODE.$': '$.mode',
         };
 
         const deployTask = new tasks.StepFunctionsStartExecution(this, `Deploy Phase ${phase}`, {

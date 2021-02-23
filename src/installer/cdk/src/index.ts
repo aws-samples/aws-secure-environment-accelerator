@@ -25,8 +25,20 @@ async function main() {
     terminationProtection: true,
   });
 
-  const acceleratorName = 'PBMM';
-  const acceleratorPrefix = 'PBMMAccel-';
+  const acceleratorPrefixParam = new cdk.CfnParameter(stack, 'AcceleratorPrefix', {
+    default: 'PBMMAccel-',
+    description: 'Accelerator prefix used for deployment.',
+    allowedPattern: '[a-zA-Z][a-zA-Z0-9-]*-',
+  });
+
+  const acceleratorNameParam = new cdk.CfnParameter(stack, 'AcceleratorName', {
+    default: 'PBMM',
+    description: 'Accelerator Name used for deployment.',
+    allowedPattern: '[a-zA-Z][a-zA-Z0-9]*',
+  });
+
+  const acceleratorName = acceleratorNameParam.valueAsString;
+  const acceleratorPrefix = acceleratorPrefixParam.valueAsString;
 
   const acceleratorConfigS3Bucket = new cdk.CfnParameter(stack, 'ConfigS3Bucket', {
     default: 'pbmmaccel-config',
@@ -81,6 +93,9 @@ async function main() {
   const saveApplicationVersionCode = fs.readFileSync(
     path.join(__dirname, '..', 'assets', 'save-application-version.js'),
   );
+
+  // Use the `vallidate-parameters.js` script in the assets folder
+  const vallidateParametersCode = fs.readFileSync(path.join(__dirname, '..', 'assets', 'validate-parameters.js'));
 
   // Role that is used by the CodeBuild project
   const installerProjectRole = new iam.Role(stack, 'InstallerProjectRole', {
@@ -252,6 +267,13 @@ async function main() {
     }),
   );
 
+  stateMachineExecutionRole.addToPrincipalPolicy(
+    new iam.PolicyStatement({
+      actions: ['cloudformation:DescribeStacks'],
+      resources: ['*'],
+    }),
+  );
+
   // Grant permissions to start the state machine
   stateMachineExecutionRole.addToPrincipalPolicy(
     new iam.PolicyStatement({
@@ -275,6 +297,15 @@ async function main() {
     role: stateMachineExecutionRole,
     runtime: lambda.Runtime.NODEJS_12_X,
     code: lambda.Code.fromInline(saveApplicationVersionCode.toString()),
+    handler: 'index.handler',
+  });
+
+  // Create the Lambda function that is responsible for validating previous parameters
+  const vallidateParametersLambda = new lambda.Function(stack, 'VallidateParametersLambda', {
+    functionName: `${acceleratorPrefix}Installer-VallidateParameters`,
+    role: stateMachineExecutionRole,
+    runtime: lambda.Runtime.NODEJS_12_X,
+    code: lambda.Code.fromInline(vallidateParametersCode.toString()),
     handler: 'index.handler',
   });
 
@@ -315,6 +346,20 @@ async function main() {
         actions: [githubAction],
       },
       {
+        stageName: 'ValidateParameters',
+        actions: [
+          new actions.LambdaInvokeAction({
+            actionName: 'ValidateParameters',
+            lambda: vallidateParametersLambda,
+            role: installerPipelineRole,
+            userParameters: {
+              acceleratorName,
+              acceleratorPrefix,
+            },
+          }),
+        ],
+      },
+      {
         stageName: 'Deploy',
         actions: [
           new actions.CodeBuildAction({
@@ -338,6 +383,8 @@ async function main() {
               owner: githubOwner,
               branch: githubBranch,
               acceleratorVersion,
+              acceleratorName,
+              acceleratorPrefix,
             },
           }),
         ],

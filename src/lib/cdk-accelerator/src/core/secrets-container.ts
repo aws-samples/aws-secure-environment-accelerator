@@ -40,6 +40,7 @@ export class SecretsContainer extends cdk.Construct {
     this.encryptionKey = new kms.Key(this, `EncryptionKey`, {
       alias: `alias/${this.keyAlias}`,
       description: 'Key used to encrypt/decrypt secrets',
+      enableKeyRotation: true,
     });
 
     this.encryptionKey.addToResourcePolicy(
