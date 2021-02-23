@@ -2,8 +2,8 @@
   "replacements": {
     "addl_regions": {
       "a": ["${HOME_REGION}"],
-      "b": ["${HOME_REGION}, ${GBL_REGION}"],
-      "c": ["${HOME_REGION}, ${GBL_REGION}"]
+      "b": ["${HOME_REGION}", "${GBL_REGION}"],
+      "c": ["${HOME_REGION}", "${GBL_REGION}"]
     }
   },
   "global-options": {

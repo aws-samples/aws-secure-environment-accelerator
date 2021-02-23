@@ -2,8 +2,8 @@
   "replacements": {
     "addl_regions": {
       "a": ["${HOME_REGION}"],
-      "b": ["${HOME_REGION}, ${GBL_REGION}"],
-      "c": ["${HOME_REGION}, ${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
+      "b": ["${HOME_REGION}", "${GBL_REGION}"],
+      "c": ["${HOME_REGION}", "${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
     },
     "cloud-cidr1": "10.0.0.0",
     "cloud-mask1": "255.0.0.0",
