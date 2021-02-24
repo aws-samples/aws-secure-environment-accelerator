@@ -350,25 +350,12 @@ async function beforeStart(
       previousAcceleratorVersion = previousExecutionData.acceleratorVersion;
     }
   } catch (e) {
-    const successExecutions = await stepfunctions.listExecutions({
-      stateMachineArn,
-      statusFilter: 'SUCCEEDED',
-      maxResults: 1,
-    });
-    if (successExecutions.length > 0) {
-      const previousSuccessExecution = successExecutions[0];
-      const executionData = await stepfunctions.describeExecution({
-        executionArn: previousSuccessExecution.executionArn,
-      });
-      if (executionData) {
-        const executionOutput = JSON.parse(executionData.output || '[]')[0];
-        previousAcceleratorVersion = executionOutput.acceleratorVersion;
-      }
-    }
+    console.error('Previous Successfull Secret is not a String');
+    throw new Error('This execition requires Accelerator execution with scope: "FULL"');
   }
   if (!previousAcceleratorVersion) {
-    console.info("Previous Success value doesn't have acceleratorVersion in it");
+    throw new Error('This execition requires Accelerator execution with scope: "FULL"');
   } else if (previousAcceleratorVersion !== acceleratorVersion && scope !== 'FULL') {
-    throw new Error('This upgrade requires Accelerator execution with scope: "FULL"');
+    throw new Error('This execition requires Accelerator execution with scope: "FULL"');
   }
 }
