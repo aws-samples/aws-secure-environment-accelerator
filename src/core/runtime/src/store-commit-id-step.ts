@@ -5,14 +5,14 @@ export interface StepInput {
   configFilePath: string;
   configRepositoryName: string;
   configCommitId: string;
-  commitSecretId: string;
+  acceleratorVersion: string;
 }
 
 export const handler = async (input: StepInput): Promise<void> => {
   console.log(`Loading compare configurations...`);
   console.log(JSON.stringify(input, null, 2));
 
-  const { configCommitId } = input;
+  const { configCommitId, acceleratorVersion } = input;
   const commitSecretId = getCommitIdSecretName();
 
   // Store the git repository config file commit id in the secrets manager
@@ -24,16 +24,21 @@ export const handler = async (input: StepInput): Promise<void> => {
     console.log('previous successful run commitId secret not found');
   }
 
+  const secretValue = {
+    configCommitId,
+    acceleratorVersion,
+  };
+
   if (!previousCommitIdSecret) {
     await secrets.createSecret({
       Name: commitSecretId,
-      SecretString: configCommitId,
+      SecretString: JSON.stringify(secretValue),
       Description: 'This secret contains the last successful commit ID of the Git repository configuration file',
     });
   } else {
     await secrets.putSecretValue({
       SecretId: commitSecretId,
-      SecretString: configCommitId,
+      SecretString: JSON.stringify(secretValue),
     });
   }
 };

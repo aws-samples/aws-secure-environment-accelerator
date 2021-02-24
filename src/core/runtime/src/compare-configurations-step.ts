@@ -69,8 +69,13 @@ export const handler = async (input: StepInput) => {
   const secrets = new SecretsManager();
   let previousCommitId;
   try {
-    const previousCommitIdSecret = await secrets.getSecret(commitSecretId);
-    previousCommitId = previousCommitIdSecret.SecretString;
+    const previousExecutionSecret = await secrets.getSecret(commitSecretId);
+    try {
+      const previousExecutionData = JSON.parse(previousExecutionSecret.SecretString || '{}');
+      previousCommitId = previousExecutionData.configCommitId;
+    } catch (er) {
+      previousCommitId = previousExecutionSecret.SecretString;
+    }
   } catch (e) {
     console.log('previous successful run commitId not found');
   }
