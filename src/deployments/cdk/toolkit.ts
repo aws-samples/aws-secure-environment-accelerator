@@ -53,7 +53,8 @@ export class CdkToolkit {
     // TODO Use the Accelerator prefix
     // TODO Remove configuration dependency
     const settings = this.props.configuration.settings;
-    this.toolkitStackName = ToolkitInfo.determineName(settings.get(['toolkitStackName']));
+    const env = process.env;
+    this.toolkitStackName = env.BOOTSTRAP_STACK_NAME || ToolkitInfo.determineName(settings.get(['toolkitStackName']));
     this.toolkitBucketName = settings.get(['toolkitBucket', 'bucketName']);
     this.toolkitKmsKey = settings.get(['toolkitBucket', 'kmsKeyId']);
     this.tags = settings.get(['tags']);
@@ -96,7 +97,7 @@ export class CdkToolkit {
     const cloudFormationExecutionPolicies: string[] = [];
 
     await new Bootstrapper({
-      source: 'legacy',
+      source: 'default',
     }).bootstrapEnvironment(environment, this.props.sdkProvider, {
       toolkitStackName: this.toolkitStackName,
       roleArn: undefined,
@@ -202,7 +203,6 @@ export class CdkToolkit {
       // Add stack tags to the tags list
       // const tags = this.tags || [];
       const tags = [...tagsForStack(stack)];
-      console.log(tags.length);
 
       console.log(`Calling deployStack API on ${stack.displayName} stack`);
       const result = await this.cloudFormation.deployStack({

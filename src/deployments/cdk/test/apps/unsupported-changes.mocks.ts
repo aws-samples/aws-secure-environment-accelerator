@@ -130,6 +130,8 @@ export function createPhaseInput(): Omit<PhaseInput, 'accountStacks'> {
     defaultRegion: 'ca-central-1',
     configRootFilePath: '',
     installerVersion: '0.0.0',
+    centralOperationsAccount: 'operations',
+    masterAccount: 'master',
   };
 
   const limiter = new Limiter([]);

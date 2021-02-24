@@ -9,6 +9,7 @@ export namespace CreateStackTask {
     role: iam.IRole;
     lambdaCode: lambda.Code;
     waitSeconds?: number;
+    functionPayload?: { [key: string]: unknown };
     suffix?: string;
   }
 }
@@ -20,7 +21,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
   constructor(scope: cdk.Construct, id: string, props: CreateStackTask.Props) {
     super(scope, id);
 
-    const { role, lambdaCode, suffix, waitSeconds = 10 } = props;
+    const { role, lambdaCode, functionPayload, suffix, waitSeconds = 10 } = props;
 
     role.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -37,8 +38,9 @@ export class CreateStackTask extends sfn.StateMachineFragment {
       }),
     );
 
-    const deployTask = new CodeTask(scope, `Deploy${suffix || ''}`, {
+    const deployTask = new CodeTask(scope, `Deploy ${suffix || 'Stack'}`, {
       resultPath: 'DISCARD',
+      functionPayload,
       functionProps: {
         role,
         code: lambdaCode,
@@ -50,6 +52,7 @@ export class CreateStackTask extends sfn.StateMachineFragment {
     const verifyTaskStatusPath = `${verifyTaskResultPath}.status`;
     const verifyTask = new CodeTask(scope, `Verify${suffix || ''}`, {
       resultPath: verifyTaskResultPath,
+      functionPayload,
       functionProps: {
         role,
         code: lambdaCode,

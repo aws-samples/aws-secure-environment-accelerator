@@ -15,6 +15,8 @@ export interface Context {
   acceleratorStateMachineName: string;
   configRootFilePath: string;
   installerVersion: string;
+  centralOperationsAccount?: string;
+  masterAccount?: string;
 }
 
 export function loadContext(): Context {

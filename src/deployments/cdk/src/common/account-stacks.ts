@@ -11,6 +11,7 @@ export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountKey: string;
   region: string;
   suffix?: string;
+  inScope?: boolean;
 }
 
 /**
@@ -20,6 +21,7 @@ export class AccountStack extends AcceleratorStack {
   readonly accountId: string;
   readonly accountKey: string;
   readonly suffix?: string;
+  readonly inScope?: boolean;
 
   constructor(readonly app: cdk.Stage, id: string, props: AccountStackProps) {
     super(app, id, {
@@ -33,6 +35,7 @@ export class AccountStack extends AcceleratorStack {
     this.accountId = props.accountId;
     this.accountKey = props.accountKey;
     this.suffix = props.suffix;
+    this.inScope = props.inScope;
   }
 }
 
@@ -96,7 +99,12 @@ export class AccountStacks {
   /**
    * Get the existing stack for the given account or create a new stack if no such stack exists yet.
    */
-  tryGetOrCreateAccountStack(accountKey: string, region?: string, suffix?: string): AccountStack | undefined {
+  tryGetOrCreateAccountStack(
+    accountKey: string,
+    region?: string,
+    suffix?: string,
+    inScope?: boolean,
+  ): AccountStack | undefined {
     const regionOrDefault = region ?? this.props.context.defaultRegion;
     const existingApp = !suffix
       ? this.apps.find(s => s.accountKey === accountKey && s.stack.region === regionOrDefault)
@@ -106,27 +114,65 @@ export class AccountStacks {
     }
 
     const accountId = getAccountId(this.props.accounts, accountKey);
-    if (!accountId) {
+    const operationsAccountId = getAccountId(this.props.accounts, this.props.context.centralOperationsAccount!);
+    const masterAccountId = getAccountId(this.props.accounts, this.props.context.masterAccount!);
+    if (!accountId || !operationsAccountId || !masterAccountId) {
       return undefined;
     }
 
     const stackName = this.createStackName(accountKey, regionOrDefault, suffix);
     const stackLogicalId = this.createStackLogicalId(accountKey, regionOrDefault, suffix);
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
-
+    const acceleratorPrefix = this.props.context.acceleratorPrefix;
     const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
-    const app = new AccountApp(stackLogicalId, {
-      outDir,
-      stackProps: {
+    let stackProps: AccountStackProps;
+    if (regionOrDefault === this.props.context.defaultRegion && accountId === masterAccountId) {
+      stackProps = {
         accountId,
         accountKey,
         stackName,
         acceleratorName: this.props.context.acceleratorName,
-        acceleratorPrefix: this.props.context.acceleratorPrefix,
+        acceleratorPrefix,
         terminationProtection,
         region: regionOrDefault,
         suffix,
-      },
+        inScope,
+      };
+    } else {
+      stackProps = {
+        accountId,
+        accountKey,
+        stackName,
+        acceleratorName: this.props.context.acceleratorName,
+        acceleratorPrefix,
+        terminationProtection,
+        region: regionOrDefault,
+        suffix,
+        inScope,
+        // Passing DefaultStackSynthesizer object to pass "Central-Operations" account S3 bucket,
+        // Can be removed once we get support for bucketPrefix and Qualifier from bootstrap stack
+        synthesizer: new cdk.DefaultStackSynthesizer({
+          bucketPrefix: `${accountId}/`,
+          qualifier: acceleratorPrefix.endsWith('-')
+            ? acceleratorPrefix.slice(0, -1).toLowerCase()
+            : acceleratorPrefix.toLowerCase(),
+          cloudFormationExecutionRole: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          deployRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          fileAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          imageAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+          fileAssetsBucketName: `cdk-${
+            acceleratorPrefix.endsWith('-')
+              ? acceleratorPrefix.slice(0, -1).toLowerCase()
+              : acceleratorPrefix.toLowerCase()
+          }-assets-${operationsAccountId}-${regionOrDefault}`,
+          generateBootstrapVersionRule: false,
+        }),
+      };
+    }
+
+    const app = new AccountApp(stackLogicalId, {
+      outDir,
+      stackProps,
     });
     this.apps.push(app);
     return app.stack;

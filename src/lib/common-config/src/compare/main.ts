@@ -1,7 +1,7 @@
 import { CodeCommit } from '@aws-accelerator/common/src/aws/codecommit';
-import { compareConfiguration, getAccountNames } from './config-diff';
+import { config } from 'aws-sdk';
+import { compareConfiguration, Diff, getAccountNames } from './config-diff';
 import * as validate from './validate';
-
 /**
  * Retrieve and compare previous and the current configuration from CodeCommit
  */
@@ -12,8 +12,21 @@ export async function compareAcceleratorConfig(props: {
   previousCommitId: string;
   region: string;
   overrideConfig: { [name: string]: boolean };
+  scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  targetAccounts?: string[];
+  targetOus?: string[];
 }): Promise<string[]> {
-  const { repositoryName, configFilePath: filePath, commitId, previousCommitId, region, overrideConfig } = props;
+  const {
+    repositoryName,
+    configFilePath: filePath,
+    commitId,
+    previousCommitId,
+    region,
+    overrideConfig,
+    scope,
+    targetAccounts,
+    targetOus,
+  } = props;
 
   const codeCommit = new CodeCommit();
 
@@ -38,9 +51,10 @@ export async function compareAcceleratorConfig(props: {
     return errors;
   }
 
+  scopeValidation(scope, configChanges, errors, targetAccounts || [], targetOus || []);
+
   // get all the accounts from previous commit
   const accountNames = getAccountNames(previousConfig);
-  console.log(accountNames);
 
   if (!overrideConfig['ov-global-options']) {
     await validate.validateGlobalOptions(configChanges, errors);
@@ -107,4 +121,117 @@ export async function compareAcceleratorConfig(props: {
   }
 
   return errors;
+}
+
+function scopeValidation(
+  scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU',
+  configChanges: Diff[],
+  errors: string[],
+  accounts: string[],
+  ous: string[],
+) {
+  const validateNewAccounts = function () {
+    const newAccountsValidation = configChanges.filter(
+      cc =>
+        !(
+          cc.path?.length === 2 &&
+          cc.kind === 'N' &&
+          ['workload-account-configs', 'mandatory-account-configs'].includes(cc.path?.[0])
+        ),
+    );
+    if (newAccountsValidation.length > 0) {
+      errors.push(
+        ...newAccountsValidation.map(
+          cc => `ConfigCheck: blocked changing from config path "${cc.path?.join('/')}" in SCOPE validation`,
+        ),
+      );
+    }
+  };
+  const validateGlobalOptions = function () {
+    const globalOptionsValidation = configChanges.filter(cc => cc.path?.[0] !== 'global-options');
+    if (globalOptionsValidation.length > 0) {
+      errors.push(
+        ...globalOptionsValidation.map(
+          cc => `ConfigCheck: blocked changing from config path "${cc.path?.join('/')}" in SCOPE validation`,
+        ),
+      );
+    }
+  };
+  const validateAccounts = function () {
+    const accountsValidation = configChanges.filter(
+      cc => !['workload-account-configs', 'mandatory-account-configs'].includes(cc.path?.[0]),
+    );
+    if (accountsValidation.length > 0) {
+      errors.push(
+        ...accountsValidation.map(
+          cc => `ConfigCheck: blocked changing from config path "${cc.path?.join('/')}" in SCOPE validation`,
+        ),
+      );
+      return;
+    }
+    if (accounts && accounts.length > 0) {
+      // Changes allowed only in Account configuration for both mandatory and workload
+      if (accounts.includes('ALL')) {
+        return;
+      }
+      const namedAndMandatoryAccsValidation = configChanges.filter(
+        cc => cc.path?.length !== 2 && !accounts.includes(cc.path?.[1]) && cc.path?.[0] !== 'mandatory-account-configs',
+      );
+      if (namedAndMandatoryAccsValidation.length > 0) {
+        errors.push(
+          ...namedAndMandatoryAccsValidation.map(
+            cc => `ConfigCheck: blocked changing from config path "${cc.path?.join('/')}" in SCOPE validation`,
+          ),
+        );
+      }
+      const newAccountValidation = configChanges.filter(cc => cc.path?.length === 2 && cc.kind === 'N');
+      if (!accounts.includes('NEW') && newAccountValidation.length > 0) {
+        // New Account addition is only allowed if 'NEW' in accounts
+        errors.push(
+          ...newAccountValidation.map(
+            cc => `ConfigCheck: blocked changing from config path "${cc.path?.join('/')}" in SCOPE validation`,
+          ),
+        );
+      }
+    } else {
+      throw new Error('"targetAccounts" is mandatory if scope="ACCOUNT"');
+    }
+  };
+  const validateOus = function () {
+    const ouValidation = configChanges.filter(cc => cc.path?.[0] !== 'organizational-units');
+    if (ouValidation.length > 0) {
+      errors.push(
+        ...ouValidation.map(
+          cc => `ConfigCheck: blocked changing from config path "${cc.path?.join('/')}" in SCOPE validation`,
+        ),
+      );
+    }
+    if (ous && ous.length > 0) {
+      // Changes allowed only in Account configuration for both mandatory and workload
+      if (ous.includes('ALL')) {
+        return;
+      }
+      const namedOuValidation = configChanges.filter(
+        cc => cc.path?.[0] !== 'organizational-units' && !ous.includes(cc.path?.[1]),
+      );
+      if (namedOuValidation.length > 0) {
+        errors.push(
+          ...namedOuValidation.map(
+            cc => `ConfigCheck: blocked changing from config path "${cc.path?.join('/')}" in SCOPE validation`,
+          ),
+        );
+      }
+    } else {
+      throw new Error('"loadOus" is mandatory if scope="OU"');
+    }
+  };
+  if (scope === 'NEW-ACCOUNTS') {
+    validateNewAccounts();
+  } else if (scope === 'GLOBAL-OPTIONS') {
+    validateGlobalOptions();
+  } else if (scope === 'ACCOUNT') {
+    validateAccounts();
+  } else if (scope === 'OU') {
+    validateOus();
+  }
 }

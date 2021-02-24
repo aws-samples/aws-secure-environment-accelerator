@@ -810,6 +810,12 @@ export const AwsConfig = t.interface({
   'managed-rules': AwsConfigManagedRules,
 });
 
+export const ReplacementConfigValueType = t.record(t.string, t.union([t.string, t.array(t.string)]));
+export const ReplacementsConfigType = fromNullable(
+  t.record(t.string, t.union([t.string, t.array(t.string), ReplacementConfigValueType])),
+  {},
+);
+
 export const GlobalOptionsConfigType = t.interface({
   'alz-baseline': t.boolean,
   'ct-baseline': t.boolean,
@@ -849,8 +855,10 @@ export const GlobalOptionsConfigType = t.interface({
 export type CentralServicesConfig = t.TypeOf<typeof CentralServicesConfigType>;
 export type SecurityHubFrameworksConfig = t.TypeOf<typeof SecurityHubFrameworksConfigType>;
 export type GlobalOptionsConfig = t.TypeOf<typeof GlobalOptionsConfigType>;
+export type ReplacementsConfig = t.TypeOf<typeof ReplacementsConfigType>;
 
 export const AcceleratorConfigType = t.interface({
+  replacements: optional(ReplacementsConfigType),
   'global-options': GlobalOptionsConfigType,
   'mandatory-account-configs': AccountsConfigType,
   'workload-account-configs': AccountsConfigType,
@@ -931,6 +939,7 @@ export interface ResolvedRsysLogConfig extends ResolvedConfigBase {
 }
 
 export class AcceleratorConfig implements t.TypeOf<typeof AcceleratorConfigType> {
+  readonly 'replacements': ReplacementsConfig;
   readonly 'global-options': GlobalOptionsConfig;
   readonly 'mandatory-account-configs': AccountsConfig;
   readonly 'workload-account-configs': AccountsConfig;
@@ -1285,6 +1294,7 @@ function priorityByOuType(ou1: OrganizationalUnit, ou2: OrganizationalUnit) {
 }
 
 export class AcceleratorUpdateConfig extends AcceleratorConfig {
+  'replacements': ReplacementsConfig;
   'global-options': GlobalOptionsConfig;
   'mandatory-account-configs': AccountsConfig;
   'workload-account-configs': AccountsConfig;

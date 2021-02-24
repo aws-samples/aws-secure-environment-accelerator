@@ -32,6 +32,7 @@ import * as cwlCentralLoggingToS3 from '../deployments/central-services/central-
 import * as vpcDeployment from '../deployments/vpc';
 import * as transitGateway from '../deployments/transit-gateway';
 import * as centralEndpoints from '../deployments/central-endpoints';
+import { CfnResourceStackCleanupOutput } from '../deployments/cleanup/outputs';
 import { VpcOutputFinder, VpcSubnetOutput } from '@aws-accelerator/common-outputs/src/vpc';
 
 export interface IamPolicyArtifactsOutput {

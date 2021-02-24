@@ -6,7 +6,10 @@ import { pretty, FormatType } from './prettier';
 import { RAW_CONFIG_FILE, JSON_FORMAT } from './constants';
 import { DynamoDB } from '../aws/dynamodb';
 import { Account } from '@aws-accelerator/common-outputs/src/accounts';
+import { ReplacementConfigValueType, ReplacementsConfig } from '@aws-accelerator/common-config';
+import { string as StringType } from 'io-ts';
 
+const GLOBAL_REGION = 'us-east-1';
 export function getFormattedObject(input: string, format: FormatType) {
   if (!input || input === '') {
     return {};
@@ -31,8 +34,10 @@ interface RawConfigProps {
   repositoryName: string;
   branchName: string;
   format: FormatType;
+  region: string;
+  acceleratorPrefix: string;
+  acceleratorName: string;
   s3Bucket?: string;
-  region?: string;
 }
 
 interface RawConfigOutput {
@@ -65,7 +70,16 @@ export class RawConfig {
     // Sending Raw Config back
     loadConfigResponse.loadFiles.push({
       filePath: RAW_CONFIG_FILE,
-      fileContent: pretty(getStringFromObject(loadConfigResponse.config, JSON_FORMAT), JSON_FORMAT),
+      fileContent: pretty(
+        replaceDefaults({
+          config: getStringFromObject(loadConfigResponse.config, JSON_FORMAT),
+          acceleratorName: this.props.acceleratorName,
+          acceleratorPrefix: this.props.acceleratorPrefix,
+          region: this.props.region,
+          additionalReplacements: additionalReplacements(loadConfigResponse.config.replacements || {}),
+        }),
+        JSON_FORMAT,
+      ),
     });
 
     return {
@@ -169,4 +183,59 @@ export async function loadAccounts(tableName: string, client: DynamoDB): Promise
     index++;
   }
   return accounts;
+}
+
+export function additionalReplacements(configReplacements: ReplacementsConfig): { [key: string]: string | string[] } {
+  const replacements: { [key: string]: string | string[] } = {};
+  for (const [key, value] of Object.entries(configReplacements)) {
+    if (!ReplacementConfigValueType.is(value)) {
+      if (StringType.is(value)) {
+        replacements['\\${' + key.toUpperCase() + '}'] = value;
+      } else {
+        replacements['"?\\${' + key.toUpperCase() + '}"?'] = value;
+      }
+    } else {
+      for (const [needle, replacement] of Object.entries(value)) {
+        if (StringType.is(replacement)) {
+          replacements['\\${' + key.toUpperCase() + '_' + needle.toUpperCase() + '}'] = replacement;
+        } else {
+          replacements['"?\\${' + key.toUpperCase() + '_' + needle.toUpperCase() + '}"?'] = replacement;
+        }
+      }
+    }
+  }
+  return replacements;
+}
+
+export function replaceDefaults(props: {
+  config: string;
+  acceleratorPrefix: string;
+  acceleratorName: string;
+  region: string;
+  additionalReplacements: { [key: string]: string | string[] };
+  orgAdminRole?: string;
+}) {
+  const { acceleratorName, acceleratorPrefix, additionalReplacements, region, orgAdminRole } = props;
+  let { config } = props;
+  const accelPrefixNd = acceleratorPrefix.endsWith('-') ? acceleratorPrefix.slice(0, -1) : acceleratorPrefix;
+  for (const [key, value] of Object.entries(additionalReplacements)) {
+    config = config.replace(new RegExp(key, 'g'), StringType.is(value) ? value : JSON.stringify(value));
+  }
+
+  /* eslint-disable no-template-curly-in-string */
+  const replacements = {
+    '\\${HOME_REGION}': region,
+    '\\${GBL_REGION}': GLOBAL_REGION,
+    '\\${ACCELERATOR_NAME}': acceleratorName,
+    '\\${ACCELERATOR_PREFIX}': acceleratorPrefix,
+    '\\${ACCELERATOR_PREFIX_ND}': accelPrefixNd,
+    '\\${ACCELERATOR_PREFIX_LND}': accelPrefixNd.toLowerCase(),
+    '\\${ORG_ADMIN_ROLE}': orgAdminRole!,
+  };
+  /* eslint-enable */
+
+  Object.entries(replacements).map(([key, value]) => {
+    config = config.replace(new RegExp(key, 'g'), value);
+  });
+  return config;
 }

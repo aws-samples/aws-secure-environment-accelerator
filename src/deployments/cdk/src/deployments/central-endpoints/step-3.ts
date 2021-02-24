@@ -9,6 +9,7 @@ import {
   StaticResourcesOutputFinder,
 } from '@aws-accelerator/common-outputs/src/static-resource';
 import { CfnStaticResourcesOutput } from './outputs';
+import { Account, getAccountId } from '../../utils/accounts';
 
 // Changing these values will lead to redeploying all Phase-4 RuleAssociation stacks
 const MAX_RESOURCES_IN_STACK = 190;
@@ -19,13 +20,14 @@ export interface CentralEndpointsStep3Props {
   accountStacks: AccountStacks;
   config: c.AcceleratorConfig;
   outputs: StackOutput[];
+  accounts: Account[];
 }
 
 /**
  *  Associate VPC to Hosted Zones and Resoler Rules in central vpc account
  */
 export async function step3(props: CentralEndpointsStep3Props) {
-  const { accountStacks, config, outputs } = props;
+  const { accountStacks, config, outputs, accounts } = props;
   const allVpcConfigs = config.getVpcConfigs();
 
   const allStaticResources: StaticResourcesOutput[] = StaticResourcesOutputFinder.findAll({
@@ -34,7 +36,13 @@ export async function step3(props: CentralEndpointsStep3Props) {
 
   // Initiate previous stacks to handle deletion of previously deployed stack if there are no resources
   for (const sr of allStaticResources) {
-    accountStacks.tryGetOrCreateAccountStack(sr.accountKey, sr.region, `RulesAssc-${sr.suffix}`);
+    const srLocalAccount = accounts.find(acc => acc.key === sr.accountKey);
+    accountStacks.tryGetOrCreateAccountStack(
+      sr.accountKey,
+      sr.region,
+      `RulesAssc-${sr.suffix}`,
+      srLocalAccount?.inScope,
+    );
   }
 
   const accountStaticResourcesConfig: { [accountKey: string]: StaticResourcesOutput[] } = {};
@@ -151,7 +159,13 @@ export async function step3(props: CentralEndpointsStep3Props) {
       stackSuffix = `${STACK_COMMON_SUFFIX}-${suffix}`;
     }
 
-    const accountStack = accountStacks.tryGetOrCreateAccountStack(accountKey, vpcConfig.region, stackSuffix);
+    const localAccount = accounts.find(acc => acc.key === accountKey);
+    const accountStack = accountStacks.tryGetOrCreateAccountStack(
+      accountKey,
+      vpcConfig.region,
+      stackSuffix,
+      localAccount?.inScope,
+    );
     if (!accountStack) {
       console.error(`Cannot find account stack ${accountKey}: ${vpcConfig.region}, while Associating Resolver Rules`);
       continue;
@@ -212,10 +226,12 @@ export async function step3(props: CentralEndpointsStep3Props) {
     }
   }
   for (const sr of allStaticResources) {
+    const srLocalAccount = accounts.find(acc => acc.key === sr.accountKey);
     const accountStack = accountStacks.tryGetOrCreateAccountStack(
       sr.accountKey,
       sr.region,
       `${STACK_COMMON_SUFFIX}-${sr.suffix}`,
+      srLocalAccount?.inScope,
     );
     if (!accountStack) {
       throw new Error(

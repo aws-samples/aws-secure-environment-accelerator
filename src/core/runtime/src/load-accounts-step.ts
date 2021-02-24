@@ -5,18 +5,28 @@ import { equalIgnoreCase } from '@aws-accelerator/common/src/util/common';
 import { DynamoDB } from '@aws-accelerator/common/src/aws/dynamodb';
 import { getItemInput, getUpdateItemInput } from './utils/dynamodb-requests';
 import { loadAcceleratorConfig } from '@aws-accelerator/common-config/src/load';
+import { loadAccounts } from './utils/load-accounts';
 
+export interface SMInput {
+  scope?: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  mode?: 'APPLY';
+  targetOus?: string[];
+  targetAccounts?: string[];
+}
 export interface LoadAccountsInput extends LoadConfigurationInput {
   accountsItemsCountId: string;
   parametersTableName: string;
   itemId: string;
   accounts: ConfigurationAccount[];
   regions: string[];
+  smInput: SMInput;
 }
 
 export interface LoadAccountsOutput {
   accounts: string[];
   regions: string[];
+  scope: 'FULL' | 'NEW-ACCOUNTS' | 'GLOBAL-OPTIONS' | 'ACCOUNT' | 'OU';
+  mode: 'APPLY';
 }
 
 const dynamoDB = new DynamoDB();
@@ -33,7 +43,11 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     configRepositoryName,
     configCommitId,
     configFilePath,
+    accounts,
+    smInput,
   } = input;
+
+  const { targetAccounts, targetOus, mode, scope } = smInput;
 
   // Retrieve Configuration from Code Commit with specific commitId
   const config = await loadAcceleratorConfig({
@@ -47,8 +61,9 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
   const organizationAccounts = await organizations.listAccounts();
   const activeAccounts = organizationAccounts.filter(account => account.Status === 'ACTIVE');
+  const existingAccounts = await loadAccounts(parametersTableName, dynamoDB);
 
-  const accounts = [];
+  const returnAccounts = [];
 
   const chunk = (totalAccounts: Account[], size: number) =>
     Array.from({ length: Math.ceil(totalAccounts.length / size) }, (v, i) =>
@@ -85,7 +100,48 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       continue;
     }
 
-    accounts.push({
+    // Set inScope in account object based on "scope", "targetAccounts" and "targetOus"
+    let accountScope: boolean = true;
+    if (!scope || scope === 'NEW-ACCOUNTS') {
+      accountScope =
+        mandatoryAccountKeys.includes(accountKey) ||
+        !!accounts.find(acc => acc.accountId === organizationAccount.Id) ||
+        !existingAccounts.find(acc => acc.id === organizationAccount.Id);
+    } else if (scope === 'ACCOUNT') {
+      if (targetAccounts && targetAccounts.length > 0) {
+        accountScope =
+          // LOAD Mandatory Accounts irrespective of targetAccounts
+          mandatoryAccountKeys.includes(accountKey) ||
+          // LOAD NEW accounts if scope="ACCOUNT", "NEW" in targetAccounts
+          (targetAccounts.includes('NEW') &&
+            (!!accounts.find(acc => acc.accountId === organizationAccount.Id) ||
+              !existingAccounts.find(acc => acc.id === organizationAccount.Id))) ||
+          // LOAD ALL accounts if scope="ACCOUNT", "ALL" in targetAccounts
+          targetAccounts.includes('ALL') ||
+          // LOAD accounts which are in targetAccounts if scope="ACCOUNT", account in targetAccounts
+          (!!organizationAccount.Id && targetAccounts.includes(organizationAccount.Id));
+      } else {
+        // Load Only mandatory accounts if scope="ACCOUNT", targetAccounts is null
+        accountScope = mandatoryAccountKeys.includes(accountKey);
+      }
+    } else if (scope === 'OU') {
+      if (targetOus && targetOus.length > 0) {
+        accountScope =
+          // LOAD Mandatory Accounts irrespective of targetOus
+          mandatoryAccountKeys.includes(accountKey) ||
+          // LOAD ALL accounts if scope="OU", "ALL" in targetOus
+          targetOus.includes('ALL') ||
+          // LOAD accounts which are under OU in targetOus if scope="OU", ou in targetOus
+          (!!targetOus && targetOus.length > 0 && targetOus.includes(accountConfig.ou));
+      } else {
+        // Load Only mandatory accounts if scope="OU", targetOus is null
+        accountScope = mandatoryAccountKeys.includes(accountKey);
+      }
+    } else if (['FULL', 'GLOBAL-OPTIONS'].includes(scope)) {
+      accountScope = true;
+    }
+
+    returnAccounts.push({
       key: accountKey,
       id: organizationAccount.Id!,
       arn: organizationAccount.Arn!,
@@ -93,6 +149,10 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
       email: organizationAccount.Email!,
       ou: accountConfig.ou,
       ouPath: accountConfig['ou-path'],
+      isMandatory: mandatoryAccountKeys.includes(accountKey),
+      isNew: !!accounts.find(acc => acc.accountId === organizationAccount.Id),
+      inScope: accountScope,
+      isDeployed: !!existingAccounts.find(acc => acc.id === organizationAccount.Id),
     });
   }
 
@@ -105,7 +165,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   }
 
   // Splitting the accounts array to chunks of size 100
-  const accountsChunk = chunk(accounts, 100);
+  const accountsChunk = chunk(returnAccounts, 100);
   // Store the accounts configuration in the dynamodb
   for (const [index, accountChunk] of Object.entries(accountsChunk)) {
     await dynamoDB.updateItem(
@@ -117,9 +177,12 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
     getUpdateItemInput(parametersTableName, accountsItemsCountId, JSON.stringify(accountsChunk.length)),
   );
 
-  const accountIds: string[] = accounts.map(acc => acc.id);
+  const accountIds: string[] = returnAccounts.filter(acc => acc.inScope).map(a => a.id);
   return {
     ...input,
+    // Return based on execution scope.
     accounts: accountIds,
+    scope: scope || 'NEW-ACCOUNTS',
+    mode: mode || 'APPLY',
   };
 };

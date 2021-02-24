@@ -45,6 +45,7 @@ export async function deploy({ acceleratorConfig, accounts, accountStacks, outpu
     accountStacks,
     config: acceleratorConfig,
     outputs,
+    accounts,
   });
 
   /**

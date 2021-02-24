@@ -28,3 +28,29 @@ export const ResourceCleanupOutputFinder = createStructuredOutputFinder(Resource
       predicate: r => r.bucketPolicyCleanup === props.bucketPolicyCleanup,
     }),
 }));
+
+export const ResourceStackCleanupOutput = t.interface(
+  {
+    cdkStackCleanup: t.boolean,
+  },
+  'CdkStackCleanupOutput',
+);
+
+export type ResourceStackCleanupOutput = t.TypeOf<typeof ResourceStackCleanupOutput>;
+
+export const CfnResourceStackCleanupOutput = createCfnStructuredOutput(ResourceStackCleanupOutput);
+
+export const ResourceStackCleanupOutputFinder = createStructuredOutputFinder(ResourceStackCleanupOutput, finder => ({
+  tryFindOneByName: (props: {
+    outputs: StackOutput[];
+    accountKey?: string;
+    region?: string;
+    cdkStackCleanup: boolean;
+  }) =>
+    finder.tryFindOne({
+      outputs: props.outputs,
+      accountKey: props.accountKey,
+      region: props.region,
+      predicate: r => r.cdkStackCleanup === props.cdkStackCleanup,
+    }),
+}));
