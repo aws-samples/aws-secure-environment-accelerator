@@ -24,7 +24,7 @@ export async function step3(props: CdkStackCleanupProps) {
 
   const installerVersion = context.installerVersion;
   // TODO verify the version and update it accordingly
-  const isCleanupRequired = sv.clean(installerVersion) === null ? true : sv.lt(installerVersion, '1.2.6');
+  const isCleanupRequired = sv.clean(installerVersion) === null ? true : sv.lt(installerVersion, '1.3.0');
   if (!isCleanupRequired) {
     return;
   }
