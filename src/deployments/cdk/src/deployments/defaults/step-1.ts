@@ -293,10 +293,12 @@ function createCentralLogBucket(props: DefaultsStep1Props) {
  * Creates a bucket that will be used to store ALB access logs.
  */
 function createAesLogBucket(props: DefaultsStep1Props) {
-  const { accountStacks, accounts, config } = props;
+  const { accountStacks, config } = props;
 
   const logAccountConfig = config['global-options']['central-log-services'];
   const logAccountStack = accountStacks.getOrCreateAccountStack(logAccountConfig.account);
+
+  const organizations = new Organizations(logAccountStack, 'OrganizationsAesBucket');
 
   const regionInfo = RegionInfo.get(logAccountStack.region);
   const elbv2Account = regionInfo?.elbv2Account;
@@ -325,7 +327,20 @@ function createAesLogBucket(props: DefaultsStep1Props) {
   // The generated bucket name is based on the stack name + logical ID + random suffix
   overrideLogicalId(logBucket, `aes${logAccountStack.region}`);
 
-  accounts.map(a => logBucket.grantRead(new iam.AccountPrincipal(a.id)));
+  const anyAccountPrincipal = [new iam.AnyPrincipal()];
+  // Give all accounts access to get and list objects in this bucket
+  logBucket.addToResourcePolicy(
+    new iam.PolicyStatement({
+      actions: ['s3:GetObject*', 's3:GetBucket*', 's3:List*'],
+      resources: [logBucket.bucketArn, logBucket.arnForObjects('*')],
+      principals: anyAccountPrincipal,
+      conditions: {
+        StringEquals: {
+          'aws:PrincipalOrgID': organizations.organizationId,
+        },
+      },
+    }),
+  );
 
   logBucket.addToResourcePolicy(
     new iam.PolicyStatement({
