@@ -318,6 +318,19 @@ Issues in Older Releases:
   - prior to v1.2.5, if customers don't take action, the utilized configurations will revert to the latest Accelerator provided defaults. Update the last modified date on each custom config file in your input bucket and rerun the state machine post-upgrade to re-apply customizations;
   - post v1.2.5, if customers don't take action, we will continue to utilize a customers customized configurations regardless of each files timestamp;
   - in both cases it is important customers assess the new defaults and integrate them into their custom configuration or it could break Accelerator functionality.
+- The below release specific considerations need to be cumulatively applied (an upgrade from v1.2.3 to v1.2.5 requires you to follow both v1.2.4 and v1.2.5 considerations)
+
+**Release Specific Upgrade Considerations:**
+
+- Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
+  - Cut-paste the new `"replacements": {},` section at the top of the example config file into your config file, as-is
+    - Enables customers to leverage the repo provided SCP's without customization, simplifying upgrades, while allowing SCP region customization
+    - the cloud-cidrX/cloud-maskX variables are examples of customer provided values that can be used to consistently auto-replace values throughout config files (as we do not reference them in the config file today, these 4 variables are not required at this time)
+  - The new ${variable} are auto-replaced across your config files, SCP's and firewall config files.
+    - as the variables should resolve to their existing values, you can leave your config file using hardcoded region and Accelerator prefix naming, or you can update them to make subsequent file comparisons easier for future upgrades. These are most useful for new installations in non ca-central-1 regions
+  - Some repo provide filenames have changed, where they are referenced within the config file, you must update them to their new filenames
+  - The installer has added the option for customers to provide an Accelerator prefix/name. Do NOT change these default values, they are not supported in v1.2.6
+  - We do not delete/cleanup old/unused SCP's, in case they were also used by customers for unmanaged OUs or sub-ou's. After the upgrade, you should manually delete any old/extra SCP's which are no longer required
 - Upgrades to `v1.2.5 and above` from `v1.2.4 and below` requires the manual removal of the `PBMMAccel-PipelineRole` StackSet before beginning your upgrade (we have eliminated all use of StackSets in this release)
   - In the root AWS account, go to: CloudFormation, StackSets
   - Find: `PBMMAccel-PipelineRole`, and Select the: `Stack Instances` tab
@@ -329,7 +342,7 @@ Issues in Older Releases:
   - Wait for operation to complete (refresh the browser several times)
   - Select Actions, Delete StackSet, click Delete StackSet
   - Wait for the operation to complete
-- Upgrades to `v1.2.4 and above` from `v1.2.3 and below` - Ensure you apply the config file changes described in the release notes
+- Upgrades to `v1.2.4 and above` from `v1.2.3 and below` - Ensure you apply the config file changes described in the release notes:
   - failure to set `"central-endpoint": true` directly on the endpoint VPC (instead of in global-options), will result in the removal of your VPC endpoints
   - failure to move your zone definitions to the endpoint VPC, will result in the removal of you Public and Private hosted zones
 - Upgrades to `v1.2.1 and above` from `v1.2.0 and below` - if more than 5 VPC endpoints are deployed in any account (i.e. endpoint VPC in the shared network account), before upgrade, they must be removed from the config file and state machine executed to de-provision them. Up to approximately 50 endpoints can be re-deployed during the upgrade state machine execution. Skipping this step will result in an upgrade failure due to throttling issues. Simply rerun the state machine.
@@ -340,22 +353,26 @@ Issues in Older Releases:
 2. Ensure a valid Github token is stored in secrets manager [(section 2.3.2)](#232-create-github-personal-access-token-and-store-in-secrets-manager)
 3. Review and implement any relevant tasks noted in the upgrade considerations in [section 3.1](#31-considerations)
 4. Update the config file in Code Commit with new parameters and updated parameter types based on the version you are upgrading to (this is important as features are iterating rapidly)
-5. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations (before beginning your upgrade in v1.2.5+, after completing your upgrade in prior releases)
+   - Compare your running config file with the sample config file from the latest release
+   - Review the `Config file changes` section of the [release notes](https://github.com/aws-samples/aws-secure-environment-accelerator/releases) for **all** Accelerator versions since your current deployed release
+5. If you customized any of the other Accelerator default config files by overriding them in your S3 input bucket, merge the latest defaults with your customizations
+   - Before beginning your upgrade in v1.2.5+, after completing your upgrade in prior releases
 6. Download the latest installer template (`AcceleratorInstallerXYZ.template.json`) from the `Assets` section of the latest [release](https://github.com/aws-samples/aws-secure-environment-accelerator/releases)
-7. Do **_NOT_** accidentally select the `PBMMAccel-InitialSetup` CloudFormation stack below
+7. Do **_NOT_** accidentally select the `PBMMAccel-InitialSetup` CloudFormation stack **below**
 8. If you are replacing your GitHub Token:
    - Take note of the `ConfigS3Bucket` and `NotificationEmail` values from the Parameters tab of your deployed Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
    - Delete the Installer CloudFormation stack (`PBMMAccel-what-you-provided`)
    - Redeploy the Installer CloudFormation stack using the template downloaded in step 5, providing the `ConfigS3Bucket` and `NotificationEmail` values you just documented
    - The pipeline will automatically run and trigger the upgraded state machine
 9. If you are using a pre-existing GitHub token:
-   - Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.2.5`)
-     - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
-     - Select Update, select Replace current template, Select Upload a template file
-     - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
-     - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
-     - Click Next, Next, I acknowledge, Update
-   - Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
+
+- Update the Installer CloudFormation stack using the template downloaded in step 5, updating the `GithubBranch` to the latest release (eg. `release/v1.2.5`)
+  - Go to AWS CloudFormation and select the stack: `PBMMAccel-what-you-provided`
+  - Select Update, select Replace current template, Select Upload a template file
+  - Select Choose File and select the template you downloaded in step 5 (`AcceleratorInstallerXYZ.template.json`)
+  - Select Next, Update `GithubBranch` parameter to `release/vX.Y.Z` where X.Y.Z represents the latest release
+  - Click Next, Next, I acknowledge, Update
+- Go To Code Pipeline and Release the PBMMAccel-InstallerPipeline
 
 # 4. Existing Organizations / Accounts
 
