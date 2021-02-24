@@ -71,7 +71,7 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         'accountId.$': '$.operationsAccount.id',
         'organizationId.$': '$.operationsAccount.ou',
         'region.$': '$$.Map.Item.Value',
-        acceleratorPrefix: acceleratorPrefix.endsWith('-')
+        qualifier: acceleratorPrefix.endsWith('-')
           ? acceleratorPrefix.slice(0, -1).toLowerCase()
           : acceleratorPrefix.toLowerCase(),
         assumeRoleName,
@@ -99,7 +99,8 @@ export class CDKBootstrapTask extends sfn.StateMachineFragment {
         stackCapabilities: ['CAPABILITY_NAMED_IAM'],
         stackParameters: {
           'OrganizationId.$': '$.organizationId',
-          'Qualifier.$': '$.acceleratorPrefix',
+          'Qualifier.$': '$.qualifier',
+          AcceleratorPrefix: acceleratorPrefix,
         },
         stackTemplate: {
           s3BucketName,
