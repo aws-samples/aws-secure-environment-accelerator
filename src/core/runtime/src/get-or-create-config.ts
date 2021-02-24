@@ -350,10 +350,12 @@ async function beforeStart(
       previousAcceleratorVersion = previousExecutionData.acceleratorVersion;
     }
   } catch (e) {
-    console.error('Previous Successfull Secret is not a String');
-    throw new Error('This execition requires Accelerator execution with scope: "FULL"');
+    console.error('Previous Successfull Secret is a String');
+    if (scope !== 'FULL') {
+      throw new Error('This execition requires Accelerator execution with scope: "FULL"');
+    }
   }
-  if (!previousAcceleratorVersion) {
+  if (!previousAcceleratorVersion && scope !== 'FULL') {
     throw new Error('This execition requires Accelerator execution with scope: "FULL"');
   } else if (previousAcceleratorVersion !== acceleratorVersion && scope !== 'FULL') {
     throw new Error('This execition requires Accelerator execution with scope: "FULL"');

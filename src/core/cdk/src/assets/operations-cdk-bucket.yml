@@ -37,6 +37,11 @@ Parameters:
     Description: Root OrganizationId to give access to staging Bucket to all accounts under Organization
     Default: "o-8rceswjlsq"
     Type: String
+  AcceleratorPrefix:
+    Description: Accelerator prefix used for deployment.
+    Default: PBMMAccel-
+    Type: String
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9-]*-"
 Conditions:
   HasTrustedAccounts:
     Fn::Not:
@@ -129,7 +134,12 @@ Resources:
                 StringEquals:
                   aws:PrincipalOrgID: !Ref OrganizationId
                 ArnLike:
-                  aws:PrincipalARN: 'arn:aws:iam::*:role/PBMMAccel-*'
+                  aws:PrincipalARN: 
+                    Fn::Join:
+                      - ""
+                      - - "arn:aws:iam::*:role/"
+                        - Ref: AcceleratorPrefix
+                        - "*"
           - Action:
               - kms:Decrypt
               - kms:DescribeKey
@@ -210,7 +220,12 @@ Resources:
               StringEquals:
                 aws:PrincipalOrgID: !Ref OrganizationId
               ArnLike:
-                aws:PrincipalARN: 'arn:aws:iam::*:role/PBMMAccel-*'
+                aws:PrincipalARN: 
+                  Fn::Join:
+                      - ""
+                      - - "arn:aws:iam::*:role/"
+                        - Ref: AcceleratorPrefix
+                        - "*"
             Principal: "*"
   ContainerAssetsRepository:
     Type: AWS::ECR::Repository
