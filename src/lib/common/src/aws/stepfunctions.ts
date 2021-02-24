@@ -5,6 +5,8 @@ import {
   GetExecutionHistoryInput,
   HistoryEventList,
   StopExecutionInput,
+  DescribeExecutionInput,
+  DescribeExecutionOutput,
 } from 'aws-sdk/clients/stepfunctions';
 import aws from './aws-client';
 import { throttlingBackOff } from './backoff';
@@ -49,5 +51,12 @@ export class StepFunctions {
    */
   async stopExecution(input: StopExecutionInput) {
     await throttlingBackOff(() => this.client.stopExecution(input).promise());
+  }
+
+  /**
+   * describe-execution
+   */
+  async describeExecution(input: DescribeExecutionInput): Promise<DescribeExecutionOutput> {
+    return throttlingBackOff(() => this.client.describeExecution(input).promise());
   }
 }

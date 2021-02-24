@@ -883,6 +883,7 @@ export namespace InitialSetup {
           'configRepositoryName.$': '$.configRepositoryName',
           'configFilePath.$': '$.configFilePath',
           'configCommitId.$': '$.configCommitId',
+          acceleratorVersion: props.acceleratorVersion,
         },
         resultPath: 'DISCARD',
       });
