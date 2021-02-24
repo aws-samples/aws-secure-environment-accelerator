@@ -41,15 +41,9 @@ export async function step3(props: CdkStackCleanupProps) {
     return;
   }
 
-  const masterOrgKey = config.getMandatoryAccountKey('master');
   const regions = config['global-options']['supported-regions'];
 
   for (const [accountKey, _] of config.getAccountConfigs()) {
-    // TODO remove the below condition
-    if (accountKey === masterOrgKey) {
-      continue;
-    }
-
     const cleanupRoleOutput = IamRoleOutputFinder.tryFindOneByName({
       outputs,
       accountKey,
