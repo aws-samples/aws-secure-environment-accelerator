@@ -11,16 +11,9 @@ export interface CleanupRoleProps {
 }
 
 export async function createCleanupRoles(props: CleanupRoleProps): Promise<void> {
-  const { accountStacks, accounts, config } = props;
+  const { accountStacks, accounts } = props;
 
-  const logArchiveAccount = config['global-options']['central-log-services'].account;
-  const securityAccount = config['global-options']['central-security-services'].account;
   for (const account of accounts) {
-    // Added condition to skip creation of role in Log Archive and Security accounts
-    if (logArchiveAccount === account.key || securityAccount === account.key) {
-      console.log(`Skipping the creation of cleanup role for account ${account.key}`);
-      continue;
-    }
     const accountStack = accountStacks.getOrCreateAccountStack(account.key);
     const cleanupRole = await createResourceCleanupRole(accountStack);
     createIamRoleOutput(accountStack, cleanupRole, 'ResourceCleanupRole');

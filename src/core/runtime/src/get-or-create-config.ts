@@ -4,6 +4,9 @@ import { RawConfig } from '@aws-accelerator/common/src/util/common';
 import { JSON_FORMAT, RAW_CONFIG_FILE, YAML_FORMAT } from '@aws-accelerator/common/src/util/constants';
 import { StepFunctions } from '@aws-accelerator/common/src/aws/stepfunctions';
 import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
+import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
+import { getCommitIdSecretName } from '@aws-accelerator/common-outputs/src/commitid-secret';
+import { SMS } from 'aws-sdk';
 
 interface GetOrCreateConfigInput {
   repositoryName: string;
@@ -24,6 +27,7 @@ const codecommit = new CodeCommit();
 const s3 = new S3();
 const stepfunctions = new StepFunctions();
 const cfn = new CloudFormation();
+const secrets = new SecretsManager();
 
 export const handler = async (input: GetOrCreateConfigInput) => {
   console.log(`Get or Create Config from S3 file...`);
@@ -41,7 +45,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     region,
     acceleratorName,
   } = input;
-  await beforeStart(acceleratorPrefix, stateMachineArn, executionArn);
+  await beforeStart(acceleratorPrefix, stateMachineArn, executionArn, acceleratorVersion!, smInput?.scope);
   const storeAllOutputs: boolean = !!smInput && !!smInput.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
@@ -319,7 +323,13 @@ async function validateExecution(stateMachineArn: string, executionArn: string) 
   return 'SUCCESS';
 }
 
-async function beforeStart(acceleratorPrefix: string, stateMachineArn: string, executionArn: string) {
+async function beforeStart(
+  acceleratorPrefix: string,
+  stateMachineArn: string,
+  executionArn: string,
+  acceleratorVersion: string,
+  scope: string,
+) {
   const installRolesStack = await cfn.describeStackSet(`${acceleratorPrefix}PipelineRole`);
   if (installRolesStack) {
     throw new Error(
@@ -329,5 +339,25 @@ async function beforeStart(acceleratorPrefix: string, stateMachineArn: string, e
   const runningStatus = await validateExecution(stateMachineArn, executionArn);
   if (runningStatus === 'DUPLICATE_EXECUTION') {
     throw new Error('Another execution of Accelerator is already running');
+  }
+  const commitSecretId = getCommitIdSecretName();
+  const previousExecutionSecret = await secrets.getSecret(commitSecretId);
+  let previousExecutionData;
+  let previousAcceleratorVersion;
+  try {
+    previousExecutionData = JSON.parse(previousExecutionSecret.SecretString || '{}');
+    if (previousExecutionData && previousExecutionData.acceleratorVersion) {
+      previousAcceleratorVersion = previousExecutionData.acceleratorVersion;
+    }
+  } catch (e) {
+    console.error('Previous Successfull Secret is a String');
+    if (scope !== 'FULL') {
+      throw new Error('This execition requires Accelerator execution with scope: "FULL"');
+    }
+  }
+  if (!previousAcceleratorVersion && scope !== 'FULL') {
+    throw new Error('This execition requires Accelerator execution with scope: "FULL"');
+  } else if (previousAcceleratorVersion !== acceleratorVersion && scope !== 'FULL') {
+    throw new Error('This execition requires Accelerator execution with scope: "FULL"');
   }
 }
