@@ -15,12 +15,19 @@ exports.handler = async function (event, context) {
     const userParametersString = jobInfo.data.actionConfiguration.configuration.UserParameters;
     const userParameters = JSON.parse(userParametersString);
     const { acceleratorName, acceleratorPrefix } = userParameters;
-    const versionParam = await ssm
+    let versionParam;
+    try {
+      versionParam = await ssm
       .getParameter({
         Name: '/accelerator/version',
       })
       .promise();
-
+    } catch (ex) {
+      console.warn(ex);
+      if (ex.code !== 'ParameterNotFound') {
+        throw new Error(ex);
+      }
+    }
     if (!versionParam) {
       console.log('First run of Accelerator');
     } else if (!versionParam.Parameter.Value) {
