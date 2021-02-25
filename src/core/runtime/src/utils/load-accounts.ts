@@ -9,11 +9,7 @@ export async function loadAccounts(tableName: string, client: DynamoDB): Promise
       TableName: tableName,
       Key: { id: { S: `accounts/${index}` } },
     };
-    const item = await new DynamoDB().getItem(itemsInput);
-    if (index === 0 && !item.Item) {
-      throw new Error(`Cannot find parameter with ID "accounts"`);
-    }
-
+    const item = await client.getItem(itemsInput);
     if (!item.Item) {
       break;
     }

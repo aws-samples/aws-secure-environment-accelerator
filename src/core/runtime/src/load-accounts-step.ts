@@ -61,8 +61,7 @@ export const handler = async (input: LoadAccountsInput): Promise<LoadAccountsOut
   const mandatoryAccountKeys = mandatoryAccounts.map(([accountKey, _]) => accountKey);
   const organizationAccounts = await organizations.listAccounts();
   const activeAccounts = organizationAccounts.filter(account => account.Status === 'ACTIVE');
-  const existingAccounts = await loadAccounts(parametersTableName, dynamoDB);
-
+  const existingAccounts: Account[] = await loadAccounts(parametersTableName, dynamoDB);
   const returnAccounts = [];
 
   const chunk = (totalAccounts: Account[], size: number) =>
