@@ -1770,7 +1770,7 @@
         "firewalls": [
           {
             "name": "Firewall",
-            "image-id": "ami-047aac44951feb9fb",
+            "image-id": "ami-0cf732b7a31e698d4",
             "instance-sizes": "c5n.2xlarge",
             "region": "${HOME_REGION}",
             "security-group": "Firewalls",
@@ -1822,9 +1822,9 @@
         ],
         "xxfirewall-manager": {
           "name": "FirewallMgr",
-          "image-id": "ami-06fa2a9e6f8fae9f2",
+          "image-id": "ami-094c9efc372e646e0",
           "instance-sizes": "c5.large",
-          "version": "6.2.3",
+          "version": "6.4.4",
           "region": "${HOME_REGION}",
           "vpc": "Perimeter",
           "security-group": "FirewallMgr",
