@@ -341,18 +341,28 @@ async function beforeStart(
     throw new Error('Another execution of Accelerator is already running');
   }
   const commitSecretId = getCommitIdSecretName();
-  const previousExecutionSecret = await secrets.getSecret(commitSecretId);
+  let previousExecutionSecret;
   let previousExecutionData;
   let previousAcceleratorVersion;
   try {
-    previousExecutionData = JSON.parse(previousExecutionSecret.SecretString || '{}');
-    if (previousExecutionData && previousExecutionData.acceleratorVersion) {
-      previousAcceleratorVersion = previousExecutionData.acceleratorVersion;
-    }
+    previousExecutionSecret = await secrets.getSecret(commitSecretId);
   } catch (e) {
-    console.error('Previous Successfull Secret is a String');
-    if (scope !== 'FULL') {
-      throw new Error('This execition requires Accelerator execution with scope: "FULL"');
+    console.warn(e);
+    if (e.code !== 'ResourceNotFoundException') {
+      throw new Error(e);
+    }
+  }
+  if (previousExecutionSecret) {
+    try {
+      previousExecutionData = JSON.parse(previousExecutionSecret.SecretString || '{}');
+      if (previousExecutionData && previousExecutionData.acceleratorVersion) {
+        previousAcceleratorVersion = previousExecutionData.acceleratorVersion;
+      }
+    } catch (e) {
+      console.error('Previous Successfull Secret is a String');
+      if (scope !== 'FULL') {
+        throw new Error('This execition requires Accelerator execution with scope: "FULL"');
+      }
     }
   }
   if (!previousAcceleratorVersion && scope !== 'FULL') {
