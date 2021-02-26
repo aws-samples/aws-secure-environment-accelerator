@@ -45,7 +45,14 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     region,
     acceleratorName,
   } = input;
-  await beforeStart(acceleratorPrefix, stateMachineArn, executionArn, acceleratorVersion!, smInput?.scope);
+  await beforeStart(
+    acceleratorPrefix,
+    stateMachineArn,
+    executionArn,
+    acceleratorVersion!,
+    smInput?.scope,
+    smInput?.mode,
+  );
   const storeAllOutputs: boolean = !!smInput && !!smInput.storeAllOutputs;
   const configRepository = await codecommit.batchGetRepositories([repositoryName]);
   if (!configRepository.repositories || configRepository.repositories?.length === 0) {
@@ -329,6 +336,7 @@ async function beforeStart(
   executionArn: string,
   acceleratorVersion: string,
   scope: string,
+  mode: string,
 ) {
   const installRolesStack = await cfn.describeStackSet(`${acceleratorPrefix}PipelineRole`);
   if (installRolesStack) {
@@ -369,5 +377,9 @@ async function beforeStart(
     throw new Error('This execition requires Accelerator execution with scope: "FULL"');
   } else if (previousAcceleratorVersion !== acceleratorVersion && scope !== 'FULL') {
     throw new Error('This execition requires Accelerator execution with scope: "FULL"');
+  }
+
+  if ((scope && !mode) || (scope && mode && mode !== 'APPLY')) {
+    throw new Error('Input mode: "APPLY" is required when "scope" is provided');
   }
 }
