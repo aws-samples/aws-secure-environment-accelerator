@@ -295,6 +295,20 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
 
 - **Method 1** - IMPORT a certificate into AWS Certificate Manager from a 3rd party product
 
+  - When using a certificate that does not have a certificate chain (usally this is the case with Self-Signed)
+
+  ```json
+    "certificates": [
+        {
+          "name": "My-Cert",
+          "type": "import",
+          "priv-key": "certs/example1-cert.key",
+          "cert": "certs/example1-cert.crt"
+        }
+      ]
+  ```
+  - When using a certificate that has a certificate chain (usally this is the case when signed by a Certificate Authority with a CA Bundle)
+
   ```json
     "certificates": [
         {
@@ -306,7 +320,6 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
         }
       ]
   ```
-
   - this mechanism allows a customer to generate certificates using their existing tools and processes and import 3rd party certificates into AWS Certificate Manager for use in AWS
   - Self-Signed certificates should NOT be used for production (samples were provided simply to demonstrate functionality)
   - both a `.key` and a `.crt` file must be supplied in the customers S3 input bucket
