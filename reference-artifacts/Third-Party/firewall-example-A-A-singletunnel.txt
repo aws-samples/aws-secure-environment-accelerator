@@ -1,0 +1,722 @@
+config system global
+  set hostname ${Hostname}
+  set admintimeout 60
+  set vdom-mode split-vdom
+  set pre-login-banner enable
+  set admin-maintainer disable
+  set admin-https-ssl-versions  tlsv1-2 tlsv1-3
+  set admin-ssh-grace-time 30
+  set fds-statistics disable
+  set security-rating-result-submission disable
+  set admin-lockout-duration 1800
+  set admin-telnet disable
+  set admintimeout 15
+  set timezone 12
+end
+config system settings
+  set allow-subnet-overlap enable
+end
+config global
+  config system interface
+    edit port1
+      set vdom FG-traffic
+      set alias public
+      set mode static
+      set ip ${PublicIp1} ${PublicMask}
+      set allowaccess ping https ssh fgfm
+      set secondary-IP enable
+      set mtu-override enable
+      set mtu 9001
+      set allowaccess ping https ssh probe-response
+      set role wan
+    next
+    edit port2
+      set vdom FG-traffic
+      set alias private
+      set mode static
+      set ip ${OnPremiseIp1} ${OnPremiseMask}
+      set allowaccess ping
+      set mtu-override enable
+      set mtu 9001
+      set role lan
+    next
+    edit port3
+      set vdom root
+      set alias mgmt
+      set mode static
+      set ip ${FWMgmtIp1} ${FWMgmtMask}
+      set allowaccess ping https ssh fgfm
+      set mtu-override enable
+      set mtu 9001
+      set role dmz
+    next
+    edit port4
+      set vdom FG-traffic
+      set alias DMZ
+      set mode static
+      set ip ${ProxyIp1} ${ProxyMask}
+      set allowaccess ping
+      set mtu-override enable
+      set mtu 9001
+      set role dmz
+    next
+  end
+  config system accprofile
+    edit "Read Only Admin"
+      set secfabgrp read
+      set ftviewgrp read
+      set authgrp read
+      set sysgrp read
+      set netgrp read
+      set loggrp read
+      set fwgrp read
+      set vpngrp read
+      set utmgrp read
+      set wanoptgrp read
+      set wifi read
+    next
+  end
+  config system password-policy
+    set status enable
+    set min-lower-case-letter 1
+    set min-upper-case-letter 1
+    set min-non-alphanumeric 1
+    set min-number 1
+    set expire-status enable
+    set reuse-password disable
+  end
+  config system dns
+    set primary 169.254.169.253
+    set secondary 169.254.169.253
+  end
+  config system autoupdate push-update
+    set status enable
+  end
+  config ips sensor
+    edit "g-default"
+      set scan-botnet-connections block
+    next
+    edit "g-wifi-default"
+      set scan-botnet-connections block
+    next
+  end
+  config system probe-response
+    set mode http-probe
+  end
+  config log syslogd setting
+    set facility user
+    set port 514
+    set server "future-rsyslog.nlb-domainname.com"
+    set status disable
+    set format default
+    set mode reliable
+  end
+end
+config vdom
+edit FG-traffic
+  config router static
+    edit 1
+      set device port1
+      set gateway ${PublicRouterIp}
+    next
+    edit 2
+      set dst ${VpcNetworkIp} ${VpcMask}
+      set device port2
+      set gateway ${OnPremiseRouterIp}
+    next
+    edit 3
+      set dst ${FWMgmtNetworkIp} ${FWMgmtMask}
+      set device port2
+      set gateway ${OnPremiseRouterIp}
+    next
+  end
+  next
+edit root
+  config router static
+    edit 1
+      set device port3
+      set gateway ${FWMgmtRouterIp}
+    next
+  end
+  config log disk setting
+    set full-first-warning-threshold 70
+  end
+  config log setting
+    set log-invalid-packet enable
+  end
+end
+config vdom
+edit FG-traffic
+  config vpn ipsec phase1-interface
+    edit "tgw-vpn1"
+      set interface "port1"
+      set dpd enable
+      set local-gw ${PublicIp1}
+      set keylife 28800
+      set peertype any
+      set proposal aes256-sha256
+      set dhgrp 2
+      set remote-gw ${PublicVpnTunnelOutsideAddress1}
+      set psksecret ${PublicPreSharedSecret1}
+      set dpd-retryinterval 10
+    next
+  end
+  config vpn ipsec phase2-interface
+    edit "tgw-vpn1"
+      set phase1name "tgw-vpn1"
+      set proposal aes256-sha256
+      set dhgrp 2
+      set auto-negotiate enable
+      set keylifeseconds 3600
+    next
+  end
+  config system interface
+    edit "tgw-vpn1"
+      set ip ${PublicCgwTunnelInsideAddress1} 255.255.255.255
+      set remote-ip ${PublicVpnTunnelInsideAddress1} 255.255.255.255
+	  set explicit-web-proxy enable
+      set allowaccess ping
+      set type tunnel 
+      set tcp-mss 1379
+      set mtu 1427
+    next
+  end
+  config firewall ippool
+    edit "cluster-ippool"
+      set startip ${PublicIp1}
+      set endip ${PublicIp1}
+    next
+  end
+  config firewall internet-service-group
+    edit "GROUP-Fortinet-ISDB"
+        set direction destination
+        set member 1245187 1245326 1245324 1245325 1245191 1245186 1245193 1245198 1245208 1245199 1245192 1245184 1245188 1245200 1245190 1245185
+    next
+  end
+  config system settings
+    set gui-dns-database enable
+    set gui-explicit-proxy enable
+    set gui-wireless-controller disable
+    set gui-waf-profile enable
+  end
+  config firewall address
+    edit "Dev1-ALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-Dev1-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+    edit "Dev2-ALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-Dev2-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+    edit "Test1-ALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-Test1-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+    edit "Test2-ALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-Test2-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+    edit "Prod1-ALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-Prod1-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+    edit "Prod2-ALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-Prod2-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+    edit "Public-Prod-ALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-PubProd-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+    edit "Public-DevTestALB-FQDN"
+      set type fqdn
+      set fqdn "Future-Manual-PubDevTest-alb-FQN.ca-central-1.elb.amazonaws.com"
+    next
+  end
+  config ips sensor
+    edit "FG-Traffic-Baseline-IPS"
+      set comment "IPS baseline"
+      set block-malicious-url enable
+      set scan-botnet-connections block
+      config entries
+        edit 1
+          set os Windows 
+        next
+        edit 2
+          set application IIS 
+        next
+        edit 3
+          set application Apache 
+        next
+        edit 4
+          set os Linux 
+        next
+      end
+    next
+  end
+  config web-proxy explicit
+    set ipv6-status enable
+  end
+  config application list
+    edit "FG-Traffic-Baseline-App-Ctrl"
+      set comment "App Control Baseline"
+      set other-application-log enable
+      set unknown-application-action pass
+      set unknown-application-log enable
+      config entries
+        edit 1
+          set category 2 3 5 6 7 8 12 15 17 21 22 23 25 26 28 29 30 31 32
+        next
+      end
+    next
+  end
+  config antivirus profile
+    edit "FG-Traffic-Baseline-AV"
+      set comment "AV Baseline"
+      config http
+        set options scan
+      end
+      config ftp
+        set options scan
+      end
+      config imap
+        set options scan
+        set executables virus
+      end
+      config pop3
+        set options scan
+        set executables virus
+      end
+      config smtp
+        set options scan
+        set executables virus
+      end
+      config mapi
+        set options scan
+        set executables virus
+      end
+    next
+  end
+  config webfilter profile
+    edit "FG-Traffic-Baseline-Web-Filter"
+      set comment "Web Filter baseline"
+      set log-all-url enable
+      set web-filter-referer-log enable
+      config ftgd-wf
+        set options error-allow
+        config filters
+          edit 12
+            set category 12
+            set action warning
+          next
+          edit 2
+            set category 2
+            set action warning
+          next
+          edit 7
+            set category 7
+            set action warning
+          next
+          edit 8
+            set category 8
+            set action warning
+          next
+          edit 9
+            set category 9
+            set action warning
+          next
+          edit 11
+            set category 11
+            set action warning
+          next
+          edit 13
+            set category 13
+            set action warning
+          next
+          edit 14
+            set category 14
+            set action warning
+          next
+          edit 15
+            set category 15
+            set action warning
+          next
+          edit 16
+            set category 16
+            set action warning
+          next
+          edit 57
+            set category 57
+            set action warning
+          next
+          edit 63
+            set category 63
+            set action warning
+          next
+          edit 64
+            set category 64
+            set action warning
+          next
+          edit 65
+            set category 65
+            set action warning
+          next
+          edit 66
+            set category 66
+            set action warning
+          next
+          edit 67
+            set category 67
+            set action warning
+          next
+          edit 26
+            set category 26
+            set action block
+          next
+          edit 61
+            set category 61
+            set action block
+          next
+          edit 86
+            set category 86
+            set action block
+          next
+          edit 88
+            set category 88
+            set action block
+          next
+          edit 90
+            set category 90
+            set action block
+          next
+          edit 91
+            set category 91
+            set action block
+          next
+          edit 23
+            set action warning
+          next
+        end
+      end
+    next
+  end
+  config firewall vip
+    edit "Dev1-ALB"
+      set type fqdn
+      set extip ${PublicIp1}
+      set extintf "port1"
+      set portforward enable
+      set mapped-addr "Dev1-ALB-FQDN"
+      set extport 7002
+      set mappedport 443
+    next
+    edit "Dev2-ALB"
+      set type fqdn
+      set extip ${PublicIp1}
+      set extintf "port1"
+      set portforward enable
+      set mapped-addr "Dev2-ALB-FQDN"
+      set extport 7003
+      set mappedport 443
+    next
+    edit "Test1-ALB"
+      set type fqdn
+      set extip ${PublicIp1}
+      set extintf "port1"
+      set portforward enable
+      set mapped-addr "Test1-ALB-FQDN"
+      set extport 7004
+      set mappedport 443
+    next
+    edit "Test2-ALB"
+      set type fqdn
+      set extip ${PublicIp1}
+      set extintf "port1"
+      set portforward enable
+      set mapped-addr "Test2-ALB-FQDN"
+      set extport 7005
+      set mappedport 443
+    next
+    edit "Prod1-ALB"
+      set type fqdn
+      set extip ${PublicIp1}
+      set extintf "port1"
+      set portforward enable
+      set mapped-addr "Prod1-ALB-FQDN"
+      set extport 7001
+      set mappedport 443
+    next
+    edit "Prod2-ALB"
+      set type fqdn
+      set extip ${PublicIp1}
+      set extintf "port1"
+      set portforward enable
+      set mapped-addr "Prod2-ALB-FQDN"
+      set extport 7007
+      set mappedport 443
+    next
+  end
+  config firewall ssl-ssh-profile
+    edit "FG-Traffic-Baseline-SSL"
+      set comment "Baseline SSL deep Server Inspection"
+      config https
+        set ports 443
+        set status deep-inspection
+      end
+      config ftps
+        set ports 990
+        set status deep-inspection
+      end
+      config imaps
+        set ports 993
+        set status deep-inspection
+      end
+      config pop3s
+        set ports 995
+        set status deep-inspection
+      end
+      config smtps
+        set ports 465
+        set status deep-inspection
+      end
+      config ssh
+        set ports 22
+        set status disable
+      end
+    next
+  end
+  config firewall policy
+    edit 4
+      set name "Fortinet-activation-traffic"
+      set srcintf "port2"
+      set dstintf "port1"
+      set srcaddr "all"
+      set internet-service enable
+      set internet-service-group "GROUP-Fortinet-ISDB"
+      set action accept
+      set schedule "always"
+      set nat enable
+    next
+    edit 1
+      set name "outbound-all"
+      set srcintf "port2"
+      set dstintf "port1"
+      set srcaddr "all"
+      set dstaddr "all"
+      set action accept
+      set schedule "always"
+      set service "ALL"
+      set logtraffic all
+      set ippool enable
+      set poolname "cluster-ippool"
+      set nat enable
+      set logtraffic-start enable
+    next
+    edit 6
+      set name "in-TGW-out-internet-ALL-HTTP"
+      set srcintf "tgw-vpn1"
+      set dstintf "port1"
+      set srcaddr "all"
+      set dstaddr "all"
+      set action accept
+      set schedule "always"
+      set service "HTTPS" "HTTP"
+      set utm-status enable
+      set inspection-mode proxy
+      set http-policy-redirect enable
+      set ssl-ssh-profile "certificate-inspection"
+      set webfilter-profile "FG-Traffic-Baseline-Web-Filter"
+      set logtraffic all
+      set logtraffic-start enable
+      set auto-asic-offload disable
+      set fsso disable
+      set comments "All outbound cloud HTTP/HTTPS to Internet - Proxy"
+      set nat enable
+    next
+    edit 7
+      set name "in-internet-out-TGW-HTTP-PROD"
+      set srcintf "port1"
+      set dstintf "tgw-vpn1"
+      set srcaddr "all"
+      set dstaddr "Prod1-ALB" "Prod2-ALB"
+      set action accept
+      set schedule "always"
+      set service "HTTP" "HTTPS"
+      set utm-status enable
+      set ssl-ssh-profile "FG-Traffic-Baseline-SSL"
+      set av-profile "FG-Traffic-Baseline-AV"
+      set ips-sensor "FG-Traffic-Baseline-IPS"
+      set logtraffic all
+      set logtraffic-start enable
+      set ippool enable
+      set poolname "cluster-ippool"
+      set fsso disable
+      set comments "Inbound HTTP / HTTPS Traffic to Production cloud ALBs"
+      set nat enable
+    next
+    edit 8
+      set name "in-internet-out-TGW-HTTP-Dev-Test"
+      set srcintf "port1"
+      set dstintf "tgw-vpn1"
+      set srcaddr "all"
+      set dstaddr "Dev1-ALB" "Dev2-ALB" "Test1-ALB" "Test2-ALB"
+      set action accept
+      set schedule "always"
+      set service "HTTP" "HTTPS"
+      set utm-status enable
+      set ssl-ssh-profile "FG-Traffic-Baseline-SSL"
+      set av-profile "FG-Traffic-Baseline-AV"
+      set ips-sensor "FG-Traffic-Baseline-IPS"
+      set logtraffic all
+      set logtraffic-start enable
+      set ippool enable
+      set poolname "cluster-ippool"
+      set fsso disable
+      set comments "Inbound HTTP / HTTPS Traffic to Dev/Test/Ops cloud ALBs"
+      set nat enable
+    next
+    edit 9
+        set name "syslog-traffic"
+        set srcintf "port2"
+        set dstintf "tgw-vpn1" "tgw-vpn2"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "SYSLOG"
+        set nat enable
+    next
+    edit 5
+      set name "Outbound Internet-All-Ports"
+      set srcintf "tgw-vpn1"
+      set dstintf "port1"
+      set srcaddr "all"
+      set dstaddr "all"
+      set action accept
+      set schedule "always"
+      set service "ALL"
+      set utm-status enable
+      set ssl-ssh-profile "certificate-inspection"
+      set av-profile "g-default"
+      set webfilter-profile "g-default"
+      set dnsfilter-profile "default"
+      set ips-sensor "g-default"
+      set application-list "g-default"
+      set logtraffic all
+      set nat enable
+      set fsso disable
+      set comments "DISABLED - Only allow outbound http/https traffic"
+      set status disable
+    next
+    edit 3
+      set name "in-vpn"
+      set srcintf "tgw-vpn1"
+      set dstintf "port2"
+      set srcaddr "all"
+      set dstaddr "all"
+      set action accept
+      set schedule "always"
+      set service "ALL"
+      set logtraffic all
+      set fsso disable
+      set logtraffic-start enable
+      set status disable
+    next
+    edit 2
+      set name "out-vpn"
+      set srcintf "port2"
+      set dstintf "tgw-vpn1"
+      set srcaddr "all"
+      set dstaddr "all"
+      set action accept
+      set schedule "always"
+      set service "ALL"
+      set logtraffic all
+      set fsso disable
+      set logtraffic-start enable
+      set status disable
+    next
+  end
+  config firewall proxy-policy
+    edit 2
+      set proxy transparent-web
+      set srcintf "tgw-vpn1"
+      set dstintf "port1"
+      set srcaddr "all"
+      set dstaddr "all"
+      set service "webproxy"
+      set action accept
+      set schedule "always"
+      set logtraffic all
+      set utm-status enable
+      set ssl-ssh-profile "certificate-inspection"
+      set webfilter-profile "FG-Traffic-Baseline-Web-Filter"
+    next
+  end
+  config router prefix-list
+    edit "pflist-default-route"
+    config rule
+      edit 1
+        set prefix 0.0.0.0 0.0.0.0
+        unset ge
+        unset le
+      next
+    end
+    next
+    edit "pflist-port1-ip"
+    config rule
+      edit 1
+        set prefix ${PublicIp1} 255.255.255.255
+        unset ge
+        unset le
+      next
+    end
+    next
+    edit "pflist-proxy-subnet"
+    config rule
+      edit 1
+        set prefix ${ProxyNetworkIp} ${ProxyMask}
+        unset ge
+        unset le
+      next
+    end
+    next
+  end
+  config router route-map
+    edit "rmap-outbound"
+    config rule
+      edit 1
+        set match-ip-address "pflist-default-route"
+      next
+      edit 2
+        set match-ip-address "pflist-proxy-subnet"
+      next
+      edit 3
+        set match-ip-address "pflist-port1-ip"
+      next
+    end
+    next
+  end
+  config router bgp
+    set as ${PublicCgwBgpAsn1}
+    set router-id ${PublicIp1}
+    set ebgp-multipath enable
+    set network-import-check disable
+    config neighbor
+      edit ${PublicVpnTunnelInsideAddress1}
+        set capability-default-originate enable
+        set remote-as ${PublicVpnBgpAsn1}
+        set route-map-out "rmap-outbound"
+        set link-down-failover enable
+      next
+    end
+    config network
+      edit 1
+        set prefix ${PublicIp1} 255.255.255.255
+      next
+      edit 2
+        set prefix ${ProxyNetworkIp} ${ProxyMask}
+      next
+    end
+  end
+end

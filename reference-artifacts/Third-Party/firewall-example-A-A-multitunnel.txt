@@ -680,6 +680,16 @@ edit FG-traffic
       set webfilter-profile "FG-Traffic-Baseline-Web-Filter"
     next
   end
+  config router access-list
+    edit "TGW-DenyAllInbound"
+        config rule
+            edit 1
+                set action deny
+                set prefix 0.0.0.0 0.0.0.0
+            next
+        end
+    next
+  end
   config router prefix-list
     edit "pflist-default-route"
     config rule
@@ -745,6 +755,13 @@ edit FG-traffic
       next
     end
     next
+    edit "RMAP-IN-DENY-ALL"
+        config rule
+            edit 1
+                set match-ip-address "TGW-DenyAllInbound"
+            next
+        end
+    next
   end
   config router static
       edit 4
@@ -775,12 +792,14 @@ edit FG-traffic
       edit ${PublicVpnTunnelInsideAddress1}
         set capability-default-originate enable
         set remote-as ${PublicVpnBgpAsn1}
+		set route-map-in "RMAP-IN-DENY-ALL"
         set route-map-out "rmap-outbound"
         set link-down-failover enable
       next
       edit ${PublicVpnTunnelInsideAddress2}
         set capability-default-originate enable
         set remote-as ${PublicVpnBgpAsn1}
+		set route-map-in "RMAP-IN-DENY-ALL"
         set route-map-out "rmap-outbound-prepend"
         set link-down-failover enable
       next

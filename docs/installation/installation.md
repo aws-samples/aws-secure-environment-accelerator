@@ -20,6 +20,7 @@ These installation instructions assume the prescribed architecture is being depl
     - [2.2.3. Network Configuration Planning](#223-network-configuration-planning)
     - [2.2.4. DNS, Domain Name, TLS Certificate Planning](#224-dns-domain-name-tls-certificate-planning)
     - [2.2.5. License and Email Address Planning](#225-license-and-email-address-planning)
+    - [2.2.6. Other](#226-other)
   - [2.3. Accelerator Pre-Install Steps](#23-accelerator-pre-install-steps)
     - [2.3.1. General](#231-general)
     - [2.3.2. Create GitHub Personal Access Token and Store in Secrets Manager](#232-create-github-personal-access-token-and-store-in-secrets-manager)
@@ -50,7 +51,7 @@ These installation instructions assume the prescribed architecture is being depl
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid configuration file, updated to reflect your requirements (see below)
-- Determine your primary or Accelerator 'control' or 'home' region. These instructions have been written assuming `ca-central-1`, but any supported region can be substituted.
+- Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
 - Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
@@ -87,10 +88,10 @@ If deploying the prescriptive architecture, you will need the following network 
 
 If deploying the prescriptive architecture, you must decide on:
 
-1. A unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
+1. A unique Windows domain name (`organizationaws`/`organization.aws`, `organizationcloud`/`organization.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
 2. DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
-3. DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]` (can be added in future)
-4. DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]` (can be added in future)
+3. DNS Domain for a cloud hosted public zone `"public": ["organization.cloud-nuage.canada.ca"]` (can be added in future)
+4. DNS Domain for a cloud hosted private zone `"private": ["organization.cloud-nuage.gc.ca"]` (can be added in future)
 5. Wildcard TLS certificate for each of the 2 previous zones (can be added/changed in future)
 
 ### 2.2.5. License and Email Address Planning
@@ -102,6 +103,14 @@ If deploying the prescriptive architecture, you must decide on:
    - High, Medium and Low security alerts (3 addresses if you wish to segregate alerts)
    - Budget notifications
 
+### 2.2.6. Other
+
+1. As of v1.3.0 we have added the capability to deploy with a customer provided Accelerator Name (`PBMM`) and Prefix (`PBMMAccel-`). The Accelerator name and prefix **_CANNOT_** be changed after the initial installation.
+2. As of v1.2.5 we allow customers to use the `organization-admin-role` name of their choosing (previously we required `AWSCloudFormationStackSetExecutionRole`). Whatever role name is defined in the config file, it _MUST_ be utilized when creating all new accounts in the Organization.
+   - New installs simply need to specify their desired role name in the config file
+   - Existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization
+   - If you don't specify a role name during account creation, AWS Organizations gives the role a default name of `OrganizationAccountAccessRole` and may be a good default.
+
 ## 2.3. Accelerator Pre-Install Steps
 
 ### 2.3.1. General
@@ -109,7 +118,7 @@ If deploying the prescriptive architecture, you must decide on:
 Before installing, you must first:
 
 1. Login to the Organization **Management or root AWS account** with `AdministratorAccess`.
-2. **_Set the region to `ca-central-1`._**
+2. **_Set the region to your desired `home` region_** (i.e. `ca-central-1`)
 3. Enable AWS Organizations in `All features` mode
    - Navigate to AWS Organizations, click `Create Organization`, `Create Organization`
 4. Enable Service Control Policies
@@ -164,7 +173,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 9. Wait a couple of minutes while it adds item to your PMP - do NOT subscribe or accept the EULA
    - Repeat for `Fortinet FortiManager (BYOL) Centralized Security Management`
 10. While not used in this account, you must now subscribe to the two subscriptions and accept the EULA for each product (you will need to do the same in the perimeter account, once provisioned below)
-    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.2.3 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
+    - If you are deploying in any region except ca-central-1 or wish to switch to a different license type, you need the new AMI id's. After successfully subscribing, continue one more step and click the “Continue to Configuration”. When you get the below screen, select your region and version (v6.4.4 recommended at this time). Marketplace will provide the required AMI id. Document the two AMI id's, as you will need to update them in your config.json file below.
 
 ![New AMI ID](img/new-ami-id.png)
 
@@ -186,15 +195,9 @@ If deploying to an internal AWS employee account, to successfully install the so
    - For a test deployment, the remainder of the values can be used as-is;
    - While it is generally supported, we recommend not adding more than 1 or 2 workload accounts to the config file during the initial deployment as it will increase risks of hitting a limit. Once the Accelerator is successfully deployed, add the additional accounts to the config file and rerun the state machine.
 3. A successful deployment of the presecriptive architecture requires VPC access to 7 AWS endpoints, you cannot remove both the perimeter firewalls (all public endpoints) and the 7 required central VPC endpoints from the config file (ec2, ec2messages, ssm, ssmmessages, cloudformation, secretsmanager, kms).
-4. When deploying to regions other than ca-central-1, you need to:
-   1. Replace all occurences of ca-central-1 in the config file with your home region
-   2. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10) Make sure you select the right version, v6.2.3 is recommended at this time.
-   3. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported entries from the config file.
-   4. Replace `ca-central-1` with your home region in two scp files
-      - copy `PBMMAccel-Guardrails-PBMM-Only.json` and `PBMMAccel-Guardrails-Unclass-Only.json` from `\reference-artifacts\SCPs` in the repo
-      - replace all occurences of `ca-central-1` with your home region (leave `us-east-1`)
-      - in the Unclass SCP, update requested regions with any additional regions you wish accounts in the Unclass OU to leverage (or remove all regions except your home region and ca-central-1)
-      - after step 4 below, place the two files in a folder named `scp` in your accelerator bucket
+4. When deploying to regions other than `ca-central-1`, you need to:
+   1. Update the firewall and firewall manager AMI id's to reflect your home regions regional AMI id's (see 1.1.3, item 10) Make sure you select the right version, v6.4.4 is recommended at this time.
+   2. Validate all the Interface Endpoints defined in your config file are supported in your home region (i.e. Endpoint VPC). Remove unsupported entries from the config file.
 5. Create an S3 bucket in your Organization Management account with versioning enabled `your-bucket-name`
    - you must supply this bucket name in the CFN parameters _and_ in the config file (`global-options\central-bucket`)
    - the bucket name _must_ be the same in both spots
@@ -202,7 +205,8 @@ If deploying to an internal AWS employee account, to successfully install the so
 6. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
 7. Place the firewall configuration and license files in the folder and path defined in the config file, if defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
-   - Sample available [here](../../reference-artifacts/Third-Party/firewall-example.txt): `./reference-artifacts/Third-Party/firewall-example.txt`
+   - We have made several samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
+     - Both samples comprise an active / active firewall pair. Until recently we only brought up one tunnel per firewall, you now also have an example which brings up both tunnels per firewall
    - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
 8. Place any defined certificate files in the folder and path defined in the config file
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
@@ -219,14 +223,14 @@ If deploying to an internal AWS employee account, to successfully install the so
 2. Download the CloudFormation (CFN) template `AcceleratorInstallerXXX.template.json` for the release you plan to install
 3. Use the provided CloudFormation template to deploy a new stack in your Management (root) AWS account
    - As previously stated we do not support installation in sub-accounts
-4. **_Make sure you are in `ca-central-1` (or your desired primary or control region)_**
+4. **_Make sure you are in your desired `home` region_** (i.e. `ca-central-1`) (your desired primary or control region)
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
-6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
+6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `orgname` or `username`
 7. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
    - if upgrading, change it to point to the desired release
-   - the latest stable branch is currently `release/v1.2.4`, case sensitive
+   - the latest stable branch is currently `release/v1.2.6-a`, case sensitive
 10. Apply a tag on the stack, Key=`Accelerator`, Value=`PBMM` (case sensitive).
 11. **ENABLE STACK TERMINATION PROTECTION** under `Stack creation options`
 12. The stack typically takes under 5 minutes to deploy.
@@ -296,7 +300,7 @@ Issues in Older Releases:
          - Two of each type of ALB FQDN records have been created, when you need more, you need to create BOTH an additional FQDN and a new VIP, per ALB
            - Each new VIP will use a new high port (i.e. 7007, 7008, etc.), all of which map back to port 443
            - Detailed steps can be read [here](./guides/public-facing-workload-via-fortigate.md).
-    4. In ca-central-1, Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
+    4. In your `home` region (i.e. ca-central-1), Enable AWS SSO, Set the SSO directory to MAD, set the SSO email attrib to: \${dir:email}, create all default permission sets and any desired custom permission sets, map MAD groups to perm sets
     5. On a per role basis, you need to enable the CWL Account Selector in the Security and the Ops accounts
     6. Customers are responsible for the ongoing management and rotation of all passwords on a regular basis per their organizational password policy. This includes the passwords of all IAM users, MAD users, firewall users, or other users, whether deployed by the Accelerator or not. We do NOT automatically rotate any passwords, but strongly encourage customers do so, on a regular basis.
 
@@ -312,6 +316,8 @@ Issues in Older Releases:
 ## 3.1. Considerations
 
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
+  - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
+  - do NOT update the `organization-admin-role` - see section [2.2.6. Other](#226-other)
 - If you have customized any of the additional Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.):
   - customers must manually merge Accelerator provided updates with your deployed customizations;
   - failure to do so could result in either a) broken Accelerator functionality, or b) dropped customer guardrail enhancements;
