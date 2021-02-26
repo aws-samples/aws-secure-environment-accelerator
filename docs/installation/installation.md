@@ -20,6 +20,7 @@ These installation instructions assume the prescribed architecture is being depl
     - [2.2.3. Network Configuration Planning](#223-network-configuration-planning)
     - [2.2.4. DNS, Domain Name, TLS Certificate Planning](#224-dns-domain-name-tls-certificate-planning)
     - [2.2.5. License and Email Address Planning](#225-license-and-email-address-planning)
+    - [2.2.6. Other](#226-other)
   - [2.3. Accelerator Pre-Install Steps](#23-accelerator-pre-install-steps)
     - [2.3.1. General](#231-general)
     - [2.3.2. Create GitHub Personal Access Token and Store in Secrets Manager](#232-create-github-personal-access-token-and-store-in-secrets-manager)
@@ -50,7 +51,7 @@ These installation instructions assume the prescribed architecture is being depl
   - No additional AWS accounts need to be pre-created before Accelerator installation
 - Limit increase to support a minimum of 6 new sub-accounts plus any additional workload accounts
 - Valid configuration file, updated to reflect your requirements (see below)
-- Determine your primary or Accelerator `control` or 'home' region (i.e. ca-central-1).
+- Determine your primary or Accelerator `control` or `home` region, this is the AWS region in which you will most often operate
 - The Accelerator _can_ be installed into existing AWS Organizations - see caveats and notes in [section 4](#4-existing-organizations--accounts) below
 - Existing AWS Landing Zone Solution (ALZ) customers are required to remove their ALZ deployment before deploying the Accelerator. Scripts are available to assist with this process. Due to long-term supportability concerns, we no longer support installing the Accelerator on top of the ALZ.
 
@@ -87,10 +88,10 @@ If deploying the prescriptive architecture, you will need the following network 
 
 If deploying the prescriptive architecture, you must decide on:
 
-1. A unique Windows domain name (`deptaws`/`dept.aws`, `deptcloud`/`dept.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
+1. A unique Windows domain name (`organizationaws`/`organization.aws`, `organizationcloud`/`organization.cloud`, etc.). Given this is designed as the primary identity store and used to domain join all cloud hosted workloads, changing this in future is difficult. Pick a Windows domain name that does NOT conflict with your on-premise AD domains, ensuring the naming convention conforms to your organizations domain naming standards to ensure you can eventually create a domain trust between the MAD and on-premise domains/forests
 2. DNS Domain names and DNS server IP's for on-premise private DNS zones requiring cloud resolution (can be added in future)
-3. DNS Domain for a cloud hosted public zone `"public": ["dept.cloud-nuage.canada.ca"]` (can be added in future)
-4. DNS Domain for a cloud hosted private zone `"private": ["dept.cloud-nuage.gc.ca"]` (can be added in future)
+3. DNS Domain for a cloud hosted public zone `"public": ["organization.cloud-nuage.canada.ca"]` (can be added in future)
+4. DNS Domain for a cloud hosted private zone `"private": ["organization.cloud-nuage.gc.ca"]` (can be added in future)
 5. Wildcard TLS certificate for each of the 2 previous zones (can be added/changed in future)
 
 ### 2.2.5. License and Email Address Planning
@@ -101,6 +102,14 @@ If deploying the prescriptive architecture, you must decide on:
    - Accelerator execution (state machine) notification events (1 address)
    - High, Medium and Low security alerts (3 addresses if you wish to segregate alerts)
    - Budget notifications
+
+### 2.2.6. Other
+
+1. As of v1.3.0 we have added the capability to deploy with a customer provided Accelerator Name (`PBMM`) and Prefix (`PBMMAccel-`). The Accelerator name and prefix **_CANNOT_** be changed after the initial installation.
+2. As of v1.2.5 we allow customers to use the `organization-admin-role` name of their choosing (previously we required `AWSCloudFormationStackSetExecutionRole`). Whatever role name is defined in the config file, it _MUST_ be utilized when creating all new accounts in the Organization.
+   - New installs simply need to specify their desired role name in the config file
+   - Existing installs wishing to change the role name are required to first deploy a new role with a trust to the root account, in all accounts in the organization
+   - If you don't specify a role name during account creation, AWS Organizations gives the role a default name of `OrganizationAccountAccessRole` and may be a good default.
 
 ## 2.3. Accelerator Pre-Install Steps
 
@@ -196,7 +205,8 @@ If deploying to an internal AWS employee account, to successfully install the so
 6. Place your customized config file, named `config.json` (or `config.yaml`), in your new bucket
 7. Place the firewall configuration and license files in the folder and path defined in the config file, if defined in the config file
    - i.e. `firewall/firewall-example.txt`, `firewall/license1.lic` and `firewall/license2.lic`
-   - Samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
+   - We have made several samples available [here](../../reference-artifacts/Third-Party): `./reference-artifacts/Third-Party/`
+     - Both samples comprise an active / active firewall pair. Until recently we only brought up one tunnel per firewall, you now also have an example which brings up both tunnels per firewall
    - If you don't have any license files, update the config file with an empty array (`"license": []`). Do NOT use the following: `[""]`.
 8. Place any defined certificate files in the folder and path defined in the config file
    - i.e. `certs/example1-cert.key`, `certs/example1-cert.crt`
@@ -215,7 +225,7 @@ If deploying to an internal AWS employee account, to successfully install the so
    - As previously stated we do not support installation in sub-accounts
 4. **_Make sure you are in your desired `home` region_** (i.e. `ca-central-1`) (your desired primary or control region)
 5. Fill out the required parameters - **_LEAVE THE DEFAULTS UNLESS SPECIFIED BELOW_**
-6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `deptname` or `username`
+6. Specify `Stack Name` STARTING with `PBMMAccel-` (case sensitive) suggest a suffix of `orgname` or `username`
 7. Change `ConfigS3Bucket` to the name of the bucket you created above `your-bucket-name`
 8. Add an `Email` address to be used for State Machine Status notification
 9. The `GithubBranch` should point to the release you selected
@@ -306,6 +316,8 @@ Issues in Older Releases:
 ## 3.1. Considerations
 
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
+  - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
+  - do NOT update the `organization-admin-role` - see section [2.2.6. Other](#226-other)
 - If you have customized any of the additional Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.):
   - customers must manually merge Accelerator provided updates with your deployed customizations;
   - failure to do so could result in either a) broken Accelerator functionality, or b) dropped customer guardrail enhancements;
