@@ -20,17 +20,17 @@ jobs:
         run: |
           git fetch --tags
           echo ::set-output name=branch_name::"release/$(echo "${GITHUB_REF}" | cut -d/ -f3-)"
-      - name: Fetch master
+      - name: Fetch main
         run: |
           git fetch origin
           git checkout ${{ steps.format.outputs.branch_name }}
-          git checkout master
+          git checkout main
       - name: Merge release branch
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
           git merge ${{ steps.format.outputs.branch_name }}
       - name: Push changes
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@main
         with:
           github_token: ${{ secrets.ACTION_TOKEN }}
