@@ -250,7 +250,7 @@ jobs:
         run: |
           cp docs/architectures/pbmm/AWS_PBMM_Accel_Account_Network_VPC.pdf ${{ steps.setup.outputs.dir }}/6b-${{ steps.setup.outputs.prefix }}-PBMM_Accel_Account_Network_VPC.pdf
 
-      - uses: actions/upload-artifact@master
+      - uses: actions/upload-artifact@main
         with:
           name: ${{ steps.setup.outputs.dir }}
           path: ${{ steps.setup.outputs.dir }}/
