@@ -124,7 +124,11 @@ jobs:
 
       - name: Copy file output 2e
         run: |
-          cp reference-artifacts/Third-Party/firewall-example.txt ${{ steps.setup.outputs.dir }}/2e-${{ steps.setup.outputs.prefix }}-firewall-example.txt
+          cp reference-artifacts/Third-Party/firewall-example-A-A-singletunnel.txt ${{ steps.setup.outputs.dir }}/2e-${{ steps.setup.outputs.prefix }}-firewall-example-A-A-singletunnel.txt
+
+      - name: Copy file output 2e1
+        run: |
+          cp reference-artifacts/Third-Party/firewall-example-A-A-multitunnel.txt ${{ steps.setup.outputs.dir }}/2e-${{ steps.setup.outputs.prefix }}-firewall-example-A-A-multitunnel.txt
 
       - name: PDF output 2f
         uses: docker://pandoc/latex:2.10
