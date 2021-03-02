@@ -63,9 +63,15 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     configRepository.repositories[0].defaultBranch !== branchName
   ) {
     const previousCommit = await codecommit.getBranch(repositoryName, configRepository.repositories[0].defaultBranch);
-    const currentBranch = await codecommit.getBranch(repositoryName, branchName);
-    if (!currentBranch.branch) {
-      await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
+    try {
+      const currentBranch = await codecommit.getBranch(repositoryName, branchName);
+      if (!currentBranch.branch) {
+        await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
+      }
+    } catch(e) {
+      if (e.code === 'BranchDoesNotExistException') {
+        await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
+      }
     }
     await codecommit.updateDefaultBranch(repositoryName, branchName);
   }
