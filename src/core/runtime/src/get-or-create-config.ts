@@ -6,7 +6,6 @@ import { StepFunctions } from '@aws-accelerator/common/src/aws/stepfunctions';
 import { CloudFormation } from '@aws-accelerator/common/src/aws/cloudformation';
 import { SecretsManager } from '@aws-accelerator/common/src/aws/secrets-manager';
 import { getCommitIdSecretName } from '@aws-accelerator/common-outputs/src/commitid-secret';
-import { SMS } from 'aws-sdk';
 
 interface GetOrCreateConfigInput {
   repositoryName: string;
@@ -59,6 +58,16 @@ export const handler = async (input: GetOrCreateConfigInput) => {
     console.log(`Creating repository "${repositoryName}" for Config file`);
     await codecommit.createRepository(repositoryName, 'This repository contains configuration');
     console.log(`Creation of repository "${repositoryName}" is done for Config file`);
+  } else if (
+    configRepository.repositories[0].defaultBranch &&
+    configRepository.repositories[0].defaultBranch !== branchName
+  ) {
+    const previousCommit = await codecommit.getBranch(repositoryName, configRepository.repositories[0].defaultBranch);
+    const currentBranch = await codecommit.getBranch(repositoryName, branchName);
+    if (!currentBranch.branch) {
+      await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
+    }
+    await codecommit.updateDefaultBranch(repositoryName, branchName);
   }
 
   console.log(`Retrieving config file from config Repo`);
