@@ -42,7 +42,7 @@
     ],
     "keep-default-vpc-regions": [],
     "aws-org-master": {
-      "account": "master",
+      "account": "management",
       "region": "${HOME_REGION}"
     },
     "central-security-services": {
@@ -194,7 +194,7 @@
       "metrics": [
         {
           "filter-name": "SecurityGroupChangeMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = AuthorizeSecurityGroupIngress) || ($.eventName = AuthorizeSecurityGroupEgress) || ($.eventName = RevokeSecurityGroupIngress) || ($.eventName = RevokeSecurityGroupEgress) || ($.eventName = CreateSecurityGroup) || ($.eventName = DeleteSecurityGroup) }",
@@ -204,7 +204,7 @@
         },
         {
           "filter-name": "NetworkAclChangeMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateNetworkAcl) || ($.eventName = CreateNetworkAclEntry) || ($.eventName = DeleteNetworkAcl) || ($.eventName = DeleteNetworkAclEntry) || ($.eventName = ReplaceNetworkAclEntry) || ($.eventName = ReplaceNetworkAclAssociation)}",
@@ -214,7 +214,7 @@
         },
         {
           "filter-name": "GatewayChangeMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateCustomerGateway) || ($.eventName = DeleteCustomerGateway) || ($.eventName = AttachInternetGateway) || ($.eventName = CreateInternetGateway) || ($.eventName = DeleteInternetGateway) || ($.eventName = DetachInternetGateway)}",
@@ -224,7 +224,7 @@
         },
         {
           "filter-name": "VpcChangeMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateVpc) || ($.eventName = DeleteVpc) || ($.eventName = ModifyVpcAttribute) || ($.eventName = AcceptVpcPeeringConnection) || ($.eventName = CreateVpcPeeringConnection) || ($.eventName = DeleteVpcPeeringConnection) || ($.eventName = RejectVpcPeeringConnection) || ($.eventName = AttachClassicLinkVpc) || ($.eventName = DetachClassicLinkVpc) || ($.eventName = DisableVpcClassicLink) || ($.eventName = EnableVpcClassicLink) }",
@@ -234,7 +234,7 @@
         },
         {
           "filter-name": "Ec2InstanceChangeMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances) }",
@@ -244,7 +244,7 @@
         },
         {
           "filter-name": "Ec2LargeInstanceChangeMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ (($.eventName = RunInstances) || ($.eventName = RebootInstances)|| ($.eventName = StartInstances) || ($.eventName = StopInstances) || ($.eventName= TerminateInstances)) && (($.requestParameters.instanceType= *.32xlarge) || ($.requestParameters.instanceType= *.24xlarge) || ($.requestParameters.instanceType= *.18xlarge) || ($.requestParameters.instanceType= *.16xlarge) || ($.requestParameters.instanceType= *.12xlarge) || ($.requestParameters.instanceType= *.10xlarge) || ($.requestParameters.instanceType= *.9xlarge) || ($.requestParameters.instanceType= *.8xlarge) || ($.requestParameters.instanceType = *.4xlarge)) }",
@@ -254,7 +254,7 @@
         },
         {
           "filter-name": "CloudTrailChangeMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateTrail) || ($.eventName = UpdateTrail)|| ($.eventName = DeleteTrail) || ($.eventName = StartLogging) || ($.eventName= StopLogging) }",
@@ -264,7 +264,7 @@
         },
         {
           "filter-name": "ConsoleSignInFailureMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = ConsoleLogin) && ($.errorMessage = \"Failedauthentication\") }",
@@ -274,7 +274,7 @@
         },
         {
           "filter-name": "AuthorizationFailureMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ (($.errorCode = \"*UnauthorizedOperation\") || ($.errorCode =\"AccessDenied*\") && ($.userIdentity.principalId != \"*AWSConfig-BucketConfigCheck\")) }",
@@ -284,7 +284,7 @@
         },
         {
           "filter-name": "IamPolicyChangesMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{($.eventName=DeleteGroupPolicy)||($.eventName=DeleteRolePolicy)||($.eventName=DeleteUserPolicy)||($.eventName=PutGroupPolicy)||($.eventName=PutRolePolicy)||($.eventName=PutUserPolicy)||($.eventName=CreatePolicy)||($.eventName=DeletePolicy)||($.eventName=CreatePolicyVersion)||($.eventName=DeletePolicyVersion)||($.eventName=AttachRolePolicy)||($.eventName=DetachRolePolicy)||($.eventName=AttachUserPolicy)||($.eventName=DetachUserPolicy)||($.eventName=AttachGroupPolicy)||($.eventName=DetachGroupPolicy)}",
@@ -294,7 +294,7 @@
         },
         {
           "filter-name": "ConsoleSignInWithoutMfaMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{($.eventName=\"ConsoleLogin\") && ($.additionalEventData.MFAUsed !=\"Yes\") && ($.userIdentity.type != \"AssumedRole\")}",
@@ -304,7 +304,7 @@
         },
         {
           "filter-name": "RootLoginMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ $.userIdentity.type = \"Root\" && $.userIdentity.invokedBy NOT EXISTS && $.eventType != \"AwsServiceEvent\" }",
@@ -314,7 +314,7 @@
         },
         {
           "filter-name": "DisableOrDeleteCMKMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{($.eventSource=kms.amazonaws.com) && (($.eventName=DisableKey) || ($.eventName=ScheduleKeyDeletion))}",
@@ -324,7 +324,7 @@
         },
         {
           "filter-name": "AWSConfigChangesMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{($.eventSource=config.amazonaws.com) && (($.eventName=StopConfigurationRecorder) || ($.eventName=DeleteDeliveryChannel) || ($.eventName=PutDeliveryChannel) || ($.eventName=PutConfigurationRecorder))}",
@@ -334,7 +334,7 @@
         },
         {
           "filter-name": "RouteTableChangesMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{($.eventName=CreateRoute) || ($.eventName=CreateRouteTable) || ($.eventName=ReplaceRoute) || ($.eventName=ReplaceRouteTableAssociation) || ($.eventName=DeleteRouteTable) || ($.eventName=DeleteRoute) || ($.eventName=DisassociateRouteTable)}",
@@ -344,7 +344,7 @@
         },
         {
           "filter-name": "S3BucketPolicyChangesMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{($.eventSource=s3.amazonaws.com) && (($.eventName=PutBucketAcl) || ($.eventName=PutBucketPolicy) || ($.eventName=PutBucketCors) || ($.eventName=PutBucketLifecycle) || ($.eventName=PutBucketReplication) || ($.eventName=DeleteBucketPolicy) || ($.eventName=DeleteBucketCors) || ($.eventName=DeleteBucketLifecycle) || ($.eventName=DeleteBucketReplication))}",
@@ -354,7 +354,7 @@
         },
         {
           "filter-name": "SSOAuthUnapprovedIPMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventSource=sso.amazonaws.com) && ($.eventName=Authenticate) && ($.sourceIPAddress != 10.10.10.*) }",
@@ -364,7 +364,7 @@
         },
         {
           "filter-name": "IAMAuthUnapprovedIPMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName=ConsoleLogin) && ($.userIdentity.type=IAMUser) && ($.sourceIPAddress != 10.10.10.*) }",
@@ -374,7 +374,7 @@
         },
         {
           "filter-name": "UnencryptedFilesystemCreatedMetric",
-          "accounts": ["master"],
+          "accounts": ["management"],
           "regions": ["${HOME_REGION}"],
           "loggroup-name": "/${ACCELERATOR_PREFIX_ND}/CloudTrail",
           "filter-pattern": "{ ($.eventName = CreateFileSystem) && ($.responseElements.encrypted IS FALSE) } ",
@@ -384,7 +384,7 @@
         }
       ],
       "alarms": {
-        "default-accounts": ["master"],
+        "default-accounts": ["management"],
         "default-regions": ["${HOME_REGION}"],
         "default-namespace": "CloudTrailMetrics",
         "default-statistic": "Sum",
@@ -1773,9 +1773,9 @@
         }
       }
     },
-    "master": {
+    "management": {
       "account-name": "primary",
-      "email": "myemail+aseaT-master@example.com---------------------REPLACE----------------------",
+      "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
       "ou": "core",
       "share-mad-from": "",
       "src-filename": "config.json",
@@ -2130,7 +2130,7 @@
           "igw": false,
           "vgw": false,
           "pcx": {
-            "source": "master",
+            "source": "management",
             "source-vpc": "ForSSO",
             "source-subnets": "ForSSO",
             "local-subnets": "GCWide"
@@ -2356,7 +2356,7 @@
                 },
                 {
                   "destination": {
-                    "account": "master",
+                    "account": "management",
                     "vpc": "ForSSO",
                     "subnet": "ForSSO"
                   },
