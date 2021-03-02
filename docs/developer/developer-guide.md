@@ -268,11 +268,11 @@ Read [Operations Guide](../operations/operations-troubleshooting-guide.md#initia
 
 The `Phase` stacks contain the Accelerator-managed resources. The reason the deployment of Accelerator-managed resources is split into different phases is because there cannot be cross account/region references between CloudFormation stacks. See [Cross-Account/Region References](#cross-accountregion-references).
 
-The `Phase` stacks are deployed by a CodeBuild project in the `Initial Setup` stack as stated in the previous paragraphs. The CodeBuild project executes the `codebuild-deploy.sh` script. See [`initial-setup.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/src/core/cdk/src/initial-setup.ts#L132).
+The `Phase` stacks are deployed by a CodeBuild project in the `Initial Setup` stack as stated in the previous paragraphs. The CodeBuild project executes the `codebuild-deploy.sh` script. See [`initial-setup.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/src/core/cdk/src/initial-setup.ts#L132).
 
-The [`codebuild-deploy.sh`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/src/deployments/cdk/codebuild-deploy.sh) script executes the `cdk.ts` file.
+The [`codebuild-deploy.sh`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/src/deployments/cdk/codebuild-deploy.sh) script executes the `cdk.ts` file.
 
-The [`cdk.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/master/src/deployments/cdk/cdk.ts) file is meant as a replacement for the `cdk` CLI command. To deploy a phase stack you would **not** run `pnpx cdk deploy` but `cdk.sh --phase 1`. See [CDK API](#cdk-api) for more information why we use the CDK API instead of using the CDK CLI.
+The [`cdk.ts`](https://github.com/aws-samples/aws-secure-environment-accelerator/blob/main/src/deployments/cdk/cdk.ts) file is meant as a replacement for the `cdk` CLI command. To deploy a phase stack you would **not** run `pnpx cdk deploy` but `cdk.sh --phase 1`. See [CDK API](#cdk-api) for more information why we use the CDK API instead of using the CDK CLI.
 
 The `cdk.ts` command parses command line arguments and creates all the `cdk.App` for all accounts and regions for the given `--phase`. When you pass the `--region` or `--account-key` command, all the `cdk.App` for all accounts and regions will still be created, except that only the `cdk.App`s matching the parameters will be deployed. This behavior could be optimized in the future. See [Stacks with Same Name in Different Regions](#stacks-with-same-name-in-different-regions) for more information why we're creating multiple `cdk.App`s.
 
@@ -739,7 +739,7 @@ You can also deploy the installer stack directly from the command line but then 
 
 ```sh
 cd accelerator/installer
-pnpx cdk deploy --parameters GithubBranch=master --parameters ConfigS3Bucket=pbmmaccel-myconfigbucket
+pnpx cdk deploy --parameters GithubBranch=main --parameters ConfigS3Bucket=pbmmaccel-myconfigbucket
 ```
 
 ### 4.8.2. Initial Setup Stack
