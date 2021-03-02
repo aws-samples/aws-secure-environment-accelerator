@@ -57,7 +57,7 @@ jobs:
           git add src/installer/cdk/package.json
           git commit -am 'Updating package to ${{ steps.format.outputs.numeric_release }}'
       - name: Push Bumped Package Files
-        uses: ad-m/github-push-action@main
+        uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.ACTION_TOKEN }}
           branch: ${{ steps.format.outputs.branch_name }}
