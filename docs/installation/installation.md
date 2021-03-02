@@ -180,7 +180,7 @@ If deploying to an internal AWS employee account, to successfully install the so
 ## 2.4. Basic Accelerator Configuration
 
 1. Select a sample config file as a baseline starting point
-   - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The master branch is NOT the current release and often will not work with the GA release.**
+   - **IMPORTANT: Use a config file from the Github code branch you are deploying from, as valid parameters change over time. The `main` branch is NOT the current release and often will not work with the GA release.**
    - sample config files can be found in [this](../../reference-artifacts/SAMPLE_CONFIGS/) folder;
    - descriptions of the sample config files and customization guidance can be found [here](./customization-index.md);
    - unsure where to start, use the [`config.lite-example.json`](../../reference-artifacts/SAMPLE_CONFIGS/config.lite-example.json) file;

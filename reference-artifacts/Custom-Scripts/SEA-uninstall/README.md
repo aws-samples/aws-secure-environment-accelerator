@@ -44,7 +44,7 @@ The logic of the script is the following:
 
    **Note:** The S3 centralized logging bucket may contain 100,000's of objects. During the S3 empty bucket, the AWS temporary credentials may expire. Before running this script, empty the bucket externally or change the Lifecycle retention to 1 day and run this after the bucket is emptied.
 
-7. Cleans up the Master Account
+7. Cleans up the Organization Management Account
 
    a. DELETES Stack instances from StackSets beginning with "PBMMAccel". When all stack instances deleted, the StackSet is deleted.
 

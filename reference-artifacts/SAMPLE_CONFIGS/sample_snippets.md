@@ -88,7 +88,7 @@
         "metrics": [{
             "filter-name": "SecurityGroupChangeMetricTest",
             "accounts": [
-              "master"
+              "management"
             ],
             "regions": [
               "${HOME_REGION}"
@@ -102,7 +102,7 @@
         }],
         "alarms": {
           "default-accounts": [
-            "master"
+            "management"
           ],
           "default-regions": [
             "${HOME_REGION}"
