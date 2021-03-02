@@ -68,7 +68,7 @@ export const handler = async (input: GetOrCreateConfigInput) => {
       if (!currentBranch.branch) {
         await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
       }
-    } catch(e) {
+    } catch (e) {
       if (e.code === 'BranchDoesNotExistException') {
         await codecommit.createBranch(repositoryName, branchName, previousCommit.branch?.commitId!);
       }
