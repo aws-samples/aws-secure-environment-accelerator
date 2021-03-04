@@ -105,6 +105,10 @@
       "interval": 60,
       "default-format": false,
       "custom-fields": [
+        "flow-direction",
+        "traffic-path",
+        "pkt-src-aws-service",
+        "pkt-dst-aws-service",
         "version",
         "account-id",
         "interface-id",
