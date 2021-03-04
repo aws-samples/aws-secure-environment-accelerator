@@ -103,10 +103,10 @@
         "pkt-dstaddr",
         "region",
         "az-id",
-        "flow-direction",
-        "traffic-path",
         "pkt-src-aws-service",
-        "pkt-dst-aws-service"
+        "pkt-dst-aws-service",
+        "flow-direction",
+        "traffic-path"
       ]
     },
     "security-hub-frameworks": {
