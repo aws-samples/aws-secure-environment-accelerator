@@ -181,7 +181,6 @@ async function createOrUpdateBucketPolicy(props: HandlerProperties) {
   if (Object.keys(keyPolicy).length > 0 || props.roles.length > 0) {
     await updateKeyPolicy(props, keyPolicy);
   }
-  return {};
 }
 
 async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
@@ -192,6 +191,7 @@ async function onCreate(event: CloudFormationCustomResourceCreateEvent) {
 async function onUpdate(event: CloudFormationCustomResourceUpdateEvent) {
   const props = getPropertiesFromEvent(event);
   await createOrUpdateBucketPolicy(props);
+  return { physicalResourceId: event.PhysicalResourceId };
 }
 
 async function onDelete(event: CloudFormationCustomResourceDeleteEvent) {
