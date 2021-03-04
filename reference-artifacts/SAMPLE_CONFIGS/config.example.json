@@ -100,7 +100,7 @@
       "filter": "ALL",
       "interval": 60,
       "default-format": false,
-      "custom-fields": [       
+      "custom-fields": [
         "version",
         "account-id",
         "interface-id",
