@@ -105,10 +105,6 @@
       "interval": 60,
       "default-format": false,
       "custom-fields": [
-        "flow-direction",
-        "traffic-path",
-        "pkt-src-aws-service",
-        "pkt-dst-aws-service",
         "version",
         "account-id",
         "interface-id",
@@ -131,7 +127,11 @@
         "pkt-srcaddr",
         "pkt-dstaddr",
         "region",
-        "az-id"
+        "az-id",
+        "flow-direction",
+        "traffic-path",
+        "pkt-src-aws-service",
+        "pkt-dst-aws-service"
       ]
     },
     "security-hub-frameworks": {
