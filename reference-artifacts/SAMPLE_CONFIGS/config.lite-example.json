@@ -123,7 +123,11 @@
         "pkt-srcaddr",
         "pkt-dstaddr",
         "region",
-        "az-id"
+        "az-id",
+        "pkt-src-aws-service",
+        "pkt-dst-aws-service",
+        "flow-direction",
+        "traffic-path"
       ]
     },
     "security-hub-frameworks": {
