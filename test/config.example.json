@@ -501,14 +501,13 @@
       }
     ],
     "aws-config": {
-      "managed-rules": {
-        "defaults": {
-          "remediation": false,
-          "remediation-attempts": 5,
-          "remediation-retry-seconds": 60,
-          "remediation-concurrency": 10
-        },
-        "rules": [
+      "defaults": {
+        "remediation": false,
+        "remediation-attempts": 5,
+        "remediation-retry-seconds": 60,
+        "remediation-concurrency": 10
+      },
+      "rules": [
           {
             "name": "ELB_LOGGING_ENABLED",
             "remediation-action": "SSM-ELB-Enable-Logging",
@@ -861,8 +860,7 @@
           {
             "name": "WAFV2_LOGGING_ENABLED"
           }
-        ]
-      }
+      ]
     }
   },
   "mandatory-account-configs": {

@@ -18,6 +18,7 @@ interface ConfigurationItem {
   configurationItemCaptureTime: Date;
   resourceType: string;
   resourceId: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   configuration: any;
 }
 
@@ -32,7 +33,6 @@ export const handler = async (event: ConfigRuleEvent) => {
   console.log(`Checking EC2 Instance Iam Profile attachment...`);
   console.log(JSON.stringify(event, null, 2));
 
-  const ruleParameters = JSON.parse(event.ruleParameters || '{}');
   const invokingEvent = JSON.parse(event.invokingEvent);
   const configurationItem: ConfigurationItem = invokingEvent.configurationItem;
 
