@@ -1,0 +1,42 @@
+{
+  "name": "@aws-accelerator/config-rule-runtime-ec2-instance-profile",
+  "externals": [
+    "aws-lambda", 
+    "aws-sdk"
+  ], 
+  "private": true, 
+  "source": "src/index.ts", 
+  "version": "0.0.1", 
+  "dependencies": {
+    "@aws-accelerator/common": "workspace:^0.0.1",
+    "aws-sdk": "2.787.0", 
+    "aws-lambda": "1.0.6"
+  }, 
+  "scripts": {
+    "prepare": "webpack-cli --config webpack.config.ts"
+  }, 
+  "devDependencies": {
+    "ts-loader": "7.0.5", 
+    "typescript": "3.8.3",
+    "webpack": "4.42.1",
+    "@types/node": "12.12.6", 
+    "webpack-cli": "3.3.11",
+    "eslint-config-standard": "14.1.1",
+    "eslint-plugin-standard": "4.0.1",
+    "eslint-plugin-deprecation": "1.1.0",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-import": "2.22.1",
+    "eslint-plugin-node": "11.1.0",
+    "eslint-plugin-jsdoc": "30.6.4",
+    "eslint-plugin-prefer-arrow": "1.2.2",
+    "eslint-plugin-react": "7.21.3",
+    "eslint-plugin-unicorn": "22.0.0", 
+    "@types/aws-lambda": "8.10.46", 
+    "babel-loader": "8.1.0", 
+    "@babel/core": "7.9.0",
+    "@babel/plugin-proposal-class-properties": "7.8.3",
+    "@babel/preset-env": "7.9.0"
+  }, 
+  "main": "dist/index.js", 
+  "types": "dist/index.d.ts"
+}
