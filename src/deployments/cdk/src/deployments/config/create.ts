@@ -6,7 +6,7 @@ import * as awsConfig from '@aws-cdk/aws-config';
 import { Account, getAccountId } from '../../utils/accounts';
 import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';
-
+import { CustomRule, CustomRuleProps } from '@aws-accelerator/cdk-constructs/src/config';
 export interface CreateRuleProps {
   acceleratorExecutionRoleName: string;
   config: c.AcceleratorConfig;
@@ -23,8 +23,8 @@ export async function createRule(props: CreateRuleProps) {
     return;
   }
 
-  const configRules = awsConfigConf['managed-rules'].rules;
-  const configRuleDefaults = awsConfigConf['managed-rules'].defaults;
+  const configRules = awsConfigConf.rules;
+  const configRuleDefaults = awsConfigConf.defaults;
 
   for (const [ouKey, ouConfig] of config.getOrganizationalUnits()) {
     if (!ouConfig['aws-config']) {
@@ -77,12 +77,32 @@ export async function createRule(props: CreateRuleProps) {
               accountKey,
               defaultRegion,
             });
-            const configRule = new awsConfig.ManagedRule(accountStack, `ConfigRule-${ruleName}`, {
-              identifier: ruleName,
-              configRuleName,
-              description: configRuleName,
-              inputParameters: configParams,
-            });
+            let configRule;
+            if (awsConfigRule.type === 'managed') {
+              configRule = new awsConfig.ManagedRule(accountStack, `ConfigRule-${ruleName}`, {
+                identifier: ruleName,
+                configRuleName,
+                description: configRuleName,
+                inputParameters: configParams,
+              });
+            } else {
+              const ruleProps: CustomRuleProps = {
+                roleArn: `arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${acceleratorExecutionRoleName}`,
+                configRuleName,
+                description: configRuleName,
+                inputParameters: configParams,
+                configRule: awsConfigRule.name.toLowerCase(),
+                ruleScope: {
+                  resourceTypes: awsConfigRule['resource-types'].map(r => awsConfig.ResourceType.of(r)),
+                },
+                maximumExecutionFrequency: awsConfigRule['max-frequency']
+                  ? (awsConfigRule['max-frequency'] as awsConfig.MaximumExecutionFrequency)
+                  : undefined,
+                periodic: !!awsConfigRule['max-frequency'],
+                configurationChanges: !!awsConfigRule['resource-types'].length,
+              };
+              configRule = new CustomRule(accountStack, `ConfigRule-${ruleName}`, ruleProps).resource;
+            }
             if (!awsConfigRuleConfig['remediate-regions']?.includes(region)) {
               continue;
             }
