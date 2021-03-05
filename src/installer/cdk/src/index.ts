@@ -51,7 +51,7 @@ async function main() {
   });
 
   const configBranchName = new cdk.CfnParameter(stack, 'ConfigBranchName', {
-    default: 'master',
+    default: 'main',
     description: 'The Code Commit branch name that contains the Accelerator configuration',
   });
 
