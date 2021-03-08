@@ -108,4 +108,38 @@ export class CodeCommit {
   async deleteFile(input: DeleteFileInput): Promise<DeleteFileOutput> {
     return throttlingBackOff(() => this.client.deleteFile(input).promise());
   }
+
+  /**
+   * Create Branch in Code Commit Repository
+   * @param repositoryName
+   * @param branchName
+   * @param commitId
+   */
+  async createBranch(repositoryName: string, branchName: string, commitId: string) {
+    return throttlingBackOff(() =>
+      this.client
+        .createBranch({
+          branchName,
+          commitId,
+          repositoryName,
+        })
+        .promise(),
+    );
+  }
+
+  /**
+   * Update Default branch of Code Commit Repository
+   * @param repositoryName
+   * @param branchName
+   */
+  async updateDefaultBranch(repositoryName: string, branchName: string) {
+    return throttlingBackOff(() =>
+      this.client
+        .updateDefaultBranch({
+          repositoryName,
+          defaultBranchName: branchName,
+        })
+        .promise(),
+    );
+  }
 }
