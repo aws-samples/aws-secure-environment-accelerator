@@ -330,7 +330,7 @@ Issues in Older Releases:
 **Release Specific Upgrade Considerations:**
 
 - Upgrades to `v1.3.0 and above` from `v1.2.6 and below`:
-  - **Please note MAJOR changes to state machine behaviour, as documented [here](./customization-index.md#14-config-file-and-deployment-protections)**
+  - **Please note MAJOR changes to state machine behaviour, as documented [here](./customization-index.md#2-new-state-machine-behaviour)**
 - Upgrades to `v1.2.6 and above` from `v1.2.5 and below` - Ensure you apply the config file changes described in the release notes:
   - Cut-paste the new `"replacements": {},` section at the top of the example config file into your config file, as-is
     - Enables customers to leverage the repo provided SCP's without customization, simplifying upgrades, while allowing SCP region customization
