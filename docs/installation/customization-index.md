@@ -102,7 +102,7 @@ Samples with Descriptions:
 
 - The config file is moved to AWS CodeCommit after the first execution of the state machine to provide strong configuration history, versioning and change control
 - After each successful state machine execution, we record the commit id of the config file used for that execution in secrets manager
-- On **_every_** state machine execution, before making any changes, the Accelerator compares the latest version of the config file stored in CodeCommit with the version of the config file from the last successful state machine execution
+- On **_every_** state machine execution, before making any changes, the Accelerator compares the latest version of the config file stored in CodeCommit with the version of the config file from the last successful state machine execution (after replacing all variables)
 - If the config file includes any changes we consider to be significant or breaking, we immediatly fail the state machine
   - if a customer somehow accidentally uploads a different customers config file into their Accelerator CodeCommit repository, the state machine will fail
   - if a customer makes what we consider to be a major change to the config file, the state machine will fail
@@ -148,7 +148,9 @@ Starting in v1.3.0, we recommend running the state machine with the parameters t
 - should you accidentally change the wrong section of the config file, you will be protected;
 - as you grow and scale to hundreds or thousands of accounts, your state machine execution time will remain fast.
 
-NOTE: The `scope` setting has no impact on SCP application, limit requests, custom tagging, or directory sharing. **Changes** to VPC and TGW peering requires the accounts on both sides of the peer are in-scope (no impact on existing peers).
+**NOTE 1:** The `scope` setting has no impact on SCP application, limit requests, custom tagging, or directory sharing.
+
+**NOTE 2:** All comparisons for config file changes are assessed AFTER all replacements have been made. Changing variable names which result in the same end outcome do NOT appear as a change to the config file.
 
 ---
 

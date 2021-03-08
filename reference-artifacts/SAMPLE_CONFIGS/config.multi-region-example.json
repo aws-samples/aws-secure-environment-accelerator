@@ -5,6 +5,7 @@
       "b": ["${HOME_REGION}", "${GBL_REGION}"],
       "c": ["${HOME_REGION}", "${GBL_REGION}", "us-east-2", "us-west-1", "us-west-2"]
     },
+    "INFO": "This file will not work with us-east-1 without tweaks",
     "cloud-cidr1": "10.0.0.0",
     "cloud-mask1": "255.0.0.0",
     "cloud-cidr2": "100.96.252.0",
@@ -83,7 +84,7 @@
       }
     },
     "additional-cwl-regions": {
-      "${GBL_REGION}": {
+      "us-east-1": {
         "kinesis-stream-shard-count": 1
       }
     },
@@ -524,7 +525,7 @@
     "ssm-automation": [
       {
         "accounts": ["operations"],
-        "regions": ["${HOME_REGION}", "${GBL_REGION}"],
+        "regions": ["${HOME_REGION}", "us-east-1"],
         "documents": [
           {
             "name": "SSM-ELB-Enable-Logging",
@@ -1118,7 +1119,7 @@
           "deploy": "local",
           "name": "Endpoint-East",
           "cidr": "10.107.0.0/22",
-          "region": "${GBL_REGION}",
+          "region": "us-east-1",
           "use-central-endpoints": false,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -1298,7 +1299,7 @@
           {
             "name": "East",
             "asn": 64526,
-            "region": "${GBL_REGION}",
+            "region": "us-east-1",
             "features": {
               "DNS-support": true,
               "VPN-ECMP-support": true,
@@ -2217,7 +2218,7 @@
           "deploy": "local",
           "name": "Acct-vpc-East",
           "cidr": "10.191.0.0/16",
-          "region": "${GBL_REGION}",
+          "region": "us-east-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -5361,7 +5362,7 @@
           "deploy": "shared-network",
           "name": "UnClass-East",
           "cidr": "10.105.0.0/16",
-          "region": "${GBL_REGION}",
+          "region": "us-east-1",
           "use-central-endpoints": true,
           "flow-logs": "BOTH",
           "dns-resolver-logging": true,
@@ -5654,7 +5655,7 @@
       "ssm-automation": [
         {
           "account": "operations",
-          "regions": ["${HOME_REGION}", "${GBL_REGION}"],
+          "regions": ["${HOME_REGION}", "us-east-1"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
       ],
@@ -5758,7 +5759,7 @@
             "VPC_SG_OPEN_ONLY_TO_AUTHORIZED_PORTS",
             "WAFV2_LOGGING_ENABLED"
           ],
-          "remediate-regions": ["${HOME_REGION}", "${GBL_REGION}"]
+          "remediate-regions": ["${HOME_REGION}", "us-east-1"]
         }
       ]
     },

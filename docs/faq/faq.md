@@ -22,6 +22,7 @@
     - [1.3.2. How can I leverage Accelerator deployed objects in my IaC? Do I need to manually determine the arn's and object id's of Accelerator deployed objects to leverage them in my IaC?](#132-how-can-i-leverage-accelerator-deployed-objects-in-my-iac-do-i-need-to-manually-determine-the-arns-and-object-ids-of-accelerator-deployed-objects-to-leverage-them-in-my-iac)
   - [1.4. Upgrades](#14-upgrades)
     - [1.4.1. Can I upgrade directly to the latest release, or must I perform upgrades sequentially?](#141-can-i-upgrade-directly-to-the-latest-release-or-must-i-perform-upgrades-sequentially)
+    - [1.4.2. After upgrading to v1.3.0, I get the error "There were errors while comparing the configuration changes:" when I update the config file?](#142-after-upgrading-to-v130-i-get-the-error-there-were-errors-while-comparing-the-configuration-changes-when-i-update-the-config-file)
   - [1.5. Support Concerns](#15-support-concerns)
     - [1.5.1. The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?](#151-the-accelerator-is-written-in-cdk-and-deploys-cloudformation-does-this-restrict-the-infrastructure-as-code-iac-tools-that-i-can-use)
     - [1.5.2. What happens if AWS stops enhancing the Accelerator?](#152-what-happens-if-aws-stops-enhancing-the-accelerator)
@@ -99,6 +100,8 @@ Yes. The state machine captures a consistent input state of the requested config
 ### 1.1.5. What if I really mess up the configuration file?
 
 The Accelerator is designed with checks to compare your current configuration file with the version of the config file from the previous successful execution of the state machine. If we believe you are making major or breaking changes to the config file, we will purposefully fail the state machine. See [1.4. Config file and Deployment Protections](../installation/customization-index.md#14-config-file-and-deployment-protections) for more details.
+
+With the release of v1.3.0 we introduced state machine scoping capabilities to further protect customers, detailed [here](../installation/customization-index.md#2-new-state-machine-behaviour)
 
 ### 1.1.6. What if my State Machine fails? Why? Previous solutions had complex recovery processes, what's involved?
 
@@ -230,6 +233,10 @@ Additionally, setting "populate-all-elbs-in-param-store": true for an account wi
 
 Yes, currently customers can upgrade from whatever version they have deployed to the latest Accelerator version. There is no requirement to perform sequential upgrades. In fact, we strongly discourage sequential upgrades.
 
+### 1.4.2. After upgrading to v1.3.0, I get the error "There were errors while comparing the configuration changes:" when I update the config file?
+
+In v1.3.0 we added protections to allow customers to verify the scope of impact of their intended changes to the configuration file. In v1.3.0 and above, the state machine does not allow changes to the config file (other than new accounts) without providing the `scope` parameter. Please refer to section 2 of the `Accelerator Configuration File Customization` [Guide](../installation/customization-index.md#2-new-state-machine-behaviour) for more details.
+
 ## 1.5. Support Concerns
 
 ### 1.5.1. The Accelerator is written in CDK and deploys CloudFormation, does this restrict the Infrastructure as Code (IaC) tools that I can use?
@@ -307,6 +314,7 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
         }
       ]
   ```
+
   - When using a certificate that has a certificate chain (usally this is the case when signed by a Certificate Authority with a CA Bundle)
 
   ```json
@@ -320,6 +328,7 @@ The Accelerator provides 3 mechanisms to enable utilizing certificates with ALB'
         }
       ]
   ```
+
   - this mechanism allows a customer to generate certificates using their existing tools and processes and import 3rd party certificates into AWS Certificate Manager for use in AWS
   - Self-Signed certificates should NOT be used for production (samples were provided simply to demonstrate functionality)
   - both a `.key` and a `.crt` file must be supplied in the customers S3 input bucket
