@@ -4,9 +4,16 @@ import * as cdk from '@aws-cdk/core';
 import { createName } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-name-generator';
 import * as awsConfig from '@aws-cdk/aws-config';
 import { Account, getAccountId } from '../../utils/accounts';
-import { StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
+import { getStackJsonOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';
 import { CustomRule, CustomRuleProps } from '@aws-accelerator/cdk-constructs/src/config';
+
+export interface ConfigRuleArtifactsOutput {
+  bucketArn: string;
+  bucketName: string;
+  keyPrefix: string;
+}
+
 export interface CreateRuleProps {
   acceleratorExecutionRoleName: string;
   config: c.AcceleratorConfig;
@@ -25,6 +32,15 @@ export async function createRule(props: CreateRuleProps) {
 
   const configRules = awsConfigConf.rules;
   const configRuleDefaults = awsConfigConf.defaults;
+  let configRuleArtifact: ConfigRuleArtifactsOutput | undefined;
+  const configRuleArtifactOutputs: ConfigRuleArtifactsOutput[] = getStackJsonOutput(outputs, {
+    accountKey: config.getMandatoryAccountKey('master'),
+    outputType: 'ConfigRulesArtifactsOutput',
+  });
+  
+  if (configRuleArtifactOutputs.length > 0) {
+    configRuleArtifact = configRuleArtifactOutputs[0];
+  }
 
   for (const [ouKey, ouConfig] of config.getOrganizationalUnits()) {
     if (!ouConfig['aws-config']) {
@@ -86,12 +102,15 @@ export async function createRule(props: CreateRuleProps) {
                 inputParameters: configParams,
               });
             } else {
+              if (!configRuleArtifact) {
+                console.error('ConfigRuleArtifact is not found to create Custom ConfigRule');
+                continue;
+              }
               const ruleProps: CustomRuleProps = {
                 roleArn: `arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${acceleratorExecutionRoleName}`,
                 configRuleName,
                 description: configRuleName,
                 inputParameters: configParams,
-                configRule: awsConfigRule.name.toLowerCase(),
                 ruleScope: {
                   resourceTypes: awsConfigRule['resource-types'].map(r => awsConfig.ResourceType.of(r)),
                 },
@@ -100,6 +119,11 @@ export async function createRule(props: CreateRuleProps) {
                   : undefined,
                 periodic: !!awsConfigRule['max-frequency'],
                 configurationChanges: !!awsConfigRule['resource-types'].length,
+                runtimeS3Bucket: configRuleArtifact.bucketName,
+                runtimeS3Key: `${configRuleArtifact?.keyPrefix}/${
+                  awsConfigRule['runtime-path'] || awsConfigRule.name.toLowerCase()
+                }`,
+                lambdaRuntime: awsConfigRule.runtime!,
               };
               configRule = new CustomRule(accountStack, `ConfigRule-${ruleName}`, ruleProps).resource;
             }

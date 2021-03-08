@@ -806,6 +806,8 @@ export const AwsConfigRule = t.interface({
   type: fromNullable(ConfigRuleType, 'managed'),
   'max-frequency': optional(t.string),
   'resource-types': fromNullable(t.array(t.string), []),
+  runtime: optional(t.string),
+  'runtime-path': optional(t.string),
 });
 
 export const AwsConfig = t.interface({

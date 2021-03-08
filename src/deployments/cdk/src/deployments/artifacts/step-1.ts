@@ -77,6 +77,17 @@ export async function step1(props: ArtifactsStep1Props) {
     keepExistingFiles: true,
   });
 
+  // upload SSM-Document Artifacts
+  const configRulesUpload = uploadArtifacts({
+    accountStack: masterAccountStack,
+    artifactName: 'ConfigRules',
+    artifactFolderName: 'config-rules',
+    artifactKeyPrefix: 'config-rules',
+    centralBucket,
+    destinationKeyPrefix: 'config-rules',
+    keepExistingFiles: true,
+  });
+
   // Copy files from source to destination
   const copyFiles = new S3CopyFiles(masterAccountStack, 'CopyFiles', {
     roleName: createRoleName('S3CopyFiles'),
@@ -91,6 +102,7 @@ export async function step1(props: ArtifactsStep1Props) {
   copyFiles.node.addDependency(rdgwUpload);
   copyFiles.node.addDependency(iamUpload);
   copyFiles.node.addDependency(scpUpload);
+  copyFiles.node.addDependency(configRulesUpload);
 }
 
 function uploadArtifacts(props: {
