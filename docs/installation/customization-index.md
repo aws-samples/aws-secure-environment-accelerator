@@ -5,6 +5,7 @@
   - [1.2. **Deployment Customizations**](#12-deployment-customizations)
   - [1.3. Other Configuration File Hints and Tips](#13-other-configuration-file-hints-and-tips)
   - [1.4. Config file and Deployment Protections](#14-config-file-and-deployment-protections)
+- [2. **NEW: State Machine Behaviour**](#2-new-state-machine-behaviour)
 
 ## 1.1. **Sample Accelerator Configuration Files**
 
@@ -83,15 +84,15 @@ Samples with Descriptions:
 - The configuration file _does_ have validation checks in place that prevent users from making certain major unsupported configuration changes
 - **The configuration file does _NOT_ have extensive error checking. It is expected you know what you are doing. We eventually hope to offer a config file, wizard based GUI editor and add the validation logic in this separate tool. In most cases the State Machine will fail with an error, and you will simply need to troubleshoot, rectify and rerun the state machine.**
 - You cannot move an account between top-level ou's. This would be a security violation and cause other issues. You can move accounts between sub-ou. Note: The ALZ version of the Accelerator does not support sub-ou.
-- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. In future we will be providing a version of the config file with comments describing the purpose of each configuration item
+- v1.1.5 and above adds support for customer provided YAML config file(s) as well as JSON. In future we will be providing a version of the config file with comments describing the purpose of each configuration item. We only support the subset of yaml that converts to JSON (we do not support anchors)
 - Security Group names were designed to be identical between environments, if you want the VPC name in the SG name, you need to do it manually in the config file
-- We only support the subset of yaml that converts to JSON (we do not support anchors)
 - Prior to v1.2.5, we did NOT support changing the `organization-admin-role` and this value had to be set to `AWSCloudFormationStackSetExecutionRole`.
 - Adding more than approximately 50 _new_ VPC Interface Endpoints across _all_ regions in any one account in any single state machine execution will cause the state machine to fail due to Route 53 throttling errors. If adding endpoints at scale, only deploy 1 region at a time. In this scenario, the stack(s) will fail to properly delete, also based on the throttling, and will require manual removal.
+- We do not support Directory unsharing or ADC deletion, delete methods were not implemented. We only support ADC creation in mandatory accounts.
 - If `use-central-endpoints` is changed from true to false, you cannot add a local vpc endpoint on the same state machine execution (add the endpoint on a prior or subsequent execution)
   - in versions 1.2.0 through 1.2.2 there is a issue adding local endpoints when a central endpoint already exists for the vpc
 - If you update the firewall names, be sure to update the routes and alb's which point to them. Firewall licensing occurs through the management port, which requires a VPC route back to the firewall to get internet access and validate the firewall license.
-- Initial MAD deployments are only supported in 2 AZ subnets (as of v1.2.3). Deploy the Accelerator with only 2 MAD subnets and add additional AZ's on subsequent state machine executions. A fix is planned.
+- Initial MAD deployments are only supported in 2 AZ subnets (as of v1.2.3). Deploy the Accelerator with only 2 MAD subnets and add additional AZ's on subsequent state machine executions. (fixed in v1.2.5).
 - In v1.2.3 and below (fixed in v1.2.4):
   - if the same IAM policy file is used in more than one spot in the config, we require one account to reference the policy twice or you will get a `Unexpected token u in JSON at position 0,` error in Phase 1
   - the `zones\resolver-vpc` is a mandatory parameter, you must deploy a small dummy vpc w/no subnets, routes, etc. in the account of your choosing for this validation to succeed
@@ -101,7 +102,7 @@ Samples with Descriptions:
 
 - The config file is moved to AWS CodeCommit after the first execution of the state machine to provide strong configuration history, versioning and change control
 - After each successful state machine execution, we record the commit id of the config file used for that execution in secrets manager
-- On **_every_** state machine execution, before making any changes, the Accelerator compares the latest version of the config file stored in CodeCommit with the version of the config file from the last successful state machine execution
+- On **_every_** state machine execution, before making any changes, the Accelerator compares the latest version of the config file stored in CodeCommit with the version of the config file from the last successful state machine execution (after replacing all variables)
 - If the config file includes any changes we consider to be significant or breaking, we immediatly fail the state machine
   - if a customer somehow accidentally uploads a different customers config file into their Accelerator CodeCommit repository, the state machine will fail
   - if a customer makes what we consider to be a major change to the config file, the state machine will fail
@@ -110,6 +111,46 @@ Samples with Descriptions:
   - To provide maximum protection we have provided scoped overide flags. Customers can provide a flag or flags to only bypass specific type(s) of config file validations or blocks. If using an overide flag, we recommend customers use these scoped flags in most situations.
   - If a customer is purposefully making extensive changes across the config file and wants to simply overide all checks with a single overide flag, we also have this option, but discourage it use.
   - The various overide flags and their format can be found in [here](./sm_inputs.md).
+
+# 2. **NEW: State Machine Behaviour**
+
+Accelerator v1.3.0 makes a significant change to the manner in which the state machine operates. These changes include:
+
+1. Reducing the `default scope` of execution of the state machine to only target newly created AWS accounts and AWS accounts listed in the mandatory accounts section of the config file.
+   - `default scope` refers to running the state machine without any input parameters;
+   - This new default scope disallows any changes to the config file outside new accounts;
+   - NOTE: it is critical that accounts for which others are dependant upon, MUST be located within the `mandatory-account-configs` section of the config file (i.e. management, log-archive, security, operations, shared-network, perimeter, etc.).
+2. The state machine now accepts a new input parameter, `scope`, which accepts the following values: `FULL` | `NEW-ACCOUNTS` | `GLOBAL-OPTIONS` | `ACCOUNT` | `OU`.
+   - when the `scope` parameter is supplied, you must also supply the `mode` parameter. At this time `mode` only accepts the value `APPLY`. To be specific `"mode":"APPLY"` is mandatory when running the state machine with the `"scope":` parameter.
+3. Starting the state machine with `{"scope":"FULL","mode":"APPLY"}` makes the state machine execute as it did in v1.2.6 and below.
+   - The state machine targets all AWS accounts and allows changes across any section of the config file;
+   - The blocks and overides described in section 1.4 above remain valid;
+   - `FULL` mode must be run at least once immediatly after any Accelerator version upgrade. Code Pipeline automatically starts the state machine with `{"scope":"FULL","mode":"APPLY"}`. If the state machine fails for any reason after upgrade, the state machine must be restarted with these parameters until a successful execution of the state machine has completed.
+4. Starting the state machine with `{"scope":"NEW-ACCOUNTS","mode":"APPLY"}` is the same as operating the state machine with the `default scope` as described in the first bullet
+5. Starting the state machine with `{"scope":"GLOBAL-OPTIONS","mode":"APPLY"}` restricts changes to the config file to the `global-options` section.
+   - If any other portion of the config file was updated or changed, the state machine will fail;
+   - The global options scope executes the state machine on the entire managed account footprint.
+6. Starting the state machine with `{"scope":"OU","targetOUs":[X],"mode":"APPLY"}` restricts changes to the config file to the specified `organizational-units` section(s) defined by `targetOus`.
+   - When `scope=OU`, `targetOUs` becomes a mandatory parameter;
+   - `X` can be any one or more valid OU names, or the value `"ALL"`;
+   - When `["ALL"]` is specified, the state machine targets all AWS accounts, but only allows changes to the `organizational-units` section of the config file;
+   - When OUs are specified (i.e. `["Dev","Test"]`), the state machine only targets mandatory accounts plus accounts in the specified OUs (Dev, Test), and only allows changes to the specified OUs sections (Dev, Test) of the config file;
+   - If any other portion of the config file was updated or changed, the state machine will fail.
+7. Starting the state machine with `{"scope":"ACCOUNT","targetAccounts":[X],"mode":"APPLY"}` restricts changes to the config file to the specified `xxx-account-configs` section(s) defined by `targetAccounts`.
+   - When `scope=ACCOUNT`, `targetAccounts` becomes a mandatory parameter;
+   - `X` can be any one or more valid account numbers, the value `"NEW"`, or the value `"ALL"`;
+   - When `["ALL"]` is specified, the state machine targets all AWS accounts, but only allows changes to the `xxx-account-configs` sections of the config file;
+   - When specific accounts and/or `NEW` is specified (i.e. `["NEW", "123456789012", "234567890123"]`), the state machine only targets mandatory accounts plus the listed accounts and any newly created accounts. It also only allows changes to the specified accounts sections (New, 123456789012, 234567890123) of the config file;
+   - If any other portion of the config file was updated or changed, the state machine will fail.
+
+Starting in v1.3.0, we recommend running the state machine with the parameters that most tightly scope the state machines execution to your planned changes and minimizing the use of `FULL` scope execution.
+
+- should you accidentally change the wrong section of the config file, you will be protected;
+- as you grow and scale to hundreds or thousands of accounts, your state machine execution time will remain fast.
+
+**NOTE 1:** The `scope` setting has no impact on SCP application, limit requests, custom tagging, or directory sharing.
+
+**NOTE 2:** All comparisons for config file changes are assessed AFTER all replacements have been made. Changing variable names which result in the same end outcome do NOT appear as a change to the config file.
 
 ---
 
