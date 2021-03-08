@@ -317,7 +317,8 @@ Issues in Older Releases:
 
 - Always compare your configuration file with the config file from the release you are upgrading to in order to validate new or changed parameters or changes in parameter types / formats.
   - do NOT update to the latest firewall AMI - see the the last bullet in section [5.1. Accelerator Design Constraints / Decisions](#51-accelerator-design-constraints--decisions)
-  - do NOT update the `organization-admin-role` - see section [2.2.6. Other](#226-other)
+  - do NOT update the `organization-admin-role` - see section [2.2.6. Other](#226-other) (bullet 2)
+  - do NOT update account-keys (i.e. existing installations cannot change the internal values to `management` from `master`)
 - If you have customized any of the additional Accelerator provided default configuration files (SCPs, rsyslog config, ssm-documents, iam-policies, etc.):
   - customers must manually merge Accelerator provided updates with your deployed customizations;
   - failure to do so could result in either a) broken Accelerator functionality, or b) dropped customer guardrail enhancements;
@@ -335,7 +336,6 @@ Issues in Older Releases:
   - The new ${variable} are auto-replaced across your config files, SCP's and firewall config files.
     - as the variables should resolve to their existing values, you can leave your config file using hardcoded region and Accelerator prefix naming, or you can update them to make subsequent file comparisons easier for future upgrades. These are most useful for new installations in non ca-central-1 regions
   - Some repo provide filenames have changed, where they are referenced within the config file, you must update them to their new filenames
-  - The installer has added the option for customers to provide an Accelerator prefix/name. Do NOT change these default values, they are not supported in v1.2.6
   - We do not delete/cleanup old/unused SCP's, in case they were also used by customers for unmanaged OUs or sub-ou's. After the upgrade, you should manually delete any old/extra SCP's which are no longer required
 - Upgrades to `v1.2.5 and above` from `v1.2.4 and below` requires the manual removal of the `PBMMAccel-PipelineRole` StackSet before beginning your upgrade (we have eliminated all use of StackSets in this release)
   - In the root AWS account, go to: CloudFormation, StackSets
