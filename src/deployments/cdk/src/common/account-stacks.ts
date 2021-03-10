@@ -5,7 +5,6 @@ import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { Context } from '../utils/context';
 import { Account, getAccountId } from '../utils/accounts';
-import * as iam from '@aws-cdk/aws-iam';
 
 export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountId: string;
