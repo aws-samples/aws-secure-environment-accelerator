@@ -12,6 +12,7 @@ import { S3 } from '@aws-accelerator/common/src/aws/s3';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as tempy from 'tempy';
+import { IamPolicyOutputFinder } from '@aws-accelerator/common-outputs/src/iam-role';
 
 export interface ConfigRuleArtifactsOutput {
   bucketArn: string;
@@ -307,16 +308,20 @@ export function getConfigRuleParameters(params: {
 }): { [key: string]: string } {
   const { config, outputs, ruleParams, accountKey, defaultRegion } = params;
   Object.keys(ruleParams).map(key => {
-    if (ruleParams[key].startsWith('${SEA::')) {
-      const replaceKey = ruleParams[key].match('{SEA::(.*)}')?.[1]!;
-      ruleParams[key] = getParameterValue({
+    /* eslint-disable no-template-curly-in-string */
+    const ruleParamMatch = ruleParams[key].match('\\${SEA::([a-zA-Z0-9-]*)}');
+    if (ruleParamMatch) {
+      const replaceKey = ruleParamMatch[1];
+      const replaceValue = getParameterValue({
         paramKey: replaceKey,
         outputs,
         config,
         accountKey,
         defaultRegion,
       });
+      ruleParams[key] = ruleParams[key].replace(new RegExp('\\${SEA::[a-zA-Z0-9-]*}', 'g'), replaceValue);
     }
+    /* eslint-enable */
   });
   return ruleParams;
 }
@@ -329,21 +334,37 @@ export function getParameterValue(props: {
   defaultRegion: string;
 }): string {
   const { accountKey, config, outputs, paramKey, defaultRegion } = props;
-  if (paramKey === 'LogArchiveAesBucket') {
-    return LogBucketOutput.getBucketDetails({
-      config,
-      outputs,
-    }).name;
+  switch (paramKey) {
+    case 'LogArchiveAesBucket': {
+      return LogBucketOutput.getBucketDetails({
+        config,
+        outputs,
+      }).name;
+    }
+    case 'S3BucketEncryptionKey': {
+      const accountBucket = AccountBucketOutputFinder.tryFindOne({
+        outputs,
+        accountKey,
+        region: defaultRegion,
+      });
+      return `arn:aws:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
+    }
+    case 'EC2InstaceProfilePermissions': {
+      const ssmPolicyOutput = IamPolicyOutputFinder.findOneByName({
+        outputs,
+        accountKey,
+        policyKey: 'IamSsmWriteAccessPolicy',
+      });
+      if (!ssmPolicyOutput) {
+        console.warn(`Didn't find IAM SSM Log Archive Write Access Policy in output`);
+        return '';
+      }
+      return ssmPolicyOutput.policyName;
+    }
+    default: {
+      return '';
+    }
   }
-  if (paramKey === 'S3BucketEncryptionKey') {
-    const accountBucket = AccountBucketOutputFinder.tryFindOne({
-      outputs,
-      accountKey,
-      region: defaultRegion,
-    });
-    return `arn:aws:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
-  }
-  return '';
 }
 
 async function downloadCustomRules(
