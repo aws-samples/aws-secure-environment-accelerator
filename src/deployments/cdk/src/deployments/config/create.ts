@@ -7,6 +7,11 @@ import { Account, getAccountId } from '../../utils/accounts';
 import { getStackJsonOutput, StackOutput } from '@aws-accelerator/common-outputs/src/stack-output';
 import { LogBucketOutput, AccountBucketOutputFinder } from '../defaults/outputs';
 import { CustomRule, CustomRuleProps } from '@aws-accelerator/cdk-constructs/src/config';
+import { STS } from '@aws-accelerator/common/src/aws/sts';
+import { S3 } from '@aws-accelerator/common/src/aws/s3';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as tempy from 'tempy';
 
 export interface ConfigRuleArtifactsOutput {
   bucketArn: string;
@@ -23,6 +28,7 @@ export interface CreateRuleProps {
   defaultRegion: string;
 }
 
+const configRulesTempDir = tempy.directory();
 export async function createRule(props: CreateRuleProps) {
   const { acceleratorExecutionRoleName, config, accountStacks, accounts, outputs, defaultRegion } = props;
   const awsConfigConf = config['global-options']['aws-config'];
@@ -37,9 +43,24 @@ export async function createRule(props: CreateRuleProps) {
     accountKey: config.getMandatoryAccountKey('master'),
     outputType: 'ConfigRulesArtifactsOutput',
   });
-  
+
   if (configRuleArtifactOutputs.length > 0) {
     configRuleArtifact = configRuleArtifactOutputs[0];
+  }
+
+  const customRules =
+    config['global-options']['aws-config']?.rules
+      .filter(r => r.type === 'custom')
+      .map(r => r['runtime-path'] || r.name.toLowerCase())
+      .map(r => (r.endsWith('.zip') ? r : r + '.zip')) || [];
+  if (configRuleArtifact) {
+    await downloadCustomRules(
+      getAccountId(accounts, config.getMandatoryAccountKey('master'))!,
+      acceleratorExecutionRoleName,
+      customRules,
+      configRuleArtifact.bucketName,
+      configRuleArtifact.keyPrefix,
+    );
   }
 
   for (const [ouKey, ouConfig] of config.getOrganizationalUnits()) {
@@ -106,6 +127,7 @@ export async function createRule(props: CreateRuleProps) {
                 console.error('ConfigRuleArtifact is not found to create Custom ConfigRule');
                 continue;
               }
+              const configRuleRuntime = awsConfigRule['runtime-path'] || awsConfigRule.name.toLowerCase();
               const ruleProps: CustomRuleProps = {
                 roleArn: `arn:${cdk.Aws.PARTITION}:iam::${cdk.Aws.ACCOUNT_ID}:role/${acceleratorExecutionRoleName}`,
                 configRuleName,
@@ -119,10 +141,7 @@ export async function createRule(props: CreateRuleProps) {
                   : undefined,
                 periodic: !!awsConfigRule['max-frequency'],
                 configurationChanges: !!awsConfigRule['resource-types'].length,
-                runtimeS3Bucket: configRuleArtifact.bucketName,
-                runtimeS3Key: `${configRuleArtifact?.keyPrefix}/${
-                  awsConfigRule['runtime-path'] || awsConfigRule.name.toLowerCase()
-                }`,
+                runtimeFileLocation: path.join(configRulesTempDir, configRuleRuntime),
                 lambdaRuntime: awsConfigRule.runtime!,
               };
               configRule = new CustomRule(accountStack, `ConfigRule-${ruleName}`, ruleProps).resource;
@@ -325,4 +344,23 @@ export function getParameterValue(props: {
     return `arn:aws:kms:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:alias/${accountBucket?.encryptionKeyName}`;
   }
   return '';
+}
+
+async function downloadCustomRules(
+  accountId: string,
+  roleName: string,
+  fileNames: string[],
+  bucketName: string,
+  rulePrefix: string,
+) {
+  const sts = new STS();
+  const masterAcctCredentials = await sts.getCredentialsForAccountAndRole(accountId, roleName);
+  const s3 = new S3(masterAcctCredentials);
+  for (const configRuleRuntime of fileNames) {
+    const runtimeFile = await s3.getObjectBody({
+      Bucket: bucketName,
+      Key: `${rulePrefix}/${configRuleRuntime}`,
+    });
+    fs.writeFileSync(path.join(configRulesTempDir, configRuleRuntime), runtimeFile);
+  }
 }

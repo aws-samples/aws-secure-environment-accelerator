@@ -26,6 +26,10 @@ export interface S3CopyFilesProps {
    * The role name that is created for the custom resource Lambda function.
    */
   roleName?: string;
+  /**
+   * Prefix used to filter objects to copy
+   */
+  prefix?: string;
 }
 
 /**
@@ -61,6 +65,7 @@ export class S3CopyFiles extends cdk.Construct {
       destinationBucketName: props.destinationBucket.bucketName,
       deleteSourceObjects,
       deleteSourceBucket,
+      prefix: props.prefix,
     };
 
     const forceUpdate = props.forceUpdate ?? true;
@@ -77,7 +82,24 @@ export class S3CopyFiles extends cdk.Construct {
   }
 
   get role(): iam.IRole {
-    return this.lambdaFunction.role!;
+    const constructName = `${resourceType}Role`;
+    const stack = cdk.Stack.of(this);
+    const existingRole = stack.node.tryFindChild(constructName);
+    if (existingRole) {
+      return existingRole as iam.Role;
+    }
+    const role = new iam.Role(stack, `${resourceType}Role`, {
+      roleName: this.props.roleName,
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
+    return role;
   }
 
   get lambdaFunction(): lambda.Function {
@@ -90,24 +112,11 @@ export class S3CopyFiles extends cdk.Construct {
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-s3-copy-files-runtime');
     const lambdaDir = path.dirname(lambdaPath);
-
-    const role = new iam.Role(stack, 'Role', {
-      roleName: this.props.roleName,
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-        resources: ['*'],
-      }),
-    );
-
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
-      role,
+      role: this.role,
       timeout: cdk.Duration.minutes(15),
     });
   }
