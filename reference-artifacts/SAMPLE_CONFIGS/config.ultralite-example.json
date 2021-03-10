@@ -511,37 +511,35 @@
       }
     ],
     "aws-config": {
-      "managed-rules": {
-        "defaults": {
-          "remediation": false,
-          "remediation-attempts": 5,
-          "remediation-retry-seconds": 60,
-          "remediation-concurrency": 10
-        },
-        "rules": [
-          {
-            "name": "ELB_LOGGING_ENABLED",
-            "remediation-action": "SSM-ELB-Enable-Logging",
-            "remediation": true,
-            "parameters": {
-              "s3BucketNames": "${SEA::LogArchiveAesBucket}"
-            },
-            "remediation-params": {
-              "LoadBalancerArn": "RESOURCE_ID",
-              "LogDestination": "${SEA::LogArchiveAesBucket}"
-            }
+      "defaults": {
+        "remediation": false,
+        "remediation-attempts": 5,
+        "remediation-retry-seconds": 60,
+        "remediation-concurrency": 10
+      },
+      "rules": [
+        {
+          "name": "ELB_LOGGING_ENABLED",
+          "remediation-action": "SSM-ELB-Enable-Logging",
+          "remediation": true,
+          "parameters": {
+            "s3BucketNames": "${SEA::LogArchiveAesBucket}"
           },
-          {
-            "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
-            "remediation-action": "Put-S3-Encryption",
-            "remediation": true,
-            "remediation-params": {
-              "BucketName": "RESOURCE_ID",
-              "KMSMasterKey": "${SEA::S3BucketEncryptionKey}"
-            }
+          "remediation-params": {
+            "LoadBalancerArn": "RESOURCE_ID",
+            "LogDestination": "${SEA::LogArchiveAesBucket}"
           }
-        ]
-      }
+        },
+        {
+          "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",
+          "remediation-action": "Put-S3-Encryption",
+          "remediation": true,
+          "remediation-params": {
+            "BucketName": "RESOURCE_ID",
+            "KMSMasterKey": "${SEA::S3BucketEncryptionKey}"
+          }
+        }
+      ]
     }
   },
   "mandatory-account-configs": {

@@ -509,16 +509,17 @@
       },
       "rules": [
           {
-            "name": "ELB_LOGGING_ENABLED",
-            "remediation-action": "SSM-ELB-Enable-Logging",
-            "remediation": true,
-            "parameters": {
-              "s3BucketNames": "${SEA::LogArchiveAesBucket}"
-            },
+            "name": "EC2-INSTANCE-PROFILE",
+            "type": "custom",
+            "resource-types": [
+              "AWS::EC2::Instance"
+            ],
+            "runtime": "nodejs12.x",
+            "remediation-action": "Attach-IAM-Instance-Profile",
             "remediation-params": {
-              "LoadBalancerArn": "RESOURCE_ID",
-              "LogDestination": "${SEA::LogArchiveAesBucket}"
-            }
+              "IamInstanceProfile": "EC2-Default-SSM-AD-Role-ip",
+              "InstanceId": "RESOURCE_ID"
+            }          
           },
           {
             "name": "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED",

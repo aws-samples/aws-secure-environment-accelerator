@@ -9,7 +9,6 @@ packages:
   - src/lib/common/**
   - src/lib/common-config/**
   - src/lib/cdk-plugin-assume-role/**
-  - src/lib/config-rule-source/**
   - src/lib/custom-resources/**
   - src/lib/cdk-accelerator/**
   - src/lib/cdk-constructs/**
