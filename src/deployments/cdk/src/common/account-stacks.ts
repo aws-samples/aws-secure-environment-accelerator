@@ -5,6 +5,7 @@ import * as cdk from '@aws-cdk/core';
 import { AcceleratorStack, AcceleratorStackProps } from '@aws-accelerator/cdk-accelerator/src/core/accelerator-stack';
 import { Context } from '../utils/context';
 import { Account, getAccountId } from '../utils/accounts';
+import * as iam from '@aws-cdk/aws-iam';
 
 export interface AccountStackProps extends Omit<AcceleratorStackProps, 'env'> {
   accountId: string;
@@ -138,10 +139,10 @@ export class AccountStacks {
         qualifier: acceleratorPrefix.endsWith('-')
           ? acceleratorPrefix.slice(0, -1).toLowerCase()
           : acceleratorPrefix.toLowerCase(),
-        cloudFormationExecutionRole: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
-        deployRoleArn: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
-        fileAssetPublishingRoleArn: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
-        imageAssetPublishingRoleArn: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        cloudFormationExecutionRole: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        deployRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        fileAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        imageAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
         fileAssetsBucketName: `cdk-${
           acceleratorPrefix.endsWith('-')
             ? acceleratorPrefix.slice(0, -1).toLowerCase()
