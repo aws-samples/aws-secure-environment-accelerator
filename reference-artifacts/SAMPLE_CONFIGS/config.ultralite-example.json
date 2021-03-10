@@ -42,9 +42,9 @@
       "macie-frequency": "FIFTEEN_MINUTES"
     },
     "central-operations-services": {
-      "account": "operations",
+      "account": "security",
       "region": "${HOME_REGION}",
-      "cwl": true
+      "cwl": false
     },
     "central-log-services": {
       "account": "log-archive",
@@ -494,7 +494,7 @@
     },
     "ssm-automation": [
       {
-        "accounts": ["operations"],
+        "accounts": ["security"],
         "regions": ["${HOME_REGION}"],
         "documents": [
           {
@@ -545,12 +545,6 @@
     }
   },
   "mandatory-account-configs": {
-    "operations": {
-      "account-name": "Ops",
-      "email": "myemail+aseaT-ops@example.com---------------------REPLACE----------------------",
-      "ou": "core",
-      "src-filename": "config.json"
-    },
     "management": {
       "account-name": "Org-Root",
       "email": "myemail+aseaT-management@example.com---------------------REPLACE----------------------",
@@ -653,7 +647,7 @@
       },
       "ssm-automation": [
         {
-          "account": "operations",
+          "account": "security",
           "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
@@ -701,7 +695,7 @@
       },
       "ssm-automation": [
         {
-          "account": "operations",
+          "account": "security",
           "regions": ["${HOME_REGION}"],
           "documents": ["SSM-ELB-Enable-Logging", "Put-S3-Encryption"]
         }
