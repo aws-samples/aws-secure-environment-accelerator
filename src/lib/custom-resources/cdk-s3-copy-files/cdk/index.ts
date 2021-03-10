@@ -82,13 +82,13 @@ export class S3CopyFiles extends cdk.Construct {
   }
 
   get role(): iam.IRole {
-    const constructName = `${resourceType}Role`;
+    const constructName = 'Role';
     const stack = cdk.Stack.of(this);
     const existingRole = stack.node.tryFindChild(constructName);
     if (existingRole) {
       return existingRole as iam.Role;
     }
-    const role = new iam.Role(stack, `${resourceType}Role`, {
+    const role = new iam.Role(stack, constructName, {
       roleName: this.props.roleName,
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
     });
