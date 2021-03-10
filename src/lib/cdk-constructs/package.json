@@ -61,7 +61,6 @@
     "@aws-accelerator/custom-resource-security-hub-send-invites": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-r53-dns-endpoint-ips": "workspace:^0.0.1",
     "@aws-accelerator/custom-resource-s3-put-bucket-replication": "workspace:^0.0.1",
-    "@aws-accelerator/config-rule-runtime-ec2-instance-profile": "workspace:^0.0.1",
     "hash-sum": "2.0.0",
     "ip-num": "1.2.2",
     "pascal-case": "3.1.1",
