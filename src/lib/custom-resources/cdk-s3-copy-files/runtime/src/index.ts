@@ -10,7 +10,6 @@ export interface HandlerProperties {
   deleteSourceObjects: boolean;
   deleteSourceBucket: boolean;
   forceUpdate?: number;
-  prefix?: string;
 }
 
 const s3 = new AWS.S3();
@@ -34,7 +33,7 @@ export const handler = errorHandler(onEvent);
 
 async function onCreate(event: CloudFormationCustomResourceEvent) {
   const properties = getPropertiesFromEvent(event);
-  const { sourceBucketName, destinationBucketName, deleteSourceObjects, deleteSourceBucket, prefix } = properties;
+  const { sourceBucketName, destinationBucketName, deleteSourceObjects, deleteSourceBucket } = properties;
 
   const exists = await bucketExists(sourceBucketName);
   if (exists) {
@@ -42,7 +41,6 @@ async function onCreate(event: CloudFormationCustomResourceEvent) {
       sourceBucketName: sourceBucketName,
       destinationBucketName: destinationBucketName,
       deleteSourceObjects,
-      prefix,
     });
     if (deleteSourceBucket) {
       console.debug(`Deleting bucket ${sourceBucketName}`);
@@ -84,12 +82,11 @@ async function copyFiles(props: {
   sourceBucketName: string;
   destinationBucketName: string;
   deleteSourceObjects: boolean;
-  prefix?: string;
 }) {
-  const { sourceBucketName, destinationBucketName, deleteSourceObjects, prefix } = props;
+  const { sourceBucketName, destinationBucketName, deleteSourceObjects } = props;
 
   const copyObjectPromises = [];
-  for await (const object of listObjects(sourceBucketName, prefix)) {
+  for await (const object of listObjects(sourceBucketName)) {
     if (object.Key!.endsWith('/')) {
       console.debug(`Skipping directory ${object.Key}`);
       continue;
@@ -108,14 +105,13 @@ async function copyFiles(props: {
   await Promise.all(copyObjectPromises);
 }
 
-async function* listObjects(bucketName: string, prefix?: string): AsyncIterableIterator<AWS.S3.Object> {
+async function* listObjects(bucketName: string): AsyncIterableIterator<AWS.S3.Object> {
   let nextContinuationToken: string | undefined;
   do {
     const listObjects: AWS.S3.ListObjectsV2Output = await throttlingBackOff(() =>
       s3
         .listObjectsV2({
           Bucket: bucketName,
-          Prefix: prefix,
           ContinuationToken: nextContinuationToken,
         })
         .promise(),

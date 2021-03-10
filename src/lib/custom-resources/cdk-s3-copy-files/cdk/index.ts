@@ -26,58 +26,27 @@ export interface S3CopyFilesProps {
    * The role name that is created for the custom resource Lambda function.
    */
   roleName?: string;
-  /**
-   * Prefix used to filter objects to copy
-   */
-  prefix?: string;
 }
 
 /**
  * Custom resource that has an VPN tunnel options attribute for the VPN connection with the given ID.
  */
 export class S3CopyFiles extends cdk.Construct {
-  private role: iam.IRole;
   constructor(scope: cdk.Construct, id: string, private readonly props: S3CopyFilesProps) {
     super(scope, id);
 
-    // Only grant write to the source when we need to delete the source object
-    const deleteSourceObjects = props.deleteSourceObjects ?? false;
-    // Only grant delete bucket when we need to delete the bucket
-    const deleteSourceBucket = props.deleteSourceBucket ?? false;
-
-    const handlerProperties: HandlerProperties = {
-      sourceBucketName: props.sourceBucket.bucketName,
-      destinationBucketName: props.destinationBucket.bucketName,
-      deleteSourceObjects,
-      deleteSourceBucket,
-      prefix: props.prefix,
-    };
-
-    const forceUpdate = props.forceUpdate ?? true;
-    if (forceUpdate) {
-      // Add a dummy value that is a random number to update the resource every time
-      handlerProperties.forceUpdate = Math.round(Math.random() * 1000000);
-    }
-
-    this.role = new iam.Role(this, `Role`, {
-      roleName: this.props.roleName,
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
-
-    new cdk.CustomResource(this, 'Resource', {
-      resourceType,
-      serviceToken: this.lambdaFunction.functionArn,
-      properties: handlerProperties,
-    });
-
     props.destinationBucket.grantReadWrite(this.role);
 
+    // Only grant write to the source when we need to delete the source object
+    const deleteSourceObjects = props.deleteSourceObjects ?? false;
     if (deleteSourceObjects) {
       props.sourceBucket.grantReadWrite(this.role);
     } else {
       props.sourceBucket.grantRead(this.role);
     }
 
+    // Only grant delete bucket when we need to delete the bucket
+    const deleteSourceBucket = props.deleteSourceBucket ?? false;
     if (deleteSourceBucket) {
       iam.Grant.addToPrincipalOrResource({
         grantee: this.role,
@@ -86,6 +55,29 @@ export class S3CopyFiles extends cdk.Construct {
         resource: props.sourceBucket,
       });
     }
+
+    const handlerProperties: HandlerProperties = {
+      sourceBucketName: props.sourceBucket.bucketName,
+      destinationBucketName: props.destinationBucket.bucketName,
+      deleteSourceObjects,
+      deleteSourceBucket,
+    };
+
+    const forceUpdate = props.forceUpdate ?? true;
+    if (forceUpdate) {
+      // Add a dummy value that is a random number to update the resource every time
+      handlerProperties.forceUpdate = Math.round(Math.random() * 1000000);
+    }
+
+    new cdk.CustomResource(this, 'Resource', {
+      resourceType,
+      serviceToken: this.lambdaFunction.functionArn,
+      properties: handlerProperties,
+    });
+  }
+
+  get role(): iam.IRole {
+    return this.lambdaFunction.role!;
   }
 
   get lambdaFunction(): lambda.Function {
@@ -98,11 +90,24 @@ export class S3CopyFiles extends cdk.Construct {
 
     const lambdaPath = require.resolve('@aws-accelerator/custom-resource-s3-copy-files-runtime');
     const lambdaDir = path.dirname(lambdaPath);
+
+    const role = new iam.Role(stack, 'Role', {
+      roleName: this.props.roleName,
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
+    role.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
+        resources: ['*'],
+      }),
+    );
+
     return new lambda.Function(stack, constructName, {
       runtime: lambda.Runtime.NODEJS_12_X,
       code: lambda.Code.fromAsset(lambdaDir),
       handler: 'index.handler',
-      role: this.role,
+      role,
       timeout: cdk.Duration.minutes(15),
     });
   }

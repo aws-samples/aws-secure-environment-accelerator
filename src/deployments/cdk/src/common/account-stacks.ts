@@ -125,54 +125,46 @@ export class AccountStacks {
     const terminationProtection = process.env.CONFIG_MODE === 'development' ? false : true;
     const acceleratorPrefix = this.props.context.acceleratorPrefix;
     const outDir = this.props.useTempOutputDir ? tempy.directory() : undefined;
-    let stackProps: AccountStackProps;
+    let synthesizer: cdk.DefaultStackSynthesizer;
     if (regionOrDefault === this.props.context.defaultRegion && accountId === masterAccountId) {
-      stackProps = {
-        accountId,
-        accountKey,
-        stackName,
-        acceleratorName: this.props.context.acceleratorName,
-        acceleratorPrefix,
-        terminationProtection,
-        region: regionOrDefault,
-        suffix,
-        inScope,
-      };
+      synthesizer = new cdk.DefaultStackSynthesizer({
+        generateBootstrapVersionRule: false,
+      });
     } else {
-      stackProps = {
-        accountId,
-        accountKey,
-        stackName,
-        acceleratorName: this.props.context.acceleratorName,
-        acceleratorPrefix,
-        terminationProtection,
-        region: regionOrDefault,
-        suffix,
-        inScope,
-        // Passing DefaultStackSynthesizer object to pass "Central-Operations" account S3 bucket,
-        // Can be removed once we get support for bucketPrefix and Qualifier from bootstrap stack
-        synthesizer: new cdk.DefaultStackSynthesizer({
-          bucketPrefix: `${accountId}/`,
-          qualifier: acceleratorPrefix.endsWith('-')
+      // Passing DefaultStackSynthesizer object to pass "Central-Operations" account S3 bucket,
+      // Can be removed once we get support for bucketPrefix and Qualifier from bootstrap stack
+      synthesizer = new cdk.DefaultStackSynthesizer({
+        bucketPrefix: `${accountId}/`,
+        qualifier: acceleratorPrefix.endsWith('-')
+          ? acceleratorPrefix.slice(0, -1).toLowerCase()
+          : acceleratorPrefix.toLowerCase(),
+        cloudFormationExecutionRole: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        deployRoleArn: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        fileAssetPublishingRoleArn: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        imageAssetPublishingRoleArn: `arn:${cdk.Aws.PARTITION}:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
+        fileAssetsBucketName: `cdk-${
+          acceleratorPrefix.endsWith('-')
             ? acceleratorPrefix.slice(0, -1).toLowerCase()
-            : acceleratorPrefix.toLowerCase(),
-          cloudFormationExecutionRole: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
-          deployRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
-          fileAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
-          imageAssetPublishingRoleArn: `arn:aws:iam::${accountId}:role/${this.props.context.acceleratorExecutionRoleName}`,
-          fileAssetsBucketName: `cdk-${
-            acceleratorPrefix.endsWith('-')
-              ? acceleratorPrefix.slice(0, -1).toLowerCase()
-              : acceleratorPrefix.toLowerCase()
-          }-assets-${operationsAccountId}-${regionOrDefault}`,
-          generateBootstrapVersionRule: false,
-        }),
-      };
+            : acceleratorPrefix.toLowerCase()
+        }-assets-${operationsAccountId}-${regionOrDefault}`,
+        generateBootstrapVersionRule: false,
+      });
     }
 
     const app = new AccountApp(stackLogicalId, {
       outDir,
-      stackProps,
+      stackProps: {
+        accountId,
+        accountKey,
+        stackName,
+        acceleratorName: this.props.context.acceleratorName,
+        acceleratorPrefix,
+        terminationProtection,
+        region: regionOrDefault,
+        suffix,
+        inScope,
+        synthesizer,
+      },
     });
     this.apps.push(app);
     return app.stack;
