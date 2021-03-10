@@ -36,29 +36,14 @@ export interface S3CopyFilesProps {
  * Custom resource that has an VPN tunnel options attribute for the VPN connection with the given ID.
  */
 export class S3CopyFiles extends cdk.Construct {
+  private role: iam.IRole;
   constructor(scope: cdk.Construct, id: string, private readonly props: S3CopyFilesProps) {
     super(scope, id);
 
-    props.destinationBucket.grantReadWrite(this.role);
-
     // Only grant write to the source when we need to delete the source object
     const deleteSourceObjects = props.deleteSourceObjects ?? false;
-    if (deleteSourceObjects) {
-      props.sourceBucket.grantReadWrite(this.role);
-    } else {
-      props.sourceBucket.grantRead(this.role);
-    }
-
     // Only grant delete bucket when we need to delete the bucket
     const deleteSourceBucket = props.deleteSourceBucket ?? false;
-    if (deleteSourceBucket) {
-      iam.Grant.addToPrincipalOrResource({
-        grantee: this.role,
-        actions: ['s3:DeleteBucket'],
-        resourceArns: [props.sourceBucket.bucketArn],
-        resource: props.sourceBucket,
-      });
-    }
 
     const handlerProperties: HandlerProperties = {
       sourceBucketName: props.sourceBucket.bucketName,
@@ -74,32 +59,33 @@ export class S3CopyFiles extends cdk.Construct {
       handlerProperties.forceUpdate = Math.round(Math.random() * 1000000);
     }
 
+    this.role = new iam.Role(this, `Role`, {
+      roleName: this.props.roleName,
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+    });
+
     new cdk.CustomResource(this, 'Resource', {
       resourceType,
       serviceToken: this.lambdaFunction.functionArn,
       properties: handlerProperties,
     });
-  }
 
-  get role(): iam.IRole {
-    const constructName = 'Role';
-    const stack = cdk.Stack.of(this);
-    const existingRole = stack.node.tryFindChild(constructName);
-    if (existingRole) {
-      return existingRole as iam.Role;
+    props.destinationBucket.grantReadWrite(this.role);
+
+    if (deleteSourceObjects) {
+      props.sourceBucket.grantReadWrite(this.role);
+    } else {
+      props.sourceBucket.grantRead(this.role);
     }
-    const role = new iam.Role(stack, constructName, {
-      roleName: this.props.roleName,
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    });
 
-    role.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ['kms:Decrypt', 'logs:CreateLogGroup', 'logs:CreateLogStream', 'logs:PutLogEvents'],
-        resources: ['*'],
-      }),
-    );
-    return role;
+    if (deleteSourceBucket) {
+      iam.Grant.addToPrincipalOrResource({
+        grantee: this.role,
+        actions: ['s3:DeleteBucket'],
+        resourceArns: [props.sourceBucket.bucketArn],
+        resource: props.sourceBucket,
+      });
+    }
   }
 
   get lambdaFunction(): lambda.Function {
